@@ -19,7 +19,6 @@ package cz.incad.pas.editor.client.widget.mods;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
@@ -33,6 +32,7 @@ import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
 import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.form.validator.IntegerRangeValidator;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
 import java.util.Map;
 import java.util.logging.Logger;
 
