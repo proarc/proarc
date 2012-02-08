@@ -1,0 +1,10 @@
+{
+"item":[
+    {"pid":"uuid:drobnustky", "model":"model:monograph", "displayName":"Drobnůstky", "root":"uuid:drobnustky"},
+    {"pid":"uuid:lidovky", "model":"model:periodical", "displayName":"Lidové noviny", "root":"uuid:lidovky"},
+    {"pid":"uuid:lidovky-rocnik-1", "model":"model:volume", "displayName":"Lidové noviny - ročník 1", "parent":"uuid:lidovky", "root":"uuid:lidovky"},
+    {"pid":"uuid:lidovky-cislo-1", "model":"model:issue", "displayName":"Lidové noviny - ročník 1 - číslo 1", "parent":"uuid:lidovky-rocnik-1", "root":"uuid:lidovky"},
+    {"pid":"uuid:lidovky-rocnik-2", "model":"model:volume", "displayName":"Lidové noviny - ročník 2", "parent":"uuid:lidovky", "root":"uuid:lidovky"},
+    {"pid":"uuid:lidovky-rocnik-3", "model":"model:volume", "displayName":"Lidové noviny - ročník 3", "parent":"uuid:lidovky", "root":"uuid:lidovky"}
+]
+}

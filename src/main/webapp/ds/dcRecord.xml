@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<dcr:dcRecord xmlns:dcr="http://fix/dcRecord/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+    <oai_dc:dc>
+        <dc:title>Drobnůstky</dc:title>
+        <dc:title xml:lang="cs">Drobnůstky CS</dc:title>
+        <dc:creator>Doucha František</dc:creator>
+        <dc:publisher>Mikoláš Lehmann</dc:publisher>
+        <dc:identifier>uuid:0eaa6730-9068-11dd-97de-000d606f5dc6</dc:identifier>
+        <dc:identifier>contract:4011400001.djvu</dc:identifier>
+        <dc:subject>ddc:neuvedeno</dc:subject>
+        <dc:subject>udc:821-93</dc:subject>
+        <dc:subject>ddc:neuvedeno</dc:subject>
+        <dc:subject>udc:821.162.3-1</dc:subject>
+        <dc:date>1862</dc:date>
+        <dc:language>cze</dc:language>
+        <dc:type>model:monograph</dc:type>
+        <dc:rights>policy:private</dc:rights>
+    </oai_dc:dc>
+    <dcr:timestamp>1321966727239</dcr:timestamp>
+    <dcr:pid>uuid:123</dcr:pid>
+</dcr:dcRecord>

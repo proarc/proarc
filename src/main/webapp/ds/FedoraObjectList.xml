@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DataSource ID="FedoraObjectList">
+    <fields>
+        <field name="pid" type="text" title="PID" />
+        <field name="created" type="text" title="PID" />
+        <field name="type" type="text" title="SKU">
+            <validators>
+                <validator type="integerRange" . />
+            </validators>
+        </field>
+    </fields>
+</DataSource>

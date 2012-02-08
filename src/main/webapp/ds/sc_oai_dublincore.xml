@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="sc_oai_dublincore.xsd">
+<!--    <title>
+        <content>Title 1</content>
+        <language>cs</language>
+    </title>
+    <title>
+        <content>Title 2</content>
+    </title>-->
+
+    <identifier>
+            <content>uuid:3</content>
+    </identifier>
+    
+</dc>

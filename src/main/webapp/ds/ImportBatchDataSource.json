@@ -1,0 +1,5 @@
+{
+    "batch":[
+        {"id":1, "folderPath":"path/to/first_import", "timeStamp":"2010-05-20T15:50:48", "userId":"1", "user":"Datel Urputný", "state":"false"}
+    ]
+}

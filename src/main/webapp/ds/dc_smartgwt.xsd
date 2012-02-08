@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://www.openarchives.org/OAI/2.0/oai_dc/"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+        elementFormDefault="qualified"
+        attributeFormDefault="unqualified"
+        >
+
+    <xs:simpleType name="ElementType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1"></xs:minLength>
+            <xs:maxLength value="2000"></xs:maxLength>
+            <xs:whiteSpace value="collapse"></xs:whiteSpace>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="DCType">
+        <xs:sequence>
+            <xs:element name="title" type="ElementType" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="creator" type="ElementType" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="dc" type="DCType"></xs:element>
+</xs:schema>
