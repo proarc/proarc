@@ -41,7 +41,8 @@ import java.util.logging.Logger;
 public final class ClientUtils {
 
     /**
-     * simplified version of {@link String#format(java.lang.String, java.lang.Object[]) String.format}
+     * Simplified version of {@link String#format(java.lang.String, java.lang.Object[]) String.format}
+     * For now it supports only {@code %s} format specifier.
      */
     public static String format(String format, Object... args) {
         RegExp re = RegExp.compile("%s");
@@ -53,6 +54,37 @@ public final class ClientUtils {
             sb.append(split.get(i));
         }
         return sb.toString();
+    }
+
+    /**
+     * Logs a formatted message.
+     * @param logger logger
+     * @param level logging level
+     * @param format see {@link #format(java.lang.String, java.lang.Object[]) format} doc
+     * @param args arguments referenced by the format specifiers
+     */
+    public static void log(Logger logger, Level level, String format, Object... args) {
+        logger.log(level, format(format, args));
+    }
+
+    /** Info {@link #log(java.util.logging.Logger, java.util.logging.Level, java.lang.String, java.lang.Object[]) log}. */
+    public static void info(Logger logger, String format, Object... args) {
+        log(logger, Level.INFO, format, args);
+    }
+
+    /** Fine {@link #log(java.util.logging.Logger, java.util.logging.Level, java.lang.String, java.lang.Object[]) log}. */
+    public static void fine(Logger logger, String format, Object... args) {
+        log(logger, Level.FINE, format, args);
+    }
+
+    /** Severe {@link #log(java.util.logging.Logger, java.util.logging.Level, java.lang.String, java.lang.Object[]) log}. */
+    public static void severe(Logger logger, String format, Object... args) {
+        log(logger, Level.SEVERE, format, args);
+    }
+
+    /** Warning {@link #log(java.util.logging.Logger, java.util.logging.Level, java.lang.String, java.lang.Object[]) log}. */
+    public static void warning(Logger logger, String format, Object... args) {
+        log(logger, Level.WARNING, format, args);
     }
 
     /**
@@ -156,7 +188,9 @@ public final class ClientUtils {
         return sb;
     }
 
-    public static String dump(JavaScriptObject jso) {
+//    public static String dump(JavaScriptObject jso) {
+    /** dumps object in JSON */
+    public static String dump(Object jso) {
         return (jso == null) ? String.valueOf(jso) : new JSONEncoder().encode(jso);
     }
 
