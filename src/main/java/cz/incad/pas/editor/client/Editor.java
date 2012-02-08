@@ -3,6 +3,7 @@ package cz.incad.pas.editor.client;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.i18n.client.Dictionary;
+import com.google.gwt.user.client.Window;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.Button;
@@ -254,6 +255,27 @@ public class Editor implements EntryPoint {
                 Logger.getLogger("").log(Level.SEVERE,
                         ClientUtils.format("logger: '%s', levelValue: %s", loggerName, levelValue), ex);
             }
+        }
+
+        if (GWT.isProdMode()) {
+            // XXX SmartGWT 3.0 ignores thrown exceptions in production mode.
+            // Javascript stack traces are useless but messages can be valuable
+            GWT.setUncaughtExceptionHandler(new GWT.UncaughtExceptionHandler() {
+
+                @Override
+                public void onUncaughtException(Throwable e) {
+                    StringBuilder sb = new StringBuilder();
+                    for (Throwable t = e; t != null; t = t.getCause()) {
+                        sb.append("* ").append(t.getClass().getName()).append(": ")
+                                .append(t.getLocalizedMessage()).append("\n");
+                        for (StackTraceElement elm : t.getStackTrace()) {
+                            sb.append("  ").append(elm.toString()).append("\n");
+                        }
+                    }
+
+                    Window.alert(sb.toString());
+                }
+            });
         }
     }
 }
