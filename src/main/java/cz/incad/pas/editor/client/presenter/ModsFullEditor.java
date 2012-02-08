@@ -38,12 +38,10 @@ import com.smartgwt.client.widgets.tab.events.TabSelectedHandler;
 import cz.fi.muni.xkremser.editor.client.mods.ModsCollectionClient;
 import cz.fi.muni.xkremser.editor.client.mods.ModsTypeClient;
 import cz.fi.muni.xkremser.editor.client.view.ModsTab;
-import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.ds.mods.PageDataSource;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
 import cz.incad.pas.editor.client.widget.mods.ModsPage;
-import cz.incad.pas.editor.client.widget.mods.PageDataSource;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**

@@ -19,6 +19,7 @@ package cz.incad.pas.editor.client.widget.mods;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
+import cz.incad.pas.editor.client.ds.mods.PageDataSource;
 import java.util.logging.Logger;
 
 /**

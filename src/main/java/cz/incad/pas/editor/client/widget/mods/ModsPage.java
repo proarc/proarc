@@ -33,6 +33,7 @@ import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.form.validator.IntegerRangeValidator;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
+import cz.incad.pas.editor.client.ds.mods.PageDataSource;
 import java.util.Map;
 import java.util.logging.Logger;
 
