@@ -42,6 +42,7 @@ public final class IdentifierDataSource extends DataSource {
     public static final String FIELD_OBJECT = "IdentifierTypeClient";
 
     public IdentifierDataSource() {
+        setID(ID);
         DataSourceField type = new DataSourceField(FIELD_TYPE, FieldType.TEXT, "Type");
 
         ComboBoxItem typeEditor = new ComboBoxItem(IdentifierDataSource.FIELD_TYPE);
