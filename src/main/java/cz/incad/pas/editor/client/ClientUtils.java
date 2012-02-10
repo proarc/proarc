@@ -16,7 +16,6 @@
  */
 package cz.incad.pas.editor.client;
 
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.dom.client.NodeList;
@@ -39,6 +38,8 @@ import java.util.logging.Logger;
  * @author Jan Pokorsky
  */
 public final class ClientUtils {
+
+    private static final Logger LOG = Logger.getLogger(ClientUtils.class.getName());
 
     /**
      * Simplified version of {@link String#format(java.lang.String, java.lang.Object[]) String.format}
@@ -188,10 +189,21 @@ public final class ClientUtils {
         return sb;
     }
 
-//    public static String dump(JavaScriptObject jso) {
     /** dumps object in JSON */
     public static String dump(Object jso) {
-        return (jso == null) ? String.valueOf(jso) : new JSONEncoder().encode(jso);
+        String dump;
+        if (jso != null) {
+            try {
+                dump = new JSONEncoder().encode(jso);
+            } catch (Exception ex) {
+                // this occurs in development mode sometimes; log it silently
+                dump = String.valueOf(jso);
+                LOG.log(Level.SEVERE, dump, ex);
+            }
+        } else {
+            dump = String.valueOf(jso);
+        }
+        return dump;
     }
 
     /**
