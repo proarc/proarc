@@ -23,6 +23,7 @@ import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import cz.fi.muni.xkremser.editor.client.mods.IdentifierTypeClient;
+import cz.incad.pas.editor.client.ClientUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -79,7 +80,7 @@ public final class IdentifierDataSource extends DataSource {
     }
 
     public static List<IdentifierTypeClient> convert(Record[] records) {
-        LOG.info("IdentifierDataSource.convert.records: " + records);
+        ClientUtils.info(LOG, "convert.records: %s", records);
         if (records == null || records.length == 0) {
             return null;
         }
@@ -94,7 +95,7 @@ public final class IdentifierDataSource extends DataSource {
             identifier.setType(type);
             identifier.setValue(value);
             identifiers.add(identifier);
-            LOG.info("IdentifierDataSource.convert.records.identifier: type: " + type + ", value: " + value);
+            ClientUtils.info(LOG, "IdentifierDataSource.convert.records.identifier: type: %s, value: %s", type, value);
         }
         return identifiers.isEmpty() ? null : identifiers;
     }
