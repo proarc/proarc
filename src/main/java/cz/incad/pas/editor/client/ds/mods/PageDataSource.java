@@ -115,6 +115,10 @@ public final class PageDataSource extends DataSource {
     // periodical volume
     public static final String FIELD_PER_VOLUME_NUMBER = "periodicalVolumeNumber";
     public static final String FIELD_PER_VOLUME_YEAR = "periodicalVolumeYear";
+    // periodical issue
+    public static final String FIELD_PER_ISSUE_NUMBER = "PeriodicalItemNumber";
+    public static final String FIELD_PER_ISSUE_NUMBER_SORTING = "PeriodicalItemNumberSorting";
+    public static final String FIELD_PER_ISSUE_DATE = "periodicalItemDate";
 
     public PageDataSource() {
         setID(ID);
@@ -284,6 +288,8 @@ public final class PageDataSource extends DataSource {
             record = convertPeriodical(pid, modsCollection);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL_VOLUME.equals(modelEditor)) {
             record = convertPeriodicalVolume(pid, modsCollection);
+        } else if (MetaModelDataSource.EDITOR_PERIODICAL_ISSUE.equals(modelEditor)) {
+            record = convertPeriodicalIssue(pid, modsCollection);
         } else {
             record = createModsRecord(pid, modsCollection);
         }
@@ -295,6 +301,51 @@ public final class PageDataSource extends DataSource {
         record.setAttribute(FIELD_PID, pid);
         record.setAttribute(FIELD_MODS_OBJECT, modsCollection);
         return record;
+    }
+
+    public Record convertPeriodicalIssue(String pid, ModsCollectionClient modsCollection) {
+        Record record = createModsRecord(pid, modsCollection);
+        List<ModsTypeClient> modsTypes = modsCollection.getMods();
+        if (modsTypes != null && !modsTypes.isEmpty()) {
+            ModsTypeClient mods = modsTypes.get(0);
+            record.setAttribute(FIELD_IDENTIFIERS, IdentifierDataSource.convert(mods.getIdentifier()));
+            fetchPeriodicalIssuePart(mods.getPart(), record);
+        }
+        return record;
+    }
+
+    /**
+     * reads issue date, issue number, issue sorting number and note
+     */
+    private void fetchPeriodicalIssuePart(List<PartTypeClient> parts, Record record) {
+        if (parts != null && !parts.isEmpty()) {
+            PartTypeClient part = parts.get(0);
+            List<BaseDateTypeClient> dates = part.getDate();
+            if (dates != null && !dates.isEmpty()) {
+                BaseDateTypeClient date = dates.get(0);
+                date.getValue();
+                record.setAttribute(FIELD_PER_ISSUE_DATE, date.getValue());
+            }
+
+            List<String> notes = part.getText();
+            if (notes != null && ! notes.isEmpty()) {
+                record.setAttribute(FIELD_NOTE, notes.get(0));
+            }
+
+            List<DetailTypeClient> details = nonNullList(part.getDetail());
+            for (DetailTypeClient detail : details) {
+                if ("issue".equals(detail.getType())) {
+                    List<String> numbers = detail.getNumber();
+                    if (numbers != null && !numbers.isEmpty()) {
+                        record.setAttribute(FIELD_PER_ISSUE_NUMBER, numbers.get(0));
+                    }
+                    List<String> captions = detail.getCaption();
+                    if (captions != null && !captions.isEmpty()) {
+                        record.setAttribute(FIELD_PER_ISSUE_NUMBER_SORTING, numbers.get(0));
+                    }
+                }
+            }
+        }
     }
 
     public Record convertPeriodicalVolume(String pid, ModsCollectionClient modsCollection) {
