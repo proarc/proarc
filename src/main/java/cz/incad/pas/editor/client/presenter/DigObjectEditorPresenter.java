@@ -16,27 +16,30 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
-import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.types.OperatorId;
+import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.layout.VLayout;
+import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.widget.DCEditor;
 import cz.incad.pas.editor.client.widget.ImportParentChooser;
 import cz.incad.pas.editor.client.widget.ImportParentChooser.ImportParentHandler;
+import cz.incad.pas.editor.client.widget.NewDigObject;
 import cz.incad.pas.editor.client.widget.Wizard;
 import cz.incad.pas.editor.client.widget.Wizard.StepKind;
 import cz.incad.pas.editor.client.widget.Wizard.WizardStep;
-import cz.incad.pas.editor.client.widget.NewDigObject;
-import cz.incad.pas.editor.client.widget.mods.RepeatableForm;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Jan Pokorsky
  */
 public final class DigObjectEditorPresenter {
+
+    private static final Logger LOG = Logger.getLogger(DigObjectEditorPresenter.class.getName());
 
     private final NewDigObjectStep newDigObjectStep;
     private final NewModsStep newModsStep;
@@ -86,7 +89,7 @@ public final class DigObjectEditorPresenter {
 
     private static final class WizardContext {
         private String pid;
-        private String model;
+        private Record model;
         private String parentPid;
         private boolean modsInitialized;
         private boolean dcInitialized;
@@ -99,11 +102,11 @@ public final class DigObjectEditorPresenter {
             this.dcInitialized = dcInitialized;
         }
 
-        public String getModel() {
+        public Record getModel() {
             return model;
         }
 
-        public void setModel(String model) {
+        public void setModel(Record model) {
             this.model = model;
         }
 
@@ -144,7 +147,7 @@ public final class DigObjectEditorPresenter {
             initContext();
             wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel("select type of the newly created object");
+            wizard.setWizardLabel("New Object","select type of the newly created object");
             newDigObject.bind(null);
 //            newDigObject.bind(new AdvancedCriteria("issn", OperatorId.ICONTAINS, "my issn"));
         }
@@ -158,8 +161,10 @@ public final class DigObjectEditorPresenter {
         public boolean onStepAction(Wizard wizard, StepKind step) {
             if (step == StepKind.FORWARD) {
                 WizardContext wc = getContext();
-                wc.setModel("XXX");
-                wc.setPid("XXX");
+                wc.setModel(newDigObject.getModel());
+                wc.setPid("id:sample");
+                ClientUtils.info(LOG, "NewDigObjectStep.onStepAction.FORWARD: model: %s pid: %s",
+                        wc.getModel().toMap(), wc.getPid());
             }
             return true;
         }
@@ -187,12 +192,14 @@ public final class DigObjectEditorPresenter {
             this.wizard = wizard;
             wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel("fill MODS metadata");
+            wizard.setWizardLabel("New Object", "fill MODS metadata");
 
             WizardContext wc = getContext();
             if (!wc.isModsInitialized()) {
 //                modsFullEditor.newData();
-                modsFullEditor.loadData("id:sample");
+//                modsFullEditor.loadData("id:sample", "model:page");
+//                String model = wc.getModel().getAttribute(MetaModelDataSource.FIELD_PID);
+                modsFullEditor.loadData(wc.getPid(), new MetaModelRecord(wc.getModel()));
                 wc.setModsInitialized(true);
             }
         }
@@ -228,7 +235,7 @@ public final class DigObjectEditorPresenter {
             this.wizard = wizard;
 //            wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel("fill Dublin Core metadata");
+            wizard.setWizardLabel("New Object", "fill Dublin Core metadata");
 
             WizardContext wc = getContext();
             if (!wc.isDcInitialized()) {
@@ -267,7 +274,7 @@ public final class DigObjectEditorPresenter {
             this.wizard = wizard;
 //            wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel("select parent digital object that will reference the newly created object.");
+            wizard.setWizardLabel("New Object", "select parent digital object that will reference the newly created object.");
 
             editor.setHandler(this);
             if (getContext().getParentPid() == null) {
@@ -332,7 +339,7 @@ public final class DigObjectEditorPresenter {
         public void onShow(Wizard wizard) {
             wizard.setBackButton(true, "Create New Object");
             wizard.setForwardButton(true, "Open in Editor");
-            wizard.setWizardLabel("done");
+            wizard.setWizardLabel("New Object", "done");
         }
 
         @Override

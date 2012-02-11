@@ -28,14 +28,18 @@ import com.smartgwt.client.types.VisibilityMode;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.FilterBuilder;
+import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
+import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.layout.SectionStack;
 import com.smartgwt.client.widgets.layout.SectionStackSection;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.DataSourceFieldBuilder;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Widget to select type of a newly created digital object.
@@ -44,14 +48,17 @@ import cz.incad.pas.editor.client.ds.MetaModelDataSource;
  */
 public final class NewDigObject extends VLayout {
 
+    private static final Logger LOG = Logger.getLogger(NewDigObject.class.getName());
+
     private FilterBuilder filter;
     private final SectionStack sections;
+    private final DynamicForm optionsForm;
 
     public NewDigObject() {
         setHeight100();
         setWidth100();
 
-        DynamicForm optionsForm = createOptionsForm();
+        optionsForm = createOptionsForm();
 
         SectionStackSection sectionMain = new SectionStackSection("Options");
         sectionMain.setExpanded(true);
@@ -82,8 +89,16 @@ public final class NewDigObject extends VLayout {
 
     }
 
+    public Record getModel() {
+        FormItem field = optionsForm.getField(MetaModelDataSource.FIELD_PID);
+        ListGridRecord selectedRecord = field.getSelectedRecord();
+        Map values = selectedRecord.toMap();
+        ClientUtils.info(LOG, "getModel: %s", values);
+        return selectedRecord;
+    }
+
     private DynamicForm createOptionsForm() {
-        SelectItem selectModel = new SelectItem("model", "Select type");
+        SelectItem selectModel = new SelectItem(MetaModelDataSource.FIELD_PID, "Select type");
         selectModel.setRequired(true);
         selectModel.setDefaultToFirstOption(true);
         selectModel.setOptionDataSource(MetaModelDataSource.getInstance());
@@ -91,9 +106,9 @@ public final class NewDigObject extends VLayout {
         selectModel.setValueField(MetaModelDataSource.FIELD_PID);
         selectModel.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
         selectModel.setAutoFetchData(true);
-        DynamicForm optionsForm = new DynamicForm();
-        optionsForm.setFields(selectModel);
-        return optionsForm;
+        DynamicForm form = new DynamicForm();
+        form.setFields(selectModel);
+        return form;
     }
 
     private Canvas createAdvancedOptions() {

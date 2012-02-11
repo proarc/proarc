@@ -79,9 +79,9 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
 
     @Override
     public ModsCollectionClient read(String id) {
-        if (true) {
-            throw new IllegalArgumentException("Invalid id: " + id);
-        }
+//        if (true) {
+//            throw new IllegalArgumentException("Invalid id: " + id);
+//        }
         ModsCollection mods;
         synchronized (STORAGE) {
             mods = STORAGE.get(id);

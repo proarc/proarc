@@ -29,15 +29,35 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
 import com.smartgwt.client.types.FieldType;
+import cz.fi.muni.xkremser.editor.client.mods.ClassificationTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.CodeOrTextClient;
+import cz.fi.muni.xkremser.editor.client.mods.DateTypeClient;
 import cz.fi.muni.xkremser.editor.client.mods.DetailTypeClient;
 import cz.fi.muni.xkremser.editor.client.mods.IdentifierTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.LanguageTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.LocationTypeClient;
 import cz.fi.muni.xkremser.editor.client.mods.ModsCollectionClient;
 import cz.fi.muni.xkremser.editor.client.mods.ModsTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.NamePartTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.NameTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.OriginInfoTypeClient;
 import cz.fi.muni.xkremser.editor.client.mods.PartTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.PhysicalDescriptionTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.PhysicalLocationTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.PlaceTermTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.PlaceTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.RecordInfoTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.RoleTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.RoleTypeClient.RoleTermClient;
+import cz.fi.muni.xkremser.editor.client.mods.StringPlusAuthorityClient;
+import cz.fi.muni.xkremser.editor.client.mods.SubjectTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.TitleInfoTypeClient;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.DataSourceFieldBuilder;
+import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -57,14 +77,40 @@ public final class PageDataSource extends DataSource {
     private static final Logger LOG = Logger.getLogger(PageDataSource.class.getName());
     public static final String ID = "PageDataSource";
     public static final String FIELD_PID = "pid";
+    public static final String FIELD_MODEL_PID = "model";
     /** original object */
     public static final String FIELD_MODS_OBJECT = "ModsCollectionClient";
+    private static final String FIELD_NAME_OBJECT = "NameTypeClient";
     public static final String FIELD_PAGE_TYPE = "pageType";
     public static final String FIELD_PAGE_INDEX = "pageIndex";
     public static final String FIELD_PAGE_NUMBER = "pageNumber";
     public static final String FIELD_IDENTIFIERS = "identifiers";
     public static final String FIELD_NOTE = "note";
     public static final String FIELD_XML_SRC = "xmlSource";
+    //periodical
+    public static final String FIELD_PERIODICITY = "periodicity";
+    public static final String FIELD_PERIODICITY_VALUE = "periodicityValue";
+    public static final String FIELD_SIGLA = "sigla";
+    public static final String FIELD_SHELF_LOCATORS = "shelfLocators";
+    public static final String FIELD_AUTHORS = "authors";
+    public static final String FIELD_CONTRIBUTORS = "contributors";
+    public static final String FIELD_PUBLISHERS = "publishers";
+    public static final String FIELD_PRINTER_PUBLISHER_NAME = "publisherName";
+    public static final String FIELD_PRINTER_PUBLISHER_DATE = "publisherDate";
+    public static final String FIELD_PRINTER_PUBLISHER_PLACE = "publisherPlace";
+    public static final String FIELD_PRINTERS = "printers";
+    public static final String FIELD_TITLES = "titles";
+    public static final String FIELD_SUBTITLES = "subtitles";
+    public static final String FIELD_ALTERNATIVE_TITLES = "alternativeTitles";
+    public static final String FIELD_KEY_TITLES = "keyTitles";
+    public static final String FIELD_LANGUAGES = "languages";
+    public static final String FIELD_CLASSIFICATIONS = "classifications";
+    public static final String FIELD_CLASSIFICATION_UDC = "classificationsUDC";
+    public static final String FIELD_CLASSIFICATION_DDC = "classificationsDDC";
+    public static final String FIELD_PHYSICAL_DESCRIPTIONS = "physicalDescriptions";
+    public static final String FIELD_PHYSICAL_DESCRIPTIONS_EXTENT = "physicalDescriptionsExtent";
+    public static final String FIELD_PHYSICAL_DESCRIPTIONS_SIZE = "physicalDescriptionsSize";
+    public static final String FIELD_RECORD_ORIGIN = "recordOrigin";
 
     public PageDataSource() {
         setID(ID);
@@ -140,16 +186,20 @@ public final class PageDataSource extends DataSource {
         ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
         final DSResponse dsResponse = new DSResponse();
         final String pid = dsRequest.getCriteria().getAttribute(FIELD_PID);
+        final String modelEditor = dsRequest.getCriteria().getAttribute(MetaModelDataSource.FIELD_EDITOR);
         if (pid == null || pid.isEmpty()) {
+            ClientUtils.severe(LOG, "missing pid");
             dsResponse.setStatus(RPCResponse.STATUS_VALIDATION_ERROR);
             dsResponse.getErrors().put(FIELD_PID, "Missing pid");
             processResponse(dsRequest.getRequestId(), dsResponse);
             return ;
         }
+        ClientUtils.info(LOG, "ModsGwtServiceAsync.read: pid: %s, model editor: %s", pid, modelEditor);
         service.read(pid, new AsyncCallback<ModsCollectionClient>() {
 
             @Override
             public void onFailure(Throwable caught) {
+                ClientUtils.severe(LOG, "read failed: " + caught.getMessage());
                 dsResponse.setStatus(RPCResponse.STATUS_FAILURE);
                 dsResponse.getErrors().put(FIELD_PID, caught.getMessage());
                 processResponse(dsRequest.getRequestId(), dsResponse);
@@ -157,7 +207,9 @@ public final class PageDataSource extends DataSource {
 
             @Override
             public void onSuccess(ModsCollectionClient modsCollection) {
-                Record[] data = convert(pid, modsCollection);
+                Record record = convert(pid, modelEditor, modsCollection);
+                Record[] data = new Record[] {record};
+                ClientUtils.fine(LOG, "read.onSuccess: %s", ClientUtils.dump(data));
                 dsResponse.setData(data);
                 dsResponse.setStatus(RPCResponse.STATUS_SUCCESS);
                 processResponse(dsRequest.getRequestId(), dsResponse);
@@ -206,28 +258,389 @@ public final class PageDataSource extends DataSource {
             if (o instanceof JavaScriptObject) {
                 msg = ClientUtils.dump((JavaScriptObject) o);
             }
-            LOG.severe("unsupported value type: " + o.getClass() + ", dump: \n" + msg);
-            throw new IllegalStateException("unsupported value type: " + o.getClass() + ", dump: \n" + msg);
+            throw new IllegalStateException("PageDataSource.writeIdentifiers: unsupported value type: " + o.getClass() + ", dump: \n" + msg);
         }
         return IdentifierDataSource.convert(records);
     }
 
-    public Record[] convert(String pid, ModsCollectionClient modsCollection) {
+    /**
+     * Translates MODS object to records acceptable by particular model editor.
+     *
+     * @param pid digital object's id
+     * @param modelEditor simplified model editor
+     * @param modsCollection digital object
+     * @return array with translated record
+     */
+    public Record convert(String pid, String modelEditor, ModsCollectionClient modsCollection) {
+        Record record;
+        if (MetaModelDataSource.EDITOR_PAGE.equals(modelEditor)) {
+            record = convertPage(pid, modsCollection);
+        } else if (MetaModelDataSource.EDITOR_PERIODICAL.equals(modelEditor)) {
+            record = convertPeriodical(pid, modsCollection);
+        } else {
+            record = createModsRecord(pid, modsCollection);
+        }
+        return record;
+    }
+
+    private Record createModsRecord(String pid, ModsCollectionClient modsCollection) {
         Record record = new Record();
         record.setAttribute(FIELD_PID, pid);
         record.setAttribute(FIELD_MODS_OBJECT, modsCollection);
+        return record;
+    }
+
+    public Record convertPeriodical(String pid, ModsCollectionClient modsCollection) {
+        Record record = createModsRecord(pid, modsCollection);
         List<ModsTypeClient> modsTypes = modsCollection.getMods();
         if (modsTypes != null && !modsTypes.isEmpty()) {
             ModsTypeClient mods = modsTypes.get(0);
-            fetchPart(mods.getPart(), record);
+            record.setAttribute(FIELD_IDENTIFIERS, IdentifierDataSource.convert(mods.getIdentifier()));
+            fetchLocations(mods.getLocation(), record);
+            fetchPeriodicity(mods.getOriginInfo(), record);
+            fetchTitles(mods.getTitleInfo(), record);
+            fetchNames(mods.getName(), record);
+            fetchPrinterPublisher(mods.getOriginInfo(), record);
+            fetchLanguages(mods.getLanguage(), record);
+            fetchClassifications(mods.getClassification(), record);
+            // keywords
+            fetchSubjects(mods.getSubject(), record);
+            fetchPhysicalDescription(mods.getPhysicalDescription(), record);
+            fetchRecordInfo(mods.getRecordInfo(), record);
+            fetchNote(mods.getPart(), record);
+        }
+        return record;
+    }
+
+    /**
+     * This should fetch record origin info from first /recordInfo/recordOrigin
+     * <p/><b>NOTE: KNAV Kramerius 3 format /Periodical/DescriptionBasedIssue</b>
+     * @see <a href='http://code.google.com/p/kramerius/source/browse/trunk/import-cmdtool/src/main/resources/model_periodical_MODS.xsl'>model_periodical_MODS.xsl</a>
+     */
+    private void fetchRecordInfo(List<RecordInfoTypeClient> recordInfos, Record record) {
+        if (recordInfos != null && !recordInfos.isEmpty()) {
+            List<String> recordOrigins = recordInfos.get(0).getRecordOrigin();
+            if (recordOrigins != null && ! recordOrigins.isEmpty()) {
+                record.setAttribute(FIELD_RECORD_ORIGIN, recordOrigins.get(0));
+            }
+        }
+
+    }
+
+    /**
+     * This should fetch keywords from first subject/topic*
+     * <p/><b>NOTE: KNAV Kramerius 3 format</b>
+     * @see <a href='http://code.google.com/p/kramerius/source/browse/trunk/import-cmdtool/src/main/resources/model_periodical_MODS.xsl'>model_periodical_MODS.xsl</a>
+     */
+    private void fetchSubjects(List<SubjectTypeClient> subjects, Record record) {
+        if (subjects != null && !subjects.isEmpty()) {
+            SubjectTypeClient subject = subjects.get(0);
+            record.setAttribute(FIELD_ALTERNATIVE_TITLES, convertStrings(subject.getTopic(), "value"));
+        }
+    }
+    /**
+     * This should fetch pair of extents under each physicalDescription.
+     * <p/><b>NOTE: KNAV Kramerius 3 format</b>
+     * @see <a href='http://code.google.com/p/kramerius/source/browse/trunk/import-cmdtool/src/main/resources/model_periodical_MODS.xsl'>model_periodical_MODS.xsl</a>
+     */
+    private void fetchPhysicalDescription(List<PhysicalDescriptionTypeClient> physicalDescriptions, Record record) {
+        physicalDescriptions = nonNullList(physicalDescriptions);
+        ArrayList<Record> result = new ArrayList<Record>();
+        for (PhysicalDescriptionTypeClient physicalDescription : physicalDescriptions) {
+            Iterator<String> extents = nonNullList(physicalDescription.getExtent()).iterator();
+            if (extents.hasNext()) {
+                Record pair = new Record();
+                result.add(pair);
+                pair.setAttribute("extent", extents.next());
+                pair.setAttribute("object", physicalDescription);
+                if (extents.hasNext()) {
+                    pair.setAttribute("size", extents.next());
+                }
+            }
+        }
+        record.setAttribute(FIELD_PHYSICAL_DESCRIPTIONS, toRecords(result));
+    }
+
+    /**
+     * <pre>{@code
+        <classification authority="ddc">123</classification>
+        <classification authority="udc">321</classification>
+       }</pre>
+     * This should fetch pairs of DDC and UDC classifications in arbitrary order
+     */
+    private void fetchClassifications(List<ClassificationTypeClient> classifications, Record record) {
+        classifications = nonNullList(classifications);
+        ArrayList<Record> result = new ArrayList<Record>();
+        for (int i = 0; i < classifications.size(); i++) {
+            ClassificationTypeClient classification = classifications.get(i);
+            String authority = classification.getAuthority();
+            if (authority == null) {
+                continue;
+            }
+            authority = authority.toLowerCase();
+            if ("ddc".equals(authority)) {
+                Record r = new Record();
+                result.add(r);
+                r.setAttribute(FIELD_CLASSIFICATION_DDC, classification.getValue());
+                if (i + 1 < classifications.size()) {
+                    ClassificationTypeClient next = classifications.get(i + 1);
+                    if ("udc".equals(next.getAuthority())) {
+                        r.setAttribute(FIELD_CLASSIFICATION_UDC, next.getValue());
+                        i+=2;
+                    }
+                }
+            } else if ("udc".equals(authority)) {
+                Record r = new Record();
+                result.add(r);
+                r.setAttribute(FIELD_CLASSIFICATION_UDC, classification.getValue());
+                if (i + 1 < classifications.size()) {
+                    ClassificationTypeClient next = classifications.get(i + 1);
+                    if ("ddc".equals(next.getAuthority())) {
+                        r.setAttribute(FIELD_CLASSIFICATION_DDC, next.getValue());
+                        i+=2;
+                    }
+                }
+            }
+        }
+        record.setAttribute(FIELD_CLASSIFICATIONS, toRecords(result));
+    }
+
+    /**
+     * Example:<br/>{@code
+        <language objectPart="summary">
+            <languageTerm type= "code" authority="iso639-2b">spa</languageTerm>
+        </language>
+     *
+     * @see <a href='http://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt'>ISO-639-2 CSV list</a>
+     * @see <a href='http://www.loc.gov/standards/iso639-2/php/code_list.php'>ISO-639-2 list</a>
+     * @see <a href='http://www.loc.gov/standards/mods/userguide/language.html#languageterm'>MODS user guide</a>
+     */
+    private void fetchLanguages(List<LanguageTypeClient> languages, Record record) {
+        languages = nonNullList(languages);
+        ArrayList<Record> result = new ArrayList<Record>();
+        for (LanguageTypeClient language : languages) {
+            for (LanguageTypeClient.LanguageTermClient langTerm : language.getLanguageTerm()) {
+                CodeOrTextClient type = langTerm.getType();
+                String authority = langTerm.getAuthority();
+                String value = langTerm.getValue();
+                // XXX for now it supports only codes
+                if (type == CodeOrTextClient.CODE && "iso639-2b".equals(authority)) {
+                    Record langRecord = new Record();
+                    langRecord.setAttribute("languageCode", value);
+                    langRecord.setAttribute("languageObject", language);
+                    result.add(langRecord);
+                    break;
+                }
+            }
+        }
+        record.setAttribute(FIELD_LANGUAGES, toRecords(result));
+    }
+
+    private void fetchNames(List<NameTypeClient> names, Record record) {
+        if (names != null && !names.isEmpty()) {
+            ArrayList<Record> authors = new ArrayList<Record>();
+            ArrayList<Record> contributors = new ArrayList<Record>();
+            for (NameTypeClient name : names) {
+                List<NamePartTypeClient> nameParts = nonNullList(name.getNamePart());
+                Record nameRec = new Record();
+                nameRec.setAttribute(FIELD_NAME_OBJECT, name);
+                for (NamePartTypeClient namePart : nameParts) {
+                    String type = namePart.getType();
+                    String value = namePart.getValue();
+                    if ("family".equals(type)) {
+                        nameRec.setAttribute("family", value);
+                    } else if ("given".equals(type)) {
+                        nameRec.setAttribute("given", value);
+                    }
+                }
+                NameRole role = findRole(name.getRole());
+                switch(role) {
+                    case AUTHOR: authors.add(nameRec); break;
+                    case CONTRIBUTOR: contributors.add(nameRec); break;
+                }
+            }
+            record.setAttribute(FIELD_AUTHORS, toRecords(authors));
+            record.setAttribute(FIELD_CONTRIBUTORS, toRecords(contributors));
+        }
+    }
+
+    private enum NameRole {
+        AUTHOR, CONTRIBUTOR, OTHER, NONE;
+    }
+
+    private static NameRole findRole(List<RoleTypeClient> roles) {
+        roles = nonNullList(roles);
+        NameRole result = NameRole.NONE;
+        for (RoleTypeClient role : roles) {
+            List<RoleTermClient> roleTerms = role.getRoleTerm();
+            for (RoleTermClient roleTerm : roleTerms) {
+                CodeOrTextClient type = roleTerm.getType(); // code
+                String value = roleTerm.getValue();
+                if (type == CodeOrTextClient.CODE) {
+                    if ("ctb".equals(value)) {
+                        return NameRole.CONTRIBUTOR;
+                    } else if ("cre".equals(value)) {
+                        return NameRole.AUTHOR;
+                    } else {
+                        result = NameRole.OTHER;
+                    }
+                } else if (type == CodeOrTextClient.TEXT) {
+                    if ("Contributor".equals(value)) {
+                        return NameRole.CONTRIBUTOR;
+                    } else if ("Author".equals(value)) {
+                        return NameRole.AUTHOR;
+                    } else {
+                        result = NameRole.OTHER;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+    
+    private void fetchLocations(List<LocationTypeClient> locations, Record record) {
+        if (locations != null && !locations.isEmpty()) {
+            LocationTypeClient location = locations.get(0);
+            List<PhysicalLocationTypeClient> physicalLocations = location.getPhysicalLocation();
+            if (physicalLocations != null && !physicalLocations.isEmpty()) {
+                record.setAttribute(FIELD_SIGLA, physicalLocations.get(0).getValue());
+            }
+            record.setAttribute(FIELD_SHELF_LOCATORS, convertStrings(location.getShelfLocator(), "value"));
+        }
+    }
+
+    private void fetchPeriodicity(List<OriginInfoTypeClient> originInfos, Record record) {
+        originInfos = nonNullList(originInfos);
+        for (OriginInfoTypeClient originInfo : originInfos) {
+            String transliteration = originInfo.getTransliteration();
+            if (transliteration == null) {
+                continue;
+            }
+            List<StringPlusAuthorityClient> frequencies = nonNullList(originInfo.getFrequency());
+            ArrayList<Record> list = new ArrayList<Record>();
+            for (StringPlusAuthorityClient frequency : frequencies) {
+                record.setAttribute(FIELD_PERIODICITY_VALUE, frequency.getValue());
+                record.setAttribute(FIELD_PERIODICITY_VALUE + "Object", frequency);
+                list.add(record);
+            }
+            record.setAttribute(FIELD_PERIODICITY, toRecords(list));
+            break;
+        }
+
+    }
+
+    private void fetchPrinterPublisher(List<OriginInfoTypeClient> originInfos, Record record) {
+        originInfos = nonNullList(originInfos);
+        ArrayList<Record> printers = new ArrayList<Record>();
+        ArrayList<Record> publishers = new ArrayList<Record>();
+
+        for (OriginInfoTypeClient originInfo : originInfos) {
+            String transliteration = originInfo.getTransliteration();
+            Record r;
+            List<DateTypeClient> dates;
+            if ("printer".equals(transliteration)) {
+                r = new Record();
+                dates = originInfo.getDateCreated();
+                printers.add(r);
+            } else if ("publisher".equals(transliteration)) {
+                r = new Record();
+                dates = originInfo.getDateIssued();
+                publishers.add(r);
+            } else {
+                continue;
+            }
+            // object
+            r.setAttribute("object", originInfo);
+            // date
+            if (dates != null && !dates.isEmpty()) {
+                r.setAttribute(FIELD_PRINTER_PUBLISHER_DATE, dates.get(0).getValue());
+            }
+            // name
+            List<String> publisher = originInfo.getPublisher();
+            if (publisher != null && !publisher.isEmpty()) {
+                r.setAttribute(FIELD_PRINTER_PUBLISHER_NAME, publisher.get(0));
+            }
+            // place
+            List<PlaceTypeClient> places = originInfo.getPlace();
+            if (places != null && !places.isEmpty()) {
+                List<PlaceTermTypeClient> placeTerm = places.get(0).getPlaceTerm();
+                if (placeTerm != null && !placeTerm.isEmpty()) {
+                    r.setAttribute(FIELD_PRINTER_PUBLISHER_PLACE, placeTerm.get(0).getValue());
+                }
+            }
+        }
+
+        record.setAttribute(FIELD_PUBLISHERS, toRecords(publishers));
+        record.setAttribute(FIELD_PRINTERS, toRecords(printers));
+    }
+
+    private void fetchTitles(List<TitleInfoTypeClient> titleInfos, Record record) {
+        if (titleInfos != null && !titleInfos.isEmpty()) {
+            boolean foundTitle = false;
+            boolean foundAlternatives = false;
+            boolean foundKeyTitles = false;
+            for (TitleInfoTypeClient titleInfo : titleInfos) {
+                String type = titleInfo.getType();
+                if (type == null) {
+                    if (foundTitle) {
+                        continue;
+                    }
+                    record.setAttribute(FIELD_TITLES, convertStrings(titleInfo.getTitle(), "value"));
+                    record.setAttribute(FIELD_SUBTITLES, convertStrings(titleInfo.getSubTitle(), "value"));
+                    foundTitle = true;
+                } else if ("alternative".equals(type) && "Klíčový název".equals(titleInfo.getDisplayLabel())) {
+                    if (foundKeyTitles) {
+                        continue;
+                    }
+                    record.setAttribute(FIELD_KEY_TITLES, convertStrings(titleInfo.getTitle(), "value"));
+                    foundKeyTitles = true;
+                } else if ("alternative".equals(type)) {
+                    if (foundAlternatives) {
+                        continue;
+                    }
+                    record.setAttribute(FIELD_ALTERNATIVE_TITLES, convertStrings(titleInfo.getTitle(), "value"));
+                    foundAlternatives = true;
+                }
+            }
+        }
+    }
+
+    private void fetchNote(List<PartTypeClient> parts, Record record) {
+        if (parts != null && !parts.isEmpty()) {
+            PartTypeClient part = parts.get(0);
+            String type = part.getType();
+            List<String> notes = part.getText();
+            if (notes != null && !notes.isEmpty()) {
+                String note = notes.get(0);
+                record.setAttribute(FIELD_NOTE, note);
+            }
+        }
+    }
+
+    private Record[] convertStrings(List<String> items, String attrName) {
+        items = nonNullList(items);
+        ArrayList<Record> list = new ArrayList<Record>();
+        for (String item : items) {
+            Record itemRecord = new Record();
+            itemRecord.setAttribute("value", item);
+            list.add(itemRecord);
+        }
+        return toRecords(list);
+    }
+
+    public Record convertPage(String pid, ModsCollectionClient modsCollection) {
+        Record record = createModsRecord(pid, modsCollection);
+        List<ModsTypeClient> modsTypes = modsCollection.getMods();
+        if (modsTypes != null && !modsTypes.isEmpty()) {
+            ModsTypeClient mods = modsTypes.get(0);
+            fetchPagePart(mods.getPart(), record);
             List<IdentifierTypeClient> identifiers = mods.getIdentifier();
             record.setAttribute(FIELD_IDENTIFIERS, IdentifierDataSource.convert(identifiers));
         }
-        Record[] data = new Record[]{record};
-        return data;
+        return record;
     }
 
-    private void fetchPart(List<PartTypeClient> parts, Record record) {
+    private void fetchPagePart(List<PartTypeClient> parts, Record record) {
         if (parts != null && !parts.isEmpty()) {
             PartTypeClient part = parts.get(0);
             String type = part.getType();
@@ -368,6 +781,18 @@ public final class PageDataSource extends DataSource {
             list.set(0, item);
         }
         return list;
+    }
+
+    private static <T> List<T> nonNullList(List<T> l) {
+        return l != null ? l : Collections.<T>emptyList();
+    }
+
+    private static Record[] toRecords(List<Record> l) {
+        if (l == null || l.isEmpty()) {
+            return new Record[] {new Record()};
+        } else {
+            return l.toArray(new Record[l.size()]);
+        }
     }
 
 }

@@ -47,7 +47,7 @@ public final class IdentifierDataSource extends DataSource {
         DataSourceField type = new DataSourceField(FIELD_TYPE, FieldType.TEXT, "Type");
 
         ComboBoxItem typeEditor = new ComboBoxItem(IdentifierDataSource.FIELD_TYPE);
-        typeEditor.setValueMap("ISSN", "ISBN", "čČNB");
+        typeEditor.setValueMap("ISSN", "ISBN", "čČNB", "SICI");
         typeEditor.setType("comboBox");
         type.setEditorType(typeEditor);
 
@@ -64,8 +64,9 @@ public final class IdentifierDataSource extends DataSource {
     }
 
     public static Record[] convert(List<IdentifierTypeClient> identifiers) {
-        if (identifiers == null) {
-            return new Record[0];
+        if (identifiers == null || identifiers.isEmpty()) {
+            Record r = new Record();
+            return new Record[] {r};
         }
         Record[] records = new Record[identifiers.size()];
         int idx = 0;

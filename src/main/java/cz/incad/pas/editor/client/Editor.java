@@ -40,8 +40,10 @@ import com.smartgwt.client.types.VerticalAlignment;
 import com.smartgwt.client.util.Page;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.form.fields.CanvasItem;
+import com.smartgwt.client.widgets.form.fields.HeaderItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.layout.LayoutSpacer;
+import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.tree.TreeGridField;
 import com.smartgwt.client.widgets.tree.events.FolderClosedEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClosedHandler;
@@ -93,9 +95,7 @@ public class Editor implements EntryPoint {
         Canvas menuPlaces = createMenuPlaces(menu);
 
         final HLayout mainLayout = new HLayout();
-        mainLayout.setContents("Editor.mainLayout");
-        mainLayout.setShowEdges(true);
-        mainLayout.setMargin(4);
+//        mainLayout.setLayoutMargin(5);
         mainLayout.setWidth100();
         mainLayout.setHeight100();
         mainLayout.setMembers(menu, menuPlaces);
@@ -108,7 +108,23 @@ public class Editor implements EntryPoint {
 //        selectDefaultPlace(menu, "Import/History");
         selectDefaultPlace(menu, "Edit/New Object");
         
-        mainLayout.draw();
+        ToolStrip mainHeader = new ToolStrip();
+        mainHeader.setWidth100();
+//        mainHeader.setHeight(33);
+        mainHeader.setHeight(40);
+        mainHeader.addSpacer(6);
+//        Label headerItem = new Label("Produkční a archivační systém - editor");
+        Label headerItem = new Label("Production and Archive System - Editor");
+        headerItem.setStyleName("pasMainTitle");
+        headerItem.setWrap(false);
+        headerItem.setIcon("24/cube_frame.png");
+        mainHeader.addMember(headerItem);
+
+        VLayout desktop = new VLayout(0);
+        desktop.setWidth100();
+        desktop.setHeight100();
+        desktop.setMembers(mainHeader, mainLayout);
+        desktop.draw();
     }
 
     private void selectDefaultPlace(TreeGrid menu, String menuPath) {
@@ -273,7 +289,9 @@ public class Editor implements EntryPoint {
                         }
                     }
 
-                    Window.alert(sb.toString());
+                    // visible in javascript console; Window.alert is too much intrusive.
+                    LOG.log(Level.SEVERE, e.getMessage(), e);
+//                    Window.alert(sb.toString());
                 }
             });
         }

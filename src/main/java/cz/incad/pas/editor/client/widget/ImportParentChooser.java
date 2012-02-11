@@ -36,6 +36,7 @@ public class ImportParentChooser extends VLayout {
     
     public ImportParentChooser() {
         super(4);
+        setLayoutMargin(4);
         setWidth100();
         setHeight100();
         TabSet tabSet = new TabSet();

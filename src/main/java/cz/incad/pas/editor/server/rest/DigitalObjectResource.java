@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.server.rest;
 
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DublinCoreRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.OcrRecord;
@@ -203,8 +204,8 @@ public class DigitalObjectResource {
             repository = new ArrayList<MetaModel>();
             repository.add(new MetaModel("model:monograph", true, null, "Monograph"));
             repository.add(new MetaModel("model:monographunit", null, null, "Monograph Unit"));
-            repository.add(new MetaModel("model:page", null, true, "Page"));
-            repository.add(new MetaModel("model:periodical", true, null, "Periodical"));
+            repository.add(new MetaModel("model:page", null, true, "Page", MetaModelDataSource.EDITOR_PAGE));
+            repository.add(new MetaModel("model:periodical", true, null, "Periodical", MetaModelDataSource.EDITOR_PERIODICAL));
             repository.add(new MetaModel("model:periodicalvolume", null, null, "Periodical Volume"));
             repository.add(new MetaModel("model:periodicalitem", null, null, "Periodical Item"));
 //            repository.add(new MetaModel("model:internalpart", null, null, "Internalpart"));
@@ -223,15 +224,22 @@ public class DigitalObjectResource {
         private Boolean root;
         private Boolean leaf;
         private String displayName;
+        @XmlElement(name="editorId")
+        private String editor;
 
         private MetaModel() {
         }
 
         public MetaModel(Object pid, Boolean root, Boolean leaf, String displayName) {
+            this(pid, root, leaf, displayName, null);
+        }
+        
+        public MetaModel(Object pid, Boolean root, Boolean leaf, String displayName, String editor) {
             this.pid = pid;
             this.root = root;
             this.leaf = leaf;
             this.displayName = displayName;
+            this.editor = editor;
         }
 
         public String getDisplayName() {

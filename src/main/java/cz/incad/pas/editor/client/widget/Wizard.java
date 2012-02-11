@@ -37,7 +37,7 @@ import cz.incad.pas.editor.client.ClientUtils;
  */
 public class Wizard extends VLayout {
     
-    private static final String WIZARD_LABEL_PREFIX = "<span style='font-size: 16px;'><b>PAS - Import</b></span> - ";
+    private final String WIZARD_LABEL_PREFIX = "<b>%s</b> - %s";
 
     public enum StepKind {BACK, FORWARD, CANCEL}
 
@@ -61,10 +61,11 @@ public class Wizard extends VLayout {
         setWidth100();
         
         lblHeader = new Label(WIZARD_LABEL_PREFIX);
-        lblHeader.setBackgroundColor("silver");
-        lblHeader.setShowEdges(true);
+//        lblHeader.setBackgroundColor("silver");
+//        lblHeader.setShowEdges(true);
         lblHeader.setAutoHeight();
-        lblHeader.setPadding(2);
+        lblHeader.setPadding(4);
+        lblHeader.setStyleName("pasWizardTitle");
         addMember(lblHeader);
         
 //        HLayout stepWidget = new HLayout();
@@ -116,8 +117,8 @@ public class Wizard extends VLayout {
         addMember(bottomLayout);
     }
 
-    public void setWizardLabel(String s) {
-        lblHeader.setContents(WIZARD_LABEL_PREFIX + s);
+    public void setWizardLabel(String title, String msg) {
+        lblHeader.setContents(ClientUtils.format(WIZARD_LABEL_PREFIX, title, msg));
     }
     
     public void stepInit() {

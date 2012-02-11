@@ -16,16 +16,13 @@
  */
 package cz.incad.pas.editor.client.ds;
 
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
-import com.smartgwt.client.data.RestDataSource;
-import com.smartgwt.client.data.XMLTools;
+import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.fields.DataSourceBooleanField;
-import com.smartgwt.client.data.fields.DataSourceSequenceField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.FetchMode;
 
 /**
  *
@@ -38,6 +35,11 @@ public class MetaModelDataSource extends DataSource {
     public static final String FIELD_DISPLAY_NAME = "displayName";
     public static final String FIELD_IS_ROOT = "root";
     public static final String FIELD_IS_LEAF = "leaf";
+    public static final String FIELD_EDITOR = "editorId";
+
+    public static final String EDITOR_PAGE = "cz.incad.pas.editor.client.widget.mods.PageForm";
+    public static final String EDITOR_PERIODICAL = "cz.incad.pas.editor.client.widget.mods.PeriodicalForm";
+    private static ResultSet resultSet;
 
     public MetaModelDataSource() {
         setID(ID);
@@ -58,7 +60,9 @@ public class MetaModelDataSource extends DataSource {
 
         DataSourceBooleanField isLeaf = new DataSourceBooleanField(FIELD_IS_LEAF);
 
-        setFields(pid, displayName, isRoot, isLeaf);
+        DataSourceTextField editor = new DataSourceTextField(FIELD_EDITOR);
+
+        setFields(pid, displayName, isRoot, isLeaf, editor);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
@@ -77,5 +81,33 @@ public class MetaModelDataSource extends DataSource {
         return ds;
     }
 
+    public static ResultSet getModels() {
+        if (resultSet == null) {
+            resultSet = new ResultSet(getInstance());
+            resultSet.setFetchMode(FetchMode.LOCAL);
+        }
+        return resultSet;
+    }
+
+    public static final class MetaModelRecord {
+        
+        private final Record record;
+
+        public MetaModelRecord(Record r) {
+            this.record = r;
+        }
+
+        public String getId() {
+            return record.getAttribute(FIELD_PID);
+        }
+
+        public boolean isRoot() {
+            return record.getAttributeAsBoolean(FIELD_IS_ROOT);
+        }
+
+        public String getEditorId() {
+            return record.getAttribute(FIELD_EDITOR);
+        }
+    }
 
 }

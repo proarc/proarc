@@ -17,7 +17,6 @@
 package cz.incad.pas.editor.client.widget.mods;
 
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.util.JSOHelper;
@@ -31,6 +30,7 @@ import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.widget.mods.RepeatableFormItem.CustomFormFactory;
 import cz.incad.pas.editor.client.widget.mods.event.HasListChangedHandlers;
 import cz.incad.pas.editor.client.widget.mods.event.ListChangedEvent;
 import cz.incad.pas.editor.client.widget.mods.event.ListChangedHandler;
@@ -44,32 +44,18 @@ import java.util.logging.Logger;
 public final class RepeatableForm extends VLayout implements HasListChangedHandlers {
 
     private static final Logger LOG = Logger.getLogger(RepeatableForm.class.getName());
-    private static final DynamicForm DEFAULT_FORM = new DynamicForm();
     
-    private DataSource dataSource;
-    private DynamicForm formPrototype;
-//    private ResultSet dataModel2;
-//    RecordList dataModel = new RecordList();
     RecordList dataModel3 = new RecordList();
+    private final CustomFormFactory formFactory;
 
-    public RepeatableForm(String title) {
+    public RepeatableForm(String title, CustomFormFactory customForm) {
         setGroupTitle(title);
         setIsGroup(true);
         setLayoutTopMargin(6);
         setLayoutLeftMargin(4);
         setAutoHeight();
-        formPrototype = DEFAULT_FORM;
-    }
-
-    public void setDataSource(DataSource ds) {
-        if (ds == null) {
-            throw new NullPointerException("ds");
-        }
-        this.dataSource = ds;
-    }
-
-    public void setFormPrototype(DynamicForm formPrototype) {
-        this.formPrototype = formPrototype == null ? DEFAULT_FORM : formPrototype;
+        setAutoWidth();
+        this.formFactory = customForm;
     }
 
     @Override
@@ -78,6 +64,9 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     }
 
     public void setData(Record... data) {
+        if (data == null || data.length == 0) {
+            data = new Record[] {new Record()};
+        }
         RecordList recordList = data == null
                 ? new RecordList()
                 : new RecordList(data);
@@ -132,17 +121,7 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     }
 
     private DynamicForm createIdentifierForm(final Record record) {
-        final DynamicForm form = new DynamicForm();
-        form.setNumCols(formPrototype.getNumCols());
-        form.setDataSource(dataSource);
-        if (formPrototype.getUseAllDataSourceFields()) {
-            form.setUseAllDataSourceFields(true);
-        } else {
-            // XXX this does not work. It seems that fields would have to be cloned
-            // via getConfig. See DataSourceField.setEditorType
-            form.setFields(formPrototype.getFields());
-        }
-        form.setAutoFocus(true);
+        final DynamicForm form = formFactory.create();
 
         form.addItemChangedHandler(new ItemChangedHandler() {
 
@@ -209,6 +188,11 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
             hLayout.addMember(c);
         }
         hLayout.addMember(buttons);
+        if (emptyList) {
+            Canvas spacer = new Canvas();
+            spacer.setWidth(100);
+            hLayout.addMember(spacer);
+        }
         return hLayout;
     }
 

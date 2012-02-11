@@ -38,14 +38,15 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
+ * Simple form to edit MODS page.
  *
  * @author Jan Pokorsky
  */
-public final class ModsPage extends DynamicForm {
+public final class PageForm extends DynamicForm {
 
-    private static final Logger LOG = Logger.getLogger(ModsPage.class.getName());
+    private static final Logger LOG = Logger.getLogger(PageForm.class.getName());
 
-    public ModsPage() {
+    public PageForm() {
         setWidth100();
         setHeight100();
         setTitleOrientation(TitleOrientation.TOP);
@@ -116,8 +117,8 @@ public final class ModsPage extends DynamicForm {
                 });
             }
         });
-//        setFields(btnTest, btnSave, pageType, pageIndex, pageNumber, note);
-        setFields(btnTest, btnSave, pageType, pageIndex, pageNumber, identifiers, note);
+//        setFields(btnTest, btnSave, pageType, pageIndex, pageNumber, identifiers, note);
+        setFields(pageType, pageIndex, pageNumber, identifiers, note);
         // TODO DS should be universal for all types or there will be DS per type?
         setDataSource(PageDataSource.getInstance());
 
@@ -158,7 +159,7 @@ public final class ModsPage extends DynamicForm {
 //            Record rec = (Record) ref;
 //            refContent = "\n" + ClientUtils.dump(rec.getJsObj());
 //        }
-//        LOG.info(ClientUtils.format("ModsPage.valuesHaveChanged.%s, changed: %s, values: %s, ref: %s, refContent: %s",
+//        LOG.info(ClientUtils.format("PageForm.valuesHaveChanged.%s, changed: %s, values: %s, ref: %s, refContent: %s",
 //                point, valuesHaveChanged,Arrays.toString(changedValues.keySet().toArray()), ref, refContent));
 //    }
 }

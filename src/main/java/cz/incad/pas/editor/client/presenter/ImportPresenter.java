@@ -117,7 +117,7 @@ public class ImportPresenter {
             this.wizard = wizard;
             wizard.setBackButton(false, null); // XXX this could be "Import New Folder"
             wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel("select import batch to resume import");
+            wizard.setWizardLabel("Import", "select import batch to resume import");
             widget.bind();
         }
 
@@ -164,7 +164,7 @@ public class ImportPresenter {
             this.wizard = wizard;
             wizard.setBackButton(false, null);
             wizard.setForwardButton(true, "Import");
-            wizard.setWizardLabel("select folder to import");
+            wizard.setWizardLabel("Import", "select folder to import");
 
             presenter.importContext = new ImportContext();
             importSourceChooser.setViewHandler(this);
@@ -258,7 +258,7 @@ public class ImportPresenter {
 //            wizard.setBackButton(true, "Import Next Folder");
             wizard.setBackButton(true, null);
             wizard.setForwardButton(true, "Import");
-            wizard.setWizardLabel("prepare metadata to import");
+            wizard.setWizardLabel("Import", "prepare metadata to import");
             // XXX presenter.getImportContext().getBatch();
             widget.setBatchItems(ImportBatchItemDataSource.getInstance());
         }
@@ -317,7 +317,7 @@ public class ImportPresenter {
         public void onShow(Wizard wizard) {
             wizard.setBackButton(true, "Import Next Folder");
             wizard.setForwardButton(true, null);
-            wizard.setWizardLabel("select parent digital object that will reference imported objects.");
+            wizard.setWizardLabel("Import", "select parent digital object that will reference imported objects.");
             this.wizard = wizard;
             widget.setHandler(this);
             if (presenter.getImportContext().getParentPid() == null) {
@@ -386,7 +386,7 @@ public class ImportPresenter {
         public void onShow(Wizard wizard) {
             wizard.setBackButton(true, "Import New Folder");
             wizard.setForwardButton(false, null);
-            wizard.setWizardLabel("done");
+            wizard.setWizardLabel("Import", "done");
         }
 
         @Override
