@@ -45,6 +45,7 @@ import cz.incad.pas.editor.client.ds.mods.PageDataSource;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
 import cz.incad.pas.editor.client.widget.mods.PageForm;
 import cz.incad.pas.editor.client.widget.mods.PeriodicalForm;
+import cz.incad.pas.editor.client.widget.mods.PeriodicalVolumeForm;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -251,6 +252,8 @@ public final class ModsFullEditor {
             form = new PageForm();
         } else if (MetaModelDataSource.EDITOR_PERIODICAL.equals(editorId)) {
             form = new PeriodicalForm();
+        } else if (MetaModelDataSource.EDITOR_PERIODICAL_VOLUME.equals(editorId)) {
+            form = new PeriodicalVolumeForm();
         } else {
             ClientUtils.warning(LOG, "Uknown model editor: %s, editor: %s", model.getId(), model.getEditorId());
         }

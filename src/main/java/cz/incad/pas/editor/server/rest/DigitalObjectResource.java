@@ -206,7 +206,7 @@ public class DigitalObjectResource {
             repository.add(new MetaModel("model:monographunit", null, null, "Monograph Unit"));
             repository.add(new MetaModel("model:page", null, true, "Page", MetaModelDataSource.EDITOR_PAGE));
             repository.add(new MetaModel("model:periodical", true, null, "Periodical", MetaModelDataSource.EDITOR_PERIODICAL));
-            repository.add(new MetaModel("model:periodicalvolume", null, null, "Periodical Volume"));
+            repository.add(new MetaModel("model:periodicalvolume", null, null, "Periodical Volume", MetaModelDataSource.EDITOR_PERIODICAL_VOLUME));
             repository.add(new MetaModel("model:periodicalitem", null, null, "Periodical Item"));
 //            repository.add(new MetaModel("model:internalpart", null, null, "Internalpart"));
         }

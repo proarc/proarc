@@ -29,6 +29,7 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
 import com.smartgwt.client.types.FieldType;
+import cz.fi.muni.xkremser.editor.client.mods.BaseDateTypeClient;
 import cz.fi.muni.xkremser.editor.client.mods.ClassificationTypeClient;
 import cz.fi.muni.xkremser.editor.client.mods.CodeOrTextClient;
 import cz.fi.muni.xkremser.editor.client.mods.DateTypeClient;
@@ -111,6 +112,9 @@ public final class PageDataSource extends DataSource {
     public static final String FIELD_PHYSICAL_DESCRIPTIONS_EXTENT = "physicalDescriptionsExtent";
     public static final String FIELD_PHYSICAL_DESCRIPTIONS_SIZE = "physicalDescriptionsSize";
     public static final String FIELD_RECORD_ORIGIN = "recordOrigin";
+    // periodical volume
+    public static final String FIELD_PER_VOLUME_NUMBER = "periodicalVolumeNumber";
+    public static final String FIELD_PER_VOLUME_YEAR = "periodicalVolumeYear";
 
     public PageDataSource() {
         setID(ID);
@@ -128,6 +132,7 @@ public final class PageDataSource extends DataSource {
         DataSourceField identifiers = new DataSourceField(FIELD_IDENTIFIERS, FieldType.ANY);
         // value treated as Record[]
         identifiers.setTypeAsDataSource(new IdentifierDataSource());
+        // XXX while using own GWT transport it is not necessary to declare all fields
         DataSourceField note = new DataSourceField(FIELD_NOTE, FieldType.TEXT, "Note");
         setFields(pid, modsObject, pageType, pageIndex, pageNumber, identifiers, note);
     }
@@ -277,6 +282,8 @@ public final class PageDataSource extends DataSource {
             record = convertPage(pid, modsCollection);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL.equals(modelEditor)) {
             record = convertPeriodical(pid, modsCollection);
+        } else if (MetaModelDataSource.EDITOR_PERIODICAL_VOLUME.equals(modelEditor)) {
+            record = convertPeriodicalVolume(pid, modsCollection);
         } else {
             record = createModsRecord(pid, modsCollection);
         }
@@ -288,6 +295,46 @@ public final class PageDataSource extends DataSource {
         record.setAttribute(FIELD_PID, pid);
         record.setAttribute(FIELD_MODS_OBJECT, modsCollection);
         return record;
+    }
+
+    public Record convertPeriodicalVolume(String pid, ModsCollectionClient modsCollection) {
+        Record record = createModsRecord(pid, modsCollection);
+        List<ModsTypeClient> modsTypes = modsCollection.getMods();
+        if (modsTypes != null && !modsTypes.isEmpty()) {
+            ModsTypeClient mods = modsTypes.get(0);
+            record.setAttribute(FIELD_IDENTIFIERS, IdentifierDataSource.convert(mods.getIdentifier()));
+            fetchPeriodicalVolumePart(mods.getPart(), record);
+            // K3 stores volume notes in part/text
+//            fetchNote(mods.getPart(), record);
+        }
+        return record;
+    }
+
+    private void fetchPeriodicalVolumePart(List<PartTypeClient> parts, Record record) {
+        if (parts != null && !parts.isEmpty()) {
+            PartTypeClient part = parts.get(0);
+            List<BaseDateTypeClient> dates = part.getDate();
+            if (dates != null && !dates.isEmpty()) {
+                BaseDateTypeClient date = dates.get(0);
+                date.getValue();
+                record.setAttribute(FIELD_PER_VOLUME_YEAR, date.getValue());
+            }
+
+            List<String> notes = part.getText();
+            if (notes != null && ! notes.isEmpty()) {
+                record.setAttribute(FIELD_NOTE, notes.get(0));
+            }
+
+            List<DetailTypeClient> details = nonNullList(part.getDetail());
+            for (DetailTypeClient detail : details) {
+                if ("volume".equals(detail.getType())) {
+                    List<String> numbers = detail.getNumber();
+                    if (numbers != null && !numbers.isEmpty()) {
+                        record.setAttribute(FIELD_PER_VOLUME_NUMBER, numbers.get(0));
+                    }
+                }
+            }
+        }
     }
 
     public Record convertPeriodical(String pid, ModsCollectionClient modsCollection) {
