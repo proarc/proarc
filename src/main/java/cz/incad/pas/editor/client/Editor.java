@@ -78,7 +78,6 @@ public class Editor implements EntryPoint {
 //        mainHeader.setHeight(33);
         mainHeader.setHeight(40);
         mainHeader.addSpacer(6);
-//        Label headerItem = new Label("Produkční a archivační systém - editor");
         Label headerItem = new Label(i18nPas.Editor_Header_Title());
         headerItem.setStyleName("pasMainTitle");
         headerItem.setWrap(false);
