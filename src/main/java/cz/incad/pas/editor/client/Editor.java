@@ -65,13 +65,13 @@ public class Editor implements EntryPoint {
 //        }
         initLogging();
         
-        LOG.info(ClientUtils.format("onModuleLoad:\n module page: %s\n host page: %s"
+        ClientUtils.info(LOG, "onModuleLoad:\n module page: %s\n host page: %s"
                 + "\n getModuleName: %s\n getPermutationStrongName: %s\n version: %s"
                 + "\n Page.getAppDir: %s",
                 GWT.getModuleBaseURL(), GWT.getHostPageBaseURL(),
                 GWT.getModuleName(), GWT.getPermutationStrongName(), GWT.getVersion(),
                 Page.getAppDir()
-                ));
+                );
 
         i18nPas = GWT.create(PasEditorMessages.class);
 
@@ -153,7 +153,8 @@ public class Editor implements EntryPoint {
         Tree tree = menu.getTree();
         TreeNode find = tree.find(menuPath);
         int menuItemIdx = menu.getRecordIndex(find);
-        System.out.println("### Found: " + find + ", menuItemIdx: " + menuItemIdx + ", name: " + (find != null ? find.getName() : null));
+        ClientUtils.info(LOG, "Found: %s, menuItemIdx: %s, name: %s",
+                find, menuItemIdx, find != null ? find.getName() : null);
         menu.selectRecord(find);
         menu.rowClick(find, menuItemIdx, 0);
     }
@@ -179,7 +180,7 @@ public class Editor implements EntryPoint {
         };
         for (int i = 0; i < trees.length; i++) {
             TreeNode treeNode = trees[i];
-            System.out.println("## TreeNode.array: " + treeNode.getName() + ", i: " + i);
+            ClientUtils.fine(LOG, "TreeNode.array: %s, i: %s", treeNode.getName(), i);
         }
         Tree tree = new Tree();
         tree.setData(trees);
@@ -218,8 +219,8 @@ public class Editor implements EntryPoint {
 
             @Override
             public void onLeafClick(LeafClickEvent event) {
-                LOG.fine("menu.getSelectedPaths: " + menu.getSelectedPaths());
-                LOG.fine("menu.getSelectedRecord: " + menu.getSelectedRecord());
+                ClientUtils.fine(LOG, "menu.getSelectedPaths: %s\nmenu.getSelectedRecord: %s",
+                        menu.getSelectedPaths(), menu.getSelectedRecord());
                 String name = event.getLeaf().getName();
                 if ("New Batch".equals(name)) {
                     Canvas ui = importPresenter.getUI();
