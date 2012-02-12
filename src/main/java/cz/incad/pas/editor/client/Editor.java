@@ -1,13 +1,35 @@
+/*
+ * Copyright (C) 2011 Jan Pokorsky
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package cz.incad.pas.editor.client;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.UrlBuilder;
 import com.google.gwt.i18n.client.Dictionary;
+import com.google.gwt.user.client.Window;
 import com.smartgwt.client.types.Autofit;
 import com.smartgwt.client.util.Page;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
+import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.fields.LinkItem;
+import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
+import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
@@ -73,22 +95,57 @@ public class Editor implements EntryPoint {
 //        selectDefaultPlace(menu, "Import/History");
         selectDefaultPlace(menu, "Edit/New Object");
         
-        ToolStrip mainHeader = new ToolStrip();
-        mainHeader.setWidth100();
-//        mainHeader.setHeight(33);
-        mainHeader.setHeight(40);
-        mainHeader.addSpacer(6);
-        Label headerItem = new Label(i18nPas.Editor_Header_Title());
-        headerItem.setStyleName("pasMainTitle");
-        headerItem.setWrap(false);
-        headerItem.setIcon("24/cube_frame.png");
-        mainHeader.addMember(headerItem);
+        Canvas mainHeader = createMainHeader();
 
         VLayout desktop = new VLayout(0);
         desktop.setWidth100();
         desktop.setHeight100();
         desktop.setMembers(mainHeader, mainLayout);
         desktop.draw();
+    }
+
+    private Canvas createMainHeader() {
+        ToolStrip mainHeader = new ToolStrip();
+        mainHeader.setWidth100();
+//        mainHeader.setHeight(33);
+        mainHeader.setHeight(40);
+
+        mainHeader.addSpacer(6);
+
+        Label headerItem = new Label(i18nPas.Editor_Header_Title());
+        headerItem.setStyleName("pasMainTitle");
+        headerItem.setWrap(false);
+        headerItem.setIcon("24/cube_frame.png");
+        mainHeader.addMember(headerItem);
+
+        mainHeader.addFill();
+
+        DynamicForm langForm = new DynamicForm();
+        langForm.setNumCols(2);
+        langForm.setFields(createLangLink("cs", "Česky"), createLangLink("en", "English"));
+        langForm.setAutoWidth();
+        langForm.setAutoHeight();
+        mainHeader.addMember(langForm);
+
+        return mainHeader;
+    }
+
+    private LinkItem createLangLink(final String locale, String title) {
+        final LinkItem lang = new LinkItem();
+        lang.setLinkTitle(title);
+        lang.setShowTitle(false);
+        lang.setWidth(45);
+        lang.addClickHandler(new ClickHandler() {
+
+            @Override
+            public void onClick(ClickEvent event) {
+                UrlBuilder urlBuilder = Window.Location.createUrlBuilder();
+                urlBuilder.setParameter("locale", locale);
+                String url = urlBuilder.buildString();
+                Window.Location.replace(url);
+            }
+        });
+        return lang;
     }
 
     private void selectDefaultPlace(TreeGrid menu, String menuPath) {
