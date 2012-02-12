@@ -24,7 +24,6 @@ import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
 import com.smartgwt.client.widgets.Window;
 import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.fields.BlurbItem;
 import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.IntegerItem;
@@ -39,6 +38,8 @@ import com.smartgwt.client.widgets.form.validator.IntegerRangeValidator;
 import com.smartgwt.client.widgets.form.validator.RequiredIfFunction;
 import com.smartgwt.client.widgets.form.validator.RequiredIfValidator;
 import com.smartgwt.client.widgets.layout.HStack;
+import cz.incad.pas.editor.client.PasEditorMessages;
+import java.util.LinkedHashMap;
 
 /**
  * Editor allowing user input of new values to modify multiple digital objects. It can
@@ -62,33 +63,35 @@ public class PageMetadataEditor {
     private Window window;
     private DynamicForm form;
     private BooleanCallback windowCallback;
+    private final PasEditorMessages i18nPas;
 
     public static PageMetadataEditor getInstance() {
         return INSTANCE;
     }
 
     private PageMetadataEditor() {
+        this.i18nPas = GWT.create(PasEditorMessages.class);
     }
 
     public Canvas getFormPanel() {
         if (form != null) {
             return form;
         }
-        allowPageIndexes = new CheckboxItem("fillPageIndexes", "Edit page indices");
+        allowPageIndexes = new CheckboxItem("fillPageIndexes", i18nPas.PageMetadataEditor_CheckboxPageIndices_Title());
         allowPageIndexes.setStartRow(true);
         allowPageIndexes.setDefaultValue(true);
         allowPageIndexes.setColSpan("*");
         allowPageIndexes.setShowTitle(false);
 //        fillPageIndexes.setShowLabel(false);
 
-        allowPageNumbers = new CheckboxItem("fillPageNumbers", "Edit page numbers");
+        allowPageNumbers = new CheckboxItem("fillPageNumbers", i18nPas.PageMetadataEditor_CheckboxPageNubers_Title());
         allowPageNumbers.setDefaultValue(true);
 //        fillPageNumbers.setShowLabel(false);
         allowPageNumbers.setStartRow(true);
         allowPageNumbers.setColSpan("*");
         allowPageNumbers.setShowTitle(false);
 
-        allowPageTypes = new CheckboxItem("fillPageTypes", "Edit page types");
+        allowPageTypes = new CheckboxItem("fillPageTypes", i18nPas.PageMetadataEditor_CheckboxPageTypes_Title());
         allowPageTypes.setDefaultValue(true);
 //        fillPageTypes.setShowLabel(false);
         allowPageTypes.setStartRow(true);
@@ -97,21 +100,32 @@ public class PageMetadataEditor {
 
         SpacerItem spacerIndex = new SpacerItem();
         spacerIndex.setStartRow(true);
-        indexStart = new IntegerItem("indexStart", "Start value");
+        indexStart = new IntegerItem("indexStart", i18nPas.PageMetadataEditor_IndexStartValue_Title());
         indexStart.setValidateOnChange(true);
 
-        numberStart = new IntegerItem("numberStart", "Start value");
-        prefix = new TextItem("prefix", "Prefix");
-        suffix = new TextItem("suffix", "Suffix");
+        numberStart = new IntegerItem("numberStart", i18nPas.PageMetadataEditor_NumberStartValue_Title());
+        prefix = new TextItem("prefix", i18nPas.PageMetadataEditor_NumberPrefix_Title());
+        suffix = new TextItem("suffix", i18nPas.PageMetadataEditor_NumberSuffix_Title());
         prefix.setLength(20);
         suffix.setLength(20);
-        numberExample = new StaticTextItem("numberExample", "Example");
+        numberExample = new StaticTextItem("numberExample", i18nPas.PageMetadataEditor_NumberPreview_Title());
         numberExample.setEscapeHTML(true); // displays empty string as &nbsp; SmartGWT 3.0 should contain fix
         numberExample.setClipValue(true);
 
-        pageType = new SelectItem("pageType", "Page type");
-        pageType.setValueMap("ListOfIllustrations", "TableOfContents", "Index",
-                "Table", "TitlePage", "ListOfMaps", "NormalPage", "Blank", "ListOfTables", "Advertisement");
+        pageType = new SelectItem("pageType", i18nPas.PageForm_PageType_Title());
+//        radioGroupItem.setTooltip("podle ANL by tu mohlo byt mnohem vic typu. Viz http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd/PeriodicalPage[@Type]");
+        LinkedHashMap<String, String> pageTypes = new LinkedHashMap<String, String>();
+        pageTypes.put("ListOfIllustrations", i18nPas.PageForm_TypeListOfIllustrations_Title());
+        pageTypes.put("TableOfContents", i18nPas.PageForm_TypeTableOfContents_Title());
+        pageTypes.put("Index", i18nPas.PageForm_TypeIndex_Title());
+        pageTypes.put("Table", i18nPas.PageForm_TypeTable_Title());
+        pageTypes.put("TitlePage", i18nPas.PageForm_TypeTitlePage_Title());
+        pageTypes.put("ListOfMaps", i18nPas.PageForm_TypeListOfMaps_Title());
+        pageTypes.put("NormalPage", i18nPas.PageForm_TypeNormalPage_Title());
+        pageTypes.put("Blank", i18nPas.PageForm_TypeBlank_Title());
+        pageTypes.put("ListOfTables", i18nPas.PageForm_TypeListOfTables_Title());
+        pageTypes.put("Advertisement", i18nPas.PageForm_TypeAdvertisement_Title());
+        pageType.setValueMap(pageTypes);
         pageType.setDefaultValue("NormalPage");
 
 //        BlurbItem blurbItem = new BlurbItem();
@@ -217,7 +231,7 @@ public class PageMetadataEditor {
         window.setIsModal(true);
         window.addItem(panelForm);
         window.addItem(panelButtons);
-        window.setTitle("Edit Selected Objects");
+        window.setTitle(i18nPas.PageMetadataEditor_Window_Title());
         window.setShowMinimizeButton(false);
         window.setShowModalMask(true);
         window.show();

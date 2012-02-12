@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.client.ds.mods;
 
+import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
@@ -24,11 +25,13 @@ import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import cz.fi.muni.xkremser.editor.client.mods.IdentifierTypeClient;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.PasEditorMessages;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 /**
+ * XXX this class could be replaced with RepeatableFormItem component.
  *
  * @author Jan Pokorsky
  */
@@ -44,19 +47,23 @@ public final class IdentifierDataSource extends DataSource {
 
     public IdentifierDataSource() {
         setID(ID);
-        DataSourceField type = new DataSourceField(FIELD_TYPE, FieldType.TEXT, "Type");
+        PasEditorMessages i18nPas = GWT.create(PasEditorMessages.class);
+
+        DataSourceField type = new DataSourceField(FIELD_TYPE, FieldType.TEXT,
+                i18nPas.PageForm_IdentifierType_Title());
 
         ComboBoxItem typeEditor = new ComboBoxItem(IdentifierDataSource.FIELD_TYPE);
         typeEditor.setValueMap("ISSN", "ISBN", "čČNB", "SICI");
         typeEditor.setType("comboBox");
         type.setEditorType(typeEditor);
 
-        DataSourceField value = new DataSourceField(FIELD_VALUE, FieldType.TEXT, "Value");
+        DataSourceField value = new DataSourceField(FIELD_VALUE, FieldType.TEXT,
+                i18nPas.PageForm_IdentifierValue_Title());
         TextItem valueEditor = new TextItem(IdentifierDataSource.FIELD_VALUE);
         valueEditor.setWidth("200");
         value.setEditorType(valueEditor);
 
-        DataSourceField object = new DataSourceField(FIELD_VALUE, FieldType.ANY, "Object");
+        DataSourceField object = new DataSourceField(FIELD_VALUE, FieldType.ANY);
         object.setHidden(true);
         setFields(type, value);
         setClientOnly(true);

@@ -32,8 +32,10 @@ import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
 import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.form.validator.IntegerRangeValidator;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
 import cz.incad.pas.editor.client.ds.mods.PageDataSource;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -46,27 +48,38 @@ public final class PageForm extends DynamicForm {
 
     private static final Logger LOG = Logger.getLogger(PageForm.class.getName());
 
-    public PageForm() {
+    public PageForm(PasEditorMessages i18nPas) {
         setWidth100();
         setHeight100();
         setTitleOrientation(TitleOrientation.TOP);
         setNumCols(4);
         setColWidths(20, 20, 20);
-        SelectItem pageType = new SelectItem(PageDataSource.FIELD_PAGE_TYPE, "Page type");
+        SelectItem pageType = new SelectItem(PageDataSource.FIELD_PAGE_TYPE, i18nPas.PageForm_PageType_Title());
 //        radioGroupItem.setTooltip("podle ANL by tu mohlo byt mnohem vic typu. Viz http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd/PeriodicalPage[@Type]");
-        pageType.setValueMap("ListOfIllustrations", "TableOfContents", "Index",
-                "Table", "TitlePage", "ListOfMaps", "NormalPage", "Blank", "ListOfTables", "Advertisement");
+        LinkedHashMap<String, String> pageTypes = new LinkedHashMap<String, String>();
+        pageTypes.put("ListOfIllustrations", i18nPas.PageForm_TypeListOfIllustrations_Title());
+        pageTypes.put("TableOfContents", i18nPas.PageForm_TypeTableOfContents_Title());
+        pageTypes.put("Index", i18nPas.PageForm_TypeIndex_Title());
+        pageTypes.put("Table", i18nPas.PageForm_TypeTable_Title());
+        pageTypes.put("TitlePage", i18nPas.PageForm_TypeTitlePage_Title());
+        pageTypes.put("ListOfMaps", i18nPas.PageForm_TypeListOfMaps_Title());
+        pageTypes.put("NormalPage", i18nPas.PageForm_TypeNormalPage_Title());
+        pageTypes.put("Blank", i18nPas.PageForm_TypeBlank_Title());
+        pageTypes.put("ListOfTables", i18nPas.PageForm_TypeListOfTables_Title());
+        pageTypes.put("Advertisement", i18nPas.PageForm_TypeAdvertisement_Title());
+        pageType.setValueMap(pageTypes);
         pageType.setDefaultValue("NormalPage");
 
         IntegerItem pageIndex = new IntegerItem(PageDataSource.FIELD_PAGE_INDEX);
-        pageIndex.setTitle("Page Index");
+        pageIndex.setTitle(i18nPas.PageForm_PageIndex_Title());
 
         TextItem pageNumber = new TextItem(PageDataSource.FIELD_PAGE_NUMBER);
-        pageNumber.setTitle("Page Number");
+        pageNumber.setTitle(i18nPas.PageForm_PageNumber_Title());
         pageNumber.setEndRow(true);
 //        pageNumber.setLength(5);
 
-        final RepeatableFormItem identifiers = new RepeatableFormItem(PageDataSource.FIELD_IDENTIFIERS, "Identifiers");
+        final RepeatableFormItem identifiers = new RepeatableFormItem(PageDataSource.FIELD_IDENTIFIERS,
+                i18nPas.PageForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
         DynamicForm identifierForm = new DynamicForm();
         identifierForm.setUseAllDataSourceFields(true);
@@ -76,7 +89,7 @@ public final class PageForm extends DynamicForm {
         identifiers.setColSpan("3");
 
 //        TextAreaItem note = new AutoFitTextAreaItem(PageDataSource.FIELD_NOTE, "Note");
-        TextAreaItem note = new TextAreaItem(PageDataSource.FIELD_NOTE, "Note");
+        TextAreaItem note = new TextAreaItem(PageDataSource.FIELD_NOTE, i18nPas.PageForm_Note_Title());
         note.setWidth("*");
         note.setHeight("*");
         note.setColSpan("*");

@@ -37,6 +37,7 @@ import com.smartgwt.client.widgets.layout.SectionStackSection;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.DataSourceFieldBuilder;
+import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -53,21 +54,23 @@ public final class NewDigObject extends VLayout {
     private FilterBuilder filter;
     private final SectionStack sections;
     private final DynamicForm optionsForm;
+    private final PasEditorMessages i18nPas;
 
-    public NewDigObject() {
+    public NewDigObject(PasEditorMessages i18nPas) {
+        this.i18nPas = i18nPas;
         setHeight100();
         setWidth100();
 
         optionsForm = createOptionsForm();
 
-        SectionStackSection sectionMain = new SectionStackSection("Options");
+        SectionStackSection sectionMain = new SectionStackSection(
+                i18nPas.NewDigObject_SectionOptions_Title());
         sectionMain.setExpanded(true);
         sectionMain.setCanCollapse(false);
         sectionMain.setItems(optionsForm);
 
-        SectionStackSection sectionAdvanced = new SectionStackSection("Advanced Options");
-        VLayout advancedWidget = new VLayout();
-        advancedWidget.setContents("Advanced");
+        SectionStackSection sectionAdvanced = new SectionStackSection(
+                i18nPas.NewDigObject_SectionAdvancedOptions_Title());
         sectionAdvanced.setItems(createAdvancedOptions());
 
         sections = new SectionStack();
@@ -75,7 +78,6 @@ public final class NewDigObject extends VLayout {
         sections.setSections(sectionMain, sectionAdvanced);
 
         setMembers(sections);
-//        setMembers(optionsForm);
     }
 
     public void bind(AdvancedCriteria criteria) {
@@ -98,7 +100,8 @@ public final class NewDigObject extends VLayout {
     }
 
     private DynamicForm createOptionsForm() {
-        SelectItem selectModel = new SelectItem(MetaModelDataSource.FIELD_PID, "Select type");
+        SelectItem selectModel = new SelectItem(MetaModelDataSource.FIELD_PID,
+                i18nPas.NewDigObject_OptionModel_Title());
         selectModel.setRequired(true);
         selectModel.setDefaultToFirstOption(true);
         selectModel.setOptionDataSource(MetaModelDataSource.getInstance());
@@ -167,7 +170,7 @@ public final class NewDigObject extends VLayout {
             }}
         });
 
-        SelectItem selection = new SelectItem("catalog", "Select catalog");
+        SelectItem selection = new SelectItem("catalog", i18nPas.NewDigObject_OptionCatalog_Title());
         selection.setRequired(true);
         selection.setOptionDataSource(ds);
 //        selectModel.setShowOptionsFromDataSource(true);

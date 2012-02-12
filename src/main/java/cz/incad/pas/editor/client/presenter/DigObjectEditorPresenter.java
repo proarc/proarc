@@ -17,11 +17,10 @@
 package cz.incad.pas.editor.client.presenter;
 
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.widgets.Canvas;
 import cz.incad.pas.editor.client.ClientUtils;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.widget.DCEditor;
@@ -46,12 +45,14 @@ public final class DigObjectEditorPresenter {
     private final NewDcStep newDcStep;
     private final Wizard wizard;
     private WizardContext wc;
+    private final PasEditorMessages i18nPas;
 
-    public DigObjectEditorPresenter() {
+    public DigObjectEditorPresenter(PasEditorMessages i18nPas) {
+        this.i18nPas = i18nPas;
         newDigObjectStep = new NewDigObjectStep();
         newModsStep = new NewModsStep();
         newDcStep = new NewDcStep();
-        wizard = new Wizard(newDigObjectStep, newModsStep, newDcStep,
+        wizard = new Wizard(i18nPas, newDigObjectStep, newModsStep, newDcStep,
                 new SelectParentStep(), new FinishedStep(), Wizard.emptyStep());
     }
 
@@ -147,7 +148,8 @@ public final class DigObjectEditorPresenter {
             initContext();
             wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel("New Object","select type of the newly created object");
+            wizard.setWizardLabel(i18nPas.NewDigObjectWizard_DescriptionPrefix_Title(),
+                    i18nPas.NewDigObjectWizard_NewDcStep_Description_Title());
             newDigObject.bind(null);
 //            newDigObject.bind(new AdvancedCriteria("issn", OperatorId.ICONTAINS, "my issn"));
         }
@@ -172,7 +174,7 @@ public final class DigObjectEditorPresenter {
         @Override
         public Canvas asWidget() {
             if (newDigObject == null) {
-                newDigObject = new NewDigObject();
+                newDigObject = new NewDigObject(i18nPas);
             }
 //            if (true) {
 //                RepeatableForm dfl = new RepeatableForm("Identifiers");
@@ -192,7 +194,8 @@ public final class DigObjectEditorPresenter {
             this.wizard = wizard;
             wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel("New Object", "fill MODS metadata");
+            wizard.setWizardLabel(i18nPas.NewDigObjectWizard_DescriptionPrefix_Title(),
+                    i18nPas.NewDigObjectWizard_NewModsStep_Description_Title());
 
             WizardContext wc = getContext();
             if (!wc.isModsInitialized()) {
@@ -218,7 +221,7 @@ public final class DigObjectEditorPresenter {
         @Override
         public Canvas asWidget() {
             if (modsFullEditor == null) {
-                modsFullEditor = new ModsFullEditor();
+                modsFullEditor = new ModsFullEditor(i18nPas);
             }
             return modsFullEditor.getUI();
         }
@@ -235,7 +238,8 @@ public final class DigObjectEditorPresenter {
             this.wizard = wizard;
 //            wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel("New Object", "fill Dublin Core metadata");
+            wizard.setWizardLabel(i18nPas.NewDigObjectWizard_DescriptionPrefix_Title(),
+                    i18nPas.NewDigObjectWizard_NewDcStep_Description_Title());
 
             WizardContext wc = getContext();
             if (!wc.isDcInitialized()) {
@@ -257,7 +261,7 @@ public final class DigObjectEditorPresenter {
         @Override
         public Canvas asWidget() {
             if (dcEditor == null) {
-                dcEditor = new DCEditor();
+                dcEditor = new DCEditor(i18nPas);
                 dcEditor.setOverflow(Overflow.AUTO);
             }
             return dcEditor;
@@ -274,7 +278,8 @@ public final class DigObjectEditorPresenter {
             this.wizard = wizard;
 //            wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel("New Object", "select parent digital object that will reference the newly created object.");
+            wizard.setWizardLabel(i18nPas.NewDigObjectWizard_DescriptionPrefix_Title(),
+                    i18nPas.NewDigObjectWizard_SelectParentStep_Description_Title());
 
             editor.setHandler(this);
             if (getContext().getParentPid() == null) {
@@ -305,7 +310,7 @@ public final class DigObjectEditorPresenter {
         @Override
         public Canvas asWidget() {
             if (editor == null) {
-                editor = new ImportParentChooser();
+                editor = new ImportParentChooser(i18nPas);
 //                editor = new VLayout();
 //                editor.setContents("ImportParentChooser");
             }
@@ -337,9 +342,10 @@ public final class DigObjectEditorPresenter {
 
         @Override
         public void onShow(Wizard wizard) {
-            wizard.setBackButton(true, "Create New Object");
-            wizard.setForwardButton(true, "Open in Editor");
-            wizard.setWizardLabel("New Object", "done");
+            wizard.setBackButton(true, i18nPas.NewDigObjectWizard_FinishedStep_CreateNewObjectButton_Title());
+            wizard.setForwardButton(true, i18nPas.NewDigObjectWizard_FinishedStep_OpenInEditorButton_Title());
+            wizard.setWizardLabel(i18nPas.NewDigObjectWizard_DescriptionPrefix_Title(),
+                    i18nPas.NewDigObjectWizard_FinishedStep_Description_Title());
         }
 
         @Override

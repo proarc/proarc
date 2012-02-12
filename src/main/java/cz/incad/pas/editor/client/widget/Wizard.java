@@ -28,6 +28,7 @@ import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.PasEditorMessages;
 
 /**
  * The wizard allows to connect multiple layout widgets as steps
@@ -40,6 +41,7 @@ public class Wizard extends VLayout {
     private final String WIZARD_LABEL_PREFIX = "<b>%s</b> - %s";
 
     public enum StepKind {BACK, FORWARD, CANCEL}
+    private final PasEditorMessages i18nPas;
 
 //    private Canvas[] steps = {new ImportSourceChooser(), new ProcessImportedView(), new ImportParentChooser()};
     private WizardStep[] steps;
@@ -51,11 +53,10 @@ public class Wizard extends VLayout {
     private Label lblHeader;
     private boolean canStepForward = true;
     private boolean canStepBack = true;
-    private String defaultBackTitle = "< Back";
-    private String defaultForwardTitle = "Next >";
     
-    public Wizard(WizardStep... steps) {
+    public Wizard(PasEditorMessages i18nPas, WizardStep... steps) {
         assert steps != null && steps.length > 0 && steps[0] != null;
+        this.i18nPas = i18nPas;
         this.steps = steps;
         setHeight100();
         setWidth100();
@@ -92,7 +93,7 @@ public class Wizard extends VLayout {
         bottomLayout.setPadding(2);
         bottomLayout.setMembersMargin(2);
         
-        btnBack = new Button(defaultBackTitle);
+        btnBack = new Button(i18nPas.Wizard_ButtonBack_Title());
         btnBack.addClickHandler(new ClickHandler() {
             
             @Override
@@ -102,7 +103,7 @@ public class Wizard extends VLayout {
         });
         bottomLayout.addMember(btnBack);
         
-        btnForward = new Button(defaultForwardTitle);
+        btnForward = new Button(i18nPas.Wizard_ButtonForward_Title());
         btnForward.addClickHandler(new ClickHandler() {
             @Override
             public void onClick(ClickEvent event) {
@@ -204,11 +205,11 @@ public class Wizard extends VLayout {
     }
 
     public void setBackButton(boolean show, String title) {
-        setButton(btnBack, show, title == null ? defaultBackTitle : title);
+        setButton(btnBack, show, title == null ? i18nPas.Wizard_ButtonBack_Title() : title);
     }
 
     public void setForwardButton(boolean show, String title) {
-        setButton(btnForward, show, title == null ? defaultForwardTitle : title);
+        setButton(btnForward, show, title == null ? i18nPas.Wizard_ButtonForward_Title() : title);
     }
 
     private void setButton(Button btn, boolean show, String title) {

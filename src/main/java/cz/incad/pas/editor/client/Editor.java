@@ -114,7 +114,7 @@ public class Editor implements EntryPoint {
         mainHeader.setHeight(40);
         mainHeader.addSpacer(6);
 //        Label headerItem = new Label("Produkční a archivační systém - editor");
-        Label headerItem = new Label("Production and Archive System - Editor");
+        Label headerItem = new Label(i18nPas.Editor_Header_Title());
         headerItem.setStyleName("pasMainTitle");
         headerItem.setWrap(false);
         headerItem.setIcon("24/cube_frame.png");
@@ -179,9 +179,9 @@ public class Editor implements EntryPoint {
     }
 
     private Canvas createMenuPlaces(final TreeGrid menu) {
-        final ImportPresenter importPresenter = new ImportPresenter();
+        final ImportPresenter importPresenter = new ImportPresenter(i18nPas);
 //
-        final DigObjectEditorPresenter objectEditorPresenter = new DigObjectEditorPresenter();
+        final DigObjectEditorPresenter objectEditorPresenter = new DigObjectEditorPresenter(i18nPas);
 
         final HLayout placesContainer = new HLayout();
         placesContainer.setHeight100();

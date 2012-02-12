@@ -20,6 +20,7 @@ import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
 import cz.incad.pas.editor.client.ds.mods.PageDataSource;
 
@@ -30,14 +31,16 @@ import cz.incad.pas.editor.client.ds.mods.PageDataSource;
  */
 public final class PeriodicalVolumeForm extends DynamicForm {
 
-    public PeriodicalVolumeForm() {
+    public PeriodicalVolumeForm(PasEditorMessages i18nPas) {
         setWidth100();
         setHeight100();
         setTitleOrientation(TitleOrientation.TOP);
         setNumCols(1);
 
-        TextItem volumeNumber = new TextItem(PageDataSource.FIELD_PER_VOLUME_NUMBER, "Volume Number");
-        TextItem date = new TextItem(PageDataSource.FIELD_PER_VOLUME_YEAR, "Date of Issue");
+        TextItem volumeNumber = new TextItem(PageDataSource.FIELD_PER_VOLUME_NUMBER,
+                i18nPas.PeriodicalVolumeForm_Number_Title());
+        TextItem date = new TextItem(PageDataSource.FIELD_PER_VOLUME_YEAR,
+                i18nPas.PeriodicalVolumeForm_Date_Title());
 //        DateItem date = new DateItem(PageDataSource.FIELD_PER_VOLUME_YEAR, "Date of Issue");
         // work arounds missing DateItemSelectorFormat.YEAR
 //        date.setAttribute("selectorFormat", "Y");
@@ -48,7 +51,8 @@ public final class PeriodicalVolumeForm extends DynamicForm {
         date.setEndRow(true);
 
         // identifiers
-        final RepeatableFormItem identifiers = new RepeatableFormItem(PageDataSource.FIELD_IDENTIFIERS, "Identifiers");
+        final RepeatableFormItem identifiers = new RepeatableFormItem(PageDataSource.FIELD_IDENTIFIERS,
+                i18nPas.PeriodicalVolumeForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
         DynamicForm identifierForm = new DynamicForm();
         identifierForm.setUseAllDataSourceFields(true);
@@ -57,7 +61,8 @@ public final class PeriodicalVolumeForm extends DynamicForm {
         identifiers.setEndRow(true);
         identifiers.setColSpan("2");
 
-        TextAreaItem note = new TextAreaItem(PageDataSource.FIELD_NOTE, "Note");
+        TextAreaItem note = new TextAreaItem(PageDataSource.FIELD_NOTE,
+                i18nPas.PeriodicalVolumeForm_Note_Title());
         note.setWidth("*");
         note.setHeight("*");
         note.setColSpan("*");

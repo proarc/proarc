@@ -66,12 +66,14 @@ import com.smartgwt.client.widgets.tile.TileGrid;
 import com.smartgwt.client.widgets.viewer.DetailFormatter;
 import com.smartgwt.client.widgets.viewer.DetailViewerField;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.DcRecordDataSource;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.OcrDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -90,6 +92,7 @@ public class ImportBatchItemEditor extends HLayout {
 
     private static final Logger LOG = Logger.getLogger(ImportBatchItemEditor.class.getName());
 
+    private final PasEditorMessages i18nPas;
     private DataSource dsBatchItem;
 
     private final ListGrid batchItemGrid;
@@ -99,7 +102,8 @@ public class ImportBatchItemEditor extends HLayout {
     private DynamicFormTab[] dfTabs;
     private final TileGrid thumbViewer;
     
-    public ImportBatchItemEditor() {
+    public ImportBatchItemEditor(PasEditorMessages i18nPas) {
+        this.i18nPas = i18nPas;
         this.setHeight100();
         this.setWidth100();
         
@@ -116,7 +120,8 @@ public class ImportBatchItemEditor extends HLayout {
         batchItemGrid.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
         batchItemGrid.setLeaveScrollbarGap(false);
 
-        fieldItemModel = new ListGridField(ImportBatchItemDataSource.FIELD_MODEL, "Model");
+        fieldItemModel = new ListGridField(ImportBatchItemDataSource.FIELD_MODEL,
+                i18nPas.ImportBatchItemEditor_ListHeaderModel_Title());
 
         batchItemGrid.setDataSource(ImportBatchItemDataSource.getInstance());
         fieldItemModel.setOptionDataSource(MetaModelDataSource.getInstance());
@@ -130,11 +135,11 @@ public class ImportBatchItemEditor extends HLayout {
 //        batchItemGrid.setCellHeight(fieldThumbnail.getImageHeight() + 2);
 
         batchItemGrid.setFields(new ListGridField[] {
-            new ListGridField(ImportBatchItemDataSource.FIELD_PID, "PID"),
+            new ListGridField(ImportBatchItemDataSource.FIELD_PID, i18nPas.ImportBatchItemEditor_ListHeaderPID_Title()),
 //            fieldThumbnail,
             fieldItemModel,
-            new ListGridField(ImportBatchItemDataSource.FIELD_USER, "User"),
-            new ListGridField(ImportBatchItemDataSource.FIELD_FILENAME, "Filename")
+            new ListGridField(ImportBatchItemDataSource.FIELD_USER, i18nPas.ImportBatchItemEditor_ListHeaderUser_Title()),
+            new ListGridField(ImportBatchItemDataSource.FIELD_FILENAME, i18nPas.ImportBatchItemEditor_ListHeaderFilename_Title())
         });
 //        batchItemGrid.addRecordClickHandler(new RecordClickHandler() {
 //
@@ -394,7 +399,7 @@ public class ImportBatchItemEditor extends HLayout {
         thumbGrid.setTileHeight(128 + 8 + 12 * 2);
         thumbGrid.setTileWidth(120);
         Menu menu = new Menu();
-        MenuItem miSelectAll = new MenuItem("Select All");
+        MenuItem miSelectAll = new MenuItem(i18nPas.ImportBatchItemEditor_MenuSaveAll_Title());
         miSelectAll.addClickHandler(new com.smartgwt.client.widgets.menu.events.ClickHandler() {
 
             @Override
@@ -402,8 +407,8 @@ public class ImportBatchItemEditor extends HLayout {
                 thumbGrid.selectAllRecords();
             }
         });
-        MenuItem miSelectMatching = new MenuItem("Select Items Matching...");
-        MenuItem miDelete = new MenuItem("Delete...");
+        MenuItem miSelectMatching = new MenuItem(i18nPas.ImportBatchItemEditor_MenuSelectMatching_Title());
+        MenuItem miDelete = new MenuItem(i18nPas.ImportBatchItemEditor_MenuDelete_Title());
         miDelete.addClickHandler(new com.smartgwt.client.widgets.menu.events.ClickHandler() {
 
             @Override
@@ -412,8 +417,8 @@ public class ImportBatchItemEditor extends HLayout {
                 if (selection == null || selection.length == 0) {
                     return ;
                 }
-                SC.ask("Delete",
-                        ClientUtils.format("Are you sure you want to permanently delete %s selected object(s)?", selection.length),
+                SC.ask(i18nPas.ImportBatchItemEditor_WindowDelete_Title(),
+                        i18nPas.ImportBatchItemEditor_WindowDelete_MSG(String.valueOf(selection.length)),
                         new BooleanCallback() {
 
                     @Override
@@ -426,7 +431,7 @@ public class ImportBatchItemEditor extends HLayout {
                 });
             }
         });
-        MenuItem miEdit = new MenuItem("Edit...");
+        MenuItem miEdit = new MenuItem(i18nPas.ImportBatchItemEditor_MenuEdit_Title());
         miEdit.addClickHandler(new com.smartgwt.client.widgets.menu.events.ClickHandler() {
 
             @Override
@@ -550,9 +555,15 @@ public class ImportBatchItemEditor extends HLayout {
     }
 
     private DynamicFormTab[] createTabs() {
-        DynamicFormTab dcTab = new DynamicFormTab("DC", createDcForm());
-        DynamicFormTab modsTab = new DynamicFormTab("MODS", createModsForm());
-        DynamicFormTab ocrTab = new DynamicFormTab("OCR", createOcrForm());
+        DynamicFormTab dcTab = new DynamicFormTab(
+                i18nPas.ImportBatchItemEditor_TabDublinCore_Title(),
+                createDcForm(), i18nPas);
+        DynamicFormTab modsTab = new DynamicFormTab(
+                i18nPas.ImportBatchItemEditor_TabMods_Title(),
+                createModsForm(), i18nPas);
+        DynamicFormTab ocrTab = new DynamicFormTab(
+                i18nPas.ImportBatchItemEditor_TabOcr_Title(),
+                createOcrForm(), i18nPas);
         return new DynamicFormTab[] {
             modsTab,
             dcTab,
@@ -562,7 +573,7 @@ public class ImportBatchItemEditor extends HLayout {
 
     private DynamicForm createDcForm() {
         DcRecordDataSource dsDc = DcRecordDataSource.getInstance();
-        DCEditor dcEditor = new DCEditor();
+        DCEditor dcEditor = new DCEditor(i18nPas);
 //        dcEditor.setDataSource(dsDc);
 //        dcEditor.setDataPath(DcRecordDataSource.FIELD_DC.getQualifiedName());
         return dcEditor;
@@ -575,29 +586,29 @@ public class ImportBatchItemEditor extends HLayout {
 //        form.setGroupTitle("Group");
         form.setHeight100();
         form.setWidth100();
-//        TextItem textItem = new TextItem("filename", "Filename");
-//        textItem.setTooltip("ABA0070069228X1990000100005.tif");
-//        textItem.setWidth("*");
-//        textItem.setValue("ABA0070069228X1990000100005.tif");
-//        textItem.setRequired(true);
 
-//        SelectItem selectItem = new SelectItem("model", "Model");
-//        selectItem.setHint("Type of digital object");
-//        selectItem.setValueMap(new String[] {"Page", "Monograph", "Periodical", "Volume", "Issue", "Unit"});
-//        selectItem.setDefaultValue("Page");
-//        selectItem.setDisabled(true);
-
-        SelectItem pageType = new SelectItem("pageType", "Page type");
+        SelectItem pageType = new SelectItem("pageType", i18nPas.PageForm_PageType_Title());
 //        radioGroupItem.setTooltip("podle ANL by tu mohlo byt mnohem vic typu. Viz http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd/PeriodicalPage[@Type]");
-        pageType.setValueMap("ListOfIllustrations", "TableOfContents", "Index",
-                "Table", "TitlePage", "ListOfMaps", "NormalPage", "Blank", "ListOfTables", "Advertisement");
+        pageType.setDefaultValue("NormalPage");
+        LinkedHashMap<String, String> pageTypes = new LinkedHashMap<String, String>();
+        pageTypes.put("ListOfIllustrations", i18nPas.PageForm_TypeListOfIllustrations_Title());
+        pageTypes.put("TableOfContents", i18nPas.PageForm_TypeTableOfContents_Title());
+        pageTypes.put("Index", i18nPas.PageForm_TypeIndex_Title());
+        pageTypes.put("Table", i18nPas.PageForm_TypeTable_Title());
+        pageTypes.put("TitlePage", i18nPas.PageForm_TypeTitlePage_Title());
+        pageTypes.put("ListOfMaps", i18nPas.PageForm_TypeListOfMaps_Title());
+        pageTypes.put("NormalPage", i18nPas.PageForm_TypeNormalPage_Title());
+        pageTypes.put("Blank", i18nPas.PageForm_TypeBlank_Title());
+        pageTypes.put("ListOfTables", i18nPas.PageForm_TypeListOfTables_Title());
+        pageTypes.put("Advertisement", i18nPas.PageForm_TypeAdvertisement_Title());
+        pageType.setValueMap(pageTypes);
         pageType.setDefaultValue("NormalPage");
 
         IntegerItem pageIndex = new IntegerItem("pageIndex");
-        pageIndex.setTitle("Page Index");
+        pageIndex.setTitle(i18nPas.PageForm_PageIndex_Title());
 
         TextItem pageNumber = new TextItem("pageNumber");
-        pageNumber.setTitle("Page Number");
+        pageNumber.setTitle(i18nPas.PageForm_PageNumber_Title());
         pageNumber.setLength(20);
 
         form.setFields(pageType, pageIndex, pageNumber);
@@ -638,7 +649,10 @@ public class ImportBatchItemEditor extends HLayout {
 //        btnPreviousObject.setIcon("[SKIN]/actions/back.png");
 //        btnPreviousObject.setIcon("[SKIN]/actions/prev.png");
 //        btnPreviousObject.setIcon("[SKIN]/TransferIcons/left.png");
-        IButton btnPreviousObject = createTabControlButton("[SKIN]/actions/back.png", "p", "Previous Object [Alt+P] and Enter", new ClickHandler() {
+        IButton btnPreviousObject = createTabControlButton(
+                "[SKIN]/actions/back.png", "p",
+                i18nPas.ImportBatchItemEditor_ButtonPrevious_Title(),
+                new ClickHandler() {
 
             @Override
             public void onClick(ClickEvent event) {
@@ -649,7 +663,10 @@ public class ImportBatchItemEditor extends HLayout {
 
 //        btnNextObject.setIcon("[SKIN]/actions/next.png");
 //        btnNextObject.setIcon("[SKIN]/TransferIcons/right.png");
-        IButton btnNextObject = createTabControlButton("[SKIN]/actions/forward.png", "n", "Next Object [Alt+N] and Enter", new ClickHandler() {
+        IButton btnNextObject = createTabControlButton(
+                "[SKIN]/actions/forward.png", "n",
+                i18nPas.ImportBatchItemEditor_ButtonNext_Title(),
+                new ClickHandler() {
 
             @Override
             public void onClick(ClickEvent event) {
@@ -751,12 +768,14 @@ public class ImportBatchItemEditor extends HLayout {
     }
 
     private static class DynamicFormTab {
+        private final PasEditorMessages i18nPas;
         private final Tab tab;
         private final DynamicForm form;
         private String title;
         private final Canvas emptyContent;
 
-        public DynamicFormTab(String title, DynamicForm form) {
+        public DynamicFormTab(String title, DynamicForm form, PasEditorMessages i18nPas) {
+            this.i18nPas = i18nPas;
             this.title = title;
             this.tab = new Tab(title);
             this.emptyContent = new Canvas();
@@ -852,7 +871,7 @@ public class ImportBatchItemEditor extends HLayout {
 
             public void updateOrDiscard() {
                 if (form.valuesHaveChanged()) {
-                    SC.ask("Save changes? If no, changes will be discarded!", this);
+                    SC.ask(i18nPas.ImportBatchItemEditor_WindowSave_MSG(), this);
                 }
             }
 

@@ -27,22 +27,26 @@ import com.smartgwt.client.widgets.tab.Tab;
 import com.smartgwt.client.widgets.tab.TabSet;
 import com.smartgwt.client.widgets.tree.Tree;
 import com.smartgwt.client.widgets.tree.TreeGrid;
+import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 
 public class ImportParentChooser extends VLayout {
+
+    private final PasEditorMessages i18nPas;
     private TreeGrid treeSelector;
     private ImportParentHandler handler;
     private final ListGrid foundGrid;
     
-    public ImportParentChooser() {
+    public ImportParentChooser(PasEditorMessages i18nPas) {
         super(4);
+        this.i18nPas = i18nPas;
         setLayoutMargin(4);
         setWidth100();
         setHeight100();
         TabSet tabSet = new TabSet();
-        Tab tabLastUsed = new Tab("Last Used"); // selected as parents in previous processings
-        Tab tabLastCreated = new Tab("Last Created");
-        Tab tabSearch = new Tab("Search");
+        Tab tabLastUsed = new Tab(i18nPas.ImportParentChooser_TabLastUsed_Title()); // selected as parents in previous processings
+        Tab tabLastCreated = new Tab(i18nPas.ImportParentChooser_TabLastCreated_Title());
+        Tab tabSearch = new Tab(i18nPas.ImportParentChooser_TabSearch_Title());
         initTabSearch(tabSearch);
         tabSet.setTabs(tabLastUsed, tabLastCreated, tabSearch);
         // XXX implement tabs
@@ -165,7 +169,7 @@ public class ImportParentChooser extends VLayout {
         treeGrid.setDataSource(RelationDataSource.getInstance());
         treeGrid.setUseAllDataSourceFields(true);
         treeGrid.setShowConnectors(true);
-        treeGrid.setEmptyMessage("Select a digital object first.");
+        treeGrid.setEmptyMessage(i18nPas.ImportParentChooser_EmptySelection_Title());
         treeGrid.setAlternateRecordStyles(true);
         treeGrid.setSelectionType(SelectionStyle.SINGLE);
 //        treeGrid.setAutoFetchData(true);

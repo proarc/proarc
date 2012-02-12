@@ -23,6 +23,7 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
+import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
@@ -56,14 +57,17 @@ public class ImportPresenter {
     private final SelectParentStep selectParentStep;
     private final FinishedStep finishedStep;
     private ImportContext importContext;
+    private final PasEditorMessages i18nPas;
 
-    public ImportPresenter() {
-        selectFolderStep = new SelectFolderStep(this);
+    public ImportPresenter(PasEditorMessages i18nPas) {
+        this.i18nPas = i18nPas;
+        selectFolderStep = new SelectFolderStep();
         selectBatchStep = new SelectBatchStep();
-        selectParentStep = new SelectParentStep(this);
-        updateItemsStep = new UpdateItemsStep(this);
-        finishedStep = new FinishedStep(this);
-        wizard = new Wizard(selectFolderStep, selectBatchStep, selectParentStep, updateItemsStep, finishedStep);
+        selectParentStep = new SelectParentStep();
+        updateItemsStep = new UpdateItemsStep();
+        finishedStep = new FinishedStep();
+        wizard = new Wizard(i18nPas, selectFolderStep, selectBatchStep,
+                selectParentStep, updateItemsStep, finishedStep);
     }
 
     public void bind() {
@@ -107,7 +111,7 @@ public class ImportPresenter {
         wizard.moveAt(finishedStep);
     }
 
-    private static final class SelectBatchStep implements WizardStep, ImportBatchChooserHandler {
+    private final class SelectBatchStep implements WizardStep, ImportBatchChooserHandler {
 
         private ImportBatchChooser widget;
         private Wizard wizard;
@@ -116,8 +120,9 @@ public class ImportPresenter {
         public void onShow(Wizard wizard) {
             this.wizard = wizard;
             wizard.setBackButton(false, null); // XXX this could be "Import New Folder"
-            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel("Import", "select import batch to resume import");
+            wizard.setForwardButton(true, i18nPas.ImportWizard_SelectBatchStep_ForwardButton_Title());
+            wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
+                    i18nPas.ImportWizard_SelectBatchStep_Description_Title());
             widget.bind();
         }
 
@@ -137,7 +142,7 @@ public class ImportPresenter {
         @Override
         public Canvas asWidget() {
             if (widget == null) {
-                widget = new ImportBatchChooser();
+                widget = new ImportBatchChooser(i18nPas);
             }
             return widget;
         }
@@ -149,24 +154,20 @@ public class ImportPresenter {
         }
 
     }
-    private static final class SelectFolderStep implements WizardStep, ImportSourceChooserHandler {
+    private final class SelectFolderStep implements WizardStep, ImportSourceChooserHandler {
 
         private ImportSourceChooser importSourceChooser;
         private Wizard wizard;
-        private final ImportPresenter presenter;
-
-        public SelectFolderStep(ImportPresenter presenter) {
-            this.presenter = presenter;
-        }
 
         @Override
         public void onShow(Wizard wizard) {
             this.wizard = wizard;
             wizard.setBackButton(false, null);
-            wizard.setForwardButton(true, "Import");
-            wizard.setWizardLabel("Import", "select folder to import");
+            wizard.setForwardButton(true, i18nPas.ImportWizard_SelectFolderStep_ForwardButton_Title());
+            wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
+                    i18nPas.ImportWizard_SelectFolderStep_Description_Title());
 
-            presenter.importContext = new ImportContext();
+            ImportPresenter.this.importContext = new ImportContext();
             importSourceChooser.setViewHandler(this);
             importSourceChooser.setDigitalObjectModelDataSource(null);
             importSourceChooser.setFolderDataSource(null);
@@ -190,7 +191,7 @@ public class ImportPresenter {
         @Override
         public Canvas asWidget() {
             if (importSourceChooser == null) {
-                importSourceChooser = new ImportSourceChooser();
+                importSourceChooser = new ImportSourceChooser(i18nPas);
             }
             return importSourceChooser;
         }
@@ -224,10 +225,10 @@ public class ImportPresenter {
                         Record[] data = response.getData();
                         if (data != null && data.length > 0) {
                             BatchRecord newBatch = new BatchRecord(data[0]);
-                            presenter.getImportContext().setBatch(newBatch);
+                            ImportPresenter.this.getImportContext().setBatch(newBatch);
                             // XXX propoj spravne kroky
 //                            presenter.updateImportedObjects();
-                            presenter.selectParent();
+                            ImportPresenter.this.selectParent();
                         } else {
                             // XXX show warning something is wrong
                         }
@@ -243,22 +244,18 @@ public class ImportPresenter {
         }
     }
 
-    private static final class UpdateItemsStep implements WizardStep {
+    private final class UpdateItemsStep implements WizardStep {
 
         private ImportBatchItemEditor widget;
-        private final ImportPresenter presenter;
-
-        public UpdateItemsStep(ImportPresenter presenter) {
-            this.presenter = presenter;
-        }
 
         @Override
         public void onShow(Wizard wizard) {
             // back (reselect parent), forward (import)
 //            wizard.setBackButton(true, "Import Next Folder");
             wizard.setBackButton(true, null);
-            wizard.setForwardButton(true, "Import");
-            wizard.setWizardLabel("Import", "prepare metadata to import");
+            wizard.setForwardButton(true, i18nPas.ImportWizard_UpdateItemsStep_ForwardButton_Title());
+            wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
+                    i18nPas.ImportWizard_UpdateItemsStep_Description_Title());
             // XXX presenter.getImportContext().getBatch();
             widget.setBatchItems(ImportBatchItemDataSource.getInstance());
         }
@@ -276,7 +273,7 @@ public class ImportPresenter {
                 public void execute(Boolean value) {
                     if (step == StepKind.BACK) {
 //                        presenter.importFolder();
-                        presenter.selectParent();
+                        ImportPresenter.this.selectParent();
                     } else {
                         // XXX import
 //                        presenter.finishImport();
@@ -284,7 +281,7 @@ public class ImportPresenter {
 
                             @Override
                             public void execute(Boolean value) {
-                                presenter.importFolder();
+                                ImportPresenter.this.importFolder();
                             }
                         });
                     }
@@ -296,31 +293,27 @@ public class ImportPresenter {
         @Override
         public Canvas asWidget() {
             if (widget == null) {
-                widget = new ImportBatchItemEditor();
+                widget = new ImportBatchItemEditor(i18nPas);
             }
             return widget;
         }
 
     }
 
-    private static final class SelectParentStep implements WizardStep, ImportParentHandler {
+    private final class SelectParentStep implements WizardStep, ImportParentHandler {
 
         private ImportParentChooser widget;
-        private final ImportPresenter presenter;
         private Wizard wizard;
-
-        public SelectParentStep(ImportPresenter presenter) {
-            this.presenter = presenter;
-        }
 
         @Override
         public void onShow(Wizard wizard) {
-            wizard.setBackButton(true, "Import Next Folder");
+            wizard.setBackButton(true, i18nPas.ImportWizard_SelectParentStep_BackButton_Title());
             wizard.setForwardButton(true, null);
-            wizard.setWizardLabel("Import", "select parent digital object that will reference imported objects.");
+            wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
+                    i18nPas.ImportWizard_SelectParentStep_Description_Title());
             this.wizard = wizard;
             widget.setHandler(this);
-            if (presenter.getImportContext().getParentPid() == null) {
+            if (ImportPresenter.this.getImportContext().getParentPid() == null) {
                 widget.setDataSource();
             }
             onParentSelectionUpdated();
@@ -335,7 +328,7 @@ public class ImportPresenter {
         public boolean onStepAction(Wizard wizard, StepKind step) {
             if (step == StepKind.FORWARD) {
                 Record selectedParent = widget.getSelectedParent();
-                ImportContext importContext = presenter.getImportContext();
+                ImportContext importContext = ImportPresenter.this.getImportContext();
                 if (selectedParent != null) {
                     importContext.setParentPid(selectedParent.getAttribute(RelationDataSource.FIELD_PID));
                 } else {
@@ -343,7 +336,7 @@ public class ImportPresenter {
                     return false;
                 }
             } else {
-                presenter.importFolder();
+                ImportPresenter.this.importFolder();
                 return false;
             }
             return true;
@@ -352,7 +345,7 @@ public class ImportPresenter {
         @Override
         public Canvas asWidget() {
             if (widget == null) {
-                widget = new ImportParentChooser();
+                widget = new ImportParentChooser(i18nPas);
             }
             return widget;
         }
@@ -371,22 +364,20 @@ public class ImportPresenter {
     /**
      * This should summerize imported objects and error logs.
      */
-    private static final class FinishedStep implements WizardStep {
+    private final class FinishedStep implements WizardStep {
 
         private final Canvas widget;
-        private final ImportPresenter presenter;
 
-        public FinishedStep(ImportPresenter presenter) {
+        public FinishedStep() {
             widget = new Canvas();
             widget.setContents("Imported!");
-            this.presenter = presenter;
         }
 
         @Override
         public void onShow(Wizard wizard) {
             wizard.setBackButton(true, "Import New Folder");
             wizard.setForwardButton(false, null);
-            wizard.setWizardLabel("Import", "done");
+            wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(), "done");
         }
 
         @Override
@@ -395,7 +386,7 @@ public class ImportPresenter {
 
         @Override
         public boolean onStepAction(Wizard wizard, StepKind step) {
-            presenter.importFolder();
+            ImportPresenter.this.importFolder();
             return false;
         }
 

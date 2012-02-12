@@ -39,6 +39,7 @@ import cz.fi.muni.xkremser.editor.client.mods.ModsCollectionClient;
 import cz.fi.muni.xkremser.editor.client.mods.ModsTypeClient;
 import cz.fi.muni.xkremser.editor.client.view.ModsTab;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.mods.PageDataSource;
@@ -74,20 +75,22 @@ public final class ModsFullEditor {
     private DynamicForm simpleForm;
     private DynamicForm sourceForm;
     private boolean loadingData = false;
+    private final PasEditorMessages i18nPas;
 
-    private ModsFullEditor(boolean tabbed) {
+    private ModsFullEditor(boolean tabbed, PasEditorMessages i18nPas) {
+        this.i18nPas = i18nPas;
         modsContainer = new VLayout();
         modsContainer.setHeight100();
         modsContainer.setWidth100();
         if (tabbed) {
-            Tab tabFull = new Tab(verticalTitle("Full"));
+            Tab tabFull = new Tab(verticalTitle(i18nPas.ModsFullEditor_TabFull_Title()));
             tabFull.setID(TAB_FULL);
             tabFull.setPane(modsContainer);
 
-            Tab tabSimple = new Tab(verticalTitle("Basic"));
+            Tab tabSimple = new Tab(verticalTitle(i18nPas.ModsFullEditor_TabSimple_Title()));
             tabSimple.setID(TAB_SIMPLE);
 
-            Tab tabSource = new Tab(verticalTitle("XML"));
+            Tab tabSource = new Tab(verticalTitle(i18nPas.ModsFullEditor_TabSource_Title()));
             tabSource.setID(TAB_XML);
             sourceForm = new DynamicForm();
             sourceForm.setCanEdit(false);
@@ -162,8 +165,8 @@ public final class ModsFullEditor {
         return sb.toString();
     }
 
-    public ModsFullEditor() {
-        this(true);
+    public ModsFullEditor(PasEditorMessages i18nPas) {
+        this(true, i18nPas);
     }
 
     private void loadFull(Criteria pid) {
@@ -250,13 +253,13 @@ public final class ModsFullEditor {
         DynamicForm form = null;
         final String editorId = model.getEditorId();
         if (MetaModelDataSource.EDITOR_PAGE.equals(editorId)) {
-            form = new PageForm();
+            form = new PageForm(i18nPas);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL.equals(editorId)) {
-            form = new PeriodicalForm();
+            form = new PeriodicalForm(i18nPas);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL_VOLUME.equals(editorId)) {
-            form = new PeriodicalVolumeForm();
+            form = new PeriodicalVolumeForm(i18nPas);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL_ISSUE.equals(editorId)) {
-            form = new PeriodicalIssueForm();
+            form = new PeriodicalIssueForm(i18nPas);
         } else {
             ClientUtils.warning(LOG, "Uknown model editor: %s, editor: %s", model.getId(), model.getEditorId());
         }

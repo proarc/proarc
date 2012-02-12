@@ -16,7 +16,6 @@
  */
 package cz.incad.pas.editor.client.widget;
 
-import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.types.AutoFitWidthApproach;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
@@ -37,12 +36,12 @@ public final class ImportBatchChooser extends VLayout {
     private final ListGrid lGridBatches;
     private final PasEditorMessages i18nPas;
 
-    public ImportBatchChooser() {
-        this.i18nPas = GWT.create(PasEditorMessages.class);
+    public ImportBatchChooser(PasEditorMessages i18nPas) {
+        this.i18nPas = i18nPas;
         
         setWidth100();
         setHeight100();
-        setContents("Import Batch History");
+//        setContents("Import Batch History");
 
         lGridBatches = initBatchesListGrid();
         lGridBatches.setDataSource(ImportBatchDataSource.getInstance());
@@ -52,14 +51,18 @@ public final class ImportBatchChooser extends VLayout {
 
     private ListGrid initBatchesListGrid() {
         ListGrid lg = new ListGrid();
-        ListGridField lgfFolder = new ListGridField(ImportBatchDataSource.FIELD_PATH, i18nPas.ImportBatchDataSource_FolderFieldTitle());
+        ListGridField lgfFolder = new ListGridField(ImportBatchDataSource.FIELD_PATH,
+                i18nPas.ImportBatchDataSource_FolderFieldTitle());
 //        lgfFolder.setAutoFitWidth(false);
-        ListGridField lgfDate = new ListGridField(ImportBatchDataSource.FIELD_TIMESTAMP, i18nPas.ImportBatchDataSource_ImportDateFieldTitle());
+        ListGridField lgfDate = new ListGridField(ImportBatchDataSource.FIELD_TIMESTAMP,
+                i18nPas.ImportBatchDataSource_ImportDateFieldTitle());
         lgfDate.setAutoFitWidth(true);
-        ListGridField lgfImported = new ListGridField(ImportBatchDataSource.FIELD_STATE, i18nPas.ImportBatchDataSource_StateFieldTitle());
+        ListGridField lgfImported = new ListGridField(ImportBatchDataSource.FIELD_STATE,
+                i18nPas.ImportBatchDataSource_StateFieldTitle());
         lgfImported.setAutoFitWidth(true);
         lgfImported.setAutoFitWidthApproach(AutoFitWidthApproach.TITLE);
-        ListGridField lgfUser = new ListGridField(ImportBatchDataSource.FIELD_USER_DISPLAYNAME, i18nPas.ImportBatchDataSource_UserFieldTitle());
+        ListGridField lgfUser = new ListGridField(ImportBatchDataSource.FIELD_USER_DISPLAYNAME,
+                i18nPas.ImportBatchDataSource_UserFieldTitle());
         lgfUser.setAutoFitWidth(true);
         lgfUser.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
         lg.setFields(lgfFolder, lgfDate, lgfImported, lgfUser);
