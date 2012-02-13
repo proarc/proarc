@@ -16,22 +16,27 @@
  */
 package cz.incad.pas.editor.client.widget;
 
-import com.smartgwt.client.core.DataClass;
 import com.smartgwt.client.data.AdvancedCriteria;
+import com.smartgwt.client.data.Criterion;
 import com.smartgwt.client.data.DataSource;
-import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.types.TopOperatorAppearance;
 import com.smartgwt.client.types.VisibilityMode;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.IButton;
+import com.smartgwt.client.widgets.events.ClickEvent;
+import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.FilterBuilder;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
+import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
+import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.SectionStack;
 import com.smartgwt.client.widgets.layout.SectionStackSection;
 import com.smartgwt.client.widgets.layout.VLayout;
@@ -82,7 +87,8 @@ public final class NewDigObject extends VLayout {
 
     public void bind(AdvancedCriteria criteria) {
         if (criteria == null) {
-            sections.collapseSection(1);
+//            sections.collapseSection(1);
+            sections.expandSection(1);
             filter.setCriteria(new AdvancedCriteria());
         } else {
             sections.expandSection(1);
@@ -125,18 +131,18 @@ public final class NewDigObject extends VLayout {
                 new DataSourceFieldBuilder(new DataSourceTextField("modsDetail", "MODS"))
                         .filter(false).build(),
                 new DataSourceFieldBuilder(new DataSourceTextField("issn", "ISSN"))
-                        .validOperators(DataSourceFieldBuilder.TEXT_OPERATIONS).build(),
+                        .validOperators(OperatorId.ICONTAINS).build(),
                 new DataSourceFieldBuilder(new DataSourceTextField("isbn", "ISBN"))
-                        .validOperators(DataSourceFieldBuilder.TEXT_OPERATIONS).build(),
+                        .validOperators(OperatorId.ICONTAINS).build(),
                 new DataSourceFieldBuilder(new DataSourceTextField("ccnb", "čČNB"))
-                        .validOperators(DataSourceFieldBuilder.TEXT_OPERATIONS).build()
+                        .validOperators(OperatorId.ICONTAINS).build()
                 );
         
         ds.setClientOnly(true);
         ds.setTestData(new Record[] {
             new Record() {{
                 setAttribute("id", "ID");
-                setAttribute("mods", "Preview of MODS");
+                setAttribute("mods", "MODS Preview");
                 setAttribute("modsDetail", "Full MODS");
                 setAttribute("issn", "ISSN");
             }}
@@ -144,15 +150,37 @@ public final class NewDigObject extends VLayout {
 
         filter = new FilterBuilder();
         filter.setDataSource(ds);
-//        filter.setTopOperatorAppearance(TopOperatorAppearance.INLINE);
-        filter.setTopOperatorAppearance(TopOperatorAppearance.RADIO);
+        // now does not support operators; later use RADIO
+        filter.setTopOperatorAppearance(TopOperatorAppearance.NONE);
+        filter.setShowAddButton(false);
+        filter.setShowSubClauseButton(false);
+        filter.setShowRemoveButton(false);
+
+        IButton find = new IButton("Find", new ClickHandler() {
+
+            @Override
+            public void onClick(ClickEvent event) {
+                AdvancedCriteria criteria = filter.getCriteria(false);
+                Criterion[] criterions = criteria.getCriteria();
+                if (criterions == null || criterions.length == 0) {
+                    SC.say("Missing query parameter.");
+                }
+            }
+        });
+
+        HLayout filterLayout = new HLayout();
+        filterLayout.setMembers(filter, find);
+        filterLayout.setLayoutRightMargin(4);
 
         ListGrid lgResult = new ListGrid();
         lgResult.setDataSource(ds);
+        lgResult.setFields(new ListGridField("mods"));
         lgResult.setAutoFetchData(true);
+        lgResult.setHeight100();
+        lgResult.setWidth100();
 
         VLayout layout = new VLayout(2);
-        layout.setMembers(formCatalog, filter, lgResult);
+        layout.setMembers(formCatalog, filterLayout, lgResult);
         return layout;
     }
 
