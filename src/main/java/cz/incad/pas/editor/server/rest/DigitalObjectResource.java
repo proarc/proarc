@@ -21,15 +21,11 @@ import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DublinCoreRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.OcrRecord;
-import cz.incad.pas.oaidublincore.ElementType;
-import cz.incad.pas.oaidublincore.OaiDcType;
-import cz.incad.pas.oaidublincore.ObjectFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
@@ -41,18 +37,17 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.ws.Action;
 
 /**
  *
@@ -66,9 +61,16 @@ public class DigitalObjectResource {
     private final MetaModelRepository metamodels = MetaModelRepository.getInstance();
     private final DigitalObjectRepository repository = DigitalObjectRepository.getInstance();
     private final Request httpRequest;
+    private final HttpHeaders httpHeaders;
 
-    public DigitalObjectResource(@Context Request request) {
+    public DigitalObjectResource(
+            @Context Request request,
+            @Context SecurityContext securityCtx,
+            @Context HttpHeaders httpHeaders,
+            @Context UriInfo uriInfo
+            ) {
         this.httpRequest = request;
+        this.httpHeaders = httpHeaders;
     }
 
     @GET
@@ -104,7 +106,10 @@ public class DigitalObjectResource {
     @Path("/metamodel")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public MetaModelList listModels() {
-        Collection<MetaModel> models = metamodels.find();
+        List<Locale> acceptableLanguages = httpHeaders.getAcceptableLanguages();
+        Locale locale = acceptableLanguages.isEmpty() ? Locale.ENGLISH : acceptableLanguages.get(0);
+
+        Collection<MetaModel> models = metamodels.find(locale);
         return new MetaModelList(models);
     }
 
@@ -193,7 +198,7 @@ public class DigitalObjectResource {
 
         private static final MetaModelRepository INSTANCE = new MetaModelRepository();
 
-        private Collection<MetaModel> repository;
+//        private Collection<MetaModel> repository;
 
         public static MetaModelRepository getInstance() {
             return INSTANCE;
@@ -201,18 +206,21 @@ public class DigitalObjectResource {
 
 
         private MetaModelRepository() {
-            repository = new ArrayList<MetaModel>();
-            repository.add(new MetaModel("model:monograph", true, null, "Monograph"));
-            repository.add(new MetaModel("model:monographunit", null, null, "Monograph Unit"));
-            repository.add(new MetaModel("model:page", null, true, "Page", MetaModelDataSource.EDITOR_PAGE));
-            repository.add(new MetaModel("model:periodical", true, null, "Periodical", MetaModelDataSource.EDITOR_PERIODICAL));
-            repository.add(new MetaModel("model:periodicalvolume", null, null, "Periodical Volume", MetaModelDataSource.EDITOR_PERIODICAL_VOLUME));
-            repository.add(new MetaModel("model:periodicalitem", null, null, "Periodical Item", MetaModelDataSource.EDITOR_PERIODICAL_ISSUE));
-//            repository.add(new MetaModel("model:internalpart", null, null, "Internalpart"));
+//            repository = new ArrayList<MetaModel>();
         }
 
-        public Collection<MetaModel> find() {
-            return repository;
+        public Collection<MetaModel> find(Locale locale) {
+            // for now it is read only repository
+            String lang = locale.getLanguage();
+            List<MetaModel> models = new ArrayList<MetaModel>();
+            models.add(new MetaModel("model:periodical", true, null, "cs".equals(lang) ? "Periodikum" : "Periodical", MetaModelDataSource.EDITOR_PERIODICAL));
+            models.add(new MetaModel("model:periodicalvolume", null, null, "cs".equals(lang) ? "Ročník" : "Periodical Volume", MetaModelDataSource.EDITOR_PERIODICAL_VOLUME));
+            models.add(new MetaModel("model:periodicalitem", null, null, "cs".equals(lang) ? "Výtisk" : "Periodical Item", MetaModelDataSource.EDITOR_PERIODICAL_ISSUE));
+            models.add(new MetaModel("model:monograph", true, null, "cs".equals(lang) ? "Monografie" : "Monograph"));
+            models.add(new MetaModel("model:monographunit", null, null, "cs".equals(lang) ? "Monografie - volná část" : "Monograph Unit"));
+            models.add(new MetaModel("model:page", null, true, "cs".equals(lang) ? "Strana" : "Page", MetaModelDataSource.EDITOR_PAGE));
+
+            return models;
         }
     }
 
@@ -233,7 +241,7 @@ public class DigitalObjectResource {
         public MetaModel(Object pid, Boolean root, Boolean leaf, String displayName) {
             this(pid, root, leaf, displayName, null);
         }
-        
+
         public MetaModel(Object pid, Boolean root, Boolean leaf, String displayName, String editor) {
             this.pid = pid;
             this.root = root;
