@@ -149,7 +149,7 @@ public final class DigObjectEditorPresenter {
             wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
             wizard.setWizardLabel(i18nPas.NewDigObjectWizard_DescriptionPrefix_Title(),
-                    i18nPas.NewDigObjectWizard_NewDcStep_Description_Title());
+                    i18nPas.NewDigObjectWizard_NewDigObjectStep_Description_Title());
             newDigObject.bind(null);
 //            newDigObject.bind(new AdvancedCriteria("issn", OperatorId.ICONTAINS, "my issn"));
         }
