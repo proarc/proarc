@@ -24,6 +24,7 @@ import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.incad.pas.oaidublincore.ElementType;
 import cz.incad.pas.oaidublincore.OaiDcType;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -129,7 +130,12 @@ public final class DigitalObjectRepository {
         synchronized(memoryImpl) {
             OcrRecord ocrRecord = doRecord.getOcr();
             if (ocrRecord == null) {
-                String ocr = new String(ds.getBinaryContent());
+                String ocr = "";
+                try {
+                    ocr = new String(ds.getBinaryContent(), "UTF-8");
+                } catch (UnsupportedEncodingException ex) {
+                    LOG.log(Level.SEVERE, null, ex);
+                }
                 // Browser converts line endings to '\n' that results to changed data.
                 ocr = ocr.replaceAll("\\r\\n|\\r", "\n");
                 ocrRecord = new OcrRecord(ocr, System.currentTimeMillis(), pid);
