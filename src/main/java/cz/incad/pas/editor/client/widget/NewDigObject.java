@@ -17,11 +17,15 @@
 package cz.incad.pas.editor.client.widget;
 
 import com.smartgwt.client.data.AdvancedCriteria;
+import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Criterion;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceTextField;
+import com.smartgwt.client.types.ExpansionMode;
 import com.smartgwt.client.types.OperatorId;
+import com.smartgwt.client.types.SelectionAppearance;
+import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TopOperatorAppearance;
 import com.smartgwt.client.types.VisibilityMode;
 import com.smartgwt.client.util.SC;
@@ -44,6 +48,7 @@ import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.DataSourceFieldBuilder;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.incad.pas.editor.client.ds.RemoteMetadataDataSource;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -60,6 +65,7 @@ public final class NewDigObject extends VLayout {
     private final SectionStack sections;
     private final DynamicForm optionsForm;
     private final PasEditorMessages i18nPas;
+    private ListGrid lgResult;
 
     public NewDigObject(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
@@ -139,14 +145,6 @@ public final class NewDigObject extends VLayout {
                 );
         
         ds.setClientOnly(true);
-        ds.setTestData(new Record[] {
-            new Record() {{
-                setAttribute("id", "ID");
-                setAttribute("mods", "MODS Preview");
-                setAttribute("modsDetail", "Full MODS");
-                setAttribute("issn", "ISSN");
-            }}
-        });
 
         filter = new FilterBuilder();
         filter.setDataSource(ds);
@@ -164,6 +162,11 @@ public final class NewDigObject extends VLayout {
                 Criterion[] criterions = criteria.getCriteria();
                 if (criterions == null || criterions.length == 0) {
                     SC.say("Missing query parameter.");
+                } else {
+                    Criteria plain = new Criteria("catalog", "aleph");
+                    plain.addCriteria(criterions[0]);
+                    // for AdvancedCriteria it will require to parse its format on server side
+                    lgResult.fetchData(plain);
                 }
             }
         });
@@ -172,12 +175,22 @@ public final class NewDigObject extends VLayout {
         filterLayout.setMembers(filter, find);
         filterLayout.setLayoutRightMargin(4);
 
-        ListGrid lgResult = new ListGrid();
-        lgResult.setDataSource(ds);
-        lgResult.setFields(new ListGridField("mods"));
-        lgResult.setAutoFetchData(true);
+        lgResult = new ListGrid();
+        lgResult.setDataSource(RemoteMetadataDataSource.getInstance());
+//        lgResult.setUseAllDataSourceFields(true);
+        ListGridField preview = new ListGridField(RemoteMetadataDataSource.FIELD_PREVIEW);
+        ListGridField title = new ListGridField(RemoteMetadataDataSource.FIELD_TITLE);
+        lgResult.setDetailField(RemoteMetadataDataSource.FIELD_PREVIEW);
+        lgResult.setFields(title, preview);
+//        lgResult.setAutoFetchData(true);
         lgResult.setHeight100();
         lgResult.setWidth100();
+        lgResult.setCanExpandRecords(true);
+        lgResult.setCanExpandMultipleRecords(false);
+        lgResult.setExpansionMode(ExpansionMode.DETAIL_FIELD);
+        lgResult.setSelectionType(SelectionStyle.SINGLE);
+//        lgResult.setSelectionAppearance(SelectionAppearance.CHECKBOX);
+        lgResult.setAlternateRecordStyles(true);
 
         VLayout layout = new VLayout(2);
         layout.setMembers(formCatalog, filterLayout, lgResult);
@@ -193,9 +206,13 @@ public final class NewDigObject extends VLayout {
         ds.setClientOnly(true);
         ds.setTestData(new Record[] {
             new Record() {{
+                setAttribute("id", "id:aleph");
+                setAttribute("catalog", "Aleph NKP");
+            }},
+            new Record() {{
                 setAttribute("id", "id:registrdigitalizace.cz");
                 setAttribute("catalog", "registrdigitalizace.cz");
-            }}
+            }},
         });
 
         SelectItem selection = new SelectItem("catalog", i18nPas.NewDigObject_OptionCatalog_Title());

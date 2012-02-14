@@ -19,6 +19,7 @@ package cz.incad.pas.editor.server.xml;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,6 +55,8 @@ public final class Transformers {
     private static final String OAIMARC2MARC21slim_XSL_PATH = "http://www.loc.gov/standards/marcxml/xslt/OAIMARC2MARC21slim.xsl";
     private static final String MARC21slim2HTML_XSL_PATH = "http://www.loc.gov/standards/marcxml/xslt/MARC21slim2HTML.xsl";
     private static final String MODS2HTML_XSL_PATH = "http://www.loc.gov/standards/mods/mods.xsl";
+    private static final String MODS2TITLE_XSL_PATH = "/xml/mods2Title.xsl";
+    private static final String ALEPHXSERVERFIX_XSL_PATH = "/xml/alephOaiMarcFix.xsl";
 
     static {
         FORMAT2TEMPLATES = new EnumMap<Format, Templates>(Format.class);
@@ -64,6 +67,8 @@ public final class Transformers {
         FORMAT2XSL.put(Format.OaimarcAsMarc21slim, OAIMARC2MARC21slim_XSL_PATH);
         FORMAT2XSL.put(Format.MarcxmlAsHtml, MARC21slim2HTML_XSL_PATH);
         FORMAT2XSL.put(Format.ModsAsHtml, MODS2HTML_XSL_PATH);
+        FORMAT2XSL.put(Format.ModsAsTitle, MODS2TITLE_XSL_PATH);
+        FORMAT2XSL.put(Format.AlephOaiMarcFix, ALEPHXSERVERFIX_XSL_PATH);
         initTemplates();
     }
 
@@ -81,6 +86,37 @@ public final class Transformers {
 
     public Source toSource(byte[] buffer) {
         return new StreamSource(new ByteArrayInputStream(buffer));
+    }
+
+    public Source dump(Source source, StringBuilder dump) {
+        try {
+            TransformerFactory factory = TransformerFactory.newInstance();
+            Transformer t = factory.newTransformer();
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            t.transform(source, new StreamResult(buffer));
+            dump.append(buffer.toString("UTF-8"));
+            return new StreamSource(new ByteArrayInputStream(buffer.toByteArray()));
+        } catch (TransformerException ex) {
+            throw new IllegalStateException(ex);
+        } catch (UnsupportedEncodingException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    public Source dump2Temp(Source source, String filename) {
+        try {
+            TransformerFactory factory = TransformerFactory.newInstance();
+            Transformer t = factory.newTransformer();
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            t.transform(source, new StreamResult(buffer));
+
+//            t.transform(new StreamSource(new ByteArrayInputStream(buffer.toByteArray())),
+//                    new StreamResult(new File("/tmp/aleph/" + filename)));
+
+            return new StreamSource(new ByteArrayInputStream(buffer.toByteArray()));
+        } catch (TransformerException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 
     static Source getXsl(Format format, URIResolver resolver) throws TransformerException {
@@ -133,6 +169,8 @@ public final class Transformers {
             CATALOG.put(MODS2HTML_XSL_PATH, "/xml/mods2html.xsl");
             CATALOG.put("http://www.loc.gov/standards/mods/modsDictionary.xml", "/xml/modsDictionary.xml");
             CATALOG.put("http://www.loc.gov/standards/marcxml/xslt/MARC21slimUtils.xsl", "/xslts/MARC21slimUtils.xsl");
+            CATALOG.put(MODS2TITLE_XSL_PATH, MODS2TITLE_XSL_PATH);
+            CATALOG.put(ALEPHXSERVERFIX_XSL_PATH, ALEPHXSERVERFIX_XSL_PATH);
         }
 
         @Override
@@ -154,7 +192,9 @@ public final class Transformers {
 
     public enum Format {
 
-        /*MarcxmlAsMods33,*/ MarcxmlAsMods34, /*MarcxmlAsDcRdf,*/ OaimarcAsMarc21slim, MarcxmlAsHtml, ModsAsHtml;
+        /*MarcxmlAsMods33,*/ MarcxmlAsMods34, /*MarcxmlAsDcRdf,*/
+        OaimarcAsMarc21slim, MarcxmlAsHtml, ModsAsHtml, ModsAsTitle,
+        AlephOaiMarcFix;
     }
 
 }

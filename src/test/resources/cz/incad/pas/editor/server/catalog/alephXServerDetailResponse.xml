@@ -1,0 +1,54 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<present>
+    <record>
+        <record_header>
+            <set_entry>000000001</set_entry>
+        </record_header>
+        <doc_number>000670078</doc_number>
+        <metadata>
+            <oai_marc>
+                <fixfield id="LDR">-----nz--a22-----n--4500</fixfield>
+                <fixfield id="FMT">KN</fixfield>
+                <fixfield id="001">kon2011670078</fixfield>
+                <fixfield id="003">CZ-PrNK</fixfield>
+                <fixfield id="005">20111114125521.0</fixfield>
+                <fixfield id="008">111114|n|acnnnaabn-----------n-a|a------</fixfield>
+                <varfield id="040" i1=" " i2=" ">
+                    <subfield label="a">ABA001</subfield>
+                    <subfield label="b">cze</subfield>
+                </varfield>
+                <varfield id="110" i1="2" i2=" ">
+                    <subfield label="a">Česká komora lehkých obvodových plášťů.</subfield>
+                    <subfield label="t">Ročenka (Česká komora lehkých obvodových plášťů)</subfield>
+                    <subfield label="7">kon2011670078</subfield>
+                </varfield>
+                <varfield id="670" i1=" " i2=" ">
+                    <subfield label="a">Ročenka 2011 : Česká komora lehkých obvodových plášťů</subfield>
+                </varfield>
+                <varfield id="906" i1=" " i2=" ">
+                    <subfield label="a">br20111114</subfield>
+                    <subfield label="b">juri</subfield>
+                </varfield>
+                <varfield id="906" i1=" " i2=" ">
+                    <subfield label="a">ks20111114</subfield>
+                    <subfield label="b">juri</subfield>
+                </varfield>
+                <varfield id="CAT" i1=" " i2=" ">
+                    <subfield label="a">0760A</subfield>
+                    <subfield label="b">60</subfield>
+                    <subfield label="c">20111114</subfield>
+                    <subfield label="l">AUT10</subfield>
+                    <subfield label="h">1255</subfield>
+                </varfield>
+                <varfield id="CAT" i1=" " i2=" ">
+                    <subfield label="a">batch</subfield>
+                    <subfield label="b">60</subfield>
+                    <subfield label="c">20111225</subfield>
+                    <subfield label="l">AUT10</subfield>
+                    <subfield label="h">0925</subfield>
+                </varfield>
+            </oai_marc>
+        </metadata>
+    </record>
+    <session-id>C3Y5SI4TKQS3YS68X9LQ67YQLB68SRSPNNI3DH23BM3K8NGA95</session-id>
+</present>

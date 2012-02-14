@@ -40,6 +40,7 @@ public class RestConfig {
     public static final String URL_DIGOBJECT_PREVIEW =  URL_DIGOBJECT + "/preview";
     public static final String URL_DIGOBJECT_THUMBNAIL =  URL_DIGOBJECT + "/thumb";
     public static final String URL_DIGOBJECT_METAMODEL =  URL_DIGOBJECT + "/metamodel";
+    public static final String URL_METADATACATALOG =  URL_ROOT + "/metadatacatalog";
 
     public static DSRequest createRestRequest(DSDataFormat format) {
         DSRequest dsr = new DSRequest();
