@@ -13,11 +13,11 @@
 
     <xsl:template match="/">
 
-        <html>
+<!--        <html>
             <head>
                 <style type="text/css">TD {vertical-align:top}</style>
             </head>
-            <body>
+            <body>-->
                 <xsl:choose>
                     <xsl:when test="mods:modsCollection">
                         <xsl:apply-templates select="mods:modsCollection"/>
@@ -26,8 +26,8 @@
                         <xsl:apply-templates select="mods:mods"/>
                     </xsl:when>
                 </xsl:choose>
-            </body>
-        </html>
+<!--            </body>
+        </html>-->
     </xsl:template>
 
     <xsl:template match="mods:modsCollection">
