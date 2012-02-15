@@ -574,8 +574,8 @@ public class ImportBatchItemEditor extends HLayout {
     private DynamicForm createDcForm() {
         DcRecordDataSource dsDc = DcRecordDataSource.getInstance();
         DCEditor dcEditor = new DCEditor(i18nPas);
-//        dcEditor.setDataSource(dsDc);
-//        dcEditor.setDataPath(DcRecordDataSource.FIELD_DC.getQualifiedName());
+        dcEditor.setDataSource(dsDc);
+        dcEditor.setDataPath(DcRecordDataSource.FIELD_DC.getQualifiedName());
         return dcEditor;
     }
     
