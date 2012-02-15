@@ -176,10 +176,11 @@ public class Editor implements EntryPoint {
                         createTreeNode("New Batch", i18nPas.MainMenu_Import_NewBatch_Title()),
                         createTreeNode("History", i18nPas.MainMenu_Import_Edit_Title())),
                 createTreeNode("Edit", i18nPas.MainMenu_Edit_Title(),
-                        createTreeNode("New Object", i18nPas.MainMenu_Edit_NewObject_Title()),
-                        createTreeNode("Search", i18nPas.MainMenu_Edit_Edit_Title())),
-                createTreeNode("Statistics", i18nPas.MainMenu_Statistics_Title()),
-                createTreeNode("Users", i18nPas.MainMenu_Users_Title()),
+                        createTreeNode("New Object", i18nPas.MainMenu_Edit_NewObject_Title())
+//                        createTreeNode("Search", i18nPas.MainMenu_Edit_Edit_Title())
+                ),
+//                createTreeNode("Statistics", i18nPas.MainMenu_Statistics_Title()),
+//                createTreeNode("Users", i18nPas.MainMenu_Users_Title()),
                 createTreeNode("Console", i18nPas.MainMenu_Console_Title()),
         };
         for (int i = 0; i < trees.length; i++) {
