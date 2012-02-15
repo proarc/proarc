@@ -41,7 +41,9 @@ import com.smartgwt.client.widgets.tree.events.FolderClosedHandler;
 import com.smartgwt.client.widgets.tree.events.LeafClickEvent;
 import com.smartgwt.client.widgets.tree.events.LeafClickHandler;
 import cz.incad.pas.editor.client.ds.DcRecordDataSource;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.OcrDataSource;
+import cz.incad.pas.editor.client.ds.RemoteMetadataDataSource;
 import cz.incad.pas.editor.client.presenter.DigObjectEditorPresenter;
 import cz.incad.pas.editor.client.presenter.ImportPresenter;
 import java.util.logging.Level;
@@ -73,6 +75,13 @@ public class Editor implements EntryPoint {
                 Page.getAppDir()
                 );
 
+        // !!!DO NOT REMOVE datasource init, otherwise SmartGWT does not render anything
+        // It relates to ImportBatchItemEditor.createTabs somehow.
+        OcrDataSource ocrDataSource = OcrDataSource.getInstance();
+        DcRecordDataSource dcRecordDataSource = DcRecordDataSource.getInstance();
+        RemoteMetadataDataSource instance = RemoteMetadataDataSource.getInstance();
+        DigitalObjectDataSource instance1 = DigitalObjectDataSource.getInstance();
+
         i18nPas = GWT.create(PasEditorMessages.class);
 
 ////        tabSet.setBorder("2px solid blue");
@@ -86,11 +95,6 @@ public class Editor implements EntryPoint {
         mainLayout.setWidth100();
         mainLayout.setHeight100();
         mainLayout.setMembers(menu, menuPlaces);
-
-        // !!!DO NOT REMOVE datasource init, otherwise SmartGWT does not render anything
-        // It relates to ImportBatchItemEditor.createTabs somehow.
-        OcrDataSource ocrDataSource = OcrDataSource.getInstance();
-        DcRecordDataSource dcRecordDataSource = DcRecordDataSource.getInstance();
 
 //        selectDefaultPlace(menu, "Import/History");
         selectDefaultPlace(menu, "Edit/New Object");
