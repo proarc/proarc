@@ -197,8 +197,8 @@ public final class ClientUtils {
                 dump = new JSONEncoder().encode(jso);
             } catch (Exception ex) {
                 // this occurs in development mode sometimes; log it silently
-                dump = String.valueOf(jso);
-                LOG.log(Level.SEVERE, dump, ex);
+                dump = String.valueOf(jso) + ", NPE: raise log level for details.";
+                LOG.log(Level.FINE, dump, ex);
             }
         } else {
             dump = String.valueOf(jso);
