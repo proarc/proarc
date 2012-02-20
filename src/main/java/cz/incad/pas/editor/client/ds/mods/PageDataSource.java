@@ -456,10 +456,10 @@ public final class PageDataSource extends DataSource {
             if (extents.hasNext()) {
                 Record pair = new Record();
                 result.add(pair);
-                pair.setAttribute("extent", extents.next());
+                pair.setAttribute(FIELD_PHYSICAL_DESCRIPTIONS_EXTENT, extents.next());
                 pair.setAttribute("object", physicalDescription);
                 if (extents.hasNext()) {
-                    pair.setAttribute("size", extents.next());
+                    pair.setAttribute(FIELD_PHYSICAL_DESCRIPTIONS_SIZE, extents.next());
                 }
             }
         }
