@@ -137,7 +137,7 @@ public final class PeriodicalForm extends DynamicForm {
         });
         oneRow(subjects);
 
-        RepeatableFormItem keywords = new RepeatableFormItem("keywords",
+        RepeatableFormItem keywords = new RepeatableFormItem(PageDataSource.FIELD_KEYWORDS,
                 i18nPas.PeriodicalForm_Keywords_Title(),
                 new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false));
 

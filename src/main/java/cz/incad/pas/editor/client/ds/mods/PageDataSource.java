@@ -107,6 +107,7 @@ public final class PageDataSource extends DataSource {
     public static final String FIELD_SUBTITLES = "subtitles";
     public static final String FIELD_ALTERNATIVE_TITLES = "alternativeTitles";
     public static final String FIELD_KEY_TITLES = "keyTitles";
+    public static final String FIELD_KEYWORDS = "keywords";
     public static final String FIELD_LANGUAGES = "languages";
     public static final String FIELD_CLASSIFICATIONS = "classifications";
     public static final String FIELD_CLASSIFICATION_UDC = "classificationsUDC";
@@ -439,7 +440,7 @@ public final class PageDataSource extends DataSource {
     private void fetchSubjects(List<SubjectTypeClient> subjects, Record record) {
         if (subjects != null && !subjects.isEmpty()) {
             SubjectTypeClient subject = subjects.get(0);
-            record.setAttribute(FIELD_ALTERNATIVE_TITLES, convertStrings(subject.getTopic(), FIELD_STRING_VALUE));
+            record.setAttribute(FIELD_KEYWORDS, convertStrings(subject.getTopic(), FIELD_STRING_VALUE));
         }
     }
     /**
