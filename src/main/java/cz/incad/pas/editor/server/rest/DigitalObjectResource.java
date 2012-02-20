@@ -93,10 +93,14 @@ public class DigitalObjectResource {
     @POST
     @Produces({MediaType.APPLICATION_JSON})
     public DigitalObjectList newObject(
-            @FormParam("model") @DefaultValue("model:path") String modelId,
-            @FormParam("mods") @DefaultValue("") String mods
+            @FormParam("model") String modelId,
+            @FormParam("mods") String mods
             ) throws URISyntaxException, IOException {
 
+        if (modelId == null) {
+            // XXX validate modelId values
+            throw new IllegalArgumentException("missing model");
+        }
         mods = (mods == null || mods.isEmpty() || "null".equals(mods)) ? null : mods;
         LOG.log(Level.INFO, "import model: {0} as mods: {1}", new Object[] {modelId, mods});
 

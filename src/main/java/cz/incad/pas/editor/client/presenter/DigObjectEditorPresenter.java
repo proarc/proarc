@@ -185,7 +185,9 @@ public final class DigObjectEditorPresenter {
             Record r = new Record();
             DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
             r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
-            r.setAttribute(RemoteMetadataDataSource.FIELD_MODS, mods);
+            if (mods != null) {
+                r.setAttribute(RemoteMetadataDataSource.FIELD_MODS, mods);
+            }
             ds.addData(r, new DSCallback() {
 
                 @Override
