@@ -160,7 +160,10 @@ public final class PeriodicalForm extends DynamicForm {
         });
         oneRow(physicalDescriptions);
 
-        TextItem recordOrigin = new TextItem("recordOrigin", i18nPas.PeriodicalForm_RecordOrigin_Title());
+        TextItem recordOrigin = new TextItem(PageDataSource.FIELD_RECORD_ORIGIN,
+                i18nPas.PeriodicalForm_RecordOrigin_Title());
+        recordOrigin.setWidth("*");
+        oneRow(recordOrigin);
 
         TextAreaItem note = new TextAreaItem(PageDataSource.FIELD_NOTE,
                 i18nPas.PeriodicalForm_Note_Title());
