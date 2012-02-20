@@ -61,7 +61,7 @@ public final class PeriodicalForm extends DynamicForm {
 
         RepeatableFormItem shelfLocators = new RepeatableFormItem(
                 PageDataSource.FIELD_SHELF_LOCATORS, i18nPas.PeriodicalForm_ShelfLocators_Title(),
-                new StringFormFactory("value", null, false));
+                new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false));
 //        shelfLocators.setRowSpan(2);
 
         RepeatableFormItem periodicity = new RepeatableFormItem(
@@ -70,22 +70,22 @@ public final class PeriodicalForm extends DynamicForm {
         
         RepeatableFormItem titles = new RepeatableFormItem(
                 PageDataSource.FIELD_TITLES, i18nPas.PeriodicalForm_Titles_Title(),
-                new StringFormFactory("value", null, false, 600));
+                new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false, 600));
         oneRow(titles);
 
         RepeatableFormItem subtitles = new RepeatableFormItem(
                 PageDataSource.FIELD_SUBTITLES, i18nPas.PeriodicalForm_Subtitles_Title(),
-                new StringFormFactory("value", null, false, 600));
+                new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false, 600));
         oneRow(subtitles);
 
         RepeatableFormItem alternativeTitles = new RepeatableFormItem(
                 PageDataSource.FIELD_ALTERNATIVE_TITLES, i18nPas.PeriodicalForm_AlternativeTitles_Title(),
-                new StringFormFactory("value", null, false, 600));
+                new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false, 600));
         oneRow(alternativeTitles);
 
         RepeatableFormItem keyTitles = new RepeatableFormItem(
                 PageDataSource.FIELD_KEY_TITLES, i18nPas.PeriodicalForm_KeyTitles_Title(),
-                new StringFormFactory("value", null, false, 400));
+                new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false, 400));
         oneRow(keyTitles);
 
         // author
@@ -139,7 +139,7 @@ public final class PeriodicalForm extends DynamicForm {
 
         RepeatableFormItem keywords = new RepeatableFormItem("keywords",
                 i18nPas.PeriodicalForm_Keywords_Title(),
-                new StringFormFactory("value", null, false));
+                new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false));
 
         RepeatableFormItem physicalDescriptions = new RepeatableFormItem(
                 PageDataSource.FIELD_PHYSICAL_DESCRIPTIONS,

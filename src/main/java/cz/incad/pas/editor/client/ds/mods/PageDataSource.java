@@ -83,6 +83,7 @@ public final class PageDataSource extends DataSource {
     public static final String FIELD_MODEL_PID = "model";
     /** original object */
     public static final String FIELD_MODS_TRANSPORT_OBJECT = "ModsGwtRecord";
+    public static final String FIELD_STRING_VALUE = "value";
     private static final String FIELD_NAME_OBJECT = "NameTypeClient";
     public static final String FIELD_PAGE_TYPE = "pageType";
     public static final String FIELD_PAGE_INDEX = "pageIndex";
@@ -438,7 +439,7 @@ public final class PageDataSource extends DataSource {
     private void fetchSubjects(List<SubjectTypeClient> subjects, Record record) {
         if (subjects != null && !subjects.isEmpty()) {
             SubjectTypeClient subject = subjects.get(0);
-            record.setAttribute(FIELD_ALTERNATIVE_TITLES, convertStrings(subject.getTopic(), "value"));
+            record.setAttribute(FIELD_ALTERNATIVE_TITLES, convertStrings(subject.getTopic(), FIELD_STRING_VALUE));
         }
     }
     /**
@@ -608,7 +609,7 @@ public final class PageDataSource extends DataSource {
             if (physicalLocations != null && !physicalLocations.isEmpty()) {
                 record.setAttribute(FIELD_SIGLA, physicalLocations.get(0).getValue());
             }
-            record.setAttribute(FIELD_SHELF_LOCATORS, convertStrings(location.getShelfLocator(), "value"));
+            record.setAttribute(FIELD_SHELF_LOCATORS, convertStrings(location.getShelfLocator(), FIELD_STRING_VALUE));
         }
     }
 
@@ -688,20 +689,20 @@ public final class PageDataSource extends DataSource {
                     if (foundTitle) {
                         continue;
                     }
-                    record.setAttribute(FIELD_TITLES, convertStrings(titleInfo.getTitle(), "value"));
-                    record.setAttribute(FIELD_SUBTITLES, convertStrings(titleInfo.getSubTitle(), "value"));
+                    record.setAttribute(FIELD_TITLES, convertStrings(titleInfo.getTitle(), FIELD_STRING_VALUE));
+                    record.setAttribute(FIELD_SUBTITLES, convertStrings(titleInfo.getSubTitle(), FIELD_STRING_VALUE));
                     foundTitle = true;
                 } else if ("alternative".equals(type) && "Klíčový název".equals(titleInfo.getDisplayLabel())) {
                     if (foundKeyTitles) {
                         continue;
                     }
-                    record.setAttribute(FIELD_KEY_TITLES, convertStrings(titleInfo.getTitle(), "value"));
+                    record.setAttribute(FIELD_KEY_TITLES, convertStrings(titleInfo.getTitle(), FIELD_STRING_VALUE));
                     foundKeyTitles = true;
                 } else if ("alternative".equals(type)) {
                     if (foundAlternatives) {
                         continue;
                     }
-                    record.setAttribute(FIELD_ALTERNATIVE_TITLES, convertStrings(titleInfo.getTitle(), "value"));
+                    record.setAttribute(FIELD_ALTERNATIVE_TITLES, convertStrings(titleInfo.getTitle(), FIELD_STRING_VALUE));
                     foundAlternatives = true;
                 }
             }
@@ -725,7 +726,7 @@ public final class PageDataSource extends DataSource {
         ArrayList<Record> list = new ArrayList<Record>();
         for (String item : items) {
             Record itemRecord = new Record();
-            itemRecord.setAttribute("value", item);
+            itemRecord.setAttribute(attrName, item);
             list.add(itemRecord);
         }
         return toRecords(list);
