@@ -21,12 +21,14 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObjectType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
 import cz.incad.pas.oaidublincore.ElementType;
 import cz.incad.pas.oaidublincore.OaiDcType;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXB;
@@ -66,10 +68,51 @@ public final class DigitalObjectRepository {
         return INSTANCE;
     }
 
+    /**
+     * Adds digital object to repository. It is up to client to prepare
+     * required data streams.
+     * @param record digital object
+     * @param user
+     * @see #createDigitalObject()
+     */
+    public void add(DigitalObjectRecord record, int user) {
+        synchronized (memoryImpl) {
+            DigitalObjectRecord exist = memoryImpl.get(record.pid);
+            if (exist != null) {
+                throw new IllegalStateException(String.format("Record (%s) already exists!", exist.pid));
+            }
+            memoryImpl.put(record.pid, record);
+        }
+    }
+
+    public DigitalObjectRecord createDigitalObject() {
+        DigitalObjectRecord record = new DigitalObjectRecord(generatePid(), null, null);
+        return record;
+    }
+    /**
+     * XXX remove. Automatically creates object for existing pid in case the record is null.
+     * It helps to edit imported objects in demo mode.
+     * @param pid
+     * @return
+     */
+    private DigitalObjectRecord tempCreateDigitalObjectRecord(String pid, DigitalObjectRecord record) {
+        if (record == null) {
+            record = new DigitalObjectRecord(pid, null, null);
+            memoryImpl.put(pid, record);
+        }
+        return record;
+    }
+
+    private String generatePid() {
+        UUID uuid = UUID.randomUUID();
+        return "uuid:" + uuid;
+    }
+
     public DublinCoreRecord getDc(String pid) {
         DigitalObjectRecord doRecord;
         synchronized(memoryImpl) {
             doRecord = getDigitalObjectRecord(pid);
+            tempCreateDigitalObjectRecord(pid, doRecord);
             DublinCoreRecord dcRecord = doRecord.getDc();
             if (dcRecord != null) {
                 return dcRecord;
@@ -119,6 +162,7 @@ public final class DigitalObjectRepository {
         DigitalObjectRecord doRecord;
         synchronized(memoryImpl) {
             doRecord = getDigitalObjectRecord(pid);
+            tempCreateDigitalObjectRecord(pid, doRecord);
             OcrRecord ocrRecord = doRecord.getOcr();
             if (ocrRecord != null) {
                 return ocrRecord;
@@ -163,13 +207,34 @@ public final class DigitalObjectRepository {
         }
     }
 
+    public ModsRecord getMods(String pid) {
+        DigitalObjectRecord dor = getDigitalObjectRecord(pid);
+        return dor.getMods();
+    }
+
+    public void updateMods(ModsRecord mods, int user) {
+        synchronized(memoryImpl) {
+            DigitalObjectRecord dor = getDigitalObjectRecord(mods.getPid());
+            if (dor != null) {
+                ModsRecord modsOld = dor.getMods();
+                if (modsOld != null && modsOld.timestamp > mods.getTimestamp()) {
+                    throw new IllegalStateException("MODS already modified: " + mods.getPid());
+                }
+                mods.timestamp = System.currentTimeMillis();
+                dor.setMods(mods);
+            }
+        }
+    }
+
+    /**
+     * Gets digital object from the repository.
+     *
+     * @param pid digital object id
+     * @return persistent digital object or {@code null}
+     */
     private DigitalObjectRecord getDigitalObjectRecord(String pid) {
         synchronized(memoryImpl) {
             DigitalObjectRecord doRecord = memoryImpl.get(pid);
-            if (doRecord == null) {
-                doRecord = new DigitalObjectRecord(pid, null, null);
-                memoryImpl.put(pid, doRecord);
-            }
             return doRecord;
         }
     }
@@ -335,15 +400,44 @@ public final class DigitalObjectRepository {
         }
     }
 
-    public static class DigitalObjectRecord {
+    public static class ModsRecord {
         private String pid;
+        private ModsCollection mods;
+        private long timestamp;
+
+        public ModsRecord(String pid, ModsCollection mods, long timestamp) {
+            this.pid = pid;
+            this.mods = mods;
+            this.timestamp = timestamp;
+        }
+
+        public ModsCollection getMods() {
+            return mods;
+        }
+
+        public String getPid() {
+            return pid;
+        }
+
+        public long getTimestamp() {
+            return timestamp;
+        }
+    }
+
+    public static final class DigitalObjectRecord {
+        private final String pid;
         private DublinCoreRecord dc;
         private OcrRecord ocr;
+        private ModsRecord mods;
 
-        public DigitalObjectRecord(String pid, DublinCoreRecord dc, OcrRecord ocr) {
+        DigitalObjectRecord(String pid, DublinCoreRecord dc, OcrRecord ocr) {
             this.pid = pid;
             this.dc = dc;
             this.ocr = ocr;
+        }
+
+        public String getId() {
+            return pid;
         }
 
         public DublinCoreRecord getDc() {
@@ -352,6 +446,14 @@ public final class DigitalObjectRepository {
 
         public void setDc(DublinCoreRecord dc) {
             this.dc = dc;
+        }
+
+        public ModsRecord getMods() {
+            return mods;
+        }
+
+        public void setMods(ModsRecord mods) {
+            this.mods = mods;
         }
 
         public OcrRecord getOcr() {

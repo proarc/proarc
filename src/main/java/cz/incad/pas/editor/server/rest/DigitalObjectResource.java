@@ -17,11 +17,18 @@
 package cz.incad.pas.editor.server.rest;
 
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.incad.pas.editor.server.ModsGwtServiceProvider;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
+import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DigitalObjectRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DublinCoreRecord;
+import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.ModsRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.OcrRecord;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -29,6 +36,7 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -71,6 +79,33 @@ public class DigitalObjectResource {
             ) {
         this.httpRequest = request;
         this.httpHeaders = httpHeaders;
+    }
+
+    /**
+     * Creates a new digital object
+     *
+     * @param modelId model ID (model:page, ...) of the digital object; required
+     * @param mods MODS XML used to create new object; optional
+     * @return
+     * @throws URISyntaxException
+     * @throws IOException
+     */
+    @POST
+    @Produces({MediaType.APPLICATION_JSON})
+    public DigitalObjectList newObject(
+            @FormParam("model") @DefaultValue("model:path") String modelId,
+            @FormParam("mods") @DefaultValue("") String mods
+            ) throws URISyntaxException, IOException {
+
+        mods = (mods == null || mods.isEmpty() || "null".equals(mods)) ? null : mods;
+        LOG.log(Level.INFO, "import model: {0} as mods: {1}", new Object[] {modelId, mods});
+
+        DigitalObjectRecord dobj = repository.createDigitalObject();
+        ModsCollection modsCollection = ModsGwtServiceProvider.newMods(dobj.getId(), mods);
+        dobj.setMods(new ModsRecord(dobj.getId(), modsCollection, System.currentTimeMillis()));
+
+        repository.add(dobj, 1);
+        return new DigitalObjectList(Arrays.asList(new DigitalObject(dobj.getId(), modelId)));
     }
 
     @GET
@@ -281,5 +316,34 @@ public class DigitalObjectResource {
             this.models = models;
         }
 
+    }
+
+    @XmlRootElement
+    public static class DigitalObjectList {
+
+        @XmlElement(name="record")
+        public Collection<DigitalObject> records;
+
+        public DigitalObjectList() {
+        }
+
+        public DigitalObjectList(Collection<DigitalObject> records) {
+            this.records = records;
+        }
+
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class DigitalObject {
+        private String pid;
+        private String model;
+
+        public DigitalObject(String pid, String model) {
+            this.pid = pid;
+            this.model = model;
+        }
+
+        public DigitalObject() {
+        }
     }
 }

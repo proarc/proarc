@@ -16,7 +16,6 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
@@ -43,6 +42,7 @@ import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.mods.PageDataSource;
+import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
 import cz.incad.pas.editor.client.widget.mods.PageForm;
 import cz.incad.pas.editor.client.widget.mods.PeriodicalForm;
@@ -67,7 +67,7 @@ public final class ModsFullEditor {
     private static final String TAB_XML = "XML_ModsFullEditor";
 
     private ModsTab modsTab;
-    private ModsCollectionClient editedMods;
+    private ModsGwtRecord editedMods;
     private final VLayout modsContainer;
     private String pid;
     private MetaModelRecord model;
@@ -137,15 +137,14 @@ public final class ModsFullEditor {
                         ModsTypeClient mc = modsTab.getMods();
                         ModsCollectionClient mcc = new ModsCollectionClient();
                         mcc.setMods(Arrays.asList(mc));
-                        editedMods = mcc;
+                        editedMods.setMods(mcc);
                     } else if (TAB_SIMPLE.equals(tabId)) {
                         // do not use pageForm.getValuesAsRecord()
 //                        Record r = pageForm.getValuesAsRecord();
                         Record r = new Record(simpleForm.getValues());
-                        ModsCollectionClient modsCollection = PageDataSource.getInstance().convert(r);
-                        editedMods = modsCollection;
+                        editedMods = PageDataSource.getInstance().convert(r);
                     } else if (TAB_XML.equals(tabId)) {
-                        editedMods = (ModsCollectionClient) sourceForm.getValue(PageDataSource.FIELD_MODS_OBJECT);
+                        editedMods = (ModsGwtRecord) sourceForm.getValue(PageDataSource.FIELD_MODS_TRANSPORT_OBJECT);
                     } else {
                         throw new IllegalStateException("ModsFullEditor.onTabDeselected: unknown tabId: " + tabId);
                     }
@@ -177,9 +176,11 @@ public final class ModsFullEditor {
                 if (RPCResponse.STATUS_SUCCESS == response.getStatus()) {
                     modsContainer.setContents("");
                     Record record = response.getData()[0];
-                    ModsCollectionClient mc = (ModsCollectionClient) record.getAttributeAsObject(PageDataSource.FIELD_MODS_OBJECT);
+                    ModsGwtRecord modsRecord = PageDataSource.getMods(record);
+                    editedMods = modsRecord;
+                    ModsCollectionClient mc = modsRecord.getMods();
                     ClientUtils.info(LOG, "loadFull mods: %s", mc);
-                    loadFull(mc);
+                    loadFull(modsRecord);
                 } else {
                     modsContainer.setContents("Loading FAILED!");
                 }
@@ -187,7 +188,8 @@ public final class ModsFullEditor {
         });
     }
 
-    private void loadFull(ModsCollectionClient modsCollection) {
+    private void loadFull(ModsGwtRecord modsRecord) {
+        ModsCollectionClient modsCollection = modsRecord.getMods();
         modsTab = new ModsTab(1, modsCollection);
         VLayout modsLayout = modsTab.getModsLayout();
         modsContainer.setMembers(modsLayout);
@@ -199,19 +201,19 @@ public final class ModsFullEditor {
         simpleForm.fetchData(criteria);
     }
 
-    private void loadBasic(ModsCollectionClient modsCollection) {
-        ClientUtils.info(LOG, "loadBasic pid: %s, editor: %s, mods: %s", pid, model.getEditorId(), modsCollection);
-        Record record = PageDataSource.getInstance().convert(pid, model.getEditorId(), modsCollection);
+    private void loadBasic(ModsGwtRecord modsRecord) {
+        ClientUtils.info(LOG, "loadBasic pid: %s, editor: %s, mods: %s", pid, model.getEditorId(), modsRecord);
+        Record record = PageDataSource.getInstance().convert(pid, model.getEditorId(), modsRecord);
         simpleForm.editRecord(record);
         // XXX if it triggers fetch then use toMap
 //        pageForm.setValues(data[0].toMap());
     }
 
-    private void loadSource(final ModsCollectionClient modsCollection) {
-        ClientUtils.info(LOG, "loadSource pid: %s, mods: %s", pid, modsCollection);
+    private void loadSource(final ModsGwtRecord modsRecord) {
+        ClientUtils.info(LOG, "loadSource pid: %s, mods: %s", pid, modsRecord);
         // implement this with PageDataSource.fetch(new Criteria("fetch=XML"))
         ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
-        service.getXml(modsCollection, new AsyncCallback<String>() {
+        service.getXml(modsRecord.getMods(), new AsyncCallback<String>() {
 
             @Override
             public void onFailure(Throwable caught) {
@@ -222,7 +224,7 @@ public final class ModsFullEditor {
             public void onSuccess(String result) {
                 Record record = new Record();
                 record.setAttribute("source", result);
-                record.setAttribute(PageDataSource.FIELD_MODS_OBJECT, modsCollection);
+                record.setAttribute(PageDataSource.FIELD_MODS_TRANSPORT_OBJECT, modsRecord);
                 sourceForm.editRecord(record);
             }
         });
@@ -324,27 +326,27 @@ public final class ModsFullEditor {
     }
 
     public void saveData() {
-        modsContainer.setMembers();
-        modsContainer.setContents("Saving MODS data...");
-        ModsTypeClient mc = this.modsTab.getMods();
-        ModsCollectionClient mcc = new ModsCollectionClient();
-        mcc.setMods(Arrays.asList(mc));
-        ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
-        service.write(this.pid, mcc, new AsyncCallback<String>() {
-
-            @Override
-            public void onFailure(Throwable caught) {
-                modsContainer.setContents("Save FAILED!");
-                GWT.log("data saving failed", caught);
-            }
-
-            @Override
-            public void onSuccess(String newOrExistingId) {
-                ModsFullEditor.this.pid = newOrExistingId;
-//                modsContainer.setMembers(content);
-                loadData(newOrExistingId, model);
-            }
-        });
+//        modsContainer.setMembers();
+//        modsContainer.setContents("Saving MODS data...");
+//        ModsTypeClient mc = this.modsTab.getMods();
+//        ModsCollectionClient mcc = new ModsCollectionClient();
+//        mcc.setMods(Arrays.asList(mc));
+//        ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
+//        service.write(this.pid, mcc, new AsyncCallback<String>() {
+//
+//            @Override
+//            public void onFailure(Throwable caught) {
+//                modsContainer.setContents("Save FAILED!");
+//                GWT.log("data saving failed", caught);
+//            }
+//
+//            @Override
+//            public void onSuccess(String newOrExistingId) {
+//                ModsFullEditor.this.pid = newOrExistingId;
+////                modsContainer.setMembers(content);
+//                loadData(newOrExistingId, model);
+//            }
+//        });
     }
 
 //    public void newData() {

@@ -18,21 +18,22 @@ package cz.incad.pas.editor.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import cz.fi.muni.xkremser.editor.client.mods.ModsCollectionClient;
-import cz.fi.muni.xkremser.editor.server.mods.DetailType;
 import cz.fi.muni.xkremser.editor.server.mods.IdentifierType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.PartType;
-import cz.fi.muni.xkremser.editor.server.mods.TitleInfoType;
 import cz.fi.muni.xkremser.editor.server.util.BiblioModsUtils;
+import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtService;
+import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
+import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.ModsRecord;
+import java.io.ByteArrayInputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.ServletException;
+import javax.xml.bind.JAXB;
 
 /**
  * Simple MODS provider.
@@ -50,64 +51,105 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
 
     private static final Map<String, ModsCollection> STORAGE = new HashMap<String, ModsCollection>();
 
-    @Override
-    public void init() throws ServletException {
-        ObjectFactory objFactory = new ObjectFactory();
-
-        TitleInfoType titleInfoType = new TitleInfoType();
-        titleInfoType.getTitleOrSubTitleOrPartNumber().add(objFactory.createBaseTitleInfoTypeTitle("Title Sample"));
-        IdentifierType identifierType = new IdentifierType();
-        identifierType.setType("UUID");
-        identifierType.setValue("UUID-test value");
-
-        DetailType detailType = new DetailType();
-        detailType.setType("pageNumber");
-        detailType.getNumberOrCaptionOrTitle().add(objFactory.createDetailTypeNumber("3"));
-        PartType partType = new PartType();
-        partType.setType("TitlePage");
-        partType.getDetailOrExtentOrDate().add(detailType);
-
-        ModsType modsType = new ModsType();
-        modsType.setModsGroup(Arrays.<Object>asList(titleInfoType, partType, identifierType));
-
+    /**
+     * Creates new MODS.
+     * 
+     * @param pid PID of the digital object referencing MODS
+     * @param modsXml prepared MODS e.g. from remote catalog or {@code null}
+     */
+    public static ModsCollection newMods(String pid, String modsXml) {
+//        LOG.log(Level.INFO, "new pid: {0}, mods: {1}", new Object[]{pid, modsXml});
+        ModsType modsType;
+        if (modsXml == null || modsXml.isEmpty()) {
+            modsType = new ModsType();
+        } else {
+            try {
+                modsType = JAXB.unmarshal(new ByteArrayInputStream(modsXml.getBytes("UTF-8")), ModsType.class);
+            } catch (UnsupportedEncodingException ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
         ModsCollection mods = new ModsCollection();
         mods.setMods(Arrays.asList(modsType));
 
-        STORAGE.put("id:sample", mods);
+        // add uuid as identifier
+        IdentifierType identifierType = new IdentifierType();
+        identifierType.setType("UUID");
+        identifierType.setValue(pid.substring("uuid:".length()));
+
+        modsType.getModsGroup().add(identifierType);
+        return mods;
     }
+    
+//    @Override
+//    public void init() throws ServletException {
+//        ObjectFactory objFactory = new ObjectFactory();
+//
+//        TitleInfoType titleInfoType = new TitleInfoType();
+//        titleInfoType.getTitleOrSubTitleOrPartNumber().add(objFactory.createBaseTitleInfoTypeTitle("Title Sample"));
+//        IdentifierType identifierType = new IdentifierType();
+//        identifierType.setType("UUID");
+//        identifierType.setValue("UUID-test value");
+//
+//        DetailType detailType = new DetailType();
+//        detailType.setType("pageNumber");
+//        detailType.getNumberOrCaptionOrTitle().add(objFactory.createDetailTypeNumber("3"));
+//        PartType partType = new PartType();
+//        partType.setType("TitlePage");
+//        partType.getDetailOrExtentOrDate().add(detailType);
+//
+//        ModsType modsType = new ModsType();
+//        modsType.setModsGroup(Arrays.<Object>asList(titleInfoType, partType, identifierType));
+//
+//        ModsCollection mods = new ModsCollection();
+//        mods.setMods(Arrays.asList(modsType));
+//
+//        STORAGE.put("id:sample", mods);
+//    }
 
 
     @Override
-    public ModsCollectionClient read(String id) {
+    public ModsGwtRecord read(String id) {
 //        if (true) {
 //            throw new IllegalArgumentException("Invalid id: " + id);
 //        }
-        ModsCollection mods;
-        synchronized (STORAGE) {
-            mods = STORAGE.get(id);
-            if (mods == null) {
-                throw new IllegalArgumentException("Invalid id: " + id);
-            }
+        DigitalObjectRepository repository = DigitalObjectRepository.getInstance();
+        ModsRecord modsRec = repository.getMods(id);
+        if (modsRec == null) {
+            throw new IllegalArgumentException("Invalid id: " + id);
         }
-        LOG.log(Level.INFO, "id: {0}, MODS: {1}", new Object[]{id, BiblioModsUtils.toXML(mods)});
+        ModsCollection mods = modsRec.getMods();
+        String xml = mods == null ? null : BiblioModsUtils.toXML(mods);
+        int xmlHash = xml == null ? 0 : xml.hashCode();
+        LOG.log(Level.INFO, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
 //        sleep(10);
-        return BiblioModsUtils.toModsClient(mods);
+        ModsCollectionClient modsClient = mods == null
+                ? new ModsCollectionClient() : BiblioModsUtils.toModsClient(mods);
+        return new ModsGwtRecord(modsClient, modsRec.getTimestamp(), xmlHash);
     }
 
+    /**
+     * Writes MODS to storage.
+     *
+     * XXX implement null id handling if necessary
+     * XXX implement modification recognition; we could send XML hash in read response and check it here; if unmodified ignore write.
+     *     As ModsCollectionClient does not support modification status it would probably require to introduce method isModified(ModsCollectionClient, xmlHash):boolean
+     *
+     * @param id digital object id
+     * @param modsClient MODS
+     * @return
+     */
     @Override
-    public String write(String id, ModsCollectionClient modsClient) {
+    public String write(String id, ModsGwtRecord record) {
         String oldId = id;
-        LOG.log(Level.INFO, "id: {0}, modsClient: {1}", new Object[]{id, modsClient});
-        ModsCollection mods = BiblioModsUtils.toMods(modsClient);
+        LOG.log(Level.INFO, "id: {0}, modsClient: {1}, hash: {2}", new Object[]{id, record.getMods(), record.getXmlHash()});
+        ModsCollection mods = BiblioModsUtils.toMods(record.getMods());
         String xml = BiblioModsUtils.toXML(mods);
-        LOG.log(Level.INFO, "id: {0}, MODS: {1}", new Object[]{id, xml});
+        int xmlHash = xml.hashCode();
+        LOG.log(Level.INFO, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
 
-        synchronized(STORAGE) {
-            if (id == null) {
-                id = "id:" + STORAGE.size();
-            }
-            STORAGE.put(id, mods);
-        }
+        DigitalObjectRepository repository = DigitalObjectRepository.getInstance();
+        repository.updateMods(new ModsRecord(id, mods, System.currentTimeMillis()), 1);
 
         LOG.log(Level.INFO, "written id: {0}, old id: {1}", new Object[]{id, oldId});
 
@@ -134,5 +176,6 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
         }
             LOG.log(Level.INFO, "wake up: {0} ms", (System.currentTimeMillis() - start));
     }
+
 
 }

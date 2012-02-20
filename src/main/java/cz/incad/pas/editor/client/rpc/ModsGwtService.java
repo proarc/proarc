@@ -34,7 +34,7 @@ public interface ModsGwtService extends RemoteService {
      * @param pid an identifier to lookup MODS.
      * @return MODS
      */
-    ModsCollectionClient read(String pid);
+    ModsGwtRecord read(String pid);
 
     /**
      * Writes data to storage.
@@ -43,7 +43,7 @@ public interface ModsGwtService extends RemoteService {
      * @param mods MODS data
      * @return the identifier of persisted data
      */
-    String write(String pid, ModsCollectionClient mods);
+    String write(String pid, ModsGwtRecord mods);
     
     String getXml(ModsCollectionClient modsCollection);
 

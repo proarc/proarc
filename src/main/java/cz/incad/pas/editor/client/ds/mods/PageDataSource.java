@@ -56,11 +56,13 @@ import cz.fi.muni.xkremser.editor.client.mods.TitleInfoTypeClient;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.DataSourceFieldBuilder;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -80,7 +82,7 @@ public final class PageDataSource extends DataSource {
     public static final String FIELD_PID = "pid";
     public static final String FIELD_MODEL_PID = "model";
     /** original object */
-    public static final String FIELD_MODS_OBJECT = "ModsCollectionClient";
+    public static final String FIELD_MODS_TRANSPORT_OBJECT = "ModsGwtRecord";
     private static final String FIELD_NAME_OBJECT = "NameTypeClient";
     public static final String FIELD_PAGE_TYPE = "pageType";
     public static final String FIELD_PAGE_INDEX = "pageIndex";
@@ -127,7 +129,7 @@ public final class PageDataSource extends DataSource {
         setClientOnly(false);
         DataSourceField pid = new DataSourceFieldBuilder<DataSourceField>(new DataSourceField(FIELD_PID, FieldType.TEXT))
                 .primaryKey().build();
-        DataSourceField modsObject = new DataSourceFieldBuilder<DataSourceField>(new DataSourceField(FIELD_MODS_OBJECT, FieldType.ANY))
+        DataSourceField modsObject = new DataSourceFieldBuilder<DataSourceField>(new DataSourceField(FIELD_MODS_TRANSPORT_OBJECT, FieldType.ANY))
                 .hidden().required().build();
         modsObject.setIgnore(true);
         DataSourceField pageType = new DataSourceField(FIELD_PAGE_TYPE, FieldType.TEXT, "Page Type");
@@ -145,6 +147,10 @@ public final class PageDataSource extends DataSource {
         PageDataSource ds = (PageDataSource) DataSource.get(ID);
         ds = ds != null ? ds : new PageDataSource();
         return ds;
+    }
+
+    public static ModsGwtRecord getMods(Record r) {
+        return (ModsGwtRecord) r.getAttributeAsObject(FIELD_MODS_TRANSPORT_OBJECT);
     }
 
     @Override
@@ -170,8 +176,8 @@ public final class PageDataSource extends DataSource {
         JavaScriptObject dataJso = dsRequest.getData();
         final Record record = new Record(dataJso);
         final String pidAttr = record.getAttribute(FIELD_PID);
-        ModsCollectionClient modsCollection = convert(record);
-        service.write(pidAttr, modsCollection, new AsyncCallback<String>() {
+        ModsGwtRecord modsGwtRecord = convert(record);
+        service.write(pidAttr, modsGwtRecord, new AsyncCallback<String>() {
 
             @Override
             public void onFailure(Throwable caught) {
@@ -204,19 +210,20 @@ public final class PageDataSource extends DataSource {
             return ;
         }
         ClientUtils.info(LOG, "ModsGwtServiceAsync.read: pid: %s, model editor: %s", pid, modelEditor);
-        service.read(pid, new AsyncCallback<ModsCollectionClient>() {
+        service.read(pid, new AsyncCallback<ModsGwtRecord>() {
 
             @Override
             public void onFailure(Throwable caught) {
                 ClientUtils.severe(LOG, "read failed: " + caught.getMessage());
+                LOG.log(Level.SEVERE, "fetchRequest.onFailure: " + pid, caught);
                 dsResponse.setStatus(RPCResponse.STATUS_FAILURE);
                 dsResponse.getErrors().put(FIELD_PID, caught.getMessage());
                 processResponse(dsRequest.getRequestId(), dsResponse);
             }
 
             @Override
-            public void onSuccess(ModsCollectionClient modsCollection) {
-                Record record = convert(pid, modelEditor, modsCollection);
+            public void onSuccess(ModsGwtRecord modsTransport) {
+                Record record = convert(pid, modelEditor, modsTransport);
                 Record[] data = new Record[] {record};
                 ClientUtils.fine(LOG, "read.onSuccess: %s", ClientUtils.dump(data));
                 dsResponse.setData(data);
@@ -226,10 +233,12 @@ public final class PageDataSource extends DataSource {
         });
     }
 
-    public ModsCollectionClient convert(Record record) {
-        ModsCollectionClient modsCollection = (ModsCollectionClient) record.getAttributeAsObject(FIELD_MODS_OBJECT);
+    public ModsGwtRecord convert(Record record) {
+        ModsGwtRecord modsTransport = getMods(record);
+        ModsCollectionClient modsCollection = modsTransport.getMods();
         if (modsCollection == null) {
             modsCollection = new ModsCollectionClient();
+            modsTransport.setMods(modsCollection);
         }
         String pidAttr = record.getAttribute(FIELD_PID);
         String pageTypeAttr = record.getAttribute(FIELD_PAGE_TYPE);
@@ -253,7 +262,7 @@ public final class PageDataSource extends DataSource {
         mods.setPart(writePart(mods.getPart(), normalizeAttr(pageTypeAttr),
                 normalizeAttr(pageIndexAttr), normalizeAttr(pageNumberAttr),
                 normalizeAttr(noteAttr)));
-        return modsCollection;
+        return modsTransport;
     }
 
     private List<IdentifierTypeClient> writeIdentifiers(Object o) {
@@ -277,34 +286,32 @@ public final class PageDataSource extends DataSource {
      *
      * @param pid digital object's id
      * @param modelEditor simplified model editor
-     * @param modsCollection digital object
+     * @param modsRecord digital object
      * @return array with translated record
      */
-    public Record convert(String pid, String modelEditor, ModsCollectionClient modsCollection) {
-        Record record;
+    public Record convert(String pid, String modelEditor, ModsGwtRecord modsRecord) {
+        Record record = createModsRecord(pid, modsRecord);
+        ModsCollectionClient mods = modsRecord.getMods();
         if (MetaModelDataSource.EDITOR_PAGE.equals(modelEditor)) {
-            record = convertPage(pid, modsCollection);
+            convertPage(mods, record);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL.equals(modelEditor)) {
-            record = convertPeriodical(pid, modsCollection);
+            convertPeriodical(mods, record);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL_VOLUME.equals(modelEditor)) {
-            record = convertPeriodicalVolume(pid, modsCollection);
+            convertPeriodicalVolume(mods, record);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL_ISSUE.equals(modelEditor)) {
-            record = convertPeriodicalIssue(pid, modsCollection);
-        } else {
-            record = createModsRecord(pid, modsCollection);
+            record = convertPeriodicalIssue(mods, record);
         }
         return record;
     }
 
-    private Record createModsRecord(String pid, ModsCollectionClient modsCollection) {
+    private Record createModsRecord(String pid, ModsGwtRecord modsRecord) {
         Record record = new Record();
         record.setAttribute(FIELD_PID, pid);
-        record.setAttribute(FIELD_MODS_OBJECT, modsCollection);
+        record.setAttribute(FIELD_MODS_TRANSPORT_OBJECT, modsRecord);
         return record;
     }
 
-    public Record convertPeriodicalIssue(String pid, ModsCollectionClient modsCollection) {
-        Record record = createModsRecord(pid, modsCollection);
+    public Record convertPeriodicalIssue(ModsCollectionClient modsCollection, Record record) {
         List<ModsTypeClient> modsTypes = modsCollection.getMods();
         if (modsTypes != null && !modsTypes.isEmpty()) {
             ModsTypeClient mods = modsTypes.get(0);
@@ -348,8 +355,7 @@ public final class PageDataSource extends DataSource {
         }
     }
 
-    public Record convertPeriodicalVolume(String pid, ModsCollectionClient modsCollection) {
-        Record record = createModsRecord(pid, modsCollection);
+    public Record convertPeriodicalVolume(ModsCollectionClient modsCollection, Record record) {
         List<ModsTypeClient> modsTypes = modsCollection.getMods();
         if (modsTypes != null && !modsTypes.isEmpty()) {
             ModsTypeClient mods = modsTypes.get(0);
@@ -388,8 +394,7 @@ public final class PageDataSource extends DataSource {
         }
     }
 
-    public Record convertPeriodical(String pid, ModsCollectionClient modsCollection) {
-        Record record = createModsRecord(pid, modsCollection);
+    public Record convertPeriodical(ModsCollectionClient modsCollection, Record record) {
         List<ModsTypeClient> modsTypes = modsCollection.getMods();
         if (modsTypes != null && !modsTypes.isEmpty()) {
             ModsTypeClient mods = modsTypes.get(0);
@@ -726,8 +731,7 @@ public final class PageDataSource extends DataSource {
         return toRecords(list);
     }
 
-    public Record convertPage(String pid, ModsCollectionClient modsCollection) {
-        Record record = createModsRecord(pid, modsCollection);
+    public Record convertPage(ModsCollectionClient modsCollection, Record record) {
         List<ModsTypeClient> modsTypes = modsCollection.getMods();
         if (modsTypes != null && !modsTypes.isEmpty()) {
             ModsTypeClient mods = modsTypes.get(0);

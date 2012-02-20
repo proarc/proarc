@@ -24,7 +24,6 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.ExpansionMode;
 import com.smartgwt.client.types.OperatorId;
-import com.smartgwt.client.types.SelectionAppearance;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TopOperatorAppearance;
 import com.smartgwt.client.types.VisibilityMode;
@@ -48,6 +47,7 @@ import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.DataSourceFieldBuilder;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RemoteMetadataDataSource;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -103,12 +103,19 @@ public final class NewDigObject extends VLayout {
 
     }
 
-    public Record getModel() {
+    public MetaModelRecord getModel() {
         FormItem field = optionsForm.getField(MetaModelDataSource.FIELD_PID);
         ListGridRecord selectedRecord = field.getSelectedRecord();
         Map values = selectedRecord.toMap();
         ClientUtils.info(LOG, "getModel: %s", values);
-        return selectedRecord;
+        return new MetaModelRecord(selectedRecord);
+    }
+
+    public String getMods() {
+        ListGridRecord r = lgResult.getSelectedRecord();
+        String mods = (r == null) ? null : r.getAttribute(RemoteMetadataDataSource.FIELD_MODS);
+        ClientUtils.info(LOG, "getMods: %s", mods);
+        return mods;
     }
 
     private DynamicForm createOptionsForm() {

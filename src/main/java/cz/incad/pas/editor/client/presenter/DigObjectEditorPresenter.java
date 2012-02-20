@@ -16,13 +16,19 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.Overflow;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
+import cz.incad.pas.editor.client.ds.RemoteMetadataDataSource;
 import cz.incad.pas.editor.client.widget.DCEditor;
 import cz.incad.pas.editor.client.widget.ImportParentChooser;
 import cz.incad.pas.editor.client.widget.ImportParentChooser.ImportParentHandler;
@@ -90,7 +96,7 @@ public final class DigObjectEditorPresenter {
 
     private static final class WizardContext {
         private String pid;
-        private Record model;
+        private MetaModelRecord model;
         private String parentPid;
         private boolean modsInitialized;
         private boolean dcInitialized;
@@ -103,11 +109,11 @@ public final class DigObjectEditorPresenter {
             this.dcInitialized = dcInitialized;
         }
 
-        public Record getModel() {
+        public MetaModelRecord getModel() {
             return model;
         }
 
-        public void setModel(Record model) {
+        public void setModel(MetaModelRecord model) {
             this.model = model;
         }
 
@@ -163,12 +169,37 @@ public final class DigObjectEditorPresenter {
         public boolean onStepAction(Wizard wizard, StepKind step) {
             if (step == StepKind.FORWARD) {
                 WizardContext wc = getContext();
-                wc.setModel(newDigObject.getModel());
-                wc.setPid("id:sample");
+                MetaModelRecord model = newDigObject.getModel();
+                wc.setModel(model);
+                String mods = newDigObject.getMods();
                 ClientUtils.info(LOG, "NewDigObjectStep.onStepAction.FORWARD: model: %s pid: %s",
-                        wc.getModel().toMap(), wc.getPid());
+                        model.getId(), wc.getPid());
+                saveNewDigitalObject(model.getId(), mods);
+                return false;
+
             }
             return true;
+        }
+
+        private void saveNewDigitalObject(String modelId, String mods) {
+            Record r = new Record();
+            DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
+            r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
+            r.setAttribute(RemoteMetadataDataSource.FIELD_MODS, mods);
+            ds.addData(r, new DSCallback() {
+
+                @Override
+                public void execute(DSResponse response, Object rawData, DSRequest request) {
+                    Record[] data = response.getData();
+                    if (data != null && data.length > 0) {
+                        String pid = data[0].getAttribute(DigitalObjectDataSource.FIELD_PID);
+                        wc.setPid(pid);
+                        wizard.moveAt(newModsStep);
+                    } else {
+                        SC.warn("Failed to create digital object!");
+                    }
+                }
+            });
         }
 
         @Override
@@ -199,10 +230,7 @@ public final class DigObjectEditorPresenter {
 
             WizardContext wc = getContext();
             if (!wc.isModsInitialized()) {
-//                modsFullEditor.newData();
-//                modsFullEditor.loadData("id:sample", "model:page");
-//                String model = wc.getModel().getAttribute(MetaModelDataSource.FIELD_PID);
-                modsFullEditor.loadData(wc.getPid(), new MetaModelRecord(wc.getModel()));
+                modsFullEditor.loadData(wc.getPid(), wc.getModel());
                 wc.setModsInitialized(true);
             }
         }
