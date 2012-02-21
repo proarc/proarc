@@ -44,6 +44,7 @@ import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.mods.PageDataSource;
 import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
+import cz.incad.pas.editor.client.widget.mods.MonographForm;
 import cz.incad.pas.editor.client.widget.mods.PageForm;
 import cz.incad.pas.editor.client.widget.mods.PeriodicalForm;
 import cz.incad.pas.editor.client.widget.mods.PeriodicalIssueForm;
@@ -258,6 +259,8 @@ public final class ModsFullEditor {
             form = new PageForm(i18nPas);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL.equals(editorId)) {
             form = new PeriodicalForm(i18nPas);
+        } else if (MetaModelDataSource.EDITOR_MONOGRAPH.equals(editorId)) {
+            form = new MonographForm(i18nPas);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL_VOLUME.equals(editorId)) {
             form = new PeriodicalVolumeForm(i18nPas);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL_ISSUE.equals(editorId)) {

@@ -302,6 +302,29 @@ public final class PageDataSource extends DataSource {
             convertPeriodicalVolume(mods, record);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL_ISSUE.equals(modelEditor)) {
             record = convertPeriodicalIssue(mods, record);
+        } else if (MetaModelDataSource.EDITOR_MONOGRAPH.equals(modelEditor)) {
+            record = convertMonograph(mods, record);
+        }
+        return record;
+    }
+
+    public Record convertMonograph(ModsCollectionClient modsCollection, Record record) {
+        List<ModsTypeClient> modsTypes = modsCollection.getMods();
+        if (modsTypes != null && !modsTypes.isEmpty()) {
+            ModsTypeClient mods = modsTypes.get(0);
+            record.setAttribute(FIELD_IDENTIFIERS, IdentifierDataSource.convert(mods.getIdentifier()));
+            fetchLocations(mods.getLocation(), record);
+//            fetchPeriodicity(mods.getOriginInfo(), record);
+            fetchTitles(mods.getTitleInfo(), record);
+            fetchNames(mods.getName(), record);
+            fetchPrinterPublisher(mods.getOriginInfo(), record);
+            fetchLanguages(mods.getLanguage(), record);
+            fetchClassifications(mods.getClassification(), record);
+            // keywords
+            fetchSubjects(mods.getSubject(), record);
+            fetchPhysicalDescription(mods.getPhysicalDescription(), record);
+            fetchRecordInfo(mods.getRecordInfo(), record);
+            fetchNote(mods.getPart(), record);
         }
         return record;
     }
@@ -652,6 +675,7 @@ public final class PageDataSource extends DataSource {
                 dates = originInfo.getDateIssued();
                 publishers.add(r);
             } else {
+                // XXX aleph does not use any transliteration
                 continue;
             }
             // object

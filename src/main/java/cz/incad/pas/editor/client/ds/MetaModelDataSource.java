@@ -41,6 +41,7 @@ public class MetaModelDataSource extends DataSource {
     public static final String EDITOR_PERIODICAL = "cz.incad.pas.editor.client.widget.mods.PeriodicalForm";
     public static final String EDITOR_PERIODICAL_VOLUME = "cz.incad.pas.editor.client.widget.mods.PeriodicalVolumeForm";
     public static final String EDITOR_PERIODICAL_ISSUE = "cz.incad.pas.editor.client.widget.mods.PeriodicalIssueForm";
+    public static final String EDITOR_MONOGRAPH = "cz.incad.pas.editor.client.widget.mods.MonographForm";
     private static ResultSet resultSet;
 
     public MetaModelDataSource() {
