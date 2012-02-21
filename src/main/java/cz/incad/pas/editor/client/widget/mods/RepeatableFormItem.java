@@ -97,7 +97,8 @@ public final class RepeatableFormItem extends CanvasItem {
                         RepeatableForm editor = (RepeatableForm) event.getItem().getCanvas();
                         if (editor != null) {
                             Object dataValue = event.getDataValueAsRecordList();
-                            ClientUtils.info(LOG, "## onShowValue: source: %s, dump: %s", event.getSource(), ClientUtils.dump(dataValue));
+                            ClientUtils.info(LOG, "## onShowValue: name: %s, source: %s, dump: %s",
+                                    event.getItem().getName(), event.getSource(), ClientUtils.dump(dataValue));
                             setData(editor, dataValue);
                         }
                     }

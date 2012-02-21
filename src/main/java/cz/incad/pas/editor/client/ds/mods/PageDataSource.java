@@ -123,6 +123,8 @@ public final class PageDataSource extends DataSource {
     public static final String FIELD_PER_ISSUE_NUMBER = "PeriodicalItemNumber";
     public static final String FIELD_PER_ISSUE_NUMBER_SORTING = "PeriodicalItemNumberSorting";
     public static final String FIELD_PER_ISSUE_DATE = "periodicalItemDate";
+    // monograph unit
+    public static final String FIELD_MONOGRAPHUNIT_NUMBER = "monographUnitNumber";
 
     public PageDataSource() {
         setID(ID);
@@ -304,6 +306,8 @@ public final class PageDataSource extends DataSource {
             record = convertPeriodicalIssue(mods, record);
         } else if (MetaModelDataSource.EDITOR_MONOGRAPH.equals(modelEditor)) {
             record = convertMonograph(mods, record);
+        } else if (MetaModelDataSource.EDITOR_MONOGRAPH_UNIT.equals(modelEditor)) {
+            record = convertMonographUnit(mods, record);
         }
         return record;
     }
@@ -327,6 +331,40 @@ public final class PageDataSource extends DataSource {
             fetchNote(mods.getPart(), record);
         }
         return record;
+    }
+
+    public Record convertMonographUnit(ModsCollectionClient modsCollection, Record record) {
+        List<ModsTypeClient> modsTypes = modsCollection.getMods();
+        if (modsTypes != null && !modsTypes.isEmpty()) {
+            ModsTypeClient mods = modsTypes.get(0);
+            record.setAttribute(FIELD_IDENTIFIERS, IdentifierDataSource.convert(mods.getIdentifier()));
+            fetchMonographUnitPart(mods.getPart(), record);
+        }
+        return record;
+    }
+
+    /**
+     * reads MonographUnit number and note
+     */
+    private void fetchMonographUnitPart(List<PartTypeClient> parts, Record record) {
+        if (parts != null && !parts.isEmpty()) {
+            PartTypeClient part = parts.get(0);
+
+            List<String> notes = part.getText();
+            if (notes != null && ! notes.isEmpty()) {
+                record.setAttribute(FIELD_NOTE, notes.get(0));
+            }
+
+            List<DetailTypeClient> details = nonNullList(part.getDetail());
+            for (DetailTypeClient detail : details) {
+                if ("Volume".equals(detail.getType())) {
+                    List<String> numbers = detail.getNumber();
+                    if (numbers != null && !numbers.isEmpty()) {
+                        record.setAttribute(FIELD_MONOGRAPHUNIT_NUMBER, numbers.get(0));
+                    }
+                }
+            }
+        }
     }
 
     private Record createModsRecord(String pid, ModsGwtRecord modsRecord) {

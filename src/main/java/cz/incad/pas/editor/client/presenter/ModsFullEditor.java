@@ -45,6 +45,7 @@ import cz.incad.pas.editor.client.ds.mods.PageDataSource;
 import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
 import cz.incad.pas.editor.client.widget.mods.MonographForm;
+import cz.incad.pas.editor.client.widget.mods.MonographUnitForm;
 import cz.incad.pas.editor.client.widget.mods.PageForm;
 import cz.incad.pas.editor.client.widget.mods.PeriodicalForm;
 import cz.incad.pas.editor.client.widget.mods.PeriodicalIssueForm;
@@ -265,6 +266,8 @@ public final class ModsFullEditor {
             form = new PeriodicalVolumeForm(i18nPas);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL_ISSUE.equals(editorId)) {
             form = new PeriodicalIssueForm(i18nPas);
+        } else if (MetaModelDataSource.EDITOR_MONOGRAPH_UNIT.equals(editorId)) {
+            form = new MonographUnitForm(i18nPas);
         } else {
             ClientUtils.warning(LOG, "Uknown model editor: %s, editor: %s", model.getId(), model.getEditorId());
         }
