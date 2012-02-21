@@ -20,6 +20,7 @@ import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.types.CharacterCasing;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
@@ -27,6 +28,7 @@ import cz.fi.muni.xkremser.editor.client.mods.IdentifierTypeClient;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -53,8 +55,15 @@ public final class IdentifierDataSource extends DataSource {
                 i18nPas.PageForm_IdentifierType_Title());
 
         ComboBoxItem typeEditor = new ComboBoxItem(IdentifierDataSource.FIELD_TYPE);
-        typeEditor.setValueMap("ISSN", "ISBN", "čČNB", "SICI");
+        LinkedHashMap types = new LinkedHashMap();
+        types.put("issn", "ISSN");
+        types.put("isbn", "ISBN");
+        types.put("ccnb", "čČNB");
+        types.put("sici", "SICI");
+        types.put("uuid", "UUID");
+        typeEditor.setValueMap(types);
         typeEditor.setType("comboBox");
+        typeEditor.setCharacterCasing(CharacterCasing.LOWER);
         type.setEditorType(typeEditor);
 
         DataSourceField value = new DataSourceField(FIELD_VALUE, FieldType.TEXT,

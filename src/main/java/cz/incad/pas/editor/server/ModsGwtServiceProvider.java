@@ -74,7 +74,7 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
 
         // add uuid as identifier
         IdentifierType identifierType = new IdentifierType();
-        identifierType.setType("UUID");
+        identifierType.setType("uuid");
         identifierType.setValue(pid.substring("uuid:".length()));
 
         modsType.getModsGroup().add(identifierType);
