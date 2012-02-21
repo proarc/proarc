@@ -16,11 +16,9 @@
  */
 package cz.incad.pas.editor.client.widget.mods;
 
-import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
-import com.smartgwt.client.widgets.form.fields.DateItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
@@ -185,90 +183,5 @@ public final class PeriodicalForm extends DynamicForm {
         fi.setStartRow(true);
         fi.setColSpan("*");
     }
-
-    private static final class StringFormFactory implements CustomFormFactory {
-        private final String title;
-        private final boolean showTitle;
-        private final String name;
-        private final int width;
-
-        public StringFormFactory(String name, String title, boolean showTitle) {
-            this(name, title, showTitle, Integer.MIN_VALUE);
-        }
-        public StringFormFactory(String name, String title, boolean showTitle, int width) {
-            this.title = title;
-            this.showTitle = showTitle;
-            this.name = name;
-            this.width = width;
-        }
-
-        @Override
-        public DynamicForm create() {
-            DynamicForm form = new DynamicForm();
-            TextItem value = new TextItem(name, title);
-            value.setShowTitle(showTitle);
-            if (width == Integer.MAX_VALUE) {
-                value.setWidth("100%");
-                form.setWidth100();
-            } else if (width > 0) {
-                value.setWidth(width);
-            }
-            form.setFields(value);
-            return form;
-        }
-    }
-
-    private static final class PersonFormFactory implements CustomFormFactory {
-
-        private final PasEditorMessages i18nPas;
-
-        public PersonFormFactory(PasEditorMessages i18nPas) {
-            this.i18nPas = i18nPas;
-        }
-
-        @Override
-        public DynamicForm create() {
-            DynamicForm form = new DynamicForm();
-            form.setNumCols(4);
-            TextItem family = new TextItem("family", i18nPas.PeriodicalForm_FamilyName_Title());
-            family.setPrompt(i18nPas.PeriodicalForm_FamilyName_Hint());
-            TextItem given = new TextItem("given", i18nPas.PeriodicalForm_GivenName_Title());
-            given.setPrompt(i18nPas.PeriodicalForm_GivenName_Hint());
-            form.setFields(family, given);
-            return form;
-        }
-    }
-
-    private static final class PrinterPublisherFormFactory implements CustomFormFactory {
-
-        private final boolean publisher;
-        private final PasEditorMessages i18nPas;
-
-        public PrinterPublisherFormFactory(boolean publisher, PasEditorMessages i18nPas) {
-            this.publisher = publisher;
-            this.i18nPas = i18nPas;
-        }
-
-        @Override
-        public DynamicForm create() {
-            DynamicForm form = new DynamicForm();
-            form.setNumCols(6);
-            TextItem place = new TextItem(PageDataSource.FIELD_PRINTER_PUBLISHER_PLACE,
-                    i18nPas.PeriodicalForm_PrinterPublisherPlace_Title());
-            place.setPrompt(i18nPas.PeriodicalForm_PrinterPublisherPlace_Hint());
-            TextItem name = new TextItem(PageDataSource.FIELD_PRINTER_PUBLISHER_NAME,
-                    i18nPas.PeriodicalForm_PrinterPublisherName_Title());
-            name.setPrompt(publisher
-                    ? i18nPas.PeriodicalForm_PublisherName_Hint()
-                    : i18nPas.PeriodicalForm_PrinterName_Hint());
-            DateItem date = new DateItem(PageDataSource.FIELD_PRINTER_PUBLISHER_DATE, i18nPas.PeriodicalForm_PrinterPublisherDate_Title());
-            date.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATE);
-            date.setUseTextField(true);
-            form.setFields(name, place, date);
-            return form;
-        }
-    }
-
-
 
 }
