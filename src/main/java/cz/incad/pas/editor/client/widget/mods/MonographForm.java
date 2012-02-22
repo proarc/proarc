@@ -45,7 +45,7 @@ public final class MonographForm extends DynamicForm {
 
         // identifiers
         final RepeatableFormItem identifiers = new RepeatableFormItem(PageDataSource.FIELD_IDENTIFIERS,
-                i18nPas.PeriodicalForm_Identifiers_Title());
+                i18nPas.MonographForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
         DynamicForm identifierForm = new DynamicForm();
         identifierForm.setUseAllDataSourceFields(true);
@@ -54,51 +54,51 @@ public final class MonographForm extends DynamicForm {
         identifiers.setEndRow(true);
         identifiers.setColSpan("2");
 
-        TextItem sigla = new TextItem(PageDataSource.FIELD_SIGLA, i18nPas.PeriodicalForm_Sigla_Title());
+        TextItem sigla = new TextItem(PageDataSource.FIELD_SIGLA, i18nPas.MonographForm_Sigla_Title());
 
         RepeatableFormItem shelfLocators = new RepeatableFormItem(
-                PageDataSource.FIELD_SHELF_LOCATORS, i18nPas.PeriodicalForm_ShelfLocators_Title(),
+                PageDataSource.FIELD_SHELF_LOCATORS, i18nPas.MonographForm_ShelfLocators_Title(),
                 new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false));
 //        shelfLocators.setRowSpan(2);
 
         // titles
         RepeatableFormItem titles = new RepeatableFormItem(
-                PageDataSource.FIELD_TITLES, i18nPas.PeriodicalForm_Titles_Title(),
+                PageDataSource.FIELD_TITLES, i18nPas.MonographForm_Titles_Title(),
                 new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false, 600));
         oneRow(titles);
 
         RepeatableFormItem subtitles = new RepeatableFormItem(
-                PageDataSource.FIELD_SUBTITLES, i18nPas.PeriodicalForm_Subtitles_Title(),
+                PageDataSource.FIELD_SUBTITLES, i18nPas.MonographForm_Subtitles_Title(),
                 new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false, 600));
         oneRow(subtitles);
 
         RepeatableFormItem alternativeTitles = new RepeatableFormItem(
-                PageDataSource.FIELD_ALTERNATIVE_TITLES, i18nPas.PeriodicalForm_AlternativeTitles_Title(),
+                PageDataSource.FIELD_ALTERNATIVE_TITLES, i18nPas.MonographForm_AlternativeTitles_Title(),
                 new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false, 600));
         oneRow(alternativeTitles);
 
         // authors
         RepeatableFormItem authors = new RepeatableFormItem(PageDataSource.FIELD_AUTHORS,
-                i18nPas.PeriodicalForm_Authors_Title(), new PersonFormFactory(i18nPas));
+                i18nPas.MonographForm_Authors_Title(), new PersonFormFactory(i18nPas));
         oneRow(authors);
         RepeatableFormItem contribs = new RepeatableFormItem(PageDataSource.FIELD_CONTRIBUTORS,
-                i18nPas.PeriodicalForm_Contributors_Title(), new PersonFormFactory(i18nPas));
+                i18nPas.MonographForm_Contributors_Title(), new PersonFormFactory(i18nPas));
         oneRow(contribs);
         RepeatableFormItem printers = new RepeatableFormItem(PageDataSource.FIELD_PRINTERS,
-                i18nPas.PeriodicalForm_Printers_Title(), new PrinterPublisherFormFactory(false, i18nPas));
+                i18nPas.MonographForm_Printers_Title(), new PrinterPublisherFormFactory(false, i18nPas));
         oneRow(printers);
         RepeatableFormItem publishers = new RepeatableFormItem(PageDataSource.FIELD_PUBLISHERS,
-                i18nPas.PeriodicalForm_Publishers_Title(), new PrinterPublisherFormFactory(true, i18nPas));
+                i18nPas.MonographForm_Publishers_Title(), new PrinterPublisherFormFactory(true, i18nPas));
         oneRow(publishers);
 
         RepeatableFormItem languages = new RepeatableFormItem(PageDataSource.FIELD_LANGUAGES,
-                i18nPas.PeriodicalForm_Languages_Title(), new RepeatableFormItem.CustomFormFactory() {
+                i18nPas.MonographForm_Languages_Title(), new RepeatableFormItem.CustomFormFactory() {
 
             @Override
             public DynamicForm create() {
                 DynamicForm form = new DynamicForm();
 //                form.setNumCols(6);
-                ComboBoxItem language = new ComboBoxItem("languageCode", i18nPas.PeriodicalForm_LanguageCode_Title());
+                ComboBoxItem language = new ComboBoxItem("languageCode", i18nPas.MonographForm_LanguageCode_Title());
                 LinkedHashMap<String, String> valueMap = new LinkedHashMap<String, String>();
                 valueMap.put("cze", "Czech - cze");
                 valueMap.put("eng", "English - eng");
@@ -110,16 +110,16 @@ public final class MonographForm extends DynamicForm {
         });
 
         RepeatableFormItem subjects = new RepeatableFormItem(PageDataSource.FIELD_CLASSIFICATIONS,
-                i18nPas.PeriodicalForm_Subjects_Title(), new RepeatableFormItem.CustomFormFactory() {
+                i18nPas.MonographForm_Subjects_Title(), new RepeatableFormItem.CustomFormFactory() {
 
             @Override
             public DynamicForm create() {
                 DynamicForm form = new DynamicForm();
                 form.setNumCols(4);
                 TextItem udc = new TextItem(PageDataSource.FIELD_CLASSIFICATION_UDC,
-                        i18nPas.PeriodicalForm_SubjectsUdc_Title()); // MDT in czech
+                        i18nPas.MonographForm_SubjectsUdc_Title()); // MDT in czech
                 TextItem ddc = new TextItem(PageDataSource.FIELD_CLASSIFICATION_DDC,
-                        i18nPas.PeriodicalForm_SubjectsDdc_Title()); // DDT in czech
+                        i18nPas.MonographForm_SubjectsDdc_Title()); // DDT in czech
                 form.setFields(udc, ddc);
                 return form;
             }
@@ -127,12 +127,12 @@ public final class MonographForm extends DynamicForm {
         oneRow(subjects);
 
         RepeatableFormItem keywords = new RepeatableFormItem(PageDataSource.FIELD_KEYWORDS,
-                i18nPas.PeriodicalForm_Keywords_Title(),
+                i18nPas.MonographForm_Keywords_Title(),
                 new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false));
 
         RepeatableFormItem physicalDescriptions = new RepeatableFormItem(
                 PageDataSource.FIELD_PHYSICAL_DESCRIPTIONS,
-                i18nPas.PeriodicalForm_PhysicalDescriptions_Title(),
+                i18nPas.MonographForm_PhysicalDescriptions_Title(),
                 new RepeatableFormItem.CustomFormFactory() {
 
             @Override
@@ -140,9 +140,9 @@ public final class MonographForm extends DynamicForm {
                 DynamicForm form = new DynamicForm();
                 form.setNumCols(4);
                 TextItem extent = new TextItem(PageDataSource.FIELD_PHYSICAL_DESCRIPTIONS_EXTENT,
-                        i18nPas.PeriodicalForm_PhysicalDescriptionsExtent_Title()); // rozsah
+                        i18nPas.MonographForm_PhysicalDescriptionsExtent_Title()); // rozsah
                 TextItem size = new TextItem(PageDataSource.FIELD_PHYSICAL_DESCRIPTIONS_SIZE,
-                        i18nPas.PeriodicalForm_PhysicalDescriptionsSize_Title()); // Rozmery
+                        i18nPas.MonographForm_PhysicalDescriptionsSize_Title()); // Rozmery
                 form.setFields(extent, size);
                 return form;
             }
@@ -150,12 +150,12 @@ public final class MonographForm extends DynamicForm {
         oneRow(physicalDescriptions);
 
         TextItem recordOrigin = new TextItem(PageDataSource.FIELD_RECORD_ORIGIN,
-                i18nPas.PeriodicalForm_RecordOrigin_Title());
+                i18nPas.MonographForm_RecordOrigin_Title());
         recordOrigin.setWidth("*");
         oneRow(recordOrigin);
 
         TextAreaItem note = new TextAreaItem(PageDataSource.FIELD_NOTE,
-                i18nPas.PeriodicalForm_Note_Title());
+                i18nPas.MonographForm_Note_Title());
         note.setWidth("*");
         note.setHeight("*");
         note.setColSpan("*");
