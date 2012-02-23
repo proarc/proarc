@@ -16,7 +16,6 @@
  */
 package cz.incad.pas.editor.server.catalog;
 
-import cz.incad.pas.editor.server.marc.MarcUtilsTest;
 import cz.incad.pas.editor.server.rest.MetadataCatalogResource.MetadataItem;
 import java.io.InputStream;
 import java.util.List;
@@ -54,7 +53,7 @@ public class AlephXServerTest {
 
     @Test
     public void testFindResponse() throws Exception {
-        InputStream xmlIS = MarcUtilsTest.class.getResourceAsStream("/cz/incad/pas/editor/server/catalog/alephXServerFindResponse.xml");
+        InputStream xmlIS = AlephXServerTest.class.getResourceAsStream("alephXServerFindResponse.xml");
         assertNotNull(xmlIS);
         try {
             AlephXServer server = new AlephXServer();
@@ -70,7 +69,7 @@ public class AlephXServerTest {
     
 // XXX alephXServerDetailResponse.xml content seems broken    @Test
     public void testDetailResponse() throws Exception {
-        InputStream xmlIS = MarcUtilsTest.class.getResourceAsStream("/cz/incad/pas/editor/server/catalog/alephXServerDetailResponse.xml");
+        InputStream xmlIS = AlephXServerTest.class.getResourceAsStream("alephXServerDetailResponse.xml");
         assertNotNull(xmlIS);
 
         try {
