@@ -154,6 +154,16 @@ public final class MonographForm extends DynamicForm {
         recordOrigin.setWidth("*");
         oneRow(recordOrigin);
 
+        TextItem preservationTreatment = new TextItem(PageDataSource.FIELD_PRESERVATION_TREATMENT,
+                i18nPas.MonographForm_PreservationTreatment_Title());
+        preservationTreatment.setWidth("*");
+        oneRow(preservationTreatment);
+
+        TextItem preservationStateOfArt = new TextItem(PageDataSource.FIELD_PRESERVATION_STATEOFART,
+                i18nPas.MonographForm_PreservationStateOfArt_Title());
+        preservationStateOfArt.setWidth("*");
+        oneRow(preservationStateOfArt);
+
         TextAreaItem note = new TextAreaItem(PageDataSource.FIELD_NOTE,
                 i18nPas.MonographForm_Note_Title());
         note.setWidth("*");
@@ -164,7 +174,7 @@ public final class MonographForm extends DynamicForm {
 
         setFields(identifiers, sigla, shelfLocators, titles, subtitles, alternativeTitles, authors,
                 contribs, printers, publishers, languages, subjects, keywords,
-                physicalDescriptions, recordOrigin, note);
+                physicalDescriptions, recordOrigin, preservationTreatment, preservationStateOfArt, note);
         
         setDataSource(PageDataSource.getInstance());
     }

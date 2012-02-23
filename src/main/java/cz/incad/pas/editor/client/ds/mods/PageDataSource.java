@@ -41,6 +41,7 @@ import cz.fi.muni.xkremser.editor.client.mods.ModsCollectionClient;
 import cz.fi.muni.xkremser.editor.client.mods.ModsTypeClient;
 import cz.fi.muni.xkremser.editor.client.mods.NamePartTypeClient;
 import cz.fi.muni.xkremser.editor.client.mods.NameTypeClient;
+import cz.fi.muni.xkremser.editor.client.mods.NoteTypeClient;
 import cz.fi.muni.xkremser.editor.client.mods.OriginInfoTypeClient;
 import cz.fi.muni.xkremser.editor.client.mods.PartTypeClient;
 import cz.fi.muni.xkremser.editor.client.mods.PhysicalDescriptionTypeClient;
@@ -123,6 +124,9 @@ public final class PageDataSource extends DataSource {
     public static final String FIELD_PER_ISSUE_NUMBER = "PeriodicalItemNumber";
     public static final String FIELD_PER_ISSUE_NUMBER_SORTING = "PeriodicalItemNumberSorting";
     public static final String FIELD_PER_ISSUE_DATE = "periodicalItemDate";
+    // monograph
+    public static final String FIELD_PRESERVATION_TREATMENT = "preservationTreatment";
+    public static final String FIELD_PRESERVATION_STATEOFART = "preservationStateOfArt";
     // monograph unit
     public static final String FIELD_MONOGRAPHUNIT_NUMBER = "monographUnitNumber";
 
@@ -329,6 +333,7 @@ public final class PageDataSource extends DataSource {
             fetchPhysicalDescription(mods.getPhysicalDescription(), record);
             fetchRecordInfo(mods.getRecordInfo(), record);
             fetchNote(mods.getPart(), record);
+            fetchPreservation(mods.getPhysicalDescription(), record);
         }
         return record;
     }
@@ -362,6 +367,39 @@ public final class PageDataSource extends DataSource {
                     if (numbers != null && !numbers.isEmpty()) {
                         record.setAttribute(FIELD_MONOGRAPHUNIT_NUMBER, numbers.get(0));
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * <pre>{@code
+            <mods:physicalDescription>
+                <mods:note type="action"><xsl:value-of select="PreservationTreatment" /></mods:note>
+                <mods:note type="preservationStateOfArt"><xsl:value-of select="PreservationStateOfArt" /></mods:note>
+            </mods:physicalDescription>
+       }</pre>
+     */
+    private void fetchPreservation(List<PhysicalDescriptionTypeClient> physicalDescriptions, Record record) {
+        physicalDescriptions = nonNullList(physicalDescriptions);
+        boolean foundAction = false;
+        boolean foundState = false;
+        for (PhysicalDescriptionTypeClient physicalDescription : physicalDescriptions) {
+            List<NoteTypeClient> notes = physicalDescription.getNote();
+            for (NoteTypeClient note : notes) {
+                String type = note.getAtType();
+                if ("action".equals(type)) {
+                    if (foundAction) {
+                        continue;
+                    }
+                    foundAction = true;
+                    record.setAttribute(FIELD_PRESERVATION_TREATMENT, note.getValue());
+                } else if ("preservationStateOfArt".equals(type)) {
+                    if (foundState) {
+                        continue;
+                    }
+                    foundState = true;
+                    record.setAttribute(FIELD_PRESERVATION_STATEOFART, note.getValue());
                 }
             }
         }
