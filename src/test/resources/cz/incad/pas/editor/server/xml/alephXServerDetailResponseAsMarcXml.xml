@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim         http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+    <leader>       22      4500</leader>
+    <controlfield tag="LDR">-----nas-a22--------450</controlfield>
+    <controlfield tag="FMT">S</controlfield>
+    <controlfield tag="001">cps1995035651</controlfield>
+    <controlfield tag="003">CZ-PrN</controlfield>
+    <controlfield tag="005">20030814102951.</controlfield>
+    <controlfield tag="008">900715d19531992xr--x-p--||||u|----0cze-</controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+        <subfield code="a">cnb000356514</subfield>
+    </datafield>
+    <datafield tag="022" ind1=" " ind2=" ">
+        <subfield code="a">0069-228X</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+        <subfield code="a">ABA001</subfield>
+        <subfield code="b">cze</subfield>
+        <subfield code="d">ABA001</subfield>
+    </datafield>
+    <datafield tag="043" ind1=" " ind2=" ">
+        <subfield code="a">e-xr---</subfield>
+        <subfield code="b">e-xr-pg</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield tag="080" ind1=" " ind2=" ">
+        <subfield code="a">51</subfield>
+        <subfield code="2">MRF-sel</subfield>
+    </datafield>
+    <datafield tag="080" ind1=" " ind2=" ">
+        <subfield code="a">57</subfield>
+        <subfield code="2">MRF-sel</subfield>
+    </datafield>
+    <datafield tag="080" ind1=" " ind2=" ">
+        <subfield code="a">050</subfield>
+        <subfield code="2">MRF-sel</subfield>
+    </datafield>
+    <datafield tag="210" ind1="1" ind2=" ">
+        <subfield code="a">Rozpr. Českoslov. akad. věd, Řada mat. přír. věd</subfield>
+    </datafield>
+    <datafield tag="222" ind1=" " ind2="0">
+        <subfield code="a">Rozpravy Československé akademie věd. Řada matematických a přírodních věd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="0" ind2="0">
+        <subfield code="a">Rozpravy Československé akademie věd.</subfield>
+        <subfield code="p">Matematické a přírodní vědy</subfield>
+    </datafield>
+    <datafield tag="246" ind1="3" ind2="0">
+        <subfield code="a">Matematické a přírodní vědy</subfield>
+    </datafield>
+    <datafield tag="260" ind1=" " ind2=" ">
+        <subfield code="a">Praha (112 29 Praha 1, Vodičkova 40) :</subfield>
+        <subfield code="b">Academia,</subfield>
+        <subfield code="c">1953-1992</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+        <subfield code="a">^^^sv. ;</subfield>
+        <subfield code="c">25 cm</subfield>
+    </datafield>
+    <datafield tag="310" ind1=" " ind2=" ">
+        <subfield code="a">Vychází nepravidelně</subfield>
+    </datafield>
+    <datafield tag="362" ind1="0" ind2=" ">
+        <subfield code="a">Roč. 63, č. 1 (1953)-</subfield>
+    </datafield>
+    <datafield tag="500" ind1=" " ind2=" ">
+        <subfield code="a">Rozsah a rozměry pro registraci: 15x112+8+4 s., 175/250</subfield>
+    </datafield>
+    <datafield tag="500" ind1=" " ind2=" ">
+        <subfield code="a">Vydává: Československá akademie věd</subfield>
+    </datafield>
+    <datafield tag="653" ind1="0" ind2=" ">
+        <subfield code="a">matematika</subfield>
+        <subfield code="a">přírodní vědy</subfield>
+    </datafield>
+    <datafield tag="710" ind1="2" ind2=" ">
+        <subfield code="a">Československá akademie věd</subfield>
+        <subfield code="7">ko20010087906</subfield>
+    </datafield>
+    <datafield tag="780" ind1="0" ind2="0">
+        <subfield code="t">Rozpravy České akademie věd a umění. Třída II. Matematicko-přírodovědecká</subfield>
+        <subfield code="x">1210-9061</subfield>
+    </datafield>
+    <datafield tag="785" ind1="0" ind2="0">
+        <subfield code="t">Rozpravy Akademie věd České republiky. Řada matematických a přírodních věd</subfield>
+    </datafield>
+    <datafield tag="910" ind1=" " ind2=" ">
+        <subfield code="a">ABA001</subfield>
+        <subfield code="p">do roč. 62</subfield>
+        <subfield code="r">1920-50</subfield>
+        <subfield code="t">n</subfield>
+    </datafield>
+    <datafield tag="968" ind1=" " ind2=" ">
+        <subfield code="a">10a</subfield>
+    </datafield>
+    <datafield tag="969" ind1=" " ind2=" ">
+        <subfield code="a">b1</subfield>
+    </datafield>
+    <datafield tag="970" ind1=" " ind2=" ">
+        <subfield code="n">Československá akademie věd</subfield>
+    </datafield>
+</record>

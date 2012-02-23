@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mods xmlns="http://www.loc.gov/mods/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-4.xsd" version="3.4">
+    <titleInfo>
+        <title>Rozpravy Československé akademie věd</title>
+        <partName>Matematické a přírodní vědy</partName>
+    </titleInfo>
+    <titleInfo type="abbreviated">
+        <title>Rozpr. Českoslov. akad. věd, Řada mat. přír. věd</title>
+    </titleInfo>
+    <titleInfo type="alternative">
+        <title>Matematické a přírodní vědy</title>
+    </titleInfo>
+    <name type="corporate">
+        <namePart>Československá akademie věd</namePart>
+    </name>
+    <typeOfResource/>
+    <originInfo>
+        <place>
+            <placeTerm type="code" authority="marccountry">xr-</placeTerm>
+        </place>
+        <place>
+            <placeTerm type="text">Praha (112 29 Praha 1, Vodičkova 40)</placeTerm>
+        </place>
+        <publisher>Academia</publisher>
+        <dateIssued>1953-1992</dateIssued>
+        <dateIssued point="start" encoding="marc">1953</dateIssued>
+        <dateIssued point="end" encoding="marc">1992</dateIssued>
+        <issuance/>
+        <frequency authority="marcfrequency">Vychází nepravidelně</frequency>
+        <frequency/>
+    </originInfo>
+    <language>
+        <languageTerm type="code" authority="iso639-2b">cze</languageTerm>
+    </language>
+    <physicalDescription>
+        <extent>^^^sv. ; 25 cm</extent>
+    </physicalDescription>
+    <note type="date/sequential designation">Roč. 63, č. 1 (1953)-</note>
+    <note>Rozsah a rozměry pro registraci: 15x112+8+4 s., 175/250</note>
+    <note>Vydává: Československá akademie věd</note>
+    <subject>
+        <geographicCode authority="marcgac">e-xr---</geographicCode>
+        <geographicCode authority="czenas">e-xr-pg</geographicCode>
+    </subject>
+    <classification authority="udc">51</classification>
+    <classification authority="udc">57</classification>
+    <classification authority="udc">050</classification>
+    <relatedItem type="preceding">
+        <titleInfo>
+            <title>Rozpravy České akademie věd a umění. Třída II. Matematicko-přírodovědecká</title>
+        </titleInfo>
+        <identifier type="issn">1210-9061</identifier>
+    </relatedItem>
+    <relatedItem type="succeeding">
+        <titleInfo>
+            <title>Rozpravy Akademie věd České republiky. Řada matematických a přírodních věd</title>
+        </titleInfo>
+    </relatedItem>
+    <identifier type="issn">0069-228X</identifier>
+    <recordInfo>
+        <recordContentSource authority="marcorg">ABA001</recordContentSource>
+        <recordCreationDate encoding="marc">900715</recordCreationDate>
+        <recordChangeDate encoding="iso8601">20030814102951.</recordChangeDate>
+        <recordIdentifier source="CZ-PrN">cps1995035651</recordIdentifier>
+        <recordOrigin>Converted from MARCXML to MODS version 3.4 using MARC21slim2MODS3-4.xsl
+            (Revision 1.68)
+        </recordOrigin>
+        <languageOfCataloging>
+            <languageTerm type="code" authority="iso639-2b">cze</languageTerm>
+        </languageOfCataloging>
+    </recordInfo>
+</mods>

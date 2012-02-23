@@ -16,17 +16,21 @@
  */
 package cz.incad.pas.editor.server.xml;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
+import org.custommonkey.xmlunit.XMLAssert;
+import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.xml.sax.InputSource;
 
 /**
  *
@@ -49,37 +53,21 @@ public class TransformersTest {
 
     @Before
     public void setUp() {
+        XMLUnit.setIgnoreWhitespace(true);
     }
 
     @After
     public void tearDown() {
+        XMLUnit.setIgnoreWhitespace(false);
+        XMLUnit.setNormalizeWhitespace(false);
     }
 
-//    @Test
-//    public void testMarcAsMods2() throws Exception {
-//        InputStream xmlIS = TransformersTest.class.getResourceAsStream("oaiMarcSample.xml");
-//        assertNotNull(xmlIS);
-//        StreamSource streamSource = new StreamSource(xmlIS);
-//        Transformers mt = new Transformers();
-//
-//        try {
-//            Source marcxml = mt.transform(streamSource, Transformers.Format.OaimarcAsMarc21slim);
-//            assertNotNull(marcxml);
-//            marcxml = mt.dump2Temp(marcxml, "testMarcAsMods2.xml");
-//            byte[] contents = mt.transformAsBytes(marcxml, Format.MarcxmlAsMods34);
-//            System.out.println(new String(contents, "UTF-8"));
-//        } finally {
-//            try {
-//                xmlIS.close();
-//            } catch (IOException ex) {
-//                LOG.log(Level.SEVERE, null, ex);
-//            }
-//        }
-//    }
-    
     @Test
     public void testMarcAsMods() throws Exception {
-        InputStream xmlIS = TransformersTest.class.getResourceAsStream("marcxmlSample.xml");// from test
+        XMLUnit.setNormalizeWhitespace(true);
+        InputStream goldenIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMods.xml");
+        assertNotNull(goldenIS);
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMarcXml.xml");// from test
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
         Transformers mt = new Transformers();
@@ -87,19 +75,19 @@ public class TransformersTest {
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods34);
             assertNotNull(contents);
-            System.out.println(new String(contents, "UTF-8"));
+//            System.out.println(new String(contents, "UTF-8"));
+            XMLAssert.assertXMLEqual(new InputSource(goldenIS), new InputSource(new ByteArrayInputStream(contents)));
         } finally {
-            try {
-                xmlIS.close();
-            } catch (IOException ex) {
-                LOG.log(Level.SEVERE, null, ex);
-            }
+            close(xmlIS);
+            close(goldenIS);
         }
     }
 
     @Test
     public void testOaiMarcAsMarc() throws Exception {
-        InputStream xmlIS = TransformersTest.class.getResourceAsStream("oaiMarcSample.xml");
+        InputStream goldenIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMarcXml.xml");
+        assertNotNull(goldenIS);
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsOaiMarc.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
         Transformers mt = new Transformers();
@@ -107,10 +95,38 @@ public class TransformersTest {
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.OaimarcAsMarc21slim);
             assertNotNull(contents);
-            System.out.println(new String(contents, "UTF-8"));
+//            System.out.println(new String(contents, "UTF-8"));
+            XMLAssert.assertXMLEqual(new InputSource(goldenIS), new InputSource(new ByteArrayInputStream(contents)));
         } finally {
+            close(xmlIS);
+            close(goldenIS);
+        }
+    }
+
+    @Test
+    public void testAlephXServerDetailNamespaceFix() throws Exception {
+        InputStream goldenIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseFixed.xml");
+        assertNotNull(goldenIS);
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("../catalog/alephXServerDetailResponse.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.AlephOaiMarcFix);
+            assertNotNull(contents);
+//            System.out.println(new String(contents, "UTF-8"));
+            XMLAssert.assertXMLEqual(new InputSource(goldenIS), new InputSource(new ByteArrayInputStream(contents)));
+        } finally {
+            close(xmlIS);
+            close(goldenIS);
+        }
+    }
+
+    private static void close(InputStream is) {
+        if (is != null) {
             try {
-                xmlIS.close();
+                is.close();
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, null, ex);
             }

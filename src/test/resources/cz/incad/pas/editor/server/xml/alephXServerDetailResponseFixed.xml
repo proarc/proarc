@@ -1,111 +1,78 @@
-<?xml version = "1.0" encoding = "UTF-8"?>
-<present>
+<?xml version="1.0" encoding="UTF-8"?><present>
 <record>
 <record_header>
 <set_entry>000000001</set_entry>
 </record_header>
 <doc_number>000356514</doc_number>
 <metadata>
-<oai_marc>
-<fixfield id="LDR">-----nas-a22--------4500</fixfield>
-<fixfield id="FMT">SE</fixfield>
-<fixfield id="001">cps19950356514</fixfield>
-<fixfield id="003">CZ-PrNK</fixfield>
-<fixfield id="005">20030814102951.0</fixfield>
-<fixfield id="008">900715d19531992xr--x-p--||||u|----0cze--</fixfield>
-<varfield id="015" i1=" " i2=" ">
+<oai_marc xmlns="http://www.openarchives.org/OAI/1.1/oai_marc"><fixfield id="LDR">-----nas-a22--------4500</fixfield><fixfield id="FMT">SE</fixfield><fixfield id="001">cps19950356514</fixfield><fixfield id="003">CZ-PrNK</fixfield><fixfield id="005">20030814102951.0</fixfield><fixfield id="008">900715d19531992xr--x-p--||||u|----0cze--</fixfield><varfield id="015" i1=" " i2=" ">
 <subfield label="a">cnb000356514</subfield>
-</varfield>
-<varfield id="022" i1=" " i2=" ">
+</varfield><varfield id="022" i1=" " i2=" ">
 <subfield label="a">0069-228X</subfield>
-</varfield>
-<varfield id="040" i1=" " i2=" ">
+</varfield><varfield id="040" i1=" " i2=" ">
 <subfield label="a">ABA001</subfield>
 <subfield label="b">cze</subfield>
 <subfield label="d">ABA001</subfield>
-</varfield>
-<varfield id="043" i1=" " i2=" ">
+</varfield><varfield id="043" i1=" " i2=" ">
 <subfield label="a">e-xr---</subfield>
 <subfield label="b">e-xr-pg</subfield>
 <subfield label="2">czenas</subfield>
-</varfield>
-<varfield id="080" i1=" " i2=" ">
+</varfield><varfield id="080" i1=" " i2=" ">
 <subfield label="a">51</subfield>
 <subfield label="2">MRF-sel</subfield>
-</varfield>
-<varfield id="080" i1=" " i2=" ">
+</varfield><varfield id="080" i1=" " i2=" ">
 <subfield label="a">57</subfield>
 <subfield label="2">MRF-sel</subfield>
-</varfield>
-<varfield id="080" i1=" " i2=" ">
+</varfield><varfield id="080" i1=" " i2=" ">
 <subfield label="a">050</subfield>
 <subfield label="2">MRF-sel</subfield>
-</varfield>
-<varfield id="210" i1="1" i2=" ">
+</varfield><varfield id="210" i1="1" i2=" ">
 <subfield label="a">Rozpr. Českoslov. akad. věd, Řada mat. přír. věd</subfield>
-</varfield>
-<varfield id="222" i1=" " i2="0">
+</varfield><varfield id="222" i1=" " i2="0">
 <subfield label="a">Rozpravy Československé akademie věd. Řada matematických a přírodních věd</subfield>
-</varfield>
-<varfield id="245" i1="0" i2="0">
+</varfield><varfield id="245" i1="0" i2="0">
 <subfield label="a">Rozpravy Československé akademie věd.</subfield>
 <subfield label="p">Matematické a přírodní vědy</subfield>
-</varfield>
-<varfield id="246" i1="3" i2="0">
+</varfield><varfield id="246" i1="3" i2="0">
 <subfield label="a">Matematické a přírodní vědy</subfield>
-</varfield>
-<varfield id="260" i1=" " i2=" ">
+</varfield><varfield id="260" i1=" " i2=" ">
 <subfield label="a">Praha (112 29 Praha 1, Vodičkova 40) :</subfield>
 <subfield label="b">Academia,</subfield>
 <subfield label="c">1953-1992</subfield>
-</varfield>
-<varfield id="300" i1=" " i2=" ">
+</varfield><varfield id="300" i1=" " i2=" ">
 <subfield label="a">^^^sv. ;</subfield>
 <subfield label="c">25 cm</subfield>
-</varfield>
-<varfield id="310" i1=" " i2=" ">
+</varfield><varfield id="310" i1=" " i2=" ">
 <subfield label="a">Vychází nepravidelně</subfield>
-</varfield>
-<varfield id="362" i1="0" i2=" ">
+</varfield><varfield id="362" i1="0" i2=" ">
 <subfield label="a">Roč. 63, č. 1 (1953)-</subfield>
-</varfield>
-<varfield id="500" i1=" " i2=" ">
+</varfield><varfield id="500" i1=" " i2=" ">
 <subfield label="a">Rozsah a rozměry pro registraci: 15x112+8+4 s., 175/250</subfield>
-</varfield>
-<varfield id="500" i1=" " i2=" ">
+</varfield><varfield id="500" i1=" " i2=" ">
 <subfield label="a">Vydává: Československá akademie věd</subfield>
-</varfield>
-<varfield id="653" i1="0" i2=" ">
+</varfield><varfield id="653" i1="0" i2=" ">
 <subfield label="a">matematika</subfield>
 <subfield label="a">přírodní vědy</subfield>
-</varfield>
-<varfield id="710" i1="2" i2=" ">
+</varfield><varfield id="710" i1="2" i2=" ">
 <subfield label="a">Československá akademie věd</subfield>
 <subfield label="7">ko20010087906</subfield>
-</varfield>
-<varfield id="780" i1="0" i2="0">
+</varfield><varfield id="780" i1="0" i2="0">
 <subfield label="t">Rozpravy České akademie věd a umění. Třída II. Matematicko-přírodovědecká</subfield>
 <subfield label="x">1210-9061</subfield>
-</varfield>
-<varfield id="785" i1="0" i2="0">
+</varfield><varfield id="785" i1="0" i2="0">
 <subfield label="t">Rozpravy Akademie věd České republiky. Řada matematických a přírodních věd</subfield>
-</varfield>
-<varfield id="910" i1=" " i2=" ">
+</varfield><varfield id="910" i1=" " i2=" ">
 <subfield label="a">ABA001</subfield>
 <subfield label="p">do roč. 62</subfield>
 <subfield label="r">1920-50</subfield>
 <subfield label="t">n</subfield>
-</varfield>
-<varfield id="968" i1=" " i2=" ">
+</varfield><varfield id="968" i1=" " i2=" ">
 <subfield label="a">10a</subfield>
-</varfield>
-<varfield id="969" i1=" " i2=" ">
+</varfield><varfield id="969" i1=" " i2=" ">
 <subfield label="a">b1</subfield>
-</varfield>
-<varfield id="970" i1=" " i2=" ">
+</varfield><varfield id="970" i1=" " i2=" ">
 <subfield label="n">Československá akademie věd</subfield>
-</varfield>
-</oai_marc>
+</varfield></oai_marc>
 </metadata>
 </record>
 <error>There is no entry number: 2 in set number given</error>
