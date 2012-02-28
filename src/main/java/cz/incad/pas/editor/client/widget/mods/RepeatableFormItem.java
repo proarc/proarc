@@ -57,6 +57,7 @@ public final class RepeatableFormItem extends CanvasItem {
 //        setStartRow(false);
 //        setEndRow(false);
         setShowTitle(false);
+        setCanFocus(true);
 
         setShouldSaveValue(true);
         setInitHandler(new FormItemInitHandler() {
