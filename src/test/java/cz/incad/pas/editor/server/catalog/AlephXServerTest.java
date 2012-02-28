@@ -67,7 +67,7 @@ public class AlephXServerTest {
         }
     }
     
-// XXX alephXServerDetailResponse.xml content seems broken    @Test
+    @Test
     public void testDetailResponse() throws Exception {
         InputStream xmlIS = AlephXServerTest.class.getResourceAsStream("alephXServerDetailResponse.xml");
         assertNotNull(xmlIS);
@@ -79,8 +79,9 @@ public class AlephXServerTest {
             assertEquals(1, details.size());
             MetadataItem detail = details.get(0);
             assertEquals(1, detail.getId());
-            assertEquals("Česká komora lehkých obvodových plášťů.", detail.getTitle());
+            assertEquals("Rozpravy Československé akademie věd", detail.getTitle());
             String mods = detail.getMods();
+//            System.out.println(mods);
             assertTrue("MODS", mods != null && mods.trim().length() > 10);
             String preview = detail.getPreview();
             assertTrue("MODS", preview != null && preview.trim().length() > 10);
