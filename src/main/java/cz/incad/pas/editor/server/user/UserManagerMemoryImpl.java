@@ -24,7 +24,7 @@ import java.util.Map;
  *
  * @author Jan Pokorsky
  */
-class UserManagerMemoryImpl implements UserManager {
+final class UserManagerMemoryImpl implements UserManager {
 
     static final UserManagerMemoryImpl INSTANCE = new UserManagerMemoryImpl();
     /** memory storage for now */
@@ -45,9 +45,23 @@ class UserManagerMemoryImpl implements UserManager {
     public UserProfile find(String userName) throws IllegalArgumentException {
         UserProfile up;
         if (userName != null) {
-            up = map.get(userName);
+            synchronized (map) {
+                up = map.get(userName);
+            }
             if (up != null) {
                 return up;
+            }
+        }
+        throw new IllegalArgumentException("User not found.");
+    }
+
+    @Override
+    public UserProfile find(int userId) throws IllegalArgumentException {
+        synchronized (map) {
+            for (UserProfile up : map.values()) {
+                if (up.getId() == userId) {
+                    return up;
+                }
             }
         }
         throw new IllegalArgumentException("User not found.");

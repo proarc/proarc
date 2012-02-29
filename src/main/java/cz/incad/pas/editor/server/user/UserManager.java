@@ -25,6 +25,7 @@ import java.util.Collection;
 public interface UserManager {
 
     UserProfile find(String userName) throws IllegalArgumentException;
+    UserProfile find(int userId) throws IllegalArgumentException;
 
     Collection<UserProfile> findAll();
 
