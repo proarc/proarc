@@ -64,9 +64,9 @@ public class UserDataSource extends DataSource {
         setClientOnly(true);
     }
 
-    public static ImportBatchDataSource getInstance() {
-        ImportBatchDataSource ds = (ImportBatchDataSource) DataSource.get(ID);
-        ds = ds != null ? ds : new ImportBatchDataSource();
+    public static UserDataSource getInstance() {
+        UserDataSource ds = (UserDataSource) DataSource.get(ID);
+        ds = ds != null ? ds : new UserDataSource();
         return ds;
     }
 
