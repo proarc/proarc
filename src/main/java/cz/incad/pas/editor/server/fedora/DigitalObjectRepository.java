@@ -112,7 +112,7 @@ public final class DigitalObjectRepository {
         DigitalObjectRecord doRecord;
         synchronized(memoryImpl) {
             doRecord = getDigitalObjectRecord(pid);
-            tempCreateDigitalObjectRecord(pid, doRecord);
+            doRecord = tempCreateDigitalObjectRecord(pid, doRecord);
             DublinCoreRecord dcRecord = doRecord.getDc();
             if (dcRecord != null) {
                 return dcRecord;
@@ -162,7 +162,7 @@ public final class DigitalObjectRepository {
         DigitalObjectRecord doRecord;
         synchronized(memoryImpl) {
             doRecord = getDigitalObjectRecord(pid);
-            tempCreateDigitalObjectRecord(pid, doRecord);
+            doRecord = tempCreateDigitalObjectRecord(pid, doRecord);
             OcrRecord ocrRecord = doRecord.getOcr();
             if (ocrRecord != null) {
                 return ocrRecord;
