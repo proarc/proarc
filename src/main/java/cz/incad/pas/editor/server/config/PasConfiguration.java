@@ -20,6 +20,10 @@ import java.io.File;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 
 /**
  * Server side configurations.
@@ -31,36 +35,40 @@ public final class PasConfiguration {
     public static final String USER_HOME = "user.home";
     public static final String CONFIG_FOLDER = "cz.incad.pas.editor.server.config.home";
     public static final String CONFIG_FOLDER_NAME = ".pas";
+    public static final String CONFIG_FILE_NAME = "paseditor.cfg";
     
     private static final Logger LOG = Logger.getLogger(PasConfiguration.class.getName());
-
-//    private static final PasConfiguration INSTANCE = new PasConfiguration();
 
     private String homePath;
     private File configHome;
     private final Map<String, String> environment;
+    /** read only configuration */
+    private final Configuration config;
 
     PasConfiguration(Map<String, String> environment) {
         this.environment = environment;
-        init();
-    }
-//
-//    public static PasConfiguration getInstance() {
-//        return INSTANCE;
-//    }
-
-    public void reload() {
-        init();
+        this.config = new CompositeConfiguration();
+        init((CompositeConfiguration) config);
     }
 
     public File getConfigHome() {
         return configHome;
     }
 
-    private void init() {
+    Configuration getConfiguration() {
+        return config;
+    }
+
+    private void init(CompositeConfiguration cc) {
         File home = initHome(environment.get(USER_HOME));
         this.homePath = home.getPath();
         this.configHome = initConfigFolder(home, environment.get(CONFIG_FOLDER));
+        try {
+            cc.addConfiguration(new PropertiesConfiguration(new File(configHome, CONFIG_FILE_NAME)));
+            cc.addConfiguration(new PropertiesConfiguration(PasConfiguration.class.getResource("paseditor.properties")));
+        } catch (ConfigurationException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
     }
 
     private static File initHome(String home) {
