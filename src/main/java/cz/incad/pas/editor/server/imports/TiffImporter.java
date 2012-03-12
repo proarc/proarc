@@ -16,18 +16,41 @@
  */
 package cz.incad.pas.editor.server.imports;
 
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
+import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.StateType;
+import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
+import cz.incad.imgsupport.ImageMimeType;
+import cz.incad.imgsupport.ImageSupport;
+import cz.incad.pas.editor.server.ModsGwtServiceProvider;
 import cz.incad.pas.editor.server.imports.ImportProcess.FedoraImportItem;
 import cz.incad.pas.editor.server.imports.ImportProcess.ImportContext;
+import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.channels.FileChannel;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.stream.FileImageOutputStream;
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.dom.DOMResult;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Requires Java Advanced Imaging support.
@@ -42,9 +65,11 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public class TiffImporter {
+public final class TiffImporter {
 
     private static final Logger LOG = Logger.getLogger(TiffImporter.class.getName());
+    
+    private static final String NS_DC = "http://purl.org/dc/elements/1.1/";
 
 
     public FedoraImportItem consume(File f, String mimetype, ImportContext ctx) throws IOException {
@@ -53,27 +78,221 @@ public class TiffImporter {
             return null;
         }
 
-        File tempBatchFolder = ctx.getTargetFolder();
-        // copy name.tiff.raw
-        copyFile(f, new File(tempBatchFolder, f.getName() + ".raw"));
-        // create name.jpeg.preview
-        copyFile(f, new File(tempBatchFolder, f.getName() + ".preview"));
-        // create name.jpeg.thumb
-        copyFile(f, new File(tempBatchFolder, f.getName() + ".thumb"));
-        // generate OCR name.txt.ocr
-        // generate ATM
-        // generate FOXML
-        File foxml = new File(tempBatchFolder, f.getName() + ".foxml");
-        boolean createNewFile = foxml.createNewFile();
-
         UUID uuid = UUID.randomUUID();
         String pid = "uuid:" + uuid;
-        return new FedoraImportItem(foxml, pid);
+        String originalFilename = getName(f);
+        File tempBatchFolder = ctx.getTargetFolder();
+
+        // creates FOXML and metadata
+        DigitalObject digObj = createFoxml(originalFilename, pid, uuid.toString(), ctx);
+        generateDublinCore(digObj, pid, uuid.toString(), ctx);
+        generateMods(digObj, pid, uuid.toString(), ctx);
+        createImages(tempBatchFolder, f, originalFilename, digObj, ctx.getXmlNow());
+
+        // XXX generate OCR name.txt.ocr
+        // XXX generate ATM
+        // writes FOXML
+        File foxml = new File(tempBatchFolder, originalFilename + ".foxml");
+        try {
+            JAXBContext jaxb = JAXBContext.newInstance(DigitalObject.class);
+            Marshaller marshaller = jaxb.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
+                    "http://fedora-commons.org/definitions/1/0/foxml1-1.xsd");
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+            marshaller.marshal(digObj, foxml);
+        } catch (JAXBException ex) {
+            throw new IOException(f.toString(), ex);
+        }
+
+        return new FedoraImportItem(foxml, pid, null, null, null);
     }
 
     private boolean isTiff(File f, String mimetype) {
-//        return "image/tiff".equals(mimetype);
-        return "image/jpeg".equals(mimetype);
+        return ImageMimeType.TIFF.getMimeType().equals(mimetype);
+    }
+
+    private DigitalObject createFoxml(String filename, String pid, String uuid, ImportContext ctx) {
+        DigitalObject digObj = new DigitalObject();
+        digObj.setPID(pid);
+        digObj.setVERSION("1.1");
+        return digObj;
+    }
+
+    private DigitalObject generateMods(DigitalObject digObj, String uuid, String filename, ImportContext ctx) {
+        DatastreamType dsMods = createMods(uuid, filename, ctx);
+        digObj.getDatastream().add(dsMods);
+        return digObj;
+    }
+
+    private DigitalObject generateDublinCore(DigitalObject digObj, String uuid, String filename, ImportContext ctx) {
+        DatastreamType dsDc = createDublinCore(uuid, filename, ctx);
+        digObj.getDatastream().add(dsDc);
+        return digObj;
+    }
+
+    private DatastreamType createDublinCore(String uuid, String filename, ImportContext ctx) {
+        DatastreamType ds = createDatastream("DC", "X", false, StateType.A);
+
+        DatastreamVersionType streamVersion = new DatastreamVersionType();
+        streamVersion.setID(ds.getID() + ".0");
+        streamVersion.setLABEL("Dublin Core description");
+        streamVersion.setMIMETYPE(MediaType.TEXT_XML);
+        streamVersion.setFORMATURI("http://www.openarchives.org/OAI/2.0/oai_dc/");
+        // do not set created; it is assigned by fedora
+        streamVersion.setCREATED(ctx.getXmlNow());
+        ds.getDatastreamVersion().add(streamVersion);
+
+        // create DC
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        try {
+            Document d = factory.newDocumentBuilder().newDocument();
+            Element root = d.createElementNS("http://www.openarchives.org/OAI/2.0/oai_dc/", "oai_dc:dc");
+            root.setAttribute("xmlns:dc", NS_DC);
+            d.appendChild(root);
+
+            Element title = d.createElementNS(NS_DC, "dc:title");
+            title.setTextContent(filename);
+            root.appendChild(title);
+
+            Element identifier = d.createElementNS(NS_DC, "dc:identifier");
+            identifier.setTextContent("uuid:" + uuid);
+            root.appendChild(identifier);
+
+            Element type = d.createElementNS(NS_DC, "dc:type");
+            type.setTextContent("model:page");
+            root.appendChild(type);
+
+            XmlContentType xml = new XmlContentType();
+            xml.getAny().add(root);
+            streamVersion.setXmlContent(xml);
+            return ds;
+        } catch (ParserConfigurationException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    private static DatastreamType createDatastream(String id, String controlGroup, boolean versionable, StateType state) {
+        DatastreamType ds = new DatastreamType();
+        ds.setID(id);
+        ds.setCONTROLGROUP(controlGroup);
+        ds.setVERSIONABLE(versionable);
+        ds.setSTATE(state);
+        return ds;
+    }
+
+    private DatastreamType createMods(String uuid, String filename, ImportContext ctx) {
+        DatastreamType ds = createDatastream("BIBLIO_MODS", "X", true, StateType.A);
+
+        DatastreamVersionType streamVersion = new DatastreamVersionType();
+        streamVersion.setID(ds.getID() + ".0");
+        streamVersion.setLABEL("MODS description");
+        streamVersion.setMIMETYPE(MediaType.TEXT_XML);
+        streamVersion.setFORMATURI("http://www.loc.gov/mods/v3");
+        // do not set created; it is assigned by fedora
+        streamVersion.setCREATED(ctx.getXmlNow());
+
+        // create MODS
+        XmlContentType xml = new XmlContentType();
+        ModsCollection mods = ModsGwtServiceProvider.newMods(uuid, null);
+        DOMResult domResult = new DOMResult();
+        JAXB.marshal(mods, domResult);
+        Document dom = (Document) domResult.getNode();
+        xml.getAny().add(dom.getDocumentElement());
+        streamVersion.setXmlContent(xml);
+
+        ds.getDatastreamVersion().add(streamVersion);
+        return ds;
+    }
+
+    private void createOcr() {
+
+    }
+
+    private void createRelsExt() {
+
+    }
+
+    private void createImages(File tempBatchFolder, File original, String originalFilename, DigitalObject foxml, XMLGregorianCalendar xmlNow) throws IOException {
+        long start = System.nanoTime();
+        BufferedImage tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+        long endRead = System.nanoTime() - start;
+        ImageMimeType imageType = ImageMimeType.JPEG;
+
+        start = System.nanoTime();
+        String targetName = String.format("%s.full.%s", originalFilename, imageType.getDefaultFileExtension());
+        File f = writeImage(tiff, tempBatchFolder, targetName, imageType);
+        long endFull = System.nanoTime() - start;
+        foxml.getDatastream().add(createImageStream("IMG_FULL", imageType.getMimeType(), f.toURI(), xmlNow));
+
+        start = System.nanoTime();
+        targetName = String.format("%s.preview.%s", originalFilename, imageType.getDefaultFileExtension());
+        f = writeImage(scale(tiff, 800, 600), tempBatchFolder, targetName, imageType);
+        long endPreview = System.nanoTime() - start;
+        foxml.getDatastream().add(createImageStream("IMG_PREVIEW", imageType.getMimeType(), f.toURI(), xmlNow));
+
+        start = System.nanoTime();
+        targetName = String.format("%s.thumb.%s", originalFilename, imageType.getDefaultFileExtension());
+        f = writeImage(scale(tiff, 120, 128), tempBatchFolder, targetName, imageType);
+        long endThumb = System.nanoTime() - start;
+        foxml.getDatastream().add(createImageStream("IMG_THUMB", imageType.getMimeType(), f.toURI(), xmlNow));
+
+        LOG.info(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
+                originalFilename, endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));
+    }
+
+    private static DatastreamType createImageStream(String id, String mime, URI ref, XMLGregorianCalendar xmlNow) {
+        DatastreamType stream = createDatastream(id, "M", false, StateType.A);
+
+        ContentLocationType location = new ContentLocationType();
+        location.setTYPE("URL");
+        location.setREF(ref.toASCIIString());
+
+        DatastreamVersionType version = new DatastreamVersionType();
+        version.setMIMETYPE(mime);
+        version.setID(stream.getID() + ".0");
+        version.setContentLocation(location);
+        version.setCREATED(xmlNow);
+
+        stream.getDatastreamVersion().add(version);
+        return stream;
+    }
+
+    private static File writeImage(BufferedImage image, File folder, String filename, ImageMimeType imageType) throws IOException {
+        File imgFile = new File(folder, filename);
+        FileImageOutputStream fos = new FileImageOutputStream(imgFile);
+        try {
+            ImageSupport.writeImageToStream(image, imageType.getDefaultFileExtension(), fos, 1.0f);
+            return imgFile;
+        } finally {
+            fos.close();
+        }
+
+    }
+
+    private static BufferedImage scale(BufferedImage tiff, int maxWidth, int maxHeight) {
+        long start = System.nanoTime();
+        int height = tiff.getHeight();
+        int width = tiff.getWidth();
+        int targetWidth = width;
+        int targetHeight = height;
+        if (height > maxHeight || width > maxWidth) {
+            double scaleh = (double) maxHeight / height;
+            double scalew = (double) maxWidth / width;
+            double scale = Math.min(scaleh, scalew);
+            targetHeight = (int) (height * scale);
+            targetWidth = (int) (width * scale);
+        }
+        BufferedImage scaled = ImageSupport.scale(tiff, targetWidth, targetHeight);
+        LOG.info(String.format("scaled [%s, %s] to [%s, %s], boundary [%s, %s] [w, h], time: %s ms",
+                width, height, targetWidth, targetHeight, maxWidth, maxHeight, (System.nanoTime() - start) / 1000000));
+        return scaled;
+    }
+
+    private static String getName(File f) {
+        String fname = f.getName();
+        int index = fname.indexOf('.');
+        return index > 0 ? fname.substring(0, index) : fname;
     }
 
     private void copyFile(File src, File dst) throws IOException {

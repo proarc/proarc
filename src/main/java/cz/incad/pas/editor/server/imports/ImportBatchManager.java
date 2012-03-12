@@ -16,8 +16,12 @@
  */
 package cz.incad.pas.editor.server.imports;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.rest.ImportResource.ImportBatchList;
+import cz.incad.pas.editor.server.user.UserManager;
+import cz.incad.pas.editor.server.user.UserProfile;
+import cz.incad.pas.editor.server.user.UserUtil;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,8 +29,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -36,57 +40,104 @@ import javax.xml.bind.annotation.XmlRootElement;
  *
  * @author Jan Pokorsky
  */
-public class ImportBatchManager {
+public final class ImportBatchManager {
 
     private static final Logger LOG = Logger.getLogger(ImportBatchManager.class.getName());
-    private static final ImportBatchManager INSTANCE = new ImportBatchManager();
+    private static ImportBatchManager INSTANCE;
 
     /** memory storage for now */
     private final Map<Integer, ImportBatch> map = new HashMap<Integer, ImportBatch>();
-
+    private PasConfiguration pasConfig;
     private int temp_itemSequence;
 
-    public static ImportBatchManager getInstance() {
+    /** XXX replace with guice */
+    public static ImportBatchManager getInstance(PasConfiguration config) {
+        boolean load = false;
+        synchronized (ImportBatchManager.class) {
+            if (INSTANCE == null) {
+                INSTANCE = new ImportBatchManager(config);
+                load = true;
+            }
+        }
+        if (load) {
+            load(config.getConfigHome(), INSTANCE);
+        }
         return INSTANCE;
     }
 
-    public ImportBatchManager() {
-        try {
-            ImportBatch ib1 = new ImportBatch(1, "path/to/first_import",
-                    new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse("2010-05-20T15:50:48"), 1);
-            ib1.addItem(new ImportItem(++temp_itemSequence, "file1", "uuid:1"));
-            ib1.addItem(new ImportItem(++temp_itemSequence, "file2", "uuid:2"));
-            ib1.addItem(new ImportItem(++temp_itemSequence, "file2", "uuid:3"));
-
-            map.put(1, ib1);
-        } catch (ParseException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+    static void load(File targetFolder, ImportBatchManager ibm) {
+        File ibmXml = new File(targetFolder, "ImportBatchManager.xml");
+        if (!ibmXml.exists()) {
+            return ;
         }
+        UserManager users = UserUtil.createUserManagerMemoryImpl();
+        ImportBatchList list = JAXB.unmarshal(ibmXml, ImportBatchList.class);
+        int itemCount = 0;
+        for (ImportBatch batch : list.getBatches()) {
+            UserProfile user = users.find(batch.getUserId());
+            batch.userProfile = user;
+            ibm.map.put(batch.getId(), batch);
+            itemCount += batch.getItems().size();
+        }
+        ibm.temp_itemSequence = itemCount;
+    }
+
+    static void save(File targetFolder, ImportBatchManager ibm) {
+        File ibmXml = new File(targetFolder, "ImportBatchManager.xml");
+        synchronized (ibm.map) {
+            ImportBatchList list = new ImportBatchList(ibm.map.values());
+            JAXB.marshal(list, ibmXml);
+        }
+    }
+
+    /** package private for unit tests */
+    ImportBatchManager(PasConfiguration pasConfig) {
+        this.pasConfig = pasConfig;
     }
 
 //    public Collection<ImportBatch> findAll() {
 //        return findAll(false);
 //    }
-    public Collection<ImportBatch> findAll(Integer user, boolean withItems) {
+    public Collection<ImportItem> findItems(int batchId, String pid) {
+        synchronized (map) {
+            ImportBatch batch = map.get(batchId);
+            if (batch == null) {
+                return null;
+            }
+            List<ImportItem> items = batch.getItems();
+            if (pid != null && !pid.isEmpty()) {
+                for (ImportItem item : items) {
+                    if (pid.equals(item.getPid())) {
+                        items = Collections.singletonList(item);
+                        break;
+                    }
+                }
+            }
+            return items;
+        }
+    }
+
+    public Collection<ImportBatch> findAll(UserProfile user, boolean withItems) {
         synchronized(map) {
-            ArrayList<ImportBatch> result = new ArrayList<ImportBatch>(map.values());
+            List<ImportBatch> result;
             if (withItems) {
                 result = new ArrayList<ImportBatch>(map.values());
             } else {
                 result = new ArrayList<ImportBatch>(map.size());
                 for (ImportBatch b : map.values()) {
-                    result.add(new ImportBatch(b.getId(), b.getFolderPath(), b.getTimeStamp(), b.getUser()));
+                    result.add(new ImportBatch(b.getId(), b.getFolderPath(), b.getTimeStamp(), b.userProfile, b.state));
                 }
             }
             return result;
         }
     }
 
-    public ImportBatch add(String path, int user) {
+    public ImportBatch add(String path, UserProfile user) {
         synchronized(map) {
-            int id = Collections.max(map.keySet()) + 1;
-            ImportBatch batch = new ImportBatch(id, path, new Date(), user);
+            int id = map.isEmpty() ? 1 : Collections.max(map.keySet()) + 1;
+            ImportBatch batch = new ImportBatch(id, path, new Date(), user, false);
             map.put(id, batch);
+            save(pasConfig.getConfigHome(), this);
             return batch;
         }
     }
@@ -98,9 +149,42 @@ public class ImportBatchManager {
                 throw new IllegalStateException("Unknown batch: " + batchId);
             }
             item.id = ++temp_itemSequence;
+            item.batchId = batchId;
             batch.addItem(item);
+            save(pasConfig.getConfigHome(), this);
             return item;
         }
+    }
+
+    public Collection<ImportItem> updateItem(int batchId, String pid, String pageIndex, String pageNumber, String pageType) {
+//        DigitalObjectRepository fedora = DigitalObjectRepository.getInstance();
+//        ModsRecord mods = fedora.getMods(pid);
+//        mods.getMods();
+        synchronized (map) {
+            Collection<ImportItem> items = findItems(batchId, pid);
+            if (items == null) {
+                return null;
+            }
+
+            ImportItem item = items.iterator().next();
+            if (item.pageIndex == null) {
+                if (pageIndex != null && !pageIndex.isEmpty()) {
+                    item.pageIndex = pageIndex;
+                }
+            } else {
+                if (!item.pageIndex.equals(pageIndex)) {
+                    item.pageIndex = pageIndex;
+                }
+            }
+            item.pageNumber = pageNumber;
+            item.pageType = pageType;
+            return items;
+        }
+    }
+
+    /** do not use outside unit tests */
+    Map<Integer, ImportBatch> getMap() {
+        return map;
     }
 
     @XmlRootElement(name="batch")
@@ -110,17 +194,23 @@ public class ImportBatchManager {
         private int id;
         private String folderPath;
         private Date timeStamp;
-        private int user;
+        private int userId;
         private List<ImportItem> items;
+        private String user;
+        private boolean state;
+        private transient UserProfile userProfile;
 
         public ImportBatch() {
         }
 
-        public ImportBatch(Integer id, String folderPath, Date timeStamp, int user) {
+        public ImportBatch(Integer id, String folderPath, Date timeStamp, UserProfile user, boolean state) {
             this.id = id;
             this.folderPath = folderPath;
             this.timeStamp = timeStamp;
-            this.user = user;
+            this.userId = user.getId();
+            this.user = user.getUserName();
+            this.userProfile = user;
+            this.state = state;
         }
 
         public void addItem(ImportItem item) {
@@ -147,7 +237,11 @@ public class ImportBatchManager {
             return timeStamp;
         }
 
-        public int getUser() {
+        public int getUserId() {
+            return userId;
+        }
+
+        public String getUser() {
             return user;
         }
 
@@ -164,26 +258,32 @@ public class ImportBatchManager {
     public static class ImportItem {
         @XmlElement(required=true)
         private Integer id;
+        private Integer batchId;
         private String filename;
         private String pid;
         // XXX get from digital object?
         private String model;
+        private String pageIndex;
+        private String pageNumber;
+        private String pageType;
 
         private ImportItem() {
         }
 
-        public ImportItem(String filename, String pid) {
+        public ImportItem(String filename, String pid, String pageIndex, String pageNumber, String pageType) {
             this.filename = filename;
             this.pid = pid;
-        }
-
-        public ImportItem(int id, String filename, String pid) {
-            this(filename, pid);
-            this.id = id;
+            this.pageIndex = pageIndex;
+            this.pageNumber = pageNumber;
+            this.pageType = pageType;
         }
 
         public String getFilename() {
             return filename;
+        }
+
+        public String getPid() {
+            return pid;
         }
 
     }

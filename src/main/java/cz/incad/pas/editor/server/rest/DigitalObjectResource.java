@@ -16,16 +16,21 @@
  */
 package cz.incad.pas.editor.server.rest;
 
+import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.server.ModsGwtServiceProvider;
+import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DigitalObjectRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DublinCoreRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.ModsRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.OcrRecord;
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +41,6 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -66,8 +70,9 @@ public class DigitalObjectResource {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectResource.class.getName());
 
+    private final PasConfiguration pasConfig;
     private final MetaModelRepository metamodels = MetaModelRepository.getInstance();
-    private final DigitalObjectRepository repository = DigitalObjectRepository.getInstance();
+    private final DigitalObjectRepository repository;
     private final Request httpRequest;
     private final HttpHeaders httpHeaders;
 
@@ -79,6 +84,8 @@ public class DigitalObjectResource {
             ) {
         this.httpRequest = request;
         this.httpHeaders = httpHeaders;
+        this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
+        this.repository = DigitalObjectRepository.getInstance(pasConfig);
     }
 
     /**
@@ -155,7 +162,7 @@ public class DigitalObjectResource {
     @GET
     @Path("/preview")
     @Produces("image/*")
-    public Response getPreview(@QueryParam("pid") String pid) {
+    public Response getPreview(@QueryParam("pid") String pid) throws URISyntaxException {
         DatastreamVersionType preview = repository.getPreview(pid);
         if (preview == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -168,7 +175,15 @@ public class DigitalObjectResource {
         }
 
 //        Response.temporaryRedirect("URI");
-        return Response.ok(preview.getBinaryContent(), preview.getMIMETYPE())
+        ContentLocationType contentLocation = preview.getContentLocation();
+        Object entity;
+        if (contentLocation != null) {
+            String url = contentLocation.getREF();
+            entity = new File(new URI(url));
+        } else {
+            entity = preview.getBinaryContent();
+        }
+        return Response.ok(entity, preview.getMIMETYPE())
                 .lastModified(lastModification)
 //                .cacheControl(null)
 //                .expires(new Date(2100, 1, 1))
@@ -178,7 +193,7 @@ public class DigitalObjectResource {
     @GET
     @Path("/thumb")
     @Produces("image/*")
-    public Response getThumbnail(@QueryParam("pid") String pid) {
+    public Response getThumbnail(@QueryParam("pid") String pid) throws URISyntaxException {
         DatastreamVersionType preview = repository.getThumbnail(pid);
         if (preview == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -191,7 +206,15 @@ public class DigitalObjectResource {
         }
 
 //        Response.temporaryRedirect("URI");
-        return Response.ok(preview.getBinaryContent(), preview.getMIMETYPE())
+        ContentLocationType contentLocation = preview.getContentLocation();
+        Object entity;
+        if (contentLocation != null) {
+            String url = contentLocation.getREF();
+            entity = new File(new URI(url));
+        } else {
+            entity = preview.getBinaryContent();
+        }
+        return Response.ok(entity, preview.getMIMETYPE())
                 .lastModified(lastModification)
 //                .cacheControl(null)
 //                .expires(new Date(2100, 1, 1))

@@ -17,12 +17,15 @@
 package cz.incad.pas.editor.client.ds;
 
 import com.smartgwt.client.data.DataSource;
+import com.smartgwt.client.data.OperationBinding;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DSOperationType;
+import com.smartgwt.client.types.DSProtocol;
 
 /**
  *
@@ -35,7 +38,6 @@ public class ImportBatchDataSource extends DataSource {
     public static final String FIELD_PATH = "folderPath";
     public static final String FIELD_TIMESTAMP = "timeStamp";
     public static final String FIELD_STATE = "state";
-    // XXX Jak udelat foreing key ??? <= v gridu nebo ve formu udelej text field s options data sourcem a zadej display value
     public static final String FIELD_USER_ID = "userId";
     public static final String FIELD_USER_DISPLAYNAME = "user";
 
@@ -44,12 +46,12 @@ public class ImportBatchDataSource extends DataSource {
 
 //        setDataFormat(DSDataFormat.XML);
         setDataFormat(DSDataFormat.JSON);
-//        setRecordXPath("/batches/batch");
-        setRecordXPath("batch");
+        setRecordXPath("/batches/batch");
+//        setRecordXPath("batch");
 
         setDataURL(RestConfig.URL_IMPORT_BATCH);
-        setDataURL("ds/ImportBatchDataSource.json");
-        setClientOnly(true);
+//        setDataURL("ds/ImportBatchDataSource.json");
+//        setClientOnly(true);
 
         DataSourceIntegerField id = new DataSourceIntegerField(FIELD_ID);
         id.setPrimaryKey(true);
@@ -66,6 +68,12 @@ public class ImportBatchDataSource extends DataSource {
         DataSourceBooleanField state = new DataSourceBooleanField(FIELD_STATE);
 
         setFields(id, path, userId, user, timestamp, state);
+        
+        OperationBinding addOp = new OperationBinding();
+        addOp.setOperationType(DSOperationType.ADD);
+        addOp.setDataProtocol(DSProtocol.POSTPARAMS);
+        addOp.setRecordXPath("/batch");
+        setOperationBindings(addOp);
         
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }

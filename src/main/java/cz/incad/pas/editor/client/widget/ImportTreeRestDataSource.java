@@ -35,7 +35,7 @@ public class ImportTreeRestDataSource extends RestDataSource {
     private ImportTreeRestDataSource() {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
-        setJsonRecordXPath("data/folder");
+        setJsonRecordXPath("response/data/folder");
 //        setDataFormat(DSDataFormat.XML);
         
         DataSourceTextField path = new DataSourceTextField(FIELD_PATH);

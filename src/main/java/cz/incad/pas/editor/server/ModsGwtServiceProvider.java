@@ -24,6 +24,8 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.util.BiblioModsUtils;
 import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtService;
+import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.ModsRecord;
 import java.io.ByteArrayInputStream;
@@ -33,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.ServletException;
 import javax.xml.bind.JAXB;
 
 /**
@@ -50,6 +53,16 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
     private static final Logger LOG = Logger.getLogger(ModsGwtServiceProvider.class.getName());
 
     private static final Map<String, ModsCollection> STORAGE = new HashMap<String, ModsCollection>();
+
+    private PasConfiguration pasConfig;
+    private DigitalObjectRepository repository;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
+        this.repository = DigitalObjectRepository.getInstance(pasConfig);
+    }
 
     /**
      * Creates new MODS.
@@ -113,7 +126,6 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
 //        if (true) {
 //            throw new IllegalArgumentException("Invalid id: " + id);
 //        }
-        DigitalObjectRepository repository = DigitalObjectRepository.getInstance();
         ModsRecord modsRec = repository.getMods(id);
         if (modsRec == null) {
             throw new IllegalArgumentException("Invalid id: " + id);
@@ -148,7 +160,6 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
         int xmlHash = xml.hashCode();
         LOG.log(Level.INFO, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
 
-        DigitalObjectRepository repository = DigitalObjectRepository.getInstance();
         repository.updateMods(new ModsRecord(id, mods, System.currentTimeMillis()), 1);
 
         LOG.log(Level.INFO, "written id: {0}, old id: {1}", new Object[]{id, oldId});

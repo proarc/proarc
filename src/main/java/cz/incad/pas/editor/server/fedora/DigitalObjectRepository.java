@@ -22,12 +22,18 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObjectType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
+import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.oaidublincore.ElementType;
 import cz.incad.pas.oaidublincore.OaiDcType;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,17 +61,33 @@ public final class DigitalObjectRepository {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectRepository.class.getName());
 
-    private static final DigitalObjectRepository INSTANCE = new DigitalObjectRepository();
+    private static DigitalObjectRepository INSTANCE;
 
     // 4a7c2e50-af36-11dd-9643-000d606f5dc6 Drobnustky page
 //    private static final String TMP_REPOSITORY_FOLDER = "/home/honza/Documents/Incad/kramerius4/fedora/Install/Drobnustky-foxml-import/%s.xml";
-    private static final String TMP_REPOSITORY_FOLDER = "/home/honza/Downloads/40114/%s.xml";
+//    private static final String TMP_REPOSITORY_FOLDER = "/home/honza/Downloads/40114/%s.xml";
 //    private static final String TMP_REPOSITORY_FOLDER = "/fast/paseditor/40114/%s.xml";
 
     private final  Map<String, DigitalObjectRecord> memoryImpl = new HashMap<String, DigitalObjectRecord>();
+    private final PasConfiguration pasConfig;
 
-    public static DigitalObjectRepository getInstance() {
+    /** XXX replace with guice */
+    public static DigitalObjectRepository getInstance(PasConfiguration config) {
+        boolean load = false;
+        synchronized (DigitalObjectRecord.class) {
+            if (INSTANCE == null) {
+                INSTANCE = new DigitalObjectRepository(config);
+                load = true;
+            }
+        }
+        if (load) {
+            load(config.getConfigHome(), INSTANCE);
+        }
         return INSTANCE;
+    }
+
+    DigitalObjectRepository(PasConfiguration pasConfig) {
+        this.pasConfig = pasConfig;
     }
 
     /**
@@ -82,7 +104,12 @@ public final class DigitalObjectRepository {
                 throw new IllegalStateException(String.format("Record (%s) already exists!", exist.pid));
             }
             memoryImpl.put(record.pid, record);
+            save(pasConfig.getConfigHome(), this);
         }
+    }
+
+    public DigitalObjectRecord createDigitalObject(String pid, File foxml) {
+        return new DigitalObjectRecord(pid, foxml);
     }
 
     public DigitalObjectRecord createDigitalObject() {
@@ -124,6 +151,9 @@ public final class DigitalObjectRepository {
         synchronized(memoryImpl) {
             DublinCoreRecord dcRecord = doRecord.getDc();
             if (dcRecord == null) {
+                if (dc == null) {
+                    dc = new OaiDcType();
+                }
                 dcRecord = new DublinCoreRecord(dc, System.currentTimeMillis(), pid);
                 doRecord.setDc(dcRecord);
             }
@@ -148,13 +178,12 @@ public final class DigitalObjectRepository {
     }
 
     public DatastreamVersionType getPreview(String pid) {
-//        DatastreamVersionType ds = findDataStream(pid, "IMG_THUMB");
-        DatastreamVersionType ds = findDataStream(pid, "IMG_PREVIEW");
+        DatastreamVersionType ds = findDataStreamVersion(findFoxml(pid), "IMG_PREVIEW");
         return ds;
     }
 
     public DatastreamVersionType getThumbnail(String pid) {
-        DatastreamVersionType ds = findDataStream(pid, "IMG_THUMB");
+        DatastreamVersionType ds = findDataStreamVersion(findFoxml(pid), "IMG_THUMB");
         return ds;
     }
 
@@ -169,14 +198,17 @@ public final class DigitalObjectRepository {
             }
         }
 
-        DatastreamVersionType ds = findDataStream(pid, "TEXT_OCR");
+        DatastreamVersionType ds = findDataStreamVersion(findFoxml(pid), "TEXT_OCR");
 
         synchronized(memoryImpl) {
             OcrRecord ocrRecord = doRecord.getOcr();
             if (ocrRecord == null) {
                 String ocr = "";
                 try {
-                    ocr = new String(ds.getBinaryContent(), "UTF-8");
+                    byte[] binaryContent = (ds == null) ? null : ds.getBinaryContent();
+                    if (binaryContent != null) {
+                        ocr = new String(binaryContent, "UTF-8");
+                    }
                 } catch (UnsupportedEncodingException ex) {
                     LOG.log(Level.SEVERE, null, ex);
                 }
@@ -247,9 +279,21 @@ public final class DigitalObjectRepository {
         }
     }
 
-    private DatastreamVersionType findDataStream(String pid, String dsId) {
-        String uuid = getUuid(pid);
-        DigitalObjectType fdobj = readFoxml(uuid);
+    private DigitalObjectType findFoxml(String pid) {
+        DigitalObjectRecord doRecord = getDigitalObjectRecord(pid);
+        DigitalObjectType fdobj = null;
+        if (doRecord != null && doRecord.foxml != null) {
+            File f = doRecord.foxml;
+            fdobj = readFoxml(f, memoryImpl);
+//        } else {
+//            // XXX temporary solution; remove
+//            String uuid = getUuid(pid);
+//            fdobj = readFoxml(uuid);
+        }
+        return fdobj;
+    }
+
+    private DatastreamVersionType findDataStreamVersion(DigitalObjectType fdobj, String dsId) {
         DatastreamVersionType datastreamVersion = null;
         if (fdobj != null) {
             DatastreamType datastream = findDatastream(fdobj, dsId);
@@ -261,7 +305,7 @@ public final class DigitalObjectRepository {
     }
 
     private OaiDcType findDublinCoreImpl2(String pid) throws JAXBException {
-        DatastreamVersionType ds = findDataStream(pid, "DC");
+        DatastreamVersionType ds = findDataStreamVersion(findFoxml(pid), "DC");
         XmlContentType xml = ds.getXmlContent();
         Element elm = xml.getAny().get(0);
         OaiDcType dc = JAXB.unmarshal(new DOMSource(elm), OaiDcType.class);
@@ -270,14 +314,15 @@ public final class DigitalObjectRepository {
 
     private OaiDcType findDublinCoreImpl(String pid) throws JAXBException {
         String uuid = getUuid(pid);
-        DigitalObjectType fdobj = readFoxml(uuid);
+//        DigitalObjectType fdobj = readFoxml(uuid);
+        DigitalObjectType fdobj = findFoxml(pid);
         String result = fdobj.getPID();
-        System.out.println("## result: " + result);
+//        System.out.println("## result: " + result);
 
         for (DatastreamType datastream : fdobj.getDatastream()) {
             String dsId = datastream.getID();
             String fedoraUri = datastream.getFEDORAURI();
-            System.out.printf("DatastreamType: id: %s, fedoraUri: %s\n", dsId, fedoraUri);
+//            System.out.printf("DatastreamType: id: %s, fedoraUri: %s\n", dsId, fedoraUri);
             for (DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
                 String dsVerId = datastreamVersion.getID();
                 String formatUri = datastreamVersion.getFORMATURI();
@@ -286,22 +331,22 @@ public final class DigitalObjectRepository {
                 ContentLocationType contentLocation = datastreamVersion.getContentLocation();
                 XmlContentType xmlContent = datastreamVersion.getXmlContent();
                 byte[] binaryContent = datastreamVersion.getBinaryContent();
-                System.out.printf("  DatastreamVersionType id: %s, formatUri: %s,"
-                        + " mimetype: %s, created: %s, contentLocation: %s,"
-                        + "\n    xmlContent: %s, binaryContent: %s\n",
-                        dsVerId, formatUri, mimetype, created, contentLocation, xmlContent, binaryContent);
+//                System.out.printf("  DatastreamVersionType id: %s, formatUri: %s,"
+//                        + " mimetype: %s, created: %s, contentLocation: %s,"
+//                        + "\n    xmlContent: %s, binaryContent: %s\n",
+//                        dsVerId, formatUri, mimetype, created, contentLocation, xmlContent, binaryContent);
                 if (xmlContent != null) {
                     for (Element element : xmlContent.getAny()) {
-                        System.out.printf("  xml.element: %s\n", element);
+//                        System.out.printf("  xml.element: %s\n", element);
                         if ("DC".equals(dsId)) {
                             String stringFromNode = getStringFromNode(element);
-                            System.out.printf("  xml.element.content: %s\n", stringFromNode);
+//                            System.out.printf("  xml.element.content: %s\n", stringFromNode);
                             OaiDcType dc = JAXB.unmarshal(new DOMSource(element), OaiDcType.class);
                             for (JAXBElement<ElementType> dcElm : dc.getTitleOrCreatorOrSubject()) {
                                 QName name = dcElm.getName();
                                 String value = dcElm.getValue().getValue();
                                 String lang = dcElm.getValue().getLang();
-                                System.out.printf("  dc.%s, value: %s, lang: %s\n", name, value, lang);
+//                                System.out.printf("  dc.%s, value: %s, lang: %s\n", name, value, lang);
                             }
                             return dc;
                         }
@@ -312,11 +357,18 @@ public final class DigitalObjectRepository {
         throw new IllegalStateException("Something is broken: " + pid);
     }
 
-    private static DigitalObjectType readFoxml(String uuid) {
-        File file = new File(String.format(TMP_REPOSITORY_FOLDER, uuid));
-        DigitalObjectType fdobj = JAXB.unmarshal(file, DigitalObjectType.class);
-        return fdobj;
+    private static DigitalObjectType readFoxml(File file, Object lock) {
+        synchronized (lock) {
+            DigitalObjectType fdobj = JAXB.unmarshal(file, DigitalObjectType.class);
+            return fdobj;
+        }
     }
+    
+//    private static DigitalObjectType readFoxml(String uuid) {
+//        File file = new File(String.format(TMP_REPOSITORY_FOLDER, uuid));
+//        DigitalObjectType fdobj = JAXB.unmarshal(file, DigitalObjectType.class);
+//        return fdobj;
+//    }
 
     private static DatastreamType findDatastream(DigitalObjectType digitalObject, String dsId) {
         for (DatastreamType datastream : digitalObject.getDatastream()) {
@@ -348,6 +400,67 @@ public final class DigitalObjectRepository {
                 (DOMImplementationLS) node.getOwnerDocument().getImplementation();
         LSSerializer lsSerializer = domImplementation.createLSSerializer();
         return lsSerializer.writeToString(node);
+    }
+
+    /** simple persistent storage for memory implementation of DigitalObjectRepository.
+     * will be replaced with fedora.
+     */
+    static void save(File targetFolder, DigitalObjectRepository repository) {
+        Properties p = new Properties();
+        for (DigitalObjectRecord r : repository.memoryImpl.values()) {
+            if (r.foxml != null) {
+                p.put(r.pid, r.foxml.toURI().toASCIIString());
+            }
+        }
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(new File(targetFolder, "DigitalObjectRepository.xml"));
+//            p.store(fos, null);
+            p.storeToXML(fos, null);
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex);
+        } finally {
+            try {
+                if (fos != null) {
+                    fos.close();
+                }
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    /** simple persistent storage for memory implementation of DigitalObjectRepository.
+     * will be replaced with fedora.
+     */
+    static void load(File targetFolder, DigitalObjectRepository repository) {
+        FileInputStream fis = null;
+        File file = new File(targetFolder, "DigitalObjectRepository.xml");
+        if (!file.exists()) {
+            return ;
+        }
+        try {
+            Properties p = new Properties();
+            fis = new FileInputStream(file);
+//            p.load(fis);
+            p.loadFromXML(fis);
+            for (Map.Entry<Object, Object> entry : p.entrySet()) {
+                String pid = (String) entry.getKey();
+                String uri = (String) entry.getValue();
+                File foxml = new File(new URI(uri));
+                repository.memoryImpl.put(pid, new DigitalObjectRecord(pid, foxml));
+            }
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex);
+        } finally {
+            try {
+                if (fis != null) {
+                    fis.close();
+                }
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+            }
+        }
     }
 
     @XmlRootElement(name="dcRecord", namespace="http://www.incad.cz/pas/editor/dor/")
@@ -429,6 +542,12 @@ public final class DigitalObjectRepository {
         private DublinCoreRecord dc;
         private OcrRecord ocr;
         private ModsRecord mods;
+        private File foxml;
+
+        DigitalObjectRecord(String pid, File foxml) {
+            this.pid = pid;
+            this.foxml = foxml;
+        }
 
         DigitalObjectRecord(String pid, DublinCoreRecord dc, OcrRecord ocr) {
             this.pid = pid;

@@ -20,6 +20,8 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.rpc.RPCResponse;
+import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
@@ -123,18 +125,23 @@ public class ImportPresenter {
             wizard.setForwardButton(true, i18nPas.ImportWizard_SelectBatchStep_ForwardButton_Title());
             wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
                     i18nPas.ImportWizard_SelectBatchStep_Description_Title());
+            widget.setHandler(this);
             widget.bind();
+            itemSelected();
         }
 
         @Override
         public void onHide(Wizard wizard) {
             this.wizard = null;
+            widget.setHandler(null);
         }
 
         @Override
         public boolean onStepAction(Wizard wizard, StepKind step) {
             if (step == StepKind.FORWARD) {
-                
+                Record record = widget.getSelectedBatch();
+                BatchRecord batch = record == null ? null : new BatchRecord(record);
+                getImportContext().setBatch(batch);
             }
             return true;
         }
@@ -150,7 +157,12 @@ public class ImportPresenter {
         @Override
         public void itemSelected() {
             // XXX check selected item for imported/not yet imported/selected
-            wizard.setCanStepForward(true);
+            Record record = widget.getSelectedBatch();
+            if (record != null) {
+                wizard.setCanStepForward(true);
+            } else {
+                wizard.setCanStepForward(false);
+            }
         }
 
     }
@@ -218,10 +230,16 @@ public class ImportPresenter {
     //        importSourceChooser.update();
             if (importRecord != null && importRecord.isNew() && model != null) {
                 ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
+                DSRequest dsRequest = new DSRequest();
+                dsRequest.setPromptStyle(PromptStyle.DIALOG);
+                dsRequest.setPrompt(i18nPas.ImportWizard_SelectFolderStep_Wait_Title());
                 dsBatch.addData(dsBatch.newBatch(importRecord.getPath(), model), new DSCallback() {
 
                     @Override
                     public void execute(DSResponse response, Object rawData, DSRequest request) {
+                        if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
+                            return;
+                        }
                         Record[] data = response.getData();
                         if (data != null && data.length > 0) {
                             BatchRecord newBatch = new BatchRecord(data[0]);
@@ -233,7 +251,7 @@ public class ImportPresenter {
                             // XXX show warning something is wrong
                         }
                     }
-                });
+                }, dsRequest);
 //                ds.updateData(ImportTreeRestDataSource.createUpdateRecord(record, model));
             } else {
                 throw new IllegalStateException();
@@ -256,8 +274,8 @@ public class ImportPresenter {
             wizard.setForwardButton(true, i18nPas.ImportWizard_UpdateItemsStep_ForwardButton_Title());
             wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
                     i18nPas.ImportWizard_UpdateItemsStep_Description_Title());
-            // XXX presenter.getImportContext().getBatch();
-            widget.setBatchItems(ImportBatchItemDataSource.getInstance());
+            BatchRecord batch = getImportContext().getBatch();
+            widget.setBatchItems(batch);
         }
 
         @Override

@@ -18,6 +18,9 @@ package cz.incad.pas.editor.server.rest;
 
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.api.json.JSONJAXBContext;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
+import cz.incad.pas.editor.server.rest.ImportResource.ImportBatchItemList;
+import cz.incad.pas.editor.server.rest.ImportResource.ImportBatchList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -41,6 +44,9 @@ public class JSonContextResolver implements ContextResolver<JAXBContext> {
     private static final Class[] types = {
             SmartGwtResponse.class,
             ImportFolder.class,
+            ImportBatchList.class,
+            ImportBatch.class,
+            ImportBatchItemList.class,
     };
     private static final Set<Class> setOfTypes = Collections.unmodifiableSet(new HashSet<Class>(Arrays.asList(types)));
 
@@ -49,13 +55,16 @@ public class JSonContextResolver implements ContextResolver<JAXBContext> {
     public JSonContextResolver() throws JAXBException {
 //        context = new JSONJAXBContext(JSONConfiguration.natural().build(), SmartGwtResponse.class, ImportFolder.class);
 //        context = new JSONJAXBContext(JSONConfiguration.mappedJettison().build(), SmartGwtResponse.class, ImportFolder.class);
-        context = new JSONJAXBContext(JSONConfiguration.mapped().arrays("folder").build(), types);
+        // rootUnwrapping solves JSON marshaling issue when empty object results to "null" JSON string
+        // with rootUnwrapping the result is e.g. {"batches":null} for ImportBatchList with empty list
+        // see http://java.net/jira/browse/JERSEY-339 and
+        context = new JSONJAXBContext(JSONConfiguration.mapped().rootUnwrapping(false).arrays("folder").build(), types);
     }
 
 
     @Override
     public JAXBContext getContext(Class<?> type) {
-        System.out.println("## getContext: " + type);
+//        System.out.println("## getContext: " + type);
         return setOfTypes.contains(type) ? context : null;
     }
 

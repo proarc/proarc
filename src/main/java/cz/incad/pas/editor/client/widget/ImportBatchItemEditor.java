@@ -68,6 +68,8 @@ import com.smartgwt.client.widgets.viewer.DetailViewerField;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.DcRecordDataSource;
+import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
+import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.OcrDataSource;
@@ -93,7 +95,7 @@ public class ImportBatchItemEditor extends HLayout {
     private static final Logger LOG = Logger.getLogger(ImportBatchItemEditor.class.getName());
 
     private final PasEditorMessages i18nPas;
-    private DataSource dsBatchItem;
+//    private DataSource dsBatchItem;
 
     private final ListGrid batchItemGrid;
     private ListGridField fieldItemModel;
@@ -337,16 +339,17 @@ public class ImportBatchItemEditor extends HLayout {
         addMember(previewLayout);
     }
 
-    public void setBatchItems(DataSource ds) {
-        this.dsBatchItem = ds;
+    public void setBatchItems(BatchRecord batch) {
+//        this.dsBatchItem = ds;
 //        batchItemGrid.setDataSource(dsBatchItem, batchItemGrid.getFields());
 //        fieldItemModel.setOptionDataSource(MetaModelDataSource.getInstance());
 //        fieldItemModel.setValueField(MetaModelDataSource.FIELD_PID);
 //        fieldItemModel.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
 //        fieldItemModel.setAutoFetchDisplayMap(true);
 //        ds.fetchData(null, null);
-        batchItemGrid.fetchData();
-        thumbViewer.fetchData();
+        Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batch.getId());
+        batchItemGrid.fetchData(criteria);
+        thumbViewer.fetchData(criteria);
 //        thumbViewer.fetchData();
 //        new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, "");
     }
@@ -931,7 +934,10 @@ public class ImportBatchItemEditor extends HLayout {
                     form.rememberValues();
                     updateTitle();
                 } else {
-                    fetchSelection(selections[0].getAttribute(ImportBatchItemDataSource.FIELD_PID));
+                    fetchSelection(
+                            selections[0].getAttribute(ImportBatchItemDataSource.FIELD_PID),
+                            selections[0].getAttribute(ImportBatchItemDataSource.FIELD_BATCHID)
+                            );
                 }
                 newPane = form;
             } else {
@@ -944,10 +950,12 @@ public class ImportBatchItemEditor extends HLayout {
             }
         }
 
-        private void fetchSelection(String pid) {
+        private void fetchSelection(String pid, String batch) {
             LOG.fine("fetch.dc: " + pid);
 
-            form.fetchData(new Criteria("pid", pid), new DSCallback() {
+            Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batch);
+            criteria.addCriteria(new Criteria(ImportBatchItemDataSource.FIELD_PID, pid));
+            form.fetchData(criteria, new DSCallback() {
 
                 @Override
                 public void execute(DSResponse response, Object rawData, DSRequest request) {

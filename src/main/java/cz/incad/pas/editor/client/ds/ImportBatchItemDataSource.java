@@ -16,12 +16,20 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
+import com.smartgwt.client.data.OperationBinding;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceImageField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
+import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DSOperationType;
+import com.smartgwt.client.types.DSProtocol;
 import com.smartgwt.client.types.FieldType;
 
 /**
@@ -51,12 +59,12 @@ public class ImportBatchItemDataSource extends DataSource {
 
 //        setDataFormat(DSDataFormat.XML);
         setDataFormat(DSDataFormat.JSON);
-//        setRecordXPath("/items/item");
-        setRecordXPath("item");
+        setRecordXPath("/items/item");
+//        setRecordXPath("item");
 
-//        setDataURL(RestConfig.URL_IMPORT_BATCH_ITEM);
-        setDataURL("ds/ImportBatchItemDataSource.json");
-        setClientOnly(true);
+        setDataURL(RestConfig.URL_IMPORT_BATCH_ITEM);
+//        setDataURL("ds/ImportBatchItemDataSource.json");
+//        setClientOnly(true);
 
         DataSourceIntegerField id = new DataSourceIntegerField(FIELD_ID);
         id.setPrimaryKey(true);
@@ -84,8 +92,30 @@ public class ImportBatchItemDataSource extends DataSource {
 
         setFields(id, batchId, filename, user, model, preview, thumbnail, pageIndex, pageNumber, pageType);
 
+        OperationBinding updateOp = new OperationBinding();
+        updateOp.setOperationType(DSOperationType.UPDATE);
+        updateOp.setDataProtocol(DSProtocol.POSTPARAMS);
+        setOperationBindings(updateOp);
+
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         
+    }
+
+    @Override
+    protected void transformResponse(DSResponse response, DSRequest request, Object data) {
+        int status = response.getStatus();
+        if (status == RPCResponse.STATUS_SUCCESS) {
+            for (Record record : response.getData()) {
+                String pid = record.getAttribute(FIELD_PID);
+
+                record.setAttribute(FIELD_PREVIEW, pid);
+                record.setAttribute(FIELD_THUMBNAIL, pid);
+                // XXX following fields should be supplied remotely
+                record.setAttribute(FIELD_MODEL, "model:page");
+                record.setAttribute(FIELD_USER, 1);
+            }
+        }
+        super.transformResponse(response, request, data);
     }
 
     public static ImportBatchItemDataSource getInstance() {

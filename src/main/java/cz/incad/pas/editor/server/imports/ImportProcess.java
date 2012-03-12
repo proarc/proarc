@@ -16,9 +16,12 @@
  */
 package cz.incad.pas.editor.server.imports;
 
+import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
+import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DigitalObjectRecord;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.imports.ImportFileScanner.State;
+import cz.incad.pas.editor.server.user.UserProfile;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -27,9 +30,13 @@ import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  *
@@ -38,7 +45,7 @@ import java.util.logging.Logger;
 public class ImportProcess {
 
     private static final Logger LOG = Logger.getLogger(ImportProcess.class.getName());
-    private static final String TMP_DIR_NAME = "fedora_import";
+    static final String TMP_DIR_NAME = "fedora_import";
     private File importFolder;
     private ImportManager imanager;
     private ImportBatchManager batchManager;
@@ -46,35 +53,63 @@ public class ImportProcess {
     private List<ImportItem> imports;
     private List<ImportItemFailure> failures = new ArrayList<ImportItemFailure>();
     private final String importFolderRelativePath;
-    private final int userId;
+    private final UserProfile user;
+    private final DigitalObjectRepository fedora;
+    private final boolean generateIndices;
 
-    public ImportProcess(File importFolder, String importFolderRelativePath, int userId, ImportBatchManager batchManager) {
+    public ImportProcess(File importFolder, String importFolderRelativePath,
+            UserProfile user, ImportBatchManager batchManager,
+            DigitalObjectRepository fedora,
+            boolean generateIndices) {
         this.importFolder = importFolder;
         this.importFolderRelativePath = importFolderRelativePath;
-        this.userId = userId;
+        this.user = user;
         this.batchManager = batchManager;
+        this.fedora = fedora;
+        this.generateIndices = generateIndices;
     }
 
-    public ImportBatch start() throws IOException {
+    public ImportBatch start() throws IOException, DatatypeConfigurationException {
         // validate import folder
         ImportFileScanner.validateImportFolder(importFolder);
 
         // check import state
         setRunningState(importFolder);
+        boolean transactionFailed = true;
         // check target folder
         try {
             File targetFolder = createTargetFolder();
             ImportFileScanner scanner = new ImportFileScanner();
             List<File> files = scanner.findDigitalContent(importFolder);
             this.imports = new ArrayList<ImportItem>(files.size());
-            List<FedoraImportItem> consumedFiles = consumeFiles(files, new ImportContext(targetFolder));
+            List<FedoraImportItem> consumedFiles = consumeFiles(files, new ImportContext(targetFolder, generateIndices));
 
             // import to Fedora
-            return fedoraImport(consumedFiles);
+            ImportBatch batch = fedoraImport(consumedFiles);
+            transactionFailed = false;
+            return batch;
         } finally {
             // XXX rollback running state or set failed state
+            if (transactionFailed) {
+                File tmpFolder = new File(importFolder, TMP_DIR_NAME);
+                deleteFolder(tmpFolder);
+                ImportFileScanner.rollback(importFolder);
+            }
         }
 
+    }
+
+    private static void deleteFolder(File folder) {
+        if (folder.exists()) {
+            for (File f : folder.listFiles()) {
+                if (f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    f.delete();
+                }
+            }
+            folder.delete();
+        }
     }
 
     public List<ImportItem> getImportedItems() {
@@ -86,6 +121,7 @@ public class ImportProcess {
     }
     
     private List<FedoraImportItem> consumeFiles(List<File> files, ImportContext ctx) {
+        long start = System.currentTimeMillis();
         List<FedoraImportItem> fedorarItems = new ArrayList<FedoraImportItem>(files.size());
         for (File file : files) {
             try {
@@ -103,16 +139,19 @@ public class ImportProcess {
                 LOG.log(Level.SEVERE, file.toString(), ex);
             }
         }
+        LOG.log(Level.INFO, "Total time: {0} ms", System.currentTimeMillis() - start);
 
         return fedorarItems;
     }
 
     private FedoraImportItem consumeFile(File f, ImportContext ctx) throws IOException {
+        long start = System.currentTimeMillis();
         String mimeType = findMimeType(f);
         List<TiffImporter> consumers = getConsumers();
         for (TiffImporter consumer : consumers) {
             FedoraImportItem item = consumer.consume(f, mimeType, ctx);
             if (item != null) {
+                LOG.log(Level.INFO, "time: {0} ms, {1}", new Object[] {System.currentTimeMillis() - start, f});
                 return item;
             }
         }
@@ -126,24 +165,24 @@ public class ImportProcess {
 
     private File createTargetFolder() throws IOException {
         File folder = new File(importFolder, TMP_DIR_NAME);
-        if (folder.mkdir()) {
+        if (!folder.mkdir()) {
             throw new IOException("Import folder already exists: " + folder);
         }
         return folder;
     }
 
     private void setRunningState(File folder) throws IOException {
-        State folderImportState = ImportFileScanner.folderImportState(importFolder);
+        State folderImportState = ImportFileScanner.folderImportState(folder);
         if (folderImportState != State.NEW) {
-            throw new IOException("Folder imported: " + importFolder + ", state: " + folderImportState);
+            throw new IOException("Folder imported: " + folder + ", state: " + folderImportState);
         }
-        File statusFile = new File(importFolder, ImportFileScanner.IMPORT_STATE_FILENAME);
+        File statusFile = new File(folder, ImportFileScanner.IMPORT_STATE_FILENAME);
         if (statusFile.createNewFile()) {
             // lets import
         } else {
-            folderImportState = ImportFileScanner.folderImportState(importFolder);
+            folderImportState = ImportFileScanner.folderImportState(folder);
             if (folderImportState != State.NEW) {
-                throw new IOException("Folder imported: " + importFolder + ", state: " + folderImportState);
+                throw new IOException("Folder imported: " + folder + ", state: " + folderImportState);
             }
         }
     }
@@ -158,13 +197,16 @@ public class ImportProcess {
     }
 
     private ImportBatch fedoraImport(List<FedoraImportItem> fedoraItems) {
-        ImportBatch batch = batchManager.add(importFolderRelativePath, userId);
+        ImportBatch batch = batchManager.add(importFolderRelativePath, user);
         for (FedoraImportItem fedoraItem : fedoraItems) {
             try {
-                // XXX import to fedora
-                ImportItem importItem = new ImportItem(fedoraItem.getImportFile().getName(), fedoraItem.getPid());
+                ImportItem importItem = new ImportItem(fedoraItem.getImportFile().getName(),
+                        fedoraItem.getPid(), fedoraItem.getPageIndex(),
+                        fedoraItem.getPageNumber(), fedoraItem.getPageType());
                 batchManager.addItem(batch.getId(), importItem);
                 this.imports.add(importItem);
+                DigitalObjectRecord digObj = fedora.createDigitalObject(fedoraItem.getPid(), fedoraItem.getFoxml());
+                fedora.add(digObj, user.getId());
             } finally {
                 // XXX rollback already imported objects?
             }
@@ -174,13 +216,27 @@ public class ImportProcess {
 
     public static final class ImportContext {
         private File targetFolder;
+        private final XMLGregorianCalendar xmlNow;
+        private final boolean generateIndices;
 
-        ImportContext(File targetFolder) {
+        ImportContext(File targetFolder, boolean generateIndices) throws DatatypeConfigurationException {
             this.targetFolder = targetFolder;
+            DatatypeFactory xmlDataFactory = DatatypeFactory.newInstance();
+            GregorianCalendar gcNow = new GregorianCalendar();
+            xmlNow = xmlDataFactory.newXMLGregorianCalendar(gcNow);
+            this.generateIndices = generateIndices;
         }
 
         public File getTargetFolder() {
             return targetFolder;
+        }
+
+        public XMLGregorianCalendar getXmlNow() {
+            return xmlNow;
+        }
+
+        public boolean isGenerateIndices() {
+            return generateIndices;
         }
         
     }
@@ -208,16 +264,23 @@ public class ImportProcess {
     }
 
     /**
+     * XXX this should be replaced with {@link ImportItem}.
      * see https://wiki.duraspace.org/display/FEDORA35/Using+File+URIs to reference external files for ingest
      */
     public static class FedoraImportItem {
         private File foxml;
         private String pid;
         private File importFile;
+        private String pageIndex;
+        private String pageNumber;
+        private String pageType;
 
-        public FedoraImportItem(File foxml, String pid) {
+        public FedoraImportItem(File foxml, String pid, String pageIndex, String pageNumber, String pageType) {
             this.foxml = foxml;
             this.pid = pid;
+            this.pageIndex = pageIndex;
+            this.pageNumber = pageNumber;
+            this.pageType = pageType;
         }
 
         public File getFoxml() {
@@ -230,6 +293,18 @@ public class ImportProcess {
 
         public File getImportFile() {
             return importFile;
+        }
+
+        public String getPageIndex() {
+            return pageIndex;
+        }
+
+        public String getPageNumber() {
+            return pageNumber;
+        }
+
+        public String getPageType() {
+            return pageType;
         }
         
     }

@@ -19,9 +19,15 @@ package cz.incad.pas.editor.server.imports;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.text.Collator;
+import java.text.ParseException;
+import java.text.RuleBasedCollator;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 /**
  *
@@ -33,12 +39,41 @@ public class ImportFileScanner {
         IMPORTED, NEW, IMPORT_RUNNING;
     }
 
-    public static final String IMPORT_STATE_FILENAME = "das_import_status.log";
+    public static final String IMPORT_STATE_FILENAME = "pas_import_status.log";
 
     private static final FileFilter FOLDER_FILTER = new FileFilter() {
         @Override
         public boolean accept(File f) {
-            return f.isDirectory() && f.canRead() && f.canWrite();
+            return f.isDirectory() && f.canRead() && f.canWrite() && !ImportProcess.TMP_DIR_NAME.equals(f.getName());
+        }
+    };
+
+    /**
+     * File name comparator. It delegates to extended Czech collator implementation.
+     * @see <a href='http://www.docjar.com/html/api/sun/text/resources/CollationData_cs.java.html'>CollationData_cs.java</a>
+     * @see java.text.CollationRules
+     */
+    private static final Comparator<File> FILE_COMPARATOR = new Comparator<File>() {
+        
+        private final Comparator czech;
+
+        {
+            RuleBasedCollator czechDefault = (RuleBasedCollator) Collator.getInstance(new Locale("cs"));
+            try {
+                czech = new RuleBasedCollator(
+                        // Space before 0 results to "on", "on board", "online"
+                        //   instead of "on", "online", "on board"
+                        // '&' to reset definition does not work for space
+                        "'\u0020' < 0"
+                        + czechDefault.getRules());
+            } catch (ParseException ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
+
+        @Override
+        public int compare(File o1, File o2) {
+            return czech.compare(o1.getName(), o2.getName());
         }
     };
 
@@ -52,6 +87,7 @@ public class ImportFileScanner {
         validateImportFolder(folder);
 
         File[] listFiles = folder.listFiles(FOLDER_FILTER);
+        Arrays.sort(listFiles, FILE_COMPARATOR);
         List<Folder> content = new ArrayList<Folder>(listFiles.length);
         for (File file : listFiles) {
             content.add(new Folder(file));
@@ -63,19 +99,14 @@ public class ImportFileScanner {
         validateImportFolder(folder);
 
         File[] files = folder.listFiles();
-        List<File> consumed = new ArrayList<File>(files.length);
+        List<File> contents = new ArrayList<File>(files.length);
         for (File file : files) {
-            if (file.isDirectory()) {
-                continue;
+            if (!file.isDirectory() || file.canRead()) {
+                contents.add(file);
             }
-
-//            if (consumeFile(file)) {
-//                consumed.add(file);
-//            } else {
-//                // log unknown file
-//            }
         }
-        return consumed;
+        Collections.sort(contents, FILE_COMPARATOR);
+        return contents;
     }
 
 
@@ -96,6 +127,11 @@ public class ImportFileScanner {
         State state = stateFile.exists() ? State.IMPORTED : State.NEW;
         // check file content for more details
         return state;
+    }
+
+    static void rollback(File folder) {
+        File stateFile = new File(folder, IMPORT_STATE_FILENAME);
+        stateFile.delete();
     }
 
     public static final class Folder {

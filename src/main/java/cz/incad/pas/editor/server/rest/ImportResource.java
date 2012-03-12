@@ -16,6 +16,9 @@
  */
 package cz.incad.pas.editor.server.rest;
 
+import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
@@ -51,9 +54,11 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBElement;
@@ -61,6 +66,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.namespace.QName;
 
 /**
@@ -95,6 +101,8 @@ public class ImportResource {
 
     // XXX inject with guice
     private final UserManager userManager;
+    private final ImportBatchManager importManager;
+    private final PasConfiguration pasConfig;
 
     private final SecurityContext securityCtx;
     private final UserProfile user;
@@ -110,6 +118,8 @@ public class ImportResource {
 
         UserManager userManager = UserUtil.createUserManagerMemoryImpl(); // XXX replace with injection
         this.userManager = userManager;
+        this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
+        this.importManager = ImportBatchManager.getInstance(pasConfig);
         this.securityCtx = securityCtx;
         Principal userPrincipal = securityCtx.getUserPrincipal();
         System.out.println("## userPrincipal: " + userPrincipal);
@@ -187,9 +197,9 @@ public class ImportResource {
     @Path("batch")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public ImportBatch importFolder(
-            @FormParam("path") @DefaultValue("") String path,
+            @FormParam("folderPath") @DefaultValue("") String path,
             @FormParam("model") @DefaultValue("model:path") String model
-            ) throws URISyntaxException, IOException {
+            ) throws URISyntaxException, IOException, DatatypeConfigurationException {
         
         LOG.log(Level.INFO, "import path: {0} as model: {1}", new Object[] {path, model});
         String folderPath = validateParentPath(path);
@@ -200,7 +210,8 @@ public class ImportResource {
                 : userRoot;
         File folder = new File(folderUri);
         // XXX do import
-        ImportProcess process = new ImportProcess(folder, folderPath, user.getId(), ImportBatchManager.getInstance());
+        ImportProcess process = new ImportProcess(folder, folderPath, user,
+                importManager, DigitalObjectRepository.getInstance(pasConfig), true);
         ImportBatch batch = process.start();
 //        List<ImportItem> importedItems = process.getImportedItems();
 //        List<ImportItemFailure> failures = process.getFailures();
@@ -219,10 +230,10 @@ public class ImportResource {
 
     @GET
     @Path("batch")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+//    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces(MediaType.APPLICATION_JSON)
     public ImportBatchList listBatches() {
-        ImportBatchManager ibmanager = ImportBatchManager.getInstance();
-        return new ImportBatchList(ibmanager.findAll(user.getId(), false));
+        return new ImportBatchList(importManager.findAll(user, false));
     }
 
     @XmlRootElement(name="batches")
@@ -238,43 +249,96 @@ public class ImportResource {
             this.batches = batches;
         }
 
+        public Collection<ImportBatch> getBatches() {
+            return batches;
+        }
+
     }
     
     @GET
-    @Path("object")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Path("batch/item")
+    @Produces(MediaType.APPLICATION_JSON)
     // XXX listImportedObjects needs paging support
-    public ImportedDigitalObjectList listImportedObjects(
-            @QueryParam("batchId") Integer batchId
+    public ImportBatchItemList listBatchItems(
+            @QueryParam("batchId") Integer batchId,
+            @QueryParam("pid") String pid
             ) {
-        return new ImportedDigitalObjectList(Collections.<ImportedDigitalObject>emptyList());
+
+        Collection<ImportItem> items = null;
+        if (batchId != null) {
+            items = importManager.findItems(batchId, pid);
+        }
+        if (items == null) {
+            throw new WebApplicationException(
+                    Response.status(Response.Status.NOT_FOUND).entity("ID not found!")
+                    .type(MediaType.TEXT_PLAIN_TYPE).build());
+        }
+
+        return new ImportBatchItemList(items);
     }
 
-    @XmlRootElement(name="records")
+    @POST
+    @Path("batch/item")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ImportBatchItemList updateBatchItem(
+            @FormParam("batchId") Integer batchId,
+            @FormParam("pid") String pid,
+            @FormParam("pageIndex") String pageIndex,
+            @FormParam("pageNumber") String pageNumber,
+            @FormParam("pageType") String pageType,
+            @FormParam("filename") String filename
+            ) {
+
+        Collection<ImportItem> items = null;
+        if (batchId != null && pid != null && !pid.isEmpty()) {
+            items = importManager.updateItem(batchId, normalizeParam(pid),
+                    normalizeParam(pageIndex), normalizeParam(pageNumber),
+                    normalizeParam(pageType));
+        }
+        if (items == null) {
+            throw new WebApplicationException(
+                    Response.status(Response.Status.NOT_FOUND).entity("item not found!")
+                    .type(MediaType.TEXT_PLAIN_TYPE).build());
+        }
+
+        return new ImportBatchItemList(items);
+    }
+
+    private static String normalizeParam(String p) {
+        if (p != null) {
+            p = p.trim();
+            if (p.isEmpty() || "null".equals(p)) {
+                p = null;
+            }
+        }
+        return p;
+    }
+
+    @XmlRootElement(name="items")
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class ImportedDigitalObjectList {
+    public static class ImportBatchItemList {
 
-        @XmlElement(name="record")
-        private Collection<ImportedDigitalObject> records;
+        @XmlElement(name="item")
+        private Collection<ImportItem> records;
 
-        public ImportedDigitalObjectList() {}
+        public ImportBatchItemList() {}
 
-        public ImportedDigitalObjectList(Collection<ImportedDigitalObject> objects) {
+        public ImportBatchItemList(Collection<ImportItem> objects) {
             this.records = objects;
         }
 
     }
 
-    public static class ImportedDigitalObject {
-        private int id;
-        private int batchId;
-        private Object pid;
-        private String filename;
-        private String model;
-
-        private int userId;
-        private String userDisplayName;
-    }
+//    public static class ImportedDigitalObject {
+//        private int id;
+//        private int batchId;
+//        private Object pid;
+//        private String filename;
+//        private String model;
+//
+//        private int userId;
+//        private String userDisplayName;
+//    }
 
     private static String validateParentPath(String parent) {
         if (parent == null || parent.length() == 0) {
