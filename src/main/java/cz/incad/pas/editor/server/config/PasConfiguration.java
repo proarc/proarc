@@ -17,6 +17,9 @@
 package cz.incad.pas.editor.server.config;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,6 +39,12 @@ public final class PasConfiguration {
     public static final String CONFIG_FOLDER = "cz.incad.pas.editor.server.config.home";
     public static final String CONFIG_FOLDER_NAME = ".pas";
     public static final String CONFIG_FILE_NAME = "paseditor.cfg";
+
+    /** Path to configuration folder.
+     * Internal configuration property interpolated on init.
+     * Accessible as {@code ${paseditor.home}} in properties files.
+     */
+    static final String PROPERTY_CONFIG_HOME = "paseditor.home";
     
     private static final Logger LOG = Logger.getLogger(PasConfiguration.class.getName());
 
@@ -64,8 +73,24 @@ public final class PasConfiguration {
         this.homePath = home.getPath();
         this.configHome = initConfigFolder(home, environment.get(CONFIG_FOLDER));
         try {
+            // envConfig contains inerpolated properties
+            PropertiesConfiguration envConfig = new PropertiesConfiguration();
+            envConfig.addProperty(PROPERTY_CONFIG_HOME, configHome.getPath());
+            cc.addConfiguration(envConfig);
+            // external configuration editable by users
             cc.addConfiguration(new PropertiesConfiguration(new File(configHome, CONFIG_FILE_NAME)));
-            cc.addConfiguration(new PropertiesConfiguration(PasConfiguration.class.getResource("paseditor.properties")));
+            try {
+                // bundled default configurations
+                Enumeration<URL> resources = PasConfiguration.class.getClassLoader()
+                        .getResources("cz/incad/pas/editor/server/config/paseditor.properties");
+                for (URL resource; resources.hasMoreElements(); ) {
+                    resource = resources.nextElement();
+                    LOG.log(Level.FINE, "classpath config: {0}", resource);
+                    cc.addConfiguration(new PropertiesConfiguration(resource));
+                }
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+            }
         } catch (ConfigurationException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }

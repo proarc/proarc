@@ -74,6 +74,8 @@ public class PasConfigurationTest {
         assertNotNull(config);
         assertEquals(confHome, config.getConfigHome());
         assertNull(config.getConfiguration().getString(TEST_PROPERTY_NAME));
+        // test internal property
+        assertEquals(confHome.toString(), config.getConfiguration().getString(PasConfiguration.PROPERTY_CONFIG_HOME));
     }
 
     @Test
