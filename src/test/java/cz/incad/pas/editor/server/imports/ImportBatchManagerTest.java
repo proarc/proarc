@@ -56,7 +56,7 @@ public class ImportBatchManagerTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         // use temporary configuration
         File configHome = temp.newFolder(PasConfiguration.CONFIG_FOLDER_NAME);
         Map<String, String> env = new HashMap<String, String>();
@@ -90,8 +90,8 @@ public class ImportBatchManagerTest {
 //        assertNotNull(configHome);
         ImportBatchManager ibm = new ImportBatchManager(pasConf);
 
-        UserManager users = UserUtil.createUserManagerMemoryImpl();
-        ImportBatch batch = ibm.add("path/to/first_import", users.find("datel"));
+        UserManager users = UserUtil.createUserManagerMemoryImpl(pasConf);
+        ImportBatch batch = ibm.add("path/to/first_import", users.find("admin"));
         ibm.addItem(batch.getId(), new ImportItem("file1", "uuid:1", null, null, null));
         ibm.addItem(batch.getId(), new ImportItem("file2", "uuid:2", null, null, null));
         ibm.addItem(batch.getId(), new ImportItem("file3", "uuid:3", "3", "[3]", null));
@@ -107,7 +107,7 @@ public class ImportBatchManagerTest {
         assertEquals(1, ibm.getMap().size());
 
         // test reload
-        ImportBatchManager.load(pasConf.getConfigHome(), ibm);
+        ImportBatchManager.load(pasConf.getConfigHome(), ibm, users);
         assertEquals(1, ibm.getMap().size());
     }
 
@@ -115,7 +115,8 @@ public class ImportBatchManagerTest {
     public void testLoadEmpty() {
         ImportBatchManager ibm = new ImportBatchManager(pasConf);
         assertEquals(0, ibm.getMap().size());
-        ImportBatchManager.load(pasConf.getConfigHome(), ibm);
+        UserManager users = UserUtil.createUserManagerMemoryImpl(pasConf);
+        ImportBatchManager.load(pasConf.getConfigHome(), ibm, users);
         assertEquals(0, ibm.getMap().size());
     }
 

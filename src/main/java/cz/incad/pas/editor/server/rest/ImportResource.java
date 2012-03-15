@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.server.rest;
 
 import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
@@ -114,13 +115,12 @@ public class ImportResource {
             @Context HttpHeaders httpHeaders,
             @Context UriInfo uriInfo
             /*UserManager userManager*/
-            ) {
+            ) throws PasConfigurationException {
 
-        UserManager userManager = UserUtil.createUserManagerMemoryImpl(); // XXX replace with injection
-        this.userManager = userManager;
         this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
         this.importManager = ImportBatchManager.getInstance(pasConfig);
         this.securityCtx = securityCtx;
+        this.userManager = UserUtil.createUserManagerMemoryImpl(pasConfig); // XXX replace with injection
         Principal userPrincipal = securityCtx.getUserPrincipal();
         System.out.println("## userPrincipal: " + userPrincipal);
         String userName;

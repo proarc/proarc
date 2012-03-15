@@ -16,14 +16,16 @@
  */
 package cz.incad.pas.editor.server.user;
 
+import cz.incad.pas.editor.server.config.PasConfiguration;
+
 /**
  *
  * @author Jan Pokorsky
  */
 public final class UserUtil {
 
-    public static UserManager createUserManagerMemoryImpl() {
-        return UserManagerMemoryImpl.INSTANCE;
+    public static UserManager createUserManagerMemoryImpl(PasConfiguration config) {
+        return UserManagerMemoryImpl.getInstance(config);
     }
 
     public static UserManager createUserManagerPostgressImpl() {

@@ -60,17 +60,16 @@ public final class ImportBatchManager {
             }
         }
         if (load) {
-            load(config.getConfigHome(), INSTANCE);
+            load(config.getConfigHome(), INSTANCE, UserUtil.createUserManagerMemoryImpl(config));
         }
         return INSTANCE;
     }
 
-    static void load(File targetFolder, ImportBatchManager ibm) {
+    static void load(File targetFolder, ImportBatchManager ibm, UserManager users) {
         File ibmXml = new File(targetFolder, "ImportBatchManager.xml");
         if (!ibmXml.exists()) {
             return ;
         }
-        UserManager users = UserUtil.createUserManagerMemoryImpl();
         ImportBatchList list = JAXB.unmarshal(ibmXml, ImportBatchList.class);
         int itemCount = 0;
         for (ImportBatch batch : list.getBatches()) {

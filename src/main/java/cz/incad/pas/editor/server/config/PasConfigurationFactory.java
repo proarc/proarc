@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.server.config;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletContext;
@@ -34,26 +35,31 @@ public final class PasConfigurationFactory {
         return INSTANCE;
     }
 
-    public PasConfiguration create() {
+    public PasConfiguration create() throws PasConfigurationException {
         return create(new HashMap<String, String>());
     }
 
-    public PasConfiguration create(ServletContext ctx) {
+    public PasConfiguration create(ServletContext ctx) throws PasConfigurationException {
         Map<String, String> env = new HashMap<String, String>();
         env.put(PasConfiguration.CONFIG_FOLDER, ctx.getInitParameter(PasConfiguration.CONFIG_FOLDER));
         return create(env);
     }
 
-    public PasConfiguration create(Map<String, String> environment) {
+    public PasConfiguration create(Map<String, String> environment) throws PasConfigurationException {
         if (!environment.containsKey(PasConfiguration.USER_HOME)) {
             environment.put(PasConfiguration.USER_HOME, System.getProperty(PasConfiguration.USER_HOME));
         }
-        PasConfiguration pc = new PasConfiguration(environment);
+        PasConfiguration pc;
+        try {
+            pc = new PasConfiguration(environment);
+        } catch (IOException ex) {
+            throw new PasConfigurationException(ex);
+        }
         return pc;
     }
 
     /** XXX replace with guice */
-    public PasConfiguration defaultInstance() {
+    public PasConfiguration defaultInstance() throws PasConfigurationException {
         if (defaultInstance == null) {
             defaultInstance = create();
         }

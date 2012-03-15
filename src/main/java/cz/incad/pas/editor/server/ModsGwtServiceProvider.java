@@ -25,6 +25,7 @@ import cz.fi.muni.xkremser.editor.server.util.BiblioModsUtils;
 import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtService;
 import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.ModsRecord;
@@ -36,6 +37,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
+import javax.servlet.UnavailableException;
 import javax.xml.bind.JAXB;
 
 /**
@@ -60,8 +62,13 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
     @Override
     public void init() throws ServletException {
         super.init();
-        this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
-        this.repository = DigitalObjectRepository.getInstance(pasConfig);
+        try {
+            this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
+            this.repository = DigitalObjectRepository.getInstance(pasConfig);
+        } catch (PasConfigurationException ex) {
+            LOG.log(Level.SEVERE, "Invalid editor configuration.", ex);
+            throw new UnavailableException("Invalid editor configuration.");
+        }
     }
 
     /**

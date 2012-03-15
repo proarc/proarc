@@ -16,11 +16,14 @@
  */
 package cz.incad.pas.editor.server.user;
 
-import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * User settings.
+ *
+ * User home should contain folders import (scanned TIFF files),
+ * export (FOXMLs for publishing), images (JPEGs for external editing)
  *
  * @author Jan Pokorsky
  */
@@ -28,13 +31,15 @@ public class UserProfile {
 
     private int id;
     /** holds folder path in platform independent form */
+    private URI userHome;
     private URI importFolder;
     private String userName;
     private String displayName;
 
-    public UserProfile(int id, String importFolder, String userName, String displayName) {
+    public UserProfile(int id, URI userHome, String userName, String displayName) throws URISyntaxException {
         this.id = id;
-        this.importFolder = toUri(importFolder);
+        this.userHome = userHome;
+        this.importFolder = new URI(this.userHome + "import/");
         this.userName = userName;
         this.displayName = displayName;
 
@@ -64,8 +69,12 @@ public class UserProfile {
         return importFolder;
     }
 
-    public void setImportFolder(String importFolder) {
-        this.importFolder = toUri(importFolder);
+    public URI getUserHome() {
+        return userHome;
+    }
+
+    public void setUserHome(URI userHome) {
+        this.userHome = userHome;
     }
 
     public String getUserName() {
@@ -78,24 +87,7 @@ public class UserProfile {
 
     @Override
     public String toString() {
-        return String.format("UserProfile[%s, %s, %s, %s]", id, userName, displayName, importFolder);
-    }
-
-    /**
-     * Translates platform specific path to independent form as URI
-     *
-     * @param folderpath platform specific path as <pre>UNIX: /tmp/imports/</pre>
-     *      or <pre>MS Win: c:\imports</pre> or <pre>UNC MS Win: \\laptop\My Documents\</pre>
-     *      are valid options
-     * @return an abstract path
-     */
-    private static URI toUri(String folderpath) {
-        File folder = new File(folderpath);
-        if (!(folder.exists() && folder.isDirectory())) {
-            throw new IllegalArgumentException("Invalid import folder path: '" + folderpath + '\'');
-        }
-        // File.toURI always terminates folder path with slash
-        return folder.toURI().normalize();
+        return String.format("UserProfile[%s, %s, %s, %s]", id, userName, displayName, userHome);
     }
 
 }

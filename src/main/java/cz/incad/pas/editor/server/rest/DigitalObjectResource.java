@@ -22,6 +22,7 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.server.ModsGwtServiceProvider;
 import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DigitalObjectRecord;
@@ -81,7 +82,7 @@ public class DigitalObjectResource {
             @Context SecurityContext securityCtx,
             @Context HttpHeaders httpHeaders,
             @Context UriInfo uriInfo
-            ) {
+            ) throws PasConfigurationException {
         this.httpRequest = request;
         this.httpHeaders = httpHeaders;
         this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();

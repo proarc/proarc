@@ -65,7 +65,7 @@ public class PasConfigurationTest {
     }
 
     @Test
-    public void testGetConfigHome() {
+    public void testGetConfigHome() throws Exception {
         final File confHome = temp.getRoot();
         assertNotNull(confHome);
         PasConfiguration config = factory.create(new HashMap<String, String>() {{
@@ -76,6 +76,22 @@ public class PasConfigurationTest {
         assertNull(config.getConfiguration().getString(TEST_PROPERTY_NAME));
         // test internal property
         assertEquals(confHome.toString(), config.getConfiguration().getString(PasConfiguration.PROPERTY_CONFIG_HOME));
+    }
+
+    @Test
+    public void testGetAllUserHome() throws Exception {
+        final File confHome = temp.getRoot();
+        assertNotNull(confHome);
+        PasConfiguration config = factory.create(new HashMap<String, String>() {{
+            put(PasConfiguration.CONFIG_FOLDER, confHome.toString());
+        }});
+        assertNotNull(config);
+        File expectedUserFolder = new File(confHome, "users");
+        assertEquals(expectedUserFolder, config.getDefaultUsersHome());
+        assertTrue(expectedUserFolder.exists());
+        assertTrue(expectedUserFolder.isDirectory());
+        assertTrue(expectedUserFolder.canRead());
+        assertTrue(expectedUserFolder.canWrite());
     }
 
     @Test

@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.server.config;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
@@ -54,10 +55,22 @@ public final class PasConfiguration {
     /** read only configuration */
     private final Configuration config;
 
-    PasConfiguration(Map<String, String> environment) {
+    PasConfiguration(Map<String, String> environment) throws IOException {
         this.environment = environment;
         this.config = new CompositeConfiguration();
         init((CompositeConfiguration) config);
+    }
+
+    /**
+     * Gets default target folder for newly created user home folders.
+     */
+    public File getDefaultUsersHome() throws IOException {
+        String path = config.getString("paseditor.users.home");
+        File users = new File(path);
+        if (!checkFile(users, false, true, true, true)) {
+            users.mkdirs();
+        }
+        return users;
     }
 
     public File getConfigHome() {
@@ -68,7 +81,7 @@ public final class PasConfiguration {
         return config;
     }
 
-    private void init(CompositeConfiguration cc) {
+    private void init(CompositeConfiguration cc) throws IOException {
         File home = initHome(environment.get(USER_HOME));
         this.homePath = home.getPath();
         this.configHome = initConfigFolder(home, environment.get(CONFIG_FOLDER));
@@ -96,43 +109,62 @@ public final class PasConfiguration {
         }
     }
 
-    private static File initHome(String home) {
+    private static File initHome(String home) throws IOException {
         home = (home == null) ? "" : home;
         File homeFile = new File(home);
-        if (!homeFile.exists()) {
-            throw new IllegalStateException(String.format("Cannot find home folder: '%s'!", home));
-        }
-        if (!homeFile.isDirectory()) {
-            throw new IllegalStateException(String.format("Not a folder: '%s'!", home));
-        }
-        if (!(homeFile.canRead() && homeFile.canWrite())) {
-            throw new IllegalStateException(String.format("Invalid access permissions for: '%s'!", home));
-        }
-
+        checkFile(homeFile, true, true, true, true);
         return homeFile;
     }
 
-    private static File initConfigFolder(File home, String configPath) {
+    private static File initConfigFolder(File home, String configPath) throws IOException {
         File config;
         if (configPath != null) {
             config = new File(configPath);
         } else {
             config = new File(home, CONFIG_FOLDER_NAME);
         }
-        if (config.exists()) {
-            if (!config.isDirectory()) {
-                throw new IllegalStateException(String.format("Not a folder: '%s'!", home));
+        if (!checkFile(config, false, true, true, true)) {
+            config.mkdir();
+        }
+        LOG.log(Level.FINE, "config folder: {0}", config);
+        return config;
+    }
+
+    /**
+     * checks file/folder parameters
+     * @return {@code true} iff {@code f} exists
+     */
+    private static boolean checkFile(File f, boolean mustExist,
+            Boolean expectDirectory, Boolean expectCanRead, Boolean expextCanWrite
+            ) throws IOException {
+
+        if (f.exists()) {
+            if (expectDirectory != null) {
+                if (expectDirectory && !f.isDirectory()) {
+                    throw new IOException(String.format("Not a folder: '%s'!", f));
+                } else if (!expectDirectory && f.isDirectory()) {
+                    throw new IOException(String.format("Not a file: '%s'!", f));
+                }
             }
-            if (!(config.canRead() && config.canWrite())) {
-                throw new IllegalStateException(String.format("Invalid access permissions for: '%s'!", home));
+            if (expectCanRead != null) {
+                if (expectCanRead != f.canRead()) {
+                    throw new IOException(String.format("Invalid read permission (=%s) for: '%s'!", !expectCanRead, f));
+                }
             }
-        } else {
-            if (!config.mkdir()) {
-                throw new IllegalStateException(String.format("Cannot create folder: '%s'!", home));
+            if (expextCanWrite != null) {
+                if (expextCanWrite != f.canWrite()) {
+                    throw new IOException(String.format("Invalid write permission (=%s) for: '%s'!", !expextCanWrite, f));
+                }
+            }
+            return true;
+        } else if (mustExist) {
+            if (expectDirectory != null && expectDirectory) {
+                throw new FileNotFoundException(String.format("Folder '%s' not founf!", f));
+            } else {
+                throw new FileNotFoundException(String.format("File '%s' not founf!", f));
             }
         }
-        LOG.log(Level.INFO, "config folder: {0}", config);
-        return config;
+        return false;
     }
 
 }
