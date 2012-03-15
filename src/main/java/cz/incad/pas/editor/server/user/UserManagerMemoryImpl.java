@@ -131,15 +131,9 @@ final class UserManagerMemoryImpl implements UserManager {
             displayName = userName;
         }
 
-        File allUsersHome;
-        File userHome;
         try {
-            allUsersHome = pasConfig.getDefaultUsersHome();
-        } catch (IOException ex) {
-            throw new IllegalStateException(ex);
-        }
-
-        try {
+            File userHome;
+            File allUsersHome = pasConfig.getDefaultUsersHome();
             synchronized (map) {
                 if (findImpl(userName) != null) {
                     throw new IllegalArgumentException("Invalid user name: " + userName);
