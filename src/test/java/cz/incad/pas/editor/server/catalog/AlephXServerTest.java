@@ -17,7 +17,13 @@
 package cz.incad.pas.editor.server.catalog;
 
 import cz.incad.pas.editor.server.rest.MetadataCatalogResource.MetadataItem;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.SocketAddress;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -32,23 +38,44 @@ import org.junit.Test;
  */
 public class AlephXServerTest {
 
+    private static ProxySelector defaultProxy;
+    private static List<URI> externalConnections;
+
     public AlephXServerTest() {
     }
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        defaultProxy = ProxySelector.getDefault();
+        // detect external connections
+        ProxySelector.setDefault(new ProxySelector() {
+
+            @Override
+            public List<Proxy> select(URI uri) {
+                externalConnections.add(uri);
+                return defaultProxy.select(uri);
+            }
+
+            @Override
+            public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+                defaultProxy.connectFailed(uri, sa, ioe);
+            }
+        });
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
+        ProxySelector.setDefault(defaultProxy);
     }
 
     @Before
     public void setUp() {
+        externalConnections = new ArrayList<URI>();
     }
 
     @After
     public void tearDown() {
+        assertTrue(externalConnections.toString(), externalConnections.isEmpty());
     }
 
     @Test

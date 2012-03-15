@@ -9,7 +9,7 @@
     ntra added 4th child level 4/2/04
     -->
 
-    <xsl:variable name="dictionary" select="document('http://www.loc.gov/standards/mods/modsDictionary.xml')/dictionary"/>
+    <xsl:variable name="dictionary" select="document('modsDictionary.xml')/dictionary"/>
 
     <xsl:template match="/">
 

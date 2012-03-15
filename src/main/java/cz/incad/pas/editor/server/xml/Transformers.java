@@ -18,8 +18,8 @@ package cz.incad.pas.editor.server.xml;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -168,7 +168,7 @@ public final class Transformers {
             CATALOG.put(MARC21slim2HTML_XSL_PATH, "/xml/MARC21slim2HTML.xsl");
             CATALOG.put(MODS2HTML_XSL_PATH, "/xml/mods2html.xsl");
             CATALOG.put("http://www.loc.gov/standards/mods/modsDictionary.xml", "/xml/modsDictionary.xml");
-            CATALOG.put("http://www.loc.gov/standards/marcxml/xslt/MARC21slimUtils.xsl", "/xslts/MARC21slimUtils.xsl");
+            CATALOG.put("http://www.loc.gov/standards/marcxml/xslt/MARC21slimUtils.xsl", "/xml/MARC21slimUtils.xsl");
             CATALOG.put(MODS2TITLE_XSL_PATH, MODS2TITLE_XSL_PATH);
             CATALOG.put(ALEPHXSERVERFIX_XSL_PATH, ALEPHXSERVERFIX_XSL_PATH);
         }
@@ -177,11 +177,12 @@ public final class Transformers {
         public Source resolve(String href, String base) throws TransformerException {
             String path = CATALOG.get(href);
             if (path == null) {
-                path = "/xslts/" + href;
+                path = "/xml/" + href;
             }
-            InputStream stream = SimpleResolver.class.getResourceAsStream(path);
-            if (stream != null) {
-                return new StreamSource(stream, href);
+            URL resource = SimpleResolver.class.getResource(path);
+            if (resource != null) {
+//                Transformers.LOG.info(String.format("\nhref: %s, \nbase: %s, \npath: %s, \nres:  %s", href, base, path, resource));
+                return new StreamSource(resource.toExternalForm());
             }
 
             // delegates to system resolver

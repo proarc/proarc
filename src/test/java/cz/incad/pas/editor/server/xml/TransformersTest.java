@@ -19,6 +19,12 @@ package cz.incad.pas.editor.server.xml;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.SocketAddress;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
@@ -39,12 +45,29 @@ import org.xml.sax.InputSource;
 public class TransformersTest {
 
     private static final Logger LOG = Logger.getLogger(TransformersTest.class.getName());
+    private static ProxySelector defaultProxy;
+    private static List<URI> externalConnections;
 
     public TransformersTest() {
     }
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        defaultProxy = ProxySelector.getDefault();
+        // detect external connections
+        ProxySelector.setDefault(new ProxySelector() {
+
+            @Override
+            public List<Proxy> select(URI uri) {
+                externalConnections.add(uri);
+                return defaultProxy.select(uri);
+            }
+
+            @Override
+            public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+                defaultProxy.connectFailed(uri, sa, ioe);
+            }
+        });
     }
 
     @AfterClass
@@ -53,11 +76,13 @@ public class TransformersTest {
 
     @Before
     public void setUp() {
+        externalConnections = new ArrayList<URI>();
         XMLUnit.setIgnoreWhitespace(true);
     }
 
     @After
     public void tearDown() {
+        assertTrue(externalConnections.toString(), externalConnections.isEmpty());
         XMLUnit.setIgnoreWhitespace(false);
         XMLUnit.setNormalizeWhitespace(false);
     }
@@ -120,6 +145,27 @@ public class TransformersTest {
         } finally {
             close(xmlIS);
             close(goldenIS);
+        }
+    }
+
+    @Test
+    public void testModsAsHtml() throws Exception {
+//        XMLUnit.setNormalizeWhitespace(true);
+//        InputStream goldenIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMods.xml");
+//        assertNotNull(goldenIS);
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMods.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.ModsAsHtml);
+            assertNotNull(contents);
+//            System.out.println(new String(contents, "UTF-8"));
+//            XMLAssert.assertXMLEqual(new InputSource(goldenIS), new InputSource(new ByteArrayInputStream(contents)));
+        } finally {
+            close(xmlIS);
+//            close(goldenIS);
         }
     }
 
