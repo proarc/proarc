@@ -130,10 +130,9 @@ public class ImportResource {
             boolean userInRole = securityCtx.isUserInRole("Importer");
             System.out.println("## user.isImporter: " + userInRole);
         } else {
-            userName = "datel";
+            userName = UserManager.GUEST_ID;
         }
         user = userManager.find(userName);
-        // when not found throw exception not logged?
         LOG.info(user.toString());
 
         this.httpHeaders = httpHeaders;

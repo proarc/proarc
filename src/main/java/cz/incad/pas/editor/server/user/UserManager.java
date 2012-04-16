@@ -24,6 +24,9 @@ import java.util.Collection;
  */
 public interface UserManager {
 
+    // XXX change before release!!!
+    public static final String GUEST_ID = "admin";
+
     UserProfile find(String userName) throws IllegalArgumentException;
     UserProfile find(int userId) throws IllegalArgumentException;
 
