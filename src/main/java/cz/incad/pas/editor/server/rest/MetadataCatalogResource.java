@@ -78,10 +78,11 @@ public class MetadataCatalogResource {
     /**
      * JAXB helper to list items.
      */
-    @XmlRootElement
+    @XmlRootElement(name = "metadataCatalogEntries")
+    @XmlAccessorType(XmlAccessType.FIELD)
     public static class MetadataList {
 
-        @XmlElement(name="metadataCatalogEntries")
+        @XmlElement(name="entry")
         List<MetadataItem> list;
 
         public MetadataList() {

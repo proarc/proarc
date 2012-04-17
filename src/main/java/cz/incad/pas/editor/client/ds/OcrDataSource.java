@@ -42,7 +42,7 @@ public class OcrDataSource extends DataSource {
         setID(ID);
 
 //        setDataFormat(DSDataFormat.XML);
-//        setRecordXPath("/ocrRecord");
+        setRecordXPath("/ocrRecord");
         setDataFormat(DSDataFormat.JSON);
 //        setRecordXPath("ocrRecord");
         

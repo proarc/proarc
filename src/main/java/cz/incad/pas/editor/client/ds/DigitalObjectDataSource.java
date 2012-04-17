@@ -39,7 +39,7 @@ public class DigitalObjectDataSource extends DataSource {
     public DigitalObjectDataSource() {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
-        setRecordXPath("record");
+        setRecordXPath("/records/record");
         setDataURL(RestConfig.URL_DIGOBJECT);
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
 

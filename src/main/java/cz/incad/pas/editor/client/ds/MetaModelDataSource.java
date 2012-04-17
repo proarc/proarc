@@ -50,8 +50,7 @@ public class MetaModelDataSource extends DataSource {
 
 //        setDataFormat(DSDataFormat.XML);
         setDataFormat(DSDataFormat.JSON);
-//        setRecordXPath("/models/model");
-        setRecordXPath("model");
+        setRecordXPath("/models/model");
         
         setDataURL(RestConfig.URL_DIGOBJECT_METAMODEL);
 

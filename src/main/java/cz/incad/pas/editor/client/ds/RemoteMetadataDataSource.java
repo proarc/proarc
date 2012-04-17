@@ -46,9 +46,7 @@ public final class RemoteMetadataDataSource extends DataSource {
         setID(ID);
 
         setDataFormat(DSDataFormat.JSON);
-        setRecordXPath("metadataCatalogEntries");
-
-//        setTagName("ocrRecord");
+        setRecordXPath("/metadataCatalogEntries/entry");
 
         setDataURL(RestConfig.URL_METADATACATALOG);
 
