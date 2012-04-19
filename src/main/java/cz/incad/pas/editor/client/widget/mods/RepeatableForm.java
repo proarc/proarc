@@ -67,9 +67,7 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
         if (data == null || data.length == 0) {
             data = new Record[] {new Record()};
         }
-        RecordList recordList = data == null
-                ? new RecordList()
-                : new RecordList(data);
+        RecordList recordList = new RecordList(data);
         setData(recordList);
     }
 
@@ -97,9 +95,7 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
 //        identifierDataSource.setTestData(data.toArray());
 
         if (data.isEmpty()) {
-            Canvas emptyListItem = createEmptyListItem();
-            setMembers(emptyListItem);
-            return;
+            data.add(new Record());
         }
         for (Record record : data.toArray()) {
             DynamicForm form = createIdentifierForm(record);
