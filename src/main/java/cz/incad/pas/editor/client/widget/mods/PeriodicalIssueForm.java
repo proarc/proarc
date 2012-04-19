@@ -23,8 +23,8 @@ import com.smartgwt.client.widgets.form.fields.DateItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
-import cz.incad.pas.editor.client.ds.mods.PageDataSource;
 
 /**
  * Simple form to edit MODS of periodical issue object.
@@ -39,18 +39,18 @@ public final class PeriodicalIssueForm extends DynamicForm {
         setTitleOrientation(TitleOrientation.TOP);
         setNumCols(1);
 
-        TextItem issueNumber = new TextItem(PageDataSource.FIELD_PER_ISSUE_NUMBER,
+        TextItem issueNumber = new TextItem(ModsCustomDataSource.FIELD_PER_ISSUE_NUMBER,
                 i18nPas.PeriodicalIssueForm_Number_Title());
 
-        TextItem issueSequenceNumber = new TextItem(PageDataSource.FIELD_PER_ISSUE_NUMBER_SORTING,
+        TextItem issueSequenceNumber = new TextItem(ModsCustomDataSource.FIELD_PER_ISSUE_NUMBER_SORTING,
                 i18nPas.PeriodicalIssueForm_NumberSorting_Title());
 
-        DateItem date = new DateItem(PageDataSource.FIELD_PER_ISSUE_DATE, i18nPas.PeriodicalIssueForm_Date_Title());
+        DateItem date = new DateItem(ModsCustomDataSource.FIELD_PER_ISSUE_DATE, i18nPas.PeriodicalIssueForm_Date_Title());
         date.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATE);
         date.setUseTextField(true);
 
         // identifiers
-        final RepeatableFormItem identifiers = new RepeatableFormItem(PageDataSource.FIELD_IDENTIFIERS,
+        final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
                 i18nPas.PeriodicalIssueForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
         DynamicForm identifierForm = new DynamicForm();
@@ -60,14 +60,12 @@ public final class PeriodicalIssueForm extends DynamicForm {
         identifiers.setEndRow(true);
         identifiers.setColSpan("2");
 
-        TextAreaItem note = new TextAreaItem(PageDataSource.FIELD_NOTE, i18nPas.PeriodicalIssueForm_Note_Title());
+        TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE, i18nPas.PeriodicalIssueForm_Note_Title());
         note.setWidth("*");
         note.setHeight("*");
         note.setColSpan("*");
 
         setFields(issueNumber, issueSequenceNumber, date, identifiers, note);
-
-        setDataSource(PageDataSource.getInstance());
     }
 
 }

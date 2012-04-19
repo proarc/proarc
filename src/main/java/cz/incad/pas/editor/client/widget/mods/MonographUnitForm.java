@@ -21,8 +21,8 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
-import cz.incad.pas.editor.client.ds.mods.PageDataSource;
 import java.util.logging.Logger;
 
 /**
@@ -41,7 +41,7 @@ public final class MonographUnitForm extends DynamicForm {
         setNumCols(1);
 
         // identifiers
-        final RepeatableFormItem identifiers = new RepeatableFormItem(PageDataSource.FIELD_IDENTIFIERS,
+        final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
                 i18nPas.MonographUnitForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
         DynamicForm identifierForm = new DynamicForm();
@@ -51,17 +51,15 @@ public final class MonographUnitForm extends DynamicForm {
         identifiers.setEndRow(true);
         identifiers.setColSpan("2");
 
-        TextItem unitNumber = new TextItem(PageDataSource.FIELD_MONOGRAPHUNIT_NUMBER);
+        TextItem unitNumber = new TextItem(ModsCustomDataSource.FIELD_MONOGRAPHUNIT_NUMBER);
         unitNumber.setTitle(i18nPas.MonographUnitForm_UnitNumber_Title());
 
-        TextAreaItem note = new TextAreaItem(PageDataSource.FIELD_NOTE, i18nPas.MonographUnitForm_Note_Title());
+        TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE, i18nPas.MonographUnitForm_Note_Title());
         note.setWidth("*");
         note.setHeight("*");
         note.setColSpan("*");
 
         setFields(identifiers, unitNumber, note);
-
-        setDataSource(PageDataSource.getInstance());
     }
 
 }

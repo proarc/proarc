@@ -75,7 +75,9 @@ import java.util.logging.Logger;
  * http://code.google.com/p/smartgwt/issues/detail?id=303
  *
  * @author Jan Pokorsky
+ * @deprecated replaced with {@link cz.incad.pas.editor.client.ds.ModsCustomDataSource}
  */
+@Deprecated
 public final class PageDataSource extends DataSource {
 
     private static final Logger LOG = Logger.getLogger(PageDataSource.class.getName());
@@ -93,12 +95,14 @@ public final class PageDataSource extends DataSource {
     public static final String FIELD_NOTE = "note";
     public static final String FIELD_XML_SRC = "xmlSource";
     //periodical
-    public static final String FIELD_PERIODICITY = "periodicity";
-    public static final String FIELD_PERIODICITY_VALUE = "periodicityValue";
+    public static final String FIELD_PERIODICITIES = "periodicities";
+    public static final String FIELD_PERIODICITY_VALUE = "value";
     public static final String FIELD_SIGLA = "sigla";
     public static final String FIELD_SHELF_LOCATORS = "shelfLocators";
     public static final String FIELD_AUTHORS = "authors";
     public static final String FIELD_CONTRIBUTORS = "contributors";
+    public static final String FIELD_NAME_FAMILY = "family";
+    public static final String FIELD_NAME_GIVEN = "given";
     public static final String FIELD_PUBLISHERS = "publishers";
     public static final String FIELD_PRINTER_PUBLISHER_NAME = "publisherName";
     public static final String FIELD_PRINTER_PUBLISHER_DATE = "publisherDate";
@@ -110,6 +114,7 @@ public final class PageDataSource extends DataSource {
     public static final String FIELD_KEY_TITLES = "keyTitles";
     public static final String FIELD_KEYWORDS = "keywords";
     public static final String FIELD_LANGUAGES = "languages";
+    public static final String FIELD_LANGUAGE_CODE = "languageCode";
     public static final String FIELD_CLASSIFICATIONS = "classifications";
     public static final String FIELD_CLASSIFICATION_UDC = "classificationsUDC";
     public static final String FIELD_CLASSIFICATION_DDC = "classificationsDDC";
@@ -145,7 +150,7 @@ public final class PageDataSource extends DataSource {
         DataSourceField pageNumber = new DataSourceField(FIELD_PAGE_NUMBER, FieldType.TEXT, "Page Number");
         DataSourceField identifiers = new DataSourceField(FIELD_IDENTIFIERS, FieldType.ANY);
         // value treated as Record[]
-        identifiers.setTypeAsDataSource(new IdentifierDataSource());
+        identifiers.setTypeAsDataSource(IdentifierDataSource.getInstance());
         // XXX while using own GWT transport it is not necessary to declare all fields
         DataSourceField note = new DataSourceField(FIELD_NOTE, FieldType.TEXT, "Note");
         setFields(pid, modsObject, pageType, pageIndex, pageNumber, identifiers, note);
@@ -630,7 +635,7 @@ public final class PageDataSource extends DataSource {
                 // XXX for now it supports only codes
                 if (type == CodeOrTextClient.CODE && "iso639-2b".equals(authority)) {
                     Record langRecord = new Record();
-                    langRecord.setAttribute("languageCode", value);
+                    langRecord.setAttribute(FIELD_LANGUAGE_CODE, value);
                     langRecord.setAttribute("languageObject", language);
                     result.add(langRecord);
                     break;
@@ -652,9 +657,9 @@ public final class PageDataSource extends DataSource {
                     String type = namePart.getType();
                     String value = namePart.getValue();
                     if ("family".equals(type)) {
-                        nameRec.setAttribute("family", value);
+                        nameRec.setAttribute(FIELD_NAME_FAMILY, value);
                     } else if ("given".equals(type)) {
-                        nameRec.setAttribute("given", value);
+                        nameRec.setAttribute(FIELD_NAME_GIVEN, value);
                     }
                 }
                 NameRole role = findRole(name.getRole());
@@ -727,7 +732,7 @@ public final class PageDataSource extends DataSource {
                 record.setAttribute(FIELD_PERIODICITY_VALUE + "Object", frequency);
                 list.add(record);
             }
-            record.setAttribute(FIELD_PERIODICITY, toRecords(list));
+            record.setAttribute(FIELD_PERIODICITIES, toRecords(list));
             break;
         }
 

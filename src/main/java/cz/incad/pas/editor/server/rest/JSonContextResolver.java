@@ -36,9 +36,11 @@ import javax.xml.bind.JAXBException;
  * {@link JSONConfiguration#natural() natural builder} does not create JSON arrays either from Collections or arrays.
  *
  * @author Jan Pokorsky
+ * @deprecated replaced with {@link JacksonProvider}
  */
-@Provider
-@Produces(MediaType.APPLICATION_JSON)
+//@Provider
+//@Produces(MediaType.APPLICATION_JSON)
+@Deprecated
 public class JSonContextResolver implements ContextResolver<JAXBContext> {
 
     private static final Class[] types = {

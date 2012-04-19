@@ -19,6 +19,7 @@ package cz.incad.pas.editor.server.rest;
 import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
+import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.server.ModsGwtServiceProvider;
 import cz.incad.pas.editor.server.config.PasConfiguration;
@@ -29,6 +30,9 @@ import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DigitalObjectRe
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DublinCoreRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.ModsRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.OcrRecord;
+import cz.incad.pas.editor.server.json.JsonUtils;
+import cz.incad.pas.editor.server.mods.ModsUtils;
+import cz.incad.pas.editor.server.mods.custom.Mapping;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -61,6 +65,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  *
@@ -147,6 +152,80 @@ public class DigitalObjectResource {
     public DublinCoreRecord updateDublinCore(DublinCoreRecord record) {
         repository.updateDc(record, 1);
         return record;
+    }
+
+    /**
+     * Gets subset of MODS properties in JSON.
+     *
+     * @param pid PID of requested digital object
+     * @param editorId view defining subset of MODS properties
+     */
+    @GET
+    @Path("/custom_mods")
+    @Produces(MediaType.APPLICATION_JSON)
+    public CustomMods getCustomMods(
+            @QueryParam("pid") String pid,
+            @QueryParam("editorId") String editorId
+            ) {
+        
+        if (pid == null || pid.isEmpty()) {
+            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("invalid pid").type(MediaType.TEXT_PLAIN).build());
+        }
+        ModsRecord modsRecord = repository.getMods(pid);
+        ModsType mods = modsRecord.getMods();
+        Mapping mapping = new Mapping();
+        Object customData = mapping.read(mods, editorId);
+        CustomMods<Object> result = new CustomMods<Object>();
+        result.setPid(modsRecord.getPid());
+        result.setEditor(editorId);
+        result.setTimestamp(modsRecord.getTimestamp());
+        result.setData(customData);
+        return result;
+    }
+
+    @POST
+    @Path("/custom_mods")
+    @Produces({MediaType.APPLICATION_JSON})
+    public CustomMods updateCustomMods(
+            @FormParam("pid") String pid,
+            @FormParam("editorId") String editorId,
+            @FormParam("timestamp") Long timestamp,
+            @FormParam("customJsonData") String customJsonData
+            ) {
+
+        LOG.severe(String.format("pid: %s, editor: %s, timestamp: %s, json: %s", pid, editorId, timestamp, customJsonData));
+        if (pid == null || pid.isEmpty()) {
+            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("invalid pid").type(MediaType.TEXT_PLAIN).build());
+        }
+        if (timestamp == null) {
+            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("invalid timestamp").type(MediaType.TEXT_PLAIN).build());
+        }
+        ModsRecord modsRecord = repository.getMods(pid);
+        ModsType mods = modsRecord.getMods();
+        Mapping mapping = new Mapping();
+        Class<?> type = mapping.getType(editorId);
+        ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
+        try {
+            Object customData = jsMapper.readValue(customJsonData, type);
+            mapping.update(mods, customData, editorId);
+            String toXml = ModsUtils.toXml(mods, true);
+            LOG.severe(toXml);
+            ModsRecord newRecord = new ModsRecord(pid, mods, timestamp);
+            repository.updateMods(newRecord, 1);
+
+            CustomMods<Object> result = new CustomMods<Object>();
+            result.setPid(newRecord.getPid());
+            result.setEditor(editorId);
+            result.setTimestamp(newRecord.getTimestamp());
+            result.setData(customData);
+            return result;
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, pid, ex);
+            throw new WebApplicationException(ex);
+        }
     }
 
     @GET
@@ -287,6 +366,53 @@ public class DigitalObjectResource {
         }
     }
 
+    @XmlRootElement(name="mods")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class CustomMods<T> {
+        
+        private String pid;
+        private long timestamp;
+        @XmlElement(name = "editorId")
+        private String editor;
+        @XmlElement(name = "customJsonData")
+        private T data;
+
+        public CustomMods() {
+        }
+
+        public T getData() {
+            return data;
+        }
+
+        public void setData(T data) {
+            this.data = data;
+        }
+
+        public String getEditor() {
+            return editor;
+        }
+
+        public void setEditor(String editor) {
+            this.editor = editor;
+        }
+
+        public String getPid() {
+            return pid;
+        }
+
+        public void setPid(String pid) {
+            this.pid = pid;
+        }
+
+        public long getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(long timestamp) {
+            this.timestamp = timestamp;
+        }
+    }
+
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class MetaModel {
         
@@ -332,6 +458,7 @@ public class DigitalObjectResource {
     }
 
     @XmlRootElement(name="models")
+    @XmlAccessorType(XmlAccessType.FIELD)
     public static class MetaModelList {
         
         @XmlElement(name="model")
@@ -346,7 +473,8 @@ public class DigitalObjectResource {
 
     }
 
-    @XmlRootElement
+    @XmlRootElement(name="records")
+    @XmlAccessorType(XmlAccessType.FIELD)
     public static class DigitalObjectList {
 
         @XmlElement(name="record")

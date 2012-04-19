@@ -33,8 +33,8 @@ import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.form.validator.IntegerRangeValidator;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
-import cz.incad.pas.editor.client.ds.mods.PageDataSource;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -54,7 +54,7 @@ public final class PageForm extends DynamicForm {
         setTitleOrientation(TitleOrientation.TOP);
         setNumCols(4);
         setColWidths(20, 20, 20);
-        SelectItem pageType = new SelectItem(PageDataSource.FIELD_PAGE_TYPE, i18nPas.PageForm_PageType_Title());
+        SelectItem pageType = new SelectItem(ModsCustomDataSource.FIELD_PAGE_TYPE, i18nPas.PageForm_PageType_Title());
 //        radioGroupItem.setTooltip("podle ANL by tu mohlo byt mnohem vic typu. Viz http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd/PeriodicalPage[@Type]");
         LinkedHashMap<String, String> pageTypes = new LinkedHashMap<String, String>();
         pageTypes.put("ListOfIllustrations", i18nPas.PageForm_TypeListOfIllustrations_Title());
@@ -70,15 +70,15 @@ public final class PageForm extends DynamicForm {
         pageType.setValueMap(pageTypes);
         pageType.setDefaultValue("NormalPage");
 
-        IntegerItem pageIndex = new IntegerItem(PageDataSource.FIELD_PAGE_INDEX);
+        IntegerItem pageIndex = new IntegerItem(ModsCustomDataSource.FIELD_PAGE_INDEX);
         pageIndex.setTitle(i18nPas.PageForm_PageIndex_Title());
 
-        TextItem pageNumber = new TextItem(PageDataSource.FIELD_PAGE_NUMBER);
+        TextItem pageNumber = new TextItem(ModsCustomDataSource.FIELD_PAGE_NUMBER);
         pageNumber.setTitle(i18nPas.PageForm_PageNumber_Title());
         pageNumber.setEndRow(true);
 //        pageNumber.setLength(5);
 
-        final RepeatableFormItem identifiers = new RepeatableFormItem(PageDataSource.FIELD_IDENTIFIERS,
+        final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
                 i18nPas.PageForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
         DynamicForm identifierForm = new DynamicForm();
@@ -88,8 +88,8 @@ public final class PageForm extends DynamicForm {
         identifiers.setEndRow(true);
         identifiers.setColSpan("3");
 
-//        TextAreaItem note = new AutoFitTextAreaItem(PageDataSource.FIELD_NOTE, "Note");
-        TextAreaItem note = new TextAreaItem(PageDataSource.FIELD_NOTE, i18nPas.PageForm_Note_Title());
+//        TextAreaItem note = new AutoFitTextAreaItem(ModsCustomDataSource.FIELD_NOTE, "Note");
+        TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE, i18nPas.PageForm_Note_Title());
         note.setWidth("*");
         note.setHeight("*");
         note.setColSpan("*");
@@ -106,11 +106,11 @@ public final class PageForm extends DynamicForm {
                 Boolean valuesHaveChanged = valuesHaveChanged();
                 LOG.info("ModsPage.valuesHaveChanged: " + valuesHaveChanged);
                 LOG.info("identifiers.getFieldValue: " + idFieldVal);
-                Object idVal = values.get(PageDataSource.FIELD_IDENTIFIERS);
-                Object idOldVal = oldValues.get(PageDataSource.FIELD_IDENTIFIERS);
+                Object idVal = values.get(ModsCustomDataSource.FIELD_IDENTIFIERS);
+                Object idOldVal = oldValues.get(ModsCustomDataSource.FIELD_IDENTIFIERS);
                 LOG.info("identifiers.getValue: " + idVal);
                 LOG.info("identifiers.getOldValue: " + idOldVal);
-                LOG.info("identifiers.getChangedValues: " + changedValues.get(PageDataSource.FIELD_IDENTIFIERS));
+                LOG.info("identifiers.getChangedValues: " + changedValues.get(ModsCustomDataSource.FIELD_IDENTIFIERS));
                 LOG.info("identifiers.getChangedValues: " + ClientUtils.dump(changedValues, "", "  ", new StringBuilder()).toString());
 //                LOG.info("identifiers.getValue: " + ClientUtils.dump(values, "", "  ", new StringBuilder()).toString());
             }
@@ -132,8 +132,6 @@ public final class PageForm extends DynamicForm {
         });
 //        setFields(btnTest, btnSave, pageType, pageIndex, pageNumber, identifiers, note);
         setFields(pageType, pageIndex, pageNumber, identifiers, note);
-        // TODO DS should be universal for all types or there will be DS per type?
-        setDataSource(PageDataSource.getInstance());
 
         IntegerRangeValidator integerRangeValidator = new IntegerRangeValidator();
         integerRangeValidator.setMin(0);

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mods:mods version="3.4" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:identifier type="urn">cd2b2ad0-62d4-11dd-ac0e-000d606f5dc6</mods:identifier>
+    <mods:identifier type="sici"/>
+    <mods:identifier type="isbn"/>
+    <mods:identifier type="issn"/>
+    <mods:titleInfo>
+        <mods:title>Kniha zlatá, anebo, Nowý Zwěstowatel wsseho
+            dobrého a vžitečného pro Národ Slowenský
+        </mods:title>
+        <mods:subTitle>obsahugjcý: neydůležitěgssj a neyprospěssjěgssj k
+            čtenj předměty, gak z popsánj zemj, .... práce básnjřské
+            a giného wsseho obsahu zástoge
+        </mods:subTitle>
+    </mods:titleInfo>
+    <mods:titleInfo type="alternative">
+        <mods:title/>
+    </mods:titleInfo>
+    <mods:subject>
+        <mods:topic/>
+        <mods:cartographics>
+            <mods:scale/>
+        </mods:cartographics>
+    </mods:subject>
+    <mods:abstract/>
+    <mods:location>
+        <mods:physicalLocation>ABA000</mods:physicalLocation>
+        <mods:shelfLocator>54 D 000254/D.1-2</mods:shelfLocator>
+        <mods:shelfLocator>54 D 000254/D.1-2./Přív.1.</mods:shelfLocator>
+    </mods:location>
+    <mods:name type="personal">
+        <mods:namePart type="family">FamilyAuthor1</mods:namePart>
+        <mods:namePart type="given">GivenAuthor1</mods:namePart>
+        <mods:namePart type="given">GivenAuthor12</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code">cre</mods:roleTerm>
+            <mods:roleTerm type="text">Author</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:name type="personal">
+        <mods:namePart type="family">FamilyContributor1</mods:namePart>
+        <mods:namePart type="given">GivenContributor1</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code">ctb</mods:roleTerm>
+            <mods:roleTerm type="text">Contributor</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:name type="personal">
+        <mods:namePart type="family">FamilyAuthor2</mods:namePart>
+        <mods:namePart type="given">GivenAuthor2</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code">cre</mods:roleTerm>
+            <mods:roleTerm type="text">Author</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:name type="personal">
+        <mods:namePart type="family">FamilyXXX</mods:namePart>
+        <mods:namePart type="given">GivenXXX</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code">xxx</mods:roleTerm>
+            <mods:roleTerm type="text">XXX</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:name type="personal">
+        <mods:namePart type="family">FamilyContributor2</mods:namePart>
+        <mods:namePart type="given">GivenContributor2</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code">ctb</mods:roleTerm>
+            <mods:roleTerm type="text">Contributor</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:typeOfResource>text</mods:typeOfResource>
+    <mods:originInfo>
+        <mods:issuance>monographic</mods:issuance>
+    </mods:originInfo>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+    </mods:language>
+    <mods:physicalDescription>
+        <mods:form type="technique"/>
+        <mods:form type="material"/>
+        <mods:extent>Zbirka 1, 2</mods:extent>
+        <mods:note/>
+    </mods:physicalDescription>
+    <mods:classification authority="ddc"/>
+    <mods:classification authority="udc"/>
+    <mods:relatedItem type="series">
+        <mods:titleInfo>
+            <mods:title/>
+        </mods:titleInfo>
+    </mods:relatedItem>
+    <mods:accessCondition type="restrictionOnAccess"/>
+</mods:mods>

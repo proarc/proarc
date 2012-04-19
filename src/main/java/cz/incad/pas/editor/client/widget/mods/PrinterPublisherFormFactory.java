@@ -21,7 +21,7 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.DateItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import cz.incad.pas.editor.client.PasEditorMessages;
-import cz.incad.pas.editor.client.ds.mods.PageDataSource;
+import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.widget.mods.RepeatableFormItem.CustomFormFactory;
 
 /**
@@ -42,15 +42,15 @@ final class PrinterPublisherFormFactory implements CustomFormFactory {
     public DynamicForm create() {
         DynamicForm form = new DynamicForm();
         form.setNumCols(6);
-        TextItem place = new TextItem(PageDataSource.FIELD_PRINTER_PUBLISHER_PLACE,
+        TextItem place = new TextItem(ModsCustomDataSource.FIELD_PRINTER_PUBLISHER_PLACE,
                 i18nPas.PeriodicalForm_PrinterPublisherPlace_Title());
         place.setPrompt(i18nPas.PeriodicalForm_PrinterPublisherPlace_Hint());
-        TextItem name = new TextItem(PageDataSource.FIELD_PRINTER_PUBLISHER_NAME,
+        TextItem name = new TextItem(ModsCustomDataSource.FIELD_PRINTER_PUBLISHER_NAME,
                 i18nPas.PeriodicalForm_PrinterPublisherName_Title());
         name.setPrompt(publisher
                 ? i18nPas.PeriodicalForm_PublisherName_Hint()
                 : i18nPas.PeriodicalForm_PrinterName_Hint());
-        DateItem date = new DateItem(PageDataSource.FIELD_PRINTER_PUBLISHER_DATE,
+        DateItem date = new DateItem(ModsCustomDataSource.FIELD_PRINTER_PUBLISHER_DATE,
                 i18nPas.PeriodicalForm_PrinterPublisherDate_Title());
         date.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATE);
         date.setUseTextField(true);

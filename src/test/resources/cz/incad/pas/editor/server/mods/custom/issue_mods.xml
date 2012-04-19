@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mods:mods version="3.4" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:identifier type="urn">b82784d7-435d-11dd-b505-00145e5790ea</mods:identifier>
+    <mods:identifier type="sici"/>
+    <mods:identifier type="coden"/>
+    <mods:subject>
+        <mods:topic/>
+    </mods:subject>
+    <mods:abstract/>
+    <mods:titleInfo>
+        <mods:title/>
+        <mods:subTitle/>
+        <mods:partName/>
+    </mods:titleInfo>
+    <mods:titleInfo type="alternative">
+        <mods:title/>
+    </mods:titleInfo>
+    <mods:titleInfo type="uniform">
+        <mods:title/>
+    </mods:titleInfo>
+    <mods:typeOfResource>text</mods:typeOfResource>
+    <mods:originInfo>
+        <mods:issuance>continuing</mods:issuance>
+    </mods:originInfo>
+    <mods:physicalDescription>
+        <mods:form type="technique"/>
+        <mods:extent/>
+        <mods:note>nekvalitní a poškozená předloha;</mods:note>
+    </mods:physicalDescription>
+    <mods:classification authority="ddc"/>
+    <mods:classification authority="udc"/>
+    <mods:part type="PeriodicalIssue">
+        <mods:detail type="issue">
+            <mods:number>1</mods:number>
+            <mods:caption>2</mods:caption>
+        </mods:detail>
+        <mods:date>16.12.1893</mods:date>
+        <mods:text>note</mods:text>
+    </mods:part>
+    <mods:accessCondition type="restrictionOnAccess"/>
+</mods:mods>

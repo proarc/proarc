@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mods:mods version="3.4" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:titleInfo>
+        <mods:title>MTITLE[0]</mods:title>
+        <mods:subTitle>STITLE[0]</mods:subTitle>
+    </mods:titleInfo>
+    <mods:titleInfo type="alternative" displayLabel="Klíčový název">
+        <mods:title>KTITLE[0]</mods:title>
+    </mods:titleInfo>
+    <mods:titleInfo type="alternative">
+        <mods:title>ATITLE[0]</mods:title>
+    </mods:titleInfo>
+    <mods:titleInfo type="uniform">
+        <mods:title>UNSUPPORTED</mods:title>
+    </mods:titleInfo>
+    <mods:name type="personal">
+        <mods:namePart type="family">FamilyAuthor1</mods:namePart>
+        <mods:namePart type="given">GivenAuthor1</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code">cre</mods:roleTerm>
+            <mods:roleTerm type="text">Author</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:typeOfResource>text</mods:typeOfResource>
+    <mods:originInfo>
+        <mods:issuance>continuing</mods:issuance>
+        <mods:frequency>daily</mods:frequency>
+    </mods:originInfo>
+    <mods:originInfo transliteration="publisher">
+        <mods:place>
+            <mods:placeTerm type="text">PLACETERM[0]</mods:placeTerm>
+        </mods:place>
+        <mods:publisher>PUBLISHER[0]</mods:publisher>
+        <mods:dateIssued>DATE[0]</mods:dateIssued>
+    </mods:originInfo>
+    <mods:originInfo transliteration="printer">
+        <mods:place>
+            <mods:placeTerm type="text">PLACETERM[1]</mods:placeTerm>
+        </mods:place>
+        <mods:publisher>PRINTER[1]</mods:publisher>
+        <mods:dateCreated>DATE[1]</mods:dateCreated>
+    </mods:originInfo>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+    </mods:language>
+    <mods:physicalDescription>
+        <mods:extent>EXTENT</mods:extent>
+        <mods:extent>SIZE</mods:extent>
+    </mods:physicalDescription>
+    <mods:note>NOTE</mods:note>
+    <mods:subject>
+        <mods:topic>TOPIC</mods:topic>
+    </mods:subject>
+    <mods:classification authority="ddc">DDC</mods:classification>
+    <mods:classification authority="udc">UDC</mods:classification>
+    <mods:identifier type="type">IDENTIFIER</mods:identifier>
+    <mods:location>
+        <mods:physicalLocation>SIGLA</mods:physicalLocation>
+        <mods:shelfLocator>SHELF1</mods:shelfLocator>
+        <mods:shelfLocator>SHELF2</mods:shelfLocator>
+    </mods:location>
+    <mods:recordInfo>
+        <mods:recordOrigin>RECORDORIGIN</mods:recordOrigin>
+    </mods:recordInfo>
+</mods:mods>
+

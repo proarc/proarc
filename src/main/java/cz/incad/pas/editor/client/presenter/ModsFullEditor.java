@@ -41,6 +41,7 @@ import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.PageDataSource;
 import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
@@ -51,12 +52,11 @@ import cz.incad.pas.editor.client.widget.mods.PeriodicalForm;
 import cz.incad.pas.editor.client.widget.mods.PeriodicalIssueForm;
 import cz.incad.pas.editor.client.widget.mods.PeriodicalVolumeForm;
 import java.util.Arrays;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
- * TODO: a) implement Save button
- * TODO: b) implement change detection instead of Save button
+ * TODO: introduce /object/mods(pid) returning text/plain
  * TODO: BUG: 2 Notes note1 and note2 are displayed as note2 and note1 in Notes tab
  *
  * @author Jan Pokorsky
@@ -65,18 +65,20 @@ public final class ModsFullEditor {
 
     private static final Logger LOG = Logger.getLogger(ModsFullEditor.class.getName());
     private static final String TAB_FULL = "FULL_ModsFullEditor";
-    private static final String TAB_SIMPLE = "SIMPLE_ModsFullEditor";
+    private static final String TAB_CUSTOM = "CUSTOM_ModsFullEditor";
     private static final String TAB_XML = "XML_ModsFullEditor";
 
     private ModsTab modsTab;
     private ModsGwtRecord editedMods;
+    private Record editedCustomMods;
     private final VLayout modsContainer;
     private String pid;
     private MetaModelRecord model;
     private TabSet tabSet;
-    private DynamicForm simpleForm;
+    private DynamicForm customForm;
     private DynamicForm sourceForm;
-    private boolean loadingData = false;
+    private boolean ignoreTabSelection = false;
+    private boolean ignoreTabDeselection = false;
     private final PasEditorMessages i18nPas;
 
     private ModsFullEditor(boolean tabbed, PasEditorMessages i18nPas) {
@@ -89,8 +91,8 @@ public final class ModsFullEditor {
             tabFull.setID(TAB_FULL);
             tabFull.setPane(modsContainer);
 
-            Tab tabSimple = new Tab(verticalTitle(i18nPas.ModsFullEditor_TabSimple_Title()));
-            tabSimple.setID(TAB_SIMPLE);
+            Tab tabCustom = new Tab(verticalTitle(i18nPas.ModsFullEditor_TabSimple_Title()));
+            tabCustom.setID(TAB_CUSTOM);
 
             Tab tabSource = new Tab(verticalTitle(i18nPas.ModsFullEditor_TabSource_Title()));
             tabSource.setID(TAB_XML);
@@ -104,47 +106,73 @@ public final class ModsFullEditor {
             sourceItem.setWidth("*");
             sourceItem.setHeight("*");
             sourceItem.setShowTitle(false);
-//            sourceItem.setDisabled(true);
             sourceForm.setFields(sourceItem);
             tabSource.setPane(sourceForm);
 
             tabSet = new TabSet();
-            tabSet.setTabs(tabSimple, tabFull, tabSource);
+            tabSet.setTabs(tabCustom, tabFull, tabSource);
             tabSet.setTabBarPosition(Side.LEFT);
-//            tabSet.selectTab(tabFull);
 
             tabSet.addTabSelectedHandler(new TabSelectedHandler() {
 
                 @Override
                 public void onTabSelected(TabSelectedEvent event) {
-                    if (loadingData || editedMods == null) {
-                        loadingData = false;
+                    if (ignoreTabSelection) {
+                        ignoreTabSelection = false;
+                        return ;
+                    }
+                    if (editedCustomMods != null || editedMods != null) {
                         return ;
                     }
                     String tabId = event.getID();
                     ClientUtils.info(LOG, "onTabSelected tabId: %s", tabId);
-                    loadTabData(tabId, null);
+                    Criteria pidCriteria = new Criteria(ModsCustomDataSource.FIELD_PID, pid);
+                    loadTabData(tabId, pidCriteria);
                 }
             });
 
             tabSet.addTabDeselectedHandler(new TabDeselectedHandler() {
 
                 @Override
-                public void onTabDeselected(TabDeselectedEvent event) {
-                    if (loadingData) {
+                public void onTabDeselected(final TabDeselectedEvent event) {
+                    if (ignoreTabDeselection) {
+                        ignoreTabDeselection = false;
                         return;
                     }
                     String tabId = event.getID();
                     if (TAB_FULL.equals(tabId)) {
+                        event.cancel();
+                        if (editedMods == null) {
+                            return ;
+                        }
                         ModsTypeClient mc = modsTab.getMods();
                         ModsCollectionClient mcc = new ModsCollectionClient();
                         mcc.setMods(Arrays.asList(mc));
                         editedMods.setMods(mcc);
-                    } else if (TAB_SIMPLE.equals(tabId)) {
-                        // do not use pageForm.getValuesAsRecord()
-//                        Record r = pageForm.getValuesAsRecord();
-                        Record r = new Record(simpleForm.getValues());
-                        editedMods = PageDataSource.getInstance().convert(r);
+                        // XXX save GWT MODS here
+                        saveFullData(pid, editedMods, new Runnable() {
+
+                            @Override
+                            public void run() {
+                                ignoreTabDeselection = true;
+                                Tab newTab = event.getNewTab();
+                                tabSet.selectTab(newTab);
+                            }
+                        });
+                    } else if (TAB_CUSTOM.equals(tabId)) {
+                        event.cancel();
+                        if (editedCustomMods == null) {
+                            return ;
+                        }
+                        saveCustomData(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                ignoreTabDeselection = true;
+                                Tab newTab = event.getNewTab();
+                                tabSet.selectTab(newTab);
+                            }
+                        });
                     } else if (TAB_XML.equals(tabId)) {
                         editedMods = (ModsGwtRecord) sourceForm.getValue(PageDataSource.FIELD_MODS_TRANSPORT_OBJECT);
                     } else {
@@ -171,21 +199,24 @@ public final class ModsFullEditor {
     }
 
     private void loadFull(Criteria pid) {
-        PageDataSource.getInstance().fetchData(pid, new DSCallback() {
+        final String spid = pid.getAttribute(ModsCustomDataSource.FIELD_PID);
+        ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
+        service.read(spid, new AsyncCallback<ModsGwtRecord>() {
 
             @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (RPCResponse.STATUS_SUCCESS == response.getStatus()) {
-                    modsContainer.setContents("");
-                    Record record = response.getData()[0];
-                    ModsGwtRecord modsRecord = PageDataSource.getMods(record);
-                    editedMods = modsRecord;
-                    ModsCollectionClient mc = modsRecord.getMods();
-                    ClientUtils.info(LOG, "loadFull mods: %s", mc);
-                    loadFull(modsRecord);
-                } else {
-                    modsContainer.setContents("Loading FAILED!");
-                }
+            public void onFailure(Throwable caught) {
+                ClientUtils.severe(LOG, "read failed: " + caught.getMessage());
+                LOG.log(Level.SEVERE, "fetchRequest.onFailure: " + spid, caught);
+                modsContainer.setContents("Loading FAILED!");
+            }
+
+            @Override
+            public void onSuccess(ModsGwtRecord modsTransport) {
+                editedMods = modsTransport;
+                ModsCollectionClient mc = modsTransport.getMods();
+                ClientUtils.info(LOG, "loadFull mods: %s", mc);
+                modsContainer.setContents("");
+                loadFull(modsTransport);
             }
         });
     }
@@ -197,22 +228,34 @@ public final class ModsFullEditor {
         modsContainer.setMembers(modsLayout);
     }
 
-    private void loadBasic(Criteria pid, MetaModelRecord model) {
+    private void loadCustom(Criteria pid, MetaModelRecord model) {
         Criteria criteria = new Criteria(MetaModelDataSource.FIELD_EDITOR, model.getEditorId());
         criteria.addCriteria(pid);
-        simpleForm.fetchData(criteria);
-    }
+        ClientUtils.info(LOG, "loadCustom pid: %s, editor: %s", pid, model.getEditorId());
+        ModsCustomDataSource.getInstance().fetchData(criteria, new DSCallback() {
 
-    private void loadBasic(ModsGwtRecord modsRecord) {
-        ClientUtils.info(LOG, "loadBasic pid: %s, editor: %s, mods: %s", pid, model.getEditorId(), modsRecord);
-        Record record = PageDataSource.getInstance().convert(pid, model.getEditorId(), modsRecord);
-        simpleForm.editRecord(record);
-        // XXX if it triggers fetch then use toMap
-//        pageForm.setValues(data[0].toMap());
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                Record[] data = response.getData();
+//                ClientUtils.severe(LOG, "Custom data: %s, %s", data.length, ClientUtils.dump(data[0].getJsObj()));
+                editedCustomMods = data[0];
+                Record rec = editedCustomMods.getAttributeAsRecord(ModsCustomDataSource.FIELD_DATA);
+                if (rec != null) {
+                    customForm.editRecord(rec);
+                }
+            }
+        });
     }
 
     private void loadSource(final ModsGwtRecord modsRecord) {
         ClientUtils.info(LOG, "loadSource pid: %s, mods: %s", pid, modsRecord);
+        if (modsRecord == null) {
+            // XXX replace with rela service
+            Record record = new Record();
+            record.setAttribute("source", "Here will go XML for " + pid);
+            sourceForm.editRecord(record);
+            return ;
+        }
         // implement this with PageDataSource.fetch(new Criteria("fetch=XML"))
         ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
         service.getXml(modsRecord.getMods(), new AsyncCallback<String>() {
@@ -234,26 +277,17 @@ public final class ModsFullEditor {
 
     private void loadTabData(String tabId, Criteria pid) {
         if (TAB_FULL.equals(tabId)) {
-            if (pid == null) {
-                loadFull(editedMods);
-            } else {
-                loadFull(pid);
-            }
-        } else if (TAB_SIMPLE.equals(tabId)) {
-            if (pid == null) {
-                loadBasic(editedMods);
-            } else {
-                loadBasic(pid, model);
-            }
+            loadFull(pid);
+        } else if (TAB_CUSTOM.equals(tabId)) {
+            loadCustom(pid, model);
         } else if (TAB_XML.equals(tabId)) {
             loadSource(editedMods);
         } else {
-            // XXX load default form
             throw new IllegalStateException("ModsFullEditor.loadTabData: unknown tabId: " + tabId);
         }
     }
 
-    private DynamicForm createSimpleForm(MetaModelRecord model) {
+    private DynamicForm createCustomForm(MetaModelRecord model) {
         DynamicForm form = null;
         final String editorId = model.getEditorId();
         if (MetaModelDataSource.EDITOR_PAGE.equals(editorId)) {
@@ -278,92 +312,88 @@ public final class ModsFullEditor {
         this.pid = pid;
         this.model = model;
         this.editedMods = null;
-        // XXX simple forms should be cached
-        this.simpleForm = createSimpleForm(model);
+        this.editedCustomMods = null;
+        // XXX custom forms should be cached
+        this.customForm = createCustomForm(model);
 
         // as TabSet.getSelectedTab fires TabSelectedEvent!!!
-//        this.loadingData = true;
+        ignoreTabSelection = true;
         Tab selectedTab = tabSet.getSelectedTab();
-        Tab simpleTab = tabSet.getTab(TAB_SIMPLE);
-        boolean unknownModelEditor = simpleForm == null;
+        Tab customTab = tabSet.getTab(TAB_CUSTOM);
+        boolean unknownModelEditor = customForm == null;
         if (unknownModelEditor) {
-            tabSet.disableTab(TAB_SIMPLE);
+            tabSet.disableTab(TAB_CUSTOM);
         } else {
-            tabSet.enableTab(TAB_SIMPLE);
+            tabSet.enableTab(TAB_CUSTOM);
         }
-        ClientUtils.info(LOG, "simpleTab.setDisabled: %s", unknownModelEditor);
-        if (simpleForm != simpleTab.getPane()) {
-            // set new simple form
-            simpleTab.setPane(simpleForm);
+        ClientUtils.info(LOG, "customTab.setDisabled: %s", unknownModelEditor);
+        if (customForm != customTab.getPane()) {
+            // set new custom form
+            customTab.setPane(customForm);
         }
-        if (selectedTab == simpleTab && unknownModelEditor) {
+        if (selectedTab == customTab && unknownModelEditor) {
             // unknown model, use full form
-            loadingData = true;
+            ignoreTabSelection = ignoreTabDeselection = true;
             tabSet.selectTab(TAB_FULL);
             selectedTab = tabSet.getTab(TAB_FULL);
-        } else if (!unknownModelEditor && selectedTab != simpleTab) {
-            loadingData = true;
-            tabSet.selectTab(TAB_SIMPLE);
-            selectedTab = tabSet.getTab(TAB_SIMPLE);
+        } else if (!unknownModelEditor && selectedTab != customTab) {
+            ignoreTabSelection = ignoreTabDeselection = true;
+            tabSet.selectTab(TAB_CUSTOM);
+            selectedTab = tabSet.getTab(TAB_CUSTOM);
         }
 
-        Criteria pidCriteria = new Criteria(PageDataSource.FIELD_PID, pid);
+        Criteria pidCriteria = new Criteria(ModsCustomDataSource.FIELD_PID, pid);
         ClientUtils.info(LOG, "loadData tabId: %s", selectedTab.getID());
         loadTabData(selectedTab.getID(), pidCriteria);
-
-        //        modsContainer.setMembers();
-        //        modsContainer.setContents("Loading MODS data...");
-        //        ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
-        //        service.read(pid, new AsyncCallback<ModsCollectionClient>() {
-        //
-        //            @Override
-        //            public void onFailure(Throwable caught) {
-        //                modsContainer.setContents("Loading FAILED!");
-        //                GWT.log("data loading failed", caught);
-        //            }
-        //
-        //            @Override
-        //            public void onSuccess(ModsCollectionClient result) {
-        //                modsTab = new ModsTab(1, result);
-        //                VLayout modsLayout = modsTab.getModsLayout();
-        //                modsContainer.setMembers(modsLayout);
-        //            }
-        //        });
     }
 
-    public void saveData() {
-//        modsContainer.setMembers();
-//        modsContainer.setContents("Saving MODS data...");
-//        ModsTypeClient mc = this.modsTab.getMods();
-//        ModsCollectionClient mcc = new ModsCollectionClient();
-//        mcc.setMods(Arrays.asList(mc));
-//        ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
-//        service.write(this.pid, mcc, new AsyncCallback<String>() {
-//
-//            @Override
-//            public void onFailure(Throwable caught) {
-//                modsContainer.setContents("Save FAILED!");
-//                GWT.log("data saving failed", caught);
-//            }
-//
-//            @Override
-//            public void onSuccess(String newOrExistingId) {
-//                ModsFullEditor.this.pid = newOrExistingId;
-////                modsContainer.setMembers(content);
-//                loadData(newOrExistingId, model);
-//            }
-//        });
+    public void saveFullData(String pid, final ModsGwtRecord mods, final Runnable callback) {
+        editedMods = null;
+        ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
+        service.write(pid, mods, new AsyncCallback<String>() {
+
+            @Override
+            public void onFailure(Throwable caught) {
+                editedMods = mods;
+                modsContainer.setContents("Save FAILED!");
+                LOG.log(Level.SEVERE, "data saving failed", caught);
+            }
+
+            @Override
+            public void onSuccess(String newOrExistingId) {
+                ModsFullEditor.this.pid = newOrExistingId;
+                if (callback != null) {
+                    callback.run();
+                }
+            }
+        });
     }
 
-//    public void newData() {
-//        this.pid = null;
-//        this.modsTab = new ModsTab(1);
-//        this.modsContainer.setMembers(modsTab.getModsLayout());
-//    }
+    public void saveCustomData(final Runnable callback) {
+        // do not use customForm.getValuesAsRecord()
+        Record r = new Record(customForm.getValues());
+//        ClientUtils.severe(LOG, "saveCustomData: %s", ClientUtils.dump(r.getJsObj()));
+
+        final Record toSave = editedCustomMods;
+        editedCustomMods = null;
+        toSave.setAttribute(ModsCustomDataSource.FIELD_DATA, r);
+//        ClientUtils.severe(LOG, "saveCustomData.ready: %s", ClientUtils.dump(toSave.getJsObj()));
+        ModsCustomDataSource.getInstance().updateData(toSave, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (RPCResponse.STATUS_SUCCESS != response.getStatus()) {
+                    editedCustomMods = toSave;
+                    return ;
+                }
+                if (callback != null) {
+                    callback.run();
+                }
+            }
+        });
+    }
 
     public Canvas getUI() {
-//        modsTab = new ModsTab(1);
-//        modsContainer.setMembers(modsTab.getModsLayout());
         return tabSet != null ? tabSet : modsContainer;
     }
 

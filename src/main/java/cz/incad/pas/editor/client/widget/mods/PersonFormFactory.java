@@ -19,6 +19,7 @@ package cz.incad.pas.editor.client.widget.mods;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.widget.mods.RepeatableFormItem.CustomFormFactory;
 
 /**
@@ -37,9 +38,9 @@ final class PersonFormFactory implements CustomFormFactory {
     public DynamicForm create() {
         DynamicForm form = new DynamicForm();
         form.setNumCols(4);
-        TextItem family = new TextItem("family", i18nPas.PeriodicalForm_FamilyName_Title());
+        TextItem family = new TextItem(ModsCustomDataSource.FIELD_NAME_FAMILY, i18nPas.PeriodicalForm_FamilyName_Title());
         family.setPrompt(i18nPas.PeriodicalForm_FamilyName_Hint());
-        TextItem given = new TextItem("given", i18nPas.PeriodicalForm_GivenName_Title());
+        TextItem given = new TextItem(ModsCustomDataSource.FIELD_NAME_GIVEN, i18nPas.PeriodicalForm_GivenName_Title());
         given.setPrompt(i18nPas.PeriodicalForm_GivenName_Hint());
         form.setFields(family, given);
         return form;

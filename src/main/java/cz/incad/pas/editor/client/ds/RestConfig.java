@@ -36,6 +36,7 @@ public class RestConfig {
     public static final String URL_IMPORT_BATCH_ITEM =  URL_IMPORT_BATCH + "/item";
     public static final String URL_DIGOBJECT =  URL_ROOT + "/object";
     public static final String URL_DIGOBJECT_DC =  URL_DIGOBJECT + "/dc";
+    public static final String URL_DIGOBJECT_MODS_CUSTOM =  URL_DIGOBJECT + "/custom_mods";
     public static final String URL_DIGOBJECT_OCR =  URL_DIGOBJECT + "/ocr";
     public static final String URL_DIGOBJECT_PREVIEW =  URL_DIGOBJECT + "/preview";
     public static final String URL_DIGOBJECT_THUMBNAIL =  URL_DIGOBJECT + "/thumb";

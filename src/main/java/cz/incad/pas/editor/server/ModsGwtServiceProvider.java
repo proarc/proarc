@@ -29,8 +29,8 @@ import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.ModsRecord;
-import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
+import cz.incad.pas.editor.server.mods.ModsUtils;
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +38,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.UnavailableException;
-import javax.xml.bind.JAXB;
+import javax.xml.transform.stream.StreamSource;
 
 /**
  * Simple MODS provider.
@@ -83,11 +83,7 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
         if (modsXml == null || modsXml.isEmpty()) {
             modsType = new ModsType();
         } else {
-            try {
-                modsType = JAXB.unmarshal(new ByteArrayInputStream(modsXml.getBytes("UTF-8")), ModsType.class);
-            } catch (UnsupportedEncodingException ex) {
-                throw new IllegalStateException(ex);
-            }
+            modsType = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(modsXml)));
         }
         ModsCollection mods = new ModsCollection();
         mods.setMods(Arrays.asList(modsType));
@@ -137,7 +133,7 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
         if (modsRec == null) {
             throw new IllegalArgumentException("Invalid id: " + id);
         }
-        ModsCollection mods = modsRec.getMods();
+        ModsCollection mods = modsRec.getModsCollection();
         String xml = mods == null ? null : BiblioModsUtils.toXML(mods);
         int xmlHash = xml == null ? 0 : xml.hashCode();
         LOG.log(Level.INFO, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});

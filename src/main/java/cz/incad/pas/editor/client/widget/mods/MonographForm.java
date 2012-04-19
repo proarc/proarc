@@ -23,8 +23,8 @@ import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
-import cz.incad.pas.editor.client.ds.mods.PageDataSource;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
@@ -44,7 +44,7 @@ public final class MonographForm extends DynamicForm {
         setNumCols(2);
 
         // identifiers
-        final RepeatableFormItem identifiers = new RepeatableFormItem(PageDataSource.FIELD_IDENTIFIERS,
+        final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
                 i18nPas.MonographForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
         DynamicForm identifierForm = new DynamicForm();
@@ -54,51 +54,53 @@ public final class MonographForm extends DynamicForm {
         identifiers.setEndRow(true);
         identifiers.setColSpan("2");
 
-        TextItem sigla = new TextItem(PageDataSource.FIELD_SIGLA, i18nPas.MonographForm_Sigla_Title());
+        TextItem sigla = new TextItem(ModsCustomDataSource.FIELD_SIGLA, i18nPas.MonographForm_Sigla_Title());
 
         RepeatableFormItem shelfLocators = new RepeatableFormItem(
-                PageDataSource.FIELD_SHELF_LOCATORS, i18nPas.MonographForm_ShelfLocators_Title(),
-                new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false));
+                ModsCustomDataSource.FIELD_SHELF_LOCATORS, i18nPas.MonographForm_ShelfLocators_Title(),
+                new StringFormFactory(ModsCustomDataSource.FIELD_STRING_VALUE, null, false));
 //        shelfLocators.setRowSpan(2);
 
         // titles
         RepeatableFormItem titles = new RepeatableFormItem(
-                PageDataSource.FIELD_TITLES, i18nPas.MonographForm_Titles_Title(),
-                new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false, 600));
+                ModsCustomDataSource.FIELD_TITLES, i18nPas.MonographForm_Titles_Title(),
+                new StringFormFactory(ModsCustomDataSource.FIELD_STRING_VALUE, null, false, 600));
         oneRow(titles);
 
         RepeatableFormItem subtitles = new RepeatableFormItem(
-                PageDataSource.FIELD_SUBTITLES, i18nPas.MonographForm_Subtitles_Title(),
-                new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false, 600));
+                ModsCustomDataSource.FIELD_SUBTITLES, i18nPas.MonographForm_Subtitles_Title(),
+                new StringFormFactory(ModsCustomDataSource.FIELD_STRING_VALUE, null, false, 600));
         oneRow(subtitles);
 
         RepeatableFormItem alternativeTitles = new RepeatableFormItem(
-                PageDataSource.FIELD_ALTERNATIVE_TITLES, i18nPas.MonographForm_AlternativeTitles_Title(),
-                new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false, 600));
+                ModsCustomDataSource.FIELD_ALTERNATIVE_TITLES, i18nPas.MonographForm_AlternativeTitles_Title(),
+                new StringFormFactory(ModsCustomDataSource.FIELD_STRING_VALUE, null, false, 600));
         oneRow(alternativeTitles);
 
         // authors
-        RepeatableFormItem authors = new RepeatableFormItem(PageDataSource.FIELD_AUTHORS,
+        RepeatableFormItem authors = new RepeatableFormItem(ModsCustomDataSource.FIELD_AUTHORS,
                 i18nPas.MonographForm_Authors_Title(), new PersonFormFactory(i18nPas));
         oneRow(authors);
-        RepeatableFormItem contribs = new RepeatableFormItem(PageDataSource.FIELD_CONTRIBUTORS,
+        RepeatableFormItem contribs = new RepeatableFormItem(ModsCustomDataSource.FIELD_CONTRIBUTORS,
                 i18nPas.MonographForm_Contributors_Title(), new PersonFormFactory(i18nPas));
         oneRow(contribs);
-        RepeatableFormItem printers = new RepeatableFormItem(PageDataSource.FIELD_PRINTERS,
+        RepeatableFormItem printers = new RepeatableFormItem(ModsCustomDataSource.FIELD_PRINTERS,
                 i18nPas.MonographForm_Printers_Title(), new PrinterPublisherFormFactory(false, i18nPas));
         oneRow(printers);
-        RepeatableFormItem publishers = new RepeatableFormItem(PageDataSource.FIELD_PUBLISHERS,
+        RepeatableFormItem publishers = new RepeatableFormItem(ModsCustomDataSource.FIELD_PUBLISHERS,
                 i18nPas.MonographForm_Publishers_Title(), new PrinterPublisherFormFactory(true, i18nPas));
         oneRow(publishers);
 
-        RepeatableFormItem languages = new RepeatableFormItem(PageDataSource.FIELD_LANGUAGES,
+        RepeatableFormItem languages = new RepeatableFormItem(ModsCustomDataSource.FIELD_LANGUAGES,
                 i18nPas.MonographForm_Languages_Title(), new RepeatableFormItem.CustomFormFactory() {
 
             @Override
             public DynamicForm create() {
                 DynamicForm form = new DynamicForm();
 //                form.setNumCols(6);
-                ComboBoxItem language = new ComboBoxItem("languageCode", i18nPas.MonographForm_LanguageCode_Title());
+                ComboBoxItem language = new ComboBoxItem(ModsCustomDataSource.FIELD_LANGUAGE_CODE,
+                        i18nPas.MonographForm_LanguageCode_Title());
+                
                 LinkedHashMap<String, String> valueMap = new LinkedHashMap<String, String>();
                 valueMap.put("cze", "Czech - cze");
                 valueMap.put("eng", "English - eng");
@@ -109,16 +111,16 @@ public final class MonographForm extends DynamicForm {
             }
         });
 
-        RepeatableFormItem subjects = new RepeatableFormItem(PageDataSource.FIELD_CLASSIFICATIONS,
+        RepeatableFormItem subjects = new RepeatableFormItem(ModsCustomDataSource.FIELD_CLASSIFICATIONS,
                 i18nPas.MonographForm_Subjects_Title(), new RepeatableFormItem.CustomFormFactory() {
 
             @Override
             public DynamicForm create() {
                 DynamicForm form = new DynamicForm();
                 form.setNumCols(4);
-                TextItem udc = new TextItem(PageDataSource.FIELD_CLASSIFICATION_UDC,
+                TextItem udc = new TextItem(ModsCustomDataSource.FIELD_CLASSIFICATION_UDC,
                         i18nPas.MonographForm_SubjectsUdc_Title()); // MDT in czech
-                TextItem ddc = new TextItem(PageDataSource.FIELD_CLASSIFICATION_DDC,
+                TextItem ddc = new TextItem(ModsCustomDataSource.FIELD_CLASSIFICATION_DDC,
                         i18nPas.MonographForm_SubjectsDdc_Title()); // DDT in czech
                 form.setFields(udc, ddc);
                 return form;
@@ -126,12 +128,12 @@ public final class MonographForm extends DynamicForm {
         });
         oneRow(subjects);
 
-        RepeatableFormItem keywords = new RepeatableFormItem(PageDataSource.FIELD_KEYWORDS,
+        RepeatableFormItem keywords = new RepeatableFormItem(ModsCustomDataSource.FIELD_KEYWORDS,
                 i18nPas.MonographForm_Keywords_Title(),
-                new StringFormFactory(PageDataSource.FIELD_STRING_VALUE, null, false));
+                new StringFormFactory(ModsCustomDataSource.FIELD_STRING_VALUE, null, false));
 
         RepeatableFormItem physicalDescriptions = new RepeatableFormItem(
-                PageDataSource.FIELD_PHYSICAL_DESCRIPTIONS,
+                ModsCustomDataSource.FIELD_PHYSICAL_DESCRIPTIONS,
                 i18nPas.MonographForm_PhysicalDescriptions_Title(),
                 new RepeatableFormItem.CustomFormFactory() {
 
@@ -139,9 +141,9 @@ public final class MonographForm extends DynamicForm {
             public DynamicForm create() {
                 DynamicForm form = new DynamicForm();
                 form.setNumCols(4);
-                TextItem extent = new TextItem(PageDataSource.FIELD_PHYSICAL_DESCRIPTIONS_EXTENT,
+                TextItem extent = new TextItem(ModsCustomDataSource.FIELD_PHYSICAL_DESCRIPTIONS_EXTENT,
                         i18nPas.MonographForm_PhysicalDescriptionsExtent_Title()); // rozsah
-                TextItem size = new TextItem(PageDataSource.FIELD_PHYSICAL_DESCRIPTIONS_SIZE,
+                TextItem size = new TextItem(ModsCustomDataSource.FIELD_PHYSICAL_DESCRIPTIONS_SIZE,
                         i18nPas.MonographForm_PhysicalDescriptionsSize_Title()); // Rozmery
                 form.setFields(extent, size);
                 return form;
@@ -149,22 +151,22 @@ public final class MonographForm extends DynamicForm {
         });
         oneRow(physicalDescriptions);
 
-        TextItem recordOrigin = new TextItem(PageDataSource.FIELD_RECORD_ORIGIN,
+        TextItem recordOrigin = new TextItem(ModsCustomDataSource.FIELD_RECORD_ORIGIN,
                 i18nPas.MonographForm_RecordOrigin_Title());
         recordOrigin.setWidth("*");
         oneRow(recordOrigin);
 
-        TextItem preservationTreatment = new TextItem(PageDataSource.FIELD_PRESERVATION_TREATMENT,
+        TextItem preservationTreatment = new TextItem(ModsCustomDataSource.FIELD_PRESERVATION_TREATMENT,
                 i18nPas.MonographForm_PreservationTreatment_Title());
         preservationTreatment.setWidth("*");
         oneRow(preservationTreatment);
 
-        TextItem preservationStateOfArt = new TextItem(PageDataSource.FIELD_PRESERVATION_STATEOFART,
+        TextItem preservationStateOfArt = new TextItem(ModsCustomDataSource.FIELD_PRESERVATION_STATEOFART,
                 i18nPas.MonographForm_PreservationStateOfArt_Title());
         preservationStateOfArt.setWidth("*");
         oneRow(preservationStateOfArt);
 
-        TextAreaItem note = new TextAreaItem(PageDataSource.FIELD_NOTE,
+        TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE,
                 i18nPas.MonographForm_Note_Title());
         note.setWidth("*");
         note.setHeight("*");
@@ -175,8 +177,6 @@ public final class MonographForm extends DynamicForm {
         setFields(identifiers, sigla, shelfLocators, titles, subtitles, alternativeTitles, authors,
                 contribs, printers, publishers, languages, subjects, keywords,
                 physicalDescriptions, recordOrigin, preservationTreatment, preservationStateOfArt, note);
-        
-        setDataSource(PageDataSource.getInstance());
     }
 
     private static void oneRow(FormItem fi) {

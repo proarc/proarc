@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mods:mods version="3.4" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:identifier type="urn">5fe0b160-62d5-11dd-bdc7-000d606f5dc6</mods:identifier>
+    <mods:identifier type="sici"/>
+    <mods:identifier type="isbn"/>
+    <mods:titleInfo>
+        <mods:title>Kniha zlatá, anebo, Nowý Zwěstowatel wsseho
+            dobrého a vžitečného pro Národ Slowenský.
+        </mods:title>
+        <mods:subTitle>obsahugjcý: neydůležitěgssj a neyprospěssjěgssj k
+            čtenj předměty, gak z popsánj zemj, .... práce básnjřské
+            a giného wsseho obsahu zástoge
+        </mods:subTitle>
+    </mods:titleInfo>
+    <mods:titleInfo type="alternative">
+        <mods:title>Kniha zlatá, anebo, Nový Zvěstovatel všeho
+            dobrého a užitečného pro Národ Slovenský
+        </mods:title>
+    </mods:titleInfo>
+    <mods:subject>
+        <mods:topic/>
+        <mods:cartographics>
+            <mods:scale/>
+        </mods:cartographics>
+    </mods:subject>
+    <mods:name type="personal">
+        <mods:namePart type="family">Kramerius</mods:namePart>
+        <mods:namePart type="given">Václav</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code">cre</mods:roleTerm>
+            <mods:roleTerm type="text">Author</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:originInfo transliteration="publisher">
+        <mods:place>
+            <mods:placeTerm type="text">W Praze</mods:placeTerm>
+        </mods:place>
+        <mods:publisher>W.R. Kraméryus</mods:publisher>
+        <mods:dateIssued>1817</mods:dateIssued>
+    </mods:originInfo>
+    <mods:originInfo>
+        <mods:issuance>monographic</mods:issuance>
+    </mods:originInfo>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+    </mods:language>
+    <mods:physicalDescription>
+        <mods:form type="technique"/>
+        <mods:form type="material"/>
+        <mods:extent>17 cm,192 s. ;</mods:extent>
+        <mods:note/>
+    </mods:physicalDescription>
+    <mods:physicalDescription>
+        <mods:note type="preservationStateOfArt">nekvalitní předloha; průtisk v
+            celém svazku;
+        </mods:note>
+        <mods:note type="action"/>
+    </mods:physicalDescription>
+    <mods:classification authority="ddc"/>
+    <mods:classification authority="udc"/>
+    <mods:part type="Volume">
+        <mods:detail>
+            <mods:title/>
+            <mods:number>Zbirka 1</mods:number>
+        </mods:detail>
+    </mods:part>
+    <mods:accessCondition type="restrictionOnAccess"/>
+</mods:mods>

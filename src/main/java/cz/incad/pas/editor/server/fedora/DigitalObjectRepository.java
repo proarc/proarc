@@ -22,7 +22,9 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObjectType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
+import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.oaidublincore.ElementType;
 import cz.incad.pas.oaidublincore.OaiDcType;
 import java.io.File;
@@ -32,6 +34,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -47,7 +50,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.ls.DOMImplementationLS;
@@ -240,21 +245,53 @@ public final class DigitalObjectRepository {
     }
 
     public ModsRecord getMods(String pid) {
-        DigitalObjectRecord dor = getDigitalObjectRecord(pid);
-        return dor.getMods();
+        DigitalObjectRecord doRecord;
+        synchronized(memoryImpl) {
+            doRecord = getDigitalObjectRecord(pid);
+            ModsRecord modsRecord = doRecord.getMods();
+            if (modsRecord != null) {
+                return modsRecord;
+            }
+        }
+
+        DatastreamVersionType ds = findDataStreamVersion(findFoxml(pid), "BIBLIO_MODS");
+
+        synchronized(memoryImpl) {
+            ModsRecord modsRecord = doRecord.getMods();
+            if (modsRecord == null) {
+                List<Element> any = ds.getXmlContent().getAny();
+                ModsType mods = ModsUtils.unmarshalModsType(new DOMSource(any.get(0)));
+                modsRecord = new ModsRecord(pid, mods, System.currentTimeMillis());
+                doRecord.setMods(modsRecord);
+            }
+            return modsRecord;
+        }
     }
 
     public void updateMods(ModsRecord mods, int user) {
+        DigitalObjectRecord doRecord;
         synchronized(memoryImpl) {
-            DigitalObjectRecord dor = getDigitalObjectRecord(mods.getPid());
-            if (dor != null) {
-                ModsRecord modsOld = dor.getMods();
-                if (modsOld != null && modsOld.timestamp > mods.getTimestamp()) {
-                    throw new IllegalStateException("MODS already modified: " + mods.getPid());
-                }
-                mods.timestamp = System.currentTimeMillis();
-                dor.setMods(mods);
+            doRecord = getDigitalObjectRecord(mods.getPid());
+            ModsRecord modsOld = doRecord.getMods();
+            if (modsOld.timestamp == 0 || modsOld.timestamp > mods.getTimestamp()) {
+                throw new IllegalStateException("MODS already modified: " + mods.getPid());
             }
+            mods.timestamp = System.currentTimeMillis();
+            doRecord.setMods(mods);
+        }
+
+        // XXX synchronization
+        // XXX update DC
+        if (doRecord.foxml != null) {
+            DigitalObjectType digObj = findFoxml(mods.getPid());
+            DatastreamVersionType ds = findDataStreamVersion(digObj, "BIBLIO_MODS");
+            List<Element> any = ds.getXmlContent().getAny();
+            DOMResult dom = new DOMResult();
+            ModsUtils.marshal(dom, mods.getMods(), true);
+            Node root = dom.getNode();
+            Document doc = root.getOwnerDocument() == null ? (Document) root : root.getOwnerDocument();
+            any.add(doc.getDocumentElement());
+            JAXB.marshal(digObj, doRecord.foxml);
         }
     }
 
@@ -515,16 +552,26 @@ public final class DigitalObjectRepository {
 
     public static class ModsRecord {
         private String pid;
-        private ModsCollection mods;
+        private ModsType mods;
         private long timestamp;
 
-        public ModsRecord(String pid, ModsCollection mods, long timestamp) {
+        public ModsRecord(String pid, ModsType mods, long timestamp) {
             this.pid = pid;
             this.mods = mods;
             this.timestamp = timestamp;
         }
 
-        public ModsCollection getMods() {
+        public ModsRecord(String pid, ModsCollection mods, long timestamp) {
+            this(pid, mods.getMods().get(0), timestamp);
+        }
+
+        public ModsCollection getModsCollection() {
+            ModsCollection modsCollection = new ModsCollection();
+            modsCollection.getMods().add(mods);
+            return modsCollection;
+        }
+
+        public ModsType getMods() {
             return mods;
         }
 
