@@ -21,14 +21,17 @@ import com.google.gwt.dom.client.Node;
 import com.google.gwt.dom.client.NodeList;
 import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.regexp.shared.SplitResult;
+import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.JSONEncoder;
 import com.smartgwt.client.widgets.tile.TileGrid;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -229,6 +232,27 @@ public final class ClientUtils {
         int tileColumn = tileIndex % tilesPerLine;
         int top = tileHMargin / 2 + (tileRow * (tileHeight + tileHMargin));
         grid.scrollTo(1, top);
+    }
+
+    /**
+     * Removes all attributes with {@code null} value.
+     *
+     * Useful before passing record to {@link DataSource} that encodes {@code null}
+     * attributes as {@code "name":"null"} in JSON.
+     * @param r record to process
+     * @return copy of the record without {@code null} attributes
+     */
+    public static Record removeNulls(Record r) {
+        boolean hasNull = false;
+        HashMap<Object, Object> nonNunlls = new HashMap<Object, Object>();
+        for (Map.Entry entry : (Set<Map.Entry>) r.toMap().entrySet()) {
+            if (entry.getValue() != null) {
+                nonNunlls.put(entry.getKey(), entry.getValue());
+            } else {
+                hasNull = true;
+            }
+        }
+        return hasNull ? new Record(nonNunlls) : r;
     }
 
     public static final BooleanCallback EMPTY_BOOLEAN_CALLBACK = new BooleanCallback() {

@@ -445,11 +445,10 @@ public class ImportBatchItemEditor extends HLayout {
                     @Override
                     public void execute(Boolean value) {
                         if (value != null && value) {
-                            // XXX set
                             Record[] selection = thumbGrid.getSelection();
                             DataSource ds = thumbGrid.getDataSource();
-                            int indexStart = -1;
-                            int numberStart = -1;
+                            Integer indexStart = null;
+                            Integer numberStart = null;
                             String numberFormat = "%s";
                             if (editor.getAllowPageIndexes()) {
                                 indexStart = editor.getIndexStart();
@@ -468,16 +467,27 @@ public class ImportBatchItemEditor extends HLayout {
 //                            RPCManager.startQueue();
                             for (Record record : selection) {
                                 if (editor.getAllowPageIndexes()) {
-                                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_INDEX, indexStart++);
+                                    String old = record.getAttributeAsString(ImportBatchItemDataSource.FIELD_PAGE_INDEX);
+                                    if (old != null) {
+                                        record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_INDEX,
+                                                indexStart == null ? "" : indexStart++);
+                                    }
                                 }
                                 if (editor.getAllowPageNumbers()) {
-                                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_NUMBER,
-                                            ClientUtils.format(numberFormat, numberStart++));
+                                    String old = record.getAttributeAsString(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
+                                    if (old != null) {
+                                        String numVal = numberStart != null
+                                                ? ClientUtils.format(numberFormat, numberStart++)
+                                                : ClientUtils.format(numberFormat, "");
+                                        record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_NUMBER,
+                                                numVal);
+                                    }
                                 }
                                 if (editor.getAllowPageTypes()) {
                                     String pageType = editor.getPageType();
                                     record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_TYPE, pageType);
                                 }
+                                record = ClientUtils.removeNulls(record);
                                 ds.updateData(record);
                             }
 //                            RPCManager.sendQueue();

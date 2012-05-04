@@ -238,11 +238,11 @@ public class PageMetadataEditor {
     }
 
     public boolean getAllowPageIndexes() {
-        return allowPageIndexes.getValueAsBoolean() && indexStart.getValueAsInteger() != null;
+        return allowPageIndexes.getValueAsBoolean();
     }
 
     public boolean getAllowPageNumbers() {
-        return allowPageNumbers.getValueAsBoolean() && numberStart.getValueAsInteger() != null;
+        return allowPageNumbers.getValueAsBoolean();
     }
 
     public boolean getAllowPageTypes() {
