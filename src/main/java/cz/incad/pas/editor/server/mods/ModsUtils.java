@@ -147,6 +147,9 @@ public final class ModsUtils {
     public static ModsType unmarshalModsType(Source source) {
         try {
             Object unmarshaled = defaultUnmarshaller().unmarshal(source);
+            if (unmarshaled instanceof JAXBElement) {
+                unmarshaled = ((JAXBElement) unmarshaled).getValue();
+            }
             ModsType mods;
             if (unmarshaled instanceof ModsCollection) {
                 ModsCollection mc = (ModsCollection) unmarshaled;
