@@ -73,6 +73,18 @@ public final class PasConfiguration {
         return users;
     }
 
+    public String getFedoraUsername() {
+        return config.getString("fedora.client.username");
+    }
+
+    public String getFedoraPassword() {
+        return config.getString("fedora.client.password");
+    }
+
+    public String getFedoraUrl() {
+        return config.getString("fedora.client.url");
+    }
+
     public File getConfigHome() {
         return configHome;
     }

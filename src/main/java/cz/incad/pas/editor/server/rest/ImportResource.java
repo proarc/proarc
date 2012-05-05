@@ -19,15 +19,14 @@ package cz.incad.pas.editor.server.rest;
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
-import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
+import cz.incad.pas.editor.server.fedora.PageView;
+import cz.incad.pas.editor.server.fedora.PageView.ImportBatchItemList;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.imports.ImportFileScanner;
 import cz.incad.pas.editor.server.imports.ImportFileScanner.Folder;
-import cz.incad.pas.editor.server.imports.ImportFileScanner.State;
 import cz.incad.pas.editor.server.imports.ImportProcess;
-import cz.incad.pas.editor.server.imports.ImportProcess.ImportItemFailure;
 import cz.incad.pas.editor.server.user.UserManager;
 import cz.incad.pas.editor.server.user.UserProfile;
 import cz.incad.pas.editor.server.user.UserUtil;
@@ -38,13 +37,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -62,13 +56,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.namespace.QName;
 
 /**
  * REST resource to retrieve import folders.
@@ -210,7 +202,7 @@ public class ImportResource {
         File folder = new File(folderUri);
         // XXX do import
         ImportProcess process = new ImportProcess(folder, folderPath, user,
-                importManager, DigitalObjectRepository.getInstance(pasConfig), true);
+                importManager, true);
         ImportBatch batch = process.start();
 //        List<ImportItem> importedItems = process.getImportedItems();
 //        List<ImportItemFailure> failures = process.getFailures();
@@ -273,7 +265,7 @@ public class ImportResource {
                     .type(MediaType.TEXT_PLAIN_TYPE).build());
         }
 
-        return new ImportBatchItemList(items);
+        return new PageView().list(batchId, items);
     }
 
     @POST
@@ -282,6 +274,7 @@ public class ImportResource {
     public ImportBatchItemList updateBatchItem(
             @FormParam("batchId") Integer batchId,
             @FormParam("pid") String pid,
+            @FormParam("timestamp") long timestamp,
             @FormParam("pageIndex") String pageIndex,
             @FormParam("pageNumber") String pageNumber,
             @FormParam("pageType") String pageType,
@@ -289,18 +282,17 @@ public class ImportResource {
             ) {
 
         Collection<ImportItem> items = null;
+        ImportItem item = null;
         if (batchId != null && pid != null && !pid.isEmpty()) {
-            items = importManager.updateItem(batchId, normalizeParam(pid),
-                    normalizeParam(pageIndex), normalizeParam(pageNumber),
-                    normalizeParam(pageType));
+            item = importManager.findItem(pid);
         }
-        if (items == null) {
+        if (item == null) {
             throw new WebApplicationException(
                     Response.status(Response.Status.NOT_FOUND).entity("item not found!")
                     .type(MediaType.TEXT_PLAIN_TYPE).build());
         }
 
-        return new ImportBatchItemList(items);
+        return new PageView().updateItem(batchId, item, timestamp, pageIndex, pageNumber, pageType);
     }
 
     private static String normalizeParam(String p) {
@@ -312,32 +304,6 @@ public class ImportResource {
         }
         return p;
     }
-
-    @XmlRootElement(name="items")
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class ImportBatchItemList {
-
-        @XmlElement(name="item")
-        private Collection<ImportItem> records;
-
-        public ImportBatchItemList() {}
-
-        public ImportBatchItemList(Collection<ImportItem> objects) {
-            this.records = objects;
-        }
-
-    }
-
-//    public static class ImportedDigitalObject {
-//        private int id;
-//        private int batchId;
-//        private Object pid;
-//        private String filename;
-//        private String model;
-//
-//        private int userId;
-//        private String userDisplayName;
-//    }
 
     private static String validateParentPath(String parent) {
         if (parent == null || parent.length() == 0) {

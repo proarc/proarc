@@ -16,7 +16,6 @@
  */
 package cz.incad.pas.editor.client.ds;
 
-import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
@@ -40,7 +39,6 @@ public class ImportBatchItemDataSource extends DataSource {
 
     public static final String ID = "ImportBatchItemDataSource";
 
-    public static final String FIELD_ID = "id";
     public static final String FIELD_BATCHID = "batchId";
     public static final String FIELD_FILENAME = "filename";
     public static final String FIELD_PID = "pid";
@@ -48,29 +46,30 @@ public class ImportBatchItemDataSource extends DataSource {
     public static final String FIELD_PAGE_TYPE = "pageType";
     public static final String FIELD_PAGE_INDEX = "pageIndex";
     public static final String FIELD_PAGE_NUMBER = "pageNumber";
-//    public static final String FIELD_TIMESTAMP = "timeStamp";
-    // XXX Jak udelat foreing key ??? <= v gridu nebo ve formu udelej text field s options data sourcem a zadej display value
-    public static final String FIELD_USER = "userId";
+    public static final String FIELD_TIMESTAMP = "timestamp";
+    public static final String FIELD_USER = "user";
     public static final String FIELD_PREVIEW = "preview";
     public static final String FIELD_THUMBNAIL = "thumbnail";
 
     public ImportBatchItemDataSource() {
         setID(ID);
 
-//        setDataFormat(DSDataFormat.XML);
         setDataFormat(DSDataFormat.JSON);
         setRecordXPath("/items/item");
-//        setRecordXPath("item");
 
         setDataURL(RestConfig.URL_IMPORT_BATCH_ITEM);
 //        setDataURL("ds/ImportBatchItemDataSource.json");
 //        setClientOnly(true);
 
-        DataSourceIntegerField id = new DataSourceIntegerField(FIELD_ID);
-        id.setPrimaryKey(true);
+        DataSourceField pid = new DataSourceField(FIELD_PID, FieldType.TEXT);
+        pid.setPrimaryKey(true);
 
         DataSourceIntegerField batchId = new DataSourceIntegerField(FIELD_BATCHID);
         batchId.setForeignKey(ImportBatchDataSource.ID + '.' + ImportBatchDataSource.FIELD_ID);
+
+        DataSourceField timestamp = new DataSourceField(FIELD_TIMESTAMP, FieldType.TEXT);
+        timestamp.setRequired(true);
+        timestamp.setHidden(true);
 
         DataSourceTextField filename = new DataSourceTextField(FIELD_FILENAME);
 
@@ -90,7 +89,7 @@ public class ImportBatchItemDataSource extends DataSource {
         DataSourceField pageIndex = new DataSourceField(FIELD_PAGE_INDEX, FieldType.INTEGER, "Page Index");
         DataSourceField pageNumber = new DataSourceField(FIELD_PAGE_NUMBER, FieldType.TEXT, "Page Number");
 
-        setFields(id, batchId, filename, user, model, preview, thumbnail, pageIndex, pageNumber, pageType);
+        setFields(pid, batchId, timestamp, filename, user, model, preview, thumbnail, pageIndex, pageNumber, pageType);
 
         OperationBinding updateOp = new OperationBinding();
         updateOp.setOperationType(DSOperationType.UPDATE);
@@ -110,9 +109,6 @@ public class ImportBatchItemDataSource extends DataSource {
 
                 record.setAttribute(FIELD_PREVIEW, pid);
                 record.setAttribute(FIELD_THUMBNAIL, pid);
-                // XXX following fields should be supplied remotely
-                record.setAttribute(FIELD_MODEL, "model:page");
-                record.setAttribute(FIELD_USER, 1);
             }
         }
         super.transformResponse(response, request, data);

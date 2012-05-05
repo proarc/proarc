@@ -92,9 +92,9 @@ public class ImportBatchManagerTest {
 
         UserManager users = UserUtil.createUserManagerMemoryImpl(pasConf);
         ImportBatch batch = ibm.add("path/to/first_import", users.find("admin"));
-        ibm.addItem(batch.getId(), new ImportItem("file1", "uuid:1", null, null, null));
-        ibm.addItem(batch.getId(), new ImportItem("file2", "uuid:2", null, null, null));
-        ibm.addItem(batch.getId(), new ImportItem("file3", "uuid:3", "3", "[3]", null));
+        ibm.addItem(batch.getId(), new ImportItem("url/to/file1", "file1", "uuid:1"));
+        ibm.addItem(batch.getId(), new ImportItem("url/to/file2", "file2", "uuid:2"));
+        ibm.addItem(batch.getId(), new ImportItem("url/to/file3", "file3", "uuid:3"));
 
         assertEquals(1, ibm.getMap().size());
 //        ImportBatchManager.save(pasConf.getConfigHome(), ibm);

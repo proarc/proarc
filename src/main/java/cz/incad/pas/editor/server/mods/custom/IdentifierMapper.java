@@ -29,7 +29,7 @@ import javax.xml.bind.annotation.XmlElement;
  *
  * @author Jan Pokorsky
  */
-final class IdentifierMapper {
+public final class IdentifierMapper {
     private final ArrayMapper<IdentifierType, IdentifierItem> mapper =
             new ArrayMapper<IdentifierType, IdentifierItem>(new IdentifierItemMapper());
 

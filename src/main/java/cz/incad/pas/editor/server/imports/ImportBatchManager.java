@@ -22,6 +22,7 @@ import cz.incad.pas.editor.server.user.UserManager;
 import cz.incad.pas.editor.server.user.UserProfile;
 import cz.incad.pas.editor.server.user.UserUtil;
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -116,6 +117,19 @@ public final class ImportBatchManager {
         }
     }
 
+    public ImportItem findItem(String pid) {
+        synchronized (map) {
+            for (ImportBatch batch : map.values()) {
+                for (ImportItem item : batch.getItems()) {
+                    if (item.getPid().equals(pid)) {
+                        return item;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     public Collection<ImportBatch> findAll(UserProfile user, boolean withItems) {
         synchronized(map) {
             List<ImportBatch> result;
@@ -152,32 +166,6 @@ public final class ImportBatchManager {
             batch.addItem(item);
             save(pasConfig.getConfigHome(), this);
             return item;
-        }
-    }
-
-    public Collection<ImportItem> updateItem(int batchId, String pid, String pageIndex, String pageNumber, String pageType) {
-//        DigitalObjectRepository fedora = DigitalObjectRepository.getInstance();
-//        ModsRecord mods = fedora.getMods(pid);
-//        mods.getMods();
-        synchronized (map) {
-            Collection<ImportItem> items = findItems(batchId, pid);
-            if (items == null) {
-                return null;
-            }
-
-            ImportItem item = items.iterator().next();
-            if (item.pageIndex == null) {
-                if (pageIndex != null && !pageIndex.isEmpty()) {
-                    item.pageIndex = pageIndex;
-                }
-            } else {
-                if (!item.pageIndex.equals(pageIndex)) {
-                    item.pageIndex = pageIndex;
-                }
-            }
-            item.pageNumber = pageNumber;
-            item.pageType = pageType;
-            return items;
         }
     }
 
@@ -258,23 +246,21 @@ public final class ImportBatchManager {
         @XmlElement(required=true)
         private Integer id;
         private Integer batchId;
+        private String foxml;
         private String filename;
         private String pid;
-        // XXX get from digital object?
-        private String model;
-        private String pageIndex;
-        private String pageNumber;
-        private String pageType;
 
         private ImportItem() {
         }
 
-        public ImportItem(String filename, String pid, String pageIndex, String pageNumber, String pageType) {
+        public ImportItem(File foxml, String filename, String pid) {
+            this(foxml.toURI().toASCIIString(), filename, pid);
+        }
+        
+        public ImportItem(String foxml, String filename, String pid) {
+            this.foxml = foxml;
             this.filename = filename;
             this.pid = pid;
-            this.pageIndex = pageIndex;
-            this.pageNumber = pageNumber;
-            this.pageType = pageType;
         }
 
         public String getFilename() {
@@ -283,6 +269,15 @@ public final class ImportBatchManager {
 
         public String getPid() {
             return pid;
+        }
+
+        public String getFoxml() {
+            return foxml;
+        }
+
+        public File getFoxmlAsFile() {
+            URI uri = URI.create(foxml);
+            return new File(uri);
         }
 
     }

@@ -16,21 +16,23 @@
  */
 package cz.incad.pas.editor.server.rest;
 
+import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
-import cz.incad.pas.editor.server.ModsGwtServiceProvider;
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
-import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DigitalObjectRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DublinCoreRecord;
-import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.ModsRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.OcrRecord;
+import cz.incad.pas.editor.server.fedora.LocalStorage;
+import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
+import cz.incad.pas.editor.server.fedora.RemoteStorage;
+import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.json.JsonUtils;
+import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.server.mods.custom.Mapping;
 import java.io.File;
@@ -108,7 +110,7 @@ public class DigitalObjectResource {
     public DigitalObjectList newObject(
             @FormParam("model") String modelId,
             @FormParam("mods") String mods
-            ) throws URISyntaxException, IOException {
+            ) throws URISyntaxException, IOException, FedoraClientException {
 
         if (modelId == null) {
             // XXX validate modelId values
@@ -117,12 +119,22 @@ public class DigitalObjectResource {
         mods = (mods == null || mods.isEmpty() || "null".equals(mods)) ? null : mods;
         LOG.log(Level.INFO, "import model: {0} as mods: {1}", new Object[] {modelId, mods});
 
-        DigitalObjectRecord dobj = repository.createDigitalObject();
-        ModsCollection modsCollection = ModsGwtServiceProvider.newMods(dobj.getId(), mods);
-        dobj.setMods(new ModsRecord(dobj.getId(), modsCollection, System.currentTimeMillis()));
+        LocalObject localObject = new LocalStorage().create();
+        ModsStreamEditor modsEditor = new ModsStreamEditor(localObject);
+        ModsType modsType;
+        if (mods == null) {
+            modsType = modsEditor.create(localObject.getPid(), modelId);
+        } else {
+            modsType = modsEditor.create(localObject.getPid(), modelId, mods);;
+        }
+        modsEditor.write(modsType, 0);
 
-        repository.add(dobj, 1);
-        return new DigitalObjectList(Arrays.asList(new DigitalObject(dobj.getId(), modelId)));
+        // XXX DC, RELS-EXT
+
+        RemoteStorage fedora = RemoteStorage.getInstance(pasConfig);
+        fedora.ingest(localObject, "label", "XXX");
+
+        return new DigitalObjectList(Arrays.asList(new DigitalObject(localObject.getPid(), modelId)));
     }
 
     @GET
@@ -166,20 +178,24 @@ public class DigitalObjectResource {
     public CustomMods getCustomMods(
             @QueryParam("pid") String pid,
             @QueryParam("editorId") String editorId
-            ) {
+            ) throws IOException {
         
         if (pid == null || pid.isEmpty()) {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                     .entity("invalid pid").type(MediaType.TEXT_PLAIN).build());
         }
-        ModsRecord modsRecord = repository.getMods(pid);
-        ModsType mods = modsRecord.getMods();
+
+        RemoteStorage storage = RemoteStorage.getInstance(pasConfig);
+        RemoteObject remote = storage.find(pid);
+        ModsStreamEditor modsEditor = new ModsStreamEditor(remote);
+
+        ModsType mods = modsEditor.read();
         Mapping mapping = new Mapping();
         Object customData = mapping.read(mods, editorId);
         CustomMods<Object> result = new CustomMods<Object>();
-        result.setPid(modsRecord.getPid());
+        result.setPid(pid);
         result.setEditor(editorId);
-        result.setTimestamp(modsRecord.getTimestamp());
+        result.setTimestamp(modsEditor.getLastModified());
         result.setData(customData);
         return result;
     }
@@ -192,7 +208,7 @@ public class DigitalObjectResource {
             @FormParam("editorId") String editorId,
             @FormParam("timestamp") Long timestamp,
             @FormParam("customJsonData") String customJsonData
-            ) {
+            ) throws IOException {
 
         LOG.severe(String.format("pid: %s, editor: %s, timestamp: %s, json: %s", pid, editorId, timestamp, customJsonData));
         if (pid == null || pid.isEmpty()) {
@@ -203,8 +219,11 @@ public class DigitalObjectResource {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                     .entity("invalid timestamp").type(MediaType.TEXT_PLAIN).build());
         }
-        ModsRecord modsRecord = repository.getMods(pid);
-        ModsType mods = modsRecord.getMods();
+        RemoteStorage storage = RemoteStorage.getInstance(pasConfig);
+        RemoteObject remote = storage.find(pid);
+        ModsStreamEditor modsEditor = new ModsStreamEditor(remote);
+
+        ModsType mods = modsEditor.read();
         Mapping mapping = new Mapping();
         Class<?> type = mapping.getType(editorId);
         ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
@@ -213,13 +232,14 @@ public class DigitalObjectResource {
             mapping.update(mods, customData, editorId);
             String toXml = ModsUtils.toXml(mods, true);
             LOG.severe(toXml);
-            ModsRecord newRecord = new ModsRecord(pid, mods, timestamp);
-            repository.updateMods(newRecord, 1);
+            modsEditor.write(mods, timestamp);
+            // XXX update DC
+            remote.flush();
 
             CustomMods<Object> result = new CustomMods<Object>();
-            result.setPid(newRecord.getPid());
+            result.setPid(pid);
             result.setEditor(editorId);
-            result.setTimestamp(newRecord.getTimestamp());
+            result.setTimestamp(modsEditor.getLastModified());
             result.setData(customData);
             return result;
         } catch (IOException ex) {
@@ -364,6 +384,15 @@ public class DigitalObjectResource {
 
             return models;
         }
+
+        public MetaModel find(String model) {
+            for (MetaModel metaModel : find(Locale.ENGLISH)) {
+                if (metaModel.getPid().equals(model)) {
+                    return metaModel;
+                }
+            }
+            return null;
+        }
     }
 
     @XmlRootElement(name="mods")
@@ -453,6 +482,10 @@ public class DigitalObjectResource {
 
         public Boolean isRoot() {
             return root;
+        }
+
+        public String getEditor() {
+            return editor;
         }
 
     }

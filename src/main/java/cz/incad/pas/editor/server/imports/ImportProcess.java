@@ -16,8 +16,6 @@
  */
 package cz.incad.pas.editor.server.imports;
 
-import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
-import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DigitalObjectRecord;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.imports.ImportFileScanner.State;
@@ -54,18 +52,15 @@ public class ImportProcess {
     private List<ImportItemFailure> failures = new ArrayList<ImportItemFailure>();
     private final String importFolderRelativePath;
     private final UserProfile user;
-    private final DigitalObjectRepository fedora;
     private final boolean generateIndices;
 
     public ImportProcess(File importFolder, String importFolderRelativePath,
             UserProfile user, ImportBatchManager batchManager,
-            DigitalObjectRepository fedora,
             boolean generateIndices) {
         this.importFolder = importFolder;
         this.importFolderRelativePath = importFolderRelativePath;
         this.user = user;
         this.batchManager = batchManager;
-        this.fedora = fedora;
         this.generateIndices = generateIndices;
     }
 
@@ -82,7 +77,7 @@ public class ImportProcess {
             ImportFileScanner scanner = new ImportFileScanner();
             List<File> files = scanner.findDigitalContent(importFolder);
             this.imports = new ArrayList<ImportItem>(files.size());
-            List<FedoraImportItem> consumedFiles = consumeFiles(files, new ImportContext(targetFolder, generateIndices));
+            List<ImportItem> consumedFiles = consumeFiles(files, new ImportContext(targetFolder, generateIndices));
 
             // import to Fedora
             ImportBatch batch = fedoraImport(consumedFiles);
@@ -120,14 +115,13 @@ public class ImportProcess {
         return this.failures;
     }
     
-    private List<FedoraImportItem> consumeFiles(List<File> files, ImportContext ctx) {
+    private List<ImportItem> consumeFiles(List<File> files, ImportContext ctx) {
         long start = System.currentTimeMillis();
-        List<FedoraImportItem> fedorarItems = new ArrayList<FedoraImportItem>(files.size());
+        List<ImportItem> fedorarItems = new ArrayList<ImportItem>(files.size());
         for (File file : files) {
             try {
-                FedoraImportItem item = consumeFile(file, ctx);
+                ImportItem item = consumeFile(file, ctx);
                 if (item != null) {
-                    item.importFile = file;
                     fedorarItems.add(item);
                 } else {
                     this.failures.add(new ImportItemFailure(file.getName(), "unsupported file"));
@@ -144,12 +138,12 @@ public class ImportProcess {
         return fedorarItems;
     }
 
-    private FedoraImportItem consumeFile(File f, ImportContext ctx) throws IOException {
+    private ImportItem consumeFile(File f, ImportContext ctx) throws IOException {
         long start = System.currentTimeMillis();
         String mimeType = findMimeType(f);
         List<TiffImporter> consumers = getConsumers();
         for (TiffImporter consumer : consumers) {
-            FedoraImportItem item = consumer.consume(f, mimeType, ctx);
+            ImportItem item = consumer.consume(f, mimeType, ctx);
             if (item != null) {
                 LOG.log(Level.INFO, "time: {0} ms, {1}", new Object[] {System.currentTimeMillis() - start, f});
                 return item;
@@ -196,17 +190,12 @@ public class ImportProcess {
         return fileNameMap.getContentTypeFor(f.getName());
     }
 
-    private ImportBatch fedoraImport(List<FedoraImportItem> fedoraItems) {
+    private ImportBatch fedoraImport(List<ImportItem> fedoraItems) {
         ImportBatch batch = batchManager.add(importFolderRelativePath, user);
-        for (FedoraImportItem fedoraItem : fedoraItems) {
+        for (ImportItem importItem : fedoraItems) {
             try {
-                ImportItem importItem = new ImportItem(fedoraItem.getImportFile().getName(),
-                        fedoraItem.getPid(), fedoraItem.getPageIndex(),
-                        fedoraItem.getPageNumber(), fedoraItem.getPageType());
                 batchManager.addItem(batch.getId(), importItem);
                 this.imports.add(importItem);
-                DigitalObjectRecord digObj = fedora.createDigitalObject(fedoraItem.getPid(), fedoraItem.getFoxml());
-                fedora.add(digObj, user.getId());
             } finally {
                 // XXX rollback already imported objects?
             }
@@ -259,52 +248,6 @@ public class ImportProcess {
 
         public String getReason() {
             return reason;
-        }
-        
-    }
-
-    /**
-     * XXX this should be replaced with {@link ImportItem}.
-     * see https://wiki.duraspace.org/display/FEDORA35/Using+File+URIs to reference external files for ingest
-     */
-    public static class FedoraImportItem {
-        private File foxml;
-        private String pid;
-        private File importFile;
-        private String pageIndex;
-        private String pageNumber;
-        private String pageType;
-
-        public FedoraImportItem(File foxml, String pid, String pageIndex, String pageNumber, String pageType) {
-            this.foxml = foxml;
-            this.pid = pid;
-            this.pageIndex = pageIndex;
-            this.pageNumber = pageNumber;
-            this.pageType = pageType;
-        }
-
-        public File getFoxml() {
-            return foxml;
-        }
-
-        public String getPid() {
-            return pid;
-        }
-
-        public File getImportFile() {
-            return importFile;
-        }
-
-        public String getPageIndex() {
-            return pageIndex;
-        }
-
-        public String getPageNumber() {
-            return pageNumber;
-        }
-
-        public String getPageType() {
-            return pageType;
         }
         
     }

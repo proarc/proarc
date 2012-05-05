@@ -16,12 +16,22 @@
  */
 package cz.incad.pas.editor.server.imports;
 
+import com.yourmediashelf.fedora.generated.foxml.ObjectFactory;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
-import cz.incad.pas.editor.server.imports.ImportProcess.FedoraImportItem;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.imports.ImportProcess.ImportContext;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.HashMap;
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import org.custommonkey.xmlunit.SimpleNamespaceContext;
+import org.custommonkey.xmlunit.XMLAssert;
+import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -29,6 +39,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.xml.sax.InputSource;
 
 /**
  *
@@ -90,11 +101,11 @@ public class TiffImporterTest {
         ImportContext ctx = new ImportContext(targetFolder, true);
         TiffImporter instance = new TiffImporter();
 //        FedoraImportItem expResult = null;
-        FedoraImportItem result = instance.consume(tiff1, mimetype, ctx);
+        ImportItem result = instance.consume(tiff1, mimetype, ctx);
         String pid = result.getPid();
         assertTrue(pid.startsWith("uuid"));
         
-        File foxml = result.getFoxml();
+        File foxml = result.getFoxmlAsFile();
         assertTrue(foxml.exists());
 
         File raw1 = new File(targetFolder, "img1.full.jpg");
@@ -106,5 +117,24 @@ public class TiffImporterTest {
         File thumb1 = new File(targetFolder, "img1.thumb.jpg");
         assertTrue(thumb1.exists() && thumb1.length() > 0);
 
+        // validate FOXML
+        SchemaFactory sfactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        URL foxmlXsdUrl = ObjectFactory.class.getResource("/xsd/foxml/foxml1-1.xsd");
+        assertNotNull(foxmlXsdUrl);
+        Schema foxmlXsd = sfactory.newSchema(foxmlXsdUrl);
+        foxmlXsd.newValidator().validate(new StreamSource(foxml));
+
+        // check datastreams with xpath
+        HashMap namespaces = new HashMap();
+        namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
+        XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
+        String foxmlSystemId = foxml.toURI().toASCIIString();
+        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='BIBLIO_MODS']", new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='DC']", new InputSource(foxmlSystemId));
+//        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='RELS-EXT']", new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_FULL']", new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_PREVIEW']", new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_THUMB']", new InputSource(foxmlSystemId));
+//        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_RAW']", new InputSource(foxmlSystemId));
     }
 }

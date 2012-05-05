@@ -18,7 +18,6 @@ package cz.incad.pas.editor.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import cz.fi.muni.xkremser.editor.client.mods.ModsCollectionClient;
-import cz.fi.muni.xkremser.editor.server.mods.IdentifierType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.util.BiblioModsUtils;
@@ -27,10 +26,11 @@ import cz.incad.pas.editor.client.rpc.ModsGwtService;
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
-import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
-import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.ModsRecord;
+import cz.incad.pas.editor.server.fedora.RemoteStorage;
+import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
+import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.ModsUtils;
-import java.io.StringReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,13 +38,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.UnavailableException;
-import javax.xml.transform.stream.StreamSource;
 
 /**
  * Simple MODS provider.
  *
- * TODO: connect to fedora
- * TODO: implement concurrent access (timestamps)
  * TODO: Exceptions? (IAE is handled as server error 500 now).
  * TODO: restrict user access
  *
@@ -57,90 +54,42 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
     private static final Map<String, ModsCollection> STORAGE = new HashMap<String, ModsCollection>();
 
     private PasConfiguration pasConfig;
-    private DigitalObjectRepository repository;
+    private RemoteStorage repository;
 
     @Override
     public void init() throws ServletException {
         super.init();
         try {
             this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
-            this.repository = DigitalObjectRepository.getInstance(pasConfig);
+            this.repository = RemoteStorage.getInstance(pasConfig);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            throw new UnavailableException("Cannot access Fedora");
         } catch (PasConfigurationException ex) {
             LOG.log(Level.SEVERE, "Invalid editor configuration.", ex);
             throw new UnavailableException("Invalid editor configuration.");
         }
     }
 
-    /**
-     * Creates new MODS.
-     * 
-     * @param pid PID of the digital object referencing MODS
-     * @param modsXml prepared MODS e.g. from remote catalog or {@code null}
-     */
-    public static ModsCollection newMods(String pid, String modsXml) {
-//        LOG.log(Level.INFO, "new pid: {0}, mods: {1}", new Object[]{pid, modsXml});
-        ModsType modsType;
-        if (modsXml == null || modsXml.isEmpty()) {
-            modsType = new ModsType();
-        } else {
-            modsType = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(modsXml)));
-        }
-        ModsCollection mods = new ModsCollection();
-        mods.setMods(Arrays.asList(modsType));
-
-        // add uuid as identifier
-        IdentifierType identifierType = new IdentifierType();
-        identifierType.setType("uuid");
-        identifierType.setValue(pid.substring("uuid:".length()));
-
-        modsType.getModsGroup().add(identifierType);
-        return mods;
-    }
-    
-//    @Override
-//    public void init() throws ServletException {
-//        ObjectFactory objFactory = new ObjectFactory();
-//
-//        TitleInfoType titleInfoType = new TitleInfoType();
-//        titleInfoType.getTitleOrSubTitleOrPartNumber().add(objFactory.createBaseTitleInfoTypeTitle("Title Sample"));
-//        IdentifierType identifierType = new IdentifierType();
-//        identifierType.setType("UUID");
-//        identifierType.setValue("UUID-test value");
-//
-//        DetailType detailType = new DetailType();
-//        detailType.setType("pageNumber");
-//        detailType.getNumberOrCaptionOrTitle().add(objFactory.createDetailTypeNumber("3"));
-//        PartType partType = new PartType();
-//        partType.setType("TitlePage");
-//        partType.getDetailOrExtentOrDate().add(detailType);
-//
-//        ModsType modsType = new ModsType();
-//        modsType.setModsGroup(Arrays.<Object>asList(titleInfoType, partType, identifierType));
-//
-//        ModsCollection mods = new ModsCollection();
-//        mods.setMods(Arrays.asList(modsType));
-//
-//        STORAGE.put("id:sample", mods);
-//    }
-
-
     @Override
     public ModsGwtRecord read(String id) {
 //        if (true) {
 //            throw new IllegalArgumentException("Invalid id: " + id);
 //        }
-        ModsRecord modsRec = repository.getMods(id);
-        if (modsRec == null) {
+        RemoteObject remote = repository.find(id);
+        ModsStreamEditor editor = new ModsStreamEditor(remote);
+        ModsType mods = editor.read();
+        if (mods == null) {
             throw new IllegalArgumentException("Invalid id: " + id);
         }
-        ModsCollection mods = modsRec.getModsCollection();
-        String xml = mods == null ? null : BiblioModsUtils.toXML(mods);
-        int xmlHash = xml == null ? 0 : xml.hashCode();
+        String xml = ModsUtils.toXml(mods, true);
+        int xmlHash = xml.hashCode();
         LOG.log(Level.INFO, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
 //        sleep(10);
-        ModsCollectionClient modsClient = mods == null
-                ? new ModsCollectionClient() : BiblioModsUtils.toModsClient(mods);
-        return new ModsGwtRecord(modsClient, modsRec.getTimestamp(), xmlHash);
+        ModsCollection modsCollection = new ModsCollection();
+        modsCollection.setMods(Arrays.asList(mods));
+        ModsCollectionClient modsClient = BiblioModsUtils.toModsClient(modsCollection);
+        return new ModsGwtRecord(modsClient, editor.getLastModified(), xmlHash);
     }
 
     /**
@@ -159,11 +108,18 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
         String oldId = id;
         LOG.log(Level.INFO, "id: {0}, modsClient: {1}, hash: {2}", new Object[]{id, record.getMods(), record.getXmlHash()});
         ModsCollection mods = BiblioModsUtils.toMods(record.getMods());
-        String xml = BiblioModsUtils.toXML(mods);
+        ModsType modsType = mods.getMods().get(0);
+        String xml = ModsUtils.toXml(modsType, true);
         int xmlHash = xml.hashCode();
         LOG.log(Level.INFO, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
+        if (xmlHash == record.getXmlHash()) {
+            return id;
+        }
 
-        repository.updateMods(new ModsRecord(id, mods, System.currentTimeMillis()), 1);
+        RemoteObject remote = repository.find(id);
+        ModsStreamEditor editor = new ModsStreamEditor(remote);
+        editor.write(modsType, record.getTimestamp());
+        remote.flush();
 
         LOG.log(Level.INFO, "written id: {0}, old id: {1}", new Object[]{id, oldId});
 
@@ -171,6 +127,7 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
     }
 
     @Override
+    @Deprecated
     public String getXml(ModsCollectionClient modsCollection) {
         LOG.log(Level.INFO, "modsClient: {0}", new Object[]{modsCollection});
         ModsCollection mods = BiblioModsUtils.toMods(modsCollection);

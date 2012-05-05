@@ -22,12 +22,14 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.StateType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
+import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
-import cz.incad.pas.editor.server.ModsGwtServiceProvider;
-import cz.incad.pas.editor.server.imports.ImportProcess.FedoraImportItem;
+import cz.incad.pas.editor.server.fedora.LocalStorage;
+import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.imports.ImportProcess.ImportContext;
+import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.File;
@@ -36,19 +38,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.FileChannel;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.stream.FileImageOutputStream;
 import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXB;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.dom.DOMResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -72,57 +68,40 @@ public final class TiffImporter {
     private static final String NS_DC = "http://purl.org/dc/elements/1.1/";
 
 
-    public FedoraImportItem consume(File f, String mimetype, ImportContext ctx) throws IOException {
+    public ImportItem consume(File f, String mimetype, ImportContext ctx) throws IOException {
         // check tiff file
         if (!isTiff(f, mimetype)) {
             return null;
         }
 
-        UUID uuid = UUID.randomUUID();
-        String pid = "uuid:" + uuid;
         String originalFilename = getName(f);
         File tempBatchFolder = ctx.getTargetFolder();
 
         // creates FOXML and metadata
-        DigitalObject digObj = createFoxml(originalFilename, pid, uuid.toString(), ctx);
-        generateDublinCore(digObj, pid, uuid.toString(), ctx);
-        generateMods(digObj, pid, uuid.toString(), ctx);
+        LocalStorage storage = new LocalStorage();
+        File foxml = new File(tempBatchFolder, originalFilename + ".foxml");
+        LocalObject localObj = storage.create(foxml);
+        DigitalObject digObj = localObj.getDigitalObject();
+        String pid = localObj.getPid();
+        String uuid = pid.substring("uuid:".length());
+
+        ModsStreamEditor modsEditor = new ModsStreamEditor(localObj);
+        ModsType mods = modsEditor.createPage(pid, null, null, null);
+        modsEditor.write(mods, 0);
+
+        generateDublinCore(digObj, pid, uuid, ctx);
         createImages(tempBatchFolder, f, originalFilename, digObj, ctx.getXmlNow());
 
         // XXX generate OCR name.txt.ocr
         // XXX generate ATM
         // writes FOXML
-        File foxml = new File(tempBatchFolder, originalFilename + ".foxml");
-        try {
-            JAXBContext jaxb = JAXBContext.newInstance(DigitalObject.class);
-            Marshaller marshaller = jaxb.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
-                    "http://fedora-commons.org/definitions/1/0/foxml1-1.xsd");
-            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-            marshaller.marshal(digObj, foxml);
-        } catch (JAXBException ex) {
-            throw new IOException(f.toString(), ex);
-        }
+        localObj.flush();
 
-        return new FedoraImportItem(foxml, pid, null, null, null);
+        return new ImportItem(foxml, originalFilename, pid);
     }
 
     private boolean isTiff(File f, String mimetype) {
         return ImageMimeType.TIFF.getMimeType().equals(mimetype);
-    }
-
-    private DigitalObject createFoxml(String filename, String pid, String uuid, ImportContext ctx) {
-        DigitalObject digObj = new DigitalObject();
-        digObj.setPID(pid);
-        digObj.setVERSION("1.1");
-        return digObj;
-    }
-
-    private DigitalObject generateMods(DigitalObject digObj, String uuid, String filename, ImportContext ctx) {
-        DatastreamType dsMods = createMods(uuid, filename, ctx);
-        digObj.getDatastream().add(dsMods);
-        return digObj;
     }
 
     private DigitalObject generateDublinCore(DigitalObject digObj, String uuid, String filename, ImportContext ctx) {
@@ -178,30 +157,6 @@ public final class TiffImporter {
         ds.setCONTROLGROUP(controlGroup);
         ds.setVERSIONABLE(versionable);
         ds.setSTATE(state);
-        return ds;
-    }
-
-    private DatastreamType createMods(String uuid, String filename, ImportContext ctx) {
-        DatastreamType ds = createDatastream("BIBLIO_MODS", "X", true, StateType.A);
-
-        DatastreamVersionType streamVersion = new DatastreamVersionType();
-        streamVersion.setID(ds.getID() + ".0");
-        streamVersion.setLABEL("MODS description");
-        streamVersion.setMIMETYPE(MediaType.TEXT_XML);
-        streamVersion.setFORMATURI("http://www.loc.gov/mods/v3");
-        // do not set created; it is assigned by fedora
-        streamVersion.setCREATED(ctx.getXmlNow());
-
-        // create MODS
-        XmlContentType xml = new XmlContentType();
-        ModsCollection mods = ModsGwtServiceProvider.newMods(uuid, null);
-        DOMResult domResult = new DOMResult();
-        JAXB.marshal(mods, domResult);
-        Document dom = (Document) domResult.getNode();
-        xml.getAny().add(dom.getDocumentElement());
-        streamVersion.setXmlContent(xml);
-
-        ds.getDatastreamVersion().add(streamVersion);
         return ds;
     }
 

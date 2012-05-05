@@ -36,7 +36,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  *
  * @author Jan Pokorsky
  */
-final class PageMapper implements Mapping.Mapper<Page> {
+public final class PageMapper implements Mapping.Mapper<Page> {
 
     private final IdentifierMapper identMap = new IdentifierMapper();
 
