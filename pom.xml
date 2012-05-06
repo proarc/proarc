@@ -20,7 +20,7 @@
 
     <properties>
         <gwtVersion>2.4.0</gwtVersion>
-        <jerseyVersion>1.9.1</jerseyVersion>
+        <jerseyVersion>1.11.1</jerseyVersion>
         <smartGwtVersion>3.0</smartGwtVersion>
 <!--        <smartGwtVersion>2.5</smartGwtVersion>-->
         <maven.compiler.source>1.6</maven.compiler.source>
@@ -61,7 +61,7 @@
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
+            <artifactId>jersey-servlet</artifactId>
             <version>${jerseyVersion}</version>
         </dependency>
         <dependency>
@@ -76,22 +76,8 @@
         </dependency>
         <dependency>
             <groupId>com.yourmediashelf.fedora.client</groupId>
-            <artifactId>fedora-client</artifactId>
-            <version>0.1.6</version>
-            <exclusions>
-<!--                <exclusion>
-                    <artifactId>xercesImpl</artifactId>
-                    <groupId>xerces</groupId>
-                </exclusion>-->
-                <exclusion>
-                    <artifactId>servlet-api</artifactId>
-                    <groupId>javax.servlet</groupId>
-                </exclusion>
-<!--                <exclusion>
-                    <artifactId>xmlsec</artifactId>
-                    <groupId>org.apache.santuario</groupId>
-                </exclusion>-->
-            </exclusions>
+            <artifactId>fedora-client-core</artifactId>
+            <version>0.3</version>
         </dependency>
         <dependency>
             <groupId>xalan</groupId>
@@ -132,15 +118,6 @@
             <id>smartclient.com</id>
             <name>Smartclient Repository</name>
             <url>http://www.smartclient.com/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <id>duraspace-thirdparty</id>
-            <name>Duraspace Thirdparty Maven Repository</name>
-            <url>https://m2.duraspace.org/content/repositories/thirdparty</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
