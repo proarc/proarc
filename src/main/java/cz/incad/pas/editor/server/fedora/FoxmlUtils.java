@@ -70,7 +70,7 @@ final class FoxmlUtils {
     private static ThreadLocal<Unmarshaller> defaultUnmarshaller = new ThreadLocal<Unmarshaller>();
 
     /**
-     * Default MODS context. Oracle JAXB RI's context should be thread safe.
+     * Default FOXML context. Oracle JAXB RI's context should be thread safe.
      * @see <a href='http://jaxb.java.net/faq/index.html#threadSafety'>Are the JAXB runtime API's thread safe?</a>
      */
     public static JAXBContext defaultJaxbContext() throws JAXBException {
@@ -81,7 +81,7 @@ final class FoxmlUtils {
     }
 
     /**
-     * Default MODS marshaller for current thread.
+     * Default FOXML marshaller for current thread.
      */
     public static Marshaller defaultMarshaller(boolean indent) throws JAXBException {
         Marshaller m = defaultMarshaller.get();
@@ -98,7 +98,7 @@ final class FoxmlUtils {
     }
 
     /**
-     * Default MODS marshaller for current thread.
+     * Default FOXML marshaller for current thread.
      */
     public static Unmarshaller defaultUnmarshaller() throws JAXBException {
         Unmarshaller m = defaultUnmarshaller.get();
