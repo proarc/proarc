@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -281,7 +282,6 @@ public class ImportResource {
             @FormParam("filename") String filename
             ) {
 
-        Collection<ImportItem> items = null;
         ImportItem item = null;
         if (batchId != null && pid != null && !pid.isEmpty()) {
             item = importManager.findItem(pid);
@@ -293,6 +293,17 @@ public class ImportResource {
         }
 
         return new PageView().updateItem(batchId, item, timestamp, pageIndex, pageNumber, pageType);
+    }
+
+    @DELETE
+    @Path("batch/item")
+    public PageView.Item deleteBatchItem(
+            @QueryParam("batchId") Integer batchId,
+            @QueryParam("pid") String pid
+            ) {
+
+        importManager.removeItem(batchId, pid);
+        return new PageView.Item(batchId, null, pid, null, null, null, null, 0, null);
     }
 
     private static String normalizeParam(String p) {

@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -166,6 +167,24 @@ public final class ImportBatchManager {
             batch.addItem(item);
             save(pasConfig.getConfigHome(), this);
             return item;
+        }
+    }
+
+    public boolean removeItem(int batchId, String pid) {
+        synchronized(map) {
+            ImportBatch batch = map.get(batchId);
+            if (batch == null) {
+                return false;
+            }
+            for (Iterator<ImportItem> it = batch.getItems().iterator(); it.hasNext();) {
+                ImportItem item = it.next();
+                if (item.getPid().equals(pid)) {
+                    it.remove();
+                    save(pasConfig.getConfigHome(), this);
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

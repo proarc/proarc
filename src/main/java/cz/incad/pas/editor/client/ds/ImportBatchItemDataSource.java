@@ -94,7 +94,15 @@ public class ImportBatchItemDataSource extends DataSource {
         OperationBinding updateOp = new OperationBinding();
         updateOp.setOperationType(DSOperationType.UPDATE);
         updateOp.setDataProtocol(DSProtocol.POSTPARAMS);
-        setOperationBindings(updateOp);
+
+        OperationBinding deleteOp = new OperationBinding();
+        deleteOp.setOperationType(DSOperationType.REMOVE);
+        deleteOp.setDataProtocol(DSProtocol.GETPARAMS);
+        DSRequest deleteRequest = new DSRequest();
+        deleteRequest.setHttpMethod("DELETE");
+        deleteOp.setRequestProperties(deleteRequest);
+        
+        setOperationBindings(updateOp, deleteOp);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         
