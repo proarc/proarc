@@ -468,20 +468,18 @@ public class ImportBatchItemEditor extends HLayout {
                             for (Record record : selection) {
                                 if (editor.getAllowPageIndexes()) {
                                     String old = record.getAttributeAsString(ImportBatchItemDataSource.FIELD_PAGE_INDEX);
-                                    if (old != null) {
-                                        record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_INDEX,
-                                                indexStart == null ? "" : indexStart++);
-                                    }
+                                    String newVal = indexStart == null ? null : String.valueOf(indexStart++);
+                                    newVal = (old != null && newVal == null) ? "" : newVal;
+                                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_INDEX, newVal);
                                 }
                                 if (editor.getAllowPageNumbers()) {
                                     String old = record.getAttributeAsString(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
-                                    if (old != null) {
-                                        String numVal = numberStart != null
-                                                ? ClientUtils.format(numberFormat, numberStart++)
-                                                : ClientUtils.format(numberFormat, "");
-                                        record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_NUMBER,
-                                                numVal);
-                                    }
+                                    String newVal = numberStart != null
+                                            ? ClientUtils.format(numberFormat, numberStart++)
+                                            : ClientUtils.format(numberFormat, "");
+                                    newVal = newVal.isEmpty() ? null : newVal;
+                                    newVal = (old != null && newVal == null) ? "" : newVal;
+                                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_NUMBER, newVal);
                                 }
                                 if (editor.getAllowPageTypes()) {
                                     String pageType = editor.getPageType();
