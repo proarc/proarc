@@ -16,8 +16,8 @@
  */
 package cz.incad.pas.editor.server.fedora;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Default implementation of {@link FedoraObject}.
@@ -27,7 +27,8 @@ import java.util.Map;
 public abstract class AbstractFedoraObject implements FedoraObject {
 
     private final String pid;
-    private final Map<Class<?>, XmlStreamEditor> editors = new HashMap<Class<?>, XmlStreamEditor>();
+//    private final Map<Class<?>, XmlStreamEditor> editors = new HashMap<Class<?>, XmlStreamEditor>();
+    private final Set<XmlStreamEditor> editors = new LinkedHashSet<XmlStreamEditor>();
 
     public AbstractFedoraObject(String pid) {
         this.pid = pid;
@@ -40,7 +41,7 @@ public abstract class AbstractFedoraObject implements FedoraObject {
 
     @Override
     public final void register(XmlStreamEditor editor) {
-        editors.put(editor.getClass(), editor);
+        editors.add(editor);
     }
 
 //        public <T extends XmlStreamEditor> T getEditor(Class<T> type) {
@@ -50,7 +51,7 @@ public abstract class AbstractFedoraObject implements FedoraObject {
     @Override
     public void flush() {
         // write changes
-        for (XmlStreamEditor editor : editors.values()) {
+        for (XmlStreamEditor editor : editors) {
             editor.flush();
         }
     }

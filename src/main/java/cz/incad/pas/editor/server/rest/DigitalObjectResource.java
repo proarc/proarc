@@ -24,13 +24,17 @@ import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
+import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
-import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.DublinCoreRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.OcrRecord;
+import cz.incad.pas.editor.server.fedora.FedoraObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
+import cz.incad.pas.editor.server.imports.ImportBatchManager;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.json.JsonUtils;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.ModsUtils;
@@ -81,6 +85,7 @@ public class DigitalObjectResource {
     private final PasConfiguration pasConfig;
     private final MetaModelRepository metamodels = MetaModelRepository.getInstance();
     private final DigitalObjectRepository repository;
+    private final ImportBatchManager importManager;
     private final Request httpRequest;
     private final HttpHeaders httpHeaders;
 
@@ -94,6 +99,7 @@ public class DigitalObjectResource {
         this.httpHeaders = httpHeaders;
         this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
         this.repository = DigitalObjectRepository.getInstance(pasConfig);
+        this.importManager = ImportBatchManager.getInstance(pasConfig);
     }
 
     /**
@@ -120,16 +126,21 @@ public class DigitalObjectResource {
         LOG.log(Level.INFO, "import model: {0} as mods: {1}", new Object[] {modelId, mods});
 
         LocalObject localObject = new LocalStorage().create();
+        // MODS
         ModsStreamEditor modsEditor = new ModsStreamEditor(localObject);
         ModsType modsType;
         if (mods == null) {
             modsType = modsEditor.create(localObject.getPid(), modelId);
         } else {
-            modsType = modsEditor.create(localObject.getPid(), modelId, mods);;
+            modsType = modsEditor.create(localObject.getPid(), modelId, mods);
         }
         modsEditor.write(modsType, 0);
 
-        // XXX DC, RELS-EXT
+        // DC
+        DcStreamEditor dcEditor = new DcStreamEditor(localObject);
+        dcEditor.write(modsType, modelId, 0);
+
+        // XXX RELS-EXT
 
         RemoteStorage fedora = RemoteStorage.getInstance(pasConfig);
         fedora.ingest(localObject, "label", "XXX");
@@ -141,29 +152,35 @@ public class DigitalObjectResource {
     @Path("/dc")
     @Produces(MediaType.APPLICATION_XML)
     public DublinCoreRecord getDublinCore(
-            @QueryParam("pid") String pid
-            ) {
+            @QueryParam("pid") String pid,
+            @QueryParam("batchId") String batchId
+            ) throws IOException {
 
-        try {
-            // dev mode http://127.0.0.1:8888/rest/object/dc?pid=uuid:4a7c2e50-af36-11dd-9643-000d606f5dc6
-            DublinCoreRecord dc = repository.getDc(pid);
-            return dc;
-        } catch (Exception ex) {
-            LOG.log(Level.SEVERE, pid, ex);
-            throw new WebApplicationException(
-                    Response.status(Response.Status.NOT_FOUND)
-                    .entity("Some smart message.").type(MediaType.TEXT_PLAIN)
-                    .build());
+        // dev mode http://127.0.0.1:8888/rest/object/dc?pid=uuid:4a7c2e50-af36-11dd-9643-000d606f5dc6
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        DcStreamEditor dcEditor = new DcStreamEditor(fobject);
+        DublinCoreRecord dc = dcEditor.read();
+        if (dc == null) {
+            throw new NotFoundException("pid not found!");
         }
+        dc.setBatchId(batchId);
+        return dc;
     }
 
     @POST
     @Path("/dc")
     @Consumes({MediaType.TEXT_XML, MediaType.APPLICATION_XML})
     @Produces(MediaType.APPLICATION_XML)
-    public DublinCoreRecord updateDublinCore(DublinCoreRecord record) {
-        repository.updateDc(record, 1);
-        return record;
+    public DublinCoreRecord updateDublinCore(DublinCoreRecord update) throws IOException {
+        if (update == null || update.getDc() == null) {
+            throw new IllegalArgumentException();
+        }
+        FedoraObject fobject = findFedoraObject(update.getPid(), update.getBatchId());
+        DcStreamEditor dcEditor = new DcStreamEditor(fobject);
+        dcEditor.write(update);
+        DublinCoreRecord result = dcEditor.read();
+        result.setBatchId(update.getBatchId());
+        return result;
     }
 
     /**
@@ -233,7 +250,10 @@ public class DigitalObjectResource {
             String toXml = ModsUtils.toXml(mods, true);
             LOG.severe(toXml);
             modsEditor.write(mods, timestamp);
-            // XXX update DC
+
+            // DC
+            DcStreamEditor dcEditor = new DcStreamEditor(remote);
+            dcEditor.write(mods, "XXX:model", dcEditor.getLastModified());
             remote.flush();
 
             CustomMods<Object> result = new CustomMods<Object>();
@@ -354,6 +374,20 @@ public class DigitalObjectResource {
         OcrRecord record = new OcrRecord(ocr, timestamp, pid);
         repository.updateOcr(record, 1);
         return record;
+    }
+
+    private FedoraObject findFedoraObject(String pid, String batchId) throws IOException {
+        FedoraObject fobject;
+        if (batchId != null) {
+            ImportItem item = importManager.findItem(pid);
+            if (item == null) {
+                throw new NotFoundException("pid", pid);
+            }
+            fobject = new LocalStorage().load(pid, item.getFoxmlAsFile());
+        } else {
+            fobject = RemoteStorage.getInstance(pasConfig).find(pid);
+        }
+        return fobject;
     }
 
     public static final class MetaModelRepository {

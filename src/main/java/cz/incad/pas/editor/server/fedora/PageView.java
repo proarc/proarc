@@ -17,12 +17,14 @@
 package cz.incad.pas.editor.server.fedora;
 
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.custom.PageMapper;
 import cz.incad.pas.editor.server.mods.custom.PageMapper.Page;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,20 +52,29 @@ public final class PageView {
             Page page = mapper.map(editor.read());
 //            Object custom = mapping.read(record.getMods(), MetaModelDataSource.EDITOR_PAGE);
             result.add(new Item(batchId, imp.getFilename(), imp.getPid(),
-                    "XXX-model", page.getIndex(), page.getNumber(), page.getType(),
+                    "model:page", page.getIndex(), page.getNumber(), page.getType(),
                     editor.getLastModified(), "XXX-user"));
         }
         return new ImportBatchItemList(result);
     }
 
-    public ImportBatchItemList updateItem(int batchId, ImportItem item, long timestamp, String pageIndex, String pageNumber, String pageType) {
+    public ImportBatchItemList updateItem(int batchId, ImportItem item, long timestamp, String pageIndex, String pageNumber, String pageType)
+            throws IOException {
+        
         LocalStorage storage = new LocalStorage();
 //        PageMapper mapper = new PageMapper();
         LocalObject local = storage.load(item.getPid(), item.getFoxmlAsFile());
+
+        // MODS
         ModsStreamEditor editor = new ModsStreamEditor(local);
         ModsType mods = editor.read();
         editor.updatePage(mods, pageIndex, pageNumber, pageType);
         editor.write(mods, timestamp);
+
+        // DC
+        DcStreamEditor dcEditor = new DcStreamEditor(local);
+        dcEditor.write(mods, "model:page", dcEditor.getLastModified());
+
         local.flush();
         Item update = new Item(batchId, item.getFilename(), item.getPid(), "XXX-model",
                 pageIndex, pageNumber, pageType,

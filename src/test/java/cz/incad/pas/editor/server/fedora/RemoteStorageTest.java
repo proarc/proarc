@@ -19,11 +19,14 @@ package cz.incad.pas.editor.server.fedora;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraCredentials;
 import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
+import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
+import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import javax.xml.bind.JAXB;
@@ -121,6 +124,23 @@ public class RemoteStorageTest {
         LocalObject object = new LocalStorage().create();
         String label = "testing";
         fedora.ingest(object, label, "junit");
+    }
+
+    @Test
+    public void testIngestPage() throws Exception {
+        RemoteStorage fedora = new RemoteStorage(client);
+//        client.debug(true);
+        LocalObject local = new LocalStorage().create();
+        ModsStreamEditor modsEditor = new ModsStreamEditor(local);
+        ModsType mods = modsEditor.createPage(local.getPid(), "1", "[1]", "Blank");
+        DcStreamEditor dcEditor = new DcStreamEditor(local);
+        dcEditor.write(mods, "model:page", 0);
+        modsEditor.write(mods, 0);
+        local.flush();
+        System.out.println(FoxmlUtils.toXml(local.getDigitalObject(), true));
+
+        String label = "testing";
+        fedora.ingest(local, label, "junit");
     }
 
     @Test

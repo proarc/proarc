@@ -2,13 +2,12 @@
 <xsl:stylesheet version="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xmlns:mods="http://www.loc.gov/mods/v3" exclude-result-prefixes="mods"
                 xmlns:dc="http://purl.org/dc/elements/1.1/"
-                xmlns:srw_dc="info:srw/schema/1/dc-schema"
                 xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
-<!-- 
-This stylesheet transforms MODS version 3.2 records and collections of records to simple Dublin Core (DC) records, 
-based on the Library of Congress' MODS to simple DC mapping <http://www.loc.gov/standards/mods/mods-dcsimple.html> 
+<!--
+This stylesheet transforms MODS version 3.2 records and collections of records to simple Dublin Core (DC) records,
+based on the Library of Congress' MODS to simple DC mapping <http://www.loc.gov/standards/mods/mods-dcsimple.html>
 
 The stylesheet will transform a collection of MODS 3.2 records into simple Dublin Core (DC)
 as expressed by the SRU DC schema <http://www.loc.gov/standards/sru/dc-schema.xsd>
@@ -16,10 +15,10 @@ as expressed by the SRU DC schema <http://www.loc.gov/standards/sru/dc-schema.xs
 The stylesheet will transform a single MODS 3.2 record into simple Dublin Core (DC)
 as expressed by the OAI DC schema <http://www.openarchives.org/OAI/2.0/oai_dc.xsd>
 
-Because MODS is more granular than DC, transforming a given MODS element or subelement to a DC element frequently results in less precise tagging, 
-and local customizations of the stylesheet may be necessary to achieve desired results. 
+Because MODS is more granular than DC, transforming a given MODS element or subelement to a DC element frequently results in less precise tagging,
+and local customizations of the stylesheet may be necessary to achieve desired results.
 
-This stylesheet makes the following decisions in its interpretation of the MODS to simple DC mapping: 
+This stylesheet makes the following decisions in its interpretation of the MODS to simple DC mapping:
 
 When the roleTerm value associated with a name is creator, then name maps to dc:creator
 When there is no roleTerm value associated with name, or the roleTerm value associated with name is a value other than creator, then name maps to dc:contributor
@@ -37,49 +36,61 @@ Version 1.0    2007-05-04 Tracy Meehleib <tmee@loc.gov>
 
 -->
 
-    <xsl:output method="xml" indent="yes"/>
+    <xsl:output encoding="UTF-8" indent="yes" method="xml"/>
+
+    <xsl:param name="MODEL" />
 
     <xsl:template match="/">
-        <xsl:choose>
-            <xsl:when test="//mods:modsCollection">
-                <srw_dc:dcCollection xsi:schemaLocation="info:srw/schema/1/dc-schema http://www.loc.gov/standards/sru/dc-schema.xsd">
-                    <xsl:apply-templates/>
-                    <xsl:for-each select="mods:modsCollection/mods:mods">
-                        <srw_dc:dc xsi:schemaLocation="info:srw/schema/1/dc-schema http://www.loc.gov/standards/sru/dc-schema.xsd">
-                            <xsl:apply-templates/>
-                        </srw_dc:dc>
-                    </xsl:for-each>
-                </srw_dc:dcCollection>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:for-each select="mods:mods">
-                    <oai_dc:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
-                        <xsl:apply-templates/>
-                    </oai_dc:dc>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
+        <oai_dc:dc>
+            <xsl:apply-templates select="//mods:mods[1]/*"/>
+            <dc:type><xsl:value-of select="$MODEL"/></dc:type>
+        </oai_dc:dc>
     </xsl:template>
 
     <xsl:template match="mods:titleInfo">
-        <dc:title>
+        <xsl:variable name="title">
             <xsl:value-of select="mods:nonSort"/>
-            <xsl:if test="mods:nonSort">
+            <xsl:if test="string(mods:nonSort)">
                 <xsl:text> </xsl:text>
             </xsl:if>
             <xsl:value-of select="mods:title"/>
-            <xsl:if test="mods:subTitle">
+            <xsl:if test="string(mods:subTitle)">
                 <xsl:text>: </xsl:text>
                 <xsl:value-of select="mods:subTitle"/>
             </xsl:if>
-            <xsl:if test="mods:partNumber">
+            <xsl:if test="string(mods:partNumber)">
                 <xsl:text>. </xsl:text>
                 <xsl:value-of select="mods:partNumber"/>
             </xsl:if>
-            <xsl:if test="mods:partName">
+            <xsl:if test="string(mods:partName)">
                 <xsl:text>. </xsl:text>
                 <xsl:value-of select="mods:partName"/>
             </xsl:if>
+        </xsl:variable>
+
+        <xsl:if test="string($title)">
+            <dc:title>
+                <xsl:value-of select="$title"/>
+            </dc:title>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- title for: page, periodicalvolume, periodicalitem, monographunit -->
+    <xsl:template match="mods:part">
+        <xsl:apply-templates select="mods:detail/mods:number"/>
+    </xsl:template>
+
+    <!-- title for: page, periodicalvolume, periodicalitem -->
+    <xsl:template match="mods:detail[@type='pageNumber' or @type='volume' or @type='issue']/mods:number[1]">
+        <dc:title>
+            <xsl:value-of select="."/>
+        </dc:title>
+    </xsl:template>
+
+    <!-- title for: monographunit -->
+    <xsl:template match="mods:part[@type='Volume']/mods:detail/mods:number[1]">
+        <dc:title>
+            <xsl:value-of select="."/>
         </dc:title>
     </xsl:template>
 
@@ -87,15 +98,25 @@ Version 1.0    2007-05-04 Tracy Meehleib <tmee@loc.gov>
         <xsl:choose>
             <xsl:when
                 test="mods:role/mods:roleTerm[@type='text']='creator' or mods:role/mods:roleTerm[@type='code']='cre' ">
-                <dc:creator>
+                <xsl:variable name="creator">
                     <xsl:call-template name="name"/>
-                </dc:creator>
+                </xsl:variable>
+                <xsl:if test="string($creator)">
+                    <dc:creator>
+                        <xsl:value-of select="$creator"/>
+                    </dc:creator>
+                </xsl:if>
             </xsl:when>
 
             <xsl:otherwise>
-                <dc:contributor>
+                <xsl:variable name="contributor">
                     <xsl:call-template name="name"/>
-                </dc:contributor>
+                </xsl:variable>
+                <xsl:if test="string($contributor)">
+                    <dc:contributor>
+                        <xsl:value-of select="$contributor"/>
+                    </dc:contributor>
+                </xsl:if>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -295,10 +316,9 @@ Version 1.0    2007-05-04 Tracy Meehleib <tmee@loc.gov>
     <xsl:template match="mods:identifier">
         <xsl:variable name="type" select="translate(@type,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"/>
         <xsl:choose>
-            <xsl:when test="contains ('isbn issn uri doi lccn uri', $type)">
+            <xsl:when test="contains ('isbn issn uri doi lccn uri uuid', $type)">
                 <dc:identifier>
-                    <xsl:value-of select="$type"/>: 
-                    <xsl:value-of select="."/>
+                    <xsl:value-of select="$type"/>:<xsl:value-of select="."/>
                 </dc:identifier>
             </xsl:when>
             <xsl:otherwise>
@@ -359,16 +379,16 @@ Version 1.0    2007-05-04 Tracy Meehleib <tmee@loc.gov>
 
     <xsl:template name="name">
         <xsl:variable name="name">
-            <xsl:for-each select="mods:namePart[not(@type)]">
+            <xsl:for-each select="mods:namePart[not(@type)]/text()">
                 <xsl:value-of select="."/>
                 <xsl:text> </xsl:text>
             </xsl:for-each>
             <xsl:value-of select="mods:namePart[@type='family']"/>
-            <xsl:if test="mods:namePart[@type='given']">
+            <xsl:if test="mods:namePart[@type='given']/text()">
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="mods:namePart[@type='given']"/>
             </xsl:if>
-            <xsl:if test="mods:namePart[@type='date']">
+            <xsl:if test="mods:namePart[@type='date']/text()">
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="mods:namePart[@type='date']"/>
                 <xsl:text/>
@@ -378,7 +398,7 @@ Version 1.0    2007-05-04 Tracy Meehleib <tmee@loc.gov>
                 <xsl:value-of select="mods:displayForm"/>
                 <xsl:text>) </xsl:text>
             </xsl:if>
-            <xsl:for-each select="mods:role[mods:roleTerm[@type='text']!='creator']">
+            <xsl:for-each select="mods:role[mods:roleTerm[@type='text']!='creator']/text()">
                 <xsl:text> (</xsl:text>
                 <xsl:value-of select="normalize-space(.)"/>
                 <xsl:text>) </xsl:text>

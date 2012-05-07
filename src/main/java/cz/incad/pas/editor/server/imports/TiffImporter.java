@@ -21,10 +21,10 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.StateType;
-import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
+import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
@@ -41,12 +41,7 @@ import java.nio.channels.FileChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.stream.FileImageOutputStream;
-import javax.ws.rs.core.MediaType;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /**
  * Requires Java Advanced Imaging support.
@@ -85,11 +80,16 @@ public final class TiffImporter {
         String pid = localObj.getPid();
         String uuid = pid.substring("uuid:".length());
 
+        // MODS
         ModsStreamEditor modsEditor = new ModsStreamEditor(localObj);
         ModsType mods = modsEditor.createPage(pid, null, null, null);
         modsEditor.write(mods, 0);
 
-        generateDublinCore(digObj, pid, uuid, ctx);
+        // DC
+        DcStreamEditor dcEditor = new DcStreamEditor(localObj);
+        dcEditor.write(mods, "model:page", 0);
+
+        // Images
         createImages(tempBatchFolder, f, originalFilename, digObj, ctx.getXmlNow());
 
         // XXX generate OCR name.txt.ocr
@@ -102,53 +102,6 @@ public final class TiffImporter {
 
     private boolean isTiff(File f, String mimetype) {
         return ImageMimeType.TIFF.getMimeType().equals(mimetype);
-    }
-
-    private DigitalObject generateDublinCore(DigitalObject digObj, String uuid, String filename, ImportContext ctx) {
-        DatastreamType dsDc = createDublinCore(uuid, filename, ctx);
-        digObj.getDatastream().add(dsDc);
-        return digObj;
-    }
-
-    private DatastreamType createDublinCore(String uuid, String filename, ImportContext ctx) {
-        DatastreamType ds = createDatastream("DC", "X", false, StateType.A);
-
-        DatastreamVersionType streamVersion = new DatastreamVersionType();
-        streamVersion.setID(ds.getID() + ".0");
-        streamVersion.setLABEL("Dublin Core description");
-        streamVersion.setMIMETYPE(MediaType.TEXT_XML);
-        streamVersion.setFORMATURI("http://www.openarchives.org/OAI/2.0/oai_dc/");
-        // do not set created; it is assigned by fedora
-        streamVersion.setCREATED(ctx.getXmlNow());
-        ds.getDatastreamVersion().add(streamVersion);
-
-        // create DC
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        try {
-            Document d = factory.newDocumentBuilder().newDocument();
-            Element root = d.createElementNS("http://www.openarchives.org/OAI/2.0/oai_dc/", "oai_dc:dc");
-            root.setAttribute("xmlns:dc", NS_DC);
-            d.appendChild(root);
-
-            Element title = d.createElementNS(NS_DC, "dc:title");
-            title.setTextContent(filename);
-            root.appendChild(title);
-
-            Element identifier = d.createElementNS(NS_DC, "dc:identifier");
-            identifier.setTextContent("uuid:" + uuid);
-            root.appendChild(identifier);
-
-            Element type = d.createElementNS(NS_DC, "dc:type");
-            type.setTextContent("model:page");
-            root.appendChild(type);
-
-            XmlContentType xml = new XmlContentType();
-            xml.getAny().add(root);
-            streamVersion.setXmlContent(xml);
-            return ds;
-        } catch (ParserConfigurationException ex) {
-            throw new IllegalStateException(ex);
-        }
     }
 
     private static DatastreamType createDatastream(String id, String controlGroup, boolean versionable, StateType state) {

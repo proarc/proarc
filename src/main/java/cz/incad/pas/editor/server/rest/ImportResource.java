@@ -280,7 +280,7 @@ public class ImportResource {
             @FormParam("pageNumber") String pageNumber,
             @FormParam("pageType") String pageType,
             @FormParam("filename") String filename
-            ) {
+            ) throws IOException {
 
         ImportItem item = null;
         if (batchId != null && pid != null && !pid.isEmpty()) {

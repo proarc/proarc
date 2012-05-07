@@ -26,14 +26,13 @@ import cz.incad.pas.editor.client.rpc.ModsGwtService;
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.ModsUtils;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -50,8 +49,6 @@ import javax.servlet.UnavailableException;
 public class ModsGwtServiceProvider extends RemoteServiceServlet implements ModsGwtService {
 
     private static final Logger LOG = Logger.getLogger(ModsGwtServiceProvider.class.getName());
-
-    private static final Map<String, ModsCollection> STORAGE = new HashMap<String, ModsCollection>();
 
     private PasConfiguration pasConfig;
     private RemoteStorage repository;
@@ -119,6 +116,13 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
         RemoteObject remote = repository.find(id);
         ModsStreamEditor editor = new ModsStreamEditor(remote);
         editor.write(modsType, record.getTimestamp());
+        // DC, XXX RELS-EXT required to get model
+        DcStreamEditor dcEditor = new DcStreamEditor(remote);
+        try {
+            dcEditor.write(modsType, "XXX-model", dcEditor.getLastModified());
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex);
+        }
         remote.flush();
 
         LOG.log(Level.INFO, "written id: {0}, old id: {1}", new Object[]{id, oldId});
