@@ -74,6 +74,9 @@ public final class RemoteStorage {
      * see https://wiki.duraspace.org/display/FEDORA35/Using+File+URIs to reference external files for ingest
      */
     public void ingest(LocalObject object, String label, String user) throws FedoraClientException {
+        if (user == null || user.isEmpty()) {
+            throw new IllegalArgumentException("user");
+        }
         DigitalObject digitalObject = object.getDigitalObject();
 
         PropertyType ownerProperty = new PropertyType();
@@ -81,10 +84,12 @@ public final class RemoteStorage {
         ownerProperty.setVALUE(user);
         digitalObject.getObjectProperties().getProperty().add(ownerProperty);
 
-        PropertyType labelProperty = new PropertyType();
-        labelProperty.setNAME("info:fedora/fedora-system:def/model#label");
-        labelProperty.setVALUE(label);
-        digitalObject.getObjectProperties().getProperty().add(labelProperty);
+        if (label != null) {
+            PropertyType labelProperty = new PropertyType();
+            labelProperty.setNAME("info:fedora/fedora-system:def/model#label");
+            labelProperty.setVALUE(label);
+            digitalObject.getObjectProperties().getProperty().add(labelProperty);
+        }
 
         String xml = FoxmlUtils.toXml(digitalObject, false);
         IngestResponse response = FedoraClient.ingest(object.getPid())
