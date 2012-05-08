@@ -27,6 +27,7 @@ import cz.incad.imgsupport.ImageSupport;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
+import cz.incad.pas.editor.server.fedora.StringEditor;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.imports.ImportProcess.ImportContext;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
@@ -92,7 +93,10 @@ public final class TiffImporter {
         // Images
         createImages(tempBatchFolder, f, originalFilename, digObj, ctx.getXmlNow());
 
-        // XXX generate OCR name.txt.ocr
+        // OCR
+        StringEditor ocrEditor = StringEditor.ocr(localObj);
+        ocrEditor.write("", 0);
+        
         // XXX generate ATM
         // writes FOXML
         localObj.flush();

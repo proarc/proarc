@@ -19,8 +19,6 @@ package cz.incad.pas.editor.client.ds;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.OperationBinding;
-import com.smartgwt.client.data.fields.DataSourceIntegerField;
-import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
@@ -30,41 +28,38 @@ import com.smartgwt.client.types.FieldType;
  *
  * @author Jan Pokorsky
  */
-public class OcrDataSource extends DataSource {
+public final class OcrDataSource extends DataSource {
 
     public static final String ID = "OcrDataSource";
 
     public static final String FIELD_PID = "pid";
+    public static final String FIELD_BATCHID = "batchId";
     public static final String FIELD_TIMESTAMP = "timestamp";
-    public static final String FIELD_OCR = "ocr";
+    public static final String FIELD_OCR = "content";
 
     public OcrDataSource() {
         setID(ID);
 
-//        setDataFormat(DSDataFormat.XML);
-        setRecordXPath("/ocrRecord");
+        setRecordXPath("/record");
         setDataFormat(DSDataFormat.JSON);
-//        setRecordXPath("ocrRecord");
         
-        setTagName("ocrRecord");
-
         setDataURL(RestConfig.URL_DIGOBJECT_OCR);
 
         DataSourceField fieldPid = new DataSourceField(FIELD_PID, FieldType.TEXT);
         fieldPid.setPrimaryKey(true);
         fieldPid.setRequired(true);
-//        fieldPid.setHidden(true);
-//        fieldPid.setValueXPath(FIELD_PID);
+
+        DataSourceField fieldBatchId = new DataSourceField(FIELD_BATCHID, FieldType.TEXT);
+        fieldBatchId.setHidden(true);
+        fieldBatchId.setCanView(true);
 
         DataSourceField fieldTimestamp = new DataSourceField(FIELD_TIMESTAMP, FieldType.TEXT);
         fieldTimestamp.setRequired(true);
         fieldTimestamp.setHidden(true);
-//        fieldTimestamp.setValueXPath(FIELD_TIMESTAMP);
 
         DataSourceField fieldOcr = new DataSourceField(FIELD_OCR, FieldType.TEXT);
-//        fieldOcr.setRequired(true);
 
-        setFields(fieldPid, fieldTimestamp, fieldOcr);
+        setFields(fieldPid, fieldBatchId, fieldTimestamp, fieldOcr);
 
         OperationBinding updateOp = new OperationBinding();
         updateOp.setOperationType(DSOperationType.UPDATE);

@@ -19,6 +19,8 @@ package cz.incad.pas.editor.server.fedora;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraCredentials;
 import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
+import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
+import com.yourmediashelf.fedora.generated.access.DatastreamType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
@@ -131,16 +133,33 @@ public class RemoteStorageTest {
         RemoteStorage fedora = new RemoteStorage(client);
 //        client.debug(true);
         LocalObject local = new LocalStorage().create();
+//        LocalObject local = new LocalStorage().create(new File("/tmp/failing_ingest.foxml"));
         ModsStreamEditor modsEditor = new ModsStreamEditor(local);
         ModsType mods = modsEditor.createPage(local.getPid(), "1", "[1]", "Blank");
         DcStreamEditor dcEditor = new DcStreamEditor(local);
         dcEditor.write(mods, "model:page", 0);
         modsEditor.write(mods, 0);
+        StringEditor ocrEditor = StringEditor.ocr(local);
+        ocrEditor.write("ocr", 0);
         local.flush();
         System.out.println(FoxmlUtils.toXml(local.getDigitalObject(), true));
 
         String label = "testing";
         fedora.ingest(local, label, "junit");
+        ListDatastreamsResponse response = FedoraClient.listDatastreams(local.getPid()).execute(client);
+        List<DatastreamType> datastreams = response.getDatastreams();
+        assertDatastream(DcStreamEditor.DATASTREAM_ID, datastreams);
+        assertDatastream(ModsStreamEditor.DATASTREAM_ID, datastreams);
+        assertDatastream(StringEditor.OCR_ID, datastreams);
+    }
+
+    private static void assertDatastream(String id, List<DatastreamType> datastreams) {
+        for (DatastreamType ds : datastreams) {
+            if (id.equals(ds.getDsid())) {
+                return;
+            }
+        }
+        fail(id);
     }
 
     @Test

@@ -27,12 +27,13 @@ import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
-import cz.incad.pas.editor.server.fedora.DigitalObjectRepository.OcrRecord;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
+import cz.incad.pas.editor.server.fedora.StringEditor;
+import cz.incad.pas.editor.server.fedora.StringEditor.StringRecord;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.json.JsonUtils;
@@ -343,37 +344,42 @@ public class DigitalObjectResource {
 
     @GET
     @Path("/ocr")
-//    @Produces(MediaType.APPLICATION_XML)
     @Produces(MediaType.APPLICATION_JSON)
-    public OcrRecord getOcr(@QueryParam("pid") String pid) {
-        OcrRecord ocr = repository.getOcr(pid);
+    public StringRecord getOcr(
+            @QueryParam("pid") String pid,
+            @QueryParam("batchId") String batchId
+            ) throws IOException {
+
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        StringEditor ocrEditor = StringEditor.ocr(fobject);
+        StringRecord ocr = ocrEditor.readRecord();
         if (ocr == null) {
-            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            throw new NotFoundException("pid", pid);
         }
+        ocr.setBatchId(batchId);
         return ocr;
     }
 
     @POST
     @Path("/ocr")
-    @Consumes({MediaType.TEXT_XML, MediaType.APPLICATION_XML})
-    @Produces(MediaType.APPLICATION_XML)
-    public OcrRecord updateOcr(OcrRecord record) {
-        repository.updateOcr(record, 1);
-        return record;
-    }
-
-    @POST
-    @Path("/ocr")
-//    @Consumes({MediaType.TEXT_XML, MediaType.APPLICATION_XML})
     @Produces(MediaType.APPLICATION_JSON)
-    public OcrRecord updateOcrJson(
+    public StringRecord updateOcr(
             @FormParam("pid") String pid,
-            @FormParam("timestamp") long timestamp,
-            @FormParam("ocr") String ocr
-            ) {
-        OcrRecord record = new OcrRecord(ocr, timestamp, pid);
-        repository.updateOcr(record, 1);
-        return record;
+            @FormParam("batchId") String batchId,
+            @FormParam("timestamp") Long timestamp,
+            @FormParam("content") String content
+            ) throws IOException {
+
+        if (timestamp == null) {
+            throw new IllegalArgumentException();
+        }
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        StringEditor ocrEditor = StringEditor.ocr(fobject);
+        ocrEditor.write(content, timestamp);
+        fobject.flush();
+        StringRecord result = ocrEditor.readRecord();
+        result.setBatchId(batchId);
+        return result;
     }
 
     private FedoraObject findFedoraObject(String pid, String batchId) throws IOException {
