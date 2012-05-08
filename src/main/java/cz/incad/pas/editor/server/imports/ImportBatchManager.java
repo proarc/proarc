@@ -54,15 +54,11 @@ public final class ImportBatchManager {
 
     /** XXX replace with guice */
     public static ImportBatchManager getInstance(PasConfiguration config) {
-        boolean load = false;
         synchronized (ImportBatchManager.class) {
             if (INSTANCE == null) {
                 INSTANCE = new ImportBatchManager(config);
-                load = true;
+                load(config.getConfigHome(), INSTANCE, UserUtil.createUserManagerMemoryImpl(config));
             }
-        }
-        if (load) {
-            load(config.getConfigHome(), INSTANCE, UserUtil.createUserManagerMemoryImpl(config));
         }
         return INSTANCE;
     }
