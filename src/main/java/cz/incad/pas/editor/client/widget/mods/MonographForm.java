@@ -23,9 +23,9 @@ import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ds.LanguagesDataSource;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
-import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -100,12 +100,12 @@ public final class MonographForm extends DynamicForm {
 //                form.setNumCols(6);
                 ComboBoxItem language = new ComboBoxItem(ModsCustomDataSource.FIELD_LANGUAGE_CODE,
                         i18nPas.MonographForm_LanguageCode_Title());
-                
-                LinkedHashMap<String, String> valueMap = new LinkedHashMap<String, String>();
-                valueMap.put("cze", "Czech - cze");
-                valueMap.put("eng", "English - eng");
-                valueMap.put("ger", "German - ger ");
-                language.setValueMap(valueMap);
+                language.setPrompt(i18nPas.MonographForm_LanguageCode_Hint());
+                language.setOptionDataSource(LanguagesDataSource.getInstance());
+                language.setOptionCriteria(LanguagesDataSource.activeLocaleAsCriteria());
+//                language.setPickListCriteria(LanguagesDataSource.activeLocaleAsCriteria());
+                language.setValueField(LanguagesDataSource.FIELD_CODE);
+                language.setDisplayField(LanguagesDataSource.FIELD_VALUE);
                 form.setFields(language);
                 return form;
             }
