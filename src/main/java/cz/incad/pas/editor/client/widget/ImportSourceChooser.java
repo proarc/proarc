@@ -89,23 +89,7 @@ public class ImportSourceChooser extends VLayout {
 //        layout.addMember(testList);
 
         optionsForm = new DynamicForm();
-        SelectItem selectModel = new SelectItem("model", i18nPas.ImportSourceChooser_OptionImportModel_Title());
-        selectModel.setOptionDataSource(metaModelSource);
-//        selectModel.setShowOptionsFromDataSource(true);
-        selectModel.setValueField(MetaModelDataSource.FIELD_PID);
-        selectModel.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
-        selectModel.setAutoFetchData(true);
-
-//        LinkedHashMap<String, String> modelMap = new LinkedHashMap<String, String>();
-//        modelMap.put("model:issue", "Issue");
-//        modelMap.put("mode:monograph", "Monograph");
-//        modelMap.put("model:page", "Page");
-//        modelMap.put("model:periodical", "Periodical");
-//        modelMap.put("model:unit", "Unit");
-//        modelMap.put("model:volume", "Volume");
-//        selectModel.setValueMap(modelMap);
-//        selectModel.setDefaultValue("model:page");
-        
+//        SelectItem selectModel = new SelectItem("model", i18nPas.ImportSourceChooser_OptionImportModel_Title());
         CheckboxItem cbiPageIndexes = new CheckboxItem("genIndex",
                 i18nPas.ImportSourceChooser_OptionPageIndices_Title());
 
@@ -116,7 +100,7 @@ public class ImportSourceChooser extends VLayout {
         selectScanner.setValueMap(scannerMap);
         selectScanner.setDefaultValue("scanner:scanner1");
         
-        optionsForm.setFields(selectModel, cbiPageIndexes, selectScanner);
+        optionsForm.setFields(cbiPageIndexes, selectScanner);
         layout.addMember(optionsForm);
     }
 
