@@ -92,6 +92,9 @@ import java.util.logging.Logger;
 */
 public class ImportBatchItemEditor extends HLayout {
 
+    // darker variant #E6E6F5
+    private static final String BACKGROUND_COLOR = "#F5F5FB";
+
     private static final Logger LOG = Logger.getLogger(ImportBatchItemEditor.class.getName());
 
     private final PasEditorMessages i18nPas;
@@ -333,6 +336,7 @@ public class ImportBatchItemEditor extends HLayout {
         previewLayout.setWidth("40%");
         previewLayout.setHeight100();
         previewLayout.setOverflow(Overflow.AUTO);
+        previewLayout.setBackgroundColor(BACKGROUND_COLOR);
 //        previewLayout.setShowResizeBar(true);
 //        previewLayout.setResizeFrom("L");
         previewLayout.addMember(preview);
@@ -360,6 +364,7 @@ public class ImportBatchItemEditor extends HLayout {
 
     private TileGrid createThumbViewer() {
         final TileGridEnhanced thumbGrid = new TileGridEnhanced();
+        thumbGrid.setBackgroundColor(BACKGROUND_COLOR);
         thumbGrid.setWidth(150);
         thumbGrid.setHeight100();
         thumbGrid.setMinWidth(150);
