@@ -79,20 +79,17 @@ public class PageMetadataEditor {
         }
         allowPageIndexes = new CheckboxItem("fillPageIndexes", i18nPas.PageMetadataEditor_CheckboxPageIndices_Title());
         allowPageIndexes.setStartRow(true);
-        allowPageIndexes.setDefaultValue(true);
         allowPageIndexes.setColSpan("*");
         allowPageIndexes.setShowTitle(false);
 //        fillPageIndexes.setShowLabel(false);
 
         allowPageNumbers = new CheckboxItem("fillPageNumbers", i18nPas.PageMetadataEditor_CheckboxPageNubers_Title());
-        allowPageNumbers.setDefaultValue(true);
 //        fillPageNumbers.setShowLabel(false);
         allowPageNumbers.setStartRow(true);
         allowPageNumbers.setColSpan("*");
         allowPageNumbers.setShowTitle(false);
 
         allowPageTypes = new CheckboxItem("fillPageTypes", i18nPas.PageMetadataEditor_CheckboxPageTypes_Title());
-        allowPageTypes.setDefaultValue(true);
 //        fillPageTypes.setShowLabel(false);
         allowPageTypes.setStartRow(true);
         allowPageTypes.setColSpan("*");
@@ -174,6 +171,17 @@ public class PageMetadataEditor {
         return form;
     }
 
+    private void setStateOnInit() {
+        allowPageIndexes.setValue(false);
+        allowPageNumbers.setValue(false);
+        allowPageTypes.setValue(false);
+        indexStart.setDisabled(!getAllowPageIndexes());
+        numberStart.setDisabled(!getAllowPageNumbers());
+        prefix.setDisabled(!getAllowPageNumbers());
+        suffix.setDisabled(!getAllowPageNumbers());
+        pageType.setDisabled(!getAllowPageTypes());
+    }
+
     private Canvas createButtons() {
         SmartGwtMessages i18n = GWT.create(SmartGwtMessages.class);
         IButton btnOk = new IButton(i18n.dialog_OkButtonTitle(), new com.smartgwt.client.widgets.events.ClickHandler() {
@@ -184,7 +192,8 @@ public class PageMetadataEditor {
                 if (valid) {
                     window.hide();
                     if (windowCallback != null) {
-                        windowCallback.execute(true);
+                        boolean commit = getAllowPageIndexes() || getAllowPageNumbers() || getAllowPageTypes();
+                        windowCallback.execute(commit);
                     }
                 }
             }
@@ -212,9 +221,7 @@ public class PageMetadataEditor {
         this.windowCallback = callback;
         if (window != null) {
             form.clearValues();
-            for (FormItem formItem : form.getFields()) {
-                formItem.setDisabled(false);
-            }
+            setStateOnInit();
             window.show();
             form.focusInItem(indexStart);
             return ;
@@ -234,6 +241,7 @@ public class PageMetadataEditor {
         window.setTitle(i18nPas.PageMetadataEditor_Window_Title());
         window.setShowMinimizeButton(false);
         window.setShowModalMask(true);
+        setStateOnInit();
         window.show();
     }
 
