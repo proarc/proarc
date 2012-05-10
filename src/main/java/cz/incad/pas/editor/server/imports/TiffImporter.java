@@ -75,7 +75,8 @@ public final class TiffImporter {
 
         // MODS
         ModsStreamEditor modsEditor = new ModsStreamEditor(localObj);
-        ModsType mods = modsEditor.createPage(pid, null, null, null);
+        String pageIndex = ctx.isGenerateIndices() ? String.valueOf(ctx.getConsumedFileCounter() + 1) : null;
+        ModsType mods = modsEditor.createPage(pid, pageIndex, null, null);
         modsEditor.write(mods, 0);
 
         // DC

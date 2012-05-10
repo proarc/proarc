@@ -146,6 +146,7 @@ public class ImportProcess {
             ImportItem item = consumer.consume(f, mimeType, ctx);
             if (item != null) {
                 LOG.log(Level.INFO, "time: {0} ms, {1}", new Object[] {System.currentTimeMillis() - start, f});
+                ++ctx.consumedFileCounter;
                 return item;
             }
         }
@@ -207,6 +208,7 @@ public class ImportProcess {
         private File targetFolder;
         private final XMLGregorianCalendar xmlNow;
         private final boolean generateIndices;
+        private int consumedFileCounter;
 
         ImportContext(File targetFolder, boolean generateIndices) throws DatatypeConfigurationException {
             this.targetFolder = targetFolder;
@@ -226,6 +228,10 @@ public class ImportProcess {
 
         public boolean isGenerateIndices() {
             return generateIndices;
+        }
+
+        public int getConsumedFileCounter() {
+            return consumedFileCounter;
         }
         
     }
