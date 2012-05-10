@@ -74,7 +74,6 @@ public class ImportSourceChooser extends VLayout {
             @Override
             public void onFolderClick(FolderClickEvent event) {
                 updateOnSelection();
-                viewHandler.sourceSelected();
             }
         });
 
@@ -131,6 +130,8 @@ public class ImportSourceChooser extends VLayout {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
+                treeGrid.selectRecord(0);
+                treeGrid.focus();
                 updateOnSelection();
             }
         });
@@ -167,6 +168,7 @@ public class ImportSourceChooser extends VLayout {
                 ? i18nPas.ImportSourceChooser_NothingSelected_Title()
                 : selectedRecord.getAttribute(ImportTreeRestDataSource.FIELD_PATH);
         lblCurrSelection.setContents(label);
+        viewHandler.sourceSelected();
     }
 
     public interface ImportSourceChooserHandler {

@@ -16,6 +16,9 @@
  */
 package cz.incad.pas.editor.client.widget;
 
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.AutoFitWidthApproach;
 import com.smartgwt.client.types.SelectionStyle;
@@ -56,6 +59,8 @@ public final class ImportBatchChooser extends VLayout {
     private ListGrid initBatchesListGrid() {
         ListGrid lg = new ListGrid();
         lg.setSelectionType(SelectionStyle.SINGLE);
+        lg.setCanReorderFields(false);
+        lg.setCanSort(false);
         ListGridField lgfFolder = new ListGridField(ImportBatchDataSource.FIELD_PATH,
                 i18nPas.ImportBatchDataSource_FolderFieldTitle());
 //        lgfFolder.setAutoFitWidth(false);
@@ -76,16 +81,22 @@ public final class ImportBatchChooser extends VLayout {
 
             @Override
             public void onSelectionUpdated(SelectionUpdatedEvent event) {
-                if (handler != null) {
-                    handler.itemSelected();
-                }
+                updateOnSelection();
             }
         });
         return lg;
     }
 
     public void bind() {
-        lGridBatches.fetchData();
+        lGridBatches.fetchData(null, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                lGridBatches.selectRecord(0);
+                updateOnSelection();
+                lGridBatches.focus();
+            }
+        });
     }
 
     public void setHandler(ImportBatchChooserHandler handler) {
@@ -94,6 +105,12 @@ public final class ImportBatchChooser extends VLayout {
 
     public Record getSelectedBatch() {
         return lGridBatches.getSelectedRecord();
+    }
+
+    private void updateOnSelection() {
+        if (handler != null) {
+            handler.itemSelected();
+        }
     }
 
     public interface ImportBatchChooserHandler {

@@ -125,9 +125,9 @@ public class ImportPresenter {
             wizard.setForwardButton(true, i18nPas.ImportWizard_SelectBatchStep_ForwardButton_Title());
             wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
                     i18nPas.ImportWizard_SelectBatchStep_Description_Title());
+            wizard.setCanStepForward(false);
             widget.setHandler(this);
             widget.bind();
-            itemSelected();
         }
 
         @Override
@@ -178,12 +178,12 @@ public class ImportPresenter {
             wizard.setForwardButton(true, i18nPas.ImportWizard_SelectFolderStep_ForwardButton_Title());
             wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
                     i18nPas.ImportWizard_SelectFolderStep_Description_Title());
+            wizard.setCanStepForward(false);
 
             ImportPresenter.this.importContext = new ImportContext();
             importSourceChooser.setViewHandler(this);
             importSourceChooser.setDigitalObjectModelDataSource(null);
             importSourceChooser.setFolderDataSource(null);
-            sourceSelected();
         }
 
         @Override
