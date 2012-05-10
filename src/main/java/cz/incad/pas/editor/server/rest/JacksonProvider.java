@@ -40,6 +40,7 @@ public final class JacksonProvider extends JacksonJaxbJsonProvider {
         // reuses XmlRootElement.name to adhere to XML structure
         configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
         configure(SerializationConfig.Feature.WRITE_NULL_PROPERTIES, false);
+        configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
     }
 
 }

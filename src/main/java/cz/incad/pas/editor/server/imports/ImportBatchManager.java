@@ -37,6 +37,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSchemaType;
 
 /**
  *
@@ -195,6 +196,7 @@ public final class ImportBatchManager {
         @XmlElement(required=true)
         private int id;
         private String folderPath;
+        @XmlSchemaType(name="dateTime")
         private Date timeStamp;
         private int userId;
         private List<ImportItem> items;
