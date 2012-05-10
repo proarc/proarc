@@ -136,6 +136,6 @@ public class TiffImporterTest {
         XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_FULL']", new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_PREVIEW']", new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_THUMB']", new InputSource(foxmlSystemId));
-//        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_RAW']", new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_RAW']", new InputSource(foxmlSystemId));
     }
 }

@@ -738,7 +738,10 @@ public class ImportBatchItemEditor extends HLayout {
             public void execute(Boolean value) {
                 if (value != null && value) {
                     if (selections != null && selections.length == 1) {
-                        preview.setSrc(RestConfig.URL_DIGOBJECT_PREVIEW + "?pid=" + selections[0].getAttribute(ImportBatchItemDataSource.FIELD_PID));
+                        preview.setSrc(ClientUtils.format("%s?%s",
+                                RestConfig.URL_DIGOBJECT_PREVIEW,
+                                selections[0].getAttribute(ImportBatchItemDataSource.FIELD_PREVIEW)
+                                ));
                     } else {
                         preview.setSrc("");
                     }

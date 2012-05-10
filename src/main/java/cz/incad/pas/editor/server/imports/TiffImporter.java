@@ -16,15 +16,12 @@
  */
 package cz.incad.pas.editor.server.imports;
 
-import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.StateType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
+import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.StringEditor;
@@ -37,12 +34,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.channels.FileChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.stream.FileImageOutputStream;
-import javax.xml.datatype.XMLGregorianCalendar;
+import javax.ws.rs.core.MediaType;
 
 /**
  * Requires Java Advanced Imaging support.
@@ -61,9 +57,6 @@ public final class TiffImporter {
 
     private static final Logger LOG = Logger.getLogger(TiffImporter.class.getName());
     
-    private static final String NS_DC = "http://purl.org/dc/elements/1.1/";
-
-
     public ImportItem consume(File f, String mimetype, ImportContext ctx) throws IOException {
         // check tiff file
         if (!isTiff(f, mimetype)) {
@@ -79,7 +72,6 @@ public final class TiffImporter {
         LocalObject localObj = storage.create(foxml);
         DigitalObject digObj = localObj.getDigitalObject();
         String pid = localObj.getPid();
-        String uuid = pid.substring("uuid:".length());
 
         // MODS
         ModsStreamEditor modsEditor = new ModsStreamEditor(localObj);
@@ -91,7 +83,9 @@ public final class TiffImporter {
         dcEditor.write(mods, "model:page", 0);
 
         // Images
-        createImages(tempBatchFolder, f, originalFilename, digObj, ctx.getXmlNow());
+        BinaryEditor.dissemination(localObj, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF)
+                .write(f, 0);
+        createImages(tempBatchFolder, f, originalFilename, localObj);
 
         // OCR
         StringEditor ocrEditor = StringEditor.ocr(localObj);
@@ -108,66 +102,37 @@ public final class TiffImporter {
         return ImageMimeType.TIFF.getMimeType().equals(mimetype);
     }
 
-    private static DatastreamType createDatastream(String id, String controlGroup, boolean versionable, StateType state) {
-        DatastreamType ds = new DatastreamType();
-        ds.setID(id);
-        ds.setCONTROLGROUP(controlGroup);
-        ds.setVERSIONABLE(versionable);
-        ds.setSTATE(state);
-        return ds;
-    }
-
-    private void createOcr() {
-
-    }
-
     private void createRelsExt() {
 
     }
 
-    private void createImages(File tempBatchFolder, File original, String originalFilename, DigitalObject foxml, XMLGregorianCalendar xmlNow) throws IOException {
+    private void createImages(File tempBatchFolder, File original, String originalFilename, LocalObject foxml) throws IOException {
         long start = System.nanoTime();
         BufferedImage tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
         long endRead = System.nanoTime() - start;
         ImageMimeType imageType = ImageMimeType.JPEG;
+        MediaType mediaType = MediaType.valueOf(imageType.getMimeType());
 
         start = System.nanoTime();
         String targetName = String.format("%s.full.%s", originalFilename, imageType.getDefaultFileExtension());
         File f = writeImage(tiff, tempBatchFolder, targetName, imageType);
         long endFull = System.nanoTime() - start;
-        foxml.getDatastream().add(createImageStream("IMG_FULL", imageType.getMimeType(), f.toURI(), xmlNow));
+        BinaryEditor.dissemination(foxml, BinaryEditor.FULL_ID, mediaType).write(f, 0);
 
         start = System.nanoTime();
         targetName = String.format("%s.preview.%s", originalFilename, imageType.getDefaultFileExtension());
         f = writeImage(scale(tiff, 800, 600), tempBatchFolder, targetName, imageType);
         long endPreview = System.nanoTime() - start;
-        foxml.getDatastream().add(createImageStream("IMG_PREVIEW", imageType.getMimeType(), f.toURI(), xmlNow));
+        BinaryEditor.dissemination(foxml, BinaryEditor.PREVIEW_ID, mediaType).write(f, 0);
 
         start = System.nanoTime();
         targetName = String.format("%s.thumb.%s", originalFilename, imageType.getDefaultFileExtension());
         f = writeImage(scale(tiff, 120, 128), tempBatchFolder, targetName, imageType);
         long endThumb = System.nanoTime() - start;
-        foxml.getDatastream().add(createImageStream("IMG_THUMB", imageType.getMimeType(), f.toURI(), xmlNow));
+        BinaryEditor.dissemination(foxml, BinaryEditor.THUMB_ID, mediaType).write(f, 0);
 
         LOG.info(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
                 originalFilename, endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));
-    }
-
-    private static DatastreamType createImageStream(String id, String mime, URI ref, XMLGregorianCalendar xmlNow) {
-        DatastreamType stream = createDatastream(id, "M", false, StateType.A);
-
-        ContentLocationType location = new ContentLocationType();
-        location.setTYPE("URL");
-        location.setREF(ref.toASCIIString());
-
-        DatastreamVersionType version = new DatastreamVersionType();
-        version.setMIMETYPE(mime);
-        version.setID(stream.getID() + ".0");
-        version.setContentLocation(location);
-        version.setCREATED(xmlNow);
-
-        stream.getDatastreamVersion().add(version);
-        return stream;
     }
 
     private static File writeImage(BufferedImage image, File folder, String filename, ImageMimeType imageType) throws IOException {
@@ -179,7 +144,6 @@ public final class TiffImporter {
         } finally {
             fos.close();
         }
-
     }
 
     private static BufferedImage scale(BufferedImage tiff, int maxWidth, int maxHeight) {

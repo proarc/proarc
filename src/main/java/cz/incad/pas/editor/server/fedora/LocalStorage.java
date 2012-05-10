@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.server.fedora;
 
+import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.StateType;
@@ -25,6 +26,7 @@ import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.net.URI;
 import java.util.ConcurrentModificationException;
 import java.util.EnumSet;
 import java.util.Set;
@@ -110,22 +112,29 @@ public final class LocalStorage {
         private final boolean isXml;
         private final MediaType mimetype;
         private final ControlGroup control;
+        private boolean storeExternally;
 
         /** Use for binary content */
         public LocalXmlStreamEditor(LocalObject object, String dsId,
                 MediaType mimetype, String label, ControlGroup control) {
 
-            this(object, dsId, null, label, mimetype, control);
+            this(object, dsId, null, label, mimetype, control, false);
+        }
+        /** Use for binary content referenced externally for ingest purposes */
+        public LocalXmlStreamEditor(LocalObject object, String dsId,
+                MediaType mimetype, String label, ControlGroup control, boolean storeExternally) {
+
+            this(object, dsId, null, label, mimetype, control, storeExternally);
         }
         
         /** Use for XML content */
         public LocalXmlStreamEditor(LocalObject object, String dsId, String formatUri, String label) {
-            this(object, dsId, formatUri, label, MediaType.TEXT_XML_TYPE, ControlGroup.INLINE);
+            this(object, dsId, formatUri, label, MediaType.TEXT_XML_TYPE, ControlGroup.INLINE, false);
         }
 
         private LocalXmlStreamEditor(
                 LocalObject object, String dsId, String formatUri, String label,
-                MediaType mimetype, ControlGroup control) {
+                MediaType mimetype, ControlGroup control, boolean storeExternally) {
 
             this.object = object;
             this.dsId = dsId;
@@ -137,6 +146,7 @@ public final class LocalStorage {
             if (!SUPPORTED_CONTROL_GROUPS.contains(control)) {
                 throw new IllegalArgumentException("Unsupported control group: " + control);
             }
+            this.storeExternally = storeExternally;
         }
 
         @Override
@@ -158,8 +168,15 @@ public final class LocalStorage {
                 }
             } else {
                 byte[] binaryContent = version.getBinaryContent();
+                ContentLocationType contentLocation = version.getContentLocation();
                 if (binaryContent != null) {
                     return new StreamSource(new ByteArrayInputStream(binaryContent));
+                } else if (contentLocation != null) {
+                    String ref = contentLocation.getREF();
+                    if (ref != null) {
+                        URI refUri = URI.create(ref);
+                        return new StreamSource(new File(refUri));
+                    }
                 }
             }
             return null;
@@ -178,6 +195,11 @@ public final class LocalStorage {
                 last = version.getCREATED().toGregorianCalendar().getTimeInMillis();
             }
             return last;
+        }
+
+        @Override
+        public String getMimetype() {
+            return mimetype.toString();
         }
 
         @Override
@@ -215,7 +237,19 @@ public final class LocalStorage {
         }
 
         private void writeBinaryData(DatastreamVersionType version, EditorBinaryResult data) {
-            version.setBinaryContent(data.asBytes());
+            storeExternally |= version.getContentLocation() != null;
+            if (storeExternally) {
+                String systemId = data.getSystemId();
+                if (systemId == null) {
+                    throw new IllegalStateException("Missing systemId of external resource. " + toString());
+                }
+                ContentLocationType contentLocation = new ContentLocationType();
+                contentLocation.setREF(systemId);
+                contentLocation.setTYPE("URL");
+                version.setContentLocation(contentLocation);
+            } else {
+                version.setBinaryContent(data.asBytes());
+            }
         }
 
         private void writeXmlContent(DatastreamVersionType version, EditorDomResult data) {

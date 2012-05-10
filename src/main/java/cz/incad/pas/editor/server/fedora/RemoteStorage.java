@@ -161,6 +161,16 @@ public final class RemoteStorage {
         }
 
         @Override
+        public String getMimetype() {
+            try {
+                fetchProfile();
+                return profile.getDsMIME();
+            } catch (FedoraClientException ex) {
+                throw new IllegalStateException(toLogString(), ex);
+            }
+        }
+
+        @Override
         public void write(EditorResult data, long timestamp) {
             if (!(data instanceof EditorStreamResult)) {
                 throw new IllegalArgumentException("Unsupported data: " + data);

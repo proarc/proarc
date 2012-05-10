@@ -22,6 +22,7 @@ import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
 import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.incad.pas.editor.server.CustomTemporaryFolder;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
@@ -29,6 +30,7 @@ import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
+import java.io.File;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import javax.xml.bind.JAXB;
@@ -60,6 +62,9 @@ public class RemoteStorageTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+
+    @Rule
+    public CustomTemporaryFolder tmp = new CustomTemporaryFolder();
 
     public RemoteStorageTest() {
     }
@@ -141,6 +146,9 @@ public class RemoteStorageTest {
         modsEditor.write(mods, 0);
         StringEditor ocrEditor = StringEditor.ocr(local);
         ocrEditor.write("ocr", 0);
+        File thumb = tmp.newFile();
+        assertTrue(thumb.exists());
+        BinaryEditor.dissemination(local, BinaryEditor.THUMB_ID).write(thumb, 0);
         local.flush();
         System.out.println(FoxmlUtils.toXml(local.getDigitalObject(), true));
 
@@ -151,6 +159,7 @@ public class RemoteStorageTest {
         assertDatastream(DcStreamEditor.DATASTREAM_ID, datastreams);
         assertDatastream(ModsStreamEditor.DATASTREAM_ID, datastreams);
         assertDatastream(StringEditor.OCR_ID, datastreams);
+        assertDatastream(BinaryEditor.THUMB_ID, datastreams);
     }
 
     private static void assertDatastream(String id, List<DatastreamType> datastreams) {

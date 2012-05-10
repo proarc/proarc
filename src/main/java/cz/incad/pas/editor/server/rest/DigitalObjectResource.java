@@ -16,9 +16,8 @@
  */
 package cz.incad.pas.editor.server.rest;
 
+import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.server.config.PasConfiguration;
@@ -26,6 +25,7 @@ import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
+import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
@@ -42,7 +42,7 @@ import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.server.mods.custom.Mapping;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,6 +63,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -283,63 +284,72 @@ public class DigitalObjectResource {
     @GET
     @Path("/preview")
     @Produces("image/*")
-    public Response getPreview(@QueryParam("pid") String pid) throws URISyntaxException {
-        DatastreamVersionType preview = repository.getPreview(pid);
-        if (preview == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
+    public Response getPreview(
+            @QueryParam("pid") String pid,
+            @QueryParam("batchId") String batchId
+            ) throws IOException {
 
-        Date lastModification = preview.getCREATED().toGregorianCalendar().getTime();
-        ResponseBuilder evaluatePreconditions = httpRequest.evaluatePreconditions(lastModification);
-        if (evaluatePreconditions != null) {
-            return evaluatePreconditions.build();
-        }
+        return getDissemination(pid, batchId, BinaryEditor.PREVIEW_ID);
+    }
 
-//        Response.temporaryRedirect("URI");
-        ContentLocationType contentLocation = preview.getContentLocation();
-        Object entity;
-        if (contentLocation != null) {
-            String url = contentLocation.getREF();
-            entity = new File(new URI(url));
-        } else {
-            entity = preview.getBinaryContent();
+    @GET
+    @Path("/dissemination")
+    @Produces("image/*")
+    public Response getDissemination(
+            @QueryParam("pid") String pid,
+            @QueryParam("batchId") String batchId,
+            @QueryParam("datastream") String dsId
+            ) throws IOException {
+
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        if (fobject instanceof LocalObject) {
+            LocalObject lobject = (LocalObject) fobject;
+            BinaryEditor loader = BinaryEditor.dissemination(lobject, dsId);
+            if (loader == null) {
+                throw new NotFoundException("dsId", dsId);
+            }
+            File entity = loader.read();
+            if (entity == null) {
+                throw new NotFoundException("content not found");
+            }
+
+            Date lastModification = new Date(loader.getLastModified());
+            ResponseBuilder evaluatePreconditions = httpRequest.evaluatePreconditions(lastModification);
+            if (evaluatePreconditions != null) {
+                return evaluatePreconditions.build();
+            }
+
+            return Response.ok(entity, loader.getMimetype())
+                    .lastModified(lastModification)
+//                    .cacheControl(null)
+//                    .expires(new Date(2100, 1, 1))
+                    .build();
+        } else if (fobject instanceof RemoteObject) {
+            // This should limit fedora calls to 1.
+            // XXX It works around FedoraClient.FedoraClient.getDatastreamDissemination that hides HTTP headers of the response.
+            // Unfortunattely fedora does not return modification date as HTTP header
+            // In case of large images it could be faster to ask datastream for modification date first.
+            RemoteObject remote = (RemoteObject) fobject;
+            String path = String.format("objects/%s/datastreams/%s/content", remote.getPid(), dsId);
+            ClientResponse response = remote.getClient().resource().path(path).get(ClientResponse.class);
+            MultivaluedMap<String, String> headers = response.getHeaders();
+            String filename = headers.getFirst("Content-Disposition");
+            return Response.ok(response.getEntity(InputStream.class), headers.getFirst("Content-Type"))
+                    .header("Content-Disposition", filename)
+                    .build();
         }
-        return Response.ok(entity, preview.getMIMETYPE())
-                .lastModified(lastModification)
-//                .cacheControl(null)
-//                .expires(new Date(2100, 1, 1))
-                .build();
+        throw new IllegalStateException("unsupported: " + fobject.getClass());
     }
 
     @GET
     @Path("/thumb")
     @Produces("image/*")
-    public Response getThumbnail(@QueryParam("pid") String pid) throws URISyntaxException {
-        DatastreamVersionType preview = repository.getThumbnail(pid);
-        if (preview == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
+    public Response getThumbnail(
+            @QueryParam("pid") String pid,
+            @QueryParam("batchId") String batchId
+            ) throws IOException {
 
-        Date lastModification = preview.getCREATED().toGregorianCalendar().getTime();
-        ResponseBuilder evaluatePreconditions = httpRequest.evaluatePreconditions(lastModification);
-        if (evaluatePreconditions != null) {
-            return evaluatePreconditions.build();
-        }
-
-//        Response.temporaryRedirect("URI");
-        ContentLocationType contentLocation = preview.getContentLocation();
-        Object entity;
-        if (contentLocation != null) {
-            String url = contentLocation.getREF();
-            entity = new File(new URI(url));
-        } else {
-            entity = preview.getBinaryContent();
-        }
-        return Response.ok(entity, preview.getMIMETYPE())
-                .lastModified(lastModification)
-//                .cacheControl(null)
-//                .expires(new Date(2100, 1, 1))
-                .build();
+        return getDissemination(pid, batchId, BinaryEditor.THUMB_ID);
     }
 
     @GET

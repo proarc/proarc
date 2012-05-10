@@ -34,6 +34,8 @@ public interface XmlStreamEditor {
 
     long getLastModified();
 
+    String getMimetype();
+
     Source read();
 
     void write(EditorResult data, long timestamp);

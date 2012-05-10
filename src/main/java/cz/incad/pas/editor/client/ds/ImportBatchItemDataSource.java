@@ -30,6 +30,7 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
 import com.smartgwt.client.types.FieldType;
+import cz.incad.pas.editor.client.ClientUtils;
 
 /**
  *
@@ -80,10 +81,10 @@ public class ImportBatchItemDataSource extends DataSource {
         model.setForeignKey(MetaModelDataSource.ID + '.' + MetaModelDataSource.FIELD_PID);
 
         DataSourceImageField preview = new DataSourceImageField(FIELD_PREVIEW);
-        preview.setImageURLPrefix(RestConfig.URL_DIGOBJECT_PREVIEW + "?pid=");
+        preview.setImageURLPrefix(RestConfig.URL_DIGOBJECT_PREVIEW + "?");
 
         DataSourceImageField thumbnail = new DataSourceImageField(FIELD_THUMBNAIL);
-        thumbnail.setImageURLPrefix(RestConfig.URL_DIGOBJECT_THUMBNAIL + "?pid=");
+        thumbnail.setImageURLPrefix(RestConfig.URL_DIGOBJECT_THUMBNAIL + "?");
 
         DataSourceField pageType = new DataSourceField(FIELD_PAGE_TYPE, FieldType.TEXT, "Page Type");
         DataSourceField pageIndex = new DataSourceField(FIELD_PAGE_INDEX, FieldType.INTEGER, "Page Index");
@@ -114,9 +115,12 @@ public class ImportBatchItemDataSource extends DataSource {
         if (status == RPCResponse.STATUS_SUCCESS) {
             for (Record record : response.getData()) {
                 String pid = record.getAttribute(FIELD_PID);
+                String batchId = record.getAttribute(FIELD_BATCHID);
 
-                record.setAttribute(FIELD_PREVIEW, pid);
-                record.setAttribute(FIELD_THUMBNAIL, pid);
+                String imgParams = ClientUtils.format("%s=%s&%s=%s",
+                        FIELD_PID, pid, FIELD_BATCHID, batchId);
+                record.setAttribute(FIELD_PREVIEW, imgParams);
+                record.setAttribute(FIELD_THUMBNAIL, imgParams);
             }
         }
         super.transformResponse(response, request, data);
