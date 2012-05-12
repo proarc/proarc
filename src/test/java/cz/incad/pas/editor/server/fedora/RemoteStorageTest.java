@@ -29,6 +29,7 @@ import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
+import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import java.io.File;
 import java.util.ConcurrentModificationException;
@@ -142,10 +143,17 @@ public class RemoteStorageTest {
         ModsStreamEditor modsEditor = new ModsStreamEditor(local);
         ModsType mods = modsEditor.createPage(local.getPid(), "1", "[1]", "Blank");
         DcStreamEditor dcEditor = new DcStreamEditor(local);
-        dcEditor.write(mods, "model:page", 0);
+        String model = "model:page";
+        dcEditor.write(mods, model, 0);
         modsEditor.write(mods, 0);
+
+        RelationEditor relsExt = new RelationEditor(local);
+        relsExt.setModel(model);
+        relsExt.write(0);
+
         StringEditor ocrEditor = StringEditor.ocr(local);
         ocrEditor.write("ocr", 0);
+
         File thumb = tmp.newFile();
         assertTrue(thumb.exists());
         BinaryEditor.dissemination(local, BinaryEditor.THUMB_ID).write(thumb, 0);
@@ -158,6 +166,7 @@ public class RemoteStorageTest {
         List<DatastreamType> datastreams = response.getDatastreams();
         assertDatastream(DcStreamEditor.DATASTREAM_ID, datastreams);
         assertDatastream(ModsStreamEditor.DATASTREAM_ID, datastreams);
+        assertDatastream(RelationEditor.DATASTREAM_ID, datastreams);
         assertDatastream(StringEditor.OCR_ID, datastreams);
         assertDatastream(BinaryEditor.THUMB_ID, datastreams);
     }

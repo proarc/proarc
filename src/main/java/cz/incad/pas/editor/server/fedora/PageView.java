@@ -19,6 +19,7 @@ package cz.incad.pas.editor.server.fedora;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
+import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.custom.PageMapper;
@@ -51,8 +52,9 @@ public final class PageView {
             ModsStreamEditor editor = new ModsStreamEditor(local);
             Page page = mapper.map(editor.read());
 //            Object custom = mapping.read(record.getMods(), MetaModelDataSource.EDITOR_PAGE);
+            String model = new RelationEditor(local).getModel();
             result.add(new Item(batchId, imp.getFilename(), imp.getPid(),
-                    "model:page", page.getIndex(), page.getNumber(), page.getType(),
+                    model, page.getIndex(), page.getNumber(), page.getType(),
                     editor.getLastModified(), "XXX-user"));
         }
         return new ImportBatchItemList(result);
@@ -71,12 +73,15 @@ public final class PageView {
         editor.updatePage(mods, pageIndex, pageNumber, pageType);
         editor.write(mods, timestamp);
 
+        // performance: store model inside batch item
+        String model = new RelationEditor(local).getModel();
+
         // DC
         DcStreamEditor dcEditor = new DcStreamEditor(local);
-        dcEditor.write(mods, "model:page", dcEditor.getLastModified());
+        dcEditor.write(mods, model, dcEditor.getLastModified());
 
         local.flush();
-        Item update = new Item(batchId, item.getFilename(), item.getPid(), "XXX-model",
+        Item update = new Item(batchId, item.getFilename(), item.getPid(), model,
                 pageIndex, pageNumber, pageType,
                 editor.getLastModified(), "XXX-user");
         return new ImportBatchItemList(Arrays.asList(update));

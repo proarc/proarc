@@ -91,7 +91,7 @@ public class TiffImporterTest {
 
     @Test
     public void testConsume() throws Exception {
-//        temp.setDeleteOnExit(false);
+        temp.setDeleteOnExit(false);
         File targetFolder = temp.newFolder();
         assertTrue(targetFolder.exists());
 
@@ -132,7 +132,7 @@ public class TiffImporterTest {
         XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='BIBLIO_MODS']", new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='DC']", new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='TEXT_OCR']", new InputSource(foxmlSystemId));
-//        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='RELS-EXT']", new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='RELS-EXT']", new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_FULL']", new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_PREVIEW']", new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_THUMB']", new InputSource(foxmlSystemId));

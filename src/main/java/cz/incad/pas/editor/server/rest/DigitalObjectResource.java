@@ -34,6 +34,7 @@ import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.StringEditor;
 import cz.incad.pas.editor.server.fedora.StringEditor.StringRecord;
+import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.json.JsonUtils;
@@ -142,7 +143,12 @@ public class DigitalObjectResource {
         DcStreamEditor dcEditor = new DcStreamEditor(localObject);
         dcEditor.write(modsType, modelId, 0);
 
-        // XXX RELS-EXT
+        // RELS-EXT
+        RelationEditor relsExt = new RelationEditor(localObject);
+        relsExt.setModel(modelId);
+        relsExt.write(0);
+
+        localObject.flush();
 
         RemoteStorage fedora = RemoteStorage.getInstance(pasConfig);
         fedora.ingest(localObject, "label", "XXX");
@@ -254,8 +260,10 @@ public class DigitalObjectResource {
             modsEditor.write(mods, timestamp);
 
             // DC
+            String model = new RelationEditor(remote).getModel();
             DcStreamEditor dcEditor = new DcStreamEditor(remote);
-            dcEditor.write(mods, "XXX:model", dcEditor.getLastModified());
+            dcEditor.write(mods, model, dcEditor.getLastModified());
+
             remote.flush();
 
             CustomMods<Object> result = new CustomMods<Object>();

@@ -25,6 +25,7 @@ import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.StringEditor;
+import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.imports.ImportProcess.ImportContext;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
@@ -64,12 +65,14 @@ public final class TiffImporter {
         }
 
         String originalFilename = getName(f);
+        String fedoraModel = "model:page";
         File tempBatchFolder = ctx.getTargetFolder();
 
         // creates FOXML and metadata
         LocalStorage storage = new LocalStorage();
         File foxml = new File(tempBatchFolder, originalFilename + ".foxml");
         LocalObject localObj = storage.create(foxml);
+        // XXX use fedora-model:downloadFilename in RELS-INT or label to specify filename
         DigitalObject digObj = localObj.getDigitalObject();
         String pid = localObj.getPid();
 
@@ -81,7 +84,12 @@ public final class TiffImporter {
 
         // DC
         DcStreamEditor dcEditor = new DcStreamEditor(localObj);
-        dcEditor.write(mods, "model:page", 0);
+        dcEditor.write(mods, fedoraModel, 0);
+
+        // RELS-EXT
+        RelationEditor relEditor = new RelationEditor(localObj);
+        relEditor.setModel(fedoraModel);
+        relEditor.write(0);
 
         // Images
         BinaryEditor.dissemination(localObj, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF)
@@ -101,10 +109,6 @@ public final class TiffImporter {
 
     private boolean isTiff(File f, String mimetype) {
         return ImageMimeType.TIFF.getMimeType().equals(mimetype);
-    }
-
-    private void createRelsExt() {
-
     }
 
     private void createImages(File tempBatchFolder, File original, String originalFilename, LocalObject foxml) throws IOException {

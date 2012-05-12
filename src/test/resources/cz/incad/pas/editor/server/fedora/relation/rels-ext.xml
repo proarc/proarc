@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:fedora-model="info:fedora/fedora-system:def/model#"
+    xmlns:rel="info:fedora/fedora-system:def/relations-external#"
+    xmlns:myns="http://www.nsdl.org/ontologies/relationships#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+    
+    <rdf:Description rdf:about="info:fedora/demo:999">
+        <rel:hasMember rdf:resource="info:fedora/test:member1" />
+            <!-- This object ("info:fedora/demo:999") is a member of Collection #1 (info:fedora/test:collection1) -->
+        <rel:isMemberOfCollection rdf:resource="info:fedora/test:collection1"/>
+            <!-- ... and it is also a member of Collection #2 (info:fedora/test:collection2) -->
+        <rel:isMemberOfCollection rdf:resource="info:fedora/test:collection2"/>
+            <!-- You can also make your own relationship assertions in your own namespace...-->
+        <myns:isPartOf rdf:resource="info:fedora/mystuff:100"/>
+        <rel:hasMember rdf:resource="info:fedora/test:member2" />
+        <fedora-model:hasModel rdf:resource="info:fedora/fedora-system:ContentModel-3.0"/>
+        <rel:hasMember rdf:resource="info:fedora/test:member3" />
+    </rdf:Description>
+</rdf:RDF>
