@@ -145,34 +145,10 @@ public final class ModsFullEditor {
                         if (editedMods == null) {
                             return ;
                         }
-                        ModsTypeClient mc = modsTab.getMods();
-                        ModsCollectionClient mcc = new ModsCollectionClient();
-                        mcc.setMods(Arrays.asList(mc));
-                        editedMods.setMods(mcc);
-                        // XXX save GWT MODS here
-                        saveFullData(pid, editedMods, new Runnable() {
-
-                            @Override
-                            public void run() {
-                                ignoreTabDeselection = true;
-                                Tab newTab = event.getNewTab();
-                                tabSet.selectTab(newTab);
-                            }
-                        });
+                        saveFullData(new TabSwitchTask(event.getNewTab()));
                     } else if (TAB_CUSTOM.equals(tabId)) {
                         event.cancel();
-                        if (editedCustomMods == null) {
-                            return ;
-                        }
-                        saveCustomData(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                ignoreTabDeselection = true;
-                                Tab newTab = event.getNewTab();
-                                tabSet.selectTab(newTab);
-                            }
-                        });
+                        saveCustomData(new TabSwitchTask(event.getNewTab()));
                     } else if (TAB_XML.equals(tabId)) {
                         editedMods = (ModsGwtRecord) sourceForm.getValue(PageDataSource.FIELD_MODS_TRANSPORT_OBJECT);
                     } else {
@@ -182,6 +158,22 @@ public final class ModsFullEditor {
                 }
             });
         }
+    }
+
+    private final class TabSwitchTask implements Runnable {
+
+        private final Tab newTab;
+
+        public TabSwitchTask(Tab newTab) {
+            this.newTab = newTab;
+        }
+
+        @Override
+        public void run() {
+            ignoreTabDeselection = true;
+            tabSet.selectTab(newTab);
+        }
+
     }
 
     private static String verticalTitle(String title) {
@@ -347,7 +339,25 @@ public final class ModsFullEditor {
         loadTabData(selectedTab.getID(), pidCriteria);
     }
 
-    public void saveFullData(String pid, final ModsGwtRecord mods, final Runnable callback) {
+    public void save(Runnable callback) {
+        if (!saveCustomData(callback)) {
+            saveFullData(callback);
+        }
+    }
+
+    private boolean saveFullData(Runnable callback) {
+        if (editedMods == null) {
+            return false;
+        }
+        ModsTypeClient mc = modsTab.getMods();
+        ModsCollectionClient mcc = new ModsCollectionClient();
+        mcc.setMods(Arrays.asList(mc));
+        editedMods.setMods(mcc);
+        saveFullData(pid, editedMods, callback);
+        return true;
+    }
+
+    private void saveFullData(String pid, final ModsGwtRecord mods, final Runnable callback) {
         editedMods = null;
         ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
         service.write(pid, mods, new AsyncCallback<String>() {
@@ -369,7 +379,10 @@ public final class ModsFullEditor {
         });
     }
 
-    public void saveCustomData(final Runnable callback) {
+    private boolean saveCustomData(final Runnable callback) {
+        if (editedCustomMods == null) {
+            return false;
+        }
         // do not use customForm.getValuesAsRecord()
         Record r = new Record(customForm.getValues());
 //        ClientUtils.severe(LOG, "saveCustomData: %s", ClientUtils.dump(r.getJsObj()));
@@ -391,6 +404,7 @@ public final class ModsFullEditor {
                 }
             }
         });
+        return true;
     }
 
     public Canvas getUI() {

@@ -51,6 +51,7 @@ public final class DigObjectEditorPresenter {
     private final NewDigObjectStep newDigObjectStep;
     private final NewModsStep newModsStep;
 //    private final NewDcStep newDcStep;
+    private final SelectParentStep selectParentStep;
     private final FinishedStep finishStep;
     private final Wizard wizard;
     private WizardContext wc;
@@ -61,9 +62,10 @@ public final class DigObjectEditorPresenter {
         newDigObjectStep = new NewDigObjectStep();
         newModsStep = new NewModsStep();
 //        newDcStep = new NewDcStep();
+        selectParentStep = new SelectParentStep();
         finishStep = new FinishedStep();
         wizard = new Wizard(i18nPas, newDigObjectStep, newModsStep,
-                new SelectParentStep(), finishStep, Wizard.emptyStep());
+                selectParentStep, finishStep, Wizard.emptyStep());
     }
 
     public void newObject() {
@@ -247,9 +249,17 @@ public final class DigObjectEditorPresenter {
         }
 
         @Override
-        public boolean onStepAction(Wizard wizard, StepKind step) {
-            // XXX persist MODS
-            return true;
+        public boolean onStepAction(Wizard w, StepKind step) {
+            if (step == StepKind.FORWARD) {
+                modsFullEditor.save(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        wizard.moveAt(selectParentStep);
+                    }
+                });
+            }
+            return false;
         }
 
         @Override
@@ -310,7 +320,7 @@ public final class DigObjectEditorPresenter {
         @Override
         public void onShow(Wizard wizard) {
             this.wizard = wizard;
-//            wizard.setBackButton(false, null);
+            wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
             wizard.setWizardLabel(i18nPas.NewDigObjectWizard_DescriptionPrefix_Title(),
                     i18nPas.NewDigObjectWizard_SelectParentStep_Description_Title());
