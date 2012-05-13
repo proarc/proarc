@@ -193,6 +193,39 @@ public class DigitalObjectResource {
         int count = items.size();
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, count - 1, count, items);
     }
+
+    @POST
+    @Path("members")
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Item> addMember(
+            @FormParam("parent") String parentPid,
+            @FormParam("pid") String memberPid
+            ) throws IOException, FedoraClientException {
+
+        if (parentPid == null || memberPid == null) {
+            throw new NotFoundException("parent and pid must be specified!");
+        }
+        if (parentPid.equals(memberPid)) {
+            throw new IllegalArgumentException("parent and pid are same!");
+        }
+        RemoteStorage storage = RemoteStorage.getInstance(pasConfig);
+        List<Item> memberSearch = storage.getSearch().find(memberPid);
+        if (memberSearch.isEmpty()) {
+            throw new NotFoundException("pid", memberPid);
+        }
+        RemoteObject remote = storage.find(parentPid);
+        RelationEditor editor = new RelationEditor(remote);
+        List<String> members = editor.getMembers();
+        if (!members.contains(memberPid)) {
+            members.add(memberPid);
+            editor.setMembers(members);
+            editor.write(editor.getLastModified());
+            remote.flush();
+        }
+
+        int count = memberSearch.size();
+        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, count - 1, count, memberSearch);
+    }
     
     @GET
     @Path("/dc")

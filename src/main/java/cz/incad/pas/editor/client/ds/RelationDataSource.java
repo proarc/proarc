@@ -26,6 +26,7 @@ import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.FieldType;
 
 /**
@@ -78,7 +79,8 @@ public class RelationDataSource extends RestDataSource {
 
     @Override
     protected void transformResponse(DSResponse response, DSRequest request, Object data) {
-        if (response.getStatus() == RPCResponse.STATUS_SUCCESS) {
+        if (response.getStatus() == RPCResponse.STATUS_SUCCESS
+                && request.getOperationType() == DSOperationType.FETCH) {
             // fill parent fields
             String parent = request.getCriteria().getAttribute(FIELD_PARENT);
             for (Record record : response.getData()) {

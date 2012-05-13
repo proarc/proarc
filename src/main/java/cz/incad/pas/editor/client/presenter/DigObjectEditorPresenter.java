@@ -20,7 +20,9 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.Overflow;
+import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import cz.incad.pas.editor.client.ClientUtils;
@@ -48,7 +50,8 @@ public final class DigObjectEditorPresenter {
 
     private final NewDigObjectStep newDigObjectStep;
     private final NewModsStep newModsStep;
-    private final NewDcStep newDcStep;
+//    private final NewDcStep newDcStep;
+    private final FinishedStep finishStep;
     private final Wizard wizard;
     private WizardContext wc;
     private final PasEditorMessages i18nPas;
@@ -57,9 +60,10 @@ public final class DigObjectEditorPresenter {
         this.i18nPas = i18nPas;
         newDigObjectStep = new NewDigObjectStep();
         newModsStep = new NewModsStep();
-        newDcStep = new NewDcStep();
-        wizard = new Wizard(i18nPas, newDigObjectStep, newModsStep, newDcStep,
-                new SelectParentStep(), new FinishedStep(), Wizard.emptyStep());
+//        newDcStep = new NewDcStep();
+        finishStep = new FinishedStep();
+        wizard = new Wizard(i18nPas, newDigObjectStep, newModsStep,
+                new SelectParentStep(), finishStep, Wizard.emptyStep());
     }
 
     public void newObject() {
@@ -322,17 +326,49 @@ public final class DigObjectEditorPresenter {
         }
 
         @Override
-        public boolean onStepAction(Wizard wizard, StepKind step) {
+        public boolean onStepAction(Wizard w, StepKind step) {
+            Record selectedParent = editor.getSelectedParent();
+            String parentPid = null;
+            WizardContext wc = getContext();
+            if (selectedParent != null) {
+                parentPid = selectedParent.getAttribute(RelationDataSource.FIELD_PID);
+            }
             if (step == StepKind.FORWARD) {
-                Record selectedParent = editor.getSelectedParent();
-                WizardContext wc = getContext();
-                if (selectedParent != null) {
-                    wc.setParentPid(selectedParent.getAttribute(RelationDataSource.FIELD_PID));
-                } else {
-                    return false;
+                if (parentPid != null) {
+                    addMember(wc.getPid(), parentPid, new BooleanCallback() {
+
+                        @Override
+                        public void execute(Boolean value) {
+                            if (value != null && value) {
+                                wizard.moveAt(finishStep);
+                            }
+                        }
+                    });
                 }
+                return false;
+            } else {
+                wc.setParentPid(parentPid);
             }
             return true;
+        }
+
+        private void addMember(String memberPid, final String parentPid, final BooleanCallback call) {
+            RelationDataSource dsBatch = RelationDataSource.getInstance();
+            DSRequest dsRequest = new DSRequest();
+            Record update = new Record();
+            update.setAttribute(RelationDataSource.FIELD_PID, memberPid);
+            update.setAttribute(RelationDataSource.FIELD_PARENT, parentPid);
+            dsBatch.addData(update, new DSCallback() {
+
+                @Override
+                public void execute(DSResponse response, Object rawData, DSRequest request) {
+                    if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
+                        call.execute(false);
+                        return;
+                    }
+                    call.execute(true);
+                }
+            }, dsRequest);
         }
 
         @Override
@@ -351,7 +387,7 @@ public final class DigObjectEditorPresenter {
             String pid = (selectedParent != null)
                     ? selectedParent.getAttribute(RelationDataSource.FIELD_PID)
                     : null;
-            boolean valid = pid != null;
+            boolean valid = pid != null && !pid.equals(getContext().getPid());
             wizard.setCanStepForward(valid);
         }
     }
