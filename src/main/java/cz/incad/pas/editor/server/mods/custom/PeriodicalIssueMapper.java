@@ -24,8 +24,8 @@ import cz.fi.muni.xkremser.editor.server.mods.PartType;
 import cz.fi.muni.xkremser.editor.server.mods.UnstructuredText;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.server.mods.custom.IdentifierMapper.IdentifierItem;
-import cz.incad.pas.editor.server.mods.custom.Mapping.Mapper;
 import cz.incad.pas.editor.server.mods.custom.MapperUtils.Selector;
+import cz.incad.pas.editor.server.mods.custom.Mapping.Mapper;
 import cz.incad.pas.editor.server.mods.custom.PeriodicalIssueMapper.PeriodicalIssue;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
@@ -227,7 +227,7 @@ final class PeriodicalIssueMapper implements Mapper<PeriodicalIssue> {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class PeriodicalIssue {
 
-        @XmlElement(name = ModsCustomDataSource.FIELD_NOTE)
+        @XmlElement(name = ModsCustomDataSource.FIELD_IDENTIFIERS)
         private List<IdentifierItem> identifiers;
         @XmlElement(name = ModsCustomDataSource.FIELD_PER_ISSUE_DATE)
         private String issueDate;
