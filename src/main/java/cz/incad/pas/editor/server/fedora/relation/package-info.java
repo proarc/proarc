@@ -20,7 +20,7 @@
         xmlns = {
             @XmlNs(prefix = "rdf", namespaceURI = Relations.RDF_NS),
             @XmlNs(prefix = "fedora-model", namespaceURI = Relations.FEDORA_MODEL_NS),
-            @XmlNs(prefix = "fedora-rels-ext", namespaceURI = Relations.FEDORA_EXTERNALS_NS),
+            @XmlNs(prefix = "fedora-rels-ext", namespaceURI = Relations.FEDORA_EXTERNALS_NS)
         })
 package cz.incad.pas.editor.server.fedora.relation;
 
