@@ -39,7 +39,7 @@ public class ImportFileScanner {
         IMPORTED, NEW, IMPORT_RUNNING;
     }
 
-    public static final String IMPORT_STATE_FILENAME = "pas_import_status.log";
+    public static final String IMPORT_STATE_FILENAME = "proarch_import_status.log";
 
     private static final FileFilter FOLDER_FILTER = new FileFilter() {
         @Override

@@ -16,17 +16,20 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.OperationBinding;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
+import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
+import cz.incad.pas.editor.client.PasEditorMessages;
+import java.util.LinkedHashMap;
 
 /**
  *
@@ -46,14 +49,12 @@ public class ImportBatchDataSource extends DataSource {
     public ImportBatchDataSource() {
         setID(ID);
 
-//        setDataFormat(DSDataFormat.XML);
         setDataFormat(DSDataFormat.JSON);
         setRecordXPath("/batches/batch");
-//        setRecordXPath("batch");
 
         setDataURL(RestConfig.URL_IMPORT_BATCH);
-//        setDataURL("ds/ImportBatchDataSource.json");
-//        setClientOnly(true);
+
+        PasEditorMessages i18nPas = GWT.create(PasEditorMessages.class);
 
         DataSourceIntegerField id = new DataSourceIntegerField(FIELD_ID);
         id.setPrimaryKey(true);
@@ -67,7 +68,16 @@ public class ImportBatchDataSource extends DataSource {
 
         DataSourceDateTimeField timestamp = new DataSourceDateTimeField(FIELD_TIMESTAMP);
 
-        DataSourceBooleanField state = new DataSourceBooleanField(FIELD_STATE);
+        DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
+        LinkedHashMap<String, String> states = new LinkedHashMap<String, String>();
+        states.put("LOADING", i18nPas.ImportBatchDataSource_State_LOADING());
+        states.put("LOADING_FAILED", i18nPas.ImportBatchDataSource_State_LOADING_FAILED());
+        states.put("LOADED", i18nPas.ImportBatchDataSource_State_LOADED());
+        states.put("INGESTING", i18nPas.ImportBatchDataSource_State_INGESTING());
+        states.put("INGESTING_FAILED", i18nPas.ImportBatchDataSource_State_INGESTING_FAILED());
+        states.put("INGESTED", i18nPas.ImportBatchDataSource_State_INGESTED());
+        states.put(null, "Unknown"); // should not occur
+        state.setValueMap(states);
 
         DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);
         parent.setHidden(true);

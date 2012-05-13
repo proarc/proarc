@@ -30,6 +30,7 @@ import com.yourmediashelf.fedora.util.DateUtility;
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -74,12 +75,33 @@ public final class RemoteStorage {
         return new SearchView(client);
     }
 
+    public void ingest(File foxml, String pid, String label, String user, String log) throws FedoraClientException {
+        IngestResponse response = FedoraClient.ingest(pid)
+                .format("info:fedora/fedora-system:FOXML-1.1")
+                .label(label)
+                .logMessage(log)
+                .content(foxml)
+                .ownerId(user)
+                .execute(client);
+        if (response.getStatus() != 201) {
+            // XXX
+        }
+        LOG.log(Level.INFO, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
+    }
+
+    public void ingest(LocalObject object, String label, String user) throws FedoraClientException {
+        ingest(object, label, user, "Ingested locally");
+    }
+
     /**
      * see https://wiki.duraspace.org/display/FEDORA35/Using+File+URIs to reference external files for ingest
      */
-    public void ingest(LocalObject object, String label, String user) throws FedoraClientException {
+    public void ingest(LocalObject object, String label, String user, String log) throws FedoraClientException {
         if (user == null || user.isEmpty()) {
             throw new IllegalArgumentException("user");
+        }
+        if (log == null || user.isEmpty()) {
+            throw new IllegalArgumentException("log");
         }
         DigitalObject digitalObject = object.getDigitalObject();
 
@@ -99,7 +121,7 @@ public final class RemoteStorage {
         IngestResponse response = FedoraClient.ingest(object.getPid())
                 .format("info:fedora/fedora-system:FOXML-1.1")
                 .label(label)
-                .logMessage("object created")
+                .logMessage(log)
 //                .namespace("")
 //                .xParam("", "")
                 .content(xml)
@@ -108,8 +130,6 @@ public final class RemoteStorage {
         if (response.getStatus() != 201) {
             // XXX
         }
-        response.getLocation();
-        response.getPid();
         LOG.log(Level.INFO, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
     }
 

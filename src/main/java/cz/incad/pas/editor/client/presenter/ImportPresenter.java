@@ -23,7 +23,6 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.BooleanCallback;
-import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
@@ -287,19 +286,52 @@ public class ImportPresenter {
 //                        presenter.importFolder();
                         ImportPresenter.this.selectParent();
                     } else {
-                        // XXX import
-//                        presenter.finishImport();
-                        SC.say("Imported.", new BooleanCallback() {
-
-                            @Override
-                            public void execute(Boolean value) {
-                                ImportPresenter.this.importFolder();
-                            }
-                        });
+                        BatchRecord batch = getImportContext().getBatch();
+                        ingest(batch.getId());
+//                        SC.say("Imported.", new BooleanCallback() {
+//
+//                            @Override
+//                            public void execute(Boolean value) {
+//                                ImportPresenter.this.importFolder();
+//                            }
+//                        });
                     }
                 }
             });
             return false;
+        }
+
+        private void ingest(String batchId) {
+            ingest(batchId, new BooleanCallback() {
+
+                @Override
+                public void execute(Boolean value) {
+                    if (value != null && value) {
+                        ImportPresenter.this.importFolder();
+                    }
+                }
+            });
+        }
+
+        private void ingest(String batchId, final BooleanCallback call) {
+            ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
+            DSRequest dsRequest = new DSRequest();
+            dsRequest.setPromptStyle(PromptStyle.DIALOG);
+            dsRequest.setPrompt(i18nPas.ImportWizard_UpdateItemsStep_Ingesting_Title());
+            Record update = new Record();
+            update.setAttribute(ImportBatchDataSource.FIELD_ID, batchId);
+            update.setAttribute(ImportBatchDataSource.FIELD_STATE, "INGESTING");
+            dsBatch.updateData(update, new DSCallback() {
+
+                @Override
+                public void execute(DSResponse response, Object rawData, DSRequest request) {
+                    if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
+                        call.execute(false);
+                        return;
+                    }
+                    call.execute(true);
+                }
+            }, dsRequest);
         }
 
         @Override

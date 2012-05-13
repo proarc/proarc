@@ -16,11 +16,14 @@
  */
 package cz.incad.pas.editor.server.rest;
 
+import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.fedora.PageView;
 import cz.incad.pas.editor.server.fedora.PageView.ImportBatchItemList;
+import cz.incad.pas.editor.server.fedora.RemoteStorage;
+import cz.incad.pas.editor.server.imports.FedoraImport;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
@@ -235,12 +238,21 @@ public class ImportResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ImportBatchList updateBatch(
             @FormParam("id") Integer batchId,
-            @FormParam("parentPid") String parentPid
-            ) {
+            @FormParam("parentPid") String parentPid,
+            @FormParam("state") ImportBatch.State state
+            ) throws IOException, FedoraClientException {
 
-        ImportBatch batch = importManager.update(batchId, parentPid);
-        if (batch == null) {
-            throw new NotFoundException("id", String.valueOf(batchId));
+        ImportBatch batch = null;
+        if (state == ImportBatch.State.INGESTING) {
+            // ingest
+            batch = new FedoraImport(RemoteStorage.getInstance(pasConfig), importManager)
+                    .importBatch(batchId, user.getUserName());
+        } else {
+            // update parent
+            batch = importManager.update(batchId, parentPid);
+            if (batch == null) {
+                throw new NotFoundException("id", String.valueOf(batchId));
+            }
         }
         return new ImportBatchList(Arrays.asList(batch));
     }

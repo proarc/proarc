@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.server.imports;
 
 import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch.State;
 import cz.incad.pas.editor.server.rest.ImportResource.ImportBatchList;
 import cz.incad.pas.editor.server.user.UserManager;
 import cz.incad.pas.editor.server.user.UserProfile;
@@ -36,7 +37,6 @@ import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 
 /**
@@ -157,10 +157,47 @@ public final class ImportBatchManager {
         }
     }
 
+    public ImportBatch update(Integer id, ImportBatch.State state) {
+        if (id == 0) {
+            return null;
+        }
+        if (state == null) {
+            throw new IllegalArgumentException("state");
+        }
+        synchronized (map) {
+            ImportBatch batch = map.get(id);
+            if (batch != null) {
+                State old = batch.getState();
+                int ordinal = old == null ? -1 : old.ordinal();
+                if (state.ordinal() < ordinal) {
+                    throw new IllegalStateException(
+                            String.format("oldState: %s, newState: %s", old, state));
+                }
+                batch.setState(state);
+                save(pasConfig.getConfigHome(), this);
+            }
+            return batch;
+        }
+    }
+
+    public ImportItem update(ImportItem item) {
+        if (item == null) {
+            throw new IllegalArgumentException("item");
+        }
+        synchronized (map) {
+            ImportItem foundItem = findItem(item.getPid());
+            if (item != foundItem) {
+                throw new UnsupportedOperationException();
+            }
+            save(pasConfig.getConfigHome(), this);
+            return item;
+        }
+    }
+
     public ImportBatch add(String path, UserProfile user) {
         synchronized(map) {
             int id = map.isEmpty() ? 1 : Collections.max(map.keySet()) + 1;
-            ImportBatch batch = new ImportBatch(id, path, new Date(), user, false);
+            ImportBatch batch = new ImportBatch(id, path, new Date(), user, ImportBatch.State.LOADING);
             map.put(id, batch);
             save(pasConfig.getConfigHome(), this);
             return batch;
@@ -204,9 +241,14 @@ public final class ImportBatchManager {
         return map;
     }
 
-    @XmlRootElement(name="batch")
-    @XmlAccessorType(XmlAccessType.FIELD)
+    @javax.xml.bind.annotation.XmlRootElement(name="batch")
+    @javax.xml.bind.annotation.XmlAccessorType(XmlAccessType.FIELD)
     public static class ImportBatch {
+
+        public enum State {
+            LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED
+        }
+
         @XmlElement(required=true)
         private int id;
         private String folderPath;
@@ -214,15 +256,15 @@ public final class ImportBatchManager {
         @XmlSchemaType(name="dateTime")
         private Date timeStamp;
         private int userId;
-        private List<ImportItem> items;
         private String user;
-        private boolean state;
+        private State state;
+        private List<ImportItem> items;
         private transient UserProfile userProfile;
 
         public ImportBatch() {
         }
 
-        public ImportBatch(Integer id, String folderPath, Date timeStamp, UserProfile user, boolean state) {
+        public ImportBatch(Integer id, String folderPath, Date timeStamp, UserProfile user, State state) {
             this.id = id;
             this.folderPath = folderPath;
             this.timeStamp = timeStamp;
@@ -272,6 +314,14 @@ public final class ImportBatchManager {
             return user;
         }
 
+        public State getState() {
+            return state;
+        }
+
+        void setState(State state) {
+            this.state = state;
+        }
+
     }
 
     /**
@@ -289,17 +339,19 @@ public final class ImportBatchManager {
         private String foxml;
         private String filename;
         private String pid;
+        private String failure;
+        private String failureDescription;
 
         private ImportItem() {
         }
 
-        public ImportItem(File foxml, String filename, String pid) {
-            this(foxml.toURI().toASCIIString(), filename, pid);
+        public ImportItem(File foxml, String originalFilename, String pid) {
+            this(foxml.toURI().toASCIIString(), originalFilename, pid);
         }
         
-        public ImportItem(String foxml, String filename, String pid) {
+        public ImportItem(String foxml, String originalFilename, String pid) {
             this.foxml = foxml;
-            this.filename = filename;
+            this.filename = originalFilename;
             this.pid = pid;
         }
 
@@ -318,6 +370,22 @@ public final class ImportBatchManager {
         public File getFoxmlAsFile() {
             URI uri = URI.create(foxml);
             return new File(uri);
+        }
+
+        public String getFailure() {
+            return failure;
+        }
+
+        public void setFailure(String failure) {
+            this.failure = failure;
+        }
+
+        public String getFailureDescription() {
+            return failureDescription;
+        }
+
+        public void setFailureDescription(String failureDescription) {
+            this.failureDescription = failureDescription;
         }
 
     }

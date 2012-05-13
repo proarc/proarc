@@ -43,12 +43,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 public class ImportProcess {
 
     private static final Logger LOG = Logger.getLogger(ImportProcess.class.getName());
-    static final String TMP_DIR_NAME = "fedora_import";
+    static final String TMP_DIR_NAME = "proarch_import";
     private File importFolder;
-    private ImportManager imanager;
     private ImportBatchManager batchManager;
     private List<TiffImporter> consumerRegistery = Collections.singletonList(new TiffImporter());
-    private List<ImportItem> imports;
     private List<ImportItemFailure> failures = new ArrayList<ImportItemFailure>();
     private final String importFolderRelativePath;
     private final UserProfile user;
@@ -72,20 +70,23 @@ public class ImportProcess {
         setRunningState(importFolder);
         boolean transactionFailed = true;
         // check target folder
+        ImportBatch batch = null;
         try {
             File targetFolder = createTargetFolder();
             ImportFileScanner scanner = new ImportFileScanner();
             List<File> files = scanner.findDigitalContent(importFolder);
-            this.imports = new ArrayList<ImportItem>(files.size());
-            List<ImportItem> consumedFiles = consumeFiles(files, new ImportContext(targetFolder, generateIndices));
-
-            // import to Fedora
-            ImportBatch batch = fedoraImport(consumedFiles);
+            batch = batchManager.add(importFolderRelativePath, user);
+            batch = batchManager.update(batch.getId(), ImportBatch.State.LOADING);
+            consumeFiles(batch.getId(), files, new ImportContext(targetFolder, generateIndices));
+            batch = batchManager.update(batch.getId(), ImportBatch.State.LOADED);
             transactionFailed = false;
             return batch;
         } finally {
             // XXX rollback running state or set failed state
             if (transactionFailed) {
+                if (batch != null) {
+                    batchManager.update(batch.getId(), ImportBatch.State.LOADING_FAILED);
+                }
                 File tmpFolder = new File(importFolder, TMP_DIR_NAME);
                 deleteFolder(tmpFolder);
                 ImportFileScanner.rollback(importFolder);
@@ -107,23 +108,20 @@ public class ImportProcess {
         }
     }
 
-    public List<ImportItem> getImportedItems() {
-        return this.imports;
-    }
-
     public List<ImportItemFailure> getFailures() {
         return this.failures;
     }
     
-    private List<ImportItem> consumeFiles(List<File> files, ImportContext ctx) {
+    private void consumeFiles(int batchId, List<File> files, ImportContext ctx) {
         long start = System.currentTimeMillis();
-        List<ImportItem> fedorarItems = new ArrayList<ImportItem>(files.size());
         for (File file : files) {
             try {
                 ImportItem item = consumeFile(file, ctx);
                 if (item != null) {
-                    fedorarItems.add(item);
+                    batchManager.addItem(batchId, item);
                 } else {
+                    // XXX implement failed items in ImportBatchManager
+                    // ImportItem importItem = new ImportItem((String) null, file.toString(), null);
                     this.failures.add(new ImportItemFailure(file.getName(), "unsupported file"));
                 }
             } catch (IOException ex) {
@@ -134,8 +132,6 @@ public class ImportProcess {
             }
         }
         LOG.log(Level.INFO, "Total time: {0} ms", System.currentTimeMillis() - start);
-
-        return fedorarItems;
     }
 
     private ImportItem consumeFile(File f, ImportContext ctx) throws IOException {
@@ -189,19 +185,6 @@ public class ImportProcess {
     public static String findMimeType(File f) {
         FileNameMap fileNameMap = URLConnection.getFileNameMap();
         return fileNameMap.getContentTypeFor(f.getName());
-    }
-
-    private ImportBatch fedoraImport(List<ImportItem> fedoraItems) {
-        ImportBatch batch = batchManager.add(importFolderRelativePath, user);
-        for (ImportItem importItem : fedoraItems) {
-            try {
-                batchManager.addItem(batch.getId(), importItem);
-                this.imports.add(importItem);
-            } finally {
-                // XXX rollback already imported objects?
-            }
-        }
-        return batch;
     }
 
     public static final class ImportContext {

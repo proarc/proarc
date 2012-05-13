@@ -27,6 +27,7 @@ import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
+import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 
@@ -70,7 +71,9 @@ public final class ImportBatchChooser extends VLayout {
         ListGridField lgfImported = new ListGridField(ImportBatchDataSource.FIELD_STATE,
                 i18nPas.ImportBatchDataSource_StateFieldTitle());
         lgfImported.setAutoFitWidth(true);
-        lgfImported.setAutoFitWidthApproach(AutoFitWidthApproach.TITLE);
+        lgfImported.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
+        lgfImported.setPrompt(ClientUtils.format("<div style='width:250px;'>%s</div>",
+                i18nPas.ImportBatchDataSource_StateFieldHint()));
         ListGridField lgfUser = new ListGridField(ImportBatchDataSource.FIELD_USER_DISPLAYNAME,
                 i18nPas.ImportBatchDataSource_UserFieldTitle());
         lgfUser.setAutoFitWidth(true);
