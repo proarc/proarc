@@ -28,7 +28,6 @@ import com.smartgwt.client.widgets.Canvas;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
-import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.widget.ImportBatchChooser;
 import cz.incad.pas.editor.client.widget.ImportBatchChooser.ImportBatchChooserHandler;
@@ -226,8 +225,6 @@ public class ImportPresenter {
 
             String model = importSourceChooser.getImportAsType();
 
-    //        // XXX do import
-    //        importSourceChooser.update();
             if (importRecord != null && importRecord.isNew() && model != null) {
                 ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
                 DSRequest dsRequest = new DSRequest();
@@ -244,15 +241,12 @@ public class ImportPresenter {
                         if (data != null && data.length > 0) {
                             BatchRecord newBatch = new BatchRecord(data[0]);
                             ImportPresenter.this.getImportContext().setBatch(newBatch);
-                            // XXX propoj spravne kroky
-//                            presenter.updateImportedObjects();
                             ImportPresenter.this.selectParent();
                         } else {
                             // XXX show warning something is wrong
                         }
                     }
                 }, dsRequest);
-//                ds.updateData(ImportTreeRestDataSource.createUpdateRecord(record, model));
             } else {
                 throw new IllegalStateException();
             }
@@ -344,18 +338,56 @@ public class ImportPresenter {
         public boolean onStepAction(Wizard wizard, StepKind step) {
             if (step == StepKind.FORWARD) {
                 Record selectedParent = widget.getSelectedParent();
-                ImportContext importContext = ImportPresenter.this.getImportContext();
+                final ImportContext importContext = ImportPresenter.this.getImportContext();
                 if (selectedParent != null) {
-                    importContext.setParentPid(selectedParent.getAttribute(RelationDataSource.FIELD_PID));
-                } else {
-//                    importContext.setParentPid(null);
-                    return false;
+                    final String parentPid = selectedParent.getAttribute(RelationDataSource.FIELD_PID);
+                    if (parentPid.equals(importContext.getParentPid())) {
+                        // no change
+                        return true;
+                    }
+                    updateBatch(importContext.getBatch().getId(), parentPid, new BooleanCallback() {
+
+                        @Override
+                        public void execute(Boolean value) {
+                            if (value != null && value) {
+                                importContext.setParentPid(parentPid);
+                                updateImportedObjects();
+                            } else {
+                                // show some warning
+                            }
+                        }
+                    });
                 }
             } else {
                 ImportPresenter.this.importFolder();
-                return false;
             }
-            return true;
+            return false;
+        }
+
+        private void updateBatch(String batchId, final String parentPid, final BooleanCallback call) {
+            ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
+            DSRequest dsRequest = new DSRequest();
+            Record update = new Record();
+            update.setAttribute(ImportBatchDataSource.FIELD_ID, batchId);
+            update.setAttribute(ImportBatchDataSource.FIELD_PARENT, parentPid);
+            dsBatch.updateData(update, new DSCallback() {
+
+                @Override
+                public void execute(DSResponse response, Object rawData, DSRequest request) {
+                    if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
+                        call.execute(false);
+                        return;
+                    }
+                    Record[] data = response.getData();
+                    if (data != null && data.length > 0) {
+                        importContext.setParentPid(parentPid);
+                        call.execute(true);
+                    } else {
+                        // XXX show warning something is wrong
+                        call.execute(false);
+                    }
+                }
+            }, dsRequest);
         }
 
         @Override
@@ -416,7 +448,6 @@ public class ImportPresenter {
     public static final class ImportContext {
 
         private BatchRecord batch;
-        private String parentPid;
 
         public BatchRecord getBatch() {
             return batch;
@@ -427,11 +458,11 @@ public class ImportPresenter {
         }
 
         public String getParentPid() {
-            return parentPid;
+            return batch.getParentPid();
         }
 
-        public void setParentPid(String parentPid) {
-            this.parentPid = parentPid;
+        public void setParentPid(String pid) {
+            batch.setParentPid(pid);
         }
 
     }

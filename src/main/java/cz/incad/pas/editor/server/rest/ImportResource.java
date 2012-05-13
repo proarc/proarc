@@ -37,6 +37,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
@@ -47,6 +48,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -228,6 +230,21 @@ public class ImportResource {
         return new ImportBatchList(importManager.findAll(user, false));
     }
 
+    @PUT
+    @Path("batch")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ImportBatchList updateBatch(
+            @FormParam("id") Integer batchId,
+            @FormParam("parentPid") String parentPid
+            ) {
+
+        ImportBatch batch = importManager.update(batchId, parentPid);
+        if (batch == null) {
+            throw new NotFoundException("id", String.valueOf(batchId));
+        }
+        return new ImportBatchList(Arrays.asList(batch));
+    }
+
     @XmlRootElement(name="batches")
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class ImportBatchList {
@@ -246,7 +263,7 @@ public class ImportResource {
         }
 
     }
-    
+
     @GET
     @Path("batch/item")
     @Produces(MediaType.APPLICATION_JSON)

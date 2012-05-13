@@ -143,6 +143,20 @@ public final class ImportBatchManager {
         }
     }
 
+    public ImportBatch update(Integer id, String parentId) {
+        if (id == 0) {
+            return null;
+        }
+        synchronized (map) {
+            ImportBatch batch = map.get(id);
+            if (batch != null) {
+                batch.setParentPid(parentId);
+                save(pasConfig.getConfigHome(), this);
+            }
+            return batch;
+        }
+    }
+
     public ImportBatch add(String path, UserProfile user) {
         synchronized(map) {
             int id = map.isEmpty() ? 1 : Collections.max(map.keySet()) + 1;
@@ -196,6 +210,7 @@ public final class ImportBatchManager {
         @XmlElement(required=true)
         private int id;
         private String folderPath;
+        private String parentPid;
         @XmlSchemaType(name="dateTime")
         private Date timeStamp;
         private int userId;
@@ -235,6 +250,14 @@ public final class ImportBatchManager {
 
         public int getId() {
             return id;
+        }
+
+        public String getParentPid() {
+            return parentPid;
+        }
+
+        void setParentPid(String parentPid) {
+            this.parentPid = parentPid;
         }
 
         public Date getTimeStamp() {

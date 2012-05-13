@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.OperationBinding;
 import com.smartgwt.client.data.Record;
@@ -40,6 +41,7 @@ public class ImportBatchDataSource extends DataSource {
     public static final String FIELD_STATE = "state";
     public static final String FIELD_USER_ID = "userId";
     public static final String FIELD_USER_DISPLAYNAME = "user";
+    public static final String FIELD_PARENT = "parentPid";
 
     public ImportBatchDataSource() {
         setID(ID);
@@ -67,13 +69,24 @@ public class ImportBatchDataSource extends DataSource {
 
         DataSourceBooleanField state = new DataSourceBooleanField(FIELD_STATE);
 
-        setFields(id, path, userId, user, timestamp, state);
+        DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);
+        parent.setHidden(true);
+
+        setFields(id, path, userId, user, timestamp, state, parent);
         
         OperationBinding addOp = new OperationBinding();
         addOp.setOperationType(DSOperationType.ADD);
         addOp.setDataProtocol(DSProtocol.POSTPARAMS);
         addOp.setRecordXPath("/batch");
-        setOperationBindings(addOp);
+
+        OperationBinding updateOp = new OperationBinding();
+        updateOp.setOperationType(DSOperationType.UPDATE);
+        updateOp.setDataProtocol(DSProtocol.POSTPARAMS);
+        DSRequest updateRequest = new DSRequest();
+        updateRequest.setHttpMethod("PUT");
+        updateOp.setRequestProperties(updateRequest);
+
+        setOperationBindings(addOp, updateOp);
         
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
@@ -101,6 +114,14 @@ public class ImportBatchDataSource extends DataSource {
 
         public String getId() {
             return delegate.getAttribute(FIELD_ID);
+        }
+
+        public String getParentPid() {
+            return delegate.getAttribute(FIELD_PARENT);
+        }
+
+        public void setParentPid(String pid) {
+            delegate.setAttribute(FIELD_PARENT, pid);
         }
     }
 
