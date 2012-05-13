@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Jan Pokorsky
+ * Copyright (C) 2012 Jan Pokorsky
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,29 +16,24 @@
  */
 package cz.incad.pas.editor.client.ds;
 
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
-import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
+import java.util.HashMap;
 
 /**
  *
  * @author Jan Pokorsky
  */
-public class RelationDataSource extends RestDataSource {
+public final class SearchDataSource extends RestDataSource {
 
-    public static final String ID = "RelationDataSource";
+    public static final String ID = "SearchDataSource";
 
     public static final String FIELD_PID = "pid";
-    public static final String FIELD_PARENT = "parent";
-    public static final String FIELD_ROOT = "root";
     public static final String FIELD_MODEL = "model";
     public static final String FIELD_OWNER = "owner";
     public static final String FIELD_LABEL = "label";
@@ -46,51 +41,35 @@ public class RelationDataSource extends RestDataSource {
     public static final String FIELD_CREATED = "created";
     public static final String FIELD_MODIFIED = "modified";
 
-    public RelationDataSource() {
+    public SearchDataSource() {
         setID(ID);
-
         setDataFormat(DSDataFormat.JSON);
-        setDataURL(RestConfig.URL_DIGOBJECT_CHILDREN);
+        setDataURL(RestConfig.URL_DIGOBJECT_SEARCH);
 
         DataSourceField pid = new DataSourceField(FIELD_PID, FieldType.TEXT);
         pid.setPrimaryKey(true);
-        pid.setRequired(true);
 
-        DataSourceField parent = new DataSourceField(FIELD_PARENT, FieldType.TEXT);
-        parent.setForeignKey(ID + '.' + FIELD_PID);
-        parent.setRequired(true);
-
-        DataSourceField root = new DataSourceField(FIELD_ROOT, FieldType.TEXT);
-        root.setHidden(true);
-
-        DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
         DataSourceField owner = new DataSourceField(FIELD_OWNER, FieldType.TEXT);
         DataSourceField label = new DataSourceField(FIELD_LABEL, FieldType.TEXT);
+        DataSourceField state = new DataSourceField(FIELD_STATE, FieldType.ENUM);
+        HashMap<String, String> states = new HashMap<String, String>();
+        states.put("fedora-system:def/model#Active", "Active");
+        states.put("fedora-system:def/model#Inactive", "Inactive");
+        states.put("fedora-system:def/model#Deleted", "Deleted");
+        state.setValueMap(states);
         DataSourceDateTimeField created = new DataSourceDateTimeField(FIELD_CREATED);
         DataSourceDateTimeField modified = new DataSourceDateTimeField(FIELD_MODIFIED);
 
-        setFields(pid, parent, label, model, created, modified, owner);
-        setTitleField(FIELD_LABEL);
+        DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
+        model.setForeignKey(MetaModelDataSource.ID + '.' + MetaModelDataSource.FIELD_PID);
 
+        setFields(label, model, pid, created, modified, owner, state);
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
-        
     }
 
-    @Override
-    protected void transformResponse(DSResponse response, DSRequest request, Object data) {
-        if (response.getStatus() == RPCResponse.STATUS_SUCCESS) {
-            // fill parent fields
-            String parent = request.getCriteria().getAttribute(FIELD_PARENT);
-            for (Record record : response.getData()) {
-                record.setAttribute(FIELD_PARENT, parent);
-            }
-        }
-        super.transformResponse(response, request, data);
-    }
-
-    public static RelationDataSource getInstance() {
-        RelationDataSource ds = (RelationDataSource) DataSource.get(ID);
-        ds = ds != null ? ds : new RelationDataSource();
+    public static SearchDataSource getInstance() {
+        SearchDataSource ds = (SearchDataSource) DataSource.get(ID);
+        ds = (ds != null) ? ds : new SearchDataSource();
         return ds;
     }
 

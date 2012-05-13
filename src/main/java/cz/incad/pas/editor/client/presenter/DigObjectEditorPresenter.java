@@ -312,9 +312,7 @@ public final class DigObjectEditorPresenter {
                     i18nPas.NewDigObjectWizard_SelectParentStep_Description_Title());
 
             editor.setHandler(this);
-            if (getContext().getParentPid() == null) {
-                editor.setDataSource();
-            }
+            editor.setDataSource(getContext().getParentPid());
             onParentSelectionUpdated();
         }
 

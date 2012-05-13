@@ -35,10 +35,12 @@ public class RestConfig {
     public static final String URL_IMPORT_BATCH =  URL_SCAN_IMPORT + "/batch";
     public static final String URL_IMPORT_BATCH_ITEM =  URL_IMPORT_BATCH + "/item";
     public static final String URL_DIGOBJECT =  URL_ROOT + "/object";
+    public static final String URL_DIGOBJECT_CHILDREN =  URL_DIGOBJECT + "/members";
     public static final String URL_DIGOBJECT_DC =  URL_DIGOBJECT + "/dc";
     public static final String URL_DIGOBJECT_MODS_CUSTOM =  URL_DIGOBJECT + "/custom_mods";
     public static final String URL_DIGOBJECT_OCR =  URL_DIGOBJECT + "/ocr";
     public static final String URL_DIGOBJECT_PREVIEW =  URL_DIGOBJECT + "/preview";
+    public static final String URL_DIGOBJECT_SEARCH =  URL_DIGOBJECT + "/search";
     public static final String URL_DIGOBJECT_THUMBNAIL =  URL_DIGOBJECT + "/thumb";
     public static final String URL_DIGOBJECT_METAMODEL =  URL_DIGOBJECT + "/metamodel";
     public static final String URL_METADATACATALOG =  URL_ROOT + "/metadatacatalog";

@@ -70,6 +70,10 @@ public final class RemoteStorage {
         return new RemoteObject(pid, client);
     }
 
+    public SearchView getSearch() {
+        return new SearchView(client);
+    }
+
     /**
      * see https://wiki.duraspace.org/display/FEDORA35/Using+File+URIs to reference external files for ingest
      */

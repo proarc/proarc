@@ -32,6 +32,8 @@ import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
+import cz.incad.pas.editor.server.fedora.SearchView;
+import cz.incad.pas.editor.server.fedora.SearchView.Item;
 import cz.incad.pas.editor.server.fedora.StringEditor;
 import cz.incad.pas.editor.server.fedora.StringEditor.StringRecord;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
@@ -156,6 +158,42 @@ public class DigitalObjectResource {
         return new DigitalObjectList(Arrays.asList(new DigitalObject(localObject.getPid(), modelId)));
     }
 
+    @GET
+    @Path("search")
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Item> findLastCreated(
+            @QueryParam("owner") String owner,
+            @QueryParam("_startRow") int startRow
+            ) throws FedoraClientException, IOException {
+
+        SearchView search = RemoteStorage.getInstance(pasConfig).getSearch();
+        List<Item> items = search.findLastCreated(startRow, owner);
+        int count = items.size();
+        int endRow = startRow + count - 1;
+        int total = count == 0 ? startRow : endRow + 20;
+        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
+    }
+
+    @GET
+    @Path("members")
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Item> findMembers(
+            @QueryParam("parent") String parent,
+            @QueryParam("root") String root
+            ) throws FedoraClientException, IOException {
+
+        SearchView search = RemoteStorage.getInstance(pasConfig).getSearch();
+        List<Item> items;
+        if (parent == null || "null".equals(parent)) {
+            items = search.find(root);
+        } else {
+            // XXX sort according to RELS-EXT
+            items = search.findChildren(parent);
+        }
+        int count = items.size();
+        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, count - 1, count, items);
+    }
+    
     @GET
     @Path("/dc")
     @Produces(MediaType.APPLICATION_XML)

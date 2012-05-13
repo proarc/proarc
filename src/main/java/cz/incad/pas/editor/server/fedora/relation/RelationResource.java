@@ -34,7 +34,7 @@ public final class RelationResource {
     private RelationResource() {
     }
 
-    private RelationResource(String resource) {
+    public RelationResource(String resource) {
         this.resource = resource;
     }
 
@@ -42,12 +42,16 @@ public final class RelationResource {
         return new RelationResource("info:fedora/" + pid);
     }
 
+    public static String toPid(String resource) {
+        return resource.substring("info:fedora/".length());
+    }
+
     public String getResource() {
         return resource;
     }
 
     public String getPid() {
-        return resource.substring("info:fedora/".length());
+        return toPid(resource);
     }
 
 }

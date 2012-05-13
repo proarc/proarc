@@ -331,9 +331,7 @@ public class ImportPresenter {
                     i18nPas.ImportWizard_SelectParentStep_Description_Title());
             this.wizard = wizard;
             widget.setHandler(this);
-            if (ImportPresenter.this.getImportContext().getParentPid() == null) {
-                widget.setDataSource();
-            }
+            widget.setDataSource(ImportPresenter.this.getImportContext().getParentPid());
             onParentSelectionUpdated();
         }
 

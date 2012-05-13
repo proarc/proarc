@@ -4,13 +4,8 @@ import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RecordList;
-import com.smartgwt.client.data.fields.DataSourceDateField;
-import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DragDataAction;
-import com.smartgwt.client.types.SelectionAppearance;
+import com.smartgwt.client.types.AutoFitWidthApproach;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.IButton;
 import com.smartgwt.client.widgets.events.ClickEvent;
@@ -25,10 +20,11 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.tab.Tab;
 import com.smartgwt.client.widgets.tab.TabSet;
-import com.smartgwt.client.widgets.tree.Tree;
 import com.smartgwt.client.widgets.tree.TreeGrid;
+import com.smartgwt.client.widgets.tree.TreeGridField;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
+import cz.incad.pas.editor.client.ds.SearchDataSource;
 
 public class ImportParentChooser extends VLayout {
 
@@ -44,49 +40,30 @@ public class ImportParentChooser extends VLayout {
         setWidth100();
         setHeight100();
         TabSet tabSet = new TabSet();
-        Tab tabLastUsed = new Tab(i18nPas.ImportParentChooser_TabLastUsed_Title()); // selected as parents in previous processings
+        Tab tabLastModified = new Tab(i18nPas.ImportParentChooser_TabLastUsed_Title()); // selected as parents in previous processings
         Tab tabLastCreated = new Tab(i18nPas.ImportParentChooser_TabLastCreated_Title());
         Tab tabSearch = new Tab(i18nPas.ImportParentChooser_TabSearch_Title());
         initTabSearch(tabSearch);
-        tabSet.setTabs(tabLastUsed, tabLastCreated, tabSearch);
+        tabSet.setTabs(tabLastCreated, tabSearch);
         // XXX implement tabs
-        tabLastCreated.setDisabled(true);
+        tabLastModified.setDisabled(true);
         tabSearch.setDisabled(true);
         
         foundGrid = new ListGrid();
-//        foundGrid.setCanDragRecordsOut(true);
-//        foundGrid.setDragDataAction(DragDataAction.COPY);
         foundGrid.setSelectionType(SelectionStyle.SINGLE);
-//        foundGrid.setSelectionAppearance(SelectionAppearance.CHECKBOX);
-        
-        DataSource ds = new DataSource("ds/FedoraObjectsLastUsed.js");
-        ds.setFields(
-                new DataSourceTextField("pid", "PID"),
-                new DataSourceDateField("created", "Created"),
-                new DataSourceTextField("user", "User"),
-                new DataSourceTextField("type", "Model")
-                );
-        ds.setClientOnly(true);
-        foundGrid.setDataSource(ds);
-//        foundGrid.setAutoFetchData(true);
+        foundGrid.setCanSort(false);
+        foundGrid.setAutoFitFieldWidths(true);
+        foundGrid.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
+        foundGrid.setDataSource(SearchDataSource.getInstance());
         foundGrid.setUseAllDataSourceFields(true);
         foundGrid.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
             @Override
             public void onSelectionUpdated(SelectionUpdatedEvent event) {
-                ListGridRecord selectedRecord = foundGrid.getSelectedRecord();
+                final ListGridRecord selectedRecord = foundGrid.getSelectedRecord();
                 if (selectedRecord != null) {
                     String pid = selectedRecord.getAttribute(RelationDataSource.FIELD_PID);
-                    treeSelector.fetchData(new Criteria(RelationDataSource.FIELD_ROOT, pid), new DSCallback() {
-
-                        @Override
-                        public void execute(DSResponse response, Object rawData, DSRequest request) {
-                            treeSelector.selectRecord(0);
-                        }
-                    });
-                } else {
-                    treeSelector.fetchData(new Criteria(RelationDataSource.FIELD_ROOT, "dummy root to clear current data"));
-//                    treeSelector.setData((Record[]) null);
+                    loadTree(pid);
                 }
             }
         });
@@ -126,7 +103,7 @@ public class ImportParentChooser extends VLayout {
         });
         IButton btnRemove = new IButton("Remove selected");
         
-        tabLastUsed.setPane(foundGrid);
+        tabLastCreated.setPane(foundGrid);
         addMember(tabSet);
 //        addMember(btnAdd);
         addMember(treeSelector);
@@ -138,14 +115,18 @@ public class ImportParentChooser extends VLayout {
         this.handler = handler;
     }
 
-    public void setDataSource() {
+    public void setDataSource(final String parentPid) {
+        foundGrid.deselectAllRecords();
         foundGrid.fetchData(null, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
-                foundGrid.selectRecord(0);
+                if (parentPid == null) {
+                    foundGrid.selectSingleRecord(0);
+                }
             }
         });
+        loadTree(parentPid);
     }
 
     public Record getSelectedParent() {
@@ -164,16 +145,35 @@ public class ImportParentChooser extends VLayout {
 
     private TreeGrid createTreeSelector() {
         TreeGrid treeGrid = new TreeGrid();
-        // pid
-        // display name
         treeGrid.setDataSource(RelationDataSource.getInstance());
-        treeGrid.setUseAllDataSourceFields(true);
+        treeGrid.setFields(
+                new TreeGridField(RelationDataSource.FIELD_LABEL),
+                new TreeGridField(RelationDataSource.FIELD_MODEL),
+                new TreeGridField(RelationDataSource.FIELD_PID),
+                new TreeGridField(RelationDataSource.FIELD_CREATED),
+                new TreeGridField(RelationDataSource.FIELD_MODIFIED),
+                new TreeGridField(RelationDataSource.FIELD_OWNER)
+                );
+        treeGrid.setTitleField(RelationDataSource.FIELD_LABEL);
         treeGrid.setShowConnectors(true);
         treeGrid.setEmptyMessage(i18nPas.ImportParentChooser_EmptySelection_Title());
         treeGrid.setAlternateRecordStyles(true);
         treeGrid.setSelectionType(SelectionStyle.SINGLE);
-//        treeGrid.setAutoFetchData(true);
         return treeGrid;
+    }
+
+    private void loadTree(String pid) {
+        if (pid == null) {
+            treeSelector.setData((Record[]) null);
+            return ;
+        }
+        treeSelector.fetchData(new Criteria(RelationDataSource.FIELD_ROOT, pid), new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                treeSelector.selectRecord(0);
+            }
+        });
     }
 
     public interface ImportParentHandler {
