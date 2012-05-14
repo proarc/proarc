@@ -25,15 +25,15 @@
 <!--            <param-value>com.sun.jersey.api.container.filter.GZIPContentEncodingFilter;com.sun.jersey.api.container.filter.LoggingFilter</param-value>-->
 <!--            <param-value>com.sun.jersey.api.container.filter.LoggingFilter;com.sun.jersey.api.container.filter.GZIPContentEncodingFilter;com.sun.jersey.api.container.filter.LoggingFilter</param-value>-->
         </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
+<!--        <init-param>-->
+<!--            <param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>-->
 <!--            <param-value>com.sun.jersey.api.container.filter.LoggingFilter</param-value>-->
 <!--            <param-value>com.sun.jersey.api.container.filter.GZIPContentEncodingFilter</param-value>-->
             <!-- logs response and then gzip it -->
 <!--            <param-value>com.sun.jersey.api.container.filter.GZIPContentEncodingFilter;com.sun.jersey.api.container.filter.LoggingFilter</param-value>-->
             <!-- logs response then gzip it and then logs gziped response -->
 <!--            <param-value>com.sun.jersey.api.container.filter.LoggingFilter;com.sun.jersey.api.container.filter.GZIPContentEncodingFilter;com.sun.jersey.api.container.filter.LoggingFilter</param-value>-->
-        </init-param>
+<!--        </init-param>-->
         <init-param>
             <param-name>com.sun.jersey.config.feature.logging.DisableEntitylogging</param-name>
             <param-value>true</param-value>
