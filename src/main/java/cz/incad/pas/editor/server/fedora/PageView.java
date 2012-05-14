@@ -55,7 +55,7 @@ public final class PageView {
             String model = new RelationEditor(local).getModel();
             result.add(new Item(batchId, imp.getFilename(), imp.getPid(),
                     model, page.getIndex(), page.getNumber(), page.getType(),
-                    editor.getLastModified(), "XXX-user"));
+                    editor.getLastModified(), local.getOwner()));
         }
         return new ImportBatchItemList(result);
     }
@@ -83,7 +83,7 @@ public final class PageView {
         local.flush();
         Item update = new Item(batchId, item.getFilename(), item.getPid(), model,
                 pageIndex, pageNumber, pageType,
-                editor.getLastModified(), "XXX-user");
+                editor.getLastModified(), local.getOwner());
         return new ImportBatchItemList(Arrays.asList(update));
     }
 

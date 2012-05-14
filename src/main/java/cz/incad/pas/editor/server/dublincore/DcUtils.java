@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.server.dublincore;
 
+import cz.incad.pas.oaidublincore.ElementType;
 import cz.incad.pas.oaidublincore.OaiDcType;
 import cz.incad.pas.oaidublincore.ObjectFactory;
 import java.io.StringReader;
@@ -28,6 +29,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlSchema;
+import javax.xml.namespace.QName;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
@@ -146,6 +148,24 @@ public final class DcUtils {
         }
         t.setParameter("MODEL", model);
         return t;
+    }
+
+    /**
+     * Gets short label for DC object
+     * @param dc DC
+     * @return label
+     */
+    public static String getLabel(OaiDcType dc) {
+        JAXBElement<ElementType> dummyTitle = new ObjectFactory().createTitle(null);
+        QName qnTitle = dummyTitle.getName();
+        for (JAXBElement<ElementType> elm : dc.getTitleOrCreatorOrSubject()) {
+            if (qnTitle.equals(elm.getName()) && elm.getValue() != null) {
+                ElementType elmTitle = elm.getValue();
+                String title = elmTitle.getValue();
+                return title;
+            }
+        }
+        return "?";
     }
 
     private static Templates createMods2dcTemplate() {

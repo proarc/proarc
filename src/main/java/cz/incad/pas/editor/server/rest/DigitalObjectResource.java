@@ -25,6 +25,7 @@ import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
+import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
@@ -43,10 +44,14 @@ import cz.incad.pas.editor.server.json.JsonUtils;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.server.mods.custom.Mapping;
+import cz.incad.pas.editor.server.user.UserManager;
+import cz.incad.pas.editor.server.user.UserProfile;
+import cz.incad.pas.editor.server.user.UserUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -91,8 +96,10 @@ public class DigitalObjectResource {
     private final MetaModelRepository metamodels = MetaModelRepository.getInstance();
     private final DigitalObjectRepository repository;
     private final ImportBatchManager importManager;
+    private final UserManager userManager;
     private final Request httpRequest;
     private final HttpHeaders httpHeaders;
+    private final UserProfile user;
 
     public DigitalObjectResource(
             @Context Request request,
@@ -105,6 +112,17 @@ public class DigitalObjectResource {
         this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
         this.repository = DigitalObjectRepository.getInstance(pasConfig);
         this.importManager = ImportBatchManager.getInstance(pasConfig);
+        this.userManager = UserUtil.createUserManagerMemoryImpl(pasConfig);
+
+        Principal userPrincipal = securityCtx.getUserPrincipal();
+        String userName;
+        if (userPrincipal != null) {
+            userName = userPrincipal.getName();
+        } else {
+            userName = UserManager.GUEST_ID;
+        }
+        user = userManager.find(userName);
+        LOG.info(user.toString());
     }
 
     /**
@@ -144,6 +162,10 @@ public class DigitalObjectResource {
         // DC
         DcStreamEditor dcEditor = new DcStreamEditor(localObject);
         dcEditor.write(modsType, modelId, 0);
+        DublinCoreRecord dcRecord = dcEditor.read();
+        String label = DcUtils.getLabel(dcRecord.getDc());
+        localObject.setLabel(label);
+        localObject.setOwner(user.getUserName());
 
         // RELS-EXT
         RelationEditor relsExt = new RelationEditor(localObject);
@@ -153,7 +175,7 @@ public class DigitalObjectResource {
         localObject.flush();
 
         RemoteStorage fedora = RemoteStorage.getInstance(pasConfig);
-        fedora.ingest(localObject, "label", "XXX");
+        fedora.ingest(localObject, user.getUserName(), "Ingested with Proarch");
 
         return new DigitalObjectList(Arrays.asList(new DigitalObject(localObject.getPid(), modelId)));
     }
@@ -257,6 +279,10 @@ public class DigitalObjectResource {
         FedoraObject fobject = findFedoraObject(update.getPid(), update.getBatchId());
         DcStreamEditor dcEditor = new DcStreamEditor(fobject);
         dcEditor.write(update);
+        String label = DcUtils.getLabel(update.getDc());
+        fobject.setLabel(label);
+
+        fobject.flush();
         DublinCoreRecord result = dcEditor.read();
         result.setBatchId(update.getBatchId());
         return result;
@@ -326,14 +352,19 @@ public class DigitalObjectResource {
         try {
             Object customData = jsMapper.readValue(customJsonData, type);
             mapping.update(mods, customData, editorId);
-            String toXml = ModsUtils.toXml(mods, true);
-            LOG.severe(toXml);
+            if (LOG.isLoggable(Level.FINE)) {
+                String toXml = ModsUtils.toXml(mods, true);
+                LOG.fine(toXml);
+            }
             modsEditor.write(mods, timestamp);
 
             // DC
             String model = new RelationEditor(remote).getModel();
             DcStreamEditor dcEditor = new DcStreamEditor(remote);
             dcEditor.write(mods, model, dcEditor.getLastModified());
+            DublinCoreRecord dcRecord = dcEditor.read();
+            String label = DcUtils.getLabel(dcRecord.getDc());
+            remote.setLabel(label);
 
             remote.flush();
 

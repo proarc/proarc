@@ -24,7 +24,6 @@ import com.yourmediashelf.fedora.client.response.GetDatastreamResponse;
 import com.yourmediashelf.fedora.client.response.IngestResponse;
 import com.yourmediashelf.fedora.client.response.ModifyDatastreamResponse;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
 import cz.incad.pas.editor.server.config.PasConfiguration;
@@ -75,13 +74,15 @@ public final class RemoteStorage {
         return new SearchView(client);
     }
 
-    public void ingest(File foxml, String pid, String label, String user, String log) throws FedoraClientException {
+    public void ingest(File foxml, String pid, String ingestUser, String log) throws FedoraClientException {
+        if (ingestUser == null || ingestUser.isEmpty()) {
+            throw new IllegalArgumentException("ingestUser");
+        }
         IngestResponse response = FedoraClient.ingest(pid)
                 .format("info:fedora/fedora-system:FOXML-1.1")
-                .label(label)
                 .logMessage(log)
                 .content(foxml)
-                .ownerId(user)
+                .ownerId(ingestUser)
                 .execute(client);
         if (response.getStatus() != 201) {
             // XXX
@@ -89,43 +90,30 @@ public final class RemoteStorage {
         LOG.log(Level.INFO, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
     }
 
-    public void ingest(LocalObject object, String label, String user) throws FedoraClientException {
-        ingest(object, label, user, "Ingested locally");
+    public void ingest(LocalObject object, String ingestUser) throws FedoraClientException {
+        ingest(object, ingestUser, "Ingested locally");
     }
 
     /**
      * see https://wiki.duraspace.org/display/FEDORA35/Using+File+URIs to reference external files for ingest
      */
-    public void ingest(LocalObject object, String label, String user, String log) throws FedoraClientException {
-        if (user == null || user.isEmpty()) {
-            throw new IllegalArgumentException("user");
+    public void ingest(LocalObject object, String ingestUser, String log) throws FedoraClientException {
+        if (ingestUser == null || ingestUser.isEmpty()) {
+            throw new IllegalArgumentException("ingestUser");
         }
-        if (log == null || user.isEmpty()) {
+        if (log == null || ingestUser.isEmpty()) {
             throw new IllegalArgumentException("log");
         }
         DigitalObject digitalObject = object.getDigitalObject();
 
-        PropertyType ownerProperty = new PropertyType();
-        ownerProperty.setNAME("info:fedora/fedora-system:def/model#ownerId");
-        ownerProperty.setVALUE(user);
-        digitalObject.getObjectProperties().getProperty().add(ownerProperty);
-
-        if (label != null) {
-            PropertyType labelProperty = new PropertyType();
-            labelProperty.setNAME("info:fedora/fedora-system:def/model#label");
-            labelProperty.setVALUE(label);
-            digitalObject.getObjectProperties().getProperty().add(labelProperty);
-        }
-
         String xml = FoxmlUtils.toXml(digitalObject, false);
         IngestResponse response = FedoraClient.ingest(object.getPid())
                 .format("info:fedora/fedora-system:FOXML-1.1")
-                .label(label)
                 .logMessage(log)
 //                .namespace("")
 //                .xParam("", "")
                 .content(xml)
-                .ownerId(user)
+                .ownerId(ingestUser)
                 .execute(client);
         if (response.getStatus() != 201) {
             // XXX
@@ -136,6 +124,7 @@ public final class RemoteStorage {
     public static final class RemoteObject extends AbstractFedoraObject {
 
         private final FedoraClient client;
+        private String label;
 
         public RemoteObject(String pid, FedoraClient client) {
             super(pid);
@@ -145,6 +134,24 @@ public final class RemoteStorage {
         public FedoraClient getClient() {
             return client;
         }
+
+        @Override
+        public void setLabel(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public void flush() {
+            super.flush();
+            try {
+                if (label != null) {
+                    FedoraClient.modifyObject(getPid()).label(label).execute(client);
+                }
+            } catch (FedoraClientException ex) {
+                throw new IllegalStateException(getPid(), ex);
+            }
+        }
+
     }
 
     /**

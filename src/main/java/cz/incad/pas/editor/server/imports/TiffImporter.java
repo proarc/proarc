@@ -16,11 +16,12 @@
  */
 package cz.incad.pas.editor.server.imports;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
+import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
+import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
@@ -72,8 +73,7 @@ public final class TiffImporter {
         LocalStorage storage = new LocalStorage();
         File foxml = new File(tempBatchFolder, originalFilename + ".foxml");
         LocalObject localObj = storage.create(foxml);
-        // XXX use fedora-model:downloadFilename in RELS-INT or label to specify filename
-        DigitalObject digObj = localObj.getDigitalObject();
+        localObj.setOwner(ctx.getUsername());
         String pid = localObj.getPid();
 
         // MODS
@@ -85,11 +85,14 @@ public final class TiffImporter {
         // DC
         DcStreamEditor dcEditor = new DcStreamEditor(localObj);
         dcEditor.write(mods, fedoraModel, 0);
+        DublinCoreRecord dcr = dcEditor.read();
+        localObj.setLabel(DcUtils.getLabel(dcr.getDc()));
 
         // RELS-EXT
         RelationEditor relEditor = new RelationEditor(localObj);
         relEditor.setModel(fedoraModel);
         relEditor.write(0);
+        // XXX use fedora-model:downloadFilename in RELS-INT or label of datastream to specify filename
 
         // Images
         BinaryEditor.dissemination(localObj, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF)

@@ -19,6 +19,7 @@ package cz.incad.pas.editor.server.fedora;
 import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.StateType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.incad.pas.editor.server.fedora.FoxmlUtils.ControlGroup;
@@ -80,6 +81,20 @@ public final class LocalStorage {
                 throw new NullPointerException("dobj");
             }
             this.dobj = dobj;
+        }
+
+        public String getOwner() {
+            PropertyType p = FoxmlUtils.findProperty(dobj, FoxmlUtils.PROPERTY_OWNER);
+            return p == null ? null : p.getVALUE();
+        }
+
+        @Override
+        public void setLabel(String label) {
+            FoxmlUtils.setProperty(dobj, FoxmlUtils.PROPERTY_LABEL, label);
+        }
+
+        public void setOwner(String owner) {
+            FoxmlUtils.setProperty(dobj, FoxmlUtils.PROPERTY_OWNER, owner);
         }
 
         @Override

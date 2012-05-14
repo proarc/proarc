@@ -131,7 +131,8 @@ public class RemoteStorageTest {
         RemoteStorage fedora = new RemoteStorage(client);
         LocalObject object = new LocalStorage().create();
         String label = "testing";
-        fedora.ingest(object, label, "junit");
+        object.setLabel(label);
+        fedora.ingest(object, "junit");
     }
 
     @Test
@@ -161,7 +162,8 @@ public class RemoteStorageTest {
         System.out.println(FoxmlUtils.toXml(local.getDigitalObject(), true));
 
         String label = "testing";
-        fedora.ingest(local, label, "junit");
+        local.setLabel(label);
+        fedora.ingest(local, "junit");
         ListDatastreamsResponse response = FedoraClient.listDatastreams(local.getPid()).execute(client);
         List<DatastreamType> datastreams = response.getDatastreams();
         assertDatastream(DcStreamEditor.DATASTREAM_ID, datastreams);
@@ -184,6 +186,7 @@ public class RemoteStorageTest {
     public void testXmlRead() throws Exception {
         String dsId = "testId";
         LocalObject local = new LocalStorage().create();
+        local.setLabel(test.getMethodName());
         LocalXmlStreamEditor leditor = new LocalXmlStreamEditor(local, dsId, "testns", "label");
         EditorResult editorResult = leditor.createResult();
         TestXml content = new TestXml("test content");
@@ -191,7 +194,7 @@ public class RemoteStorageTest {
         leditor.write(editorResult, 0);
 
         RemoteStorage fedora = new RemoteStorage(client);
-        fedora.ingest(local, test.getMethodName(), "junit");
+        fedora.ingest(local, "junit");
 
         RemoteObject remote = fedora.find(local.getPid());
         RemoteXmlStreamEditor editor = new RemoteXmlStreamEditor(remote, dsId);
@@ -207,7 +210,8 @@ public class RemoteStorageTest {
     public void testXmlReadMissing() throws Exception {
         RemoteStorage fedora = new RemoteStorage(client);
         LocalObject local = new LocalStorage().create();
-        fedora.ingest(local, test.getMethodName(), "junit");
+        local.setLabel(test.getMethodName());
+        fedora.ingest(local, "junit");
         RemoteObject remote = fedora.find(local.getPid());
         RemoteXmlStreamEditor editor = new RemoteXmlStreamEditor(remote, "test");
         Source src = editor.read();
@@ -219,6 +223,7 @@ public class RemoteStorageTest {
     public void testXmlWrite() throws Exception {
         String dsId = "testId";
         LocalObject local = new LocalStorage().create();
+        local.setLabel(test.getMethodName());
         LocalXmlStreamEditor leditor = new LocalXmlStreamEditor(local, dsId, "testns", "label");
         EditorResult editorResult = leditor.createResult();
         TestXml content = new TestXml("test content");
@@ -226,7 +231,7 @@ public class RemoteStorageTest {
         leditor.write(editorResult, 0);
 
         RemoteStorage fedora = new RemoteStorage(client);
-        fedora.ingest(local, test.getMethodName(), "junit");
+        fedora.ingest(local, "junit");
 
         RemoteObject remote = fedora.find(local.getPid());
         RemoteXmlStreamEditor editor = new RemoteXmlStreamEditor(remote, dsId);
@@ -264,6 +269,7 @@ public class RemoteStorageTest {
     public void testXmlWriteConcurrent() throws Exception {
         String dsId = "testId";
         LocalObject local = new LocalStorage().create();
+        local.setLabel(test.getMethodName());
         LocalXmlStreamEditor leditor = new LocalXmlStreamEditor(local, dsId, "testns", "label");
         EditorResult editorResult = leditor.createResult();
         TestXml content = new TestXml("test content");
@@ -271,7 +277,7 @@ public class RemoteStorageTest {
         leditor.write(editorResult, 0);
 
         RemoteStorage fedora = new RemoteStorage(client);
-        fedora.ingest(local, test.getMethodName(), "junit");
+        fedora.ingest(local, "junit");
 
         RemoteObject remote = fedora.find(local.getPid());
         RemoteXmlStreamEditor editor = new RemoteXmlStreamEditor(remote, dsId);

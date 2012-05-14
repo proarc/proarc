@@ -27,6 +27,8 @@ public interface FedoraObject {
 //    <T extends XmlStreamEditor> T getEditor(Class<T> type);
     
     void register(XmlStreamEditor editor);
+    
+    void setLabel(String label);
 
     void flush();
 

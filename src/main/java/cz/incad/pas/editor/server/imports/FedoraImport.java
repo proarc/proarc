@@ -91,7 +91,7 @@ public final class FedoraImport {
             throw new IllegalStateException("Cannot read foxml: " + foxml);
         }
 //        LocalObject local = istorage.load(item.getPid(), foxml);
-        fedora.ingest(foxml, item.getPid(), null, importer, "Ingested from local file " + foxml);
+        fedora.ingest(foxml, item.getPid(), importer, "Ingested with Proarch from local file " + foxml);
     }
 
     private void addParentMembers(String parent, List<String> pids) {

@@ -77,7 +77,7 @@ public class ImportProcess {
             List<File> files = scanner.findDigitalContent(importFolder);
             batch = batchManager.add(importFolderRelativePath, user);
             batch = batchManager.update(batch.getId(), ImportBatch.State.LOADING);
-            consumeFiles(batch.getId(), files, new ImportContext(targetFolder, generateIndices));
+            consumeFiles(batch.getId(), files, new ImportContext(targetFolder, generateIndices, user.getUserName()));
             batch = batchManager.update(batch.getId(), ImportBatch.State.LOADED);
             transactionFailed = false;
             return batch;
@@ -192,13 +192,15 @@ public class ImportProcess {
         private final XMLGregorianCalendar xmlNow;
         private final boolean generateIndices;
         private int consumedFileCounter;
+        private final String username;
 
-        ImportContext(File targetFolder, boolean generateIndices) throws DatatypeConfigurationException {
+        ImportContext(File targetFolder, boolean generateIndices, String username) throws DatatypeConfigurationException {
             this.targetFolder = targetFolder;
             DatatypeFactory xmlDataFactory = DatatypeFactory.newInstance();
             GregorianCalendar gcNow = new GregorianCalendar();
             xmlNow = xmlDataFactory.newXMLGregorianCalendar(gcNow);
             this.generateIndices = generateIndices;
+            this.username = username;
         }
 
         public File getTargetFolder() {
@@ -215,6 +217,10 @@ public class ImportProcess {
 
         public int getConsumedFileCounter() {
             return consumedFileCounter;
+        }
+
+        public String getUsername() {
+            return username;
         }
         
     }

@@ -98,7 +98,7 @@ public class TiffImporterTest {
         String mimetype = ImportProcess.findMimeType(tiff1);
         assertNotNull(mimetype);
 
-        ImportContext ctx = new ImportContext(targetFolder, true);
+        ImportContext ctx = new ImportContext(targetFolder, true, "junit");
         TiffImporter instance = new TiffImporter();
 //        FedoraImportItem expResult = null;
         ImportItem result = instance.consume(tiff1, mimetype, ctx);

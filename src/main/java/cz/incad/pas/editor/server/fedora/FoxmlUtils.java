@@ -62,6 +62,8 @@ final class FoxmlUtils {
         assert FOXML_NAMESPACE != null;
     }
 
+    public static final String PROPERTY_LABEL = "info:fedora/fedora-system:def/model#label";
+    public static final String PROPERTY_OWNER = "info:fedora/fedora-system:def/model#ownerId";
     public static final String PROPERTY_STATE = "info:fedora/fedora-system:def/model#state";
     
     private static final Logger LOG = Logger.getLogger(FoxmlUtils.class.getName());
@@ -107,6 +109,43 @@ final class FoxmlUtils {
             defaultUnmarshaller.set(m);
         }
         return m;
+    }
+
+    public static void setProperty(DigitalObject dobj, String name, String value) {
+        PropertyType propery = findProperty(dobj, name);
+        if (propery == null) {
+            propery = createProperty(dobj, name);
+        }
+        propery.setVALUE(value);
+    }
+
+    private static PropertyType createProperty(DigitalObject dobj, String name) {
+        ObjectPropertiesType objectProperties = dobj.getObjectProperties();
+        if (objectProperties == null) {
+            objectProperties = new ObjectPropertiesType();
+            dobj.setObjectProperties(objectProperties);
+        }
+        PropertyType property = new PropertyType();
+        property.setNAME(name);
+        objectProperties.getProperty().add(property);
+        return property;
+    }
+
+    public static PropertyType findProperty(DigitalObject dobj, String name) {
+        ObjectPropertiesType objectProperties = dobj.getObjectProperties();
+        if (objectProperties != null) {
+            return findProperty(objectProperties, name);
+        }
+        return null;
+    }
+
+    public static PropertyType findProperty(ObjectPropertiesType objectProperties, String name) {
+        for (PropertyType property : objectProperties.getProperty()) {
+            if (property.getNAME().equals(name)) {
+                return property;
+            }
+        }
+        return null;
     }
 
     public static DatastreamVersionType createDataStreamVersion(DigitalObject dobj,
@@ -220,14 +259,8 @@ final class FoxmlUtils {
         digObj.setPID(pid);
         digObj.setVERSION("1.1");
 
-        ObjectPropertiesType props = new ObjectPropertiesType();
         // state property is required by foxml1-1.xsd
-        PropertyType state = new PropertyType();
-        state.setNAME(PROPERTY_STATE);
-        state.setVALUE(StateType.A.value());
-        props.getProperty().add(state);
-        digObj.setObjectProperties(props);
-        
+        setProperty(digObj, PROPERTY_STATE, StateType.A.value());
         return digObj;
     }
 
