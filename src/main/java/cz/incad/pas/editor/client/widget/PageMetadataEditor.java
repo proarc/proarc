@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.client.widget;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.util.BooleanCallback;
@@ -35,10 +36,14 @@ import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.fields.events.ChangedEvent;
 import com.smartgwt.client.widgets.form.fields.events.ChangedHandler;
 import com.smartgwt.client.widgets.form.validator.IntegerRangeValidator;
+import com.smartgwt.client.widgets.form.validator.IsIntegerValidator;
+import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import com.smartgwt.client.widgets.form.validator.RequiredIfFunction;
 import com.smartgwt.client.widgets.form.validator.RequiredIfValidator;
 import com.smartgwt.client.widgets.layout.HStack;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.shared.series.Series;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 /**
@@ -47,19 +52,32 @@ import java.util.LinkedHashMap;
  *
  * @author Jan Pokorsky
  */
-public class PageMetadataEditor {
+public final class PageMetadataEditor {
 
     private static final PageMetadataEditor INSTANCE = new PageMetadataEditor();
+    
+    private static final String ALPHABET_LOWER_SERIES = "a - z, aa - az, ...";
+    private static final String ALPHABET_UPPER_SERIES = "A - Z, AA - AZ, ...";
+    private static final String ARABIC_SERIES = "1, 2, 3, 4, ...";
+    private static final String ROMAN_LOWER_SERIES = "i, ii, iii, iv, ...";
+    private static final String ROMAN_UPPER_SERIES = "I, II, III, IV, ...";
 
     private CheckboxItem allowPageIndexes;
     private CheckboxItem allowPageNumbers;
     private CheckboxItem allowPageTypes;
     private IntegerItem indexStart;
-    private IntegerItem numberStart;
+    private TextItem numberStart;
+    private IntegerItem numberIncrement;
+    private SelectItem seriesType;
     private TextItem prefix;
     private TextItem suffix;
     private StaticTextItem numberExample;
     private SelectItem pageType;
+    private IntegerRangeValidator integerStartValidator;
+    private IntegerRangeValidator integerIncrementValidator;
+    private RegExpValidator romanStartValidator;
+    private RegExpValidator alphabetStartValidator;
+    private RequiredIfValidator numberStartRequired;
     private Window window;
     private DynamicForm form;
     private BooleanCallback windowCallback;
@@ -77,37 +95,129 @@ public class PageMetadataEditor {
         if (form != null) {
             return form;
         }
+
+        SpacerItem newRowSpacer = new SpacerItem();
+        newRowSpacer.setStartRow(true);
+
+        createPageIndexUi();
+        createPageNumberUi();
+        createPageTypeUi();
+
+        form = new DynamicForm();
+        form.setNumCols(10);
+        form.setColWidths(20);
+//        formIndex.setTitleOrientation(TitleOrientation.TOP);
+        form.setWrapItemTitles(false);
+        form.setItems(
+                allowPageIndexes, newRowSpacer, indexStart, new RowSpacerItem(),
+                allowPageNumbers, newRowSpacer, prefix, newRowSpacer,
+                    numberStart, newRowSpacer, numberIncrement, newRowSpacer,
+                    suffix, newRowSpacer, seriesType, newRowSpacer, numberExample, new RowSpacerItem(),
+                allowPageTypes, newRowSpacer, pageType);
+        form.setAutoWidth();
+        form.setAutoHeight();
+        form.setBrowserSpellCheck(false);
+
+        return form;
+    }
+
+    private void createPageIndexUi() {
         allowPageIndexes = new CheckboxItem("fillPageIndexes", i18nPas.PageMetadataEditor_CheckboxPageIndices_Title());
         allowPageIndexes.setStartRow(true);
         allowPageIndexes.setColSpan("*");
         allowPageIndexes.setShowTitle(false);
-//        fillPageIndexes.setShowLabel(false);
 
+        IntegerRangeValidator indexValidator = new IntegerRangeValidator();
+        indexValidator.setMin(0);
+        indexValidator.setMax(1000000);
+
+        indexStart = new IntegerItem("indexStart", i18nPas.PageMetadataEditor_IndexStartValue_Title());
+        indexStart.setSelectOnFocus(true);
+        indexStart.setValidators(indexValidator);
+        indexStart.setValidateOnChange(true);
+
+        allowPageIndexes.addChangedHandler(new DisableStateHandler(indexStart));
+    }
+
+    private void createPageNumberUi() {
         allowPageNumbers = new CheckboxItem("fillPageNumbers", i18nPas.PageMetadataEditor_CheckboxPageNubers_Title());
-//        fillPageNumbers.setShowLabel(false);
         allowPageNumbers.setStartRow(true);
         allowPageNumbers.setColSpan("*");
         allowPageNumbers.setShowTitle(false);
 
+        PageNumberChangeHandler pageNumberChangeHandler = new PageNumberChangeHandler();
+
+        integerStartValidator = new IntegerRangeValidator();
+        integerStartValidator.setMin(0);
+        integerStartValidator.setMax(1000000);
+        romanStartValidator = new RegExpValidator(
+                "^[1-9][0-9]{0,6}$"
+                + "|^[mM]{0,6}([cC][mM]|[cC][dD]|[dD]?[cC]{0,3})([xX][cC]|[xX][lL]|[lL]?[xX]{0,3})([iI][xX]|[iI][vV]|[vV]?[iI]{0,3})$");
+        alphabetStartValidator = new RegExpValidator("^[a-zA-Z]{0,6}$");
+        numberStartRequired = new RequiredIfValidator(new RequiredIfFunction() {
+
+            @Override
+            public boolean execute(FormItem formItem, Object value) {
+                String prefixValue = getPrefix();
+                String suffixValue = getSuffix();
+                return allowPageNumbers.getValueAsBoolean() && (prefixValue != null || suffixValue != null);
+            }
+        });
+        numberStart = new IntegerItem("numberStart", i18nPas.PageMetadataEditor_NumberStartValue_Title());
+        numberStart.setSelectOnFocus(true);
+        numberStart.addChangedHandler(pageNumberChangeHandler);
+        numberStart.setValidateOnChange(true);
+        numberStart.setStopOnError(true);
+
+        prefix = new TextItem("prefix", i18nPas.PageMetadataEditor_NumberPrefix_Title());
+        prefix.setLength(20);
+        prefix.addChangedHandler(pageNumberChangeHandler);
+
+        suffix = new TextItem("suffix", i18nPas.PageMetadataEditor_NumberSuffix_Title());
+        suffix.setLength(20);
+        suffix.addChangedHandler(pageNumberChangeHandler);
+
+        integerIncrementValidator = new IntegerRangeValidator();
+        integerIncrementValidator.setMin(-1000);
+        integerIncrementValidator.setMax(1000);
+        numberIncrement = new IntegerItem("numberIncrement", i18nPas.PageMetadataEditor_NumberIncrement_Title());
+        numberIncrement.setSelectOnFocus(true);
+        numberIncrement.addChangedHandler(pageNumberChangeHandler);
+        numberIncrement.setValidators(integerIncrementValidator, new RequiredIfValidator(new RequiredIfFunction() {
+
+            @Override
+            public boolean execute(FormItem formItem, Object value) {
+                return allowPageNumbers.getValueAsBoolean() && getNumberStart() != null;
+            }
+        }));
+        numberIncrement.setValidateOnChange(true);
+        numberIncrement.setStopOnError(true);
+
+        numberExample = new StaticTextItem("numberExample", i18nPas.PageMetadataEditor_NumberPreview_Title());
+        numberExample.setClipValue(true);
+        numberExample.setWidth(120); // enforce clip value
+
+        seriesType = new SelectItem("seriesType", i18nPas.PageMetadataEditor_NumberSeriesType_Title());
+        seriesType.setValueMap(ARABIC_SERIES, ROMAN_UPPER_SERIES,
+                ROMAN_LOWER_SERIES, ALPHABET_UPPER_SERIES, ALPHABET_LOWER_SERIES);
+        seriesType.setDefaultValue(ARABIC_SERIES);
+        seriesType.addChangedHandler(new ChangedHandler() {
+
+            @Override
+            public void onChanged(ChangedEvent event) {
+                setSequenceType(seriesType.getValueAsString());
+            }
+        });
+
+        allowPageNumbers.addChangedHandler(new DisableStateHandler(
+                prefix, numberStart, numberIncrement, suffix, seriesType, numberExample));
+    }
+
+    private void createPageTypeUi() {
         allowPageTypes = new CheckboxItem("fillPageTypes", i18nPas.PageMetadataEditor_CheckboxPageTypes_Title());
-//        fillPageTypes.setShowLabel(false);
         allowPageTypes.setStartRow(true);
         allowPageTypes.setColSpan("*");
         allowPageTypes.setShowTitle(false);
-
-        SpacerItem spacerIndex = new SpacerItem();
-        spacerIndex.setStartRow(true);
-        indexStart = new IntegerItem("indexStart", i18nPas.PageMetadataEditor_IndexStartValue_Title());
-        indexStart.setValidateOnChange(true);
-
-        numberStart = new IntegerItem("numberStart", i18nPas.PageMetadataEditor_NumberStartValue_Title());
-        prefix = new TextItem("prefix", i18nPas.PageMetadataEditor_NumberPrefix_Title());
-        suffix = new TextItem("suffix", i18nPas.PageMetadataEditor_NumberSuffix_Title());
-        prefix.setLength(20);
-        suffix.setLength(20);
-        numberExample = new StaticTextItem("numberExample", i18nPas.PageMetadataEditor_NumberPreview_Title());
-        numberExample.setEscapeHTML(true); // displays empty string as &nbsp; SmartGWT 3.0 should contain fix
-        numberExample.setClipValue(true);
 
         pageType = new SelectItem("pageType", i18nPas.PageForm_PageType_Title());
 //        radioGroupItem.setTooltip("podle ANL by tu mohlo byt mnohem vic typu. Viz http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd/PeriodicalPage[@Type]");
@@ -124,62 +234,36 @@ public class PageMetadataEditor {
         pageTypes.put("Advertisement", i18nPas.PageForm_TypeAdvertisement_Title());
         pageType.setValueMap(pageTypes);
         pageType.setDefaultValue("NormalPage");
-
-//        BlurbItem blurbItem = new BlurbItem();
-//        blurbItem.setDefaultValue("Page Indexes blurb");
-
-        form = new DynamicForm();
-        form.setNumCols(10);
-        form.setColWidths(20);
-//        formIndex.setTitleOrientation(TitleOrientation.TOP);
-        form.setWrapItemTitles(false);
-        form.setItems(
-//                blurbItem,
-                allowPageIndexes, spacerIndex, indexStart, new RowSpacerItem(),
-                allowPageNumbers, spacerIndex, prefix, spacerIndex, numberStart, spacerIndex, suffix, spacerIndex, numberExample, new RowSpacerItem(),
-                allowPageTypes, spacerIndex, pageType);
-        form.setAutoWidth();
-        form.setAutoHeight();
-
-        allowPageIndexes.addChangedHandler(new DisableStateHandler(indexStart));
-        allowPageNumbers.addChangedHandler(new DisableStateHandler(numberStart, prefix, suffix, numberExample));
+        
         allowPageTypes.addChangedHandler(new DisableStateHandler(pageType));
-
-        PageNumberChangeHandler pageNumberChangeHandler = new PageNumberChangeHandler();
-        numberStart.addChangedHandler(pageNumberChangeHandler);
-        prefix.addChangedHandler(pageNumberChangeHandler);
-        suffix.addChangedHandler(pageNumberChangeHandler);
-
-        IntegerRangeValidator integerRangeValidator = new IntegerRangeValidator();
-        integerRangeValidator.setMin(0);
-        integerRangeValidator.setMax(Integer.MAX_VALUE);
-//        integerRangeValidator.setStopOnError(true);
-        numberStart.setValidators(integerRangeValidator, new RequiredIfValidator(new RequiredIfFunction() {
-
-            @Override
-            public boolean execute(FormItem formItem, Object value) {
-                String prefixValue = getPrefix();
-                String suffixValue = getSuffix();
-                return allowPageNumbers.getValueAsBoolean() && (prefixValue != null || suffixValue != null);
-            }
-        }));
-        numberStart.setValidateOnChange(true);
-        numberStart.setStopOnError(true);
-
-        indexStart.setValidators(integerRangeValidator);
-
-        return form;
     }
 
-    private void setStateOnInit() {
+    private void initPageIndex() {
         allowPageIndexes.setValue(false);
-        allowPageNumbers.setValue(false);
-        allowPageTypes.setValue(false);
         indexStart.setDisabled(!getAllowPageIndexes());
-        numberStart.setDisabled(!getAllowPageNumbers());
-        prefix.setDisabled(!getAllowPageNumbers());
-        suffix.setDisabled(!getAllowPageNumbers());
+    }
+
+    private void initPageNumber() {
+        allowPageNumbers.setValue(false);
+        boolean disablePageNumbers = !getAllowPageNumbers();
+        numberStart.setDisabled(disablePageNumbers);
+        numberIncrement.setDisabled(disablePageNumbers);
+        numberIncrement.setValue(1);
+        seriesType.setDisabled(disablePageNumbers);
+        prefix.setDisabled(disablePageNumbers);
+        suffix.setDisabled(disablePageNumbers);
+        updatePageNumberValidators(seriesType.getValueAsString());
+    }
+
+    private void initPageType() {
+        allowPageTypes.setValue(false);
         pageType.setDisabled(!getAllowPageTypes());
+    }
+
+    private void initAll() {
+        initPageIndex();
+        initPageNumber();
+        initPageType();
     }
 
     private Canvas createButtons() {
@@ -219,30 +303,28 @@ public class PageMetadataEditor {
 
     public void showInWindow(BooleanCallback callback) {
         this.windowCallback = callback;
-        if (window != null) {
+        if (window == null) {
+            Canvas panelForm = getFormPanel();
+            panelForm.setPadding(5);
+            Canvas panelButtons = createButtons();
+            panelButtons.setPadding(5);
+
+            window = new Window();
+            window.setAutoSize(true);
+            window.setAutoCenter(true);
+            window.setIsModal(true);
+            window.addItem(panelForm);
+            window.addItem(panelButtons);
+            window.setTitle(i18nPas.PageMetadataEditor_Window_Title());
+            window.setShowMinimizeButton(false);
+            window.setShowModalMask(true);
+        } else {
             form.clearValues();
-            setStateOnInit();
-            window.show();
-            form.focusInItem(indexStart);
-            return ;
         }
 
-        Canvas panelForm = getFormPanel();
-        panelForm.setPadding(5);
-        Canvas panelButtons = createButtons();
-        panelButtons.setPadding(5);
-
-        window = new Window();
-        window.setAutoSize(true);
-        window.setAutoCenter(true);
-        window.setIsModal(true);
-        window.addItem(panelForm);
-        window.addItem(panelButtons);
-        window.setTitle(i18nPas.PageMetadataEditor_Window_Title());
-        window.setShowMinimizeButton(false);
-        window.setShowModalMask(true);
-        setStateOnInit();
+        initAll();
         window.show();
+        form.focusInItem(allowPageIndexes);
     }
 
     public boolean getAllowPageIndexes() {
@@ -265,8 +347,56 @@ public class PageMetadataEditor {
         return getUnsignedInteger(indexStart);
     }
 
-    public Integer getNumberStart() {
-        return getUnsignedInteger(numberStart);
+    public String getNumberStart() {
+        return getNormalizedString(numberStart.getValueAsString());
+    }
+
+    public Iterator<String> getSequence() {
+        String type = seriesType.getValueAsString();
+        String start = getNumberStart();
+        Integer increment = getIncrement();
+        if (start == null || increment == null || !numberStart.validate() || !numberIncrement.validate()) {
+            return null;
+        }
+        if (ARABIC_SERIES.equals(type)) {
+            Integer arabicStart = getInt(start);
+            return arabicStart == null ? null : Series.arabic(arabicStart, increment).iterator();
+        } else if (ROMAN_UPPER_SERIES.equals(type) || ROMAN_LOWER_SERIES.equals(type)) {
+            boolean upperCase = ROMAN_UPPER_SERIES.equals(type);
+            if (Series.validRoman(start)) {
+                return Series.roman(start, increment, upperCase).iterator();
+            } else {
+                Integer romanStart = getPositiveInt(start);
+                return romanStart == null ? null : Series.roman(romanStart, increment, upperCase).iterator();
+            }
+        } else if (ALPHABET_UPPER_SERIES.equals(type) || ALPHABET_LOWER_SERIES.equals(type)) {
+            boolean upperCase = ALPHABET_UPPER_SERIES.equals(type);
+            if (!Series.validAlphabet(start) || Math.abs(increment) > 26) {
+                return null;
+            }
+            return Series.alphabet(start, increment, upperCase).iterator();
+        }
+        throw new IllegalStateException(type);
+    }
+
+    private Integer getIncrement() {
+        return getInt(getNormalizedString(numberIncrement.getValueAsString()));
+    }
+
+    private static Integer getInt(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return  Integer.decode(value);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private static Integer getPositiveInt(String value) {
+        Integer result = getInt(value);
+        return result == null || result < 1 ? null : result;
     }
 
     /**
@@ -310,27 +440,70 @@ public class PageMetadataEditor {
         return s;
     }
 
+    private void setPreview() {
+        String prefixValue = getPrefix();
+        String suffixValue = getSuffix();
+        Iterator<String> sequence = getSequence();
+        StringBuilder sequenceItem = new StringBuilder();
+        for (int i = 0; i < 3; i++) {
+            if (prefixValue != null) {
+                sequenceItem.append(prefixValue);
+            }
+            if (sequence != null) {
+                sequenceItem.append(sequence.next());
+            } else {
+//                sequenceItem.append("<err>");
+            }
+            if (suffixValue != null) {
+                sequenceItem.append(suffixValue);
+            }
+            if (sequenceItem.length() > 0) {
+                sequenceItem.append(",&nbsp;");
+            } else {
+                break;
+            }
+        }
+        if (sequenceItem.length() > 0) {
+            sequenceItem.append("...");
+        }
+        String example = SafeHtmlUtils.htmlEscapeAllowEntities(sequenceItem.toString());
+        numberExample.setValue(example);
+        numberExample.setPrompt(example);
+    }
+
+    private void updatePageNumberValidators(String seriesType) {
+        numberExample.setPrompt(seriesType);
+        if (ARABIC_SERIES.equals(seriesType)) {
+            numberStart.setValidators(new IsIntegerValidator(), integerStartValidator, numberStartRequired);
+            integerIncrementValidator.setMin(-1000);
+            integerIncrementValidator.setMax(1000);
+        } else if (ROMAN_LOWER_SERIES.equals(seriesType) || ROMAN_UPPER_SERIES.equals(seriesType)) {
+            numberStart.setValidators(romanStartValidator, numberStartRequired);
+            integerIncrementValidator.setMin(-1000);
+            integerIncrementValidator.setMax(1000);
+        } else {
+            numberStart.setValidators(alphabetStartValidator, numberStartRequired);
+            integerIncrementValidator.setMin(-26);
+            integerIncrementValidator.setMax(26);
+        }
+    }
+
+    private void setSequenceType(String seriesType) {
+        updatePageNumberValidators(seriesType);
+        numberStart.validate();
+        numberIncrement.validate();
+        setPreview();
+    }
+
     private final class PageNumberChangeHandler implements ChangedHandler {
 
         @Override
         public void onChanged(ChangedEvent event) {
-            String prefixValue = getPrefix();
-            String suffixValue = getSuffix();
-            Integer numberStartValue = getNumberStart();
-            String number = ".";
-            if (numberStartValue != null) {
-                number = numberStartValue.toString();
-                if (prefixValue != null) {
-                    number = prefixValue + number;
-                }
-                if (suffixValue != null) {
-                    number += suffixValue;
-                }
-            }
-            numberExample.setValue(number);
+            setPreview();
         }
 
     }
+
     private static final class DisableStateHandler implements ChangedHandler {
 
         private final FormItem[] items;
@@ -344,6 +517,9 @@ public class PageMetadataEditor {
             boolean enabled = (Boolean) event.getValue();
             for (FormItem item : items) {
                 item.setDisabled(!enabled);
+            }
+            if (enabled && items.length > 0) {
+                items[0].focusInItem();
             }
         }
     }

@@ -68,13 +68,13 @@ import com.smartgwt.client.widgets.viewer.DetailViewerField;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.DcRecordDataSource;
-import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.OcrDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -453,13 +453,13 @@ public class ImportBatchItemEditor extends HLayout {
                             Record[] selection = thumbGrid.getSelection();
                             DataSource ds = thumbGrid.getDataSource();
                             Integer indexStart = null;
-                            Integer numberStart = null;
+                            Iterator<String> sequence = null;
                             String numberFormat = "%s";
                             if (editor.getAllowPageIndexes()) {
                                 indexStart = editor.getIndexStart();
                             }
                             if (editor.getAllowPageNumbers()) {
-                                numberStart = editor.getNumberStart();
+                                sequence = editor.getSequence();
                                 String prefix = editor.getPrefix();
                                 String suffix = editor.getSuffix();
                                 if (prefix != null) {
@@ -479,8 +479,8 @@ public class ImportBatchItemEditor extends HLayout {
                                 }
                                 if (editor.getAllowPageNumbers()) {
                                     String old = record.getAttributeAsString(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
-                                    String newVal = numberStart != null
-                                            ? ClientUtils.format(numberFormat, numberStart++)
+                                    String newVal = sequence != null
+                                            ? ClientUtils.format(numberFormat, sequence.next())
                                             : ClientUtils.format(numberFormat, "");
                                     newVal = newVal.isEmpty() ? null : newVal;
                                     newVal = (old != null && newVal == null) ? "" : newVal;
