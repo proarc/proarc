@@ -117,6 +117,7 @@ public class ImportParentChooser extends VLayout {
 
     public void setDataSource(final String parentPid) {
         foundGrid.deselectAllRecords();
+        foundGrid.invalidateCache();
         foundGrid.fetchData(null, new DSCallback() {
 
             @Override
