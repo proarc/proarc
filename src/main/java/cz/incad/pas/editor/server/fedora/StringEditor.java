@@ -71,7 +71,7 @@ public final class StringEditor {
         if (object instanceof LocalStorage.LocalObject) {
             editor = new LocalXmlStreamEditor((LocalObject) object, dsId, mimetype, label, control);
         } else if (object instanceof RemoteObject) {
-            editor = new RemoteXmlStreamEditor((RemoteStorage.RemoteObject) object, OCR_ID);
+            editor = new RemoteXmlStreamEditor((RemoteStorage.RemoteObject) object, dsId);
         } else {
             throw new IllegalArgumentException("Unsupported fedora object: " + object.getClass());
         }
