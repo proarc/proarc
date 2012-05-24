@@ -18,6 +18,8 @@ package cz.incad.pas.editor.server.fedora;
 
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
+import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
+import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
@@ -79,6 +81,8 @@ public final class PageView {
         // DC
         DcStreamEditor dcEditor = new DcStreamEditor(local);
         dcEditor.write(mods, model, dcEditor.getLastModified());
+        DublinCoreRecord dcr = dcEditor.read();
+        local.setLabel(DcUtils.getLabel(dcr.getDc()));
 
         local.flush();
         Item update = new Item(batchId, item.getFilename(), item.getPid(), model,
