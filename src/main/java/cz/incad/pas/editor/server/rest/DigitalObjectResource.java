@@ -295,7 +295,7 @@ public class DigitalObjectResource {
      * @param editorId view defining subset of MODS properties
      */
     @GET
-    @Path("/custom_mods")
+    @Path("mods/custom")
     @Produces(MediaType.APPLICATION_JSON)
     public CustomMods getCustomMods(
             @QueryParam("pid") String pid,
@@ -323,7 +323,7 @@ public class DigitalObjectResource {
     }
 
     @POST
-    @Path("/custom_mods")
+    @Path("mods/custom")
     @Produces({MediaType.APPLICATION_JSON})
     public CustomMods updateCustomMods(
             @FormParam("pid") String pid,
@@ -460,6 +460,25 @@ public class DigitalObjectResource {
             ) throws IOException {
 
         return getDissemination(pid, batchId, BinaryEditor.THUMB_ID);
+    }
+
+    @GET
+    @Path("mods/plain")
+    @Produces(MediaType.APPLICATION_JSON)
+    public StringRecord getModsTxt(
+            @QueryParam("pid") String pid,
+            @QueryParam("batchId") String batchId
+            ) throws IOException {
+
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        ModsStreamEditor meditor = new ModsStreamEditor(fobject);
+        String content = meditor.readAsString();
+        if (content == null) {
+            throw new NotFoundException("pid", pid);
+        }
+        StringRecord mods = new StringRecord(content, meditor.getLastModified(), pid);
+        mods.setBatchId(batchId);
+        return mods;
     }
 
     @GET

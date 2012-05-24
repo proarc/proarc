@@ -47,13 +47,20 @@ public final class ModsStreamEditor {
 
     private final XmlStreamEditor editor;
 
-    public ModsStreamEditor(RemoteObject object) {
-        this(new RemoteXmlStreamEditor(object, DATASTREAM_ID), object);
+    private static XmlStreamEditor createEditor(FedoraObject object) {
+        XmlStreamEditor editor;
+        if (object instanceof LocalObject) {
+            editor = new LocalXmlStreamEditor((LocalObject) object, DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL);
+        } else if (object instanceof RemoteObject) {
+            editor = new RemoteXmlStreamEditor((RemoteObject) object, DATASTREAM_ID);
+        } else {
+            throw new IllegalArgumentException("Unsupported fedora object: " + object.getClass());
+        }
+        return editor;
     }
 
-    public ModsStreamEditor(LocalObject object) {
-        this(new LocalXmlStreamEditor(object, DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL),
-                object);
+    public ModsStreamEditor(FedoraObject object) {
+        editor = createEditor(object);
     }
 
     ModsStreamEditor(XmlStreamEditor editor, FedoraObject object) {
@@ -66,6 +73,14 @@ public final class ModsStreamEditor {
             return null;
         }
         return ModsUtils.unmarshalModsType(src);
+    }
+
+    public String readAsString() {
+        ModsType mods = read();
+        if (mods != null) {
+            return ModsUtils.toXml(mods, true);
+        }
+        return null;
     }
 
     public long getLastModified() {

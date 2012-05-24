@@ -26,7 +26,7 @@ import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.Side;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.fields.TextAreaItem;
+import com.smartgwt.client.widgets.form.fields.StaticTextItem;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.tab.Tab;
 import com.smartgwt.client.widgets.tab.TabSet;
@@ -42,7 +42,7 @@ import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
-import cz.incad.pas.editor.client.ds.mods.PageDataSource;
+import cz.incad.pas.editor.client.ds.ModsTextDataSource;
 import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
 import cz.incad.pas.editor.client.widget.mods.MonographForm;
@@ -56,8 +56,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * TODO: introduce /object/mods(pid) returning text/plain
- * TODO: BUG: 2 Notes note1 and note2 are displayed as note2 and note1 in Notes tab
  *
  * @author Jan Pokorsky
  */
@@ -71,6 +69,7 @@ public final class ModsFullEditor {
     private ModsTab modsTab;
     private ModsGwtRecord editedMods;
     private Record editedCustomMods;
+//    private Record editedSourceMods;
     private final VLayout modsContainer;
     private String pid;
     private MetaModelRecord model;
@@ -102,11 +101,15 @@ public final class ModsFullEditor {
             sourceForm.setHeight100();
             sourceForm.setColWidths("*");
             sourceForm.setNumCols(1);
-            TextAreaItem sourceItem = new TextAreaItem("source");
+//            TextAreaItem sourceItem = new TextAreaItem(ModsTextDataSource.FIELD_CONTENT);
+            // TextAreaItem.setCanEdit is unsupported http://mytechscratchpad.blogspot.com/2011/08/smartgwt-textareaitem-readonly.html
+            StaticTextItem sourceItem = new StaticTextItem(ModsTextDataSource.FIELD_CONTENT);
+            sourceItem.setEscapeHTML(true);
             sourceItem.setWidth("*");
             sourceItem.setHeight("*");
             sourceItem.setShowTitle(false);
             sourceForm.setFields(sourceItem);
+            sourceForm.setDataSource(ModsTextDataSource.getInstance());
             tabSource.setPane(sourceForm);
 
             tabSet = new TabSet();
@@ -150,7 +153,7 @@ public final class ModsFullEditor {
                         event.cancel();
                         saveCustomData(new TabSwitchTask(event.getNewTab()));
                     } else if (TAB_XML.equals(tabId)) {
-                        editedMods = (ModsGwtRecord) sourceForm.getValue(PageDataSource.FIELD_MODS_TRANSPORT_OBJECT);
+//                        editedMods = (ModsGwtRecord) sourceForm.getValue(PageDataSource.FIELD_MODS_TRANSPORT_OBJECT);
                     } else {
                         throw new IllegalStateException("ModsFullEditor.onTabDeselected: unknown tabId: " + tabId);
                     }
@@ -239,32 +242,9 @@ public final class ModsFullEditor {
         });
     }
 
-    private void loadSource(final ModsGwtRecord modsRecord) {
-        ClientUtils.info(LOG, "loadSource pid: %s, mods: %s", pid, modsRecord);
-        if (modsRecord == null) {
-            // XXX replace with rela service
-            Record record = new Record();
-            record.setAttribute("source", "Here will go XML for " + pid);
-            sourceForm.editRecord(record);
-            return ;
-        }
-        // implement this with PageDataSource.fetch(new Criteria("fetch=XML"))
-        ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
-        service.getXml(modsRecord.getMods(), new AsyncCallback<String>() {
-
-            @Override
-            public void onFailure(Throwable caught) {
-                throw new IllegalStateException("ModsFullEditor.loadSource", caught);
-            }
-
-            @Override
-            public void onSuccess(String result) {
-                Record record = new Record();
-                record.setAttribute("source", result);
-                record.setAttribute(PageDataSource.FIELD_MODS_TRANSPORT_OBJECT, modsRecord);
-                sourceForm.editRecord(record);
-            }
-        });
+    private void loadSource(Criteria pid) {
+//        ClientUtils.info(LOG, "loadCustom pid: %s, editor: %s", pid, model.getEditorId());
+        sourceForm.fetchData(pid);
     }
 
     private void loadTabData(String tabId, Criteria pid) {
@@ -273,7 +253,7 @@ public final class ModsFullEditor {
         } else if (TAB_CUSTOM.equals(tabId)) {
             loadCustom(pid, model);
         } else if (TAB_XML.equals(tabId)) {
-            loadSource(editedMods);
+            loadSource(pid);
         } else {
             throw new IllegalStateException("ModsFullEditor.loadTabData: unknown tabId: " + tabId);
         }
@@ -341,7 +321,9 @@ public final class ModsFullEditor {
 
     public void save(Runnable callback) {
         if (!saveCustomData(callback)) {
-            saveFullData(callback);
+            if (!saveFullData(callback)) {
+                callback.run();
+            }
         }
     }
 
