@@ -18,7 +18,6 @@ package cz.incad.pas.editor.server.imports;
 
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
-import cz.incad.pas.editor.server.imports.ImportFileScanner.State;
 import cz.incad.pas.editor.server.user.UserProfile;
 import java.io.File;
 import java.io.IOException;
@@ -46,20 +45,24 @@ public class ImportProcess {
     static final String TMP_DIR_NAME = "proarch_import";
     private File importFolder;
     private ImportBatchManager batchManager;
-    private List<TiffImporter> consumerRegistery = Collections.singletonList(new TiffImporter());
+    private static final List<TiffImporter> consumerRegistery = Collections.singletonList(new TiffImporter());
     private List<ImportItemFailure> failures = new ArrayList<ImportItemFailure>();
     private final String importFolderRelativePath;
     private final UserProfile user;
+    private final String device;
     private final boolean generateIndices;
+    private final String importAs;
 
     public ImportProcess(File importFolder, String importFolderRelativePath,
             UserProfile user, ImportBatchManager batchManager,
-            boolean generateIndices) {
+            String importAs, String device, boolean generateIndices) {
         this.importFolder = importFolder;
         this.importFolderRelativePath = importFolderRelativePath;
         this.user = user;
         this.batchManager = batchManager;
+        this.device = device;
         this.generateIndices = generateIndices;
+        this.importAs = "model:page"; // for now use default
     }
 
     public ImportBatch start() throws IOException, DatatypeConfigurationException {
@@ -75,9 +78,14 @@ public class ImportProcess {
             File targetFolder = createTargetFolder();
             ImportFileScanner scanner = new ImportFileScanner();
             List<File> files = scanner.findDigitalContent(importFolder);
+            if (!canImport(files)) {
+                // nothing to import
+                return null;
+            }
             batch = batchManager.add(importFolderRelativePath, user);
             batch = batchManager.update(batch.getId(), ImportBatch.State.LOADING);
-            consumeFiles(batch.getId(), files, new ImportContext(targetFolder, generateIndices, user.getUserName()));
+            consumeFiles(batch.getId(), files, new ImportContext(targetFolder,
+                    importAs, device, generateIndices, user.getUserName()));
             batch = batchManager.update(batch.getId(), ImportBatch.State.LOADED);
             transactionFailed = false;
             return batch;
@@ -93,6 +101,25 @@ public class ImportProcess {
             }
         }
 
+    }
+
+    static boolean canImport(File file) {
+        for (TiffImporter consumer : consumerRegistery) {
+            String mimeType = findMimeType(file);
+            if (consumer.accept(file, mimeType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static boolean canImport(List<File> files) {
+        for (File file : files) {
+            if (canImport(file)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void deleteFolder(File folder) {
@@ -163,18 +190,9 @@ public class ImportProcess {
     }
 
     private void setRunningState(File folder) throws IOException {
-        State folderImportState = ImportFileScanner.folderImportState(folder);
-        if (folderImportState != State.NEW) {
-            throw new IOException("Folder imported: " + folder + ", state: " + folderImportState);
-        }
         File statusFile = new File(folder, ImportFileScanner.IMPORT_STATE_FILENAME);
-        if (statusFile.createNewFile()) {
-            // lets import
-        } else {
-            folderImportState = ImportFileScanner.folderImportState(folder);
-            if (folderImportState != State.NEW) {
-                throw new IOException("Folder imported: " + folder + ", state: " + folderImportState);
-            }
+        if (!statusFile.createNewFile()) {
+            throw new IOException("Folder already imported: " + folder);
         }
     }
 
@@ -190,17 +208,24 @@ public class ImportProcess {
     public static final class ImportContext {
         private File targetFolder;
         private final XMLGregorianCalendar xmlNow;
+        private final String device;
         private final boolean generateIndices;
         private int consumedFileCounter;
         private final String username;
+        private final String model;
 
-        ImportContext(File targetFolder, boolean generateIndices, String username) throws DatatypeConfigurationException {
+        ImportContext(File targetFolder, String model, String device,
+                boolean generateIndices, String username
+                ) throws DatatypeConfigurationException {
+
             this.targetFolder = targetFolder;
             DatatypeFactory xmlDataFactory = DatatypeFactory.newInstance();
             GregorianCalendar gcNow = new GregorianCalendar();
             xmlNow = xmlDataFactory.newXMLGregorianCalendar(gcNow);
+            this.device = device;
             this.generateIndices = generateIndices;
             this.username = username;
+            this.model = model;
         }
 
         public File getTargetFolder() {
@@ -213,6 +238,14 @@ public class ImportProcess {
 
         public boolean isGenerateIndices() {
             return generateIndices;
+        }
+
+        public String getDevice() {
+            return device;
+        }
+
+        public String getModel() {
+            return model;
         }
 
         public int getConsumedFileCounter() {

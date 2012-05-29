@@ -17,17 +17,14 @@
 package cz.incad.pas.editor.client.ds;
 
 import com.google.gwt.core.client.GWT;
-import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DataSource;
-import com.smartgwt.client.data.OperationBinding;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
-import com.smartgwt.client.types.DSOperationType;
-import com.smartgwt.client.types.DSProtocol;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import java.util.LinkedHashMap;
 
@@ -35,7 +32,7 @@ import java.util.LinkedHashMap;
  *
  * @author Jan Pokorsky
  */
-public class ImportBatchDataSource extends DataSource {
+public final class ImportBatchDataSource extends RestDataSource {
 
     public static final String ID = "ImportBatchDataSource";
     public static final String FIELD_ID = "id";
@@ -46,11 +43,14 @@ public class ImportBatchDataSource extends DataSource {
     public static final String FIELD_USER_DISPLAYNAME = "user";
     public static final String FIELD_PARENT = "parentPid";
 
+    public static final String FIELD_MODEL = "model";
+    public static final String FIELD_DEVICE = "device";
+    public static final String FIELD_INDICES = "indices";
+
     public ImportBatchDataSource() {
         setID(ID);
 
         setDataFormat(DSDataFormat.JSON);
-        setRecordXPath("/batches/batch");
 
         setDataURL(RestConfig.URL_IMPORT_BATCH);
 
@@ -84,27 +84,23 @@ public class ImportBatchDataSource extends DataSource {
 
         setFields(id, path, userId, user, timestamp, state, parent);
         
-        OperationBinding addOp = new OperationBinding();
-        addOp.setOperationType(DSOperationType.ADD);
-        addOp.setDataProtocol(DSProtocol.POSTPARAMS);
-        addOp.setRecordXPath("/batch");
-
-        OperationBinding updateOp = new OperationBinding();
-        updateOp.setOperationType(DSOperationType.UPDATE);
-        updateOp.setDataProtocol(DSProtocol.POSTPARAMS);
-        DSRequest updateRequest = new DSRequest();
-        updateRequest.setHttpMethod("PUT");
-        updateOp.setRequestProperties(updateRequest);
-
-        setOperationBindings(addOp, updateOp);
+        setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
 
-    public Record newBatch(String folderPath, String model) {
+    public Record newBatch(String folderPath, String model, String device, Boolean indices) {
         Record r = new Record();
         r.setAttribute(FIELD_PATH, folderPath);
-        r.setAttribute("model", model);
+        if (model != null) {
+            r.setAttribute(FIELD_MODEL, model);
+        }
+        if (indices != null) {
+            r.setAttribute(FIELD_INDICES, indices);
+        }
+        if (device != null) {
+            r.setAttribute(FIELD_DEVICE, device);
+        }
         return r;
     }
 

@@ -58,6 +58,10 @@ import javax.ws.rs.core.MediaType;
 public final class TiffImporter {
 
     private static final Logger LOG = Logger.getLogger(TiffImporter.class.getName());
+
+    public boolean accept(File f, String mimetype) {
+        return isTiff(f, mimetype);
+    }
     
     public ImportItem consume(File f, String mimetype, ImportContext ctx) throws IOException {
         // check tiff file
@@ -66,7 +70,7 @@ public final class TiffImporter {
         }
 
         String originalFilename = getName(f);
-        String fedoraModel = "model:page";
+        String fedoraModel = ctx.getModel();
         File tempBatchFolder = ctx.getTargetFolder();
 
         // creates FOXML and metadata

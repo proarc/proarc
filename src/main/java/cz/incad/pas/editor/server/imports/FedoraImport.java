@@ -57,7 +57,7 @@ public final class FedoraImport {
         ArrayList<String> failures = new ArrayList<String>();
         boolean done = false;
         try {
-            for (ImportItem item : batch.getItems()) {
+            for (ImportItem item : ibm.findItems(batchId, null)) {
                 try {
                     importItem(item, importer);
                     ingests.add(item.getPid());

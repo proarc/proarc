@@ -33,10 +33,10 @@ import java.util.Locale;
  *
  * @author Jan Pokorsky
  */
-public class ImportFileScanner {
+public final class ImportFileScanner {
     
     public enum State {
-        IMPORTED, NEW, IMPORT_RUNNING;
+        IMPORTED, NEW, EMPTY;
     }
 
     public static final String IMPORT_STATE_FILENAME = "proarch_import_status.log";
@@ -126,7 +126,31 @@ public class ImportFileScanner {
         File stateFile = new File(folder, IMPORT_STATE_FILENAME);
         State state = stateFile.exists() ? State.IMPORTED : State.NEW;
         // check file content for more details
+        if (state == State.NEW) {
+            state = isImportable(folder) ? State.NEW : State.EMPTY;
+        }
         return state;
+    }
+
+    static boolean isImported(File folder) {
+        File stateFile = new File(folder, IMPORT_STATE_FILENAME);
+        return stateFile.exists();
+    }
+
+    private static boolean isImportable(File folder) {
+        String[] fileNames = folder.list();
+        for (String fileName : fileNames) {
+            if (ImportFileScanner.IMPORT_STATE_FILENAME.equals(fileName)) {
+                continue;
+            }
+            File file = new File(folder, fileName);
+            if (file.isFile() && file.canRead()) {
+                if (ImportProcess.canImport(file)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     static void rollback(File folder) {
@@ -152,11 +176,6 @@ public class ImportFileScanner {
             }
             return status;
         }
-    }
-
-    public interface FileConsumer extends FileFilter {
-
-        public boolean consume(File f);
     }
 
 }

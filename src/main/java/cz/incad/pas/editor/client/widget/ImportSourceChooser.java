@@ -33,13 +33,16 @@ import com.smartgwt.client.widgets.tree.TreeGridField;
 import com.smartgwt.client.widgets.tree.events.FolderClickEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClickHandler;
 import cz.incad.pas.editor.client.PasEditorMessages;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 import java.util.LinkedHashMap;
+import java.util.logging.Logger;
 
 public class ImportSourceChooser extends VLayout {
 
+    private static final Logger LOG = Logger.getLogger(ImportSourceChooser.class.getName());
+
     private final DataSource dataSource = ImportTreeRestDataSource.getInstance();
-    private final DataSource metaModelSource = MetaModelDataSource.getInstance();
+//    private final DataSource metaModelSource = MetaModelDataSource.getInstance();
     private final TreeGrid treeGrid;
     private final DynamicForm optionsForm;
     private final Label lblCurrSelection;
@@ -60,10 +63,9 @@ public class ImportSourceChooser extends VLayout {
         treeGrid = new TreeGrid();
         treeGrid.setHeight100();
         treeGrid.setDataSource(dataSource);
-//        treeGrid.setAutoFetchData(true);
         treeGrid.setFields(
-                new TreeGridField("name", i18nPas.ImportSourceChooser_TreeHeaderFolderName_Title()),
-                new TreeGridField("state", i18nPas.ImportSourceChooser_TreeHeaderImportState_Title()));
+                new TreeGridField(ImportTreeRestDataSource.FIELD_NAME, i18nPas.ImportSourceChooser_TreeHeaderFolderName_Title()),
+                new TreeGridField(ImportTreeRestDataSource.FIELD_STATE, i18nPas.ImportSourceChooser_TreeHeaderImportState_Title()));
         treeGrid.setShowConnectors(true);
         treeGrid.setEmptyMessage(i18nPas.ImportSourceChooser_NoDataOnServer_Title());
         treeGrid.setAlternateRecordStyles(true);
@@ -79,21 +81,13 @@ public class ImportSourceChooser extends VLayout {
 
         layout.addMember(treeGrid);
 
-//        ListGrid testList = new ListGrid();
-//        testList.setWidth100();
-//        testList.setHeight100();
-//        testList.setAutoFetchData(true);
-//        testList.setUseAllDataSourceFields(true);
-//        testList.setDataSource(metaModelSource);
-//
-//        layout.addMember(testList);
-
         optionsForm = new DynamicForm();
 //        SelectItem selectModel = new SelectItem("model", i18nPas.ImportSourceChooser_OptionImportModel_Title());
-        CheckboxItem cbiPageIndexes = new CheckboxItem("genIndex",
+        CheckboxItem cbiPageIndexes = new CheckboxItem(ImportBatchDataSource.FIELD_INDICES,
                 i18nPas.ImportSourceChooser_OptionPageIndices_Title());
 
-        SelectItem selectScanner = new SelectItem("scanner", i18nPas.ImportSourceChooser_OptionScanner_Title());
+        SelectItem selectScanner = new SelectItem(ImportBatchDataSource.FIELD_DEVICE,
+                i18nPas.ImportSourceChooser_OptionScanner_Title());
         LinkedHashMap<String, String> scannerMap = new LinkedHashMap<String, String>();
         scannerMap.put("scanner:scanner1", "Zeutschel OS 7000");
         scannerMap.put("scanner:scanner2", "Zeutschel OS 8000");
@@ -105,7 +99,6 @@ public class ImportSourceChooser extends VLayout {
     }
 
     public void setViewHandler(ImportSourceChooserHandler handler) {
-//        form.clearValues();
         this.viewHandler = handler;
     }
 
@@ -123,27 +116,22 @@ public class ImportSourceChooser extends VLayout {
 
     public void setDigitalObjectModelDataSource(DataSource ds) {
         optionsForm.resetValues();
-        optionsForm.setValue("model", "model:page");
     }
-
-//    public void update() {
-//        ListGridRecord record = treeGrid.getSelectedRecord();
-//        Map changedValues = optionsForm.getChangedValues();
-//        Map oldValues = optionsForm.getOldValues();
-//        String valueAsString = optionsForm.getValueAsString("model");
-//        System.out.println("## changedValues: " + changedValues);
-//        System.out.println("## oldValues: " + oldValues);
-//        System.out.println("## valueAsString: " + valueAsString);
-//        dataSource.updateData(ImportTreeRestDataSource.createUpdateRecord(record, valueAsString));
-//    }
 
     public Record getImportSource() {
         return treeGrid.getSelectedRecord();
     }
 
     public String getImportAsType() {
-        String valueAsString = optionsForm.getValueAsString("model");
-        return valueAsString;
+        return optionsForm.getValueAsString(ImportBatchDataSource.FIELD_MODEL);
+    }
+
+    public Boolean getGenerateIndices() {
+        return (Boolean) optionsForm.getValue(ImportBatchDataSource.FIELD_INDICES);
+    }
+
+    public String getDevice() {
+        return optionsForm.getValueAsString(ImportBatchDataSource.FIELD_DEVICE);
     }
 
     private void updateOnSelection() {

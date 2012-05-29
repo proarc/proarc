@@ -4,9 +4,6 @@ import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
@@ -14,8 +11,9 @@ import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
-import com.smartgwt.client.types.PromptStyle;
 import cz.incad.pas.editor.client.ds.RestConfig;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ImportTreeRestDataSource extends RestDataSource {
     
@@ -35,8 +33,6 @@ public class ImportTreeRestDataSource extends RestDataSource {
     private ImportTreeRestDataSource() {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
-//        setJsonRecordXPath("response/data/folder");
-//        setDataFormat(DSDataFormat.XML);
         
         DataSourceTextField path = new DataSourceTextField(FIELD_PATH);
         path.setPrimaryKey(true);
@@ -51,35 +47,14 @@ public class ImportTreeRestDataSource extends RestDataSource {
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE, "State");
         states.put("IMPORTED", "Imported");
         states.put("NEW", "");
-        states.put("RUNNING", "Running");
+        states.put("EMPTY", "");
         state.setValueMap(states);
         
         setFields(path, parent, name, state);
-//        setDataURL("ds/ImportSourceTree.js");
-//        setDataURL("http://127.0.0.1:8888/Editor/rest/import");
         setDataURL(RestConfig.URL_SCAN_IMPORT);
-//        setClientOnly(true);
-        Map<String, String> defaultParams = new HashMap<String, String>();
-        defaultParams.put("lang", "en");
-        setDefaultParams(defaultParams);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
 
-    }
-
-    @Override
-    protected Object transformRequest(DSRequest dsRequest) {
-        dsRequest.setPromptStyle(PromptStyle.DIALOG);
-//        String actionURL = dsRequest.getActionURL();
-//        String[] attributes = dsRequest.getAttributes();
-//        String dataAsString = dsRequest.getDataAsString();
-//        Record oldValues = dsRequest.getOldValues();
-//        System.out.println("ITRDS.actionURL: " + actionURL);
-//        System.out.println("ITRDS.data: " + dataAsString);
-//        System.out.println("ITRDS.oldValues: " + oldValues);
-//        System.out.println("ITRDS.attribs: " + Arrays.toString(attributes));
-
-        return super.transformRequest(dsRequest);
     }
 
     @Override
@@ -112,10 +87,6 @@ public class ImportTreeRestDataSource extends RestDataSource {
         filtered.setAttribute("model", model);
         return filtered;
     }
-
-//    public void importFolder(Record rec, String model) {
-//        up
-//    }
 
     public static final class ImportRecord {
 

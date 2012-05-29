@@ -18,7 +18,6 @@ package cz.incad.pas.editor.server.imports;
 
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch.State;
-import cz.incad.pas.editor.server.rest.ImportResource.ImportBatchList;
 import cz.incad.pas.editor.server.user.UserManager;
 import cz.incad.pas.editor.server.user.UserProfile;
 import cz.incad.pas.editor.server.user.UserUtil;
@@ -37,6 +36,7 @@ import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 
 /**
@@ -96,7 +96,7 @@ public final class ImportBatchManager {
 //    public Collection<ImportBatch> findAll() {
 //        return findAll(false);
 //    }
-    public Collection<ImportItem> findItems(int batchId, String pid) {
+    public List<ImportItem> findItems(int batchId, String pid) {
         synchronized (map) {
             ImportBatch batch = map.get(batchId);
             if (batch == null) {
@@ -128,16 +128,11 @@ public final class ImportBatchManager {
         return null;
     }
 
-    public Collection<ImportBatch> findAll(UserProfile user, boolean withItems) {
+    public List<ImportBatch> findAll(UserProfile user) {
         synchronized(map) {
-            List<ImportBatch> result;
-            if (withItems) {
-                result = new ArrayList<ImportBatch>(map.values());
-            } else {
-                result = new ArrayList<ImportBatch>(map.size());
-                for (ImportBatch b : map.values()) {
-                    result.add(new ImportBatch(b.getId(), b.getFolderPath(), b.getTimeStamp(), b.userProfile, b.state));
-                }
+            List<ImportBatch> result = new ArrayList<ImportBatch>(map.size());
+            for (ImportBatch b : map.values()) {
+                result.add(copyBatch(b, false));
             }
             return result;
         }
@@ -153,7 +148,7 @@ public final class ImportBatchManager {
                 batch.setParentPid(parentId);
                 save(pasConfig.getConfigHome(), this);
             }
-            return batch;
+            return copyBatch(batch, false);
         }
     }
 
@@ -176,7 +171,7 @@ public final class ImportBatchManager {
                 batch.setState(state);
                 save(pasConfig.getConfigHome(), this);
             }
-            return batch;
+            return copyBatch(batch, false);
         }
     }
 
@@ -200,7 +195,7 @@ public final class ImportBatchManager {
             ImportBatch batch = new ImportBatch(id, path, new Date(), user, ImportBatch.State.LOADING);
             map.put(id, batch);
             save(pasConfig.getConfigHome(), this);
-            return batch;
+            return copyBatch(batch, false);
         }
     }
 
@@ -236,6 +231,19 @@ public final class ImportBatchManager {
         }
     }
 
+    private ImportBatch copyBatch(ImportBatch batch, boolean withItems) {
+        ImportBatch copy = new ImportBatch(batch.getId(), batch.getFolderPath(),
+                batch.getTimeStamp(), batch.userProfile, batch.state);
+        List<ImportItem> items = batch.getItems();
+        if (withItems && items != null) {
+            ArrayList<ImportItem> itemsCopy = new ArrayList<ImportItem>(items.size());
+            for (ImportItem item : items) {
+                itemsCopy.add(item.copy());
+            }
+        }
+        return copy;
+    }
+
     /** do not use outside unit tests */
     Map<Integer, ImportBatch> getMap() {
         return map;
@@ -246,7 +254,7 @@ public final class ImportBatchManager {
     public static class ImportBatch {
 
         public enum State {
-            LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED
+            EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED
         }
 
         @XmlElement(required=true)
@@ -274,12 +282,12 @@ public final class ImportBatchManager {
             this.state = state;
         }
 
-        public void addItem(ImportItem item) {
+        private void addItem(ImportItem item) {
             List<ImportItem> l = getItems();
             l.add(item);
         }
 
-        public List<ImportItem> getItems() {
+        private List<ImportItem> getItems() {
             if (items == null) {
                 items = new ArrayList<ImportItem>();
             }
@@ -386,6 +394,32 @@ public final class ImportBatchManager {
 
         public void setFailureDescription(String failureDescription) {
             this.failureDescription = failureDescription;
+        }
+
+        ImportItem copy() {
+            ImportItem copy = new ImportItem(foxml, filename, pid);
+            copy.id = id;
+            copy.batchId = batchId;
+            return copy;
+        }
+
+    }
+
+    @XmlRootElement(name="batches")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    static class ImportBatchList {
+
+        @XmlElement(name="batch")
+        private Collection<ImportBatch> batches;
+
+        public ImportBatchList() {}
+
+        public ImportBatchList(Collection<ImportBatch> batches) {
+            this.batches = batches;
+        }
+
+        public Collection<ImportBatch> getBatches() {
+            return batches;
         }
 
     }

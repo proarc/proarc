@@ -23,6 +23,7 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
@@ -35,7 +36,6 @@ import cz.incad.pas.editor.client.widget.ImportParentChooser;
 import cz.incad.pas.editor.client.widget.ImportParentChooser.ImportParentHandler;
 import cz.incad.pas.editor.client.widget.ImportSourceChooser;
 import cz.incad.pas.editor.client.widget.ImportSourceChooser.ImportSourceChooserHandler;
-import cz.incad.pas.editor.client.widget.ImportTreeRestDataSource;
 import cz.incad.pas.editor.client.widget.ImportTreeRestDataSource.ImportRecord;
 import cz.incad.pas.editor.client.widget.Wizard;
 import cz.incad.pas.editor.client.widget.Wizard.StepKind;
@@ -220,20 +220,22 @@ public class ImportPresenter {
         private void handleImportSource() {
             Record record = importSourceChooser.getImportSource();
             ImportRecord importRecord = record == null ? null : new ImportRecord(record);
-            ImportTreeRestDataSource ds = ImportTreeRestDataSource.getInstance();
 
-            String model = importSourceChooser.getImportAsType();
-
-            if (importRecord != null && importRecord.isNew() && model != null) {
+            if (importRecord != null && importRecord.isNew()) {
                 ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
                 DSRequest dsRequest = new DSRequest();
                 dsRequest.setPromptStyle(PromptStyle.DIALOG);
                 dsRequest.setPrompt(i18nPas.ImportWizard_SelectFolderStep_Wait_Title());
-                dsBatch.addData(dsBatch.newBatch(importRecord.getPath(), model), new DSCallback() {
+                Record newBatch = dsBatch.newBatch(importRecord.getPath(),
+                        importSourceChooser.getImportAsType(),
+                        importSourceChooser.getDevice(),
+                        importSourceChooser.getGenerateIndices());
+                dsBatch.addData(newBatch, new DSCallback() {
 
                     @Override
                     public void execute(DSResponse response, Object rawData, DSRequest request) {
                         if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
+                            response.setInvalidateCache(true);
                             return;
                         }
                         Record[] data = response.getData();
@@ -242,7 +244,8 @@ public class ImportPresenter {
                             ImportPresenter.this.getImportContext().setBatch(newBatch);
                             ImportPresenter.this.selectParent();
                         } else {
-                            // XXX show warning something is wrong
+                            response.setInvalidateCache(true);
+                            SC.warn(i18nPas.ImportWizard_SelectFolderStep_NothingToImport_Msg());
                         }
                     }
                 }, dsRequest);
@@ -251,8 +254,6 @@ public class ImportPresenter {
             }
         }
 
-        private void handleImportSourceSelection() {
-        }
     }
 
     private final class UpdateItemsStep implements WizardStep {

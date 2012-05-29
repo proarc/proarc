@@ -40,8 +40,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,10 +62,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.datatype.DatatypeConfigurationException;
 
 /**
@@ -156,7 +152,7 @@ public class ImportResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse list(
+    public SmartGwtResponse<ImportFolder> list(
             @QueryParam("parent") @DefaultValue("") String parent
             ) throws FileNotFoundException, URISyntaxException {
 
@@ -179,8 +175,7 @@ public class ImportResource {
             result.add(new ImportFolder(subfolderName, subfolderStatus, parentPath, subfolderPath));
         }
 
-        System.out.println("list: " + result);
-        return new SmartGwtResponse(SmartGwtResponse.STATUS_SUCCESS, null, null, null, result);
+        return new SmartGwtResponse(result);
     }
 
     private ImportFolder create(File folder, ImportFileScanner.State state, URI userRoot) {
@@ -193,12 +188,15 @@ public class ImportResource {
     @POST
     @Path("batch")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public ImportBatch importFolder(
+    public SmartGwtResponse<ImportBatch> importFolder(
             @FormParam("folderPath") @DefaultValue("") String path,
-            @FormParam("model") @DefaultValue("model:path") String model
+            @FormParam("model") @DefaultValue("model:page") String model,
+            @FormParam("device") String device,
+            @FormParam("indices") @DefaultValue("true") boolean indices
             ) throws URISyntaxException, IOException, DatatypeConfigurationException {
         
-        LOG.log(Level.INFO, "import path: {0} as model: {1}", new Object[] {path, model});
+        LOG.log(Level.INFO, "import path: {0} as model: {1}, indices: {2}, device: {3}",
+                new Object[] {path, model, indices, device});
         String folderPath = validateParentPath(path);
         URI userRoot = user.getImportFolder();
         URI folderUri = (folderPath != null)
@@ -206,43 +204,41 @@ public class ImportResource {
                 ? userRoot.resolve(new URI(null, null, folderPath, null))
                 : userRoot;
         File folder = new File(folderUri);
-        // XXX do import
         ImportProcess process = new ImportProcess(folder, folderPath, user,
-                importManager, true);
+                importManager, model, device, indices);
         ImportBatch batch = process.start();
+        if (batch == null) {
+            return new SmartGwtResponse<ImportBatch>(Collections.<ImportBatch>emptyList());
+        }
 //        List<ImportItem> importedItems = process.getImportedItems();
 //        List<ImportItemFailure> failures = process.getFailures();
 //        importedItems.get(0).getFilename();
 //        failures.get(0).getFilename();
 
-        return batch;
+        return new SmartGwtResponse<ImportBatch>(batch);
 
 //        List<ImportFolder> result = Collections.singletonList(create(folder, State.IMPORTED, userRoot));
 //        return new SmartGwtResponse(RPCResponse.STATUS_SUCCESS, null, null, null, result);
-    }
-
-    public static class ImportFolderResult {
-        
     }
 
     @GET
     @Path("batch")
 //    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_JSON)
-    public ImportBatchList listBatches() {
-        return new ImportBatchList(importManager.findAll(user, false));
+    public SmartGwtResponse<ImportBatch> listBatches() {
+        return new SmartGwtResponse<ImportBatch>(importManager.findAll(user));
     }
 
     @PUT
     @Path("batch")
     @Produces(MediaType.APPLICATION_JSON)
-    public ImportBatchList updateBatch(
+    public SmartGwtResponse<ImportBatch> updateBatch(
             @FormParam("id") Integer batchId,
             @FormParam("parentPid") String parentPid,
             @FormParam("state") ImportBatch.State state
             ) throws IOException, FedoraClientException {
 
-        ImportBatch batch = null;
+        ImportBatch batch;
         if (state == ImportBatch.State.INGESTING) {
             // ingest
             batch = new FedoraImport(RemoteStorage.getInstance(pasConfig), importManager)
@@ -254,26 +250,7 @@ public class ImportResource {
                 throw new NotFoundException("id", String.valueOf(batchId));
             }
         }
-        return new ImportBatchList(Arrays.asList(batch));
-    }
-
-    @XmlRootElement(name="batches")
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class ImportBatchList {
-
-        @XmlElement(name="batch")
-        private Collection<ImportBatch> batches;
-
-        public ImportBatchList() {}
-
-        public ImportBatchList(Collection<ImportBatch> batches) {
-            this.batches = batches;
-        }
-
-        public Collection<ImportBatch> getBatches() {
-            return batches;
-        }
-
+        return new SmartGwtResponse(batch);
     }
 
     @GET
