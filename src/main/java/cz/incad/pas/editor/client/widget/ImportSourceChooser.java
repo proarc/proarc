@@ -34,6 +34,7 @@ import com.smartgwt.client.widgets.tree.events.FolderClickEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClickHandler;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
+import cz.incad.pas.editor.client.ds.ImportTreeDataSource;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
@@ -41,7 +42,7 @@ public class ImportSourceChooser extends VLayout {
 
     private static final Logger LOG = Logger.getLogger(ImportSourceChooser.class.getName());
 
-    private final DataSource dataSource = ImportTreeRestDataSource.getInstance();
+    private final DataSource dataSource = ImportTreeDataSource.getInstance();
 //    private final DataSource metaModelSource = MetaModelDataSource.getInstance();
     private final TreeGrid treeGrid;
     private final DynamicForm optionsForm;
@@ -64,8 +65,8 @@ public class ImportSourceChooser extends VLayout {
         treeGrid.setHeight100();
         treeGrid.setDataSource(dataSource);
         treeGrid.setFields(
-                new TreeGridField(ImportTreeRestDataSource.FIELD_NAME, i18nPas.ImportSourceChooser_TreeHeaderFolderName_Title()),
-                new TreeGridField(ImportTreeRestDataSource.FIELD_STATE, i18nPas.ImportSourceChooser_TreeHeaderImportState_Title()));
+                new TreeGridField(ImportTreeDataSource.FIELD_NAME, i18nPas.ImportSourceChooser_TreeHeaderFolderName_Title()),
+                new TreeGridField(ImportTreeDataSource.FIELD_STATE, i18nPas.ImportSourceChooser_TreeHeaderImportState_Title()));
         treeGrid.setShowConnectors(true);
         treeGrid.setEmptyMessage(i18nPas.ImportSourceChooser_NoDataOnServer_Title());
         treeGrid.setAlternateRecordStyles(true);
@@ -138,7 +139,7 @@ public class ImportSourceChooser extends VLayout {
         ListGridRecord selectedRecord = treeGrid.getSelectedRecord();
         String label = (selectedRecord == null)
                 ? i18nPas.ImportSourceChooser_NothingSelected_Title()
-                : selectedRecord.getAttribute(ImportTreeRestDataSource.FIELD_PATH);
+                : selectedRecord.getAttribute(ImportTreeDataSource.FIELD_PATH);
         lblCurrSelection.setContents(label);
         viewHandler.sourceSelected();
     }
