@@ -16,16 +16,16 @@
  */
 package cz.incad.pas.editor.server.rest;
 
-import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
 
 /**
  * Wrapper suitable as a RestDataSource response
@@ -34,7 +34,6 @@ import javax.xml.bind.annotation.XmlSeeAlso;
  */
 @XmlRootElement(name="response")
 @XmlAccessorType(XmlAccessType.FIELD)
-//@XmlSeeAlso(ImportFolder.class)
 public class SmartGwtResponse<T> {
 
     public static final int STATUS_FAILURE = -1;
@@ -51,19 +50,24 @@ public class SmartGwtResponse<T> {
     private Integer startRow;
     private Integer endRow;
     private Integer totalRows;
-    @XmlElementWrapper(name="data")
-//    @XmlElement(name="record")
-    @XmlAnyElement
     private List<T> data;
-//    private T[] data;
+    
     /**
      * errors holder; see RestDataSource doc
      * <br/> validation format: status:STATUS_VALIDATION_ERROR, errors:[{fieldname:errormsg}] or errors:[fieldname:[{errormsg}]]
      * <br/> failure format: status:STATUS_FAILURE, errors:errormsg
      */
-    private List<Object> errors;
+    private Map<String, List<ErrorMessage>> errors;
 
     public SmartGwtResponse() {
+    }
+
+    public SmartGwtResponse(T singletonDataItem) {
+        this(STATUS_SUCCESS, 0, 0, 1, Collections.singletonList(singletonDataItem));
+    }
+
+    public SmartGwtResponse(List<T> data) {
+        this(STATUS_SUCCESS, 0, Math.max(0, data.size() - 1), data.size(), data);
     }
 
     public SmartGwtResponse(int status, Integer startRow, Integer endRow, Integer totalRows, List<T> data) {
@@ -71,8 +75,54 @@ public class SmartGwtResponse<T> {
         this.startRow = startRow;
         this.endRow = endRow;
         this.totalRows = totalRows;
-//        this.data = data.toArray((T[]) Array.newInstance(data.get(0).getClass(), data.size()));
         this.data = (data != null) ? data : Collections.<T>emptyList();
+    }
+
+    public static <T> ErrorBuilder<T> asError() {
+        return new ErrorBuilder<T>();
+    }
+
+    public static final class ErrorBuilder<T> {
+
+        private Map<String, List<ErrorMessage>> errors = new HashMap<String, List<ErrorMessage>>();
+
+        private ErrorBuilder() {
+        }
+
+        public ErrorBuilder error(String fieldName, String message) {
+            List<ErrorMessage> msgs = errors.get(fieldName);
+            if (msgs == null) {
+                msgs = new ArrayList<ErrorMessage>();
+                errors.put(fieldName, msgs);
+            }
+            msgs.add(new ErrorMessage(message));
+            return this;
+        }
+
+        public SmartGwtResponse<T> build() {
+            SmartGwtResponse<T> result = new SmartGwtResponse<T>();
+            result.errors = errors;
+            result.status = STATUS_VALIDATION_ERROR;
+            return result;
+        }
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class ErrorMessage {
+        
+        private String errorMessage;
+
+        public ErrorMessage(String errorMessage) {
+            this.errorMessage = errorMessage;
+        }
+
+        public ErrorMessage() {
+        }
+
+        public String getErrorMessage() {
+            return errorMessage;
+        }
+        
     }
 
 }
