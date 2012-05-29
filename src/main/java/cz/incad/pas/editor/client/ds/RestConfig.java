@@ -19,7 +19,10 @@ package cz.incad.pas.editor.client.ds;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Window;
 import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.OperationBinding;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DSOperationType;
+import com.smartgwt.client.types.DSProtocol;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,6 +68,51 @@ public class RestConfig {
         }
         dsr.setHttpHeaders(defaultHeaders);
         return dsr;
+    }
+
+    /**
+     * Helper for RESTful POST method.
+     *
+     * @return add operation
+     */
+    public static OperationBinding createAddOperation() {
+        OperationBinding op = new OperationBinding();
+        op.setOperationType(DSOperationType.ADD);
+        op.setDataProtocol(DSProtocol.POSTPARAMS);
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setHttpMethod("POST");
+        op.setRequestProperties(dsRequest);
+        return op;
+    }
+
+    /**
+     * Helper for RESTful PUT method.
+     *
+     * @return update operation
+     */
+    public static OperationBinding createUpdateOperation() {
+        OperationBinding op = new OperationBinding();
+        op.setOperationType(DSOperationType.UPDATE);
+        op.setDataProtocol(DSProtocol.POSTPARAMS);
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setHttpMethod("PUT");
+        op.setRequestProperties(dsRequest);
+        return op;
+    }
+
+    /**
+     * Helper for RESTful DELETE method.
+     *
+     * @return remove operation
+     */
+    public static OperationBinding createDeleteOperation() {
+        OperationBinding op = new OperationBinding();
+        op.setOperationType(DSOperationType.REMOVE);
+        op.setDataProtocol(DSProtocol.GETPARAMS);
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setHttpMethod("DELETE");
+        op.setRequestProperties(dsRequest);
+        return op;
     }
 
 }
