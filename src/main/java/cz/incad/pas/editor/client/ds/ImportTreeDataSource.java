@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
 import com.smartgwt.client.data.DSRequest;
@@ -27,6 +28,7 @@ import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
+import cz.incad.pas.editor.client.PasEditorMessages;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,6 +50,8 @@ public class ImportTreeDataSource extends RestDataSource {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
 
+        PasEditorMessages i18nPas = GWT.create(PasEditorMessages.class);
+
         DataSourceTextField path = new DataSourceTextField(FIELD_PATH);
         path.setPrimaryKey(true);
         path.setHidden(true);
@@ -58,8 +62,8 @@ public class ImportTreeDataSource extends RestDataSource {
 
         DataSourceTextField name = new DataSourceTextField(FIELD_NAME);
 
-        DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE, "State");
-        states.put("IMPORTED", "Imported");
+        DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
+        states.put("IMPORTED", i18nPas.ImportBatchDataSource_State_LOADED());
         states.put("NEW", "");
         states.put("EMPTY", "");
         state.setValueMap(states);
