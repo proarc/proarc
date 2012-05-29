@@ -91,6 +91,7 @@ public final class ImportBatchChooser extends VLayout {
     }
 
     public void bind() {
+        lGridBatches.invalidateCache();
         lGridBatches.fetchData(null, new DSCallback() {
 
             @Override
