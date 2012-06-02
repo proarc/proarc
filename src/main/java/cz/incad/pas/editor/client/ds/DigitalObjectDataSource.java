@@ -17,11 +17,8 @@
 package cz.incad.pas.editor.client.ds;
 
 import com.smartgwt.client.data.DataSource;
-import com.smartgwt.client.data.OperationBinding;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
-import com.smartgwt.client.types.DSOperationType;
-import com.smartgwt.client.types.DSProtocol;
 import java.util.logging.Logger;
 
 /**
@@ -49,14 +46,7 @@ public class DigitalObjectDataSource extends DataSource {
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
         setFields(pid, model);
 
-        OperationBinding addOp = new OperationBinding();
-        addOp.setOperationType(DSOperationType.ADD);
-        addOp.setDataProtocol(DSProtocol.POSTPARAMS);
-//        OperationBinding updateOp = new OperationBinding();
-//        updateOp.setOperationType(DSOperationType.UPDATE);
-//        updateOp.setDataProtocol(DSProtocol.POSTXML);
-
-        setOperationBindings(addOp);
+        setOperationBindings(RestConfig.createAddOperation());
     }
 
     public static DigitalObjectDataSource getInstance() {

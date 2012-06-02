@@ -18,10 +18,7 @@ package cz.incad.pas.editor.client.ds;
 
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
-import com.smartgwt.client.data.OperationBinding;
 import com.smartgwt.client.types.DSDataFormat;
-import com.smartgwt.client.types.DSOperationType;
-import com.smartgwt.client.types.DSProtocol;
 import com.smartgwt.client.types.FieldType;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
 import java.util.logging.Logger;
@@ -132,11 +129,7 @@ public class ModsCustomDataSource extends DataSource {
 
         setFields(fieldPid, fieldTimestamp, fieldEditor, fieldData);
 
-        OperationBinding updateOp = new OperationBinding();
-        updateOp.setOperationType(DSOperationType.UPDATE);
-        updateOp.setDataProtocol(DSProtocol.POSTPARAMS);
-
-        setOperationBindings(updateOp);
+        setOperationBindings(RestConfig.createUpdateOperation());
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }

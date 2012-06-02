@@ -37,7 +37,7 @@ import cz.incad.pas.editor.client.ClientUtils;
  *
  * @author Jan Pokorsky
  */
-public class ImportBatchItemDataSource extends RestDataSource {
+public final class ImportBatchItemDataSource extends RestDataSource {
 
     public static final String ID = "ImportBatchItemDataSource";
 
@@ -90,11 +90,7 @@ public class ImportBatchItemDataSource extends RestDataSource {
 
         setFields(pid, batchId, timestamp, filename, user, model, preview, thumbnail, pageIndex, pageNumber, pageType);
 
-        OperationBinding updateOp = new OperationBinding();
-        updateOp.setOperationType(DSOperationType.UPDATE);
-        updateOp.setDataProtocol(DSProtocol.POSTPARAMS);
-
-        setOperationBindings(updateOp, RestConfig.createDeleteOperation());
+        setOperationBindings(RestConfig.createUpdateOperation(), RestConfig.createDeleteOperation());
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         

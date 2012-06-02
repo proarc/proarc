@@ -64,6 +64,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -134,7 +135,7 @@ public class DigitalObjectResource {
      * @throws URISyntaxException
      * @throws IOException
      */
-    @POST
+    @PUT
     @Produces({MediaType.APPLICATION_JSON})
     public DigitalObjectList newObject(
             @FormParam("model") String modelId,
@@ -268,7 +269,7 @@ public class DigitalObjectResource {
         return dc;
     }
 
-    @POST
+    @PUT
     @Path("/dc")
     @Consumes({MediaType.TEXT_XML, MediaType.APPLICATION_XML})
     @Produces(MediaType.APPLICATION_XML)
@@ -322,7 +323,7 @@ public class DigitalObjectResource {
         return result;
     }
 
-    @POST
+    @PUT
     @Path("mods/custom")
     @Produces({MediaType.APPLICATION_JSON})
     public CustomMods updateCustomMods(
@@ -499,7 +500,7 @@ public class DigitalObjectResource {
         return ocr;
     }
 
-    @POST
+    @PUT
     @Path("/ocr")
     @Produces(MediaType.APPLICATION_JSON)
     public StringRecord updateOcr(

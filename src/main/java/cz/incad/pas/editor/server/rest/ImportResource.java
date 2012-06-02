@@ -302,7 +302,7 @@ public class ImportResource {
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, totalRows, records);
     }
 
-    @POST
+    @PUT
     @Path("batch/item")
     @Produces(MediaType.APPLICATION_JSON)
     public ImportBatchItemList updateBatchItem(

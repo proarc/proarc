@@ -21,13 +21,11 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
-import com.smartgwt.client.data.OperationBinding;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.XMLTools;
 import com.smartgwt.client.data.XmlNamespaces;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
-import com.smartgwt.client.types.DSProtocol;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.JSOHelper;
 import cz.incad.pas.editor.client.ClientUtils;
@@ -121,11 +119,7 @@ public class DcRecordDataSource extends DataSource {
 
         setFields(fieldPid, fieldTimestamp, fieldDc);
 
-        OperationBinding updateOp = new OperationBinding();
-        updateOp.setOperationType(DSOperationType.UPDATE);
-        updateOp.setDataProtocol(DSProtocol.POSTXML);
-
-        setOperationBindings(updateOp);
+        setOperationBindings(RestConfig.createUpdateOperation());
         
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
