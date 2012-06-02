@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
+import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
@@ -28,6 +29,7 @@ import com.smartgwt.client.widgets.Canvas;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
+import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.ImportTreeDataSource.ImportRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.widget.ImportBatchChooser;
@@ -37,6 +39,7 @@ import cz.incad.pas.editor.client.widget.ImportParentChooser;
 import cz.incad.pas.editor.client.widget.ImportParentChooser.ImportParentHandler;
 import cz.incad.pas.editor.client.widget.ImportSourceChooser;
 import cz.incad.pas.editor.client.widget.ImportSourceChooser.ImportSourceChooserHandler;
+import cz.incad.pas.editor.client.widget.ProgressTracker;
 import cz.incad.pas.editor.client.widget.Wizard;
 import cz.incad.pas.editor.client.widget.Wizard.StepKind;
 import cz.incad.pas.editor.client.widget.Wizard.WizardStep;
@@ -241,8 +244,7 @@ public class ImportPresenter {
                         Record[] data = response.getData();
                         if (data != null && data.length > 0) {
                             BatchRecord newBatch = new BatchRecord(data[0]);
-                            ImportPresenter.this.getImportContext().setBatch(newBatch);
-                            ImportPresenter.this.selectParent();
+                            showProgress(newBatch);
                         } else {
                             response.setInvalidateCache(true);
                             SC.warn(i18nPas.ImportWizard_SelectFolderStep_NothingToImport_Msg());
@@ -252,6 +254,42 @@ public class ImportPresenter {
             } else {
                 throw new IllegalStateException();
             }
+        }
+
+        private void showProgress(final BatchRecord batch) {
+            final Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batch.getId());
+            ImportBatchItemDataSource ds = ImportBatchItemDataSource.getInstance();
+            ProgressTracker progress = new ProgressTracker(i18nPas);
+            progress.setDataSource(ds, criteria);
+            progress.setInit();
+            progress.setProgressPrefix(i18nPas.ImportWizard_SelectFolderStep_ImportProgress_Prefix_Title());
+            progress.showInWindow(new Runnable() {
+
+                @Override
+                public void run() {
+                    checkBatchState(batch);
+                }
+            }, i18nPas.ImportWizard_SelectFolderStep_ImportProgress_Title());
+        }
+
+        private void checkBatchState(BatchRecord batch) {
+            final Criteria criteria = new Criteria(ImportBatchDataSource.FIELD_ID, batch.getId());
+            ImportBatchDataSource.getInstance().fetchData(criteria, new DSCallback() {
+
+                @Override
+                public void execute(DSResponse response, Object rawData, DSRequest request) {
+                    Record[] data = response.getData();
+                    if (data != null && data.length > 0) {
+                        BatchRecord batch = new BatchRecord(data[0]);
+                        if (batch.getState() == ImportBatchDataSource.State.LOADED) {
+                            ImportPresenter.this.getImportContext().setBatch(batch);
+                            ImportPresenter.this.selectParent();
+                            return ;
+                        }
+                    }
+                    importSourceChooser.refresh();
+                }
+            });
         }
 
     }

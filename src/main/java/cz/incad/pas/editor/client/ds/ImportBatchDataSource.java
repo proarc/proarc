@@ -37,6 +37,7 @@ public final class ImportBatchDataSource extends RestDataSource {
     public static final String ID = "ImportBatchDataSource";
     public static final String FIELD_ID = "id";
     public static final String FIELD_PATH = "folderPath";
+    public static final String FIELD_DESCRIPTION = "description";
     public static final String FIELD_TIMESTAMP = "timeStamp";
     public static final String FIELD_STATE = "state";
     public static final String FIELD_USER_ID = "userId";
@@ -59,7 +60,7 @@ public final class ImportBatchDataSource extends RestDataSource {
         DataSourceIntegerField id = new DataSourceIntegerField(FIELD_ID);
         id.setPrimaryKey(true);
 
-        DataSourceTextField path = new DataSourceTextField(FIELD_PATH);
+        DataSourceTextField description = new DataSourceTextField(FIELD_DESCRIPTION);
 
         DataSourceTextField user = new DataSourceTextField(FIELD_USER_DISPLAYNAME);
 
@@ -70,19 +71,19 @@ public final class ImportBatchDataSource extends RestDataSource {
 
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
         LinkedHashMap<String, String> states = new LinkedHashMap<String, String>();
-        states.put("LOADING", i18nPas.ImportBatchDataSource_State_LOADING());
-        states.put("LOADING_FAILED", i18nPas.ImportBatchDataSource_State_LOADING_FAILED());
-        states.put("LOADED", i18nPas.ImportBatchDataSource_State_LOADED());
-        states.put("INGESTING", i18nPas.ImportBatchDataSource_State_INGESTING());
-        states.put("INGESTING_FAILED", i18nPas.ImportBatchDataSource_State_INGESTING_FAILED());
-        states.put("INGESTED", i18nPas.ImportBatchDataSource_State_INGESTED());
+        states.put(State.LOADING.name(), i18nPas.ImportBatchDataSource_State_LOADING());
+        states.put(State.LOADING_FAILED.name(), i18nPas.ImportBatchDataSource_State_LOADING_FAILED());
+        states.put(State.LOADED.name(), i18nPas.ImportBatchDataSource_State_LOADED());
+        states.put(State.INGESTING.name(), i18nPas.ImportBatchDataSource_State_INGESTING());
+        states.put(State.INGESTING_FAILED.name(), i18nPas.ImportBatchDataSource_State_INGESTING_FAILED());
+        states.put(State.INGESTED.name(), i18nPas.ImportBatchDataSource_State_INGESTED());
         states.put(null, "Unknown"); // should not occur
         state.setValueMap(states);
 
         DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);
         parent.setHidden(true);
 
-        setFields(id, path, userId, user, timestamp, state, parent);
+        setFields(id, description, userId, user, timestamp, state, parent);
         
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         
@@ -128,6 +129,27 @@ public final class ImportBatchDataSource extends RestDataSource {
 
         public void setParentPid(String pid) {
             delegate.setAttribute(FIELD_PARENT, pid);
+        }
+
+        public State getState() {
+            String attr = delegate.getAttribute(FIELD_STATE);
+            return State.fromString(attr);
+        }
+    }
+
+    /**
+     * Copy of {@link cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch.State State}.
+     * XXX make it GWT accessible and remove this.
+     */
+    public enum State {
+        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED;
+
+        public static State fromString(String value) {
+            try {
+                return valueOf(value);
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
         }
     }
 

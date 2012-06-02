@@ -64,7 +64,9 @@ public class ImportFileScannerTest {
         tmpFolder.newFolder("A");
         tmpFolder.newFolder("B");
         tmpFolder.newFile("B/" + ImportFileScanner.IMPORT_STATE_FILENAME);
-        tmpFolder.newFolder("C");
+        File folderC = tmpFolder.newFolder("C");
+        File tiff = new File(folderC, "scan1.tiff");
+        tiff.createNewFile();
         tmpFolder.newFile("irrelevant.file");
 
         File folder = tmpFolder.getRoot();
@@ -75,7 +77,7 @@ public class ImportFileScannerTest {
         assertEquals("A", result.get(0).getHandle().getName());
         assertEquals("B", result.get(1).getHandle().getName());
         assertEquals("C", result.get(2).getHandle().getName());
-        assertEquals(ImportFileScanner.State.NEW, result.get(0).getStatus());
+        assertEquals(ImportFileScanner.State.EMPTY, result.get(0).getStatus());
         assertEquals(ImportFileScanner.State.IMPORTED, result.get(1).getStatus());
         assertEquals(ImportFileScanner.State.NEW, result.get(2).getStatus());
     }

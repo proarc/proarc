@@ -28,7 +28,7 @@ import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.StringEditor;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
-import cz.incad.pas.editor.server.imports.ImportProcess.ImportContext;
+import cz.incad.pas.editor.server.imports.ImportProcess.ImportOptions;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
@@ -63,7 +63,7 @@ public final class TiffImporter {
         return isTiff(f, mimetype);
     }
     
-    public ImportItem consume(File f, String mimetype, ImportContext ctx) throws IOException {
+    public ImportItem consume(File f, String mimetype, ImportOptions ctx) throws IOException {
         // check tiff file
         if (!isTiff(f, mimetype)) {
             return null;

@@ -19,7 +19,7 @@ package cz.incad.pas.editor.server.imports;
 import com.yourmediashelf.fedora.generated.foxml.ObjectFactory;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
-import cz.incad.pas.editor.server.imports.ImportProcess.ImportContext;
+import cz.incad.pas.editor.server.imports.ImportProcess.ImportOptions;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -91,14 +91,15 @@ public class TiffImporterTest {
 
     @Test
     public void testConsume() throws Exception {
-        temp.setDeleteOnExit(false);
+        temp.setDeleteOnExit(true);
         File targetFolder = temp.newFolder();
         assertTrue(targetFolder.exists());
 
         String mimetype = ImportProcess.findMimeType(tiff1);
         assertNotNull(mimetype);
 
-        ImportContext ctx = new ImportContext(targetFolder, "model:page", "scanner:scanner1", true, "junit");
+        ImportOptions ctx = new ImportOptions(tiff1.getParentFile(), "model:page", "scanner:scanner1", true, "junit");
+        ctx.setTargetFolder(targetFolder);
         TiffImporter instance = new TiffImporter();
 //        FedoraImportItem expResult = null;
         ImportItem result = instance.consume(tiff1, mimetype, ctx);

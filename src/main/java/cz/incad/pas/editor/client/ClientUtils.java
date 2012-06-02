@@ -24,6 +24,7 @@ import com.google.gwt.regexp.shared.SplitResult;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.JSONEncoder;
@@ -253,6 +254,22 @@ public final class ClientUtils {
             }
         }
         return hasNull ? new Record(nonNunlls) : r;
+    }
+
+    /**
+     * Replacement for {@link ResultSet#getRange(int, int) } to work around
+     * {@link ArrayStoreException} thrown in production mode.
+     * 
+     * @see <a href='http://forums.smartclient.com/showpost.php?p=85402&postcount=34'>proposed workaround</a>
+     * @see <a href='http://forums.smartclient.com/showpost.php?p=85402&postcount=38'>Fixed in SmartGWT 3.1</a>
+     * @since SmartGWT 3.0
+     */
+    public static void getRangeWorkAround(ResultSet resultSet, int start, int end) {
+        try {
+            resultSet.getRange(start, end);
+        } catch (ArrayStoreException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
     }
 
     public static final BooleanCallback EMPTY_BOOLEAN_CALLBACK = new BooleanCallback() {

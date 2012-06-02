@@ -66,4 +66,8 @@ public final class PasConfigurationFactory {
         return defaultInstance;
     }
 
+    public void setDefaultInstance(PasConfiguration config) {
+        this.defaultInstance = config;
+    }
+
 }

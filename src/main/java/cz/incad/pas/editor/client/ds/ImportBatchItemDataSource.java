@@ -22,6 +22,7 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.OperationBinding;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceImageField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
@@ -36,7 +37,7 @@ import cz.incad.pas.editor.client.ClientUtils;
  *
  * @author Jan Pokorsky
  */
-public class ImportBatchItemDataSource extends DataSource {
+public class ImportBatchItemDataSource extends RestDataSource {
 
     public static final String ID = "ImportBatchItemDataSource";
 
@@ -56,11 +57,8 @@ public class ImportBatchItemDataSource extends DataSource {
         setID(ID);
 
         setDataFormat(DSDataFormat.JSON);
-        setRecordXPath("/items/item");
 
         setDataURL(RestConfig.URL_IMPORT_BATCH_ITEM);
-//        setDataURL("ds/ImportBatchItemDataSource.json");
-//        setClientOnly(true);
 
         DataSourceField pid = new DataSourceField(FIELD_PID, FieldType.TEXT);
         pid.setPrimaryKey(true);
@@ -96,14 +94,7 @@ public class ImportBatchItemDataSource extends DataSource {
         updateOp.setOperationType(DSOperationType.UPDATE);
         updateOp.setDataProtocol(DSProtocol.POSTPARAMS);
 
-        OperationBinding deleteOp = new OperationBinding();
-        deleteOp.setOperationType(DSOperationType.REMOVE);
-        deleteOp.setDataProtocol(DSProtocol.GETPARAMS);
-        DSRequest deleteRequest = new DSRequest();
-        deleteRequest.setHttpMethod("DELETE");
-        deleteOp.setRequestProperties(deleteRequest);
-        
-        setOperationBindings(updateOp, deleteOp);
+        setOperationBindings(updateOp, RestConfig.createDeleteOperation());
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         

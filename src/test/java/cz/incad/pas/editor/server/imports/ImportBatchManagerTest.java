@@ -22,6 +22,7 @@ import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.user.UserManager;
+import cz.incad.pas.editor.server.user.UserProfile;
 import cz.incad.pas.editor.server.user.UserUtil;
 import java.io.File;
 import java.util.HashMap;
@@ -91,8 +92,14 @@ public class ImportBatchManagerTest {
         ImportBatchManager ibm = new ImportBatchManager(pasConf);
 
         UserManager users = UserUtil.createUserManagerMemoryImpl(pasConf);
-        ImportBatch batch = ibm.add("path/to/first_import", users.find("admin"));
-        batch = ibm.update(batch.getId(), ImportBatch.State.LOADING);
+        UserProfile admin = users.find("admin");
+        ImportBatch batch = new ImportBatch();
+        batch.setDescription("description");
+        batch.setFolderPath("path/to/first_import");
+        batch.setUser(admin.getUserName());
+        batch.setUserId(admin.getId());
+        batch.setState(ImportBatch.State.LOADING);
+        batch = ibm.add(batch);
         ibm.addItem(batch.getId(), new ImportItem("url/to/foxml1", "tiff1", "uuid:1"));
         ibm.addItem(batch.getId(), new ImportItem("url/to/foxml2", "tiff2", "uuid:2"));
         ibm.addItem(batch.getId(), new ImportItem("url/to/foxml3", "tiff3", "uuid:3"));

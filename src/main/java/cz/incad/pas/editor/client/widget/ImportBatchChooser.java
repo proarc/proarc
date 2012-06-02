@@ -62,7 +62,7 @@ public final class ImportBatchChooser extends VLayout {
         lg.setSelectionType(SelectionStyle.SINGLE);
         lg.setCanReorderFields(false);
         lg.setCanSort(false);
-        ListGridField lgfFolder = new ListGridField(ImportBatchDataSource.FIELD_PATH,
+        ListGridField lgfFolder = new ListGridField(ImportBatchDataSource.FIELD_DESCRIPTION,
                 i18nPas.ImportBatchDataSource_FolderFieldTitle());
 //        lgfFolder.setAutoFitWidth(false);
         ListGridField lgfDate = new ListGridField(ImportBatchDataSource.FIELD_TIMESTAMP,

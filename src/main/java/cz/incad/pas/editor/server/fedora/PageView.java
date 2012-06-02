@@ -136,6 +136,10 @@ public final class PageView {
             this.records = objects;
         }
 
+        public List<Item> getRecords() {
+            return records;
+        }
+
     }
 
 }

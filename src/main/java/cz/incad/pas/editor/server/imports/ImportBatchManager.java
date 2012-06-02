@@ -18,6 +18,7 @@ package cz.incad.pas.editor.server.imports;
 
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch.State;
+import cz.incad.pas.editor.server.imports.ImportProcess.ImportOptions;
 import cz.incad.pas.editor.server.user.UserManager;
 import cz.incad.pas.editor.server.user.UserProfile;
 import cz.incad.pas.editor.server.user.UserUtil;
@@ -129,48 +130,38 @@ public final class ImportBatchManager {
     }
 
     public List<ImportBatch> findAll(UserProfile user) {
+        return find(user, null, null);
+    }
+    
+    public List<ImportBatch> find(UserProfile user, Integer batchId, State state) {
         synchronized(map) {
             List<ImportBatch> result = new ArrayList<ImportBatch>(map.size());
             for (ImportBatch b : map.values()) {
-                result.add(copyBatch(b, false));
+                boolean include = true;
+                include &= user == null || b.getUserId() == user.getId();
+                include &= state == null || state == b.getState();
+                include &= batchId == null || batchId == b.getId();
+                if (include) {
+                    result.add(copyBatch(b, false));
+                }
             }
             return result;
         }
     }
 
-    public ImportBatch update(Integer id, String parentId) {
-        if (id == 0) {
-            return null;
+    public ImportBatch update(ImportBatch update) {
+        if (update == null) {
+            throw new NullPointerException();
         }
-        synchronized (map) {
-            ImportBatch batch = map.get(id);
-            if (batch != null) {
-                batch.setParentPid(parentId);
-                save(pasConfig.getConfigHome(), this);
-            }
-            return copyBatch(batch, false);
-        }
-    }
 
-    public ImportBatch update(Integer id, ImportBatch.State state) {
-        if (id == 0) {
-            return null;
-        }
-        if (state == null) {
-            throw new IllegalArgumentException("state");
-        }
         synchronized (map) {
-            ImportBatch batch = map.get(id);
-            if (batch != null) {
-                State old = batch.getState();
-                int ordinal = old == null ? -1 : old.ordinal();
-                if (state.ordinal() < ordinal) {
-                    throw new IllegalStateException(
-                            String.format("oldState: %s, newState: %s", old, state));
-                }
-                batch.setState(state);
-                save(pasConfig.getConfigHome(), this);
+            ImportBatch batch = map.get(update.getId());
+            if (batch == null) {
+                return null;
             }
+
+            updateBatch(update, batch);
+            save(pasConfig.getConfigHome(), this);
             return copyBatch(batch, false);
         }
     }
@@ -189,13 +180,24 @@ public final class ImportBatchManager {
         }
     }
 
-    public ImportBatch add(String path, UserProfile user) {
+    public ImportBatch add(ImportBatch newBatch) {
         synchronized(map) {
             int id = map.isEmpty() ? 1 : Collections.max(map.keySet()) + 1;
-            ImportBatch batch = new ImportBatch(id, path, new Date(), user, ImportBatch.State.LOADING);
+            ImportBatch batch = updateBatch(newBatch, new ImportBatch(id));
+            batch.timeStamp = new Date();
             map.put(id, batch);
             save(pasConfig.getConfigHome(), this);
             return copyBatch(batch, false);
+        }
+    }
+
+    public ImportBatch get(int id) {
+        synchronized (map) {
+            ImportBatch batch = map.get(id);
+            if (batch != null) {
+                batch = copyBatch(batch, false);
+            }
+            return batch;
         }
     }
 
@@ -231,9 +233,34 @@ public final class ImportBatchManager {
         }
     }
 
+    public boolean removeItems(int batchId) {
+        synchronized(map) {
+            ImportBatch batch = map.get(batchId);
+            if (batch == null) {
+                return false;
+            }
+            batch.getItems().clear();
+            save(pasConfig.getConfigHome(), this);
+            return true;
+        }
+    }
+
+    private ImportBatch updateBatch(ImportBatch from, ImportBatch to) {
+        to.description = from.description;
+        to.estimateFileCount = from.estimateFileCount;
+        to.failure = from.failure;
+        to.folderPath = from.folderPath;
+        to.options = from.options;
+        to.parentPid = from.parentPid;
+        to.state = from.state;
+        to.user = from.user;
+        to.userId = from.userId;
+        to.timeStamp = from.timeStamp;
+        return to;
+    }
+    
     private ImportBatch copyBatch(ImportBatch batch, boolean withItems) {
-        ImportBatch copy = new ImportBatch(batch.getId(), batch.getFolderPath(),
-                batch.getTimeStamp(), batch.userProfile, batch.state);
+        ImportBatch copy = updateBatch(batch, new ImportBatch(batch.getId()));
         List<ImportItem> items = batch.getItems();
         if (withItems && items != null) {
             ArrayList<ImportItem> itemsCopy = new ArrayList<ImportItem>(items.size());
@@ -260,31 +287,54 @@ public final class ImportBatchManager {
         @XmlElement(required=true)
         private int id;
         private String folderPath;
+        private String description;
         private String parentPid;
         @XmlSchemaType(name="dateTime")
         private Date timeStamp;
         private int userId;
         private String user;
         private State state;
+        /** list of batch option fromString context asString be persisted*/
+        private String options;
+        private int estimateFileCount;
+        private String failure;
         private List<ImportItem> items;
         private transient UserProfile userProfile;
 
         public ImportBatch() {
         }
 
-        public ImportBatch(Integer id, String folderPath, Date timeStamp, UserProfile user, State state) {
+        public ImportBatch(Integer id) {
+            this.id = id;
+        }
+
+        public ImportBatch(Integer id, File folderPath, String description, Date timeStamp, UserProfile user, State state) {
+            this(id, folderPath.toURI().toASCIIString(), description, timeStamp, user, state, null);
+        }
+
+        ImportBatch(Integer id, String folderPath, String description, Date timeStamp, UserProfile user, State state, String failure) {
             this.id = id;
             this.folderPath = folderPath;
+            this.description = description;
             this.timeStamp = timeStamp;
             this.userId = user.getId();
             this.user = user.getUserName();
             this.userProfile = user;
             this.state = state;
+            this.failure = failure;
         }
 
         private void addItem(ImportItem item) {
             List<ImportItem> l = getItems();
             l.add(item);
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
         }
 
         private List<ImportItem> getItems() {
@@ -298,6 +348,14 @@ public final class ImportBatchManager {
             return folderPath;
         }
 
+        public void setFolderPath(File folder) {
+            setFolderPath(folder.toURI().toASCIIString());
+        }
+
+        public void setFolderPath(String folderPath) {
+            this.folderPath = folderPath;
+        }
+
         public int getId() {
             return id;
         }
@@ -306,7 +364,7 @@ public final class ImportBatchManager {
             return parentPid;
         }
 
-        void setParentPid(String parentPid) {
+        public void setParentPid(String parentPid) {
             this.parentPid = parentPid;
         }
 
@@ -318,16 +376,50 @@ public final class ImportBatchManager {
             return userId;
         }
 
+        public void setUserId(int userId) {
+            this.userId = userId;
+        }
+
         public String getUser() {
             return user;
+        }
+
+        public void setUser(String user) {
+            this.user = user;
         }
 
         public State getState() {
             return state;
         }
 
-        void setState(State state) {
+        public void setState(State state) {
             this.state = state;
+        }
+
+        public String getFailure() {
+            return failure;
+        }
+
+        public void setFailure(String failure) {
+            this.failure = failure;
+        }
+
+        public ImportOptions getOptions() {
+            File importFolder = new File(URI.create(getFolderPath()));
+            ImportOptions config = ImportOptions.fromString(importFolder, getUser(), options);
+            return config;
+        }
+
+        public void setOptions(ImportOptions context) {
+            this.options = context.asString();
+        }
+
+        public int getEstimateFileCount() {
+            return estimateFileCount;
+        }
+
+        public void setEstimateFileCount(int estimateFileCount) {
+            this.estimateFileCount = estimateFileCount;
         }
 
     }

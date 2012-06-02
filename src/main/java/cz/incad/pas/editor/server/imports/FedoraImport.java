@@ -47,17 +47,15 @@ public final class FedoraImport {
         this.ibm = ibm;
     }
 
-    public ImportBatch importBatch(int batchId, String importer) throws FedoraClientException {
-        ImportBatch batch = ibm.update(batchId, ImportBatch.State.INGESTING);
-        if (batch == null) {
-            throw new IllegalArgumentException("batch not found: " + batchId);
-        }
+    public ImportBatch importBatch(ImportBatch batch, String importer) throws FedoraClientException {
+        batch.setState(ImportBatch.State.INGESTING);
+        batch = ibm.update(batch);
         String parentPid = batch.getParentPid();
         ArrayList<String> ingests = new ArrayList<String>();
         ArrayList<String> failures = new ArrayList<String>();
         boolean done = false;
         try {
-            for (ImportItem item : ibm.findItems(batchId, null)) {
+            for (ImportItem item : ibm.findItems(batch.getId(), null)) {
                 try {
                     importItem(item, importer);
                     ingests.add(item.getPid());
@@ -77,10 +75,11 @@ public final class FedoraImport {
             done = true;
         } finally {
             if (done && failures.isEmpty()) {
-                batch = ibm.update(batchId, ImportBatch.State.INGESTED);
+                batch.setState(ImportBatch.State.INGESTED);
             } else {
-                batch = ibm.update(batchId, ImportBatch.State.INGESTING_FAILED);
+                batch.setState(ImportBatch.State.INGESTING_FAILED);
             }
+            batch = ibm.update(batch);
         }
         return batch;
     }

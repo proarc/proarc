@@ -22,11 +22,14 @@ import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.fedora.PageView;
 import cz.incad.pas.editor.server.fedora.PageView.ImportBatchItemList;
+import cz.incad.pas.editor.server.fedora.PageView.Item;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.imports.FedoraImport;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch.State;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
+import cz.incad.pas.editor.server.imports.ImportDispatcher;
 import cz.incad.pas.editor.server.imports.ImportFileScanner;
 import cz.incad.pas.editor.server.imports.ImportFileScanner.Folder;
 import cz.incad.pas.editor.server.imports.ImportProcess;
@@ -40,7 +43,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -62,7 +64,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.datatype.DatatypeConfigurationException;
 
 /**
  * REST resource to retrieve import folders.
@@ -193,7 +194,7 @@ public class ImportResource {
             @FormParam("model") @DefaultValue("model:page") String model,
             @FormParam("device") String device,
             @FormParam("indices") @DefaultValue("true") boolean indices
-            ) throws URISyntaxException, IOException, DatatypeConfigurationException {
+            ) throws URISyntaxException, IOException {
         
         LOG.log(Level.INFO, "import path: {0} as model: {1}, indices: {2}, device: {3}",
                 new Object[] {path, model, indices, device});
@@ -204,29 +205,31 @@ public class ImportResource {
                 ? userRoot.resolve(new URI(null, null, folderPath, null))
                 : userRoot;
         File folder = new File(folderUri);
-        ImportProcess process = new ImportProcess(folder, folderPath, user,
+        ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
                 importManager, model, device, indices);
-        ImportBatch batch = process.start();
+        ImportBatch batch = process.getBatch();
         if (batch == null) {
             return new SmartGwtResponse<ImportBatch>(Collections.<ImportBatch>emptyList());
         }
-//        List<ImportItem> importedItems = process.getImportedItems();
-//        List<ImportItemFailure> failures = process.getFailures();
-//        importedItems.get(0).getFilename();
-//        failures.get(0).getFilename();
-
+        ImportDispatcher.getDefault().addImport(process);
         return new SmartGwtResponse<ImportBatch>(batch);
-
-//        List<ImportFolder> result = Collections.singletonList(create(folder, State.IMPORTED, userRoot));
-//        return new SmartGwtResponse(RPCResponse.STATUS_SUCCESS, null, null, null, result);
     }
 
     @GET
     @Path("batch")
-//    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<ImportBatch> listBatches() {
-        return new SmartGwtResponse<ImportBatch>(importManager.findAll(user));
+    public SmartGwtResponse<ImportBatch> listBatches(
+            @QueryParam("id") Integer batchId,
+            @QueryParam("_startRow") int startRow
+            ) {
+
+        List<ImportBatch> batches;
+        if (batchId != null) {
+            batches = importManager.find(user, batchId, null);
+        } else {
+            batches = importManager.findAll(user);
+        }
+        return new SmartGwtResponse<ImportBatch>(batches);
     }
 
     @PUT
@@ -239,16 +242,18 @@ public class ImportResource {
             ) throws IOException, FedoraClientException {
 
         ImportBatch batch;
+        ImportBatch toUpdate = importManager.get(batchId);
+        if (toUpdate == null) {
+            throw new NotFoundException("id", String.valueOf(batchId));
+        }
         if (state == ImportBatch.State.INGESTING) {
             // ingest
             batch = new FedoraImport(RemoteStorage.getInstance(pasConfig), importManager)
-                    .importBatch(batchId, user.getUserName());
+                    .importBatch(toUpdate, user.getUserName());
         } else {
             // update parent
-            batch = importManager.update(batchId, parentPid);
-            if (batch == null) {
-                throw new NotFoundException("id", String.valueOf(batchId));
-            }
+            toUpdate.setParentPid(parentPid);
+            batch = importManager.update(toUpdate);
         }
         return new SmartGwtResponse(batch);
     }
@@ -256,23 +261,45 @@ public class ImportResource {
     @GET
     @Path("batch/item")
     @Produces(MediaType.APPLICATION_JSON)
-    // XXX listImportedObjects needs paging support
-    public ImportBatchItemList listBatchItems(
+    public SmartGwtResponse<PageView.Item> listBatchItems(
             @QueryParam("batchId") Integer batchId,
-            @QueryParam("pid") String pid
+            @QueryParam("pid") String pid,
+            @QueryParam("_startRow") int startRow
             ) {
 
-        Collection<ImportItem> items = null;
+        startRow = Math.max(0, startRow);
+        List<ImportItem> imports = null;
+
         if (batchId != null) {
-            items = importManager.findItems(batchId, pid);
+            imports = importManager.findItems(batchId, pid);
         }
-        if (items == null) {
+        if (imports == null) {
             throw new WebApplicationException(
                     Response.status(Response.Status.NOT_FOUND).entity("ID not found!")
                     .type(MediaType.TEXT_PLAIN_TYPE).build());
         }
 
-        return new PageView().list(batchId, items);
+        ImportBatch batch = importManager.get(batchId);
+        if (batch.getState() == State.LOADING_FAILED) {
+            return SmartGwtResponse.asError().error("batchId", "Batch failed").build();
+        }
+        int totalImports = imports.size();
+        int totalRows = (batch.getState() == State.LOADING) ? batch.getEstimateFileCount() : totalImports;
+        if (totalImports == 0) {
+            return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, totalRows, null);
+        }
+
+        if (startRow >= totalImports) {
+            return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, startRow, totalRows, null);
+        }
+
+        int endRow = totalImports;
+
+        if (startRow > 0) {
+            imports = imports.subList(startRow, totalImports);
+        }
+        List<Item> records = new PageView().list(batchId, imports).getRecords();
+        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, totalRows, records);
     }
 
     @POST
@@ -344,27 +371,4 @@ public class ImportResource {
 
     }
 
-//    final static Map<String, List<ImportFolder>> MAP = new HashMap<String, List<ImportFolder>>();
-//    static {
-//        List<ImportFolder> data = Arrays.asList(
-//                new ImportFolder("2010", "IMPORTED", null, "2010/"),
-//                new ImportFolder("2011", "NEW", null, "2011/"),
-//                new ImportFolder("02", null, "2011/", "2011/02/"),
-//                new ImportFolder("28", "IMPORTED", "2011/02/", "2011/02/28/"),
-//                new ImportFolder("ABA0070069228X", "RUNNING", "2011/02/28/", "2011/02/28/ABA0070069228X/"),
-//                new ImportFolder("ABA0070069228X2", "IMPORTED", "2011/02/28/", "2011/02/28/ABA0070069228X2/"),
-//                new ImportFolder("29", null, "2011/02/", "2011/02/29/")
-//                );
-//        for (ImportFolder item : data) {
-//            String parent = item.getParent();
-//            parent = String.valueOf(parent);
-//            List<ImportFolder> list = MAP.get(parent);
-//            if (list == null) {
-//                list = new ArrayList<ImportFolder>();
-//                MAP.put(parent, list);
-//            }
-//            list.add(item);
-//        }
-//        System.out.println("map: " + MAP);
-//    }
 }
