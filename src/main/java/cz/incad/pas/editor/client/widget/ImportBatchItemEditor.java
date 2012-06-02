@@ -71,6 +71,7 @@ import cz.incad.pas.editor.client.ds.DcRecordDataSource;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.OcrDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import java.util.ArrayList;
@@ -80,16 +81,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * TODO Thumb edit dialog
- * X Page Index
- * Start Sequence:
- * X Page Number
- * Start Sequence: Prefix: Suffix:
- * X Page Type
- * Combo: ListOfIllustrations, TableOfContents, Index, Table, TitlePage, ListOfMaps, NormalPage, Blank, ListOfTables, Advertisement
  *
- * TODO Thumb selection handling (show preview, synchronize ListGrid)
-*/
+ * @author Jan Pokorsky
+ */
 public class ImportBatchItemEditor extends HLayout {
 
     // darker variant #E6E6F5
@@ -344,18 +338,11 @@ public class ImportBatchItemEditor extends HLayout {
     }
 
     public void setBatchItems(BatchRecord batch) {
-//        this.dsBatchItem = ds;
-//        batchItemGrid.setDataSource(dsBatchItem, batchItemGrid.getFields());
-//        fieldItemModel.setOptionDataSource(MetaModelDataSource.getInstance());
-//        fieldItemModel.setValueField(MetaModelDataSource.FIELD_PID);
-//        fieldItemModel.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
-//        fieldItemModel.setAutoFetchDisplayMap(true);
-//        ds.fetchData(null, null);
         Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batch.getId());
+        batchItemGrid.invalidateCache();
+        thumbViewer.invalidateCache();
         batchItemGrid.fetchData(criteria);
         thumbViewer.fetchData(criteria);
-//        thumbViewer.fetchData();
-//        new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, "");
     }
 
     public void onHide(BooleanCallback callback) {
@@ -372,36 +359,27 @@ public class ImportBatchItemEditor extends HLayout {
         thumbGrid.setCanReorderTiles(true);
         thumbGrid.setWrapValues(true);
         thumbGrid.setSelectionType(SelectionStyle.MULTIPLE);
-//        thumbGrid.setSelectionType(SelectionStyle.SIMPLE);
         // setTileProperties does not work; it replaces default renderer (smartgwt 2.5)
         //thumbGrid.setTileProperties(tileCanvas);
         // setDetailViewerProperties replaces default renderer and it is impossible to customize it not to show field titles (smartgwt 2.5)
         //thumbGrid.setDetailViewerProperties(thumbViewer);
 
         DetailViewerField dvfPageIndex = new DetailViewerField(ImportBatchItemDataSource.FIELD_PAGE_INDEX);
+        final LinkedHashMap<String, String> pageTypes = ModsCustomDataSource.getPageTypes();
         dvfPageIndex.setDetailFormatter(new DetailFormatter() {
 
             @Override
             public String format(Object value, Record record, DetailViewerField field) {
                 String number = record.getAttribute(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
-                number = (number != null) ? number : "";
-                value = (value != null) ? value : "";
-                return ClientUtils.format("%s - %s", value, number);
+                String type = record.getAttribute(ImportBatchItemDataSource.FIELD_PAGE_TYPE);
+                type = (type != null) ? type : ModsCustomDataSource.getDefaultPageType();
+                number = (number != null) ? number : "-";
+                value = (value != null) ? value : "-";
+                return ClientUtils.format("Index: %s<br>%s: %s", value, pageTypes.get(type), number);
             }
         });
-//        DetailViewerField dvfPageNumber = new DetailViewerField(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
-        DetailViewerField dvfPageType = new DetailViewerField(ImportBatchItemDataSource.FIELD_PAGE_TYPE);
-        // ListOfIllustrations, TableOfContents, Index, Table, TitlePage, ListOfMaps, NormalPage, Blank, ListOfTables, Advertisement
         final DetailViewerField dvfThumbnail = new DetailViewerField(ImportBatchItemDataSource.FIELD_THUMBNAIL);
-//        dvfThumbnail.setType("image");
-//        dvfThumbnail.setShowFileInline(false);
-//        dvfThumbnail.setImageURLPrefix(RestConfig.URL_DIGOBJECT_THUMBNAIL + "?pid=");
-//        dvfThumbnail.setImageSize(150);
-//        dvfThumbnail.setImageHeight(128);
-//        dvfThumbnail.setImageWidth(89);
-//        dvfThumbnail.setImageHeight(128*2/3);
-//        dvfThumbnail.setImageWidth(89*2/3);
-        thumbGrid.setFields(dvfThumbnail, dvfPageIndex, dvfPageType);
+        thumbGrid.setFields(dvfThumbnail, dvfPageIndex);
         // TileLayoutPolicy.FLOW does not work as expected
         // thumbGrid.setLayoutPolicy(TileLayoutPolicy.FLOW);
         thumbGrid.setTileHeight(128 + 8 + 12 * 2);
@@ -597,33 +575,18 @@ public class ImportBatchItemEditor extends HLayout {
     
     private DynamicForm createModsForm() {
         DynamicForm form = new DynamicForm();
-//        dynamicForm.setWidth("206px");
-//        form.setIsGroup(true);
-//        form.setGroupTitle("Group");
         form.setHeight100();
         form.setWidth100();
 
-        SelectItem pageType = new SelectItem("pageType", i18nPas.PageForm_PageType_Title());
-//        radioGroupItem.setTooltip("podle ANL by tu mohlo byt mnohem vic typu. Viz http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd/PeriodicalPage[@Type]");
-        pageType.setDefaultValue("NormalPage");
-        LinkedHashMap<String, String> pageTypes = new LinkedHashMap<String, String>();
-        pageTypes.put("ListOfIllustrations", i18nPas.PageForm_TypeListOfIllustrations_Title());
-        pageTypes.put("TableOfContents", i18nPas.PageForm_TypeTableOfContents_Title());
-        pageTypes.put("Index", i18nPas.PageForm_TypeIndex_Title());
-        pageTypes.put("Table", i18nPas.PageForm_TypeTable_Title());
-        pageTypes.put("TitlePage", i18nPas.PageForm_TypeTitlePage_Title());
-        pageTypes.put("ListOfMaps", i18nPas.PageForm_TypeListOfMaps_Title());
-        pageTypes.put("NormalPage", i18nPas.PageForm_TypeNormalPage_Title());
-        pageTypes.put("Blank", i18nPas.PageForm_TypeBlank_Title());
-        pageTypes.put("ListOfTables", i18nPas.PageForm_TypeListOfTables_Title());
-        pageTypes.put("Advertisement", i18nPas.PageForm_TypeAdvertisement_Title());
-        pageType.setValueMap(pageTypes);
-        pageType.setDefaultValue("NormalPage");
+        SelectItem pageType = new SelectItem(ImportBatchItemDataSource.FIELD_PAGE_TYPE,
+                i18nPas.PageForm_PageType_Title());
+        pageType.setDefaultValue(ModsCustomDataSource.getDefaultPageType());
+        pageType.setValueMap(ModsCustomDataSource.getPageTypes());
 
-        IntegerItem pageIndex = new IntegerItem("pageIndex");
+        IntegerItem pageIndex = new IntegerItem(ImportBatchItemDataSource.FIELD_PAGE_INDEX);
         pageIndex.setTitle(i18nPas.PageForm_PageIndex_Title());
 
-        TextItem pageNumber = new TextItem("pageNumber");
+        TextItem pageNumber = new TextItem(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
         pageNumber.setTitle(i18nPas.PageForm_PageNumber_Title());
         pageNumber.setLength(20);
 

@@ -42,9 +42,9 @@ import com.smartgwt.client.widgets.form.validator.RequiredIfFunction;
 import com.smartgwt.client.widgets.form.validator.RequiredIfValidator;
 import com.smartgwt.client.widgets.layout.HStack;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.shared.series.Series;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 
 /**
  * Editor allowing user input of new values to modify multiple digital objects. It can
@@ -219,21 +219,9 @@ public final class PageMetadataEditor {
         allowPageTypes.setColSpan("*");
         allowPageTypes.setShowTitle(false);
 
-        pageType = new SelectItem("pageType", i18nPas.PageForm_PageType_Title());
-//        radioGroupItem.setTooltip("podle ANL by tu mohlo byt mnohem vic typu. Viz http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd/PeriodicalPage[@Type]");
-        LinkedHashMap<String, String> pageTypes = new LinkedHashMap<String, String>();
-        pageTypes.put("ListOfIllustrations", i18nPas.PageForm_TypeListOfIllustrations_Title());
-        pageTypes.put("TableOfContents", i18nPas.PageForm_TypeTableOfContents_Title());
-        pageTypes.put("Index", i18nPas.PageForm_TypeIndex_Title());
-        pageTypes.put("Table", i18nPas.PageForm_TypeTable_Title());
-        pageTypes.put("TitlePage", i18nPas.PageForm_TypeTitlePage_Title());
-        pageTypes.put("ListOfMaps", i18nPas.PageForm_TypeListOfMaps_Title());
-        pageTypes.put("NormalPage", i18nPas.PageForm_TypeNormalPage_Title());
-        pageTypes.put("Blank", i18nPas.PageForm_TypeBlank_Title());
-        pageTypes.put("ListOfTables", i18nPas.PageForm_TypeListOfTables_Title());
-        pageTypes.put("Advertisement", i18nPas.PageForm_TypeAdvertisement_Title());
-        pageType.setValueMap(pageTypes);
-        pageType.setDefaultValue("NormalPage");
+        pageType = new SelectItem(ModsCustomDataSource.FIELD_PAGE_TYPE, i18nPas.PageForm_PageType_Title());
+        pageType.setValueMap(ModsCustomDataSource.getPageTypes());
+        pageType.setDefaultValue(ModsCustomDataSource.getDefaultPageType());
         
         allowPageTypes.addChangedHandler(new DisableStateHandler(pageType));
     }

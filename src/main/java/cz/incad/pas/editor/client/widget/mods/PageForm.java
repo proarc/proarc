@@ -55,20 +55,8 @@ public final class PageForm extends DynamicForm {
         setNumCols(4);
         setColWidths(20, 20, 20);
         SelectItem pageType = new SelectItem(ModsCustomDataSource.FIELD_PAGE_TYPE, i18nPas.PageForm_PageType_Title());
-//        radioGroupItem.setTooltip("podle ANL by tu mohlo byt mnohem vic typu. Viz http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd/PeriodicalPage[@Type]");
-        LinkedHashMap<String, String> pageTypes = new LinkedHashMap<String, String>();
-        pageTypes.put("ListOfIllustrations", i18nPas.PageForm_TypeListOfIllustrations_Title());
-        pageTypes.put("TableOfContents", i18nPas.PageForm_TypeTableOfContents_Title());
-        pageTypes.put("Index", i18nPas.PageForm_TypeIndex_Title());
-        pageTypes.put("Table", i18nPas.PageForm_TypeTable_Title());
-        pageTypes.put("TitlePage", i18nPas.PageForm_TypeTitlePage_Title());
-        pageTypes.put("ListOfMaps", i18nPas.PageForm_TypeListOfMaps_Title());
-        pageTypes.put("NormalPage", i18nPas.PageForm_TypeNormalPage_Title());
-        pageTypes.put("Blank", i18nPas.PageForm_TypeBlank_Title());
-        pageTypes.put("ListOfTables", i18nPas.PageForm_TypeListOfTables_Title());
-        pageTypes.put("Advertisement", i18nPas.PageForm_TypeAdvertisement_Title());
-        pageType.setValueMap(pageTypes);
-        pageType.setDefaultValue("NormalPage");
+        pageType.setValueMap(ModsCustomDataSource.getPageTypes());
+        pageType.setDefaultValue(ModsCustomDataSource.getDefaultPageType());
 
         IntegerItem pageIndex = new IntegerItem(ModsCustomDataSource.FIELD_PAGE_INDEX);
         pageIndex.setTitle(i18nPas.PageForm_PageIndex_Title());

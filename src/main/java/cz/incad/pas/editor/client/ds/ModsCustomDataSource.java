@@ -16,11 +16,14 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
+import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
+import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -43,7 +46,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public class ModsCustomDataSource extends DataSource {
+public final class ModsCustomDataSource extends DataSource {
 
     private static final Logger LOG = Logger.getLogger(ModsCustomDataSource.class.getName());
 
@@ -138,6 +141,27 @@ public class ModsCustomDataSource extends DataSource {
         ModsCustomDataSource ds = (ModsCustomDataSource) DataSource.get(ID);
         ds = ds != null ? ds : new ModsCustomDataSource();
         return ds;
+    }
+
+    public static LinkedHashMap<String, String> getPageTypes() {
+        //http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd/PeriodicalPage[@Type]");
+        PasEditorMessages i18nPas = GWT.create(PasEditorMessages.class);
+        LinkedHashMap<String, String> pageTypes = new LinkedHashMap<String, String>();
+        pageTypes.put("NormalPage", i18nPas.PageForm_TypeNormalPage_Title());
+        pageTypes.put("TitlePage", i18nPas.PageForm_TypeTitlePage_Title());
+        pageTypes.put("Blank", i18nPas.PageForm_TypeBlank_Title());
+        pageTypes.put("ListOfIllustrations", i18nPas.PageForm_TypeListOfIllustrations_Title());
+        pageTypes.put("TableOfContents", i18nPas.PageForm_TypeTableOfContents_Title());
+        pageTypes.put("Index", i18nPas.PageForm_TypeIndex_Title());
+        pageTypes.put("Table", i18nPas.PageForm_TypeTable_Title());
+        pageTypes.put("ListOfMaps", i18nPas.PageForm_TypeListOfMaps_Title());
+        pageTypes.put("ListOfTables", i18nPas.PageForm_TypeListOfTables_Title());
+        pageTypes.put("Advertisement", i18nPas.PageForm_TypeAdvertisement_Title());
+        return pageTypes;
+    }
+
+    public static String getDefaultPageType() {
+        return "NormalPage";
     }
 
 }
