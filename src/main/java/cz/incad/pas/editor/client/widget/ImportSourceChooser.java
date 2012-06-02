@@ -28,8 +28,10 @@ import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.tree.Tree;
 import com.smartgwt.client.widgets.tree.TreeGrid;
 import com.smartgwt.client.widgets.tree.TreeGridField;
+import com.smartgwt.client.widgets.tree.TreeNode;
 import com.smartgwt.client.widgets.tree.events.FolderClickEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClickHandler;
 import cz.incad.pas.editor.client.PasEditorMessages;
@@ -38,7 +40,7 @@ import cz.incad.pas.editor.client.ds.ImportTreeDataSource;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
-public class ImportSourceChooser extends VLayout {
+public final class ImportSourceChooser extends VLayout {
 
     private static final Logger LOG = Logger.getLogger(ImportSourceChooser.class.getName());
 
@@ -86,6 +88,7 @@ public class ImportSourceChooser extends VLayout {
 //        SelectItem selectModel = new SelectItem("model", i18nPas.ImportSourceChooser_OptionImportModel_Title());
         CheckboxItem cbiPageIndexes = new CheckboxItem(ImportBatchDataSource.FIELD_INDICES,
                 i18nPas.ImportSourceChooser_OptionPageIndices_Title());
+        cbiPageIndexes.setValue(true);
 
         SelectItem selectScanner = new SelectItem(ImportBatchDataSource.FIELD_DEVICE,
                 i18nPas.ImportSourceChooser_OptionScanner_Title());
@@ -133,6 +136,22 @@ public class ImportSourceChooser extends VLayout {
 
     public String getDevice() {
         return optionsForm.getValueAsString(ImportBatchDataSource.FIELD_DEVICE);
+    }
+
+    /**
+     * Refreshes selected node or the whole tree.
+     */
+    public void refresh() {
+        Tree tree = treeGrid.getTree();
+        TreeNode node = (TreeNode) treeGrid.getSelectedRecord();
+        if (node != null) {
+            TreeNode parent = tree.getParent(node);
+            if (parent != null) {
+                tree.reloadChildren(parent);
+                return ;
+            }
+        }
+        treeGrid.invalidateCache();
     }
 
     private void updateOnSelection() {
