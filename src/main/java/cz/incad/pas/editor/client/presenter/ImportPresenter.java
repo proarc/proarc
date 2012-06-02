@@ -70,7 +70,7 @@ public class ImportPresenter {
         updateItemsStep = new UpdateItemsStep();
         finishedStep = new FinishedStep();
         wizard = new Wizard(i18nPas, selectFolderStep, selectBatchStep,
-                selectParentStep, updateItemsStep, finishedStep);
+                updateItemsStep, selectParentStep, finishedStep);
     }
 
     public void bind() {
@@ -114,6 +114,39 @@ public class ImportPresenter {
         wizard.moveAt(finishedStep);
     }
 
+    private void ingest(String batchId) {
+        ingest(batchId, new BooleanCallback() {
+
+            @Override
+            public void execute(Boolean value) {
+                if (value != null && value) {
+                    ImportPresenter.this.importFolder();
+                }
+            }
+        });
+    }
+
+    private void ingest(String batchId, final BooleanCallback call) {
+        ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setPromptStyle(PromptStyle.DIALOG);
+        dsRequest.setPrompt(i18nPas.ImportWizard_UpdateItemsStep_Ingesting_Title());
+        Record update = new Record();
+        update.setAttribute(ImportBatchDataSource.FIELD_ID, batchId);
+        update.setAttribute(ImportBatchDataSource.FIELD_STATE, ImportBatchDataSource.State.INGESTING);
+        dsBatch.updateData(update, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
+                    call.execute(false);
+                    return;
+                }
+                call.execute(true);
+            }
+        }, dsRequest);
+    }
+
     private final class SelectBatchStep implements WizardStep, ImportBatchChooserHandler {
 
         private ImportBatchChooser widget;
@@ -123,7 +156,7 @@ public class ImportPresenter {
         public void onShow(Wizard wizard) {
             this.wizard = wizard;
             wizard.setBackButton(false, null); // XXX this could be "Import New Folder"
-            wizard.setForwardButton(true, i18nPas.ImportWizard_SelectBatchStep_ForwardButton_Title());
+            wizard.setForwardButton(true, i18nPas.ImportWizard_ButtonResume_Title());
             wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
                     i18nPas.ImportWizard_SelectBatchStep_Description_Title());
             wizard.setCanStepForward(false);
@@ -176,7 +209,7 @@ public class ImportPresenter {
         public void onShow(Wizard wizard) {
             this.wizard = wizard;
             wizard.setBackButton(false, null);
-            wizard.setForwardButton(true, i18nPas.ImportWizard_SelectFolderStep_ForwardButton_Title());
+            wizard.setForwardButton(true, i18nPas.ImportWizard_ButtonLoadFolder_Title());
             wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
                     i18nPas.ImportWizard_SelectFolderStep_Description_Title());
             wizard.setCanStepForward(false);
@@ -283,7 +316,7 @@ public class ImportPresenter {
                         BatchRecord batch = new BatchRecord(data[0]);
                         if (batch.getState() == ImportBatchDataSource.State.LOADED) {
                             ImportPresenter.this.getImportContext().setBatch(batch);
-                            ImportPresenter.this.selectParent();
+                            ImportPresenter.this.updateImportedObjects();
                             return ;
                         }
                     }
@@ -300,10 +333,8 @@ public class ImportPresenter {
 
         @Override
         public void onShow(Wizard wizard) {
-            // back (reselect parent), forward (import)
-//            wizard.setBackButton(true, "Import Next Folder");
-            wizard.setBackButton(true, null);
-            wizard.setForwardButton(true, i18nPas.ImportWizard_UpdateItemsStep_ForwardButton_Title());
+            wizard.setBackButton(true, i18nPas.ImportWizard_ButtonLoadNextFolder_Title());
+            wizard.setForwardButton(true, null);
             wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
                     i18nPas.ImportWizard_UpdateItemsStep_Description_Title());
             BatchRecord batch = getImportContext().getBatch();
@@ -322,55 +353,13 @@ public class ImportPresenter {
                 @Override
                 public void execute(Boolean value) {
                     if (step == StepKind.BACK) {
-//                        presenter.importFolder();
-                        ImportPresenter.this.selectParent();
+                        ImportPresenter.this.importFolder();
                     } else {
-                        BatchRecord batch = getImportContext().getBatch();
-                        ingest(batch.getId());
-//                        SC.say("Imported.", new BooleanCallback() {
-//
-//                            @Override
-//                            public void execute(Boolean value) {
-//                                ImportPresenter.this.importFolder();
-//                            }
-//                        });
+                        ImportPresenter.this.selectParent();
                     }
                 }
             });
             return false;
-        }
-
-        private void ingest(String batchId) {
-            ingest(batchId, new BooleanCallback() {
-
-                @Override
-                public void execute(Boolean value) {
-                    if (value != null && value) {
-                        ImportPresenter.this.importFolder();
-                    }
-                }
-            });
-        }
-
-        private void ingest(String batchId, final BooleanCallback call) {
-            ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
-            DSRequest dsRequest = new DSRequest();
-            dsRequest.setPromptStyle(PromptStyle.DIALOG);
-            dsRequest.setPrompt(i18nPas.ImportWizard_UpdateItemsStep_Ingesting_Title());
-            Record update = new Record();
-            update.setAttribute(ImportBatchDataSource.FIELD_ID, batchId);
-            update.setAttribute(ImportBatchDataSource.FIELD_STATE, "INGESTING");
-            dsBatch.updateData(update, new DSCallback() {
-
-                @Override
-                public void execute(DSResponse response, Object rawData, DSRequest request) {
-                    if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
-                        call.execute(false);
-                        return;
-                    }
-                    call.execute(true);
-                }
-            }, dsRequest);
         }
 
         @Override
@@ -390,8 +379,8 @@ public class ImportPresenter {
 
         @Override
         public void onShow(Wizard wizard) {
-            wizard.setBackButton(true, i18nPas.ImportWizard_SelectParentStep_BackButton_Title());
-            wizard.setForwardButton(true, null);
+            wizard.setBackButton(true, null);
+            wizard.setForwardButton(true, i18nPas.ImportWizard_ButtonImport_Title());
             wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
                     i18nPas.ImportWizard_SelectParentStep_Description_Title());
             this.wizard = wizard;
@@ -422,17 +411,18 @@ public class ImportPresenter {
                         public void execute(Boolean value) {
                             if (value != null && value) {
                                 importContext.setParentPid(parentPid);
-                                updateImportedObjects();
+                                BatchRecord batch = getImportContext().getBatch();
+                                ingest(batch.getId());
                             } else {
                                 // show some warning
                             }
                         }
                     });
                 }
+                return false;
             } else {
-                ImportPresenter.this.importFolder();
+                return true;
             }
-            return false;
         }
 
         private void updateBatch(String batchId, final String parentPid, final BooleanCallback call) {
