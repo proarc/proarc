@@ -118,28 +118,46 @@ public class ImportBatchItemEditor extends HLayout {
         batchItemGrid.setAutoFitFieldWidths(true);
         batchItemGrid.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
         batchItemGrid.setLeaveScrollbarGap(false);
+        batchItemGrid.setDataSource(ImportBatchItemDataSource.getInstance());
 
         fieldItemModel = new ListGridField(ImportBatchItemDataSource.FIELD_MODEL,
                 i18nPas.ImportBatchItemEditor_ListHeaderModel_Title());
-
-        batchItemGrid.setDataSource(ImportBatchItemDataSource.getInstance());
+        fieldItemModel.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderModel_Hint());
         fieldItemModel.setOptionDataSource(MetaModelDataSource.getInstance());
         fieldItemModel.setValueField(MetaModelDataSource.FIELD_PID);
         fieldItemModel.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
         fieldItemModel.setAutoFetchDisplayMap(true);
-//        final ListGridField fieldThumbnail = new ListGridField(ImportBatchItemDataSource.FIELD_THUMBNAIL, "Preview");
-//        fieldThumbnail.setImageHeight(128/2);
-//        fieldThumbnail.setImageWidth(90/2);
-//        fieldThumbnail.setHidden(true);
-//        batchItemGrid.setCellHeight(fieldThumbnail.getImageHeight() + 2);
+        fieldItemModel.setHidden(true);
 
-        batchItemGrid.setFields(new ListGridField[] {
-            new ListGridField(ImportBatchItemDataSource.FIELD_PID, i18nPas.ImportBatchItemEditor_ListHeaderPID_Title()),
-//            fieldThumbnail,
-            fieldItemModel,
-            new ListGridField(ImportBatchItemDataSource.FIELD_USER, i18nPas.ImportBatchItemEditor_ListHeaderUser_Title()),
-            new ListGridField(ImportBatchItemDataSource.FIELD_FILENAME, i18nPas.ImportBatchItemEditor_ListHeaderFilename_Title())
-        });
+        ListGridField fieldPid = new ListGridField(ImportBatchItemDataSource.FIELD_PID,
+                i18nPas.ImportBatchItemEditor_ListHeaderPID_Title());
+        fieldPid.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderPID_Hint());
+        fieldPid.setHidden(true);
+
+        ListGridField fieldUser = new ListGridField(ImportBatchItemDataSource.FIELD_USER,
+                i18nPas.ImportBatchItemEditor_ListHeaderUser_Title());
+        fieldUser.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderUser_Hint());
+        fieldUser.setHidden(true);
+
+        ListGridField fieldFilename = new ListGridField(ImportBatchItemDataSource.FIELD_FILENAME,
+                i18nPas.ImportBatchItemEditor_ListHeaderFilename_Title());
+        fieldFilename.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderFilename_Hint());
+
+        ListGridField fieldPageIndex = new ListGridField(ImportBatchItemDataSource.FIELD_PAGE_INDEX,
+                i18nPas.ImportBatchItemEditor_ListHeaderPageIndex_Title());
+        fieldPageIndex.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderPageIndex_Hint());
+        fieldPageIndex.setHidden(true);
+
+        ListGridField fieldPageNumber = new ListGridField(ImportBatchItemDataSource.FIELD_PAGE_NUMBER,
+                i18nPas.ImportBatchItemEditor_ListHeaderPageNumber_Title());
+        fieldPageNumber.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderPageNumber_Hint());
+
+        ListGridField fieldPageType = new ListGridField(ImportBatchItemDataSource.FIELD_PAGE_TYPE,
+                i18nPas.ImportBatchItemEditor_ListHeaderPageType_Title());
+        fieldPageType.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderPageType_Hint());
+        fieldPageType.setEmptyCellValue(ModsCustomDataSource.getPageTypes().get(ModsCustomDataSource.getDefaultPageType()));
+
+        batchItemGrid.setFields(fieldFilename, fieldPageNumber, fieldPageIndex, fieldPageType, fieldPid, fieldItemModel, fieldUser);
 //        batchItemGrid.addRecordClickHandler(new RecordClickHandler() {
 //
 //            @Override
