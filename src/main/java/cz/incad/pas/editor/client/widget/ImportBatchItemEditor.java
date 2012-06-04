@@ -86,7 +86,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public class ImportBatchItemEditor extends HLayout {
+public final class ImportBatchItemEditor extends HLayout {
 
     // darker variant #E6E6F5
     private static final String BACKGROUND_COLOR = "#F5F5FB";
@@ -94,7 +94,6 @@ public class ImportBatchItemEditor extends HLayout {
     private static final Logger LOG = Logger.getLogger(ImportBatchItemEditor.class.getName());
 
     private final PasEditorMessages i18nPas;
-//    private DataSource dsBatchItem;
 
     private final ListGrid batchItemGrid;
     private ListGridField fieldItemModel;
@@ -114,8 +113,7 @@ public class ImportBatchItemEditor extends HLayout {
         
         batchItemGrid = new ListGrid();
         batchItemGrid.setShowResizeBar(true);
-//        batchItemGrid.setSelectionType(SelectionStyle.SINGLE);
-//        batchItemGrid.setSelectionType(SelectionStyle.NONE);
+        batchItemGrid.setSelectionType(SelectionStyle.MULTIPLE);
         batchItemGrid.setCanSort(false);
         batchItemGrid.setAutoFitFieldWidths(true);
         batchItemGrid.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
@@ -160,23 +158,11 @@ public class ImportBatchItemEditor extends HLayout {
         fieldPageType.setEmptyCellValue(ModsCustomDataSource.getPageTypes().get(ModsCustomDataSource.getDefaultPageType()));
 
         batchItemGrid.setFields(fieldFilename, fieldPageNumber, fieldPageIndex, fieldPageType, fieldPid, fieldItemModel, fieldUser);
-//        batchItemGrid.addRecordClickHandler(new RecordClickHandler() {
-//
-//            @Override
-//            public void onRecordClick(RecordClickEvent event) {
-//                int record = event.getRecordNum();
-//                Boolean selected = batchItemGrid.isSelected(batchItemGrid.getRecord(record));
-//                LOG.severe(ClientUtils.format("onRecordClick: %s, selected: %s", record, selected));
-//                batchItemGrid.sel
-//            }
-//        });
 
         batchItemGrid.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
             @Override
             public void onSelectionUpdated(SelectionUpdatedEvent event) {
-//                if (true) throw new UnsupportedOperationException("Not supported yet.");
-//                System.out.println("### PIV.onSelectionUpdated");
                 if (selectListInProgress) {
                     selectListInProgress = false;
                     return ;
@@ -185,7 +171,6 @@ public class ImportBatchItemEditor extends HLayout {
                 thumbViewer.deselectAllRecords();
                 if (selectedRecords != null && selectedRecords.length == 1) {
                     // select thumbnail just in case of the single selection
-//                    int tileIndex = batchItemGrid.getRecordIndex(selectedRecords[0]);
                     int tileIndex = thumbViewer.getRecordIndex(selectedRecords[0]);
 //                    selectThumbInProgress = true;
                     // use record index instead of ListGridRecord to work around a smartgwt bug
@@ -196,17 +181,6 @@ public class ImportBatchItemEditor extends HLayout {
             }
 
         });
-
-//        batchItemGrid.addCellClickHandler(new CellClickHandler() {
-//
-//            @Override
-//            public void onCellClick(CellClickEvent event) {
-//                System.out.println("### PIV.onCellClick");
-//                int rowNum = event.getRowNum();
-////                batchItemGrid.selectSingleRecord(rowNum);
-//                //                event.cancel();
-//            }
-//        });
 
         layout.addMember(batchItemGrid);
         
@@ -232,83 +206,6 @@ public class ImportBatchItemEditor extends HLayout {
             }
         });
 
-//        tabSet = new TabSet();
-
-
-//        Tab tabDC = new Tab("DC");
-//        VLayout dclayout = new VLayout();
-//
-//        final DcRecordDataSource dsDc = DcRecordDataSource.getInstance();
-//
-////        final DynamicForm dcEditor = new DCEditorSchema();
-//        dcEditor = new DCEditor();
-//        dcEditor.setDataSource(dsDc);
-//        dcEditor.setDataPath(DcRecordDataSource.FIELD_DC.getQualifiedName());
-//
-//        dclayout.addMember(dcEditor);
-//        IButton commitButton = new IButton("Commit");
-//        commitButton.addClickHandler(new ClickHandler() {
-//
-//            @Override
-//            public void onClick(ClickEvent event) {
-//                Boolean valuesHaveChanged = dcEditor.valuesHaveChanged();
-//                Map oldValues = dcEditor.getOldValues();
-//                Record valuesAsRecord = dcEditor.getValuesAsRecord();
-//                LOG.info(ClientUtils.dump(dcEditor.getChangedValues(), "", "  ",
-//                        new StringBuilder("dcEditor.getChangedValues:\n")).toString());
-//                LOG.info(ClientUtils.dump(dcEditor.getValues(), "", "  ",
-//                        new StringBuilder("dcEditor.getValues:\n")).toString());
-//                LOG.info(ClientUtils.format("%s\n oldValues: %s\n%s",
-//                        ClientUtils.dump(valuesAsRecord, "commit, valuesHaveChanged: " + valuesHaveChanged),
-//                        oldValues,
-//                        dsDc.xmlSerialize(valuesAsRecord, new SerializationContext())
-////                        ((DCEditorSchema) dcEditor).schema.xmlSerialize(valuesAsRecord, new SerializationContext())
-//                        ));
-////                SC.say("dsDc.xmlSerialize", dsDc.xmlSerialize(valuesAsRecord, new SerializationContext()));
-//                dcEditor.saveData();
-//            }
-//        });
-//        dclayout.addMember(commitButton);
-////        dclayout.setCanFocus(true);
-//        dclayout.addFocusChangedHandler(new FocusChangedHandler() {
-//
-//            @Override
-//            public void onFocusChanged(FocusChangedEvent event) {
-//                LOG.info("dclayout.onFocusChanged: " + event.getHasFocus());
-////                if (event.getHasFocus()) {
-////                    dcEditor.focus();
-////                }
-//            }
-//        });
-//
-//        IButton ValidateButton = new IButton("Validate");
-//        ValidateButton.addClickHandler(new ClickHandler() {
-//
-//            @Override
-//            public void onClick(ClickEvent event) {
-////                dcEditor.validate();
-//
-//        dsDc.fetchData(null, new DSCallback() {
-//
-//            @Override
-//            public void execute(DSResponse response, Object rawData, DSRequest request) {
-//                Record r = response.getData()[0];
-////                LOG.info(ClientUtils.format("fetched dcRecord: \n%s", ClientUtils.dump(r, "")));
-//                LOG.info(dsDc.xmlSerialize(r, new SerializationContext()));
-//                dcEditor.editRecord(r);
-////                dcEditor.editRecord(r.getAttributeAsRecord(DcRecordDataSource.FIELD_DC));
-//            }
-//        });
-//
-//
-//            }
-//
-//        });
-//        dclayout.addMember(ValidateButton);
-//
-//        tabDC.setPane(dclayout);
-//        tabSet.addTab(tabDC);
-        
         layout.addMember(tabSet);
         HLayout editorThumbLayout = new HLayout();
         editorThumbLayout.setHeight100();
@@ -316,9 +213,6 @@ public class ImportBatchItemEditor extends HLayout {
         editorThumbLayout.setShowResizeBar(true);
         editorThumbLayout.setResizeBarTarget("next");
         addMember(editorThumbLayout);
-//        addMember(layout);
-
-//        VLayout thubmLayout = new VLayout();
 
         thumbViewer = createThumbViewer();
         editorThumbLayout.addMember(thumbViewer);
@@ -643,11 +537,8 @@ public class ImportBatchItemEditor extends HLayout {
         form.setDataSource(dataSource);
 
 
-//        form.setNumCols(1);
         form.setWidth100();
         form.setHeight100();
-//        HiddenItem itemPid = new HiddenItem(OcrDataSource.FIELD_PID);
-//        HiddenItem itemTimestamp = new HiddenItem(OcrDataSource.FIELD_TIMESTAMP);
         TextAreaItem textAreaItem = new TextAreaItem(OcrDataSource.FIELD_OCR, "OCR");
         textAreaItem.setColSpan("*");
         textAreaItem.setHeight("*");
@@ -868,16 +759,8 @@ public class ImportBatchItemEditor extends HLayout {
 
                 @Override
                 public void execute(DSResponse response, Object rawData, DSRequest request) {
-//                    Record r = response.getData()[0];
-//                    LOG.fine(ClientUtils.format("fetched dcRecord: \n%s", ClientUtils.dump(r.getJsObj())));
-//                    LOG.fine(ClientUtils.format("fetched dcRecord: \n%s", ClientUtils.dump(r, "")));
-//                    LOG.fine(form.getDataSource().xmlSerialize(r, new SerializationContext()));
-//                    form.editRecord(r);
-    //                dcEditor.editRecord(r.getAttributeAsRecord(DcRecordDataSource.FIELD_DC));
-//                    form.rememberValues();
                     form.rememberValues();
                     updateTitle();
-    //                LOG.info("FOCUSES: " + ListFormItem.dump(dcEditor.getFields()));
                 }
             });
 
