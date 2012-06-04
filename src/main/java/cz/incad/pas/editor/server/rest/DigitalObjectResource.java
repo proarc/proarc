@@ -135,7 +135,7 @@ public class DigitalObjectResource {
      * @throws URISyntaxException
      * @throws IOException
      */
-    @PUT
+    @POST
     @Produces({MediaType.APPLICATION_JSON})
     public DigitalObjectList newObject(
             @FormParam("model") String modelId,
