@@ -24,7 +24,7 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
-import com.smartgwt.client.rpc.RPCResponse;
+import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.AutoFitWidthApproach;
 import com.smartgwt.client.types.ImageStyle;
 import com.smartgwt.client.types.Overflow;
@@ -40,6 +40,8 @@ import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
 import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
+import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
+import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.form.fields.IntegerItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
@@ -355,11 +357,22 @@ public class ImportBatchItemEditor extends HLayout {
         addMember(previewLayout);
     }
 
-    public void setBatchItems(BatchRecord batch) {
+    public void onShow(BatchRecord batch) {
         Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batch.getId());
         batchItemGrid.invalidateCache();
         thumbViewer.invalidateCache();
-        batchItemGrid.fetchData(criteria);
+        dfTabs[tabSet.getSelectedTabNumber()].onShow();
+
+        batchItemGrid.fetchData(criteria, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (response.getStatus() == DSResponse.STATUS_SUCCESS) {
+                    batchItemGrid.selectSingleRecord(0);
+                    batchItemGrid.focus();
+                }
+            }
+        });
         thumbViewer.fetchData(criteria);
     }
 
@@ -560,9 +573,10 @@ public class ImportBatchItemEditor extends HLayout {
         for (DynamicFormTab dfTab : dfTabs) {
             tabSet.addTab(dfTab.getWidget());
         }
-
-        tabSet.setTabBarControls(createTabControls());
-//        tabSet.selectTab(dfTabs.length - 1); // OCR
+        Object[] tabControls = createTabControls();
+        if (tabControls != null) {
+            tabSet.setTabBarControls(tabControls);
+        }
         return tabSet;
     }
 
@@ -595,6 +609,8 @@ public class ImportBatchItemEditor extends HLayout {
         DynamicForm form = new DynamicForm();
         form.setHeight100();
         form.setWidth100();
+        form.setBrowserSpellCheck(false);
+        form.setSaveOnEnter(true);
 
         SelectItem pageType = new SelectItem(ImportBatchItemDataSource.FIELD_PAGE_TYPE,
                 i18nPas.PageForm_PageType_Title());
@@ -643,77 +659,27 @@ public class ImportBatchItemEditor extends HLayout {
     }
 
     private Object[] createTabControls() {
-//        btnPreviousObject.setIcon("[SKIN]/actions/back.png");
-//        btnPreviousObject.setIcon("[SKIN]/actions/prev.png");
-//        btnPreviousObject.setIcon("[SKIN]/TransferIcons/left.png");
-        IButton btnPreviousObject = createTabControlButton(
-                "[SKIN]/actions/back.png", "p",
-                i18nPas.ImportBatchItemEditor_ButtonPrevious_Title(),
-                new ClickHandler() {
-
-            @Override
-            public void onClick(ClickEvent event) {
-                //                LOG.info("FOCUSES: " + ListFormItem.dump(dcEditor.getFields()));
-                selectNextBatchItem(false);
-            }
-        });
-
-//        btnNextObject.setIcon("[SKIN]/actions/next.png");
-//        btnNextObject.setIcon("[SKIN]/TransferIcons/right.png");
-        IButton btnNextObject = createTabControlButton(
-                "[SKIN]/actions/forward.png", "n",
-                i18nPas.ImportBatchItemEditor_ButtonNext_Title(),
-                new ClickHandler() {
-
-            @Override
-            public void onClick(ClickEvent event) {
-                selectNextBatchItem(true);
-            }
-        });
-
-        return new Object[] {btnPreviousObject, btnNextObject,
-//                new TransferImgButton(TransferImgButton.LEFT),
-//                new TransferImgButton(TransferImgButton.UP)
-        };
+        return null;
     }
 
-    private IButton createTabControlButton(String icon, String accessKey, String tooltip, ClickHandler handler) {
-        IButton btn = new IButton();
-        btn.setIcon(icon);
-//        btn.setIcon("[SKIN]/actions/back.png");
-//        btn.setIcon("[SKIN]/actions/prev.png");
-//        btn.setIcon("[SKIN]/TransferIcons/left.png");
-        btn.setShowRollOver(true);
-        btn.setShowDisabled(true);
-        btn.setShowDown(true);
-        btn.setWidth(24);
-        btn.setAccessKey(accessKey);
-        btn.setTooltip(tooltip);
-        btn.addClickHandler(handler);
-        return btn;
-    }
-
-    private void selectNextBatchItem(boolean forward) {
+    private int getNextSelection() {
         RecordList rl = batchItemGrid.getRecordList();
         int length = rl.getLength();
         if (length == 0) {
-            return ;
+            return -1;
         }
-
-        int increment = forward ? 1 : -1;
         ListGridRecord selectedRecord = batchItemGrid.getSelectedRecord();
         int nextSelectionIndex = 0;
         if (selectedRecord != null) {
             int recordIndex = batchItemGrid.getRecordIndex(selectedRecord);
-            int nextRecordIndex = recordIndex + increment;
-            if (nextRecordIndex < 0 || nextRecordIndex >= length) {
-                // start or end of the list, do nothing
-                return ;
+            int nextRecordIndex = recordIndex + 1;
+            if (nextRecordIndex >= length) {
+                // end of the list
+                nextRecordIndex = 0;
             }
             nextSelectionIndex = nextRecordIndex;
         }
-        batchItemGrid.selectSingleRecord(nextSelectionIndex);
-        batchItemGrid.scrollToRow(nextSelectionIndex);
+        return nextSelectionIndex;
     }
 
     private void selectBatchItem(final Record... selections) {
@@ -767,10 +733,60 @@ public class ImportBatchItemEditor extends HLayout {
         });
     }
 
-    private static class DynamicFormTab {
+    /**
+     * Wraps tab form to add submit button and submit handler.
+     */
+    private final class EditorForm extends VLayout {
+
+        private final DynamicForm form;
+
+        public EditorForm(final DynamicForm form) {
+            super(4);
+            IButton save = new IButton(i18nPas.ImportBatchItemEditor_Tab_Submit_Title(), new ClickHandler() {
+
+                @Override
+                public void onClick(ClickEvent event) {
+                    form.submit();
+                    form.focus();
+                }
+            });
+            save.setLayoutAlign(Alignment.CENTER);
+            form.setOverflow(Overflow.AUTO);
+            setMembers(form, save);
+            this.form = form;
+
+            form.addSubmitValuesHandler(new SubmitValuesHandler() {
+
+                @Override
+                public void onSubmitValues(SubmitValuesEvent event) {
+                    final int nextSelection = getNextSelection();
+                    form.saveData(new DSCallback() {
+
+                        @Override
+                        public void execute(DSResponse response, Object rawData, DSRequest request) {
+                            if (response.getStatus() == DSResponse.STATUS_SUCCESS) {
+                                if (nextSelection >= 0) {
+                                    batchItemGrid.selectSingleRecord(nextSelection);
+                                    form.focus();
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        public DynamicForm getForm() {
+            return form;
+        }
+
+    }
+
+    private final class DynamicFormTab {
         private final PasEditorMessages i18nPas;
         private final Tab tab;
         private final DynamicForm form;
+        private final EditorForm eform;
         private String title;
         private final Canvas emptyContent;
 
@@ -781,6 +797,7 @@ public class ImportBatchItemEditor extends HLayout {
             this.emptyContent = new Canvas();
             this.tab.setPane(emptyContent);
             this.form = form;
+            this.eform = new EditorForm(form);
             form.addItemChangedHandler(new ItemChangedHandler() {
 
                 @Override
@@ -815,128 +832,23 @@ public class ImportBatchItemEditor extends HLayout {
         }
 
         public void onHide(BooleanCallback hideCallback) {
-            // if change then submit
-            // use no selection to prevent fetching
-            UpdateProcessor processor = new UpdateProcessor(hideCallback);
-            if (form.valuesHaveChanged()) {
-                // if change then submit
-                processor.updateOrDiscard();
-            } else {
-                // fetch data
-                hideCallback.execute(true);
-//                processor.fetchSelection();
-            }
+            hideCallback.execute(true);
         }
 
         public void onChange(final BooleanCallback changeCallback, final Record... selections) {
-            UpdateProcessor processor = new UpdateProcessor(new BooleanCallback() {
-
-                @Override
-                public void execute(Boolean value) {
-                    if (value != null && value) {
-                        fetchSelection(selections);
-                    }
-                    changeCallback.execute(value);
-                }
-            }, selections);
-
-            Map values = form.getValues();
-            Map oldValues = form.getOldValues();
-            Map changedValues = form.getChangedValues();
-            LOG.info(ClientUtils.format("### form.valuesHaveChanged(): %s\n old: %s\n\n val: %s\n\n new: %s",
-                    form.valuesHaveChanged(), oldValues, values, changedValues));
-            if (form.valuesHaveChanged()) {
-                // if change then submit
-                processor.updateOrDiscard();
-            } else {
-                // fetch data
-                changeCallback.execute(true);
-                processor.fetchSelection();
-            }
-        }
-
-        private class UpdateProcessor implements BooleanCallback, DSCallback {
-
-            private final BooleanCallback callback;
-            private final Record[] selections;
-
-            /**
-             * @param callback returns false in case of failed update;
-             *          successful update or discard returns true
-             */
-            public UpdateProcessor(BooleanCallback callback, Record... selections) {
-                this.callback = callback;
-                this.selections = selections;
-            }
-
-            public void updateOrDiscard() {
-                if (form.valuesHaveChanged()) {
-                    SC.ask(i18nPas.ImportBatchItemEditor_WindowSave_MSG(), this);
-                }
-            }
-
-            public void updateOrDiscard(Boolean update) {
-                if (update != null && update) {
-                    form.saveData(this);
-                } else {
-                    form.clearValues();
-                    form.rememberValues();
-                    callback.execute(true);
-//                    fetchSelection();
-                }
-            }
-
-            public void fetchSelection() {
-                DynamicFormTab.this.fetchSelection(selections);
-            }
-
-            private void handleUpdateResponse(DSResponse response) {
-                // XXX handle errors
-                if (response != null && response.getStatus() != RPCResponse.STATUS_SUCCESS) {
-                    callback.execute(false);
-                    return ;
-                } else {
-                    callback.execute(true);
-//                    fetchSelection();
-                }
-//                if (selections != null && selections.length == 1) {
-//                    updateTitle();
-//                    callback.execute(true);
-//                    // this can be async
-//                    fetchSelection(selections[0].getAttribute(ImportBatchItemDataSource.FIELD_PID));
-//                }
-            }
-
-            @Override
-            public void execute(Boolean value) {
-                updateOrDiscard(value);
-            }
-
-            @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                handleUpdateResponse(response);
-            }
-
+            changeCallback.execute(true);
+            fetchSelection(selections);
         }
 
         private void fetchSelection(Record... selections) {
             Canvas pane = tab.getPane();
             Canvas newPane;
             if (selections != null && selections.length == 1) {
-                Boolean isClientOnlyDataSource = form.getDataSource().getClientOnly();
-                if (isClientOnlyDataSource != null && isClientOnlyDataSource) {
-                    // useful only for testing purposes
-                    form.editRecord(selections[0]);
-                    form.focus();
-                    form.rememberValues();
-                    updateTitle();
-                } else {
-                    fetchSelection(
-                            selections[0].getAttribute(ImportBatchItemDataSource.FIELD_PID),
-                            selections[0].getAttribute(ImportBatchItemDataSource.FIELD_BATCHID)
-                            );
-                }
-                newPane = form;
+                fetchSelection(
+                        selections[0].getAttribute(ImportBatchItemDataSource.FIELD_PID),
+                        selections[0].getAttribute(ImportBatchItemDataSource.FIELD_BATCHID)
+                        );
+                newPane = eform;
             } else {
                 newPane = emptyContent;
             }
@@ -963,7 +875,6 @@ public class ImportBatchItemEditor extends HLayout {
 //                    form.editRecord(r);
     //                dcEditor.editRecord(r.getAttributeAsRecord(DcRecordDataSource.FIELD_DC));
 //                    form.rememberValues();
-                    form.focus();
                     form.rememberValues();
                     updateTitle();
     //                LOG.info("FOCUSES: " + ListFormItem.dump(dcEditor.getFields()));

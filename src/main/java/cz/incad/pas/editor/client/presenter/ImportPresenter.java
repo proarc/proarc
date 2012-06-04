@@ -338,7 +338,7 @@ public class ImportPresenter {
             wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
                     i18nPas.ImportWizard_UpdateItemsStep_Description_Title());
             BatchRecord batch = getImportContext().getBatch();
-            widget.setBatchItems(batch);
+            widget.onShow(batch);
         }
 
         @Override
