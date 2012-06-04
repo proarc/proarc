@@ -48,8 +48,8 @@ public final class StringEditor {
 
     public static final String OCR_ID = "TEXT_OCR";
     public static final String OCR_LABEL = "OCR for this object";
-    public static final String NOTE_ID = "NOTE";
-    public static final String NOTE_LABEL = "Note for this object";
+    public static final String PRIVATE_NOTE_ID = "PRIVATE_NOTE";
+    public static final String PRIVATE_NOTE_LABEL = "Private note for this object";
 
     private final XmlStreamEditor editor;
     private final FedoraObject object;
@@ -60,8 +60,8 @@ public final class StringEditor {
         return new StringEditor(object, OCR_ID, MediaType.TEXT_PLAIN_TYPE, OCR_LABEL, ControlGroup.MANAGED);
     }
 
-    public static StringEditor note(FedoraObject object) {
-        return new StringEditor(object, NOTE_ID, MediaType.TEXT_PLAIN_TYPE, NOTE_LABEL, ControlGroup.MANAGED);
+    public static StringEditor privateNote(FedoraObject object) {
+        return new StringEditor(object, PRIVATE_NOTE_ID, MediaType.TEXT_PLAIN_TYPE, PRIVATE_NOTE_LABEL, ControlGroup.MANAGED);
     }
 
     private static XmlStreamEditor createEditor(FedoraObject object, String dsId,
@@ -103,6 +103,8 @@ public final class StringEditor {
             StreamSource stream = (StreamSource) source;
             String content = read(stream);
             result = new StringRecord(content, getLastModified(), object.getPid());
+        } else {
+            result = new StringRecord("", -1, object.getPid());
         }
         return result;
     }

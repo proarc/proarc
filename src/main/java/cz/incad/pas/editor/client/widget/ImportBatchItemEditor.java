@@ -477,17 +477,25 @@ public final class ImportBatchItemEditor extends HLayout {
     private DynamicFormTab[] createTabs() {
         DynamicFormTab dcTab = new DynamicFormTab(
                 i18nPas.ImportBatchItemEditor_TabDublinCore_Title(),
+                null,
                 createDcForm(), i18nPas);
+        DynamicFormTab noteTab = new DynamicFormTab(
+                i18nPas.ImportBatchItemEditor_TabNote_Title(),
+                i18nPas.ImportBatchItemEditor_TabNote_Hint(),
+                createNoteForm(), i18nPas);
         DynamicFormTab modsTab = new DynamicFormTab(
                 i18nPas.ImportBatchItemEditor_TabMods_Title(),
+                null,
                 createModsForm(), i18nPas);
         DynamicFormTab ocrTab = new DynamicFormTab(
                 i18nPas.ImportBatchItemEditor_TabOcr_Title(),
+                null,
                 createOcrForm(), i18nPas);
         return new DynamicFormTab[] {
             modsTab,
-            dcTab,
-            ocrTab
+            noteTab,
+            ocrTab,
+            dcTab
         };
     }
 
@@ -538,6 +546,22 @@ public final class ImportBatchItemEditor extends HLayout {
         form.setWidth100();
         form.setHeight100();
         TextAreaItem textAreaItem = new TextAreaItem(TextDataSource.FIELD_CONTENT, "OCR");
+        textAreaItem.setColSpan("*");
+        textAreaItem.setHeight("*");
+        textAreaItem.setWrap(TextAreaWrap.OFF);
+        textAreaItem.setShowTitle(false);
+        textAreaItem.setWidth("*");
+        form.setFields(textAreaItem);
+        return form;
+    }
+
+    private DynamicForm createNoteForm() {
+        DynamicForm form = new DynamicForm();
+        TextDataSource dataSource = TextDataSource.getNote();
+        form.setDataSource(dataSource);
+        form.setWidth100();
+        form.setHeight100();
+        TextAreaItem textAreaItem = new TextAreaItem(TextDataSource.FIELD_CONTENT, "Note");
         textAreaItem.setColSpan("*");
         textAreaItem.setHeight("*");
         textAreaItem.setWrap(TextAreaWrap.OFF);
@@ -679,10 +703,11 @@ public final class ImportBatchItemEditor extends HLayout {
         private String title;
         private final Canvas emptyContent;
 
-        public DynamicFormTab(String title, DynamicForm form, PasEditorMessages i18nPas) {
+        public DynamicFormTab(String title, String hint, DynamicForm form, PasEditorMessages i18nPas) {
             this.i18nPas = i18nPas;
             this.title = title;
             this.tab = new Tab(title);
+            this.tab.setPrompt(hint);
             this.emptyContent = new Canvas();
             this.tab.setPane(emptyContent);
             this.form = form;

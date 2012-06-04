@@ -522,6 +522,46 @@ public class DigitalObjectResource {
         return result;
     }
 
+    @GET
+    @Path("privatenote")
+    @Produces(MediaType.APPLICATION_JSON)
+    public StringRecord getPrivateNote(
+            @QueryParam("pid") String pid,
+            @QueryParam("batchId") String batchId
+            ) throws IOException {
+
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        StringEditor editor = StringEditor.privateNote(fobject);
+        StringRecord content = editor.readRecord();
+        if (content == null) {
+            throw new NotFoundException("pid", pid);
+        }
+        content.setBatchId(batchId);
+        return content;
+    }
+
+    @PUT
+    @Path("privatenote")
+    @Produces(MediaType.APPLICATION_JSON)
+    public StringRecord updatePrivateNote(
+            @FormParam("pid") String pid,
+            @FormParam("batchId") String batchId,
+            @FormParam("timestamp") Long timestamp,
+            @FormParam("content") String content
+            ) throws IOException {
+
+        if (timestamp == null) {
+            throw new IllegalArgumentException();
+        }
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        StringEditor editor = StringEditor.privateNote(fobject);
+        editor.write(content, timestamp);
+        fobject.flush();
+        StringRecord result = editor.readRecord();
+        result.setBatchId(batchId);
+        return result;
+    }
+
     private FedoraObject findFedoraObject(String pid, String batchId) throws IOException {
         FedoraObject fobject;
         if (batchId != null) {

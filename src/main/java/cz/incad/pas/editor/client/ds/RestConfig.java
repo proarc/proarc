@@ -45,6 +45,7 @@ public class RestConfig {
     public static final String URL_DIGOBJECT_MODS_PLAIN =  URL_DIGOBJECT_MODS + "/plain";
     public static final String URL_DIGOBJECT_OCR =  URL_DIGOBJECT + "/ocr";
     public static final String URL_DIGOBJECT_PREVIEW =  URL_DIGOBJECT + "/preview";
+    public static final String URL_DIGOBJECT_PRIVATE_NOTE =  URL_DIGOBJECT + "/privatenote";
     public static final String URL_DIGOBJECT_SEARCH =  URL_DIGOBJECT + "/search";
     public static final String URL_DIGOBJECT_THUMBNAIL =  URL_DIGOBJECT + "/thumb";
     public static final String URL_DIGOBJECT_METAMODEL =  URL_DIGOBJECT + "/metamodel";

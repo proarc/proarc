@@ -29,6 +29,7 @@ import com.smartgwt.client.types.FieldType;
 public final class TextDataSource extends DataSource {
 
     public static final String ID_MODS = "ModsTextDataSource";
+    public static final String ID_PRIVATE_NOTE = "PrivateNoteTextDataSource";
     public static final String ID_OCR = "OcrDataSource";
 
     public static final String FIELD_PID = "pid";
@@ -67,6 +68,10 @@ public final class TextDataSource extends DataSource {
 
     public static TextDataSource getOcr() {
         return getDS(ID_OCR, RestConfig.URL_DIGOBJECT_OCR);
+    }
+
+    public static TextDataSource getNote() {
+        return getDS(ID_PRIVATE_NOTE, RestConfig.URL_DIGOBJECT_PRIVATE_NOTE);
     }
 
     public static TextDataSource getMods() {
