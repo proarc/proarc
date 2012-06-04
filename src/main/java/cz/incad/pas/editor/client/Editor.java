@@ -42,7 +42,6 @@ import com.smartgwt.client.widgets.tree.events.LeafClickEvent;
 import com.smartgwt.client.widgets.tree.events.LeafClickHandler;
 import cz.incad.pas.editor.client.ds.DcRecordDataSource;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
-import cz.incad.pas.editor.client.ds.OcrDataSource;
 import cz.incad.pas.editor.client.ds.RemoteMetadataDataSource;
 import cz.incad.pas.editor.client.presenter.DigObjectEditorPresenter;
 import cz.incad.pas.editor.client.presenter.ImportPresenter;
@@ -77,7 +76,6 @@ public class Editor implements EntryPoint {
 
         // !!!DO NOT REMOVE datasource init, otherwise SmartGWT does not render anything
         // It relates to ImportBatchItemEditor.createTabs somehow.
-        OcrDataSource ocrDataSource = OcrDataSource.getInstance();
         DcRecordDataSource dcRecordDataSource = DcRecordDataSource.getInstance();
         RemoteMetadataDataSource instance = RemoteMetadataDataSource.getInstance();
         DigitalObjectDataSource instance1 = DigitalObjectDataSource.getInstance();

@@ -42,7 +42,7 @@ import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
-import cz.incad.pas.editor.client.ds.ModsTextDataSource;
+import cz.incad.pas.editor.client.ds.TextDataSource;
 import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
 import cz.incad.pas.editor.client.widget.mods.MonographForm;
@@ -103,13 +103,13 @@ public final class ModsFullEditor {
             sourceForm.setNumCols(1);
 //            TextAreaItem sourceItem = new TextAreaItem(ModsTextDataSource.FIELD_CONTENT);
             // TextAreaItem.setCanEdit is unsupported http://mytechscratchpad.blogspot.com/2011/08/smartgwt-textareaitem-readonly.html
-            StaticTextItem sourceItem = new StaticTextItem(ModsTextDataSource.FIELD_CONTENT);
+            StaticTextItem sourceItem = new StaticTextItem(TextDataSource.FIELD_CONTENT);
             sourceItem.setEscapeHTML(true);
             sourceItem.setWidth("*");
             sourceItem.setHeight("*");
             sourceItem.setShowTitle(false);
             sourceForm.setFields(sourceItem);
-            sourceForm.setDataSource(ModsTextDataSource.getInstance());
+            sourceForm.setDataSource(TextDataSource.getMods());
             tabSource.setPane(sourceForm);
 
             tabSet = new TabSet();

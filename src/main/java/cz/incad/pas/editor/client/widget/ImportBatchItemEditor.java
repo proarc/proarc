@@ -74,8 +74,8 @@ import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
-import cz.incad.pas.editor.client.ds.OcrDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
+import cz.incad.pas.editor.client.ds.TextDataSource;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -533,13 +533,11 @@ public final class ImportBatchItemEditor extends HLayout {
     
     private DynamicForm createOcrForm() {
         DynamicForm form = new DynamicForm();
-        OcrDataSource dataSource = OcrDataSource.getInstance();
+        TextDataSource dataSource = TextDataSource.getOcr();
         form.setDataSource(dataSource);
-
-
         form.setWidth100();
         form.setHeight100();
-        TextAreaItem textAreaItem = new TextAreaItem(OcrDataSource.FIELD_OCR, "OCR");
+        TextAreaItem textAreaItem = new TextAreaItem(TextDataSource.FIELD_CONTENT, "OCR");
         textAreaItem.setColSpan("*");
         textAreaItem.setHeight("*");
         textAreaItem.setWrap(TextAreaWrap.OFF);

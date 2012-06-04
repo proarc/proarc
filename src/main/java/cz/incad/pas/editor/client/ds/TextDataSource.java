@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Jan Pokorsky
+ * Copyright (C) 2012 Jan Pokorsky
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,25 +22,27 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 
 /**
+ * Data source for digital object's data streams as raw text.
  *
  * @author Jan Pokorsky
  */
-public final class ModsTextDataSource extends DataSource {
+public final class TextDataSource extends DataSource {
 
-    public static final String ID = "ModsTextDataSource";
+    public static final String ID_MODS = "ModsTextDataSource";
+    public static final String ID_OCR = "OcrDataSource";
 
     public static final String FIELD_PID = "pid";
     public static final String FIELD_BATCHID = "batchId";
     public static final String FIELD_TIMESTAMP = "timestamp";
     public static final String FIELD_CONTENT = "content";
 
-    public ModsTextDataSource() {
-        setID(ID);
+    public TextDataSource(String dsId, String dsUrl) {
+        setID(id);
 
         setRecordXPath("/record");
         setDataFormat(DSDataFormat.JSON);
-        
-        setDataURL(RestConfig.URL_DIGOBJECT_MODS_PLAIN);
+
+        setDataURL(dsUrl);
 
         DataSourceField fieldPid = new DataSourceField(FIELD_PID, FieldType.TEXT);
         fieldPid.setPrimaryKey(true);
@@ -54,19 +56,26 @@ public final class ModsTextDataSource extends DataSource {
         fieldTimestamp.setRequired(true);
         fieldTimestamp.setHidden(true);
 
-        DataSourceField fieldOcr = new DataSourceField(FIELD_CONTENT, FieldType.TEXT);
+        DataSourceField fieldContent = new DataSourceField(FIELD_CONTENT, FieldType.TEXT);
 
-        setFields(fieldPid, fieldBatchId, fieldTimestamp, fieldOcr);
+        setFields(fieldPid, fieldBatchId, fieldTimestamp, fieldContent);
 
-//        setOperationBindings(RestConfig.createUpdateOperation());
+        setOperationBindings(RestConfig.createUpdateOperation());
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
-        
     }
 
-    public static ModsTextDataSource getInstance() {
-        ModsTextDataSource ds = (ModsTextDataSource) DataSource.get(ID);
-        ds = (ds != null) ? ds : new ModsTextDataSource();
+    public static TextDataSource getOcr() {
+        return getDS(ID_OCR, RestConfig.URL_DIGOBJECT_OCR);
+    }
+
+    public static TextDataSource getMods() {
+        return getDS(ID_MODS, RestConfig.URL_DIGOBJECT_MODS_PLAIN);
+    }
+
+    private static TextDataSource getDS(String dsId, String dsUrl) {
+        TextDataSource ds = (TextDataSource) DataSource.get(dsId);
+        ds = (ds != null) ? ds : new TextDataSource(dsId, dsUrl);
         return ds;
     }
 
