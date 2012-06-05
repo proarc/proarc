@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.client.widget;
 
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -72,6 +73,7 @@ import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
+import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.TextDataSource;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -373,7 +375,24 @@ public final class ImportBatchItemEditor extends HLayout {
                 });
             }
         });
-        menu.setItems(miSelectAll, miSelectMatching, new MenuItemSeparator(), miEdit, miDelete);
+
+        MenuItem miFoxml = new MenuItem(i18nPas.ImportBatchItemEditor_MenuViewFoxml_Title());
+        miFoxml.addClickHandler(new com.smartgwt.client.widgets.menu.events.ClickHandler() {
+
+            @Override
+            public void onClick(MenuItemClickEvent event) {
+                Record[] selection = thumbGrid.getSelection();
+                if (selection != null && selection.length > 0) {
+                    String url = ClientUtils.format("%s?pid=%s&batchId=%s",
+                            RestConfig.URL_DIGOBJECT_DISSEMINATION,
+                            selection[0].getAttribute(ImportBatchItemDataSource.FIELD_PID),
+                            selection[0].getAttribute(ImportBatchItemDataSource.FIELD_BATCHID)
+                            );
+                    Window.open(url, "_blanc", "");
+                }
+            }
+        });
+        menu.setItems(miSelectAll, new MenuItemSeparator(), miEdit, miDelete, miFoxml);
         thumbGrid.setContextMenu(menu);
 
         thumbGrid.setDataSource(ImportBatchItemDataSource.getInstance());

@@ -27,10 +27,14 @@ import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.ConcurrentModificationException;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
 import javax.xml.transform.Source;
@@ -111,6 +115,32 @@ public final class LocalStorage {
 
         public DigitalObject getDigitalObject() {
             return dobj;
+        }
+
+        @Override
+        public String asText() {
+            InputStreamReader reader = null;
+            try {
+                StringBuilder sb = new StringBuilder((int) foxml.length());
+                reader = new InputStreamReader(
+                        new FileInputStream(foxml), "UTF-8");
+                char[] buffer = new char[8192];
+                int length;
+                while ((length = reader.read(buffer)) > 0) {
+                    sb.append(buffer, 0, length);
+                }
+                return sb.toString();
+            } catch (Exception ex) {
+                throw new IllegalStateException(foxml.toString(), ex);
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException ex) {
+                        LOG.log(Level.SEVERE, foxml.toString(), ex);
+                    }
+                }
+            }
         }
 
     }

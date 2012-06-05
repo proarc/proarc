@@ -32,4 +32,6 @@ public interface FedoraObject {
 
     void flush();
 
+    String asText();
+
 }

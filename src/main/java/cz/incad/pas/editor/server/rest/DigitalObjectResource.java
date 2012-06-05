@@ -404,6 +404,24 @@ public class DigitalObjectResource {
     }
 
     /**
+     * Default alias for FULL dissemination.
+     *
+     * @param pid digital object PID (required)
+     * @param batchId import batch ID (optional)
+     * @return raw version of the archived object
+     */
+    @GET
+    @Path("full")
+    @Produces("*/*")
+    public Response getFull(
+            @QueryParam("pid") String pid,
+            @QueryParam("batchId") String batchId
+            ) throws IOException {
+
+        return getDissemination(pid, batchId, BinaryEditor.FULL_ID);
+    }
+
+    /**
      * Default alias for raw dissemination.
      *
      * @param pid digital object PID (required)
@@ -421,6 +439,15 @@ public class DigitalObjectResource {
         return getDissemination(pid, batchId, BinaryEditor.RAW_ID);
     }
 
+    /**
+     * Gets digital object dissemination.
+     *
+     * @param pid PID (required)
+     * @param batchId import batch ID (optional)
+     * @param dsId data stream ID. If missing the whole digital object is returned as XML.
+     * @return digital object dissemination
+     * @throws IOException
+     */
     @GET
     @Path("/dissemination")
     @Produces("*/*")
@@ -431,6 +458,11 @@ public class DigitalObjectResource {
             ) throws IOException {
 
         FedoraObject fobject = findFedoraObject(pid, batchId);
+        if (dsId == null) {
+            return Response.ok(fobject.asText(), MediaType.TEXT_XML_TYPE)
+                    .header("Content-Disposition", "inline; filename=" + pid + ".xml")
+                    .build();
+        }
         if (fobject instanceof LocalObject) {
             LocalObject lobject = (LocalObject) fobject;
             BinaryEditor loader = BinaryEditor.dissemination(lobject, dsId);
@@ -449,6 +481,7 @@ public class DigitalObjectResource {
             }
 
             return Response.ok(entity, loader.getMimetype())
+                    .header("Content-Disposition", "inline; filename=" + entity.getName())
                     .lastModified(lastModification)
 //                    .cacheControl(null)
 //                    .expires(new Date(2100, 1, 1))
@@ -463,6 +496,7 @@ public class DigitalObjectResource {
             ClientResponse response = remote.getClient().resource().path(path).get(ClientResponse.class);
             MultivaluedMap<String, String> headers = response.getHeaders();
             String filename = headers.getFirst("Content-Disposition");
+            filename = filename != null ? filename : "inline; filename=" + pid + '-' + dsId;
             return Response.ok(response.getEntity(InputStream.class), headers.getFirst("Content-Type"))
                     .header("Content-Disposition", filename)
                     .build();

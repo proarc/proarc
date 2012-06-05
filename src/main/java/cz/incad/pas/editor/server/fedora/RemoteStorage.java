@@ -152,6 +152,16 @@ public final class RemoteStorage {
             }
         }
 
+        @Override
+        public String asText() {
+            try {
+                FedoraResponse response = FedoraClient.getObjectXML(getPid()).execute(client);
+                return response.getEntity(String.class);
+            } catch (FedoraClientException ex) {
+                throw new IllegalStateException(getPid(), ex);
+            }
+        }
+
     }
 
     /**
