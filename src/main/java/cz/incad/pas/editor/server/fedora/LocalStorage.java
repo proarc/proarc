@@ -125,7 +125,8 @@ public final class LocalStorage {
         private final String formatUri;
         private final String defaultLabel;
         private final boolean isXml;
-        private final MediaType mimetype;
+        private final MediaType defaultMimetype;
+        private String realMimetype;
         private final ControlGroup control;
         private boolean storeExternally;
 
@@ -156,7 +157,7 @@ public final class LocalStorage {
             this.formatUri = formatUri;
             this.defaultLabel = label;
             this.isXml = mimetype == MediaType.TEXT_XML_TYPE;
-            this.mimetype = mimetype;
+            this.defaultMimetype = mimetype;
             this.control = control;
             if (!SUPPORTED_CONTROL_GROUPS.contains(control)) {
                 throw new IllegalArgumentException("Unsupported control group: " + control);
@@ -168,6 +169,9 @@ public final class LocalStorage {
         public Source read() {
             // find version
             DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
+            if (version != null) {
+                realMimetype = version.getMIMETYPE();
+            }
             return createSource(version);
         }
 
@@ -214,7 +218,14 @@ public final class LocalStorage {
 
         @Override
         public String getMimetype() {
-            return mimetype.toString();
+            if (realMimetype == null) {
+                DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
+                realMimetype = version.getMIMETYPE();
+            }
+            if (realMimetype == null) {
+                realMimetype = defaultMimetype.toString();
+            }
+            return realMimetype;
         }
 
         @Override
@@ -223,7 +234,7 @@ public final class LocalStorage {
             if (version == null) {
                 version = FoxmlUtils.createDataStreamVersion(
                         object.getDigitalObject(), dsId, control, false, StateType.A);
-                version.setMIMETYPE(mimetype.toString());
+                version.setMIMETYPE(getMimetype());
                 version.setLABEL(defaultLabel);
             } else if (timestamp != getLastModified(version)) {
                 throw new ConcurrentModificationException(dsId);
@@ -279,7 +290,7 @@ public final class LocalStorage {
         @Override
         public String toString() {
             return String.format("%s{pid=%s, dsId=%s, mimetype=%s, controlGroup=%s,\nfoxml=%s}",
-                    getClass().getSimpleName(), object.getPid(), dsId, mimetype, control, object.getFoxml());
+                    getClass().getSimpleName(), object.getPid(), dsId, getMimetype(), control, object.getFoxml());
         }
     }
 
