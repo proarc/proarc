@@ -205,10 +205,10 @@ public class ImportPresenter {
 
         @Override
         public void itemSelected() {
-            // XXX check selected item for imported/not yet imported/selected
             Record record = widget.getSelectedBatch();
             if (record != null) {
-                wizard.setCanStepForward(true);
+                boolean canForward = new BatchRecord(record).getState() == ImportBatchDataSource.State.LOADED;
+                wizard.setCanStepForward(canForward);
             } else {
                 wizard.setCanStepForward(false);
             }
