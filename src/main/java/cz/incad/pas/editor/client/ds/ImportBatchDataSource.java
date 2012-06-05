@@ -77,7 +77,6 @@ public final class ImportBatchDataSource extends RestDataSource {
         states.put(State.INGESTING.name(), i18nPas.ImportBatchDataSource_State_INGESTING());
         states.put(State.INGESTING_FAILED.name(), i18nPas.ImportBatchDataSource_State_INGESTING_FAILED());
         states.put(State.INGESTED.name(), i18nPas.ImportBatchDataSource_State_INGESTED());
-        states.put(null, "Unknown"); // should not occur
         state.setValueMap(states);
 
         DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);
