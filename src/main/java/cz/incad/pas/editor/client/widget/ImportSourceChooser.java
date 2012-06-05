@@ -93,10 +93,13 @@ public final class ImportSourceChooser extends VLayout {
         SelectItem selectScanner = new SelectItem(ImportBatchDataSource.FIELD_DEVICE,
                 i18nPas.ImportSourceChooser_OptionScanner_Title());
         LinkedHashMap<String, String> scannerMap = new LinkedHashMap<String, String>();
-        scannerMap.put("scanner:scanner1", "Zeutschel OS 7000");
-        scannerMap.put("scanner:scanner2", "Zeutschel OS 8000");
+        scannerMap.put("device:digibook_suprascan_10000 rgb", "Digibook Suprascan 10000 RGB");
+        scannerMap.put("device:panasonic_kv_s1025c", "Panasonic KV-S1025C");
+        scannerMap.put("device:proserv_scanntech_600i", "ProServ ScannTech 600i");
+        scannerMap.put("device:scanrobot_sr301", "ScanRobot SR301");
+        scannerMap.put("device:zeutschel_7000", "Zeutschel OS 7000");
         selectScanner.setValueMap(scannerMap);
-        selectScanner.setDefaultValue("scanner:scanner1");
+        selectScanner.setDefaultToFirstOption(true);
         
         optionsForm.setFields(cbiPageIndexes, selectScanner);
         layout.addMember(optionsForm);
