@@ -241,19 +241,18 @@ public class ImportResource {
             @FormParam("state") ImportBatch.State state
             ) throws IOException, FedoraClientException {
 
-        ImportBatch batch;
-        ImportBatch toUpdate = importManager.get(batchId);
-        if (toUpdate == null) {
+        ImportBatch batch = importManager.get(batchId);
+        if (batch == null) {
             throw new NotFoundException("id", String.valueOf(batchId));
+        }
+        if (parentPid != null) {
+            batch.setParentPid(parentPid);
+            batch = importManager.update(batch);
         }
         if (state == ImportBatch.State.INGESTING) {
             // ingest
             batch = new FedoraImport(RemoteStorage.getInstance(pasConfig), importManager)
-                    .importBatch(toUpdate, user.getUserName());
-        } else {
-            // update parent
-            toUpdate.setParentPid(parentPid);
-            batch = importManager.update(toUpdate);
+                    .importBatch(batch, user.getUserName());
         }
         return new SmartGwtResponse(batch);
     }

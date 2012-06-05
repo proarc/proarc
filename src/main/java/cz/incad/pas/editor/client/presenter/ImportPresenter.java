@@ -114,26 +114,15 @@ public class ImportPresenter {
         wizard.moveAt(finishedStep);
     }
 
-    private void ingest(String batchId) {
-        ingest(batchId, new BooleanCallback() {
-
-            @Override
-            public void execute(Boolean value) {
-                if (value != null && value) {
-                    ImportPresenter.this.importFolder();
-                }
-            }
-        });
-    }
-
-    private void ingest(String batchId, final BooleanCallback call) {
+    private void ingest(String batchId, String parentId, final BooleanCallback call) {
         ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
         DSRequest dsRequest = new DSRequest();
         dsRequest.setPromptStyle(PromptStyle.DIALOG);
         dsRequest.setPrompt(i18nPas.ImportWizard_UpdateItemsStep_Ingesting_Title());
         Record update = new Record();
         update.setAttribute(ImportBatchDataSource.FIELD_ID, batchId);
-        update.setAttribute(ImportBatchDataSource.FIELD_STATE, ImportBatchDataSource.State.INGESTING);
+        update.setAttribute(ImportBatchDataSource.FIELD_PARENT, parentId);
+        update.setAttribute(ImportBatchDataSource.FIELD_STATE, ImportBatchDataSource.State.INGESTING.name());
         dsBatch.updateData(update, new DSCallback() {
 
             @Override
@@ -143,6 +132,32 @@ public class ImportPresenter {
                     return;
                 }
                 call.execute(true);
+            }
+        }, dsRequest);
+    }
+
+    private void updateBatchParent(String batchId, final String parentPid, final BooleanCallback call) {
+        ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
+        DSRequest dsRequest = new DSRequest();
+        Record update = new Record();
+        update.setAttribute(ImportBatchDataSource.FIELD_ID, batchId);
+        update.setAttribute(ImportBatchDataSource.FIELD_PARENT, parentPid);
+        dsBatch.updateData(update, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
+                    call.execute(false);
+                    return;
+                }
+                Record[] data = response.getData();
+                if (data != null && data.length > 0) {
+                    importContext.setParentPid(parentPid);
+                    call.execute(true);
+                } else {
+                    // XXX show warning something is wrong
+                    call.execute(false);
+                }
             }
         }, dsRequest);
     }
@@ -396,59 +411,47 @@ public class ImportPresenter {
 
         @Override
         public boolean onStepAction(Wizard wizard, StepKind step) {
+            final ImportContext importContext = ImportPresenter.this.getImportContext();
+            final String parentPid = importContext.getParentPid();
+            String batchId = importContext.getBatch().getId();
             if (step == StepKind.FORWARD) {
-                Record selectedParent = widget.getSelectedParent();
-                final ImportContext importContext = ImportPresenter.this.getImportContext();
-                if (selectedParent != null) {
-                    final String parentPid = selectedParent.getAttribute(RelationDataSource.FIELD_PID);
-                    if (parentPid.equals(importContext.getParentPid())) {
-                        // no change
-                        return true;
-                    }
-                    updateBatch(importContext.getBatch().getId(), parentPid, new BooleanCallback() {
-
-                        @Override
-                        public void execute(Boolean value) {
-                            if (value != null && value) {
-                                importContext.setParentPid(parentPid);
-                                BatchRecord batch = getImportContext().getBatch();
-                                ingest(batch.getId());
-                            } else {
-                                // show some warning
-                            }
-                        }
-                    });
+                if (parentPid != null) {
+                    ingest(batchId, parentPid);
                 }
                 return false;
             } else {
+                if (parentPid != null) {
+                    updateBatchParent(batchId, parentPid);
+                    return false;
+                }
                 return true;
             }
         }
 
-        private void updateBatch(String batchId, final String parentPid, final BooleanCallback call) {
-            ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
-            DSRequest dsRequest = new DSRequest();
-            Record update = new Record();
-            update.setAttribute(ImportBatchDataSource.FIELD_ID, batchId);
-            update.setAttribute(ImportBatchDataSource.FIELD_PARENT, parentPid);
-            dsBatch.updateData(update, new DSCallback() {
+        private void ingest(String batchId, String parentPid) {
+            ImportPresenter.this.ingest(batchId, parentPid, new BooleanCallback() {
 
                 @Override
-                public void execute(DSResponse response, Object rawData, DSRequest request) {
-                    if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
-                        call.execute(false);
-                        return;
-                    }
-                    Record[] data = response.getData();
-                    if (data != null && data.length > 0) {
-                        importContext.setParentPid(parentPid);
-                        call.execute(true);
-                    } else {
-                        // XXX show warning something is wrong
-                        call.execute(false);
+                public void execute(Boolean value) {
+                    if (value != null && value) {
+                        ImportPresenter.this.importFolder();
                     }
                 }
-            }, dsRequest);
+            });
+        }
+
+        private void updateBatchParent(String batchId, final String parentPid) {
+            ImportPresenter.this.updateBatchParent(batchId, parentPid, new BooleanCallback() {
+
+                @Override
+                public void execute(Boolean value) {
+                    if (value != null && value) {
+                        ImportPresenter.this.updateImportedObjects();
+                    } else {
+                        // show some warning
+                    }
+                }
+            });
         }
 
         @Override
@@ -466,6 +469,7 @@ public class ImportPresenter {
                     ? selectedParent.getAttribute(RelationDataSource.FIELD_PID)
                     : null;
             boolean valid = pid != null;
+            importContext.setParentPid(pid);
             wizard.setCanStepForward(valid);
         }
     }
