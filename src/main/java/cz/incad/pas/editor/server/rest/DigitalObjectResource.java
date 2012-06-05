@@ -394,7 +394,7 @@ public class DigitalObjectResource {
 
     @GET
     @Path("/preview")
-    @Produces("image/*")
+    @Produces("*/*")
     public Response getPreview(
             @QueryParam("pid") String pid,
             @QueryParam("batchId") String batchId
@@ -403,9 +403,27 @@ public class DigitalObjectResource {
         return getDissemination(pid, batchId, BinaryEditor.PREVIEW_ID);
     }
 
+    /**
+     * Default alias for raw dissemination.
+     *
+     * @param pid digital object PID (required)
+     * @param batchId import batch ID (optional)
+     * @return raw version of the archived object
+     */
+    @GET
+    @Path("raw")
+    @Produces("*/*")
+    public Response getRaw(
+            @QueryParam("pid") String pid,
+            @QueryParam("batchId") String batchId
+            ) throws IOException {
+
+        return getDissemination(pid, batchId, BinaryEditor.RAW_ID);
+    }
+
     @GET
     @Path("/dissemination")
-    @Produces("image/*")
+    @Produces("*/*")
     public Response getDissemination(
             @QueryParam("pid") String pid,
             @QueryParam("batchId") String batchId,

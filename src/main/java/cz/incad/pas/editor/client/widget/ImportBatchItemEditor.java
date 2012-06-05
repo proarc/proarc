@@ -26,7 +26,6 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.AutoFitWidthApproach;
-import com.smartgwt.client.types.ImageStyle;
 import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TextAreaWrap;
@@ -34,7 +33,6 @@ import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
-import com.smartgwt.client.widgets.Img;
 import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
@@ -74,7 +72,6 @@ import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
-import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.TextDataSource;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -88,20 +85,17 @@ import java.util.logging.Logger;
  */
 public final class ImportBatchItemEditor extends HLayout {
 
-    // darker variant #E6E6F5
-    private static final String BACKGROUND_COLOR = "#F5F5FB";
-
     private static final Logger LOG = Logger.getLogger(ImportBatchItemEditor.class.getName());
 
     private final PasEditorMessages i18nPas;
 
     private final ListGrid batchItemGrid;
     private ListGridField fieldItemModel;
-    private final Img preview;
     private final TabSet tabSet;
     private DynamicFormTab[] dfTabs;
     private final TileGrid thumbViewer;
-    
+    private final DigitalObjectPreview digitalObjectPreview;
+
     public ImportBatchItemEditor(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
         this.setHeight100();
@@ -217,37 +211,13 @@ public final class ImportBatchItemEditor extends HLayout {
         thumbViewer = createThumbViewer();
         editorThumbLayout.addMember(thumbViewer);
 
-//        VLayout previewLayout = new VLayout();
-////        preview = new DetailViewer();
-//        preview = new TileGrid();
-        preview = new Img();
-        preview.setImageType(ImageStyle.CENTER);
-        preview.setWidth(400);
-//        preview.setShowTitle(true);
-//        preview.setTitle("Preview");
-//        preview.setAltText("Alt Preview");
-//        DetailViewerField fieldPreview = new DetailViewerField(ImportBatchItemDataSource.FIELD_PREVIEW, "Preview");
-//        fieldPreview.setType("image");
-//        fieldPreview.setImageWidth(200);
-//        fieldPreview.setShowFileInline(true);
-//        preview.setFields(fieldPreview);
-////        preview.setDataSource(ImportBatchItemDataSource.getInstance());
-//        previewLayout.setMembers(preview);
-//        previewLayout.setAlign(Alignment.CENTER);
-////        previewLayout.setWidth(200);
-//        previewLayout.setOverflow(Overflow.AUTO);
-////        previewLayout.setRedrawOnResize(true);
-//        addMember(previewLayout);
-//        preview.setWidth("50%");
-//        preview.setOverflow(Overflow.AUTO);
-        HLayout previewLayout = new HLayout();
+        digitalObjectPreview = new DigitalObjectPreview(i18nPas);
+        digitalObjectPreview.addBackgroundListeners(thumbViewer);
+        Canvas previewLayout = digitalObjectPreview.asCanvas();
         previewLayout.setWidth("40%");
         previewLayout.setHeight100();
-        previewLayout.setOverflow(Overflow.AUTO);
-        previewLayout.setBackgroundColor(BACKGROUND_COLOR);
 //        previewLayout.setShowResizeBar(true);
 //        previewLayout.setResizeFrom("L");
-        previewLayout.addMember(preview);
         addMember(previewLayout);
     }
 
@@ -255,6 +225,7 @@ public final class ImportBatchItemEditor extends HLayout {
         Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batch.getId());
         batchItemGrid.invalidateCache();
         thumbViewer.invalidateCache();
+        digitalObjectPreview.selectPreviewField(null);
         dfTabs[tabSet.getSelectedTabNumber()].onShow();
 
         batchItemGrid.fetchData(criteria, new DSCallback() {
@@ -276,7 +247,7 @@ public final class ImportBatchItemEditor extends HLayout {
 
     private TileGrid createThumbViewer() {
         final TileGridEnhanced thumbGrid = new TileGridEnhanced();
-        thumbGrid.setBackgroundColor(BACKGROUND_COLOR);
+        thumbGrid.setBackgroundColor(DigitalObjectPreview.BACKGROUND_COLOR);
         thumbGrid.setWidth(150);
         thumbGrid.setHeight100();
         thumbGrid.setMinWidth(150);
@@ -603,14 +574,12 @@ public final class ImportBatchItemEditor extends HLayout {
             public void execute(Boolean value) {
                 if (value != null && value) {
                     if (selections != null && selections.length == 1) {
-                        preview.setSrc(ClientUtils.format("%s?%s",
-                                RestConfig.URL_DIGOBJECT_PREVIEW,
-                                selections[0].getAttribute(ImportBatchItemDataSource.FIELD_PREVIEW)
-                                ));
-                    } else {
-                        preview.setSrc("");
+                        digitalObjectPreview.selectPreviewField(
+                                selections[0].getAttribute(ImportBatchItemDataSource.FIELD_PREVIEW));
+                        return ;
                     }
                 }
+                digitalObjectPreview.selectPreviewField(null);
             }
         }, selections);
     }
