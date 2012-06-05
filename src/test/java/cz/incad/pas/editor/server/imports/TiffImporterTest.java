@@ -18,8 +18,13 @@ package cz.incad.pas.editor.server.imports;
 
 import com.yourmediashelf.fedora.generated.foxml.ObjectFactory;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
+import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
+import cz.incad.pas.editor.server.fedora.BinaryEditor;
+import cz.incad.pas.editor.server.fedora.StringEditor;
+import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.imports.ImportProcess.ImportOptions;
+import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -130,13 +135,17 @@ public class TiffImporterTest {
         namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
         XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
         String foxmlSystemId = foxml.toURI().toASCIIString();
-        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='BIBLIO_MODS']", new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='DC']", new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='TEXT_OCR']", new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='RELS-EXT']", new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_FULL']", new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_PREVIEW']", new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_THUMB']", new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists("f:digitalObject/f:datastream[@ID='IMG_RAW']", new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(DcStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(StringEditor.OCR_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(RelationEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.FULL_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.PREVIEW_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.THUMB_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.RAW_ID), new InputSource(foxmlSystemId));
+    }
+
+    private static String streamXPath(String dsId) {
+        return "f:digitalObject/f:datastream[@ID='" + dsId + "']";
     }
 }

@@ -39,13 +39,13 @@ import javax.xml.transform.stream.StreamSource;
  */
 public final class BinaryEditor {
 
-    public static final String PREVIEW_ID = "IMG_PREVIEW";
+    public static final String PREVIEW_ID = "PREVIEW";
     public static final String PREVIEW_LABEL = "Preview of this object";
-    public static final String THUMB_ID = "IMG_THUMB";
+    public static final String THUMB_ID = "THUMBNAIL";
     public static final String THUMB_LABEL = "Thumbnail of this object";
-    public static final String FULL_ID = "IMG_FULL";
+    public static final String FULL_ID = "FULL";
     public static final String FULL_LABEL = "Presentable version of RAW";
-    public static final String RAW_ID = "IMG_RAW";
+    public static final String RAW_ID = "RAW";
     public static final String RAW_LABEL = "Original digital content of this object";
     public static final MediaType IMAGE_JPEG = new MediaType("image", "jpeg");
     public static final MediaType IMAGE_TIFF = new MediaType("image", "tiff");
