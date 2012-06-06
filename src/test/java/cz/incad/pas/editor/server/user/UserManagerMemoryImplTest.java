@@ -70,8 +70,8 @@ public class UserManagerMemoryImplTest {
         assertEquals(1, all.size());
         UserProfile admin = all.iterator().next();
         assertEquals("admin", admin.getUserName());
-        assertEquals(1, admin.getId());
-        assertEquals(new File(config.getDefaultUsersHome(), "admin").toURI(), admin.getUserHome().normalize());
+        assertEquals(Integer.valueOf(1), admin.getId());
+        assertEquals(new File(config.getDefaultUsersHome(), "admin").toURI(), admin.getUserHomeUri().normalize());
     }
 
     @Test
@@ -102,7 +102,7 @@ public class UserManagerMemoryImplTest {
         int userId = 1;
         UserManager mgr = UserManagerMemoryImpl.getInstance(config);
         UserProfile result = mgr.find(userId);
-        assertEquals(userId, result.getId());
+        assertEquals(Integer.valueOf(userId), result.getId());
         assertEquals("admin", result.getUserName());
 
         try {
@@ -140,7 +140,7 @@ public class UserManagerMemoryImplTest {
         UserProfile up = instance.find(userName);
         assertEquals(userName, up.getUserName());
         assertEquals(displayName, up.getDisplayName());
-        assertEquals(new File(userHomePath + '/' + UserManagerMemoryImpl.IMPORT_FOLDER_NAME).toURI(), up.getImportFolder());
+        assertEquals(new File(userHomePath + '/' + UserUtil.IMPORT_FOLDER_NAME).toURI(), up.getImportFolder());
     }
 
     @Test
@@ -157,7 +157,7 @@ public class UserManagerMemoryImplTest {
         UserProfile up = instance.find(userName);
         assertEquals(userName, up.getUserName());
         assertEquals(displayName, up.getDisplayName());
-        assertEquals(new File(config.getDefaultUsersHome().getAbsolutePath() + "/" + userName + "_1/" + UserManagerMemoryImpl.IMPORT_FOLDER_NAME)
+        assertEquals(new File(config.getDefaultUsersHome().getAbsolutePath() + "/" + userName + "_1/" + UserUtil.IMPORT_FOLDER_NAME)
                 .toURI(), up.getImportFolder());
     }
 
@@ -170,7 +170,7 @@ public class UserManagerMemoryImplTest {
 
         try {
             UserProfile up = instance.add(userName, displayName, userHomePath);
-            fail("exception expected, userHome: " + up.getUserHome());
+            fail("exception expected, userHome: " + up.getUserHomeUri());
         } catch (Exception ex) {
         }
     }

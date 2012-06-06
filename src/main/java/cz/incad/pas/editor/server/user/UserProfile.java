@@ -18,6 +18,9 @@ package cz.incad.pas.editor.server.user;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 
 /**
  * User settings.
@@ -27,19 +30,32 @@ import java.net.URISyntaxException;
  *
  * @author Jan Pokorsky
  */
-public class UserProfile {
+@XmlAccessorType(XmlAccessType.FIELD)
+public final class UserProfile {
 
-    private int id;
+    private Integer userId;
     /** holds folder path in platform independent form */
-    private URI userHome;
-    private URI importFolder;
+    private transient URI userHomeUri;
+    private String userHome;
+    private transient URI importFolder;
     private String userName;
-    private String displayName;
+    private transient String userPassword;
+    private transient String userPasswordDigest;
+    private transient String displayName; // XXX remove
+    private String surname;
+    private String forename;
+    private String email;
+    private Date created;
+    private Date lastLogin;
 
-    public UserProfile(int id, URI userHome, String userName, String displayName) throws URISyntaxException {
-        this.id = id;
-        this.userHome = userHome;
-        this.importFolder = new URI(this.userHome + "import/");
+    public UserProfile() {
+    }
+
+    UserProfile(Integer id, URI userHomeUri, String userName, String displayName) throws URISyntaxException {
+        this.userId = id;
+        this.userHomeUri = userHomeUri;
+        this.userHome = userHomeUri.toASCIIString();
+        this.importFolder = new URI(this.userHomeUri + "import/");
         this.userName = userName;
         this.displayName = displayName;
 
@@ -53,12 +69,12 @@ public class UserProfile {
         this.displayName = displayName;
     }
 
-    public int getId() {
-        return id;
+    public Integer getId() {
+        return userId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setId(Integer id) {
+        this.userId = id;
     }
 
     /**
@@ -66,14 +82,32 @@ public class UserProfile {
      * @return folder path always terminated with '/'.
      */
     public URI getImportFolder() {
+        if (importFolder == null) {
+            URI u = getUserHomeUri();
+            if (u != null) {
+                importFolder = URI.create(this.userHomeUri + UserUtil.IMPORT_FOLDER_NAME + '/');
+            }
+        }
         return importFolder;
     }
 
-    public URI getUserHome() {
+    public URI getUserHomeUri() {
+        if (userHomeUri == null && userHome != null) {
+            userHomeUri = URI.create(userHome);
+        }
+        return userHomeUri;
+    }
+
+    public String getUserHome() {
         return userHome;
     }
 
     public void setUserHome(URI userHome) {
+        this.userHomeUri = userHome;
+        this.userHome = userHome.toASCIIString();
+    }
+
+    public void setUserHome(String userHome) {
         this.userHome = userHome;
     }
 
@@ -85,9 +119,79 @@ public class UserProfile {
         this.userName = userName;
     }
 
+    public String getUserPassword() {
+        return userPassword;
+    }
+
+    public void setUserPassword(String userPassword) {
+        this.userPassword = userPassword;
+    }
+
+    public String getUserPasswordDigest() {
+        return userPasswordDigest;
+    }
+
+    public void setUserPasswordDigest(String userPasswordDigest) {
+        this.userPasswordDigest = userPasswordDigest;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getForename() {
+        return forename;
+    }
+
+    public void setForename(String forename) {
+        this.forename = forename;
+    }
+
+    public String getSurname() {
+        return surname;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
+    public Date getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(Date lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+
     @Override
     public String toString() {
-        return String.format("UserProfile[%s, %s, %s, %s]", id, userName, displayName, userHome);
+        return String.format("UserProfile[id:%s, username:%s, created:%s, lastLogin:%s, email:%s,"
+                + " forename:%s, surname:%s, userHome:%s, userHomeUri:%s, userPasswordDigest:%s]",
+                userId, userName, created, lastLogin, email, forename, surname, userHome, userHomeUri, userPasswordDigest);
+    }
+
+    void validateAsNew () {
+        if (userName == null || !UserUtil.USERNAME_PATTERN.matcher(userName).matches()) {
+            throw new IllegalArgumentException("Invalid user name: " + userName);
+        }
+
+        if (userPassword == null || userPassword.length() < 6) {
+            throw new IllegalArgumentException("Invalid password");
+        }
+
+        userPasswordDigest = UserUtil.getDigist(userPassword);
     }
 
 }

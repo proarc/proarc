@@ -16,7 +16,8 @@
  */
 package cz.incad.pas.editor.server.user;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -30,6 +31,43 @@ public interface UserManager {
     UserProfile find(String userName) throws IllegalArgumentException;
     UserProfile find(int userId) throws IllegalArgumentException;
 
-    Collection<UserProfile> findAll();
+    List<UserProfile> findAll();
+
+    /**
+     * Adds a new user.
+     *
+     * @param profile required properties:
+     * <br><b>username</b> cannot be {@code null} or empty. Valid content is {@code "[a-z][a-z0-9]*"}.
+     *      The name is used as user home folder when {@code userHomePath} is {@code null}
+     * <br><b>userHomePath</b> - platform specific absolute path or {@code null}. The path cannot be used by other profile.
+     *      <pre>UNIX: /tmp/imports/</pre> or <pre>MS Win: c:\imports</pre>
+     *      or <pre>UNC MS Win: \\laptop\My Documents\</pre> are valid options.
+     * <br><b>password</b> - length must be >= 6
+     * @return new profile
+     * @throws IllegalArgumentException for invalid parameters
+     */
+    UserProfile add(UserProfile profile);
+
+    /**
+     * Updates user profile.
+     * @param profile to change password set password not digest
+     */
+    void update(UserProfile profile);
+
+    Group addGroup(Group group);
+
+    Group findGroup(int groupId);
+
+    List<Group> findGroups();
+
+    List<Group> findUserGroups(int userId);
+
+    void removePermissions(int groupId);
+
+    void setPermissions(int groupId, Permission... permissions);
+
+    Set<Permission> findUserPermissions(int userId);
+
+    void setUserGroups(int userId, Group... groups);
 
 }

@@ -19,7 +19,9 @@ package cz.incad.pas.editor.client.ds;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Window;
 import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.OperationBinding;
+import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
@@ -53,6 +55,8 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_THUMBNAIL =  URL_DIGOBJECT + "/thumb";
     public static final String URL_DIGOBJECT_METAMODEL =  URL_DIGOBJECT + "/metamodel";
     public static final String URL_METADATACATALOG =  URL_ROOT + "/metadatacatalog";
+    public static final String URL_USER =  URL_ROOT + "/user";
+    public static final String URL_USER_PERMISSIONS =  URL_USER + "/permissions";
 
     public static DSRequest createRestRequest(DSDataFormat format) {
         DSRequest dsr = new DSRequest();
@@ -117,6 +121,15 @@ public final class RestConfig {
         dsRequest.setHttpMethod("DELETE");
         op.setRequestProperties(dsRequest);
         return op;
+    }
+
+    /**
+     * Helper to get REST response status.
+     */
+    public static boolean isStatusOk(DSResponse response) {
+        int status = response.getStatus();
+        Integer httpStatus = response.getHttpResponseCode();
+        return status == RPCResponse.STATUS_SUCCESS && httpStatus == 200;
     }
 
 }

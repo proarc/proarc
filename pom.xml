@@ -148,13 +148,19 @@
                 <!-- Plugin configuration. There are many available options, see
                   gwt-maven-plugin documentation at codehaus.org -->
                 <configuration>
-                    <runTarget>Editor.html</runTarget>
+                    <runTarget>paseditor/Editor.html</runTarget>
                     <hostedWebapp>${webappDirectory}</hostedWebapp>
                     <i18nMessagesBundle>cz.incad.pas.editor.client.PasEditorMessages</i18nMessagesBundle>
                     <enableAssertions>true</enableAssertions>
                     <compileSourcesArtifacts>
                         <artifact>cz.mzk:EditMods</artifact>
                     </compileSourcesArtifacts>
+                    <!-- noServer=true disables Jetty and allows to use Tomcat with declared JDBC resources and web security-->
+                    <noserver>true</noserver>
+                    <noServer>true</noServer>
+                    <port>8080</port>
+                    <!-- style=DETAILED seems to prevent random javascript NPEs -->
+                    <style>DETAILED</style>
                 </configuration>
             </plugin>
 

@@ -16,52 +16,84 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.DataSource;
+import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
+import com.smartgwt.client.data.fields.DataSourcePasswordField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.widgets.form.fields.StaticTextItem;
+import cz.incad.pas.editor.client.PasEditorMessages;
 
 /**
  *
  * @author Jan Pokorsky
  */
-public class UserDataSource extends DataSource {
+public final class UserDataSource extends RestDataSource {
 
     public static final String ID = "UserDataSource";
-    public static final String FIELD_ID = "id";
-    public static final String FIELD_USERNAME = "username";
-    public static final String FIELD_USER_DISPLAYNAME = "displayname";
-    public static final String FIELD_IMPORT_FOLDER = "importFolder";
-    public static final String FIELD_TIMESTAMP = "created";
-    public static final String FIELD_LOGIN_TIMESTAMP = "lastLogin";
+    public static final String FIELD_ID = "userId";
+    public static final String FIELD_USERNAME = "userName";
+    public static final String FIELD_PASSWORD = "userPassword";
+    public static final String FIELD_SURNAME = "surname";
+    public static final String FIELD_FORENAME = "forename";
+    public static final String FIELD_EMAIL = "email";
+    public static final String FIELD_HOME = "userHome";
+    public static final String FIELD_CREATED = "created";
+    public static final String FIELD_LASTLOGIN = "lastLogin";
+    public static final String FIELD_WHOAMI = "whoAmI";
 
     public UserDataSource() {
         setID(ID);
 
-//        setDataFormat(DSDataFormat.XML);
+        PasEditorMessages i18nPas = GWT.create(PasEditorMessages.class);
+
         setDataFormat(DSDataFormat.JSON);
-//        setRecordXPath("/users/user");
-        setRecordXPath("user");
+        setDataURL(RestConfig.URL_USER);
 
-// XXX        setDataURL(RestConfig.URL_IMPORT_BATCH);
-        setDataURL("ds/UserDataSource.json");
-
-        DataSourceIntegerField id = new DataSourceIntegerField(FIELD_ID);
-        id.setPrimaryKey(true);
+        DataSourceIntegerField userId = new DataSourceIntegerField(FIELD_ID);
+        userId.setPrimaryKey(true);
+        userId.setCanEdit(false);
+        userId.setHidden(true);
+        userId.setTitle(i18nPas.UsersView_ListHeader_Id_Title());
 
         DataSourceTextField userName = new DataSourceTextField(FIELD_USERNAME);
+        userName.setCanEdit(false);
+        userName.setRequired(true);
+        userName.setReadOnlyEditorType(new StaticTextItem());
+        userName.setTitle(i18nPas.UsersView_ListHeader_Username_Title());
+        userName.setPrompt(i18nPas.UsersView_ListHeader_Username_Hint());
 
-        DataSourceTextField displayname = new DataSourceTextField(FIELD_USER_DISPLAYNAME);
+        DataSourcePasswordField passwd = new DataSourcePasswordField(FIELD_PASSWORD);
+        passwd.setHidden(true);
+        passwd.setTitle(i18nPas.UsersView_ListHeader_Password_Title());
 
-        DataSourceTextField importFolder = new DataSourceTextField(FIELD_IMPORT_FOLDER);
+        DataSourceTextField surname = new DataSourceTextField(FIELD_SURNAME);
+        surname.setRequired(true);
+        surname.setTitle(i18nPas.UsersView_ListHeader_Surname_Title());
 
-        DataSourceDateTimeField timestamp = new DataSourceDateTimeField(FIELD_TIMESTAMP);
+        DataSourceTextField forename = new DataSourceTextField(FIELD_FORENAME);
+        forename.setTitle(i18nPas.UsersView_ListHeader_Forename_Title());
 
-        setFields(id, userName, displayname, timestamp, importFolder);
+        DataSourceTextField email = new DataSourceTextField(FIELD_EMAIL);
+        email.setTitle(i18nPas.UsersView_ListHeader_Email_Title());
 
-// XXX       setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
-        setClientOnly(true);
+        DataSourceTextField home = new DataSourceTextField(FIELD_HOME);
+        home.setCanEdit(false);
+        home.setReadOnlyEditorType(new StaticTextItem());
+        home.setHidden(true);
+        home.setTitle(i18nPas.UsersView_ListHeader_Home_Title());
+
+        DataSourceDateTimeField created = new DataSourceDateTimeField(FIELD_CREATED);
+        created.setCanEdit(false);
+        created.setTitle(i18nPas.UsersView_ListHeader_Created_Title());
+
+        setFields(userId, userName, passwd, surname, forename, email, created, home);
+
+        setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
+        setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
 
     public static UserDataSource getInstance() {

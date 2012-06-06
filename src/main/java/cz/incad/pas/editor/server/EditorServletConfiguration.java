@@ -22,10 +22,18 @@ import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
 import cz.incad.pas.editor.server.imports.ImportDispatcher;
 import cz.incad.pas.editor.server.imports.ImportProcess;
+import cz.incad.pas.editor.server.sql.DbUtils;
+import cz.incad.pas.editor.server.user.UserManager;
+import cz.incad.pas.editor.server.user.UserUtil;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.logging.Logger;
+import javax.naming.NamingException;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.sql.DataSource;
 
 /**
  * Initializes and destroys web application
@@ -41,6 +49,8 @@ public final class EditorServletConfiguration implements ServletContextListener 
         LOG.fine("contextInitialized");
 
         PasConfiguration config = initConfig(sce.getServletContext());
+        DataSource proarcSource = initProarcDb();
+        initUsers(config, proarcSource);
         initImport(config);
 
     }
@@ -59,6 +69,34 @@ public final class EditorServletConfiguration implements ServletContextListener 
             configFactory.setDefaultInstance(config);
             return configFactory.defaultInstance();
         } catch (PasConfigurationException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+    
+    private DataSource initProarcDb() {
+        try {
+            DataSource proarcSource = DbUtils.getProarcSource();
+            Connection c = proarcSource.getConnection();
+            try {
+                c.setAutoCommit(true);
+                DbUtils.getProarcSchemaVersion(c);
+            } finally {
+                c.close();
+            }
+            return proarcSource;
+        } catch (SQLException ex) {
+            throw new IllegalStateException(ex);
+        } catch (NamingException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    private void initUsers(PasConfiguration config, DataSource source) {
+        try {
+            UserManager manager = UserUtil.createUserManagerPostgressImpl(config, source);
+            UserUtil.setDefaultManger(manager);
+            UserUtil.initDefaultAdmin();
+        } catch (IOException ex) {
             throw new IllegalStateException(ex);
         }
     }

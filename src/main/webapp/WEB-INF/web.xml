@@ -6,7 +6,7 @@
     <listener>
         <listener-class>cz.incad.pas.editor.server.EditorServletConfiguration</listener-class>
     </listener>
-    
+
     <servlet>
         <servlet-name>Jersey Web Application</servlet-name>
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
@@ -41,7 +41,7 @@
             <param-value>true</param-value>
 <!--            <param-value>false</param-value>-->
         </init-param>
-        
+
         <load-on-startup>1</load-on-startup>
 
     </servlet>
@@ -66,4 +66,37 @@
         <welcome-file>Editor.html</welcome-file>
     </welcome-file-list>
 
+    <security-constraint>
+        <display-name>Constraint1</display-name>
+        <web-resource-collection>
+            <web-resource-name>Proarc webapp</web-resource-name>
+            <description/>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <description/>
+            <role-name>proarc</role-name>
+        </auth-constraint>
+<!--        <user-data-constraint>
+            <description/>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>-->
+    </security-constraint>
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>Proarc secured area</realm-name>
+    </login-config>
+    <security-role>
+        <description/>
+        <role-name>proarc</role-name>
+    </security-role>
+    
+    <resource-ref>
+        <res-ref-name>jdbc/proarc</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+        <res-sharing-scope>Shareable</res-sharing-scope>
+    </resource-ref>
+
+    
 </web-app>

@@ -26,7 +26,6 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import java.util.HashMap;
@@ -77,8 +76,7 @@ public class ImportTreeDataSource extends RestDataSource {
 
     @Override
     protected void transformResponse(DSResponse response, DSRequest request, Object data) {
-        int status = response.getStatus();
-        if (status == RPCResponse.STATUS_SUCCESS) {
+        if (RestConfig.isStatusOk(response)) {
             for (Record record : response.getData()) {
                 String path = record.getAttribute(FIELD_PATH);
                 RegExp pathRegExp = RegExp.compile("(.*/)?(.*)/$");

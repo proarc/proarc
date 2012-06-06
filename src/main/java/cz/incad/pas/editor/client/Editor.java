@@ -21,6 +21,12 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.UrlBuilder;
 import com.google.gwt.i18n.client.Dictionary;
 import com.google.gwt.user.client.Window;
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
+import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.Autofit;
 import com.smartgwt.client.util.Page;
 import com.smartgwt.client.util.SC;
@@ -40,11 +46,16 @@ import com.smartgwt.client.widgets.tree.events.FolderClosedEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClosedHandler;
 import com.smartgwt.client.widgets.tree.events.LeafClickEvent;
 import com.smartgwt.client.widgets.tree.events.LeafClickHandler;
-import cz.incad.pas.editor.client.ds.DcRecordDataSource;
-import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
-import cz.incad.pas.editor.client.ds.RemoteMetadataDataSource;
+import cz.incad.pas.editor.client.ds.RestConfig;
+import cz.incad.pas.editor.client.ds.UserDataSource;
+import cz.incad.pas.editor.client.ds.UserPermissionDataSource;
 import cz.incad.pas.editor.client.presenter.DigObjectEditorPresenter;
 import cz.incad.pas.editor.client.presenter.ImportPresenter;
+import cz.incad.pas.editor.client.widget.UsersView;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,6 +64,8 @@ public class Editor implements EntryPoint {
     private static final Logger LOG = Logger.getLogger(Editor.class.getName());
 
     private PasEditorMessages i18nPas;
+    private PlaceFactory placeFactory;
+    private final HashSet<String> permissions = new HashSet<String>();
 
     @Override
     public void onModuleLoad() {
@@ -74,17 +87,12 @@ public class Editor implements EntryPoint {
                 Page.getAppDir()
                 );
 
-        // !!!DO NOT REMOVE datasource init, otherwise SmartGWT does not render anything
-        // It relates to ImportBatchItemEditor.createTabs somehow.
-        DcRecordDataSource dcRecordDataSource = DcRecordDataSource.getInstance();
-        RemoteMetadataDataSource instance = RemoteMetadataDataSource.getInstance();
-        DigitalObjectDataSource instance1 = DigitalObjectDataSource.getInstance();
-
         i18nPas = GWT.create(PasEditorMessages.class);
+        placeFactory = new PlaceFactory(i18nPas);
 
 ////        tabSet.setBorder("2px solid blue");
 
-        TreeGrid menu = createMenu();
+        final TreeGrid menu = createMenu();
 
         Canvas menuPlaces = createMenuPlaces(menu);
 
@@ -95,7 +103,7 @@ public class Editor implements EntryPoint {
         mainLayout.setMembers(menu, menuPlaces);
 
 //        selectDefaultPlace(menu, "Import/History");
-        selectDefaultPlace(menu, "Edit/New Object");
+//        selectDefaultPlace(menu, "Edit/New Object");
         
         Canvas mainHeader = createMainHeader();
 
@@ -104,6 +112,27 @@ public class Editor implements EntryPoint {
         desktop.setHeight100();
         desktop.setMembers(mainHeader, mainLayout);
         desktop.draw();
+
+        loadPermissions(menu);
+    }
+
+    private void loadPermissions(final TreeGrid menu) {
+        UserPermissionDataSource.getInstance().fetchData(null, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (RestConfig.isStatusOk(response)) {
+                    Record[] data = response.getData();
+                    permissions.clear();
+                    permissions.addAll(UserPermissionDataSource.asPermissions(data));
+                    TreeNode[] menuContent = createMenuContent();
+                    Tree tree = menu.getTree();
+                    TreeNode root = tree.getRoot();
+                    tree.addList(menuContent, root);
+                    tree.openAll();
+                }
+            }
+        });
     }
 
     private Canvas createMainHeader() {
@@ -123,8 +152,8 @@ public class Editor implements EntryPoint {
         mainHeader.addFill();
 
         DynamicForm langForm = new DynamicForm();
-        langForm.setNumCols(2);
-        langForm.setFields(createLangLink("cs", "Česky"), createLangLink("en", "English"));
+        langForm.setNumCols(3);
+        langForm.setFields(createUserLink(), createLangLink("cs", "Česky"), createLangLink("en", "English"));
         langForm.setAutoWidth();
         langForm.setAutoHeight();
         mainHeader.addMember(langForm);
@@ -150,6 +179,34 @@ public class Editor implements EntryPoint {
         return lang;
     }
 
+    private LinkItem createUserLink() {
+        final LinkItem link = new LinkItem();
+        link.setShowTitle(false);
+        link.setAlign(Alignment.RIGHT);
+        UserDataSource.getInstance().fetchData(new Criteria(UserDataSource.FIELD_WHOAMI, "true"), new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                String title = "Unknown user";
+                if (response.getStatus() == DSResponse.STATUS_SUCCESS) {
+                    Record[] data = response.getData();
+                    if (data.length > 0) {
+                        title = data[0].getAttribute(UserDataSource.FIELD_USERNAME);
+                    }
+                }
+                link.setValue(title);
+            }
+        });
+        link.addClickHandler(new ClickHandler() {
+
+            @Override
+            public void onClick(ClickEvent event) {
+                // XXX show profile, change password?, logout
+            }
+        });
+        return link;
+    }
+
     private void selectDefaultPlace(TreeGrid menu, String menuPath) {
 //        TreeNode find = tree.find("Import/New Batch");
         Tree tree = menu.getTree();
@@ -161,14 +218,7 @@ public class Editor implements EntryPoint {
         menu.rowClick(find, menuItemIdx, 0);
     }
 
-    private TreeGrid createMenu() {
-        final TreeGrid menu = new TreeGrid();
-        menu.setHeight100();
-        menu.setAutoFitData(Autofit.HORIZONTAL);
-        menu.setShowResizeBar(true);
-        menu.setLeaveScrollbarGap(false);
-//        menu.setWidth(200);
-
+    private TreeNode[] createMenuContent() {
         TreeNode[] trees = new TreeNode[] {
                 createTreeNode("Import", i18nPas.MainMenu_Import_Title(),
                         createTreeNode("New Batch", i18nPas.MainMenu_Import_NewBatch_Title()),
@@ -178,17 +228,25 @@ public class Editor implements EntryPoint {
 //                        createTreeNode("Search", i18nPas.MainMenu_Edit_Edit_Title())
                 ),
 //                createTreeNode("Statistics", i18nPas.MainMenu_Statistics_Title()),
-//                createTreeNode("Users", i18nPas.MainMenu_Users_Title()),
+                createTreeNode("Users", i18nPas.MainMenu_Users_Title(), Arrays.asList("proarc.permission.admin")),
                 createTreeNode("Console", i18nPas.MainMenu_Console_Title()),
         };
+        trees = reduce(trees);
         for (int i = 0; i < trees.length; i++) {
             TreeNode treeNode = trees[i];
             ClientUtils.fine(LOG, "TreeNode.array: %s, i: %s", treeNode.getName(), i);
         }
-        Tree tree = new Tree();
-        tree.setData(trees);
-        tree.openAll();
-        menu.setData(tree);
+        return trees;
+    }
+
+    private TreeGrid createMenu() {
+        final TreeGrid menu = new TreeGrid();
+        menu.setHeight100();
+        menu.setAutoFitData(Autofit.HORIZONTAL);
+        menu.setShowResizeBar(true);
+        menu.setLeaveScrollbarGap(false);
+//        menu.setWidth(200);
+
         menu.setShowHeader(false);
         menu.setShowOpener(false);
         menu.setShowOpenIcons(false);
@@ -204,10 +262,6 @@ public class Editor implements EntryPoint {
     }
 
     private Canvas createMenuPlaces(final TreeGrid menu) {
-        final ImportPresenter importPresenter = new ImportPresenter(i18nPas);
-//
-        final DigObjectEditorPresenter objectEditorPresenter = new DigObjectEditorPresenter(i18nPas);
-
         final HLayout placesContainer = new HLayout();
         placesContainer.setHeight100();
         placesContainer.setWidth100();
@@ -226,29 +280,34 @@ public class Editor implements EntryPoint {
                         menu.getSelectedPaths(), menu.getSelectedRecord());
                 String name = event.getLeaf().getName();
                 if ("New Batch".equals(name)) {
+                    ImportPresenter importPresenter = placeFactory.getImportPresenter();
                     Canvas ui = importPresenter.getUI();
                     placesContainer.setMembers(ui);
                     importPresenter.bind();
                     importPresenter.importFolder();
                 } else if ("History".equals(name)) {
+                    ImportPresenter importPresenter = placeFactory.getImportPresenter();
                     Canvas ui = importPresenter.getUI();
                     placesContainer.setMembers(ui);
                     importPresenter.bind();
                     importPresenter.selectBatchFromHistory();
                 } else if ("New Object".equals(name)) {
+                    DigObjectEditorPresenter objectEditorPresenter = placeFactory.getObjectEditorPresenter();
                     Canvas ui = objectEditorPresenter.getUI();
                     placesContainer.setMembers(ui);
                     objectEditorPresenter.newObject();
-                    importPresenter.bind();
-                    importPresenter.selectBatchFromHistory();
                 } else if ("Search".equals(name)) {
+                    DigObjectEditorPresenter objectEditorPresenter = placeFactory.getObjectEditorPresenter();
                     Canvas ui = objectEditorPresenter.getUI();
                     placesContainer.setMembers(ui);
                     objectEditorPresenter.search();
                 } else if ("Console".equals(name)) {
                     SC.showConsole();
-//                } else if ("Users".equals(name)) {
-//                    PageMetadataEditor.getInstance().showInWindow(ClientUtils.EMPTY_BOOLEAN_CALLBACK);
+                } else if ("Users".equals(name)) {
+                    UsersView users = placeFactory.getUsers();
+                    Canvas ui = users.asWidget();
+                    placesContainer.setMembers(ui);
+                    users.onShow();
                 } else {
                     placesContainer.setMembers(empty);
                 }
@@ -264,7 +323,10 @@ public class Editor implements EntryPoint {
      * {@link #createTreeNode(java.lang.String, java.lang.String, com.smartgwt.client.widgets.tree.TreeNode[])}
      * exists!
      */
-    private TreeNode createTreeNode(String name, String displayName) {
+    private TreeNode createTreeNode(String name, String displayName, List<String> requires) {
+        if (requires != null && !permissions.containsAll(requires)) {
+            return null;
+        }
         return createTreeNode(name, displayName, (TreeNode[]) null);
     }
 
@@ -276,10 +338,20 @@ public class Editor implements EntryPoint {
         if (displayName != null) {
             treeNode.setTitle(displayName);
         }
-        if (children != null) {
+        if (children != null && children.length > 0) {
             treeNode.setChildren(children);
         }
         return treeNode;
+    }
+
+    private static TreeNode[] reduce(TreeNode[] nodes) {
+        ArrayList<TreeNode> result = new ArrayList<TreeNode>(nodes.length);
+        for (TreeNode treeNode : nodes) {
+            if (treeNode != null) {
+                result.add(treeNode);
+            }
+        }
+        return result.toArray(new TreeNode[result.size()]);
     }
 
     private void initLogging() {
@@ -321,4 +393,38 @@ public class Editor implements EntryPoint {
             });
         }
     }
+
+    private static final class PlaceFactory {
+        private ImportPresenter importPresenter;
+        private DigObjectEditorPresenter objectEditorPresenter;
+        private UsersView users;
+        private final PasEditorMessages i18nPas;
+
+        public PlaceFactory(PasEditorMessages i18nPas) {
+            this.i18nPas = i18nPas;
+        }
+
+        public ImportPresenter getImportPresenter() {
+            if (importPresenter == null) {
+                importPresenter = new ImportPresenter(i18nPas);
+            }
+            return importPresenter;
+        }
+
+        public DigObjectEditorPresenter getObjectEditorPresenter() {
+            if (objectEditorPresenter == null) {
+                objectEditorPresenter = new DigObjectEditorPresenter(i18nPas);
+            }
+            return objectEditorPresenter;
+        }
+
+        public UsersView getUsers() {
+            if (users == null) {
+                users = new UsersView(i18nPas);
+            }
+            return users;
+        }
+
+    }
+
 }

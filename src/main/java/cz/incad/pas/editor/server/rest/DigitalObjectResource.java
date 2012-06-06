@@ -113,7 +113,7 @@ public class DigitalObjectResource {
         this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
         this.repository = DigitalObjectRepository.getInstance(pasConfig);
         this.importManager = ImportBatchManager.getInstance(pasConfig);
-        this.userManager = UserUtil.createUserManagerMemoryImpl(pasConfig);
+        this.userManager = UserUtil.getDefaultManger();
 
         Principal userPrincipal = securityCtx.getUserPrincipal();
         String userName;

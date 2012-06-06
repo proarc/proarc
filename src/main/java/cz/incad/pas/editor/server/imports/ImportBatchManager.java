@@ -59,7 +59,7 @@ public final class ImportBatchManager {
         synchronized (ImportBatchManager.class) {
             if (INSTANCE == null) {
                 INSTANCE = new ImportBatchManager(config);
-                load(config.getConfigHome(), INSTANCE, UserUtil.createUserManagerMemoryImpl(config));
+                load(config.getConfigHome(), INSTANCE, UserUtil.getDefaultManger());
             }
         }
         return INSTANCE;

@@ -19,11 +19,11 @@ package cz.incad.pas.editor.server.user;
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
+import java.util.Set;
 
 /**
  *
@@ -31,11 +31,7 @@ import java.util.regex.Pattern;
  */
 final class UserManagerMemoryImpl implements UserManager {
     
-    public static final String IMPORT_FOLDER_NAME = "import";
-
     private static final Map<PasConfiguration, UserManagerMemoryImpl> INSTANCES = new HashMap<PasConfiguration, UserManagerMemoryImpl>();
-    /** allows only lower case characters to prevent confusion */
-    private static final Pattern USERNAME_PATTERN = Pattern.compile("[a-z][a-z0-9]*");
     /** memory storage for now */
     private final Map<String, UserProfile> map = new HashMap<String, UserProfile>();
     private final PasConfiguration pasConfig;
@@ -65,8 +61,10 @@ final class UserManagerMemoryImpl implements UserManager {
     }
 
     @Override
-    public Collection<UserProfile> findAll() {
-        return map.values();
+    public List<UserProfile> findAll() {
+        synchronized (map) {
+            return new ArrayList<UserProfile>(map.values());
+        }
     }
 
     @Override
@@ -103,12 +101,17 @@ final class UserManagerMemoryImpl implements UserManager {
     private UserProfile findHome(File f) {
         synchronized (map) {
             for (UserProfile up : map.values()) {
-                if (f.equals(new File(up.getUserHome()))) {
+                if (f.equals(new File(up.getUserHomeUri()))) {
                     return up;
                 }
             }
         }
         return null;
+    }
+
+    @Override
+    public UserProfile add(UserProfile profile) {
+        return add(profile.getUserName(), profile.getSurname(), profile.getUserHome());
     }
 
     /**
@@ -124,65 +127,91 @@ final class UserManagerMemoryImpl implements UserManager {
      * @throws IllegalArgumentException for invalid parameters
      */
     public UserProfile add(String userName, String displayName, String userHomePath) {
-        if (userName == null || !USERNAME_PATTERN.matcher(userName).matches()) {
-            throw new IllegalArgumentException("Invalid user name: " + userName);
-        }
+        UserUtil.validateUsername(userName);
         if (displayName == null) {
             displayName = userName;
         }
 
+        File toRollback = null;
         try {
-            File userHome;
             File allUsersHome = pasConfig.getDefaultUsersHome();
             synchronized (map) {
                 if (findImpl(userName) != null) {
                     throw new IllegalArgumentException("Invalid user name: " + userName);
                 }
+                File userHome;
                 if (userHomePath == null) {
-                    String fileNameBase = userName.toLowerCase();
-                    userHome = new File(allUsersHome, fileNameBase);
-                    for (int index = 1; userHome.exists(); index++) {
-                        userHome = new File(allUsersHome, fileNameBase + "_" + index);
-                    }
+                    toRollback = userHome = UserUtil.createUserHome(userName, userHomePath, allUsersHome);
                 } else {
-                    userHome = new File(userHomePath);
+                    toRollback = userHome = new File(userHomePath);
+                    if (!userHome.mkdir()) { // already exists
+                        toRollback = null;
+                        if (!userHome.isDirectory()) {
+                            throw new IOException(String.format("Not a folder: '%s'!", userHome));
+                        }
+                        if (findHome(userHome) != null) {
+                            throw new IllegalArgumentException("user home already used by another user.");
+                        }
+                    }
                 }
-                userHome = userHome.getCanonicalFile();
-                if (userHome.exists() && !userHome.isDirectory()) {
-                    throw new IOException(String.format("Not a folder: '%s'!", userHome));
-                }
-                if (userHome.exists() && findHome(userHome) != null) {
-                    throw new IllegalArgumentException("user home already used by another user.");
-                }
-                File importHome = new File(userHome, IMPORT_FOLDER_NAME);
-                File exportHome = new File(userHome, "export");
-                File imagesHome = new File(userHome, "images");
-                importHome.mkdirs();
-                exportHome.mkdir();
-                imagesHome.mkdir();
-                UserProfile up = new UserProfile(map.size() + 1, toUri(userHome), userName, displayName);
+
+                UserUtil.createUserSubfolders(userHome);
+                UserProfile up = new UserProfile(map.size() + 1, UserUtil.toUri(userHome), userName, displayName);
                 map.put(userName, up);
                 return up;
             }
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
+        } finally {
+            if (toRollback != null) {
+                toRollback.delete();
+            }
         }
     }
 
-    /**
-     * Translates platform specific path to independent form as URI
-     *
-     * @param folderpath platform specific path as <pre>UNIX: /tmp/imports/</pre>
-     *      or <pre>MS Win: c:\imports</pre> or <pre>UNC MS Win: \\laptop\My Documents\</pre>
-     *      are valid options
-     * @return an abstract path
-     */
-    private static URI toUri(File folder) {
-        if (folder.exists() && !folder.isDirectory()) {
-            throw new IllegalArgumentException("Invalid folder path: '" + folder + '\'');
-        }
-        // File.toURI always terminates folder path with slash but the folder must exists
-        return folder.toURI().normalize();
+    @Override
+    public void update(UserProfile profile) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Group addGroup(Group group) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Group findGroup(int groupId) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public List<Group> findGroups() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public List<Group> findUserGroups(int userId) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void removePermissions(int groupId) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void setPermissions(int groupId, Permission... permissions) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Set<Permission> findUserPermissions(int userId) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void setUserGroups(int userId, Group... groups) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

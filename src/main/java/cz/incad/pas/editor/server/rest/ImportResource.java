@@ -115,7 +115,7 @@ public class ImportResource {
         this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
         this.importManager = ImportBatchManager.getInstance(pasConfig);
         this.securityCtx = securityCtx;
-        this.userManager = UserUtil.createUserManagerMemoryImpl(pasConfig); // XXX replace with injection
+        this.userManager = UserUtil.getDefaultManger(); // XXX replace with injection
         Principal userPrincipal = securityCtx.getUserPrincipal();
         System.out.println("## userPrincipal: " + userPrincipal);
         String userName;
