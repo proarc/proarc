@@ -111,8 +111,9 @@ public final class ImportBatchItemEditor extends HLayout {
         batchItemGrid.setShowResizeBar(true);
         batchItemGrid.setSelectionType(SelectionStyle.MULTIPLE);
         batchItemGrid.setCanSort(false);
-        batchItemGrid.setAutoFitFieldWidths(true);
-        batchItemGrid.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
+        // disable autofit as it has rendering problems
+//        batchItemGrid.setAutoFitFieldWidths(true);
+//        batchItemGrid.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
         batchItemGrid.setLeaveScrollbarGap(false);
         batchItemGrid.setDataSource(ImportBatchItemDataSource.getInstance());
 
