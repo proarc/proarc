@@ -452,7 +452,6 @@ final class UserManagerSql implements UserManager {
         up.setId(rs.getInt(USERID));
         up.setSurname(rs.getString(SURNAME));
         String home = rs.getString(HOME);
-        home = home.replace("${paseditor.users.home}/", defaultHome.toURI().toASCIIString());
         up.setUserHome(home);
         up.setUserName(rs.getString(USERNAME));
         return up;

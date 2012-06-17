@@ -38,14 +38,14 @@ public final class PasConfiguration {
     
     public static final String USER_HOME = "user.home";
     public static final String CONFIG_FOLDER = "cz.incad.pas.editor.server.config.home";
-    public static final String CONFIG_FOLDER_NAME = ".pas";
-    public static final String CONFIG_FILE_NAME = "paseditor.cfg";
+    public static final String CONFIG_FOLDER_NAME = ".proarc";
+    public static final String CONFIG_FILE_NAME = "proarc.cfg";
 
     /** Path to configuration folder.
      * Internal configuration property interpolated on init.
-     * Accessible as {@code ${paseditor.home}} in properties files.
+     * Accessible as {@code ${proarc.home}} in properties files.
      */
-    static final String PROPERTY_CONFIG_HOME = "paseditor.home";
+    static final String PROPERTY_CONFIG_HOME = "proarc.home";
     
     private static final Logger LOG = Logger.getLogger(PasConfiguration.class.getName());
 
@@ -65,7 +65,7 @@ public final class PasConfiguration {
      * Gets default target folder for newly created user home folders.
      */
     public File getDefaultUsersHome() throws IOException {
-        String path = config.getString("paseditor.users.home");
+        String path = config.getString("proarc.users.home");
         File users = new File(path);
         if (!checkFile(users, false, true, true, true)) {
             users.mkdirs();
