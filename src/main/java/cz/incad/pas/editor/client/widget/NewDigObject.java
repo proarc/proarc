@@ -92,6 +92,8 @@ public final class NewDigObject extends VLayout {
     }
 
     public void bind(AdvancedCriteria criteria) {
+        optionsForm.editNewRecord();
+        lgResult.setData(new Record[0]);
         if (criteria == null) {
 //            sections.collapseSection(1);
             sections.expandSection(1);
