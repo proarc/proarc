@@ -69,13 +69,13 @@ public class PasConfigurationTest {
         final File confHome = temp.getRoot();
         assertNotNull(confHome);
         PasConfiguration config = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.CONFIG_FOLDER, confHome.toString());
+            put(PasConfiguration.ENV_APP_HOME, confHome.toString());
         }});
         assertNotNull(config);
         assertEquals(confHome, config.getConfigHome());
         assertNull(config.getConfiguration().getString(TEST_PROPERTY_NAME));
         // test internal property
-        assertEquals(confHome.toString(), config.getConfiguration().getString(PasConfiguration.PROPERTY_CONFIG_HOME));
+        assertEquals(confHome.toString(), config.getConfiguration().getString(PasConfiguration.PROPERTY_APP_HOME));
     }
 
     @Test
@@ -83,7 +83,7 @@ public class PasConfigurationTest {
         final File confHome = temp.getRoot();
         assertNotNull(confHome);
         PasConfiguration config = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.CONFIG_FOLDER, confHome.toString());
+            put(PasConfiguration.ENV_APP_HOME, confHome.toString());
         }});
         assertNotNull(config);
         File expectedUserFolder = new File(confHome, "users");
@@ -96,7 +96,7 @@ public class PasConfigurationTest {
 
     @Test
     public void testReadProperty() throws Exception {
-        final File confHome = temp.newFolder(PasConfiguration.CONFIG_FOLDER_NAME);
+        final File confHome = temp.newFolder(PasConfiguration.DEFAULT_APP_HOME_NAME);
 
         // init paseditor.cfg
         Properties props = new Properties();
@@ -109,7 +109,7 @@ public class PasConfigurationTest {
         assertTrue(configFile.exists());
 
         PasConfiguration pconfig = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.CONFIG_FOLDER, confHome.toString());
+            put(PasConfiguration.ENV_APP_HOME, confHome.toString());
         }});
 
         Configuration config = pconfig.getConfiguration();
@@ -125,7 +125,7 @@ public class PasConfigurationTest {
         assertTrue(configFile.exists());
 
         pconfig = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.CONFIG_FOLDER, confHome.toString());
+            put(PasConfiguration.ENV_APP_HOME, confHome.toString());
         }});
 
         config = pconfig.getConfiguration();
@@ -135,7 +135,7 @@ public class PasConfigurationTest {
 
     @Test
     public void testOverrideProperty() throws Exception {
-        final File confHome = temp.newFolder(PasConfiguration.CONFIG_FOLDER_NAME);
+        final File confHome = temp.newFolder(PasConfiguration.DEFAULT_APP_HOME_NAME);
 
         // init paseditor.cfg
         Properties props = new Properties();
@@ -149,7 +149,7 @@ public class PasConfigurationTest {
         assertTrue(configFile.exists());
 
         PasConfiguration pconfig = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.CONFIG_FOLDER, confHome.toString());
+            put(PasConfiguration.ENV_APP_HOME, confHome.toString());
         }});
 
         Configuration config = pconfig.getConfiguration();

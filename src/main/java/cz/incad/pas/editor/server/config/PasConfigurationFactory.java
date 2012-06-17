@@ -41,13 +41,16 @@ public final class PasConfigurationFactory {
 
     public PasConfiguration create(ServletContext ctx) throws PasConfigurationException {
         Map<String, String> env = new HashMap<String, String>();
-        env.put(PasConfiguration.CONFIG_FOLDER, ctx.getInitParameter(PasConfiguration.CONFIG_FOLDER));
+        env.put(PasConfiguration.ENV_APP_HOME, ctx.getInitParameter(PasConfiguration.ENV_APP_HOME));
         return create(env);
     }
 
     public PasConfiguration create(Map<String, String> environment) throws PasConfigurationException {
-        if (!environment.containsKey(PasConfiguration.USER_HOME)) {
-            environment.put(PasConfiguration.USER_HOME, System.getProperty(PasConfiguration.USER_HOME));
+        if (!environment.containsKey(PasConfiguration.ENV_USER_HOME)) {
+            environment.put(PasConfiguration.ENV_USER_HOME, System.getProperty(PasConfiguration.ENV_USER_HOME));
+        }
+        if (environment.get(PasConfiguration.ENV_APP_HOME) == null) {
+            environment.put(PasConfiguration.ENV_APP_HOME, System.getProperty(PasConfiguration.ENV_APP_HOME));
         }
         PasConfiguration pc;
         try {

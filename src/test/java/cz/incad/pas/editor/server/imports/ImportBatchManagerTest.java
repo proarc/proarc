@@ -59,19 +59,19 @@ public class ImportBatchManagerTest {
     @Before
     public void setUp() throws Exception {
         // use temporary configuration
-        File configHome = temp.newFolder(PasConfiguration.CONFIG_FOLDER_NAME);
+        File configHome = temp.newFolder(PasConfiguration.DEFAULT_APP_HOME_NAME);
         Map<String, String> env = new HashMap<String, String>();
-        env.put(PasConfiguration.CONFIG_FOLDER, configHome.toString());
+        env.put(PasConfiguration.ENV_APP_HOME, configHome.toString());
         pasConf = PasConfigurationFactory.getInstance().create(env);
 
-//        System.setProperty(PasConfiguration.CONFIG_FOLDER, config.toString());
+//        System.setProperty(PasConfiguration.ENV_APP_HOME, config.toString());
 //        pasConf = PasConfiguration.getInstance();
 //        pasConf.reload();
     }
 
     @After
     public void tearDown() {
-//        System.clearProperty(PasConfiguration.CONFIG_FOLDER);
+//        System.clearProperty(PasConfiguration.ENV_APP_HOME);
 //        pasConf.reload();
     }
 

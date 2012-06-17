@@ -36,16 +36,17 @@ import org.apache.commons.configuration.PropertiesConfiguration;
  */
 public final class PasConfiguration {
     
-    public static final String USER_HOME = "user.home";
-    public static final String CONFIG_FOLDER = "cz.incad.pas.editor.server.config.home";
-    public static final String CONFIG_FOLDER_NAME = ".proarc";
+    public static final String ENV_USER_HOME = "user.home";
+    /** environment property to declare nonstandard application home */
+    public static final String ENV_APP_HOME = "proarc.home";
+    public static final String DEFAULT_APP_HOME_NAME = ".proarc";
     public static final String CONFIG_FILE_NAME = "proarc.cfg";
 
     /** Path to configuration folder.
      * Internal configuration property interpolated on init.
      * Accessible as {@code ${proarc.home}} in properties files.
      */
-    static final String PROPERTY_CONFIG_HOME = "proarc.home";
+    static final String PROPERTY_APP_HOME = "proarc.home";
     
     private static final Logger LOG = Logger.getLogger(PasConfiguration.class.getName());
 
@@ -94,13 +95,13 @@ public final class PasConfiguration {
     }
 
     private void init(CompositeConfiguration cc) throws IOException {
-        File home = initHome(environment.get(USER_HOME));
+        File home = initHome(environment.get(ENV_USER_HOME));
         this.homePath = home.getPath();
-        this.configHome = initConfigFolder(home, environment.get(CONFIG_FOLDER));
+        this.configHome = initConfigFolder(home, environment.get(ENV_APP_HOME));
         try {
             // envConfig contains inerpolated properties
             PropertiesConfiguration envConfig = new PropertiesConfiguration();
-            envConfig.addProperty(PROPERTY_CONFIG_HOME, configHome.getPath());
+            envConfig.addProperty(PROPERTY_APP_HOME, configHome.getPath());
             cc.addConfiguration(envConfig);
             // external configuration editable by users
             cc.addConfiguration(new PropertiesConfiguration(new File(configHome, CONFIG_FILE_NAME)));
@@ -133,7 +134,7 @@ public final class PasConfiguration {
         if (configPath != null) {
             config = new File(configPath);
         } else {
-            config = new File(home, CONFIG_FOLDER_NAME);
+            config = new File(home, DEFAULT_APP_HOME_NAME);
         }
         if (!checkFile(config, false, true, true, true)) {
             config.mkdir();
