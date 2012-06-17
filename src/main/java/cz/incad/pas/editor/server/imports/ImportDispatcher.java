@@ -68,6 +68,9 @@ public final class ImportDispatcher {
     }
 
     public void stop(long timeout, TimeUnit unit) {
+        if (pool == null) {
+            return ;
+        }
         pool.shutdown(); // Disable new tasks from being submitted
         try {
             // Wait a while for existing tasks to terminate
