@@ -63,11 +63,19 @@ public final class LocalStorage {
     }
 
     public LocalObject create() {
-        return create(null);
+        return create(null, null);
+    }
+    
+    public LocalObject create(String pid) {
+        return create(pid, null);
     }
 
     public LocalObject create(File foxml) {
-        String pid = FoxmlUtils.createPid();
+        return create(null, foxml);
+    }
+    
+    public LocalObject create(String pid, File foxml) {
+        pid = pid != null ? pid : FoxmlUtils.createPid();
         DigitalObject dobj = FoxmlUtils.createFoxml(pid);
         return new LocalObject(pid, foxml, dobj);
     }

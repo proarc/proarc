@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.client.ds;
 
 import com.smartgwt.client.data.DataSource;
+import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import java.util.logging.Logger;
@@ -25,7 +26,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public class DigitalObjectDataSource extends DataSource {
+public final class DigitalObjectDataSource extends RestDataSource {
 
     public static final String ID = "DigitalObjectDataSource";
     public static final String FIELD_PID = "pid";
@@ -36,9 +37,7 @@ public class DigitalObjectDataSource extends DataSource {
     public DigitalObjectDataSource() {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
-        setRecordXPath("/records/record");
         setDataURL(RestConfig.URL_DIGOBJECT);
-        setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
 
         DataSourceTextField pid = new DataSourceTextField(FIELD_PID);
         pid.setPrimaryKey(true);
@@ -47,6 +46,7 @@ public class DigitalObjectDataSource extends DataSource {
         setFields(pid, model);
 
         setOperationBindings(RestConfig.createAddOperation());
+        setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
 
     public static DigitalObjectDataSource getInstance() {

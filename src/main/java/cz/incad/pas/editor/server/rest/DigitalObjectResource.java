@@ -53,11 +53,11 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
@@ -130,6 +130,7 @@ public class DigitalObjectResource {
      * Creates a new digital object
      *
      * @param modelId model ID (model:page, ...) of the digital object; required
+     * @param pid PID of the digital object from external Kramerius. PID must not be already assigned. Optional
      * @param mods MODS XML used to create new object; optional
      * @return
      * @throws URISyntaxException
@@ -137,19 +138,34 @@ public class DigitalObjectResource {
      */
     @POST
     @Produces({MediaType.APPLICATION_JSON})
-    public DigitalObjectList newObject(
+    public SmartGwtResponse<DigitalObject> newObject(
             @FormParam("model") String modelId,
+            @FormParam("pid") String pid,
             @FormParam("mods") String mods
             ) throws URISyntaxException, IOException, FedoraClientException {
 
         if (modelId == null) {
             // XXX validate modelId values
-            throw new IllegalArgumentException("missing model");
+            return SmartGwtResponse.asError().error("model", "Missing model!").build();
+        }
+        if (pid != null) {
+            boolean invalid = pid.length() < 5;
+            try {
+                if (!invalid) {
+                    UUID uuid = UUID.fromString(pid.substring("uuid:".length()));
+                    pid = "uuid:" + uuid.toString();
+                }
+            } catch (IllegalArgumentException e) {
+                invalid = true;
+            }
+            if (invalid) {
+                return SmartGwtResponse.asError().error("pid", "Invalid PID!").build();
+            }
         }
         mods = (mods == null || mods.isEmpty() || "null".equals(mods)) ? null : mods;
         LOG.log(Level.INFO, "import model: {0} as mods: {1}", new Object[] {modelId, mods});
 
-        LocalObject localObject = new LocalStorage().create();
+        LocalObject localObject = new LocalStorage().create(pid);
         // MODS
         ModsStreamEditor modsEditor = new ModsStreamEditor(localObject);
         ModsType modsType;
@@ -176,9 +192,19 @@ public class DigitalObjectResource {
         localObject.flush();
 
         RemoteStorage fedora = RemoteStorage.getInstance(pasConfig);
-        fedora.ingest(localObject, user.getUserName(), "Ingested with ProArc");
-
-        return new DigitalObjectList(Arrays.asList(new DigitalObject(localObject.getPid(), modelId)));
+        try {
+            fedora.ingest(localObject, user.getUserName(), "Ingested with ProArc");
+        } catch (FedoraClientException ex) {
+            // XXX hack: Fedora server does not notify existing object conflict with HTTP 409.
+            // Workaround parses error message.
+            // Check for existence before ingest would be insufficient as Fedora does not yet support transactions.
+            String message = ex.getMessage();
+            if (message != null && message.contains("org.fcrepo.server.errors.ObjectExistsException")) {
+                return SmartGwtResponse.asError().error("pid", "Object already exists!").build();
+            }
+            throw ex;
+        }
+        return new SmartGwtResponse<DigitalObject>(new DigitalObject(localObject.getPid(), modelId));
     }
 
     @GET
@@ -774,22 +800,6 @@ public class DigitalObjectResource {
 
         public MetaModelList(Collection<MetaModel> models) {
             this.models = models;
-        }
-
-    }
-
-    @XmlRootElement(name="records")
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class DigitalObjectList {
-
-        @XmlElement(name="record")
-        public Collection<DigitalObject> records;
-
-        public DigitalObjectList() {
-        }
-
-        public DigitalObjectList(Collection<DigitalObject> records) {
-            this.records = records;
         }
 
     }

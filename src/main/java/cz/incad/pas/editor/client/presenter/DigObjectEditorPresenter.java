@@ -38,6 +38,7 @@ import cz.incad.pas.editor.client.widget.NewDigObject;
 import cz.incad.pas.editor.client.widget.Wizard;
 import cz.incad.pas.editor.client.widget.Wizard.StepKind;
 import cz.incad.pas.editor.client.widget.Wizard.WizardStep;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -174,40 +175,60 @@ public final class DigObjectEditorPresenter {
         @Override
         public boolean onStepAction(Wizard wizard, StepKind step) {
             if (step == StepKind.FORWARD) {
+                if (!newDigObject.validate()) {
+                    return false;
+                }
                 WizardContext wc = getContext();
                 MetaModelRecord model = newDigObject.getModel();
                 wc.setModel(model);
                 String mods = newDigObject.getMods();
+                String newPid = newDigObject.getNewPid();
                 ClientUtils.info(LOG, "NewDigObjectStep.onStepAction.FORWARD: model: %s pid: %s",
-                        model.getId(), wc.getPid());
-                saveNewDigitalObject(model.getId(), mods);
+                        model.getId(), newPid);
+                saveNewDigitalObject(model.getId(), newPid, mods);
                 return false;
 
             }
             return true;
         }
 
-        private void saveNewDigitalObject(String modelId, String mods) {
+        private void saveNewDigitalObject(String modelId, String pid, String mods) {
             Record r = new Record();
             DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
             r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
             if (mods != null) {
                 r.setAttribute(RemoteMetadataDataSource.FIELD_MODS, mods);
             }
+            if (pid != null && !pid.isEmpty()) {
+                r.setAttribute(DigitalObjectDataSource.FIELD_PID, pid);
+            }
+            DSRequest dsRequest = new DSRequest();
+            dsRequest.setWillHandleError(true);
             ds.addData(r, new DSCallback() {
 
                 @Override
                 public void execute(DSResponse response, Object rawData, DSRequest request) {
-                    Record[] data = response.getData();
-                    if (data != null && data.length > 0) {
-                        String pid = data[0].getAttribute(DigitalObjectDataSource.FIELD_PID);
-                        wc.setPid(pid);
-                        wizard.moveAt(newModsStep);
-                    } else {
+                    if (response.getStatus() == RPCResponse.STATUS_VALIDATION_ERROR) {
+                        Map errors = response.getErrors();
+                        newDigObject.setValidationErrors(errors);
+                        request.setWillHandleError(true);
+                        return ;
+                    }
+                    if (response.getHttpResponseCode() >= 400) {
+                        // failure
                         SC.warn("Failed to create digital object!");
+                    } else {
+                        Record[] data = response.getData();
+                        if (data != null && data.length > 0) {
+                            String pid = data[0].getAttribute(DigitalObjectDataSource.FIELD_PID);
+                            wc.setPid(pid);
+                            wizard.moveAt(newModsStep);
+                        } else {
+                            SC.warn("Failed to create digital object!");
+                        }
                     }
                 }
-            });
+            }, dsRequest);
         }
 
         @Override

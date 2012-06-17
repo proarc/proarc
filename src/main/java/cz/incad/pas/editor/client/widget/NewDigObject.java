@@ -36,6 +36,8 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.FilterBuilder;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
+import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
@@ -46,6 +48,7 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.DataSourceFieldBuilder;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RemoteMetadataDataSource;
@@ -92,6 +95,7 @@ public final class NewDigObject extends VLayout {
     }
 
     public void bind(AdvancedCriteria criteria) {
+        optionsForm.clearErrors(true);
         optionsForm.editNewRecord();
         lgResult.setData(new Record[0]);
         if (criteria == null) {
@@ -106,7 +110,7 @@ public final class NewDigObject extends VLayout {
     }
 
     public MetaModelRecord getModel() {
-        FormItem field = optionsForm.getField(MetaModelDataSource.FIELD_PID);
+        FormItem field = optionsForm.getField(DigitalObjectDataSource.FIELD_MODEL);
         ListGridRecord selectedRecord = field.getSelectedRecord();
         Map values = selectedRecord.toMap();
         ClientUtils.info(LOG, "getModel: %s", values);
@@ -120,8 +124,21 @@ public final class NewDigObject extends VLayout {
         return mods;
     }
 
+    public String getNewPid() {
+        String newPid = optionsForm.getValueAsString(DigitalObjectDataSource.FIELD_PID);
+        return newPid;
+    }
+
+    public boolean validate() {
+        return optionsForm.validate();
+    }
+
+    public void setValidationErrors(Map errors) {
+        optionsForm.setErrors(errors, true);
+    }
+
     private DynamicForm createOptionsForm() {
-        SelectItem selectModel = new SelectItem(MetaModelDataSource.FIELD_PID,
+        SelectItem selectModel = new SelectItem(DigitalObjectDataSource.FIELD_MODEL,
                 i18nPas.NewDigObject_OptionModel_Title());
         selectModel.setRequired(true);
         selectModel.setDefaultToFirstOption(true);
@@ -130,13 +147,27 @@ public final class NewDigObject extends VLayout {
         selectModel.setValueField(MetaModelDataSource.FIELD_PID);
         selectModel.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
         selectModel.setAutoFetchData(true);
+
+        TextItem newPid = new TextItem(DigitalObjectDataSource.FIELD_PID);
+        newPid.setTitle(i18nPas.NewDigObject_OptionPid_Title());
+        newPid.setTooltip(i18nPas.NewDigObject_OptionPid_Hint());
+        newPid.setLength(36 + 5);
+        newPid.setWidth((36 + 5) * 8);
+        newPid.setValidators(new RegExpValidator(
+                "uuid:[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}"));
         DynamicForm form = new DynamicForm();
-        form.setFields(selectModel);
+        form.setWrapItemTitles(false);
+        form.setAutoFocus(true);
+        form.setNumCols(4);
+        form.setBrowserSpellCheck(false);
+        form.setFields(selectModel, newPid);
+        form.setAutoWidth();
         return form;
     }
 
     private Canvas createAdvancedOptions() {
         DynamicForm formCatalog = createCatalogForm();
+        formCatalog.setBrowserSpellCheck(false);
         DataSource ds = new DataSource();
         ds.setFields(
                 new DataSourceFieldBuilder(new DataSourceTextField("id", "ID"))
@@ -163,14 +194,14 @@ public final class NewDigObject extends VLayout {
         filter.setShowSubClauseButton(false);
         filter.setShowRemoveButton(false);
 
-        IButton find = new IButton("Find", new ClickHandler() {
+        IButton find = new IButton(i18nPas.NewDigObject_CatalogFind_Title(), new ClickHandler() {
 
             @Override
             public void onClick(ClickEvent event) {
                 AdvancedCriteria criteria = filter.getCriteria(false);
                 Criterion[] criterions = criteria.getCriteria();
                 if (criterions == null || criterions.length == 0) {
-                    SC.say("Missing query parameter.");
+                    SC.warn(i18nPas.NewDigObject_CatalogFind_MissingParam_Msg());
                 } else {
                     Criteria plain = new Criteria("catalog", "aleph");
                     plain.addCriteria(criterions[0]);
@@ -187,8 +218,10 @@ public final class NewDigObject extends VLayout {
         lgResult = new ListGrid();
         lgResult.setDataSource(RemoteMetadataDataSource.getInstance());
 //        lgResult.setUseAllDataSourceFields(true);
-        ListGridField preview = new ListGridField(RemoteMetadataDataSource.FIELD_PREVIEW);
-        ListGridField title = new ListGridField(RemoteMetadataDataSource.FIELD_TITLE);
+        ListGridField preview = new ListGridField(RemoteMetadataDataSource.FIELD_PREVIEW,
+                i18nPas.NewDigObject_CatalogHeaderPreview_Title());
+        ListGridField title = new ListGridField(RemoteMetadataDataSource.FIELD_TITLE,
+                i18nPas.NewDigObject_CatalogHeaderTitle_Title());
         lgResult.setDetailField(RemoteMetadataDataSource.FIELD_PREVIEW);
         lgResult.setFields(title, preview);
 //        lgResult.setAutoFetchData(true);
