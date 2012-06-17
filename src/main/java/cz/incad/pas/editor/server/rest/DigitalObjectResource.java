@@ -176,7 +176,7 @@ public class DigitalObjectResource {
         localObject.flush();
 
         RemoteStorage fedora = RemoteStorage.getInstance(pasConfig);
-        fedora.ingest(localObject, user.getUserName(), "Ingested with Proarch");
+        fedora.ingest(localObject, user.getUserName(), "Ingested with ProArc");
 
         return new DigitalObjectList(Arrays.asList(new DigitalObject(localObject.getPid(), modelId)));
     }

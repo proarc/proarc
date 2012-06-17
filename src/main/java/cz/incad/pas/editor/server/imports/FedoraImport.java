@@ -31,7 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * XXX write result to proarch_import_status.log
+ * XXX write result to proarc_import_status.log
  * XXX needs tests
  *
  * @author Jan Pokorsky
@@ -90,7 +90,7 @@ public final class FedoraImport {
             throw new IllegalStateException("Cannot read foxml: " + foxml);
         }
 //        LocalObject local = istorage.load(item.getPid(), foxml);
-        fedora.ingest(foxml, item.getPid(), importer, "Ingested with Proarch from local file " + foxml);
+        fedora.ingest(foxml, item.getPid(), importer, "Ingested with ProArc from local file " + foxml);
     }
 
     private void addParentMembers(String parent, List<String> pids) {

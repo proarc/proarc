@@ -1,7 +1,7 @@
 select     $pid $model $owner $label $state $created $modified
 from       <#ri>
 where      $pid     <info:fedora/fedora-system:def/model#hasModel>        $model
-and        $model   <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/model:proarchobject>
+and        $model   <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/model:proarcobject>
 and        $pid     <info:fedora/fedora-system:def/model#createdDate>     $created
 and        $pid     <info:fedora/fedora-system:def/view#lastModifiedDate> $modified
 and        $pid     <info:fedora/fedora-system:def/model#ownerId>         $owner
