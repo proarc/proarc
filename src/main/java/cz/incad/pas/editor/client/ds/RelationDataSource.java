@@ -27,6 +27,7 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
+import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
 
 /**
@@ -68,7 +69,9 @@ public class RelationDataSource extends RestDataSource {
         DataSourceField owner = new DataSourceField(FIELD_OWNER, FieldType.TEXT);
         DataSourceField label = new DataSourceField(FIELD_LABEL, FieldType.TEXT);
         DataSourceDateTimeField created = new DataSourceDateTimeField(FIELD_CREATED);
+        created.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
         DataSourceDateTimeField modified = new DataSourceDateTimeField(FIELD_MODIFIED);
+        modified.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
         setFields(pid, parent, label, model, created, modified, owner);
         setTitleField(FIELD_LABEL);

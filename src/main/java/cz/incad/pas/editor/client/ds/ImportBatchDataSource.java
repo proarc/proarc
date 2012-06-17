@@ -25,6 +25,7 @@ import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DateDisplayFormat;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import java.util.LinkedHashMap;
 
@@ -68,6 +69,7 @@ public final class ImportBatchDataSource extends RestDataSource {
         userId.setForeignKey(UserDataSource.ID + '.' + UserDataSource.FIELD_ID);
 
         DataSourceDateTimeField timestamp = new DataSourceDateTimeField(FIELD_TIMESTAMP);
+        timestamp.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
         LinkedHashMap<String, String> states = new LinkedHashMap<String, String>();

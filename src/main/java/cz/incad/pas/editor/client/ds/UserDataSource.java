@@ -24,6 +24,7 @@ import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourcePasswordField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.widgets.form.fields.StaticTextItem;
 import cz.incad.pas.editor.client.PasEditorMessages;
 
@@ -89,6 +90,7 @@ public final class UserDataSource extends RestDataSource {
         DataSourceDateTimeField created = new DataSourceDateTimeField(FIELD_CREATED);
         created.setCanEdit(false);
         created.setTitle(i18nPas.UsersView_ListHeader_Created_Title());
+        created.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
         setFields(userId, userName, passwd, surname, forename, email, created, home);
 

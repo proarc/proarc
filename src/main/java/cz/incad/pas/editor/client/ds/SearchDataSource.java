@@ -22,6 +22,7 @@ import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
 import java.util.HashMap;
 
@@ -58,7 +59,9 @@ public final class SearchDataSource extends RestDataSource {
         states.put("fedora-system:def/model#Deleted", "Deleted");
         state.setValueMap(states);
         DataSourceDateTimeField created = new DataSourceDateTimeField(FIELD_CREATED);
+        created.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
         DataSourceDateTimeField modified = new DataSourceDateTimeField(FIELD_MODIFIED);
+        modified.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
         model.setForeignKey(MetaModelDataSource.ID + '.' + MetaModelDataSource.FIELD_PID);
