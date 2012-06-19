@@ -19,6 +19,8 @@ package cz.incad.pas.editor.server.config;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 
 /**
@@ -27,6 +29,7 @@ import javax.servlet.ServletContext;
  */
 public final class PasConfigurationFactory {
 
+    private static final Logger LOG = Logger.getLogger(PasConfigurationFactory.class.getName());
     private static final PasConfigurationFactory INSTANCE = new PasConfigurationFactory();
 
     private PasConfiguration defaultInstance;
@@ -39,22 +42,34 @@ public final class PasConfigurationFactory {
         return create(new HashMap<String, String>());
     }
 
+    /**
+     * Creates configuration of the application. The lookup of default properties
+     * searches servlet init parameters, system properties and system environment.
+     *
+     * @param ctx servlet context
+     * @return the configuration
+     * @throws PasConfigurationException
+     */
     public PasConfiguration create(ServletContext ctx) throws PasConfigurationException {
         Map<String, String> env = new HashMap<String, String>();
-        env.put(PasConfiguration.ENV_APP_HOME, ctx.getInitParameter(PasConfiguration.ENV_APP_HOME));
+        readServletParameter(PasConfiguration.PROPERTY_APP_HOME, ctx, env);
         return create(env);
     }
 
-    public PasConfiguration create(Map<String, String> environment) throws PasConfigurationException {
-        if (!environment.containsKey(PasConfiguration.ENV_USER_HOME)) {
-            environment.put(PasConfiguration.ENV_USER_HOME, System.getProperty(PasConfiguration.ENV_USER_HOME));
-        }
-        if (environment.get(PasConfiguration.ENV_APP_HOME) == null) {
-            environment.put(PasConfiguration.ENV_APP_HOME, System.getProperty(PasConfiguration.ENV_APP_HOME));
-        }
+    /**
+     * Creates configuration of the application. The lookup of default properties
+     * searches the passed map, system properties and system environment.
+     * 
+     * @param defaults properties to override defaults.
+     * @return the configuration
+     * @throws PasConfigurationException
+     */
+    public PasConfiguration create(Map<String, String> defaults) throws PasConfigurationException {
+        readParameter(PasConfiguration.PROPERTY_USER_HOME, null, defaults);
+        readParameter(PasConfiguration.PROPERTY_APP_HOME, PasConfiguration.ENV_APP_HOME, defaults);
         PasConfiguration pc;
         try {
-            pc = new PasConfiguration(environment);
+            pc = new PasConfiguration(defaults);
         } catch (IOException ex) {
             throw new PasConfigurationException(ex);
         }
@@ -71,6 +86,32 @@ public final class PasConfigurationFactory {
 
     public void setDefaultInstance(PasConfiguration config) {
         this.defaultInstance = config;
+    }
+
+    private static String readServletParameter(String name, ServletContext ctx, Map<String, String> env) {
+        String val = ctx.getInitParameter(name);
+        if (val != null) {
+            LOG.log(Level.INFO, "Init parameter {0}: {1}", new Object[]{name, val});
+            env.put(name, val);
+        }
+        return val;
+    }
+
+    private static void readParameter(String name, String envName, Map<String, String> env) {
+        if (env.get(name) != null) {
+            return ;
+        }
+        String val = null;
+        if (name != null) {
+            val = System.getProperty(name);
+        }
+        if (val == null && envName != null) {
+            val = System.getenv(envName);
+        }
+        if (val != null) {
+            env.put(name, val);
+            LOG.log(Level.INFO, "Parameter {0}: {1}", new Object[]{name, val});
+        }
     }
 
 }

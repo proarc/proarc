@@ -36,9 +36,9 @@ import org.apache.commons.configuration.PropertiesConfiguration;
  */
 public final class PasConfiguration {
     
-    public static final String ENV_USER_HOME = "user.home";
-    /** environment property to declare nonstandard application home */
-    public static final String ENV_APP_HOME = "proarc.home";
+    public static final String PROPERTY_USER_HOME = "user.home";
+    /** environment variable name to override default application home */
+    public static final String ENV_APP_HOME = "PROARC_HOME";
     public static final String DEFAULT_APP_HOME_NAME = ".proarc";
     public static final String CONFIG_FILE_NAME = "proarc.cfg";
 
@@ -47,6 +47,10 @@ public final class PasConfiguration {
      * Accessible as {@code ${proarc.home}} in properties files.
      */
     static final String PROPERTY_APP_HOME = "proarc.home";
+    private static final String PROPERTY_FEDORA_CLIENT_PASSWORD = "fedora.client.password";
+    private static final String PROPERTY_FEDORA_CLIENT_URL = "fedora.client.url";
+    private static final String PROPERTY_FEDORA_CLIENT_USERNAME = "fedora.client.username";
+    private static final String PROPERTY_USERS_HOME = "proarc.users.home";
     
     private static final Logger LOG = Logger.getLogger(PasConfiguration.class.getName());
 
@@ -66,7 +70,7 @@ public final class PasConfiguration {
      * Gets default target folder for newly created user home folders.
      */
     public File getDefaultUsersHome() throws IOException {
-        String path = config.getString("proarc.users.home");
+        String path = config.getString(PROPERTY_USERS_HOME);
         File users = new File(path);
         if (!checkFile(users, false, true, true, true)) {
             users.mkdirs();
@@ -75,15 +79,15 @@ public final class PasConfiguration {
     }
 
     public String getFedoraUsername() {
-        return config.getString("fedora.client.username");
+        return config.getString(PROPERTY_FEDORA_CLIENT_USERNAME);
     }
 
     public String getFedoraPassword() {
-        return config.getString("fedora.client.password");
+        return config.getString(PROPERTY_FEDORA_CLIENT_PASSWORD);
     }
 
     public String getFedoraUrl() {
-        return config.getString("fedora.client.url");
+        return config.getString(PROPERTY_FEDORA_CLIENT_URL);
     }
 
     public File getConfigHome() {
@@ -95,9 +99,9 @@ public final class PasConfiguration {
     }
 
     private void init(CompositeConfiguration cc) throws IOException {
-        File home = initHome(environment.get(ENV_USER_HOME));
+        File home = initHome(environment.get(PROPERTY_USER_HOME));
         this.homePath = home.getPath();
-        this.configHome = initConfigFolder(home, environment.get(ENV_APP_HOME));
+        this.configHome = initConfigFolder(home, environment.get(PROPERTY_APP_HOME));
         try {
             // envConfig contains inerpolated properties
             PropertiesConfiguration envConfig = new PropertiesConfiguration();
