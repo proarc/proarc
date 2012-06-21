@@ -69,7 +69,7 @@ public class PasConfigurationTest {
         final File confHome = temp.getRoot();
         assertNotNull(confHome);
         PasConfiguration config = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.ENV_APP_HOME, confHome.toString());
+            put(PasConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
         assertNotNull(config);
         assertEquals(confHome, config.getConfigHome());
@@ -83,7 +83,7 @@ public class PasConfigurationTest {
         final File confHome = temp.getRoot();
         assertNotNull(confHome);
         PasConfiguration config = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.ENV_APP_HOME, confHome.toString());
+            put(PasConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
         assertNotNull(config);
         File expectedUserFolder = new File(confHome, "users");
@@ -109,7 +109,7 @@ public class PasConfigurationTest {
         assertTrue(configFile.exists());
 
         PasConfiguration pconfig = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.ENV_APP_HOME, confHome.toString());
+            put(PasConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
 
         Configuration config = pconfig.getConfiguration();
@@ -125,7 +125,7 @@ public class PasConfigurationTest {
         assertTrue(configFile.exists());
 
         pconfig = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.ENV_APP_HOME, confHome.toString());
+            put(PasConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
 
         config = pconfig.getConfiguration();
@@ -149,7 +149,7 @@ public class PasConfigurationTest {
         assertTrue(configFile.exists());
 
         PasConfiguration pconfig = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.ENV_APP_HOME, confHome.toString());
+            put(PasConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
 
         Configuration config = pconfig.getConfiguration();

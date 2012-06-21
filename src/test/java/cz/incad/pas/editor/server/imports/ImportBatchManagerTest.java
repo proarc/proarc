@@ -61,7 +61,7 @@ public class ImportBatchManagerTest {
         // use temporary configuration
         File configHome = temp.newFolder(PasConfiguration.DEFAULT_APP_HOME_NAME);
         Map<String, String> env = new HashMap<String, String>();
-        env.put(PasConfiguration.ENV_APP_HOME, configHome.toString());
+        env.put(PasConfiguration.PROPERTY_APP_HOME, configHome.toString());
         pasConf = PasConfigurationFactory.getInstance().create(env);
 
 //        System.setProperty(PasConfiguration.ENV_APP_HOME, config.toString());

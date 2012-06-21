@@ -54,7 +54,7 @@ public class UserManagerMemoryImplTest {
     @Before
     public void setUp() throws Exception {
         config = PasConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
-            put(PasConfiguration.ENV_APP_HOME, temp.getRoot().getPath());
+            put(PasConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
         }});
     }
 

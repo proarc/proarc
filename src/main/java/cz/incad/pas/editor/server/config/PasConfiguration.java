@@ -46,7 +46,7 @@ public final class PasConfiguration {
      * Internal configuration property interpolated on init.
      * Accessible as {@code ${proarc.home}} in properties files.
      */
-    static final String PROPERTY_APP_HOME = "proarc.home";
+    public static final String PROPERTY_APP_HOME = "proarc.home";
     private static final String PROPERTY_FEDORA_CLIENT_PASSWORD = "fedora.client.password";
     private static final String PROPERTY_FEDORA_CLIENT_URL = "fedora.client.url";
     private static final String PROPERTY_FEDORA_CLIENT_USERNAME = "fedora.client.username";
