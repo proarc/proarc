@@ -73,7 +73,7 @@ public final class SearchView {
             }
             expr.append(String.format(
                     "$pid <http://mulgara.org/mulgara#is> <info:fedora/%s>",
-                    pids[0]));
+                    pids[i]));
         }
         String query = QUERY_FIND_PIDS.replace("${pids.expression}", expr);
         LOG.info(query);
