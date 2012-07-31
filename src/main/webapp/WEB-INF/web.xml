@@ -13,8 +13,6 @@
         <init-param>
             <param-name>com.sun.jersey.config.property.packages</param-name>
             <param-value>cz.incad.pas.editor.server.rest</param-value>
-<!--            <param-name>javax.ws.rs.Application</param-name>
-            <param-value>cz.incad.pas.editor.server.RestApplication</param-value>-->
         </init-param>
 
         <!-- see http://jersey.java.net/nonav/apidocs/1.9.1/jersey/com/sun/jersey/api/container/filter/LoggingFilter.html -->

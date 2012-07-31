@@ -1,9 +1,0 @@
-[
-    {"name":"2010","state":"IMPORTED","path":"/2010"},
-    {"name":"2011","state":"NEW","path":"/2011"},
-    {"name":"02","parent":"/2011","path":"/2011/02"},
-    {"name":"28","state":"IMPORTED","parent":"/2011/02","path":"/2011/02/28"},
-    {"name":"ABA0070069228X","state":"RUNNING","parent":"/2011/02/28","path":"/2011/02/28/ABA0070069228X"},
-    {"name":"ABA0070069228X2","state":"IMPORTED","parent":"/2011/02/28","path":"/2011/02/28/ABA0070069228X2"},
-    {"name":"29","parent":"/2011/02","path":"/2011/02/29"}
-]

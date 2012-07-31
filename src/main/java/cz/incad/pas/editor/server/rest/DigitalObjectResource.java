@@ -27,7 +27,6 @@ import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
-import cz.incad.pas.editor.server.fedora.DigitalObjectRepository;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
@@ -98,7 +97,6 @@ public class DigitalObjectResource {
 
     private final PasConfiguration pasConfig;
     private final MetaModelRepository metamodels = MetaModelRepository.getInstance();
-    private final DigitalObjectRepository repository;
     private final ImportBatchManager importManager;
     private final UserManager userManager;
     private final Request httpRequest;
@@ -114,7 +112,6 @@ public class DigitalObjectResource {
         this.httpRequest = request;
         this.httpHeaders = httpHeaders;
         this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
-        this.repository = DigitalObjectRepository.getInstance(pasConfig);
         this.importManager = ImportBatchManager.getInstance(pasConfig);
         this.userManager = UserUtil.getDefaultManger();
 
