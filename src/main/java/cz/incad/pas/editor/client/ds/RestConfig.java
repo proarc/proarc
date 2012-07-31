@@ -25,6 +25,7 @@ import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,7 +52,7 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_PREVIEW =  URL_DIGOBJECT + "/preview";
     public static final String URL_DIGOBJECT_PRIVATE_NOTE =  URL_DIGOBJECT + "/privatenote";
     public static final String URL_DIGOBJECT_RAW =  URL_DIGOBJECT + "/raw";
-    public static final String URL_DIGOBJECT_SEARCH =  URL_DIGOBJECT + "/search";
+    public static final String URL_DIGOBJECT_SEARCH =  URL_DIGOBJECT + '/' + DigitalObjectResourceApi.SEARCH_PATH;
     public static final String URL_DIGOBJECT_THUMBNAIL =  URL_DIGOBJECT + "/thumb";
     public static final String URL_DIGOBJECT_METAMODEL =  URL_DIGOBJECT + "/metamodel";
     public static final String URL_METADATACATALOG =  URL_ROOT + "/metadatacatalog";

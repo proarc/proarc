@@ -111,6 +111,10 @@ public class MetaModelDataSource extends DataSource {
         public String getEditorId() {
             return record.getAttribute(FIELD_EDITOR);
         }
+
+        public String getDisplayName() {
+            return record.getAttribute(FIELD_DISPLAY_NAME);
+        }
     }
 
 }

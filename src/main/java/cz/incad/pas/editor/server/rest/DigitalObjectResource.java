@@ -47,6 +47,8 @@ import cz.incad.pas.editor.server.mods.custom.Mapping;
 import cz.incad.pas.editor.server.user.UserManager;
 import cz.incad.pas.editor.server.user.UserProfile;
 import cz.incad.pas.editor.server.user.UserUtil;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,6 +63,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -208,18 +211,41 @@ public class DigitalObjectResource {
     }
 
     @GET
-    @Path("search")
+    @Path(DigitalObjectResourceApi.SEARCH_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Item> findLastCreated(
-            @QueryParam("owner") String owner,
-            @QueryParam("_startRow") int startRow
+    public SmartGwtResponse<Item> search(
+            @QueryParam(DigitalObjectResourceApi.SEARCH_OWNER_PARAM) String owner,
+            @DefaultValue(SearchType.DEFAULT)
+            @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM) SearchType type,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM) String phrase,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM) String queryIdentifier,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM) String queryLabel,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM) String queryModel,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_TITLE_PARAM) String queryTitle,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow
             ) throws FedoraClientException, IOException {
 
         SearchView search = RemoteStorage.getInstance(pasConfig).getSearch();
-        List<Item> items = search.findLastCreated(startRow, owner);
+        List<Item> items;
+        int page = 20;
+        switch (type) {
+            case LAST_MODIFIED:
+                items = search.findLastModified(startRow, owner, 100);
+                break;
+            case QUERY:
+                items = search.findQuery(queryTitle, queryLabel, queryIdentifier, owner, queryModel);
+                page = 1;
+                break;
+            case PHRASE:
+                items = search.findPhrase(phrase);
+                page = 1;
+                break;
+            default:
+                items = search.findLastCreated(startRow, owner);
+        }
         int count = items.size();
         int endRow = startRow + count - 1;
-        int total = count == 0 ? startRow : endRow + 20;
+        int total = count == 0 ? startRow : endRow + page;
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
     }
 

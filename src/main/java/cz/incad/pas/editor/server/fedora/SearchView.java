@@ -25,8 +25,10 @@ import cz.incad.pas.editor.server.fedora.relation.RelationResource;
 import cz.incad.pas.editor.server.json.JsonUtils;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -56,13 +58,114 @@ public final class SearchView {
         this.maxLimit = maxLimit;
     }
 
-    public void findQuery(String query) throws FedoraClientException {
-        FindObjectsResponse response = FedoraClient.findObjects().query(query).resultFormat("xml")
-                .pid().title().label().identifier().cDate().mDate().type().state()
-                .execute(null);
-        response.getExpirationDate();
+    /**
+     * Finds objects matching passed fields using the Fedora Basic Search.
+     * Matching objects are filtered with {@link #find(java.lang.String[]) }
+     * to return only ProArc objects.
+     *
+     * @return limited list of objects.
+     * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Basic+Search'>Fedora Basic Search</a>
+     */
+    public List<Item> findQuery(String title, String label, String identifier, String owner, String model)
+            throws FedoraClientException, IOException {
+        
+        final int objectsLimit = 80;
+        StringBuilder query = new StringBuilder();
+        if (model != null && !model.isEmpty()) {
+            query.append("type~").append(model);
+        }
+        buildQuery(query, "title", title);
+        buildQuery(query, "label", label);
+        buildQuery(query, "identifier", identifier);
+        buildQuery(query, "ownerId", owner);
+        FindObjectsResponse response = FedoraClient.findObjects().query(query.toString()).resultFormat("xml")
+                .pid()
+                .maxResults(objectsLimit)
+                .execute(fedora);
         List<String> pids = response.getPids();
-        throw new UnsupportedOperationException();
+        if (LOG.isLoggable(Level.FINE)) {
+            LOG.fine("pids count: " + pids.size() + ", token: " + response.getToken() + ", pids: " + pids.toString());
+        }
+
+        List<Item> result = new ArrayList<Item>(maxLimit);
+        while (!pids.isEmpty()) {
+            List<Item> items = find(pids.toArray(new String[pids.size()]));
+            result.addAll(items);
+            String token = response.getToken();
+            if (token == null || result.size() + objectsLimit > maxLimit) {
+                break;
+            }
+            response = FedoraClient.findObjects().query(query.toString()).resultFormat("xml").pid()
+                    .maxResults(objectsLimit).sessionToken(token)
+                    .execute(fedora);
+            pids = response.getPids();
+            if (LOG.isLoggable(Level.FINE)) {
+                LOG.fine("resumed: pids count: " + pids.size() + ", token: " + response.getToken() + ", pids: " + pids.toString());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Finds objects matching passed phrase using the Fedora Basic Search.
+     * Matching objects are filtered with {@link #find(java.lang.String[]) }
+     * to return only ProArc objects.
+     *
+     * @param phrase phrase to search in any field of the object
+     * @return limited list of objects.
+     * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Basic+Search'>Fedora Basic Search</a>
+     */
+    public List<Item> findPhrase(String phrase) throws FedoraClientException, IOException {
+        final int objectsLimit = 80;
+        phrase = normalizePhrase(phrase);
+        FindObjectsResponse response = FedoraClient.findObjects().terms(phrase).resultFormat("xml")
+                .pid()
+                .maxResults(objectsLimit)
+                .execute(fedora);
+        List<String> pids = response.getPids();
+        if (LOG.isLoggable(Level.FINE)) {
+            LOG.fine("pids count: " + pids.size() + ", token: " + response.getToken() + ", pids: " + pids.toString());
+        }
+        List<Item> result = new ArrayList<Item>(maxLimit);
+        while (!pids.isEmpty()) {
+            List<Item> items = find(pids.toArray(new String[pids.size()]));
+            result.addAll(items);
+            String token = response.getToken();
+            if (token == null || result.size() + objectsLimit > maxLimit) {
+                break;
+            }
+            response = FedoraClient.findObjects().terms(phrase).resultFormat("xml").pid()
+                    .maxResults(objectsLimit).sessionToken(token)
+                    .execute(fedora);
+            pids = response.getPids();
+            if (LOG.isLoggable(Level.FINE)) {
+                LOG.fine("resumed: pids count: " + pids.size() + ", token: " + response.getToken() + ", pids: " + pids.toString());
+            }
+        }
+        return result;
+    }
+
+    private static StringBuilder buildQuery(StringBuilder builder, String field, String value) {
+        value = normalizePhrase(value);
+        if (!"*".equals(value)) {
+            if (builder.length() > 0) {
+                builder.append(' ');
+            }
+            builder.append(field).append('~').append(value);
+        }
+        return builder;
+    }
+
+    /**
+     * Removes superfluous chars a and optimizes phrase to match the most relevant records.
+     * <p/>For ITQL it trims leading and trailing whitespaces and asterisks
+     * and wraps the result with asterisks.
+     */
+    static String normalizePhrase(String phrase) {
+        phrase = phrase == null ? "" : phrase;
+        phrase = phrase.replaceAll("^[\\s\\*]+|[\\s\\*]+$", "");
+        phrase = phrase.isEmpty() ? "*" : "*" + phrase + "*";
+        return phrase;
     }
 
     public List<Item> find(String... pids) throws FedoraClientException, IOException {
@@ -92,7 +195,16 @@ public final class SearchView {
     }
     
     public List<Item> findLastCreated(int offset, String user, int limit) throws FedoraClientException, IOException {
+        return findLast(offset, user, limit, "$created desc");
+    }
+
+    public List<Item> findLastModified(int offset, String user, int limit) throws FedoraClientException, IOException {
+        return findLast(offset, user, limit, "$modified desc");
+    }
+
+    private List<Item> findLast(int offset, String user, int limit, String orderBy) throws FedoraClientException, IOException {
         String query = QUERY_LAST_CREATED.replace("${offset}", String.valueOf(offset));
+        query = query.replace("${orderBy}", orderBy);
         RiSearch search = buildSearch(query);
 
         if (limit > 0) {

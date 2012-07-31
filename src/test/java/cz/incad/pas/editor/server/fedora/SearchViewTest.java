@@ -22,6 +22,7 @@ import cz.incad.pas.editor.server.fedora.SearchView.Item;
 import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -68,5 +69,32 @@ public class SearchViewTest {
         SearchView instance = new SearchView(client);
         List<Item> result = instance.findLastCreated(0, user);
         System.out.println(result);
+    }
+
+    @Test
+    public void testNormalizePhrase() {
+        assertEquals("*query*", SearchView.normalizePhrase("*query*"));
+        assertEquals("*query*", SearchView.normalizePhrase("*query"));
+        assertEquals("*query*", SearchView.normalizePhrase("query*"));
+        assertEquals("*query*", SearchView.normalizePhrase(" * query* **"));
+        assertEquals("*", SearchView.normalizePhrase(" ***"));
+        assertEquals("*", SearchView.normalizePhrase(""));
+        assertEquals("*", SearchView.normalizePhrase(null));
+    }
+
+    @Test
+    public void tetFindQuery() throws Exception {
+//        client.debug(true);
+        SearchView instance = new SearchView(client);
+        List<Item> result = instance.findQuery("p", "p", "u", "p", "model:periodical");
+        assertFalse(result.isEmpty());
+    }
+
+    @Test
+    public void tetFindModelQuery() throws Exception {
+//        client.debug(true);
+        SearchView instance = new SearchView(client);
+        List<Item> result = instance.findQuery(null, null, null, null, "model:periodical");
+        assertFalse(result.isEmpty());
     }
 }
