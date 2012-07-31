@@ -53,6 +53,8 @@ import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
@@ -166,8 +168,8 @@ public final class DigitalObjectSearchView implements DigitalObjectSelector, Ref
         filterType.setValueMap(filterMap);
         filterType.setValue(FILTER_LAST_CREATED);
 
-        FormItemIfFunction showIfAdvanced = new StringMatchFunction(FILTER_QUERY, filterType);
-        FormItemIfFunction showIfPhrase = new StringMatchFunction(FILTER_PHRASE, filterType);
+        FormItemIfFunction showIfAdvanced = new StringMatchFunction(filterType, FILTER_QUERY);
+        FormItemIfFunction showIfPhrase = new StringMatchFunction(filterType, FILTER_PHRASE);
 
         final TextItem phrase = createAdvancedItem(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM,
                 i18nPas.DigitalObjectSearchView_FilterPhrase_Title(), showIfPhrase);
@@ -193,7 +195,8 @@ public final class DigitalObjectSearchView implements DigitalObjectSelector, Ref
                         i18nPas.DigitalObjectSearchView_FilterAdvancedLabel_Title(), showIfAdvanced),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_OWNER_PARAM,
                         i18nPas.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfAdvanced),
-                createModelItem(i18nPas.DigitalObjectSearchView_FilterAdvancedModel_Title(), showIfAdvanced),
+                createModelItem(i18nPas.DigitalObjectSearchView_FilterAdvancedModel_Title(),
+                        new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY)),
                 submit);
         
         form.addSubmitValuesHandler(new SubmitValuesHandler() {
@@ -210,20 +213,25 @@ public final class DigitalObjectSearchView implements DigitalObjectSelector, Ref
 
     private static TextItem createAdvancedItem(String name, String title, FormItemIfFunction showIf) {
         TextItem item = new TextItem(name, title);
-        item.setShowIfCondition(showIf);
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
         item.setWidth("100%");
         item.setValidators(new LengthRangeValidator() {{ setMax(1000); }});
         return item;
     }
 
-    private static SelectItem createModelItem(String title, FormItemIfFunction showAdvanced) {
+    private static SelectItem createModelItem(String title, FormItemIfFunction showIf) {
         SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM, title);
         item.setOptionDataSource(MetaModelDataSource.getInstance());
         item.setAllowEmptyValue(true);
         item.setValueField(MetaModelDataSource.FIELD_PID);
         item.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
         item.setAutoFetchData(true);
-        item.setShowIfCondition(showAdvanced);
+        item.setValue("model:periodical");
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
         return item;
     }
 
@@ -272,18 +280,18 @@ public final class DigitalObjectSearchView implements DigitalObjectSelector, Ref
 
     private static final class StringMatchFunction implements FormItemIfFunction {
 
-        private final String pattern;
+        private final HashSet<String> patterns;
         private final FormItem item2query;
 
-        public StringMatchFunction(String pattern, FormItem item2query) {
-            this.pattern = pattern;
+        public StringMatchFunction(FormItem item2query, String... patterns) {
+            this.patterns = new HashSet<String>(Arrays.asList(patterns));
             this.item2query = item2query;
         }
 
         @Override
         public boolean execute(FormItem item, Object value, DynamicForm form) {
             Object itemValue = item2query.getValue();
-            return itemValue != null && pattern.equals(itemValue.toString());
+            return itemValue != null && patterns.contains(itemValue.toString());
         }
 
     }

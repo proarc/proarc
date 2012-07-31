@@ -65,7 +65,9 @@ public class SearchViewTest {
     @Test
     public void testFindLastCreated() throws Exception {
         // XXX needs some assertions; it tests no exception now
-        String user = "";
+//        client.debug(true);
+        String user = "model:periodical";
+//        String user = null;
         SearchView instance = new SearchView(client);
         List<Item> result = instance.findLastCreated(0, user);
         System.out.println(result);

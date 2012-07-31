@@ -190,21 +190,27 @@ public final class SearchView {
         return consumeSearch(search.execute(fedora));
     }
 
-    public List<Item> findLastCreated(int offset, String user) throws FedoraClientException, IOException {
-        return findLastCreated(offset, user, 100);
+    public List<Item> findLastCreated(int offset, String model) throws FedoraClientException, IOException {
+        return findLastCreated(offset, model, 100);
     }
     
-    public List<Item> findLastCreated(int offset, String user, int limit) throws FedoraClientException, IOException {
-        return findLast(offset, user, limit, "$created desc");
+    public List<Item> findLastCreated(int offset, String model, int limit) throws FedoraClientException, IOException {
+        return findLast(offset, model, limit, "$created desc");
     }
 
-    public List<Item> findLastModified(int offset, String user, int limit) throws FedoraClientException, IOException {
-        return findLast(offset, user, limit, "$modified desc");
+    public List<Item> findLastModified(int offset, String model, int limit) throws FedoraClientException, IOException {
+        return findLast(offset, model, limit, "$modified desc");
     }
 
-    private List<Item> findLast(int offset, String user, int limit, String orderBy) throws FedoraClientException, IOException {
-        String query = QUERY_LAST_CREATED.replace("${offset}", String.valueOf(offset));
-        query = query.replace("${orderBy}", orderBy);
+    private List<Item> findLast(int offset, String model, int limit, String orderBy) throws FedoraClientException, IOException {
+        String modelFilter = "";
+        if (model != null && !model.isEmpty()) {
+            modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
+        }
+        String query = QUERY_LAST_CREATED.replace("${OFFSET}", String.valueOf(offset));
+        query = query.replace("${MODEL_FILTER}", modelFilter);
+        query = query.replace("${ORDERBY}", orderBy);
+        LOG.info(query);
         RiSearch search = buildSearch(query);
 
         if (limit > 0) {

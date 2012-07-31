@@ -230,7 +230,7 @@ public class DigitalObjectResource {
         int page = 20;
         switch (type) {
             case LAST_MODIFIED:
-                items = search.findLastModified(startRow, owner, 100);
+                items = search.findLastModified(startRow, queryModel, 100);
                 break;
             case QUERY:
                 items = search.findQuery(queryTitle, queryLabel, queryIdentifier, owner, queryModel);
@@ -241,7 +241,7 @@ public class DigitalObjectResource {
                 page = 1;
                 break;
             default:
-                items = search.findLastCreated(startRow, owner);
+                items = search.findLastCreated(startRow, queryModel);
         }
         int count = items.size();
         int endRow = startRow + count - 1;
