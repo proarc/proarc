@@ -40,7 +40,7 @@ public final class UserPermissionDataSource extends RestDataSource {
         setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_USER_PERMISSIONS);
 
-        DataSourceIntegerField permId = new DataSourceIntegerField(FIELD_PERMISSIONID);
+        DataSourceTextField permId = new DataSourceTextField(FIELD_PERMISSIONID);
         permId.setPrimaryKey(true);
         permId.setCanEdit(false);
         permId.setHidden(true);

@@ -69,8 +69,7 @@ public final class ImportBatchItemDataSource extends RestDataSource {
 
         DataSourceTextField filename = new DataSourceTextField(FIELD_FILENAME);
 
-        DataSourceIntegerField user = new DataSourceIntegerField(FIELD_USER);
-        user.setForeignKey(UserDataSource.ID + '.' + UserDataSource.FIELD_ID);
+        DataSourceTextField user = new DataSourceTextField(FIELD_USER);
 
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
         model.setForeignKey(MetaModelDataSource.ID + '.' + MetaModelDataSource.FIELD_PID);
