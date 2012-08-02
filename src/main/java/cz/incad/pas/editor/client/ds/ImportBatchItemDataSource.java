@@ -25,7 +25,6 @@ import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceImageField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import cz.incad.pas.editor.client.ClientUtils;
@@ -96,8 +95,7 @@ public final class ImportBatchItemDataSource extends RestDataSource {
 
     @Override
     protected void transformResponse(DSResponse response, DSRequest request, Object data) {
-        int status = response.getStatus();
-        if (status == RPCResponse.STATUS_SUCCESS) {
+        if (RestConfig.isStatusOk(response)) {
             for (Record record : response.getData()) {
                 String pid = record.getAttribute(FIELD_PID);
                 String batchId = record.getAttribute(FIELD_BATCHID);

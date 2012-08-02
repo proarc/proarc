@@ -21,7 +21,6 @@ import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.fedora.PageView;
-import cz.incad.pas.editor.server.fedora.PageView.ImportBatchItemList;
 import cz.incad.pas.editor.server.fedora.PageView.Item;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.imports.FedoraImport;
@@ -297,14 +296,14 @@ public class ImportResource {
         if (startRow > 0) {
             imports = imports.subList(startRow, totalImports);
         }
-        List<Item> records = new PageView().list(batchId, imports).getRecords();
+        List<Item> records = new PageView().list(batchId, imports);
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, totalRows, records);
     }
 
     @PUT
     @Path("batch/item")
     @Produces(MediaType.APPLICATION_JSON)
-    public ImportBatchItemList updateBatchItem(
+    public SmartGwtResponse<PageView.Item> updateBatchItem(
             @FormParam("batchId") Integer batchId,
             @FormParam("pid") String pid,
             @FormParam("timestamp") long timestamp,
@@ -324,18 +323,20 @@ public class ImportResource {
                     .type(MediaType.TEXT_PLAIN_TYPE).build());
         }
 
-        return new PageView().updateItem(batchId, item, timestamp, pageIndex, pageNumber, pageType);
+        Item updatedItem = new PageView().updateItem(batchId, item, timestamp, pageIndex, pageNumber, pageType);
+        return new SmartGwtResponse<Item>(updatedItem);
     }
 
     @DELETE
     @Path("batch/item")
-    public PageView.Item deleteBatchItem(
+    public SmartGwtResponse<PageView.Item> deleteBatchItem(
             @QueryParam("batchId") Integer batchId,
             @QueryParam("pid") String pid
             ) {
 
         importManager.removeItem(batchId, pid);
-        return new PageView.Item(batchId, null, pid, null, null, null, null, 0, null);
+        Item deletedItem = new PageView.Item(batchId, null, pid, null, null, null, null, 0, null);
+        return new SmartGwtResponse<Item>(deletedItem);
     }
 
     private static String normalizeParam(String p) {

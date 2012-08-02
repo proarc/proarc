@@ -29,13 +29,10 @@ import cz.incad.pas.editor.server.mods.custom.PageMapper.Page;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
@@ -43,7 +40,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 public final class PageView {
 
-    public ImportBatchItemList list(int batchId, Collection<ImportItem> imports) {
+    public List<Item> list(int batchId, Collection<ImportItem> imports) {
         ArrayList<Item> result = new ArrayList<Item>(imports.size());
         LocalStorage storage = new LocalStorage();
 //        Mapping mapping = new Mapping();
@@ -59,10 +56,10 @@ public final class PageView {
                     model, page.getIndex(), page.getNumber(), page.getType(),
                     editor.getLastModified(), local.getOwner()));
         }
-        return new ImportBatchItemList(result);
+        return result;
     }
 
-    public ImportBatchItemList updateItem(int batchId, ImportItem item, long timestamp, String pageIndex, String pageNumber, String pageType)
+    public Item updateItem(int batchId, ImportItem item, long timestamp, String pageIndex, String pageNumber, String pageType)
             throws IOException {
         
         LocalStorage storage = new LocalStorage();
@@ -88,7 +85,7 @@ public final class PageView {
         Item update = new Item(batchId, item.getFilename(), item.getPid(), model,
                 pageIndex, pageNumber, pageType,
                 editor.getLastModified(), local.getOwner());
-        return new ImportBatchItemList(Arrays.asList(update));
+        return update;
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -119,25 +116,6 @@ public final class PageView {
         }
 
         public Item() {
-        }
-
-    }
-
-    @XmlRootElement(name="items")
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class ImportBatchItemList {
-
-        @XmlElement(name="item")
-        private List<Item> records;
-
-        public ImportBatchItemList() {}
-
-        public ImportBatchItemList(List<Item> objects) {
-            this.records = objects;
-        }
-
-        public List<Item> getRecords() {
-            return records;
         }
 
     }
