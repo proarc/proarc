@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.client.ds;
 
-import com.google.gwt.user.client.Window;
+import com.google.gwt.i18n.client.LocaleInfo;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
@@ -57,8 +57,9 @@ public final class LanguagesDataSource extends DataSource {
     }
 
     public static String activeLocale() {
-        String locale = Window.Location.getParameter("locale");
-        return locale == null ? "en" : locale;
+        String locale = LocaleInfo.getCurrentLocale().getLocaleName();
+        return locale == null || "default".equals(locale)
+                ? "en" : locale;
     }
 
     public static Criteria activeLocaleAsCriteria() {

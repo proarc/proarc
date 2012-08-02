@@ -17,7 +17,6 @@
 package cz.incad.pas.editor.client.ds;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Window;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.OperationBinding;
@@ -71,10 +70,7 @@ public final class RestConfig {
                 defaultHeaders.put("Accept", "application/json");
                 break;
         }
-        String locale = Window.Location.getParameter("locale");
-        if (locale != null) {
-            defaultHeaders.put("Accept-Language", locale);
-        }
+        defaultHeaders.put("Accept-Language", LanguagesDataSource.activeLocale());
         dsr.setHttpHeaders(defaultHeaders);
         return dsr;
     }

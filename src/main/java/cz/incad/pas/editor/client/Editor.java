@@ -46,6 +46,7 @@ import com.smartgwt.client.widgets.tree.events.FolderClosedEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClosedHandler;
 import com.smartgwt.client.widgets.tree.events.LeafClickEvent;
 import com.smartgwt.client.widgets.tree.events.LeafClickHandler;
+import cz.incad.pas.editor.client.ds.LanguagesDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.UserDataSource;
 import cz.incad.pas.editor.client.ds.UserPermissionDataSource;
@@ -81,10 +82,10 @@ public class Editor implements EntryPoint {
         
         ClientUtils.info(LOG, "onModuleLoad:\n module page: %s\n host page: %s"
                 + "\n getModuleName: %s\n getPermutationStrongName: %s\n version: %s"
-                + "\n Page.getAppDir: %s",
+                + "\n Page.getAppDir: %s, \n Locale: %s",
                 GWT.getModuleBaseURL(), GWT.getHostPageBaseURL(),
                 GWT.getModuleName(), GWT.getPermutationStrongName(), GWT.getVersion(),
-                Page.getAppDir()
+                Page.getAppDir(), LanguagesDataSource.activeLocale()
                 );
 
         i18nPas = GWT.create(PasEditorMessages.class);
