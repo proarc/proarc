@@ -274,7 +274,7 @@ public final class ImportBatchItemEditor extends HLayout {
                 type = (type != null) ? type : ModsCustomDataSource.getDefaultPageType();
                 number = (number != null) ? number : "-";
                 value = (value != null) ? value : "-";
-                return ClientUtils.format("Index: %s<br>%s: %s", value, pageTypes.get(type), number);
+                return ClientUtils.format("%s: %s<br>Index: %s", pageTypes.get(type), number, value);
             }
         });
         final DetailViewerField dvfThumbnail = new DetailViewerField(ImportBatchItemDataSource.FIELD_THUMBNAIL);
