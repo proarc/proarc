@@ -259,8 +259,7 @@ public class DigitalObjectResource {
         if (parent == null || "null".equals(parent)) {
             items = search.find(root);
         } else {
-            // XXX sort according to RELS-EXT
-            items = search.findChildren(parent);
+            items = search.findSortedChildren(parent);
         }
         int count = items.size();
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, count - 1, count, items);

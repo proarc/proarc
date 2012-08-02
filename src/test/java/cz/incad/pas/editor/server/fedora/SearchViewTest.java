@@ -35,6 +35,7 @@ import org.junit.Test;
 public class SearchViewTest {
 
     private static FedoraClient client;
+    private RemoteStorage storage;
 
     public SearchViewTest() {
     }
@@ -56,6 +57,7 @@ public class SearchViewTest {
 
     @Before
     public void setUp() {
+        storage = new RemoteStorage(client);
     }
 
     @After
@@ -68,7 +70,7 @@ public class SearchViewTest {
 //        client.debug(true);
         String user = "model:periodical";
 //        String user = null;
-        SearchView instance = new SearchView(client);
+        SearchView instance = new SearchView(storage);
         List<Item> result = instance.findLastCreated(0, user);
         System.out.println(result);
     }
@@ -87,7 +89,7 @@ public class SearchViewTest {
     @Test
     public void tetFindQuery() throws Exception {
 //        client.debug(true);
-        SearchView instance = new SearchView(client);
+        SearchView instance = new SearchView(storage);
         List<Item> result = instance.findQuery("p", "p", "u", "p", "model:periodical");
         assertFalse(result.isEmpty());
     }
@@ -95,7 +97,7 @@ public class SearchViewTest {
     @Test
     public void tetFindModelQuery() throws Exception {
 //        client.debug(true);
-        SearchView instance = new SearchView(client);
+        SearchView instance = new SearchView(storage);
         List<Item> result = instance.findQuery(null, null, null, null, "model:periodical");
         assertFalse(result.isEmpty());
     }

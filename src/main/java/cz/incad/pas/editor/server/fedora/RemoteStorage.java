@@ -71,7 +71,7 @@ public final class RemoteStorage {
     }
 
     public SearchView getSearch() {
-        return new SearchView(client);
+        return new SearchView(this);
     }
 
     public void ingest(File foxml, String pid, String ingestUser, String log) throws FedoraClientException {
@@ -119,6 +119,10 @@ public final class RemoteStorage {
             // XXX
         }
         LOG.log(Level.INFO, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
+    }
+
+    FedoraClient getClient() {
+        return client;
     }
 
     public static final class RemoteObject extends AbstractFedoraObject {

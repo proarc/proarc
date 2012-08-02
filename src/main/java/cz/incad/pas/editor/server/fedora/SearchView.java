@@ -21,11 +21,15 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.request.RiSearch;
 import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
 import com.yourmediashelf.fedora.client.response.RiSearchResponse;
+import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
+import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.fedora.relation.RelationResource;
 import cz.incad.pas.editor.server.json.JsonUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -48,13 +52,15 @@ public final class SearchView {
 
     private final FedoraClient fedora;
     private final int maxLimit;
+    private final RemoteStorage storage;
 
-    SearchView(FedoraClient fedora) {
-        this(fedora, 100);
+    SearchView(RemoteStorage storage) {
+        this(storage, 100);
     }
 
-    SearchView(FedoraClient fedora, int maxLimit) {
-        this.fedora = fedora;
+    SearchView(RemoteStorage storage, int maxLimit) {
+        this.storage = storage;
+        this.fedora = storage.getClient();
         this.maxLimit = maxLimit;
     }
 
@@ -169,19 +175,50 @@ public final class SearchView {
     }
 
     public List<Item> find(String... pids) throws FedoraClientException, IOException {
+        return find(Arrays.asList(pids));
+    }
+
+    public List<Item> find(List<String> pids) throws FedoraClientException, IOException {
         StringBuilder expr = new StringBuilder(256);
-        for (int i = 0; i < pids.length; i++) {
-            if (i > 0) {
+        for (String pid : pids) {
+            if (expr.length() > 0) {
                 expr.append("\n  or ");
             }
             expr.append(String.format(
                     "$pid <http://mulgara.org/mulgara#is> <info:fedora/%s>",
-                    pids[i]));
+                    pid));
         }
         String query = QUERY_FIND_PIDS.replace("${pids.expression}", expr);
         LOG.info(query);
         RiSearch search = buildSearch(query);
         return consumeSearch(search.execute(fedora));
+    }
+
+    /**
+     * Finds children of the passed remote object. The result list is sorted
+     * using RELS-EXT stream.
+     * 
+     * @param parent PID of parent to query
+     * @return the sorted list
+     * @throws FedoraClientException
+     * @throws IOException
+     */
+    public List<Item> findSortedChildren(String parentPid) throws FedoraClientException, IOException {
+        RemoteObject parent = storage.find(parentPid);
+        List<String> memberPids = new RelationEditor(parent).getMembers();
+        List<Item> items = find(memberPids);
+        ArrayList<Item> sortedItems = new ArrayList<Item>(memberPids.size());
+        for (String memberPid : memberPids) {
+            for (Iterator<Item> it = items.iterator(); it.hasNext();) {
+                Item item = it.next();
+                if (memberPid.equals(item.getPid())) {
+                    sortedItems.add(item);
+                    it.remove();
+                    break;
+                }
+            }
+        }
+        return sortedItems;
     }
 
     public List<Item> findChildren(String pid) throws FedoraClientException, IOException {
