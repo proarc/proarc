@@ -82,6 +82,30 @@ public class SmartGwtResponse<T> {
         return new ErrorBuilder<T>();
     }
 
+    public List<T> getData() {
+        return data;
+    }
+
+    public Integer getEndRow() {
+        return endRow;
+    }
+
+    public Map<String, List<ErrorMessage>> getErrors() {
+        return errors;
+    }
+
+    public Integer getStartRow() {
+        return startRow;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public Integer getTotalRows() {
+        return totalRows;
+    }
+
     public static final class ErrorBuilder<T> {
 
         private Map<String, List<ErrorMessage>> errors = new HashMap<String, List<ErrorMessage>>();
