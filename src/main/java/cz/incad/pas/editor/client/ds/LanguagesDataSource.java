@@ -18,10 +18,7 @@ package cz.incad.pas.editor.client.ds;
 
 import com.google.gwt.i18n.client.LocaleInfo;
 import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DataSource;
-import com.smartgwt.client.data.DataSourceField;
-import com.smartgwt.client.types.DSDataFormat;
-import com.smartgwt.client.types.FieldType;
+import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
 
 /**
  * ISO 639-2 languages support.
@@ -29,31 +26,13 @@ import com.smartgwt.client.types.FieldType;
  * @author Jan Pokorsky
  * @see <a href="http://www.loc.gov/standards/iso639-2/php/English_list.php>">ISO 639-2</a>
  */
-public final class LanguagesDataSource extends DataSource {
+public final class LanguagesDataSource {
 
-    public static final String ID = "LanguagesDataSource";
+    public static final String FIELD_CODE = LocalizationResourceApi.ITEM_KEY;
+    public static final String FIELD_VALUE = LocalizationResourceApi.ITEM_VALUE;
 
-    public static final String FIELD_CODE = "code";
-    public static final String FIELD_LOCALE = "locale";
-    public static final String FIELD_VALUE = "value";
-
-    public LanguagesDataSource() {
-        setID(ID);
-        setDataFormat(DSDataFormat.JSON);
-        setRecordXPath("item");
-        setDataURL("ds/mods/languagues.json");
-        setClientOnly(true);
-
-        DataSourceField code = new DataSourceField(FIELD_CODE, FieldType.TEXT);
-        DataSourceField locale = new DataSourceField(FIELD_LOCALE, FieldType.TEXT);
-        DataSourceField value = new DataSourceField(FIELD_VALUE, FieldType.TEXT);
-        setFields(code, locale, value);
-    }
-
-    public static LanguagesDataSource getInstance() {
-        LanguagesDataSource ds = (LanguagesDataSource) DataSource.get(ID);
-        ds = ds != null ? ds : new LanguagesDataSource();
-        return ds;
+    public static LocalizationDataSource getInstance() {
+        return LocalizationDataSource.getInstance();
     }
 
     public static String activeLocale() {
@@ -62,8 +41,9 @@ public final class LanguagesDataSource extends DataSource {
                 ? "en" : locale;
     }
 
-    public static Criteria activeLocaleAsCriteria() {
-        return new Criteria(FIELD_LOCALE, activeLocale());
+    public static Criteria languageCriteria() {
+        return new Criteria(LocalizationResourceApi.GETBUNDLE_BUNDLENAME_PARAM,
+                LocalizationResourceApi.BundleName.LANGUAGES_ISO639_2.toString());
     }
 
 }

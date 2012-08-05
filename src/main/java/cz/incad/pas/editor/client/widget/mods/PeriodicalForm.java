@@ -112,7 +112,7 @@ public final class PeriodicalForm extends DynamicForm {
                         i18nPas.PeriodicalForm_LanguageCode_Title());
                 language.setPrompt(i18nPas.PeriodicalForm_LanguageCode_Hint());
                 language.setOptionDataSource(LanguagesDataSource.getInstance());
-                language.setOptionCriteria(LanguagesDataSource.activeLocaleAsCriteria());
+                language.setOptionCriteria(LanguagesDataSource.languageCriteria());
 //                language.setPickListCriteria(LanguagesDataSource.activeLocaleAsCriteria());
                 language.setValueField(LanguagesDataSource.FIELD_CODE);
                 language.setDisplayField(LanguagesDataSource.FIELD_VALUE);
