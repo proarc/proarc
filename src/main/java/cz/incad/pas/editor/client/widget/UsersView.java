@@ -22,9 +22,8 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.types.ListGridComponent;
 import com.smartgwt.client.types.ListGridEditEvent;
 import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.Window;
-import com.smartgwt.client.widgets.events.ClickEvent;
-import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
@@ -37,11 +36,13 @@ import com.smartgwt.client.widgets.form.validator.LengthRangeValidator;
 import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
-import com.smartgwt.client.widgets.layout.LayoutSpacer;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
-import com.smartgwt.client.widgets.toolbar.ToolStripButton;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.action.AbstractAction;
+import cz.incad.pas.editor.client.action.ActionEvent;
+import cz.incad.pas.editor.client.action.Actions;
+import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.ds.UserDataSource;
 import java.util.logging.Logger;
 
@@ -50,7 +51,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class UsersView {
+public final class UsersView implements RefreshAction.Refreshable {
 
     private static final Logger LOG = Logger.getLogger(UsersView.class.getName());
     private final PasEditorMessages i18nPas;
@@ -76,40 +77,37 @@ public final class UsersView {
         userGrid.setCanExpandRecords(true);
         userGrid.setCanExpandMultipleRecords(false);
 
-        ToolStrip gridEditControls = new ToolStrip();
-        gridEditControls.setWidth100();
+        ToolStrip gridEditControls = Actions.createToolStrip();
 
-        ToolStripButton newButton = new ToolStripButton();
-        newButton.setIcon("[SKIN]/actions/add.png");
-        newButton.setPrompt(i18nPas.UsersView_Button_New_Hint());
-        newButton.addClickHandler(new ClickHandler() {
+        IconButton newButton = Actions.asIconButton(new AbstractAction(
+                i18nPas.UsersView_Button_New_Title(),
+                "[SKIN]/actions/add.png",
+                i18nPas.UsersView_Button_New_Hint()) {
 
             @Override
-            public void onClick(ClickEvent event) {
+            public void performAction(ActionEvent event) {
                 showNewWindow();
             }
-        });
+        }, this);
 
-        ToolStripButton editButton = new ToolStripButton();
-        editButton.setIcon("[SKIN]/actions/edit.png");
-        editButton.setPrompt(i18nPas.UsersView_Button_Edit_Hint());
-        editButton.addClickHandler(new ClickHandler() {
+        IconButton editButton = Actions.asIconButton(new AbstractAction(
+                i18nPas.UsersView_Button_Edit_Title(),
+                "[SKIN]/actions/edit.png",
+                i18nPas.UsersView_Button_Edit_Hint()) {
 
             @Override
-            public void onClick(ClickEvent event) {
+            public void performAction(ActionEvent event) {
                 ListGridRecord selection = userGrid.getSelectedRecord();
                 if (selection != null) {
                     userGrid.expandRecord(selection);
                 }
             }
-        });
+        }, this);
 
-        LayoutSpacer indentButtons = new LayoutSpacer();
-        indentButtons.setWidth100();
-        gridEditControls.setMembers(indentButtons, newButton, editButton);
-        gridEditControls.addSpacer(2);
 
-        userGrid.setGridComponents(ListGridComponent.HEADER, ListGridComponent.BODY, gridEditControls);
+        gridEditControls.setMembers(Actions.asIconButton(new RefreshAction(i18nPas), this), newButton, editButton);
+
+        userGrid.setGridComponents(gridEditControls, ListGridComponent.HEADER, ListGridComponent.BODY);
 
         VLayout main = new VLayout();
         main.setWidth100();
@@ -123,8 +121,7 @@ public final class UsersView {
     }
 
     public void onShow() {
-        userGrid.invalidateCache();
-        userGrid.fetchData();
+        refresh();
     }
 
     private DynamicForm getNewProfileEditor() {
@@ -244,5 +241,11 @@ public final class UsersView {
         if (window != null && window.isVisible()) {
             window.hide();
         }
+    }
+
+    @Override
+    public void refresh() {
+        userGrid.invalidateCache();
+        userGrid.fetchData();
     }
 }
