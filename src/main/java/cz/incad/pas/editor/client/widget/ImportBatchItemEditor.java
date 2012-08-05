@@ -16,7 +16,6 @@
  */
 package cz.incad.pas.editor.client.widget;
 
-import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
@@ -26,11 +25,11 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.types.Alignment;
-import com.smartgwt.client.types.AutoFitWidthApproach;
 import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TextAreaWrap;
 import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.EventHandler;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
@@ -49,6 +48,8 @@ import com.smartgwt.client.widgets.form.validator.IntegerRangeValidator;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
+import com.smartgwt.client.widgets.grid.events.BodyKeyPressEvent;
+import com.smartgwt.client.widgets.grid.events.BodyKeyPressHandler;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
@@ -75,7 +76,6 @@ import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.TextDataSource;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -155,6 +155,28 @@ public final class ImportBatchItemEditor extends HLayout {
         fieldPageType.setEmptyCellValue(ModsCustomDataSource.getPageTypes().get(ModsCustomDataSource.getDefaultPageType()));
 
         batchItemGrid.setFields(fieldFilename, fieldPageNumber, fieldPageIndex, fieldPageType, fieldPid, fieldItemModel, fieldUser);
+
+        // issue 7: default BodyKeyPressHandler does not change row focus properly
+        // in case of mixing mouse and keyboard navigation.
+        // ListGrid.getSelectedRecord and ListGrid.getFocusRow() do not return same result!
+        batchItemGrid.addBodyKeyPressHandler(new BodyKeyPressHandler() {
+
+            @Override
+            public void onBodyKeyPress(BodyKeyPressEvent event) {
+                if (event.isCtrlKeyDown() || EventHandler.shiftKeyDown()) {
+                    return ;
+                }
+                if ("Arrow_Down".equals(EventHandler.getKey())) {
+                    int nextSelection = getNextSelection();
+                    batchItemGrid.selectSingleRecord(nextSelection);
+                } else if ("Arrow_Up".equals(EventHandler.getKey())) {
+                    Integer focusRow = batchItemGrid.getFocusRow();
+                    if (focusRow != null && focusRow > 0) {
+                        batchItemGrid.selectSingleRecord(focusRow - 1);
+                    }
+                }
+            }
+        });
 
         batchItemGrid.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
@@ -411,6 +433,7 @@ public final class ImportBatchItemEditor extends HLayout {
 //                    LOG.info("THUMB.onSelectionChanged.selection.state: " + event.getState() + ".attrs: " + Arrays.toString(selection[0].getAttributes()));
                     selectListInProgress = true;
                     int selectionIndex = batchItemGrid.getRecordIndex(selection[0]);
+                    LOG.warning("thumb selects list: " + selectionIndex);
                     batchItemGrid.selectSingleRecord(selectionIndex);
                     batchItemGrid.scrollToRow(selectionIndex);
                     selectBatchItem(selection);
@@ -428,28 +451,6 @@ public final class ImportBatchItemEditor extends HLayout {
 
     private boolean selectThumbInProgress = false;
     private boolean selectListInProgress = false;
-    private ArrayList<Integer> thumbGridSelection = new ArrayList<Integer>();
-    private SelectionTimer selectionTimer = new SelectionTimer();
-
-    private final class SelectionTimer extends Timer {
-
-        @Override
-        public void run() {
-            LOG.severe("TIMER.run selection.length: " + thumbGridSelection.size() + ", TG.selection.length: " + thumbViewer.getSelection().length);
-//                LOG.info("THUMB.onSelectionChanged: " + Arrays.toString(record.getAttributes()));
-            Record[] selection = thumbViewer.getSelection();
-            if (selection != null && selection.length == 1) {
-//                LOG.info("THUMB.onSelectionChanged.selection.state: " + event.getState() + ".attrs: " + Arrays.toString(selection[0].getAttributes()));
-                selectListInProgress = true;
-                int selectionIndex = batchItemGrid.getRecordIndex(selection[0]);
-                batchItemGrid.selectSingleRecord(selectionIndex);
-                batchItemGrid.scrollToRow(selectionIndex);
-                selectBatchItem(selection);
-            }
-//                LOG.info("THUMB.onSelectionChanged.selection: " + Arrays.toString(selection));
-        }
-
-    }
 
     private TabSet createTabSet() {
         TabSet tabSet = new TabSet();
@@ -518,7 +519,6 @@ public final class ImportBatchItemEditor extends HLayout {
         pageNumber.setLength(20);
 
         form.setFields(pageType, pageIndex, pageNumber);
-        // XXX replace DS with real MODS service
         form.setDataSource(ImportBatchItemDataSource.getInstance());
 
         IntegerRangeValidator integerRangeValidator = new IntegerRangeValidator();
@@ -649,7 +649,6 @@ public final class ImportBatchItemEditor extends HLayout {
                 @Override
                 public void onClick(ClickEvent event) {
                     form.submit();
-                    form.focus();
                 }
             });
             save.setLayoutAlign(Alignment.CENTER);
@@ -669,6 +668,7 @@ public final class ImportBatchItemEditor extends HLayout {
                             if (response.getStatus() == DSResponse.STATUS_SUCCESS) {
                                 if (nextSelection >= 0) {
                                     batchItemGrid.selectSingleRecord(nextSelection);
+                                    batchItemGrid.scrollToRow(nextSelection);
                                     form.focus();
                                 }
                             }
