@@ -133,7 +133,7 @@ public final class TiffImporter {
 
         start = System.nanoTime();
         targetName = String.format("%s.preview.%s", originalFilename, imageType.getDefaultFileExtension());
-        f = writeImage(scale(tiff, 800, 600), tempBatchFolder, targetName, imageType);
+        f = writeImage(scale(tiff, null, 1000), tempBatchFolder, targetName, imageType);
         long endPreview = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, BinaryEditor.PREVIEW_ID, mediaType).write(f, 0);
 
@@ -158,16 +158,21 @@ public final class TiffImporter {
         }
     }
 
-    private static BufferedImage scale(BufferedImage tiff, int maxWidth, int maxHeight) {
+    private static BufferedImage scale(BufferedImage tiff, Integer maxWidth, Integer maxHeight) {
         long start = System.nanoTime();
         int height = tiff.getHeight();
         int width = tiff.getWidth();
         int targetWidth = width;
         int targetHeight = height;
-        if (height > maxHeight || width > maxWidth) {
-            double scaleh = (double) maxHeight / height;
+        double scale = Double.MAX_VALUE;
+        if (maxHeight != null && height > maxHeight) {
+            scale = (double) maxHeight / height;
+        }
+        if (maxWidth != null && width > maxWidth) {
             double scalew = (double) maxWidth / width;
-            double scale = Math.min(scaleh, scalew);
+            scale = Math.min(scale, scalew);
+        }
+        if (scale != Double.MAX_VALUE) {
             targetHeight = (int) (height * scale);
             targetWidth = (int) (width * scale);
         }
