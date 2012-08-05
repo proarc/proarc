@@ -47,6 +47,7 @@ import com.smartgwt.client.widgets.tree.events.FolderClosedHandler;
 import com.smartgwt.client.widgets.tree.events.LeafClickEvent;
 import com.smartgwt.client.widgets.tree.events.LeafClickHandler;
 import cz.incad.pas.editor.client.ds.LanguagesDataSource;
+import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.UserDataSource;
 import cz.incad.pas.editor.client.ds.UserPermissionDataSource;
@@ -114,6 +115,7 @@ public class Editor implements EntryPoint {
         desktop.setMembers(mainHeader, mainLayout);
         desktop.draw();
 
+        ModsCustomDataSource.loadPageTypes();
         loadPermissions(menu);
     }
 

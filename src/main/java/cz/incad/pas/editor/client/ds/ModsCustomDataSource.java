@@ -16,13 +16,17 @@
  */
 package cz.incad.pas.editor.client.ds;
 
-import com.google.gwt.core.client.GWT;
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
-import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
+import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
@@ -103,6 +107,8 @@ public final class ModsCustomDataSource extends DataSource {
     // monograph unit
     public static final String FIELD_MONOGRAPHUNIT_NUMBER = "monographUnitNumber";
 
+    private static LinkedHashMap<String, String> PAGE_TYPES = new LinkedHashMap<String, String>();
+
     public ModsCustomDataSource() {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
@@ -144,20 +150,27 @@ public final class ModsCustomDataSource extends DataSource {
     }
 
     public static LinkedHashMap<String, String> getPageTypes() {
-        //http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd/PeriodicalPage[@Type]");
-        PasEditorMessages i18nPas = GWT.create(PasEditorMessages.class);
-        LinkedHashMap<String, String> pageTypes = new LinkedHashMap<String, String>();
-        pageTypes.put("NormalPage", i18nPas.PageForm_TypeNormalPage_Title());
-        pageTypes.put("TitlePage", i18nPas.PageForm_TypeTitlePage_Title());
-        pageTypes.put("Blank", i18nPas.PageForm_TypeBlank_Title());
-        pageTypes.put("ListOfIllustrations", i18nPas.PageForm_TypeListOfIllustrations_Title());
-        pageTypes.put("TableOfContents", i18nPas.PageForm_TypeTableOfContents_Title());
-        pageTypes.put("Index", i18nPas.PageForm_TypeIndex_Title());
-        pageTypes.put("Table", i18nPas.PageForm_TypeTable_Title());
-        pageTypes.put("ListOfMaps", i18nPas.PageForm_TypeListOfMaps_Title());
-        pageTypes.put("ListOfTables", i18nPas.PageForm_TypeListOfTables_Title());
-        pageTypes.put("Advertisement", i18nPas.PageForm_TypeAdvertisement_Title());
-        return pageTypes;
+        return PAGE_TYPES;
+    }
+
+    public static void loadPageTypes() {
+        Criteria criteria = new Criteria(
+                LocalizationResourceApi.GETBUNDLE_BUNDLENAME_PARAM,
+                LocalizationResourceApi.BundleName.MODS_PAGE_TYPES.toString());
+        LocalizationDataSource.getInstance().fetchData(criteria, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (RestConfig.isStatusOk(response)) {
+                    Record[] data = response.getData();
+                    PAGE_TYPES = new LinkedHashMap<String, String>(data.length);
+                    for (Record record : data) {
+                        PAGE_TYPES.put(record.getAttribute(LocalizationResourceApi.ITEM_KEY),
+                                record.getAttribute(LocalizationResourceApi.ITEM_VALUE));
+                    }
+                }
+            }
+        });
     }
 
     public static String getDefaultPageType() {

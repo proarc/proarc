@@ -25,6 +25,7 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,9 +52,10 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_PREVIEW =  URL_DIGOBJECT + "/preview";
     public static final String URL_DIGOBJECT_PRIVATE_NOTE =  URL_DIGOBJECT + "/privatenote";
     public static final String URL_DIGOBJECT_RAW =  URL_DIGOBJECT + "/raw";
-    public static final String URL_DIGOBJECT_SEARCH =  URL_DIGOBJECT + '/' + DigitalObjectResourceApi.SEARCH_PATH;
+    public static final String URL_DIGOBJECT_SEARCH =  path(URL_DIGOBJECT, DigitalObjectResourceApi.SEARCH_PATH);
     public static final String URL_DIGOBJECT_THUMBNAIL =  URL_DIGOBJECT + "/thumb";
     public static final String URL_DIGOBJECT_METAMODEL =  URL_DIGOBJECT + "/metamodel";
+    public static final String URL_LOCALIZATION =  path(URL_ROOT, LocalizationResourceApi.PATH);
     public static final String URL_METADATACATALOG =  URL_ROOT + "/metadatacatalog";
     public static final String URL_USER =  URL_ROOT + "/user";
     public static final String URL_USER_PERMISSIONS =  URL_USER + "/permissions";
@@ -127,6 +129,10 @@ public final class RestConfig {
         int status = response.getStatus();
         Integer httpStatus = response.getHttpResponseCode();
         return status == RPCResponse.STATUS_SUCCESS && httpStatus == 200;
+    }
+
+    private static String path(String parent, String path) {
+        return parent + '/' + path;
     }
 
 }
