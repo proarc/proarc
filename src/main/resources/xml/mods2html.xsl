@@ -9,7 +9,10 @@
     ntra added 4th child level 4/2/04
     -->
 
-    <xsl:variable name="dictionary" select="document('modsDictionary.xml')/dictionary"/>
+    <!-- localized dictionary URI -->
+    <xsl:param name="MODS_DICTIONARY" select="'modsDictionary.xml'"/>
+
+    <xsl:variable name="dictionary" select="document($MODS_DICTIONARY)/dictionary"/>
 
     <xsl:template match="/">
 

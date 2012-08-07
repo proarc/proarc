@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.server.catalog;
 
+import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.server.rest.MetadataCatalogResource.MetadataItem;
 import cz.incad.pas.editor.server.xml.Transformers;
 import java.io.BufferedInputStream;
@@ -28,6 +29,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXB;
@@ -51,6 +53,10 @@ public final class AlephXServer {
     private Transformers transformers = new Transformers();
 
     public List<MetadataItem> find(String fieldName, String value) throws TransformerException, IOException {
+        return find(fieldName, value, null);
+    }
+
+    public List<MetadataItem> find(String fieldName, String value, Locale locale) throws TransformerException, IOException {
         Criteria criteria = Criteria.get(fieldName, value);
         if (value == null) {
             return Collections.emptyList();
@@ -62,10 +68,10 @@ public final class AlephXServer {
         }
 
         is = fetchDetails(found);
-        return createDetailResponse(is);
+        return createDetailResponse(is, locale);
     }
 
-    List<MetadataItem> createDetailResponse(InputStream is) throws TransformerException {
+    List<MetadataItem> createDetailResponse(InputStream is, Locale locale) throws TransformerException {
         try {
             StreamSource fixedOaiMarc = (StreamSource) transformers.transform(new StreamSource(is), Transformers.Format.AlephOaiMarcFix);
 //            StringBuilder sb = new StringBuilder();
@@ -83,7 +89,7 @@ public final class AlephXServer {
                 DOMSource domSource = new DOMSource(oaiMarc);
                 MetadataItem item;
                 try {
-                    item = createResponse(record.getEntry(), domSource);
+                    item = createResponse(record.getEntry(), domSource, locale);
                     result.add(item);
                 } catch (UnsupportedEncodingException ex) {
                     LOG.log(Level.SEVERE, null, ex);
@@ -111,7 +117,9 @@ public final class AlephXServer {
         }
     }
     
-    private MetadataItem createResponse(int entryIdx, Source source) throws TransformerException, UnsupportedEncodingException {
+    private MetadataItem createResponse(int entryIdx, Source source, Locale locale)
+            throws TransformerException, UnsupportedEncodingException {
+
 //        StringBuilder sb = new StringBuilder();
 //        source = transformers.dump(source, sb);
 //        String toString = sb.toString();
@@ -129,9 +137,7 @@ public final class AlephXServer {
 //        } catch (Exception ex) {
 //            Logger.getLogger(AlephXServer.class.getName()).log(Level.SEVERE, null, ex);
 //        }
-        byte[] modsHtmlBytes = transformers.transformAsBytes(
-                new StreamSource(new ByteArrayInputStream(modsBytes)),
-                Transformers.Format.ModsAsHtml);
+        byte[] modsHtmlBytes = modsAsHtmlBytes(new StreamSource(new ByteArrayInputStream(modsBytes)), locale);
         byte[] modsTitleBytes = transformers.transformAsBytes(
                 new StreamSource(new ByteArrayInputStream(modsBytes)),
                 Transformers.Format.ModsAsTitle);
@@ -146,6 +152,11 @@ public final class AlephXServer {
                 new String(modsHtmlBytes, "UTF-8"), new String(modsTitleBytes, "UTF-8"));
     }
 
+    private byte[] modsAsHtmlBytes(Source source, Locale locale) throws TransformerException {
+        byte[] modsHtmlBytes = transformers.transformAsBytes(
+                source, Transformers.Format.ModsAsHtml, ModsUtils.modsAsHtmlParameters(locale));
+        return modsHtmlBytes;
+    }
 
     private InputStream fetchEntries(Criteria criteria) throws MalformedURLException, IOException {
         URL alephFind = criteria.toFindUrl();

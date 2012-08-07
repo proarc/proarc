@@ -24,6 +24,12 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.DataBindingException;
@@ -163,6 +169,31 @@ public final class ModsUtils {
         } catch (JAXBException ex) {
             throw new DataBindingException(ex);
         }
+    }
+
+    /**
+     * Parameters for MODS/HTML transformation.
+     * @param locale locale to use for descriptions; can be {@code null}
+     * @return parameters map
+     */
+    public static Map<String, Object> modsAsHtmlParameters(Locale locale) {
+        if (locale == null) {
+            return Collections.emptyMap();
+        }
+        ResourceBundle.Control control = ResourceBundle.Control.getControl(ResourceBundle.Control.FORMAT_PROPERTIES);
+        String baseName = "xml.modsDictionary";
+        List<Locale> candidateLocales = control.getCandidateLocales(baseName, locale);
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        for (Locale candidateLocale : candidateLocales) {
+            String toBundleName = control.toBundleName(baseName, candidateLocale);
+            String resourceName = '/' + control.toResourceName(toBundleName, "xml");
+            URL resource = ModsUtils.class.getResource(resourceName);
+            if (resource != null) {
+                params.put("MODS_DICTIONARY", resource.toExternalForm());
+                break;
+            }
+        }
+        return params;
     }
 
 }

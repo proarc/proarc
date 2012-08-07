@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -73,13 +74,24 @@ public final class Transformers {
     }
 
     public Source transform(Source input, Format format) throws TransformerException {
-        return toSource(transformAsBytes(input, format));
+        return transform(input, format, Collections.<String, Object>emptyMap());
+    }
+
+    public Source transform(Source input, Format format, Map<String, Object> params) throws TransformerException {
+        return toSource(transformAsBytes(input, format, params));
     }
 
     public byte[] transformAsBytes(Source input, Format format) throws TransformerException {
+        return transformAsBytes(input, format, Collections.<String, Object>emptyMap());
+    }
+
+    public byte[] transformAsBytes(Source input, Format format, Map<String, Object> params) throws TransformerException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         Result output = new StreamResult(buffer);
         Transformer t = createTransformer(format);
+        for (Map.Entry<String, Object> param : params.entrySet()) {
+            t.setParameter(param.getKey(), param.getValue());
+        }
         t.transform(input, output);
         return buffer.toByteArray();
     }

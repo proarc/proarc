@@ -19,11 +19,14 @@ package cz.incad.pas.editor.server.rest;
 import cz.incad.pas.editor.server.catalog.AlephXServer;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Logger;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -41,7 +44,13 @@ public class MetadataCatalogResource {
 
     private static final Logger LOG = Logger.getLogger(MetadataCatalogResource.class.getName());
 
-    public MetadataCatalogResource() {
+    private final HttpHeaders httpHeaders;
+
+    public MetadataCatalogResource(
+            @Context HttpHeaders httpHeaders
+            ) {
+
+        this.httpHeaders = httpHeaders;
     }
 
     /**
@@ -61,13 +70,10 @@ public class MetadataCatalogResource {
 
             ) throws TransformerException, IOException {
 
-        // call aleph
-//        LOG.severe("###### criteria: " + criteria);
+        List<Locale> acceptableLanguages = httpHeaders.getAcceptableLanguages();
+        Locale locale = acceptableLanguages.isEmpty() ? null : acceptableLanguages.get(0);
         AlephXServer alephXServer = new AlephXServer();
-        List<MetadataItem> result = alephXServer.find(fieldName, value);
-//        List<MetadataItem> result = new ArrayList<MetadataItem>();
-//        result.add(new MetadataItem(1, "MODS", "Remote MODS PREVIEW"));
-//        result.add(new MetadataItem(2, "MODS", "Remote MODS PREVIEW"));
+        List<MetadataItem> result = alephXServer.find(fieldName, value, locale);
         return new MetadataList(result);
     }
 

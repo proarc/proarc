@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.server.xml;
 
+import cz.incad.pas.editor.server.mods.ModsUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +26,8 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
@@ -157,11 +160,12 @@ public class TransformersTest {
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
         Transformers mt = new Transformers();
+        Map<String, Object> params = ModsUtils.modsAsHtmlParameters(Locale.ENGLISH);
 
         try {
-            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.ModsAsHtml);
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.ModsAsHtml, params);
             assertNotNull(contents);
-//            System.out.println(new String(contents, "UTF-8"));
+            System.out.println(new String(contents, "UTF-8"));
 //            XMLAssert.assertXMLEqual(new InputSource(goldenIS), new InputSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
