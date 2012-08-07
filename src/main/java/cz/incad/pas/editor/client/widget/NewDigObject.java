@@ -23,9 +23,11 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.ExpansionMode;
+import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TopOperatorAppearance;
+import com.smartgwt.client.types.ValueItemType;
 import com.smartgwt.client.types.VisibilityMode;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
@@ -34,6 +36,8 @@ import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.FilterBuilder;
+import com.smartgwt.client.widgets.form.events.FilterSearchEvent;
+import com.smartgwt.client.widgets.form.events.SearchHandler;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
@@ -41,7 +45,9 @@ import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
-import com.smartgwt.client.widgets.layout.HLayout;
+import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
+import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
+import com.smartgwt.client.widgets.layout.HStack;
 import com.smartgwt.client.widgets.layout.SectionStack;
 import com.smartgwt.client.widgets.layout.SectionStackSection;
 import com.smartgwt.client.widgets.layout.VLayout;
@@ -162,12 +168,12 @@ public final class NewDigObject extends VLayout {
         form.setBrowserSpellCheck(false);
         form.setFields(selectModel, newPid);
         form.setAutoWidth();
+        form.setMargin(4);
         return form;
     }
 
     private Canvas createAdvancedOptions() {
         DynamicForm formCatalog = createCatalogForm();
-        formCatalog.setBrowserSpellCheck(false);
         DataSource ds = new DataSource();
         ds.setFields(
                 new DataSourceFieldBuilder(new DataSourceTextField("id", "ID"))
@@ -186,34 +192,46 @@ public final class NewDigObject extends VLayout {
         
         ds.setClientOnly(true);
 
-        filter = new FilterBuilder();
+        filter = new FilterBuilder() {
+
+            @Override
+            public FormItem getValueFieldProperties(FieldType type, String fieldName, OperatorId operatorId, ValueItemType itemType, String fieldType) {
+                FormItem fi = super.getValueFieldProperties(type, fieldName, operatorId, itemType, fieldType);
+                if (type == FieldType.TEXT && itemType == ValueItemType.VALUE) {
+                    fi = new TextItem(fieldName);
+                    fi.setWidth(300);
+                }
+                return fi;
+            }
+
+        };
         filter.setDataSource(ds);
         // now does not support operators; later use RADIO
         filter.setTopOperatorAppearance(TopOperatorAppearance.NONE);
         filter.setShowAddButton(false);
         filter.setShowSubClauseButton(false);
         filter.setShowRemoveButton(false);
+        filter.setSaveOnEnter(true);
+
+        filter.addSearchHandler(new SearchHandler() {
+
+            @Override
+            public void onSearch(FilterSearchEvent event) {
+                queryCatalog();
+            }
+        });
 
         IButton find = new IButton(i18nPas.NewDigObject_CatalogFind_Title(), new ClickHandler() {
 
             @Override
             public void onClick(ClickEvent event) {
-                AdvancedCriteria criteria = filter.getCriteria(false);
-                Criterion[] criterions = criteria.getCriteria();
-                if (criterions == null || criterions.length == 0) {
-                    SC.warn(i18nPas.NewDigObject_CatalogFind_MissingParam_Msg());
-                } else {
-                    Criteria plain = new Criteria("catalog", "aleph");
-                    plain.addCriteria(criterions[0]);
-                    // for AdvancedCriteria it will require to parse its format on server side
-                    lgResult.fetchData(plain);
-                }
+                queryCatalog();
             }
         });
 
-        HLayout filterLayout = new HLayout();
+        HStack filterLayout = new HStack();
         filterLayout.setMembers(filter, find);
-        filterLayout.setLayoutRightMargin(4);
+        filterLayout.setMembersMargin(4);
 
         lgResult = new ListGrid();
         lgResult.setDataSource(RemoteMetadataDataSource.getInstance());
@@ -233,10 +251,36 @@ public final class NewDigObject extends VLayout {
         lgResult.setSelectionType(SelectionStyle.SINGLE);
 //        lgResult.setSelectionAppearance(SelectionAppearance.CHECKBOX);
         lgResult.setAlternateRecordStyles(true);
+        lgResult.addDataArrivedHandler(new DataArrivedHandler() {
 
-        VLayout layout = new VLayout(2);
+            @Override
+            public void onDataArrived(DataArrivedEvent event) {
+                if (event.getStartRow() == 0 && event.getEndRow() > 0) {
+                    lgResult.focus();
+                    lgResult.selectSingleRecord(0);
+                }
+            }
+        });
+
+        VLayout layout = new VLayout();
         layout.setMembers(formCatalog, filterLayout, lgResult);
+        layout.setMargin(4);
+        layout.setMembersMargin(4);
         return layout;
+    }
+
+    private void queryCatalog() {
+        AdvancedCriteria criteria = filter.getCriteria(false);
+        Criterion[] criterions = criteria.getCriteria();
+        if (criterions == null || criterions.length == 0) {
+            SC.warn(i18nPas.NewDigObject_CatalogFind_MissingParam_Msg());
+        } else {
+            Criteria plain = new Criteria("catalog", "aleph");
+            plain.addCriteria(criterions[0]);
+            // for AdvancedCriteria it will require to parse its format on server side
+            lgResult.invalidateCache();
+            lgResult.fetchData(plain);
+        }
     }
 
     private DynamicForm createCatalogForm() {
@@ -268,6 +312,9 @@ public final class NewDigObject extends VLayout {
 
         DynamicForm form = new DynamicForm();
         form.setFields(selection);
+        form.setBrowserSpellCheck(false);
+        form.setAutoWidth();
+        form.setWrapItemTitles(false);
         return form;
     }
 }
