@@ -50,6 +50,8 @@ import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.BodyKeyPressEvent;
 import com.smartgwt.client.widgets.grid.events.BodyKeyPressHandler;
+import com.smartgwt.client.widgets.grid.events.RecordClickEvent;
+import com.smartgwt.client.widgets.grid.events.RecordClickHandler;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
@@ -79,6 +81,7 @@ import cz.incad.pas.editor.client.ds.TextDataSource;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -196,9 +199,18 @@ public final class ImportBatchItemEditor extends HLayout {
                     thumbViewer.selectRecord(tileIndex);
                     ClientUtils.scrollToTile(thumbViewer, tileIndex);
                 }
-                selectBatchItem(selectedRecords);
+                selectBatchItem(true, selectedRecords);
             }
 
+        });
+
+        batchItemGrid.addRecordClickHandler(new RecordClickHandler() {
+
+            @Override
+            public void onRecordClick(RecordClickEvent event) {
+                // always preview last clicked record
+                previewItem(event.getRecord());
+            }
         });
 
         layout.addMember(batchItemGrid);
@@ -436,13 +448,23 @@ public final class ImportBatchItemEditor extends HLayout {
                     LOG.warning("thumb selects list: " + selectionIndex);
                     batchItemGrid.selectSingleRecord(selectionIndex);
                     batchItemGrid.scrollToRow(selectionIndex);
-                    selectBatchItem(selection);
+                    selectBatchItem(false, selection);
                 } else if (batchItemGrid.anySelected()) {
                     selectListInProgress = true;
                     batchItemGrid.deselectAllRecords();
-                    selectBatchItem();
+                    selectBatchItem(false);
                 }
 //                LOG.info("THUMB.onSelectionChanged.selection: " + Arrays.toString(selection));
+            }
+        });
+
+        thumbGrid.addRecordClickHandler(new com.smartgwt.client.widgets.tile.events.RecordClickHandler() {
+
+            @Override
+            public void onRecordClick(com.smartgwt.client.widgets.tile.events.RecordClickEvent event) {
+                // always preview last clicked record
+                LOG.warning("TG.onRecordClick");
+                previewItem(event.getRecord());
             }
         });
 
@@ -586,22 +608,29 @@ public final class ImportBatchItemEditor extends HLayout {
         return nextSelectionIndex;
     }
 
-    private void selectBatchItem(final Record... selections) {
+    private void selectBatchItem(final boolean preview, final Record... selections) {
         DynamicFormTab dfTab = dfTabs[tabSet.getSelectedTabNumber()];
         dfTab.onChange(new BooleanCallback() {
 
             @Override
             public void execute(Boolean value) {
+                if (!preview) {
+                    return;
+                }
                 if (value != null && value) {
                     if (selections != null && selections.length == 1) {
-                        digitalObjectPreview.selectPreviewField(
-                                selections[0].getAttribute(ImportBatchItemDataSource.FIELD_PREVIEW));
+                        previewItem(selections[0]);
                         return ;
                     }
                 }
-                digitalObjectPreview.selectPreviewField(null);
+                previewItem(null);
             }
         }, selections);
+    }
+
+    private void previewItem(Record r) {
+        String preview = r == null ? null : r.getAttribute(ImportBatchItemDataSource.FIELD_PREVIEW);
+        digitalObjectPreview.selectPreviewField(preview);
     }
 
     private void selectTab(Tab newTab) {
