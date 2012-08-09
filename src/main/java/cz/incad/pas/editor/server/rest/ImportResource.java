@@ -329,6 +329,7 @@ public class ImportResource {
 
     @DELETE
     @Path("batch/item")
+    @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<PageView.Item> deleteBatchItem(
             @QueryParam("batchId") Integer batchId,
             @QueryParam("pid") String pid

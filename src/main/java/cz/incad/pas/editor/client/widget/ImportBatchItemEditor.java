@@ -343,8 +343,12 @@ public final class ImportBatchItemEditor extends HLayout {
                     @Override
                     public void execute(Boolean value) {
                         if (value != null && value) {
-                            // XXX delete now fires multiple requests; try to do it in single request
-                            thumbGrid.removeSelectedData();
+                            // TileGrid.removeSelectedData uses queuing support in case of multi-selection.
+                            // It will require extra support on server. For now remove data in separate requests.
+                            //thumbGrid.removeSelectedData();
+                            for (Record record : selection) {
+                                thumbGrid.removeData(record);
+                            }
                         }
                     }
                 });
