@@ -33,6 +33,9 @@ import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.toolbar.ToolStripButton;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.action.AbstractAction;
+import cz.incad.pas.editor.client.action.ActionEvent;
+import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import java.util.ArrayList;
 
@@ -94,39 +97,31 @@ public final class DigitalObjectPreview {
     }
 
     private ToolStrip createPreviewToolbar() {
-        ToolStrip toolbar = new ToolStrip();
-        toolbar.setWidth100();
-        toolbar.addSpacer(2);
+        ToolStrip toolbar = Actions.createToolStrip();
 
-        ToolStripButton btnViewFull = createToolbarButton(
-                "[SKIN]/actions/view.png", "v",
-                i18nPas.DigitalObjectPreview_ViewFullButton_Hint(),
-                new ClickHandler() {
+        ToolStripButton btnViewFull = Actions.asToolStripButton(new AbstractAction(
+                null, "[SKIN]/actions/view.png", i18nPas.DigitalObjectPreview_ViewFullButton_Hint()) {
 
             @Override
-            public void onClick(ClickEvent event) {
+            public void performAction(ActionEvent event) {
                 showImageAction(RestConfig.URL_DIGOBJECT_FULL, selectedPreview);
             }
-        });
+        }, this);
 
-        ToolStripButton btnViewRaw = createToolbarButton(
-                "[SKIN]/actions/download.png", "d",
-                i18nPas.DigitalObjectPreview_ViewRawButton_Hint(),
-                new ClickHandler() {
+        ToolStripButton btnViewRaw = Actions.asToolStripButton(new AbstractAction(
+                null, "[SKIN]/actions/download.png", i18nPas.DigitalObjectPreview_ViewRawButton_Hint()) {
 
             @Override
-            public void onClick(ClickEvent event) {
+            public void performAction(ActionEvent event) {
                 showImageAction(RestConfig.URL_DIGOBJECT_RAW, selectedPreview);
             }
-        });
+        }, this);
 
-        ToolStripButton btnColorChooser = createToolbarButton(
-                "[SKIN]/actions/color_swatch.png", "c",
-                i18nPas.DigitalObjectPreview_ColorChooserButton_Hint(),
-                new ClickHandler() {
+        ToolStripButton btnColorChooser = Actions.asToolStripButton(new AbstractAction(
+                null, "[SKIN]/actions/color_swatch.png", i18nPas.DigitalObjectPreview_ColorChooserButton_Hint()) {
 
             @Override
-            public void onClick(ClickEvent event) {
+            public void performAction(ActionEvent event) {
                 ColorPicker picker = new ColorPicker();
                 picker.addColorSelectedHandler(new ColorSelectedHandler() {
 
@@ -139,22 +134,13 @@ public final class DigitalObjectPreview {
                 picker.setKeepInParentRect(true);
                 picker.show();
             }
-        });
+        }, this);
 
         toolbar.addButton(btnViewFull);
         toolbar.addButton(btnViewRaw);
         toolbar.addButton(btnColorChooser);
 
         return toolbar;
-    }
-
-    private ToolStripButton createToolbarButton(String icon, String accessKey, String tooltip, ClickHandler handler) {
-        ToolStripButton btn = new ToolStripButton();
-        btn.setIcon(icon);
-//        btn.setAccessKey(accessKey);
-        btn.setTooltip(tooltip);
-        btn.addClickHandler(handler);
-        return btn;
     }
 
     private Window createFullImageWindow() {
