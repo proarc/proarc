@@ -151,4 +151,19 @@ public final class Actions {
         return t;
     }
 
+    /**
+     * Gets selected objects from the action event.
+     * @param <T> type of selected objects
+     * @param event event holding {@link Selectable}
+     * @return the selection or {@code null}
+     */
+    public static <T> T[] getSelection(ActionEvent event) {
+        Object source = event.getSource();
+        if (source instanceof Selectable) {
+            Selectable<T> selectable = (Selectable<T>) source;
+            return selectable.getSelection();
+        }
+        return null;
+    }
+
 }

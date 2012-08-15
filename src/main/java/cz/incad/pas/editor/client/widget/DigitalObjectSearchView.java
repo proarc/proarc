@@ -20,6 +20,7 @@ import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SelectionType;
 import com.smartgwt.client.widgets.Canvas;
@@ -46,8 +47,8 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.action.Actions;
-import cz.incad.pas.editor.client.action.DigitalObjectSelector;
 import cz.incad.pas.editor.client.action.RefreshAction;
+import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
@@ -63,7 +64,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class DigitalObjectSearchView implements DigitalObjectSelector, RefreshAction.Refreshable {
+public final class DigitalObjectSearchView implements Selectable<Record>, RefreshAction.Refreshable {
     
     private static final Logger LOG = Logger.getLogger(DigitalObjectSearchView.class.getName());
     private static final String FILTER_LAST_CREATED = SearchType.LAST_CREATED.toString();
@@ -249,14 +250,9 @@ public final class DigitalObjectSearchView implements DigitalObjectSelector, Ref
     }
 
     @Override
-    public SelectedObject[] getSelection() {
+    public Record[] getSelection() {
         ListGridRecord[] selections = foundGrid.getSelectedRecords();
-        SelectedObject[] items = new SelectedObject[selections.length];
-        for (int i = 0; i < selections.length; i++) {
-            String pid = selections[i].getAttribute(SearchDataSource.FIELD_PID);
-            items[i] = new SelectedObject(pid, null);
-        }
-        return items;
+        return selections;
     }
 
     @Override

@@ -17,30 +17,13 @@
 package cz.incad.pas.editor.client.action;
 
 /**
+ * Implement to supply selection of objects.
  *
  * @author Jan Pokorsky
+ * @see Actions#getSelection(cz.incad.pas.editor.client.action.ActionEvent) 
  */
-public interface DigitalObjectSelector {
+public interface Selectable<T> {
 
-    SelectedObject[] getSelection();
-
-    public static final class SelectedObject {
-
-        private String pid;
-        private String batchId;
-
-        public SelectedObject(String pid, String batchId) {
-            this.pid = pid;
-            this.batchId = batchId;
-        }
-
-        public String getBatchId() {
-            return batchId;
-        }
-
-        public String getPid() {
-            return pid;
-        }
-    }
+    T[] getSelection();
 
 }

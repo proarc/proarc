@@ -16,7 +16,6 @@
  */
 package cz.incad.pas.editor.client.widget;
 
-import com.google.gwt.user.client.Window;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -30,7 +29,6 @@ import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TextAreaWrap;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.EventHandler;
-import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
 import com.smartgwt.client.widgets.events.ClickEvent;
@@ -58,8 +56,6 @@ import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
-import com.smartgwt.client.widgets.menu.MenuItemSeparator;
-import com.smartgwt.client.widgets.menu.events.MenuItemClickEvent;
 import com.smartgwt.client.widgets.tab.Tab;
 import com.smartgwt.client.widgets.tab.TabSet;
 import com.smartgwt.client.widgets.tab.events.TabDeselectedEvent;
@@ -67,28 +63,35 @@ import com.smartgwt.client.widgets.tab.events.TabDeselectedHandler;
 import com.smartgwt.client.widgets.tab.events.TabSelectedEvent;
 import com.smartgwt.client.widgets.tab.events.TabSelectedHandler;
 import com.smartgwt.client.widgets.tile.TileGrid;
+import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.viewer.DetailFormatter;
 import com.smartgwt.client.widgets.viewer.DetailViewerField;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.action.AbstractAction;
+import cz.incad.pas.editor.client.action.ActionEvent;
+import cz.incad.pas.editor.client.action.Actions;
+import cz.incad.pas.editor.client.action.DeleteAction;
+import cz.incad.pas.editor.client.action.DeleteAction.RecordDeletable;
+import cz.incad.pas.editor.client.action.FoxmlViewAction;
+import cz.incad.pas.editor.client.action.RefreshAction;
+import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.DcRecordDataSource;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
-import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.TextDataSource;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  *
  * @author Jan Pokorsky
  */
-public final class ImportBatchItemEditor extends HLayout {
+public final class ImportBatchItemEditor extends HLayout implements Selectable<Record>, RefreshAction.Refreshable {
 
     private static final Logger LOG = Logger.getLogger(ImportBatchItemEditor.class.getName());
 
@@ -100,6 +103,10 @@ public final class ImportBatchItemEditor extends HLayout {
     private DynamicFormTab[] dfTabs;
     private final TileGrid thumbViewer;
     private final DigitalObjectPreview digitalObjectPreview;
+    private boolean selectThumbInProgress = false;
+    private boolean selectListInProgress = false;
+    private boolean selectTabInProgress = false;
+    private BatchRecord batchRecord;
 
     public ImportBatchItemEditor(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
@@ -110,15 +117,79 @@ public final class ImportBatchItemEditor extends HLayout {
         layout.setShowResizeBar(true);
         layout.setResizeBarTarget("next");
         
-        batchItemGrid = new ListGrid();
-        batchItemGrid.setShowResizeBar(true);
-        batchItemGrid.setSelectionType(SelectionStyle.MULTIPLE);
-        batchItemGrid.setCanSort(false);
+        batchItemGrid = createItemList();
+        layout.addMember(batchItemGrid);
+        
+        tabSet = createTabSet();
+        tabSet.addTabDeselectedHandler(new TabDeselectedHandler() {
+
+            @Override
+            public void onTabDeselected(TabDeselectedEvent event) {
+                if (selectTabInProgress) {
+                    selectTabInProgress = false;
+                    return ;
+                }
+                event.cancel();
+                selectTab(event.getTab(), event.getNewTab());
+            }
+        });
+
+        tabSet.addTabSelectedHandler(new TabSelectedHandler() {
+
+            @Override
+            public void onTabSelected(TabSelectedEvent event) {
+                selectTab(event.getTab());
+            }
+        });
+
+        layout.addMember(tabSet);
+        HLayout editorThumbLayout = new HLayout();
+        editorThumbLayout.setHeight100();
+        editorThumbLayout.addMember(layout);
+
+        thumbViewer = createThumbViewer();
+        editorThumbLayout.addMember(thumbViewer);
+
+        VLayout editorThumbToolbarLayout = new VLayout();
+        editorThumbToolbarLayout.setShowResizeBar(true);
+        editorThumbToolbarLayout.setResizeBarTarget("next");
+
+        ToolStrip editorToolStrip = createEditorToolBar();
+        editorThumbToolbarLayout.addMember(editorToolStrip);
+        editorThumbToolbarLayout.addMember(editorThumbLayout);
+
+        addMember(editorThumbToolbarLayout);
+
+        digitalObjectPreview = new DigitalObjectPreview(i18nPas);
+        digitalObjectPreview.addBackgroundListeners(thumbViewer);
+        Canvas previewLayout = digitalObjectPreview.asCanvas();
+        previewLayout.setWidth("40%");
+        previewLayout.setHeight100();
+//        previewLayout.setShowResizeBar(true);
+//        previewLayout.setResizeFrom("L");
+        addMember(previewLayout);
+        batchItemGrid.setContextMenu(createEditorContextMenu(batchItemGrid));
+    }
+
+    public void onShow(BatchRecord batch) {
+        this.batchRecord = batch;
+        refresh();
+    }
+
+    public void onHide(BooleanCallback callback) {
+        dfTabs[tabSet.getSelectedTabNumber()].onHide(callback);
+    }
+
+    private ListGrid createItemList() {
+        final ListGrid grid = new ListGrid();
+        grid.setShowResizeBar(true);
+        grid.setSelectionType(SelectionStyle.MULTIPLE);
+        grid.setCanSort(false);
         // disable autofit as it has rendering problems
 //        batchItemGrid.setAutoFitFieldWidths(true);
 //        batchItemGrid.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
-        batchItemGrid.setLeaveScrollbarGap(false);
-        batchItemGrid.setDataSource(ImportBatchItemDataSource.getInstance());
+        grid.setLeaveScrollbarGap(false);
+        grid.setDataSource(ImportBatchItemDataSource.getInstance());
 
         fieldItemModel = new ListGridField(ImportBatchItemDataSource.FIELD_MODEL,
                 i18nPas.ImportBatchItemEditor_ListHeaderModel_Title());
@@ -157,12 +228,12 @@ public final class ImportBatchItemEditor extends HLayout {
         fieldPageType.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderPageType_Hint());
         fieldPageType.setEmptyCellValue(ModsCustomDataSource.getPageTypes().get(ModsCustomDataSource.getDefaultPageType()));
 
-        batchItemGrid.setFields(fieldFilename, fieldPageNumber, fieldPageIndex, fieldPageType, fieldPid, fieldItemModel, fieldUser);
+        grid.setFields(fieldFilename, fieldPageNumber, fieldPageIndex, fieldPageType, fieldPid, fieldItemModel, fieldUser);
 
         // issue 7: default BodyKeyPressHandler does not change row focus properly
         // in case of mixing mouse and keyboard navigation.
         // ListGrid.getSelectedRecord and ListGrid.getFocusRow() do not return same result!
-        batchItemGrid.addBodyKeyPressHandler(new BodyKeyPressHandler() {
+        grid.addBodyKeyPressHandler(new BodyKeyPressHandler() {
 
             @Override
             public void onBodyKeyPress(BodyKeyPressEvent event) {
@@ -171,17 +242,17 @@ public final class ImportBatchItemEditor extends HLayout {
                 }
                 if ("Arrow_Down".equals(EventHandler.getKey())) {
                     int nextSelection = getNextSelection();
-                    batchItemGrid.selectSingleRecord(nextSelection);
+                    grid.selectSingleRecord(nextSelection);
                 } else if ("Arrow_Up".equals(EventHandler.getKey())) {
-                    Integer focusRow = batchItemGrid.getFocusRow();
+                    Integer focusRow = grid.getFocusRow();
                     if (focusRow != null && focusRow > 0) {
-                        batchItemGrid.selectSingleRecord(focusRow - 1);
+                        grid.selectSingleRecord(focusRow - 1);
                     }
                 }
             }
         });
 
-        batchItemGrid.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
+        grid.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
             @Override
             public void onSelectionUpdated(SelectionUpdatedEvent event) {
@@ -189,7 +260,7 @@ public final class ImportBatchItemEditor extends HLayout {
                     selectListInProgress = false;
                     return ;
                 }
-                ListGridRecord[] selectedRecords = batchItemGrid.getSelectedRecords();
+                ListGridRecord[] selectedRecords = grid.getSelectedRecords();
                 thumbViewer.deselectAllRecords();
                 if (selectedRecords != null && selectedRecords.length == 1) {
                     // select thumbnail just in case of the single selection
@@ -198,13 +269,19 @@ public final class ImportBatchItemEditor extends HLayout {
                     // use record index instead of ListGridRecord to work around a smartgwt bug
                     thumbViewer.selectRecord(tileIndex);
                     ClientUtils.scrollToTile(thumbViewer, tileIndex);
+                } else if (selectedRecords != null && selectedRecords.length > 1) {
+                    int[] indexes = new int[selectedRecords.length];
+                    for (int i = 0; i < indexes.length; i++) {
+                        indexes[i] = thumbViewer.getRecordIndex(selectedRecords[i]);
+                    }
+                    thumbViewer.selectRecords(indexes);
                 }
                 selectBatchItem(true, selectedRecords);
             }
 
         });
 
-        batchItemGrid.addRecordClickHandler(new RecordClickHandler() {
+        grid.addRecordClickHandler(new RecordClickHandler() {
 
             @Override
             public void onRecordClick(RecordClickEvent event) {
@@ -212,54 +289,19 @@ public final class ImportBatchItemEditor extends HLayout {
                 previewItem(event.getRecord());
             }
         });
-
-        layout.addMember(batchItemGrid);
-        
-        tabSet = createTabSet();
-        tabSet.addTabDeselectedHandler(new TabDeselectedHandler() {
-
-            @Override
-            public void onTabDeselected(TabDeselectedEvent event) {
-                if (selectTabInProgress) {
-                    selectTabInProgress = false;
-                    return ;
-                }
-                event.cancel();
-                selectTab(event.getTab(), event.getNewTab());
-            }
-        });
-
-        tabSet.addTabSelectedHandler(new TabSelectedHandler() {
-
-            @Override
-            public void onTabSelected(TabSelectedEvent event) {
-                selectTab(event.getTab());
-            }
-        });
-
-        layout.addMember(tabSet);
-        HLayout editorThumbLayout = new HLayout();
-        editorThumbLayout.setHeight100();
-        editorThumbLayout.addMember(layout);
-        editorThumbLayout.setShowResizeBar(true);
-        editorThumbLayout.setResizeBarTarget("next");
-        addMember(editorThumbLayout);
-
-        thumbViewer = createThumbViewer();
-        editorThumbLayout.addMember(thumbViewer);
-
-        digitalObjectPreview = new DigitalObjectPreview(i18nPas);
-        digitalObjectPreview.addBackgroundListeners(thumbViewer);
-        Canvas previewLayout = digitalObjectPreview.asCanvas();
-        previewLayout.setWidth("40%");
-        previewLayout.setHeight100();
-//        previewLayout.setShowResizeBar(true);
-//        previewLayout.setResizeFrom("L");
-        addMember(previewLayout);
+        return grid;
     }
 
-    public void onShow(BatchRecord batch) {
-        Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batch.getId());
+    @Override
+    public Record[] getSelection() {
+        return batchItemGrid.anySelected()
+                ? batchItemGrid.getSelectedRecords()
+                : thumbViewer.getSelection();
+    }
+
+    @Override
+    public void refresh() {
+        Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batchRecord.getId());
         batchItemGrid.invalidateCache();
         thumbViewer.invalidateCache();
         digitalObjectPreview.selectPreviewField(null);
@@ -276,10 +318,6 @@ public final class ImportBatchItemEditor extends HLayout {
             }
         });
         thumbViewer.fetchData(criteria);
-    }
-
-    public void onHide(BooleanCallback callback) {
-        dfTabs[tabSet.getSelectedTabNumber()].onHide(callback);
     }
 
     private TileGrid createThumbViewer() {
@@ -313,128 +351,12 @@ public final class ImportBatchItemEditor extends HLayout {
         });
         final DetailViewerField dvfThumbnail = new DetailViewerField(ImportBatchItemDataSource.FIELD_THUMBNAIL);
         thumbGrid.setFields(dvfThumbnail, dvfPageIndex);
+        thumbGrid.setDataSource(ImportBatchItemDataSource.getInstance());
         // TileLayoutPolicy.FLOW does not work as expected
         // thumbGrid.setLayoutPolicy(TileLayoutPolicy.FLOW);
         thumbGrid.setTileHeight(128 + 8 + 12 * 2);
         thumbGrid.setTileWidth(120);
-        Menu menu = new Menu();
-        MenuItem miSelectAll = new MenuItem(i18nPas.ImportBatchItemEditor_MenuSaveAll_Title());
-        miSelectAll.addClickHandler(new com.smartgwt.client.widgets.menu.events.ClickHandler() {
-
-            @Override
-            public void onClick(MenuItemClickEvent event) {
-                thumbGrid.selectAllRecords();
-            }
-        });
-        MenuItem miSelectMatching = new MenuItem(i18nPas.ImportBatchItemEditor_MenuSelectMatching_Title());
-        MenuItem miDelete = new MenuItem(i18nPas.ImportBatchItemEditor_MenuDelete_Title());
-        miDelete.addClickHandler(new com.smartgwt.client.widgets.menu.events.ClickHandler() {
-
-            @Override
-            public void onClick(MenuItemClickEvent event) {
-                final Record[] selection = thumbGrid.getSelection();
-                if (selection == null || selection.length == 0) {
-                    return ;
-                }
-                SC.ask(i18nPas.ImportBatchItemEditor_WindowDelete_Title(),
-                        i18nPas.ImportBatchItemEditor_WindowDelete_MSG(String.valueOf(selection.length)),
-                        new BooleanCallback() {
-
-                    @Override
-                    public void execute(Boolean value) {
-                        if (value != null && value) {
-                            // TileGrid.removeSelectedData uses queuing support in case of multi-selection.
-                            // It will require extra support on server. For now remove data in separate requests.
-                            //thumbGrid.removeSelectedData();
-                            for (Record record : selection) {
-                                thumbGrid.removeData(record);
-                            }
-                        }
-                    }
-                });
-            }
-        });
-        MenuItem miEdit = new MenuItem(i18nPas.ImportBatchItemEditor_MenuEdit_Title());
-        miEdit.addClickHandler(new com.smartgwt.client.widgets.menu.events.ClickHandler() {
-
-            @Override
-            public void onClick(MenuItemClickEvent event) {
-                final PageMetadataEditor editor = PageMetadataEditor.getInstance();
-                editor.showInWindow(new BooleanCallback() {
-
-                    @Override
-                    public void execute(Boolean value) {
-                        if (value != null && value) {
-                            Record[] selection = thumbGrid.getSelection();
-                            DataSource ds = thumbGrid.getDataSource();
-                            Integer indexStart = null;
-                            Iterator<String> sequence = null;
-                            String numberFormat = "%s";
-                            if (editor.getAllowPageIndexes()) {
-                                indexStart = editor.getIndexStart();
-                            }
-                            if (editor.getAllowPageNumbers()) {
-                                sequence = editor.getSequence();
-                                String prefix = editor.getPrefix();
-                                String suffix = editor.getSuffix();
-                                if (prefix != null) {
-                                    numberFormat = prefix + numberFormat;
-                                }
-                                if (suffix != null) {
-                                    numberFormat += suffix;
-                                }
-                            }
-//                            RPCManager.startQueue();
-                            for (Record record : selection) {
-                                if (editor.getAllowPageIndexes()) {
-                                    String old = record.getAttributeAsString(ImportBatchItemDataSource.FIELD_PAGE_INDEX);
-                                    String newVal = indexStart == null ? null : String.valueOf(indexStart++);
-                                    newVal = (old != null && newVal == null) ? "" : newVal;
-                                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_INDEX, newVal);
-                                }
-                                if (editor.getAllowPageNumbers()) {
-                                    String old = record.getAttributeAsString(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
-                                    String newVal = sequence != null
-                                            ? ClientUtils.format(numberFormat, sequence.next())
-                                            : ClientUtils.format(numberFormat, "");
-                                    newVal = newVal.isEmpty() ? null : newVal;
-                                    newVal = (old != null && newVal == null) ? "" : newVal;
-                                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_NUMBER, newVal);
-                                }
-                                if (editor.getAllowPageTypes()) {
-                                    String pageType = editor.getPageType();
-                                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_TYPE, pageType);
-                                }
-                                record = ClientUtils.removeNulls(record);
-                                ds.updateData(record);
-                            }
-//                            RPCManager.sendQueue();
-                        }
-                    }
-                });
-            }
-        });
-
-        MenuItem miFoxml = new MenuItem(i18nPas.ImportBatchItemEditor_MenuViewFoxml_Title());
-        miFoxml.addClickHandler(new com.smartgwt.client.widgets.menu.events.ClickHandler() {
-
-            @Override
-            public void onClick(MenuItemClickEvent event) {
-                Record[] selection = thumbGrid.getSelection();
-                if (selection != null && selection.length > 0) {
-                    String url = ClientUtils.format("%s?pid=%s&batchId=%s",
-                            RestConfig.URL_DIGOBJECT_DISSEMINATION,
-                            selection[0].getAttribute(ImportBatchItemDataSource.FIELD_PID),
-                            selection[0].getAttribute(ImportBatchItemDataSource.FIELD_BATCHID)
-                            );
-                    Window.open(url, "_blanc", "");
-                }
-            }
-        });
-        menu.setItems(miSelectAll, new MenuItemSeparator(), miEdit, miDelete, miFoxml);
-        thumbGrid.setContextMenu(menu);
-
-        thumbGrid.setDataSource(ImportBatchItemDataSource.getInstance());
+        thumbGrid.setContextMenu(createEditorContextMenu(thumbGrid));
 
         thumbGrid.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
@@ -453,9 +375,15 @@ public final class ImportBatchItemEditor extends HLayout {
                     batchItemGrid.selectSingleRecord(selectionIndex);
                     batchItemGrid.scrollToRow(selectionIndex);
                     selectBatchItem(false, selection);
-                } else if (batchItemGrid.anySelected()) {
+                } else if (selection != null && selection.length > 1) {
+                    int[] indexes = new int[selection.length];
+                    for (int i = 0; i < indexes.length; i++) {
+                        indexes[i] = batchItemGrid.getRecordIndex(selection[i]);
+                    }
                     selectListInProgress = true;
                     batchItemGrid.deselectAllRecords();
+                    selectListInProgress = true;
+                    batchItemGrid.selectRecords(indexes);
                     selectBatchItem(false);
                 }
 //                LOG.info("THUMB.onSelectionChanged.selection: " + Arrays.toString(selection));
@@ -475,8 +403,36 @@ public final class ImportBatchItemEditor extends HLayout {
         return thumbGrid;
     }
 
-    private boolean selectThumbInProgress = false;
-    private boolean selectListInProgress = false;
+    private ToolStrip createEditorToolBar() {
+        ToolStrip toolbar = Actions.createToolStrip();
+        toolbar.addMember(Actions.asIconButton(new RefreshAction(i18nPas), this));
+        toolbar.addMember(Actions.asIconButton(new SelectAction(), this));
+        toolbar.addMember(Actions.asIconButton(new BatchItemMultiEdit(), this));
+        toolbar.addMember(Actions.asIconButton(new FoxmlViewAction(i18nPas), this));
+        toolbar.addMember(Actions.asIconButton(new DeleteAction(
+                new RecordDeletable(batchItemGrid.getDataSource()), i18nPas), this));
+        return toolbar;
+    }
+
+    private Menu createEditorContextMenu(Object contextSource) {
+        Menu menu = new Menu();
+        MenuItem miRedraw = Actions.asMenuItem(new AbstractAction("Reset", null, null) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+                Object source = event.getSource();
+                if (source == batchItemGrid) {
+                    batchItemGrid.clear();
+                    batchItemGrid.draw();
+                } else if (source == thumbViewer) {
+                    thumbViewer.clear();
+                    thumbViewer.draw();
+                }
+            }
+        }, contextSource);
+        menu.setItems(miRedraw);
+        return menu;
+    }
 
     private TabSet createTabSet() {
         TabSet tabSet = new TabSet();
@@ -644,8 +600,6 @@ public final class ImportBatchItemEditor extends HLayout {
         dfTab.onShow(selections);
     }
 
-    private boolean selectTabInProgress = false;
-
     private void selectTab(Tab oldTab, final Tab newTab) {
         final DynamicFormTab dfTab = dfTabs[tabSet.getTabNumber(oldTab.getID())];
 //        LOG.info(ClientUtils.format("switchTabs: oldTab: %s, newTab: %s", oldTab.getTitle(), newTab.getTitle()));
@@ -748,7 +702,7 @@ public final class ImportBatchItemEditor extends HLayout {
             if (DynamicFormTab.this.form.valuesHaveChanged()) {
                 tabTitle += " *";
             }
-                    LOG.info("updateTitle: " + tabTitle);
+            LOG.info("updateTitle: " + tabTitle);
             tab.setTitle(tabTitle);
 
             Map values = form.getValues();
@@ -812,4 +766,100 @@ public final class ImportBatchItemEditor extends HLayout {
         }
 
     }
+
+    private final class BatchItemMultiEdit extends AbstractAction {
+
+        public BatchItemMultiEdit() {
+            super(i18nPas.ImportBatchItemEditor_ActionEdit_Title(),
+                    "[SKIN]/actions/edit.png",
+                    i18nPas.ImportBatchItemEditor_ActionEdit_Hint());
+        }
+
+        @Override
+        public void performAction(ActionEvent event) {
+            final Record[] selection = Actions.getSelection(event);
+            if (selection == null || selection.length == 0) {
+                return ;
+            }
+            final PageMetadataEditor editor = PageMetadataEditor.getInstance();
+            editor.showInWindow(new BooleanCallback() {
+
+                @Override
+                public void execute(Boolean value) {
+                    if (value != null && value) {
+                        edit(editor, selection);
+                    }
+                }
+            });
+        }
+
+        public void edit(PageMetadataEditor editor, Record[] selection) {
+            DataSource ds = batchItemGrid.getDataSource();
+            Integer indexStart = null;
+            Iterator<String> sequence = null;
+            String numberFormat = "%s";
+            if (editor.getAllowPageIndexes()) {
+                indexStart = editor.getIndexStart();
+            }
+            if (editor.getAllowPageNumbers()) {
+                sequence = editor.getSequence();
+                String prefix = editor.getPrefix();
+                String suffix = editor.getSuffix();
+                if (prefix != null) {
+                    numberFormat = prefix + numberFormat;
+                }
+                if (suffix != null) {
+                    numberFormat += suffix;
+                }
+            }
+//            RPCManager.startQueue();
+            for (Record record : selection) {
+                if (editor.getAllowPageIndexes()) {
+                    String old = record.getAttributeAsString(ImportBatchItemDataSource.FIELD_PAGE_INDEX);
+                    String newVal = indexStart == null ? null : String.valueOf(indexStart++);
+                    newVal = (old != null && newVal == null) ? "" : newVal;
+                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_INDEX, newVal);
+                }
+                if (editor.getAllowPageNumbers()) {
+                    String old = record.getAttributeAsString(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
+                    String newVal = sequence != null
+                            ? ClientUtils.format(numberFormat, sequence.next())
+                            : ClientUtils.format(numberFormat, "");
+                    newVal = newVal.isEmpty() ? null : newVal;
+                    newVal = (old != null && newVal == null) ? "" : newVal;
+                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_NUMBER, newVal);
+                }
+                if (editor.getAllowPageTypes()) {
+                    String pageType = editor.getPageType();
+                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_TYPE, pageType);
+                }
+                record = ClientUtils.removeNulls(record);
+                ds.updateData(record);
+            }
+//            RPCManager.sendQueue();
+        }
+
+    }
+
+    private final class SelectAction extends AbstractAction {
+
+        SelectAction() {
+            super(i18nPas.ImportBatchItemEditor_ActionSaveAll_Title(),
+                    "[SKIN]/actions/approve.png",
+                    i18nPas.ImportBatchItemEditor_ActionSaveAll_Hint());
+        }
+
+        @Override
+        public void performAction(ActionEvent event) {
+            Object source = event.getSource();
+            if (source instanceof ImportBatchItemEditor) {
+                selectAll((ImportBatchItemEditor) source);
+            }
+        }
+
+        public void selectAll(ImportBatchItemEditor editor) {
+            batchItemGrid.selectAllRecords();
+        }
+    }
+
 }
