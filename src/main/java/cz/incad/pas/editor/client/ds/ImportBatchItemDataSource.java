@@ -60,6 +60,7 @@ public final class ImportBatchItemDataSource extends RestDataSource {
         pid.setPrimaryKey(true);
 
         DataSourceIntegerField batchId = new DataSourceIntegerField(FIELD_BATCHID);
+        batchId.setPrimaryKey(true);
         batchId.setForeignKey(ImportBatchDataSource.ID + '.' + ImportBatchDataSource.FIELD_ID);
 
         DataSourceField timestamp = new DataSourceField(FIELD_TIMESTAMP, FieldType.TEXT);
