@@ -118,7 +118,7 @@ public final class NewDigObject extends VLayout {
     public MetaModelRecord getModel() {
         FormItem field = optionsForm.getField(DigitalObjectDataSource.FIELD_MODEL);
         ListGridRecord selectedRecord = field.getSelectedRecord();
-        Map values = selectedRecord.toMap();
+        Map<?, ?> values = selectedRecord.toMap();
         ClientUtils.info(LOG, "getModel: %s", values);
         return new MetaModelRecord(selectedRecord);
     }
@@ -139,7 +139,7 @@ public final class NewDigObject extends VLayout {
         return optionsForm.validate();
     }
 
-    public void setValidationErrors(Map errors) {
+    public void setValidationErrors(Map<?,?> errors) {
         optionsForm.setErrors(errors, true);
     }
 
@@ -176,17 +176,17 @@ public final class NewDigObject extends VLayout {
         DynamicForm formCatalog = createCatalogForm();
         DataSource ds = new DataSource();
         ds.setFields(
-                new DataSourceFieldBuilder(new DataSourceTextField("id", "ID"))
+                DataSourceFieldBuilder.field(new DataSourceTextField("id", "ID"))
                         .hidden().build(),
-                new DataSourceFieldBuilder(new DataSourceTextField("mods", "Preview"))
+                DataSourceFieldBuilder.field(new DataSourceTextField("mods", "Preview"))
                         .filter(false).build(),
-                new DataSourceFieldBuilder(new DataSourceTextField("modsDetail", "MODS"))
+                DataSourceFieldBuilder.field(new DataSourceTextField("modsDetail", "MODS"))
                         .filter(false).build(),
-                new DataSourceFieldBuilder(new DataSourceTextField("issn", "ISSN"))
+                DataSourceFieldBuilder.field(new DataSourceTextField("issn", "ISSN"))
                         .validOperators(OperatorId.ICONTAINS).build(),
-                new DataSourceFieldBuilder(new DataSourceTextField("isbn", "ISBN"))
+                DataSourceFieldBuilder.field(new DataSourceTextField("isbn", "ISBN"))
                         .validOperators(OperatorId.ICONTAINS).build(),
-                new DataSourceFieldBuilder(new DataSourceTextField("ccnb", "čČNB"))
+                DataSourceFieldBuilder.field(new DataSourceTextField("ccnb", "čČNB"))
                         .validOperators(OperatorId.ICONTAINS).build()
                 );
         

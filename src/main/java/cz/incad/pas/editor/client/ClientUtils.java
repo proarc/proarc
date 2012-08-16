@@ -21,7 +21,6 @@ import com.google.gwt.dom.client.Node;
 import com.google.gwt.dom.client.NodeList;
 import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.regexp.shared.SplitResult;
-import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
@@ -32,7 +31,6 @@ import com.smartgwt.client.widgets.tile.TileGrid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -147,7 +145,7 @@ public final class ClientUtils {
         }
 
         sb.append("-- toMap:\n");
-        Map m;
+        Map<?, ?> m;
         try {
             m = r.toMap();
         } catch (Exception ex) {
@@ -157,12 +155,11 @@ public final class ClientUtils {
         }
         dump(m, "  ", "  ", sb);
 
-        for (Object entry : m.entrySet()) {
-            Map.Entry e = (Map.Entry) entry;
+        for (Map.Entry<?, ?> e : m.entrySet()) {
             Object value = e.getValue();
             sb.append(ClientUtils.format("  map.key: %s, value: %s, value class %s\n", e.getKey(), value, safeGetClass(value)));
             if (value instanceof List) {
-                List l = (List) value;
+                List<?> l = (List) value;
                 for (Object valItem : l) {
                     sb.append(ClientUtils.format("    item.value: %s, value class %s\n", valItem, safeGetClass(valItem)));
                 }
@@ -172,16 +169,15 @@ public final class ClientUtils {
         return sb.toString();
     }
 
-    public static StringBuilder dump(List l, String indent, String indentIncrement, StringBuilder sb) {
+    public static StringBuilder dump(List<?> l, String indent, String indentIncrement, StringBuilder sb) {
         for (Object valItem : l) {
             sb.append(ClientUtils.format("%sitem.value: %s, value class %s\n", indent, valItem, safeGetClass(valItem)));
         }
         return sb;
     }
 
-    public static StringBuilder dump(Map m, String indent, String indentIncrement, StringBuilder sb) {
-        for (Object entry : m.entrySet()) {
-            Map.Entry e = (Map.Entry) entry;
+    public static StringBuilder dump(Map<?, ?> m, String indent, String indentIncrement, StringBuilder sb) {
+        for (Map.Entry<?, ?> e : m.entrySet()) {
             Object value = e.getValue();
             sb.append(ClientUtils.format("%smap.key: %s, value: %s, value class %s\n", indent, e.getKey(), value, safeGetClass(value)));
             if (value instanceof List) {
@@ -215,7 +211,7 @@ public final class ClientUtils {
      *
      * @return class or {@code null}
      */
-    public static Class safeGetClass(Object value) {
+    public static Class<?> safeGetClass(Object value) {
         return value != null ? value.getClass() : null;
     }
 
@@ -246,7 +242,8 @@ public final class ClientUtils {
     public static Record removeNulls(Record r) {
         boolean hasNull = false;
         HashMap<Object, Object> nonNunlls = new HashMap<Object, Object>();
-        for (Map.Entry entry : (Set<Map.Entry>) r.toMap().entrySet()) {
+        Map<?, ?> recordMap = r.toMap();
+        for (Map.Entry<?, ?> entry : recordMap.entrySet()) {
             if (entry.getValue() != null) {
                 nonNunlls.put(entry.getKey(), entry.getValue());
             } else {
@@ -289,31 +286,35 @@ public final class ClientUtils {
 
         private final T field;
 
+        public static <T extends DataSourceField> DataSourceFieldBuilder<T> field(T field) {
+            return new DataSourceFieldBuilder<T>(field);
+        }
+
         public DataSourceFieldBuilder(T field) {
             this.field = field;
         }
 
-        public DataSourceFieldBuilder required() {
+        public DataSourceFieldBuilder<T> required() {
             field.setRequired(true);
             return this;
         }
 
-        public DataSourceFieldBuilder primaryKey() {
+        public DataSourceFieldBuilder<T> primaryKey() {
             field.setPrimaryKey(true);
             return this;
         }
 
-        public DataSourceFieldBuilder hidden() {
+        public DataSourceFieldBuilder<T> hidden() {
             field.setHidden(true);
             return this;
         }
 
-        public DataSourceFieldBuilder filter(boolean filter) {
+        public DataSourceFieldBuilder<T> filter(boolean filter) {
             field.setCanFilter(filter);
             return this;
         }
 
-        public DataSourceFieldBuilder validOperators(OperatorId... ids) {
+        public DataSourceFieldBuilder<T> validOperators(OperatorId... ids) {
             field.setValidOperators(ids);
             return this;
         }
