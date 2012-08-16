@@ -176,16 +176,32 @@ public final class AlephXServer {
     private static final class Criteria {
 
         private enum Field {
-            ISSN("ssn"), ISBN("sbn"), CCNB("cnb");
+            BARCODE("barcode", "bar"), CCNB("ccnb", "cnb"),
+            ISSN("issn", "ssn"), ISBN("isbn", "sbn"), SGINATURE("signature", "sg");
 
-            private String keyword;
+            private final String alephKeyword;
+            private final String keyword;
 
-            private Field(String keyword) {
+            private Field(String keyword, String alephKeyword) {
                 this.keyword = keyword;
+                this.alephKeyword = alephKeyword;
+            }
+
+            public String getAlephKeyword() {
+                return alephKeyword;
             }
 
             public String getKeyword() {
                 return keyword;
+            }
+
+            public static Field fromString(String keyword) {
+                for (Field field : values()) {
+                    if (field.getKeyword().equals(keyword)) {
+                        return field;
+                    }
+                }
+                return null;
             }
 
         }
@@ -200,7 +216,7 @@ public final class AlephXServer {
 
         public URL toFindUrl() throws MalformedURLException {
             String url = String.format("http://aleph.nkp.cz/X?op=find&request=%s=%s&base=nkc",
-                    field.getKeyword(), value);
+                    field.getAlephKeyword(), value);
             return new URL(url);
         }
 
@@ -208,15 +224,8 @@ public final class AlephXServer {
             if (value == null  || value.trim().length() == 0) {
                 return null;
             }
-            Criteria result = null;
-            if ("issn".equalsIgnoreCase(fieldName)) {
-                result = new Criteria(value, Criteria.Field.ISSN);
-            } else if ("isbn".equalsIgnoreCase(fieldName)) {
-                result = new Criteria(value, Criteria.Field.ISBN);
-            } else if ("ccnb".equalsIgnoreCase(fieldName)) {
-                result = new Criteria(value, Criteria.Field.CCNB);
-            }
-            return result;
+            Field field = Field.fromString(fieldName);
+            return field == null ? null : new Criteria(value, field);
         }
     }
 

@@ -182,11 +182,20 @@ public final class NewDigObject extends VLayout {
                         .filter(false).build(),
                 DataSourceFieldBuilder.field(new DataSourceTextField("modsDetail", "MODS"))
                         .filter(false).build(),
-                DataSourceFieldBuilder.field(new DataSourceTextField("issn", "ISSN"))
+                DataSourceFieldBuilder.field(new DataSourceTextField(
+                            "issn", i18nPas.NewDigObject_CatalogFieldIssn_Title()))
                         .validOperators(OperatorId.ICONTAINS).build(),
-                DataSourceFieldBuilder.field(new DataSourceTextField("isbn", "ISBN"))
+                DataSourceFieldBuilder.field(new DataSourceTextField(
+                            "isbn", i18nPas.NewDigObject_CatalogFieldIsbn_Title()))
                         .validOperators(OperatorId.ICONTAINS).build(),
-                DataSourceFieldBuilder.field(new DataSourceTextField("ccnb", "čČNB"))
+                DataSourceFieldBuilder.field(new DataSourceTextField(
+                            "ccnb", i18nPas.NewDigObject_CatalogFieldCcnb_Title()))
+                        .validOperators(OperatorId.ICONTAINS).build(),
+                DataSourceFieldBuilder.field(new DataSourceTextField(
+                            "barcode", i18nPas.NewDigObject_CatalogFieldBarcode_Title()))
+                        .validOperators(OperatorId.ICONTAINS).build(),
+                DataSourceFieldBuilder.field(new DataSourceTextField(
+                            "signature", i18nPas.NewDigObject_CatalogFieldSignature_Title()))
                         .validOperators(OperatorId.ICONTAINS).build()
                 );
         
