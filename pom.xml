@@ -27,6 +27,10 @@
         <maven.compiler.target>1.6</maven.compiler.target>
         <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- JAX-WS 2.2 JDK 1.6 support-->
+        <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
+        <!-- local junit properties -->
+        <proarc.junit.properties.file>${project.basedir}/src/test/junit.properties</proarc.junit.properties.file>
     </properties>
 
     <dependencies>
@@ -68,6 +72,13 @@
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-json</artifactId>
             <version>${jerseyVersion}</version>
+            <exclusions>
+                <!-- excluded not to downgrade soapclient/jaxws-rt/jaxb-impl.2.2.5-2-->
+                <exclusion>
+                    <artifactId>jaxb-impl</artifactId>
+                    <groupId>com.sun.xml.bind</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -95,6 +106,19 @@
             <artifactId>commons-configuration</artifactId>
             <version>1.8</version>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>cz.registrdigitalizace</groupId>
+            <artifactId>soapclient</artifactId>
+            <version>1.0</version>
+            <exclusions>
+                <!-- JAX-WS 2.2 JDK 1.6 support-->
+                <!--excluded jaxb-api and jaxws-api that must be placed in ${catalina.base}/endorsed folder-->
+                <exclusion>
+                    <artifactId>jaxws-api</artifactId>
+                    <groupId>javax.xml.ws</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- tests -->
@@ -191,7 +215,55 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12</version>
+                <configuration>
+                    <!-- JAX-WS 2.2 JDK 1.6 support-->
+                    <argLine>-Djava.endorsed.dirs="${endorsed.dir}"</argLine>
+                    <systemPropertiesFile>${proarc.junit.properties.file}</systemPropertiesFile>
+                </configuration>
+            </plugin>
+
+            <!-- JAX-WS 2.2 JDK 1.6 support-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${endorsed.dir}</outputDirectory>
+                            <silent>true</silent>
+                            <!-- need JAXB API and JAX-WS API in an endorsed dir-->
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>javax.xml.bind</groupId>
+                                    <artifactId>jaxb-api</artifactId>
+                                    <version>2.2.6</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>javax.xml.ws</groupId>
+                                    <artifactId>jaxws-api</artifactId>
+                                    <version>2.2.8</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
+
     </build>
 
 </project>

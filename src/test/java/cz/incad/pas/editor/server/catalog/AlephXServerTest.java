@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.server.catalog;
 
+import cz.incad.pas.editor.server.catalog.AlephXServer.Criteria;
 import cz.incad.pas.editor.server.rest.MetadataCatalogResource.MetadataItem;
 import java.io.IOException;
 import java.io.InputStream;
@@ -83,7 +84,7 @@ public class AlephXServerTest {
         InputStream xmlIS = AlephXServerTest.class.getResourceAsStream("alephXServerFindResponse.xml");
         assertNotNull(xmlIS);
         try {
-            AlephXServer server = new AlephXServer();
+            AlephXServer server = new AlephXServer("dummyUrl");
             AlephXServer.FindResponse found = server.createFindResponse(xmlIS);
             assertNotNull(found);
             assertEquals("183719", found.getNumber());
@@ -100,7 +101,7 @@ public class AlephXServerTest {
         assertNotNull(xmlIS);
 
         try {
-            AlephXServer server = new AlephXServer();
+            AlephXServer server = new AlephXServer("dummyUrl");
             List<MetadataItem> details = server.createDetailResponse(xmlIS, null);
             assertNotNull(server);
             assertEquals(1, details.size());
@@ -115,6 +116,24 @@ public class AlephXServerTest {
         } finally {
             xmlIS.close();
         }
+    }
+
+    @Test
+    public void testSetQuery() throws Exception {
+        Criteria issnCriteria = Criteria.get("issn", "ISSNVALUE");
+        URI result = AlephXServer.setQuery(new URI("http://aleph.nkp.cz/X?base=nkc"),
+                issnCriteria.toUrlParams(), true);
+        assertEquals("http://aleph.nkp.cz/X?base=nkc&op=find&request=ssn=ISSNVALUE", result.toASCIIString());
+        System.out.println("URI: " + result.toASCIIString());
+    }
+
+    @Test
+    public void testSetFurtherQuery() throws Exception {
+        Criteria issnCriteria = Criteria.get("issn", "ISSNVALUE");
+        URI result = AlephXServer.setQuery(new URI("http://aleph.nkp.cz/X?base=nkc"),
+                issnCriteria.toUrlParams(), false);
+        assertEquals("http://aleph.nkp.cz/X?op=find&request=ssn=ISSNVALUE", result.toASCIIString());
+        System.out.println("URI: " + result.toASCIIString());
     }
 
 //    @Test

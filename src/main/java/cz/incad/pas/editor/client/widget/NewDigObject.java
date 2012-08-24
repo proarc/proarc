@@ -73,6 +73,7 @@ public final class NewDigObject extends VLayout {
     private FilterBuilder filter;
     private final SectionStack sections;
     private final DynamicForm optionsForm;
+    private DynamicForm formCatalog;
     private final PasEditorMessages i18nPas;
     private ListGrid lgResult;
 
@@ -173,7 +174,7 @@ public final class NewDigObject extends VLayout {
     }
 
     private Canvas createAdvancedOptions() {
-        DynamicForm formCatalog = createCatalogForm();
+        formCatalog = createCatalogForm();
         DataSource ds = new DataSource();
         ds.setFields(
                 DataSourceFieldBuilder.field(new DataSourceTextField("id", "ID"))
@@ -284,7 +285,7 @@ public final class NewDigObject extends VLayout {
         if (criterions == null || criterions.length == 0) {
             SC.warn(i18nPas.NewDigObject_CatalogFind_MissingParam_Msg());
         } else {
-            Criteria plain = new Criteria("catalog", "aleph");
+            Criteria plain = formCatalog.getValuesAsCriteria();
             plain.addCriteria(criterions[0]);
             // for AdvancedCriteria it will require to parse its format on server side
             lgResult.invalidateCache();
@@ -295,17 +296,17 @@ public final class NewDigObject extends VLayout {
     private DynamicForm createCatalogForm() {
         DataSource ds = new DataSource();
         ds.setFields(
-                new DataSourceTextField("id", "ID"),
-                new DataSourceTextField("catalog", "Catalog")
+                DataSourceFieldBuilder.field(new DataSourceTextField("id", "ID")).primaryKey().build(),
+                DataSourceFieldBuilder.field(new DataSourceTextField("catalog", "Catalog")).primaryKey().build()
                 );
         ds.setClientOnly(true);
         ds.setTestData(new Record[] {
             new Record() {{
-                setAttribute("id", "id:aleph");
+                setAttribute("id", "aleph_nkp");
                 setAttribute("catalog", "Aleph NKP");
             }},
             new Record() {{
-                setAttribute("id", "id:registrdigitalizace.cz");
+                setAttribute("id", "rdcz");
                 setAttribute("catalog", "registrdigitalizace.cz");
             }},
         });

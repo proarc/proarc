@@ -90,6 +90,10 @@ public final class PasConfiguration {
         return config.getString(PROPERTY_FEDORA_CLIENT_URL);
     }
 
+    public CatalogConfiguration getCatalogs() {
+        return new CatalogConfiguration(config);
+    }
+
     public File getConfigHome() {
         return configHome;
     }

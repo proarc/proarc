@@ -16,7 +16,10 @@
  */
 package cz.incad.pas.editor.server.rest;
 
-import cz.incad.pas.editor.server.catalog.AlephXServer;
+import cz.incad.pas.editor.server.catalog.BibliographicCatalog;
+import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.config.PasConfigurationException;
+import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
@@ -45,12 +48,14 @@ public class MetadataCatalogResource {
     private static final Logger LOG = Logger.getLogger(MetadataCatalogResource.class.getName());
 
     private final HttpHeaders httpHeaders;
+    private final PasConfiguration appConfig;
 
     public MetadataCatalogResource(
             @Context HttpHeaders httpHeaders
-            ) {
+            ) throws PasConfigurationException {
 
         this.httpHeaders = httpHeaders;
+        this.appConfig = PasConfigurationFactory.getInstance().defaultInstance();
     }
 
     /**
@@ -67,18 +72,18 @@ public class MetadataCatalogResource {
             @QueryParam("catalog") String catalog,
             @QueryParam("fieldName") String fieldName,
             @QueryParam("value") String value
-
             ) throws TransformerException, IOException {
 
         List<Locale> acceptableLanguages = httpHeaders.getAcceptableLanguages();
         Locale locale = acceptableLanguages.isEmpty() ? null : acceptableLanguages.get(0);
-        AlephXServer alephXServer = new AlephXServer();
-        List<MetadataItem> result = alephXServer.find(fieldName, value, locale);
+        List<MetadataItem> result;
+        BibliographicCatalog bCatalog = appConfig.getCatalogs().findCatalog(catalog);
+        if (bCatalog != null) {
+            result = bCatalog.find(fieldName, value, locale);
+        } else {
+            throw new NotFoundException("catalog", catalog);
+        }
         return new MetadataList(result);
-    }
-
-    public enum CATALOG {
-        ALEPH, REGISTRCZ
     }
 
     /**

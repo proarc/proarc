@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.server.catalog;
 
+import cz.incad.pas.editor.server.config.CatalogConfiguration.CatalogProperties;
 import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.server.rest.MetadataCatalogResource.MetadataItem;
 import cz.incad.pas.editor.server.xml.Transformers;
@@ -25,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,15 +50,43 @@ import org.w3c.dom.Element;
  *
  * @author Jan Pokorsky
  */
-public final class AlephXServer {
+public final class AlephXServer implements BibliographicCatalog {
 
+    public static final String TYPE = "AlephXServer";
     private static final Logger LOG = Logger.getLogger(AlephXServer.class.getName());
-    private Transformers transformers = new Transformers();
+
+    private final Transformers transformers = new Transformers();
+    private final URI server;
+
+    public static AlephXServer get(CatalogProperties c) {
+        if (c == null || !TYPE.equals(c.getType())) {
+            return null;
+        }
+        String url = c.getUrl();
+        if (url != null) {
+            try {
+                return new AlephXServer(url);
+            } catch (URISyntaxException ex) {
+                LOG.log(Level.SEVERE, c.getPrefix(), ex);
+            }
+        }
+        return null;
+    }
+
+    public AlephXServer(URI uri) {
+        this.server = uri;
+
+    }
+
+    public AlephXServer(String url) throws URISyntaxException {
+        this(new URI(url));
+    }
 
     public List<MetadataItem> find(String fieldName, String value) throws TransformerException, IOException {
         return find(fieldName, value, null);
     }
 
+    @Override
     public List<MetadataItem> find(String fieldName, String value, Locale locale) throws TransformerException, IOException {
         Criteria criteria = Criteria.get(fieldName, value);
         if (value == null) {
@@ -159,7 +190,7 @@ public final class AlephXServer {
     }
 
     private InputStream fetchEntries(Criteria criteria) throws MalformedURLException, IOException {
-        URL alephFind = criteria.toFindUrl();
+        URL alephFind = setQuery(server, criteria.toUrlParams(), true).toURL();
         return alephFind.openStream();
     }
 
@@ -168,14 +199,27 @@ public final class AlephXServer {
         int entryCount = found.getEntryCount();
         entryCount = Math.min(10, entryCount);
         String entries = (entryCount == 1) ? "1" : "1-" + entryCount;
-        String path = String.format("http://aleph.nkp.cz/X?op=present&set_number=%s&set_entry=%s", number, entries);
-        URL alephDetails = new URL(path);
+        String query = String.format("op=present&set_number=%s&set_entry=%s", number, entries);
+        URL alephDetails = setQuery(server, query, false).toURL();
         return new BufferedInputStream(alephDetails.openStream());
     }
 
-    private static final class Criteria {
+    static URI setQuery(URI u, String newQuery, boolean add) throws MalformedURLException {
+        String query = u.getQuery();
+        query = (query == null || !add) ? newQuery : query + '&' + newQuery;
+        try {
+            return  new URI(u.getScheme(), u.getUserInfo(), u.getHost(),
+                    u.getPort(), u.getPath(), query, u.getFragment());
+        } catch (URISyntaxException ex) {
+            MalformedURLException mex = new MalformedURLException(ex.getMessage());
+            mex.initCause(ex);
+            throw mex;
+        }
+    }
 
-        private enum Field {
+    static final class Criteria {
+
+        enum Field {
             BARCODE("barcode", "bar"), CCNB("ccnb", "cnb"),
             ISSN("issn", "ssn"), ISBN("isbn", "sbn"), SGINATURE("signature", "sg");
 
@@ -214,13 +258,13 @@ public final class AlephXServer {
             this.field = field;
         }
 
-        public URL toFindUrl() throws MalformedURLException {
-            String url = String.format("http://aleph.nkp.cz/X?op=find&request=%s=%s&base=nkc",
+        public String toUrlParams() {
+            String url = String.format("op=find&request=%s=%s",
                     field.getAlephKeyword(), value);
-            return new URL(url);
+            return url;
         }
 
-        private static Criteria get(String fieldName, String value) {
+        public static Criteria get(String fieldName, String value) {
             if (value == null  || value.trim().length() == 0) {
                 return null;
             }
