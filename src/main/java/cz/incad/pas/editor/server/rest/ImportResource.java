@@ -116,30 +116,16 @@ public class ImportResource {
         this.securityCtx = securityCtx;
         this.userManager = UserUtil.getDefaultManger(); // XXX replace with injection
         Principal userPrincipal = securityCtx.getUserPrincipal();
-        System.out.println("## userPrincipal: " + userPrincipal);
         String userName;
         if (userPrincipal != null) {
             userName = userPrincipal.getName();
-            System.out.println("## userPrincipalName: " + userName);
-            boolean userInRole = securityCtx.isUserInRole("Importer");
-            System.out.println("## user.isImporter: " + userInRole);
         } else {
             userName = UserManager.GUEST_ID;
         }
         user = userManager.find(userName);
-        LOG.info(user.toString());
 
         this.httpHeaders = httpHeaders;
-        LOG.info(String.format("HttpHeaders[\n lang: %s, type: %s"
-                    + "\n acceptableLang: %s\n acceptableMediaTypes: %s\n headers: %s]",
-                httpHeaders.getLanguage(),
-                httpHeaders.getMediaType(),
-                httpHeaders.getAcceptableLanguages(),
-                httpHeaders.getAcceptableMediaTypes(),
-                httpHeaders.getRequestHeaders()));
-
         this.uriInfo = uriInfo;
-        LOG.info(String.format("UriInfo.getQueryParameters: %s", uriInfo.getQueryParameters()));
     }
 
     /**
@@ -163,7 +149,7 @@ public class ImportResource {
                 // URI multi param constructor escapes input unlike single param constructor or URI.create!
                 ? userRoot.resolve(new URI(null, null, parentPath, null))
                 : userRoot;
-        LOG.log(Level.INFO, "parent: {0} used as {1} resolved to {2}", new Object[] {parent, parentPath, path});
+        LOG.log(Level.FINE, "parent: {0} used as {1} resolved to {2}", new Object[] {parent, parentPath, path});
 
         ImportFileScanner scanner = new ImportFileScanner();
         List<Folder> subfolders = scanner.findSubfolders(new File(path));
@@ -195,7 +181,7 @@ public class ImportResource {
             @FormParam("indices") @DefaultValue("true") boolean indices
             ) throws URISyntaxException, IOException {
         
-        LOG.log(Level.INFO, "import path: {0} as model: {1}, indices: {2}, device: {3}",
+        LOG.log(Level.FINE, "import path: {0} as model: {1}, indices: {2}, device: {3}",
                 new Object[] {path, model, indices, device});
         String folderPath = validateParentPath(path);
         URI userRoot = user.getImportFolder();

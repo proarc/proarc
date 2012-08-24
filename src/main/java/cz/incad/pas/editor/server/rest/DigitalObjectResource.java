@@ -163,7 +163,7 @@ public class DigitalObjectResource {
             }
         }
         mods = (mods == null || mods.isEmpty() || "null".equals(mods)) ? null : mods;
-        LOG.log(Level.INFO, "import model: {0} as mods: {1}", new Object[] {modelId, mods});
+        LOG.log(Level.FINE, "import model: {0} as mods: {1}", new Object[] {modelId, mods});
 
         LocalObject localObject = new LocalStorage().create(pid);
         // MODS
@@ -381,7 +381,7 @@ public class DigitalObjectResource {
             @FormParam("customJsonData") String customJsonData
             ) throws IOException {
 
-        LOG.severe(String.format("pid: %s, editor: %s, timestamp: %s, json: %s", pid, editorId, timestamp, customJsonData));
+        LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, json: %s", pid, editorId, timestamp, customJsonData));
         if (pid == null || pid.isEmpty()) {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                     .entity("invalid pid").type(MediaType.TEXT_PLAIN).build());
