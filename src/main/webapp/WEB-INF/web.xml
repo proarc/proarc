@@ -7,6 +7,7 @@
         <listener-class>cz.incad.pas.editor.server.EditorServletConfiguration</listener-class>
     </listener>
 
+    <!--REST-->
     <servlet>
         <servlet-name>Jersey Web Application</servlet-name>
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
@@ -18,32 +19,19 @@
         <!-- see http://jersey.java.net/nonav/apidocs/1.9.1/jersey/com/sun/jersey/api/container/filter/LoggingFilter.html -->
         <!-- see http://jersey.java.net/nonav/apidocs/1.9.1/jersey/com/sun/jersey/api/container/filter/GZIPContentEncodingFilter.html -->
         <init-param>
-            <param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
-<!--            <param-value>com.sun.jersey.api.container.filter.LoggingFilter</param-value>-->
-<!--            <param-value>com.sun.jersey.api.container.filter.GZIPContentEncodingFilter</param-value>-->
+            <param-name>com.sun.jersey.spi.container.ContainerRequestFilters.disabled</param-name>
             <param-value>com.sun.jersey.api.container.filter.LoggingFilter;com.sun.jersey.api.container.filter.GZIPContentEncodingFilter</param-value>
-<!--            <param-value>com.sun.jersey.api.container.filter.GZIPContentEncodingFilter;com.sun.jersey.api.container.filter.LoggingFilter</param-value>-->
-<!--            <param-value>com.sun.jersey.api.container.filter.LoggingFilter;com.sun.jersey.api.container.filter.GZIPContentEncodingFilter;com.sun.jersey.api.container.filter.LoggingFilter</param-value>-->
         </init-param>
-<!--        <init-param>-->
-<!--            <param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>-->
-<!--            <param-value>com.sun.jersey.api.container.filter.LoggingFilter</param-value>-->
-<!--            <param-value>com.sun.jersey.api.container.filter.GZIPContentEncodingFilter</param-value>-->
-            <!-- logs response and then gzip it -->
-<!--            <param-value>com.sun.jersey.api.container.filter.GZIPContentEncodingFilter;com.sun.jersey.api.container.filter.LoggingFilter</param-value>-->
-            <!-- logs response then gzip it and then logs gziped response -->
-<!--            <param-value>com.sun.jersey.api.container.filter.LoggingFilter;com.sun.jersey.api.container.filter.GZIPContentEncodingFilter;com.sun.jersey.api.container.filter.LoggingFilter</param-value>-->
-<!--        </init-param>-->
-        <init-param>
+<!--        <init-param>
             <param-name>com.sun.jersey.config.feature.logging.DisableEntitylogging</param-name>
             <param-value>true</param-value>
-<!--            <param-value>false</param-value>-->
-        </init-param>
+        </init-param>-->
 
         <load-on-startup>1</load-on-startup>
 
     </servlet>
 
+    <!--GWT RPC-->
     <servlet>
         <servlet-name>ModsGwtServiceProvider</servlet-name>
         <servlet-class>cz.incad.pas.editor.server.ModsGwtServiceProvider</servlet-class>
@@ -67,7 +55,7 @@
     <security-constraint>
         <display-name>Constraint1</display-name>
         <web-resource-collection>
-            <web-resource-name>Proarc webapp</web-resource-name>
+            <web-resource-name>ProArc webapp</web-resource-name>
             <description/>
             <url-pattern>/*</url-pattern>
         </web-resource-collection>
@@ -82,7 +70,7 @@
     </security-constraint>
     <login-config>
         <auth-method>BASIC</auth-method>
-        <realm-name>Proarc secured area</realm-name>
+        <realm-name>ProArc secured area</realm-name>
     </login-config>
     <security-role>
         <description/>
