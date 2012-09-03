@@ -27,10 +27,10 @@ import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ds.BibliographyQueryDataSource;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
-import cz.incad.pas.editor.client.ds.RemoteMetadataDataSource;
 import cz.incad.pas.editor.client.widget.DCEditor;
 import cz.incad.pas.editor.client.widget.ImportParentChooser;
 import cz.incad.pas.editor.client.widget.ImportParentChooser.ImportParentHandler;
@@ -197,7 +197,7 @@ public final class DigObjectEditorPresenter {
             DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
             r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
             if (mods != null) {
-                r.setAttribute(RemoteMetadataDataSource.FIELD_MODS, mods);
+                r.setAttribute(BibliographyQueryDataSource.FIELD_MODS, mods);
             }
             if (pid != null && !pid.isEmpty()) {
                 r.setAttribute(DigitalObjectDataSource.FIELD_PID, pid);

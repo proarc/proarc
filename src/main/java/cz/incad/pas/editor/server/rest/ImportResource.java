@@ -265,7 +265,7 @@ public class ImportResource {
 
         ImportBatch batch = importManager.get(batchId);
         if (batch.getState() == State.LOADING_FAILED) {
-            return SmartGwtResponse.asError().error("batchId", "Batch failed").build();
+            return SmartGwtResponse.<Item>asError().error("batchId", "Batch failed").build();
         }
         int totalImports = imports.size();
         int totalRows = (batch.getState() == State.LOADING) ? batch.getEstimateFileCount() : totalImports;

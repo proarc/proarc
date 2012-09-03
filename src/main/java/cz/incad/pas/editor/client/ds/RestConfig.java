@@ -24,6 +24,7 @@ import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
+import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
 import java.util.HashMap;
@@ -56,7 +57,9 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_THUMBNAIL =  URL_DIGOBJECT + "/thumb";
     public static final String URL_DIGOBJECT_METAMODEL =  URL_DIGOBJECT + "/metamodel";
     public static final String URL_LOCALIZATION =  path(URL_ROOT, LocalizationResourceApi.PATH);
-    public static final String URL_METADATACATALOG =  URL_ROOT + "/metadatacatalog";
+    public static final String URL_BIBLIOCATALOG =  path(URL_ROOT, BibliographicCatalogResourceApi.PATH);
+    public static final String URL_BIBLIOCATALOG_QUERY =  path(
+            URL_BIBLIOCATALOG, BibliographicCatalogResourceApi.FIND_PATH);
     public static final String URL_USER =  URL_ROOT + "/user";
     public static final String URL_USER_PERMISSIONS =  URL_USER + "/permissions";
 

@@ -17,10 +17,14 @@
 package cz.incad.pas.editor.server.rest;
 
 import cz.incad.pas.editor.server.catalog.BibliographicCatalog;
+import cz.incad.pas.editor.server.config.CatalogConfiguration.CatalogProperties;
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
@@ -38,19 +42,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.TransformerException;
 
 /**
- * Permits to query metadata from remote catalogs like Aleph, registrdigitalizace.cz, ...
+ * The resource to list available bibliographic catalogs like Aleph
+ * and registrdigitalizace.cz and to query them for meta data.
  *
  * @author Jan Pokorsky
  */
-@Path("/metadatacatalog")
-public class MetadataCatalogResource {
+@Path(BibliographicCatalogResourceApi.PATH)
+public class BibliographicCatalogResource {
 
-    private static final Logger LOG = Logger.getLogger(MetadataCatalogResource.class.getName());
-
+    private static final Logger LOG = Logger.getLogger(BibliographicCatalogResource.class.getName());
     private final HttpHeaders httpHeaders;
     private final PasConfiguration appConfig;
 
-    public MetadataCatalogResource(
+    public BibliographicCatalogResource(
             @Context HttpHeaders httpHeaders
             ) throws PasConfigurationException {
 
@@ -58,21 +62,44 @@ public class MetadataCatalogResource {
         this.appConfig = PasConfigurationFactory.getInstance().defaultInstance();
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<CatalogDescriptor> findCatalog(
+            @QueryParam(BibliographicCatalogResourceApi.CATALOG_ID) String id) {
+
+        List<CatalogProperties> catalogs;
+        if (id == null) {
+            catalogs = appConfig.getCatalogs().getCatalogs();
+        } else {
+            CatalogProperties catalog = appConfig.getCatalogs().findConfig(id);
+            if (catalog == null) {
+                return SmartGwtResponse.<CatalogDescriptor>asError()
+                        .error(BibliographicCatalogResourceApi.CATALOG_ID, "Not found").build();
+            }
+            catalogs = Arrays.asList(catalog);
+        }
+        ArrayList<CatalogDescriptor> result = new ArrayList<CatalogDescriptor>(catalogs.size());
+        for (CatalogProperties cp : catalogs) {
+            result.add(CatalogDescriptor.create(cp));
+        }
+        return new SmartGwtResponse<CatalogDescriptor>(result);
+    }
+    
     /**
-     * Finds metadata in remote catalog.
+     * Finds meta data in bibliographic catalog.
      *
      * @param catalog catalog descriptor
      * @param fieldName issn|isbn|ccnb
      * @param value value to query
      * @return list of metadata records
      */
+    @Path(BibliographicCatalogResourceApi.FIND_PATH)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public MetadataList find(
-            @QueryParam("catalog") String catalog,
-            @QueryParam("fieldName") String fieldName,
-            @QueryParam("value") String value
-            ) throws TransformerException, IOException {
+            @QueryParam(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM) String catalog,
+            @QueryParam(BibliographicCatalogResourceApi.FIND_FIELDNAME_PARAM) String fieldName,
+            @QueryParam(BibliographicCatalogResourceApi.FIND_VALUE_PARAM) String value) throws TransformerException, IOException {
 
         List<Locale> acceptableLanguages = httpHeaders.getAcceptableLanguages();
         Locale locale = acceptableLanguages.isEmpty() ? null : acceptableLanguages.get(0);
@@ -81,9 +108,31 @@ public class MetadataCatalogResource {
         if (bCatalog != null) {
             result = bCatalog.find(fieldName, value, locale);
         } else {
-            throw new NotFoundException("catalog", catalog);
+            throw new NotFoundException(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM, catalog);
         }
         return new MetadataList(result);
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class CatalogDescriptor {
+
+        public static CatalogDescriptor create(CatalogProperties cp) {
+            return new CatalogDescriptor(cp.getId(), cp.getName());
+        }
+
+        @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_ID)
+        private String id;
+        @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_NAME)
+        private String name;
+
+        public CatalogDescriptor(String id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public CatalogDescriptor() {
+        }
+
     }
 
     /**
@@ -93,7 +142,7 @@ public class MetadataCatalogResource {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class MetadataList {
 
-        @XmlElement(name="entry")
+        @XmlElement(name = "entry")
         List<MetadataItem> list;
 
         public MetadataList() {
@@ -137,7 +186,7 @@ public class MetadataCatalogResource {
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class MetadataItem {
-        
+
         private int id;
         /** MODS XML */
         private String mods;

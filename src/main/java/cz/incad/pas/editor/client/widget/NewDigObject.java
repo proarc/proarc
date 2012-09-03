@@ -54,10 +54,12 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.DataSourceFieldBuilder;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ds.BibliographyDataSource;
+import cz.incad.pas.editor.client.ds.BibliographyQueryDataSource;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
-import cz.incad.pas.editor.client.ds.RemoteMetadataDataSource;
+import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -126,7 +128,7 @@ public final class NewDigObject extends VLayout {
 
     public String getMods() {
         ListGridRecord r = lgResult.getSelectedRecord();
-        String mods = (r == null) ? null : r.getAttribute(RemoteMetadataDataSource.FIELD_MODS);
+        String mods = (r == null) ? null : r.getAttribute(BibliographyQueryDataSource.FIELD_MODS);
         ClientUtils.info(LOG, "getMods: %s", mods);
         return mods;
     }
@@ -177,12 +179,6 @@ public final class NewDigObject extends VLayout {
         formCatalog = createCatalogForm();
         DataSource ds = new DataSource();
         ds.setFields(
-                DataSourceFieldBuilder.field(new DataSourceTextField("id", "ID"))
-                        .hidden().build(),
-                DataSourceFieldBuilder.field(new DataSourceTextField("mods", "Preview"))
-                        .filter(false).build(),
-                DataSourceFieldBuilder.field(new DataSourceTextField("modsDetail", "MODS"))
-                        .filter(false).build(),
                 DataSourceFieldBuilder.field(new DataSourceTextField(
                             "issn", i18nPas.NewDigObject_CatalogFieldIssn_Title()))
                         .validOperators(OperatorId.ICONTAINS).build(),
@@ -244,13 +240,13 @@ public final class NewDigObject extends VLayout {
         filterLayout.setMembersMargin(4);
 
         lgResult = new ListGrid();
-        lgResult.setDataSource(RemoteMetadataDataSource.getInstance());
+        lgResult.setDataSource(BibliographyQueryDataSource.getInstance());
 //        lgResult.setUseAllDataSourceFields(true);
-        ListGridField preview = new ListGridField(RemoteMetadataDataSource.FIELD_PREVIEW,
+        ListGridField preview = new ListGridField(BibliographyQueryDataSource.FIELD_PREVIEW,
                 i18nPas.NewDigObject_CatalogHeaderPreview_Title());
-        ListGridField title = new ListGridField(RemoteMetadataDataSource.FIELD_TITLE,
+        ListGridField title = new ListGridField(BibliographyQueryDataSource.FIELD_TITLE,
                 i18nPas.NewDigObject_CatalogHeaderTitle_Title());
-        lgResult.setDetailField(RemoteMetadataDataSource.FIELD_PREVIEW);
+        lgResult.setDetailField(BibliographyQueryDataSource.FIELD_PREVIEW);
         lgResult.setFields(title, preview);
 //        lgResult.setAutoFetchData(true);
         lgResult.setHeight100();
@@ -294,29 +290,13 @@ public final class NewDigObject extends VLayout {
     }
 
     private DynamicForm createCatalogForm() {
-        DataSource ds = new DataSource();
-        ds.setFields(
-                DataSourceFieldBuilder.field(new DataSourceTextField("id", "ID")).primaryKey().build(),
-                DataSourceFieldBuilder.field(new DataSourceTextField("catalog", "Catalog")).primaryKey().build()
-                );
-        ds.setClientOnly(true);
-        ds.setTestData(new Record[] {
-            new Record() {{
-                setAttribute("id", "aleph_nkp");
-                setAttribute("catalog", "Aleph NKP");
-            }},
-            new Record() {{
-                setAttribute("id", "rdcz");
-                setAttribute("catalog", "registrdigitalizace.cz");
-            }},
-        });
-
-        SelectItem selection = new SelectItem("catalog", i18nPas.NewDigObject_OptionCatalog_Title());
+        SelectItem selection = new SelectItem(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM,
+                i18nPas.NewDigObject_OptionCatalog_Title());
         selection.setRequired(true);
-        selection.setOptionDataSource(ds);
+        selection.setOptionDataSource(BibliographyDataSource.getInstance());
 //        selectModel.setShowOptionsFromDataSource(true);
-        selection.setValueField("id");
-        selection.setDisplayField("catalog");
+        selection.setValueField(BibliographicCatalogResourceApi.CATALOG_ID);
+        selection.setDisplayField(BibliographicCatalogResourceApi.CATALOG_NAME);
         selection.setAutoFetchData(true);
         selection.setDefaultToFirstOption(true);
 

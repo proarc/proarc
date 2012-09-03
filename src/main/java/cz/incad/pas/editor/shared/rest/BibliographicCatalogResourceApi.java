@@ -14,21 +14,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.incad.pas.editor.server.catalog;
-
-import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-import javax.xml.transform.TransformerException;
+package cz.incad.pas.editor.shared.rest;
 
 /**
- * Bibliographic meta data catalog.
  *
  * @author Jan Pokorsky
  */
-public interface BibliographicCatalog {
+public final class BibliographicCatalogResourceApi {
 
-    List<MetadataItem> find(String fieldName, String value, Locale locale) throws TransformerException, IOException;
+    public static final String PATH = "bibliographies";
+
+    public static final String FIND_PATH = "query";
+    public static final String FIND_CATALOG_PARAM = "catalog";
+    public static final String FIND_FIELDNAME_PARAM = "fieldName";
+    public static final String FIND_VALUE_PARAM = "value";
+
+    public static final String CATALOG_ID = "id";
+    public static final String CATALOG_NAME = "name";
 
 }

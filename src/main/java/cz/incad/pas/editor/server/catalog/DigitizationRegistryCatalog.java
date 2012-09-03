@@ -18,7 +18,7 @@ package cz.incad.pas.editor.server.catalog;
 
 import cz.incad.pas.editor.server.config.CatalogConfiguration.CatalogProperties;
 import cz.incad.pas.editor.server.mods.ModsUtils;
-import cz.incad.pas.editor.server.rest.MetadataCatalogResource.MetadataItem;
+import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import cz.incad.pas.editor.server.xml.Transformers;
 import cz.registrdigitalizace.soapclient.DigitizationRegistryClient;
 import cz.registrdigitalizace.soapservices.DigitizationRecord;

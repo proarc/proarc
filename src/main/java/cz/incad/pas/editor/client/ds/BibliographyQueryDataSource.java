@@ -27,28 +27,28 @@ import cz.incad.pas.editor.client.ClientUtils;
 import java.util.logging.Logger;
 
 /**
- * metadata dowl
+ * Bibliographic meta data queries.
  *
  * @author Jan Pokorsky
  */
-public final class RemoteMetadataDataSource extends DataSource {
+public final class BibliographyQueryDataSource extends DataSource {
     
-    private static final Logger LOG = Logger.getLogger(RemoteMetadataDataSource.class.getName());
+    private static final Logger LOG = Logger.getLogger(BibliographyQueryDataSource.class.getName());
 
-    public static final String ID = "RemoteMetadataDataSource";
+    public static final String ID = "BibliographyQueryDataSource";
 
     public static final String FIELD_ID = "id";
     public static final String FIELD_MODS = "mods";
     public static final String FIELD_PREVIEW = "preview";
     public static final String FIELD_TITLE = "title";
 
-    public RemoteMetadataDataSource() {
+    public BibliographyQueryDataSource() {
         setID(ID);
 
         setDataFormat(DSDataFormat.JSON);
         setRecordXPath("/metadataCatalogEntries/entry");
 
-        setDataURL(RestConfig.URL_METADATACATALOG);
+        setDataURL(RestConfig.URL_BIBLIOCATALOG_QUERY);
 
         DataSourceField fieldId = new DataSourceField(FIELD_ID, FieldType.TEXT);
         fieldId.setPrimaryKey(true);
@@ -82,9 +82,9 @@ public final class RemoteMetadataDataSource extends DataSource {
         super.transformResponse(response, request, data);
     }
 
-    public static RemoteMetadataDataSource getInstance() {
-        RemoteMetadataDataSource ds = (RemoteMetadataDataSource) DataSource.get(ID);
-        ds = (ds != null) ? ds : new RemoteMetadataDataSource();
+    public static BibliographyQueryDataSource getInstance() {
+        BibliographyQueryDataSource ds = (BibliographyQueryDataSource) DataSource.get(ID);
+        ds = (ds != null) ? ds : new BibliographyQueryDataSource();
         return ds;
     }
 

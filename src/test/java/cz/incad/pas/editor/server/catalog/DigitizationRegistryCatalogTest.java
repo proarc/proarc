@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.server.catalog;
 
-import cz.incad.pas.editor.server.rest.MetadataCatalogResource.MetadataItem;
+import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import java.util.List;
 import java.util.Locale;
 import org.junit.After;

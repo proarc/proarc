@@ -146,7 +146,7 @@ public class DigitalObjectResource {
 
         if (modelId == null) {
             // XXX validate modelId values
-            return SmartGwtResponse.asError().error("model", "Missing model!").build();
+            return SmartGwtResponse.<DigitalObject>asError().error("model", "Missing model!").build();
         }
         if (pid != null) {
             boolean invalid = pid.length() < 5;
@@ -159,7 +159,7 @@ public class DigitalObjectResource {
                 invalid = true;
             }
             if (invalid) {
-                return SmartGwtResponse.asError().error("pid", "Invalid PID!").build();
+                return SmartGwtResponse.<DigitalObject>asError().error("pid", "Invalid PID!").build();
             }
         }
         mods = (mods == null || mods.isEmpty() || "null".equals(mods)) ? null : mods;
@@ -200,7 +200,7 @@ public class DigitalObjectResource {
             // Check for existence before ingest would be insufficient as Fedora does not yet support transactions.
             String message = ex.getMessage();
             if (message != null && message.contains("org.fcrepo.server.errors.ObjectExistsException")) {
-                return SmartGwtResponse.asError().error("pid", "Object already exists!").build();
+                return SmartGwtResponse.<DigitalObject>asError().error("pid", "Object already exists!").build();
             }
             throw ex;
         }

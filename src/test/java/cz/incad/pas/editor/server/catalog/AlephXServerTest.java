@@ -17,7 +17,7 @@
 package cz.incad.pas.editor.server.catalog;
 
 import cz.incad.pas.editor.server.catalog.AlephXServer.Criteria;
-import cz.incad.pas.editor.server.rest.MetadataCatalogResource.MetadataItem;
+import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Proxy;
