@@ -46,6 +46,7 @@ import javax.xml.transform.stream.StreamSource;
 public final class DigitizationRegistryCatalog implements BibliographicCatalog {
 
     public static final String TYPE = "DigitizationRegistryCatalog";
+    private static final int MAX_RESULTS = 10;
 
     private final DigitizationRegistry register;
     private Transformers transformers = new Transformers();
@@ -70,7 +71,7 @@ public final class DigitizationRegistryCatalog implements BibliographicCatalog {
         PlainQuery query = buildQuery(fieldName, value);
         if (query != null) {
             try {
-                List<DigitizationRecord> records = register.findRecords(query, RecordFormat.MARC_XML);
+                List<DigitizationRecord> records = register.findRecords(query, RecordFormat.MARC_XML, MAX_RESULTS);
                 return buildResponse(records, locale);
             } catch (DigitizationRegistryException_Exception ex) {
                 Logger.getLogger(DigitizationRegistryCatalog.class.getName()).log(Level.SEVERE, null, ex);
@@ -90,6 +91,8 @@ public final class DigitizationRegistryCatalog implements BibliographicCatalog {
             query.setBarcode(value);
         } else if ("ccnb".equals(fieldName)) {
             query.setCcnb(value);
+        } else if ("signature".equals(fieldName)) {
+            query.setSignature(value);
         }
         return query;
     }

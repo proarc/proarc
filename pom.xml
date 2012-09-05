@@ -110,7 +110,7 @@
         <dependency>
             <groupId>cz.registrdigitalizace</groupId>
             <artifactId>soapclient</artifactId>
-            <version>1.0</version>
+            <version>1.1</version>
             <exclusions>
                 <!-- JAX-WS 2.2 JDK 1.6 support-->
                 <!--excluded jaxb-api and jaxws-api that must be placed in ${catalina.base}/endorsed folder-->
