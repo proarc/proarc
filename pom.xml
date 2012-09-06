@@ -22,7 +22,6 @@
         <gwtVersion>2.4.0</gwtVersion>
         <jerseyVersion>1.11.1</jerseyVersion>
         <smartGwtVersion>3.0</smartGwtVersion>
-<!--        <smartGwtVersion>2.5</smartGwtVersion>-->
         <maven.compiler.source>1.6</maven.compiler.source>
         <maven.compiler.target>1.6</maven.compiler.target>
         <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
@@ -31,6 +30,10 @@
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <!-- local junit properties -->
         <proarc.junit.properties.file>${project.basedir}/src/test/junit.properties</proarc.junit.properties.file>
+        <!-- see profiles to change agents -->
+        <gwt.user.agent><![CDATA[<set-property name="user.agent" value="gecko1_8" />]]></gwt.user.agent>
+        <!-- contains filtered GWT modules (*.gwt.xml) -->
+        <gwt.filtered>${project.build.directory}/gwt-filtered</gwt.filtered>
     </properties>
 
     <dependencies>
@@ -152,6 +155,18 @@
         <!-- Generate compiled stuff in the folder used for developing mode -->
         <outputDirectory>${webappDirectory}/WEB-INF/classes</outputDirectory>
 
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+                <excludes>
+                    <exclude>**/*.gwt.xml</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>${gwt.filtered}</directory>
+            </resource>
+        </resources>
+
         <plugins>
 
             <!-- GWT Maven Plugin -->
@@ -264,8 +279,74 @@
                 </executions>
             </plugin>
 
+            <!--
+                 Workaround to enable filtering of GWT module files as
+                 gwt:compile ignores result of resource/filtering definition.
+                 It allows to customize the module with maven profiles.
+                 * maven-resources-plugin/gwt-filter-sources execution filters *.gwt.xml files
+                 * build-helper-maven-plugin/gwt-add-filtered-sources attaches filtered sources
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>gwt-filter-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${gwt.filtered}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/resources</directory>
+                                    <includes>
+                                        <include>**/*.gwt.xml</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- see maven-resources-plugin -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>gwt-add-filtered-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${gwt.filtered}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
 
     </build>
 
+    <profiles>
+
+        <profile>
+            <id>proarc.production</id>
+            <properties>
+                <!-- clear user.agent property to compile all permutations -->
+                <gwt.user.agent />
+            </properties>
+        </profile>
+
+    </profiles>
 </project>
