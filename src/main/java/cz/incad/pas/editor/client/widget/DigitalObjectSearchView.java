@@ -161,7 +161,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         // setRedrawOnChange(true) enforces evaluation of other FormItem.setShowIfCondition
         filterType.setRedrawOnChange(true);
         filterType.setColSpan(2);
-        final LinkedHashMap filterMap = new LinkedHashMap();
+        final LinkedHashMap<String, String> filterMap = new LinkedHashMap<String, String>();
         filterMap.put(FILTER_LAST_CREATED, i18nPas.DigitalObjectSearchView_FilterGroupLastCreated_Title());
         filterMap.put(FILTER_LAST_MODIFIED, i18nPas.DigitalObjectSearchView_FilterGroupLastModified_Title());
         filterMap.put(FILTER_PHRASE, i18nPas.DigitalObjectSearchView_FilterGroupPhrase_Title());

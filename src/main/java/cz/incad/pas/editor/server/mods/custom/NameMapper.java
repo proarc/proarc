@@ -132,12 +132,11 @@ final class NameMapper {
                     if (result.getRole() != null && result.getRole() != NameRole.OTHER) {
                         continue;
                     }
-                    JAXBElement<RoleType> jrole = (JAXBElement<RoleType>) nameSubelm;
-                    result.setRole(NameRole.fromDom(jrole.getValue()));
+                    RoleType role = (RoleType) nameSubelm.getValue();
+                    result.setRole(NameRole.fromDom(role));
 
                 } else if ((familyCount == 0 || givenCount == 0) && ObjectFactory._NameTypeNamePart_QNAME.equals(qname)) {
-                    JAXBElement<NamePartType> jpart = (JAXBElement<NamePartType>) nameSubelm;
-                    NamePartType namePart = jpart.getValue();
+                    NamePartType namePart = (NamePartType) nameSubelm.getValue();
                     String type = namePart.getType();
                     String partValue = namePart.getValue();
                     if (familyCount == 0 && TYPE_FAMILY.equals(type)) {
@@ -164,8 +163,7 @@ final class NameMapper {
             for (JAXBElement<?> nameSubelm : result.getNamePartOrDisplayFormOrAffiliation()) {
                 QName qname = nameSubelm.getName();
                 if (ObjectFactory._NameTypeNamePart_QNAME.equals(qname)) {
-                    JAXBElement<NamePartType> jpart = (JAXBElement<NamePartType>) nameSubelm;
-                    NamePartType namePart = jpart.getValue();
+                    NamePartType namePart = (NamePartType) nameSubelm.getValue();
                     String type = namePart.getType();
                     if (familyCount == 0 && TYPE_FAMILY.equals(type)) {
                         namePart.setValue(item.getFamily());

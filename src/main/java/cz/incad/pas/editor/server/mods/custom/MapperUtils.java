@@ -120,7 +120,7 @@ public final class MapperUtils {
         List<T> result = new ArrayList<T>();
         for (Object item : list) {
             if (type.isInstance(item)) {
-                result.add((T) item);
+                result.add(type.cast(item));
             }
         }
         return result;
@@ -128,7 +128,7 @@ public final class MapperUtils {
 
     public static <T> T findFirst(List<JAXBElement<?>> elms, Class<T> type, QName... names) {
         JAXBElement<?> elm = findFirst(elms, names);
-        return elm == null ? null : (T) elm.getValue();
+        return elm == null ? null : type.cast(elm.getValue());
     }
     
     public static JAXBElement<?> findFirst(List<JAXBElement<?>> elms, QName... names) {
@@ -148,7 +148,7 @@ public final class MapperUtils {
         for (JAXBElement<?> elm : elms) {
             QName elmName = elm.getName();
             if (elmName.equals(name)) {
-                result.add((T) elm.getValue());
+                result.add(type.cast(elm.getValue()));
             }
         }
         return result;
@@ -220,8 +220,8 @@ public final class MapperUtils {
         };
     }
 
-    public static void remove(List<Object> list, Class type) {
-        for (Iterator<Object> it = list.iterator(); it.hasNext();) {
+    public static void remove(List<?> list, Class<?> type) {
+        for (Iterator<?> it = list.iterator(); it.hasNext();) {
             Object item = it.next();
             if (type.isInstance(item)) {
                 it.remove();
@@ -288,18 +288,18 @@ public final class MapperUtils {
     public static void normalize(ModsType mods) {
         List<Object> modsGroup = mods.getModsGroup();
 
-        Map<Class, List<Object>> types = createTypesMap(MODS_GROUP.classesMap.keySet());
+        Map<Class<?>, List<Object>> types = createTypesMap(MODS_GROUP.classesMap.keySet());
         types.put(TitleInfoType.class, null);
         for (Object item : modsGroup) {
-            List items = types.get(item.getClass());
+            List<Object> items = types.get(item.getClass());
             if (items == null) {
-                items = new ArrayList();
+                items = new ArrayList<Object>();
                 types.put(item.getClass(), items);
             }
             items.add(item);
         }
         modsGroup.clear();
-        for (Map.Entry<Class, List<Object>> entry : types.entrySet()) {
+        for (Map.Entry<Class<?>, List<Object>> entry : types.entrySet()) {
             List<Object> list = entry.getValue();
             if (list != null) {
                 modsGroup.addAll(list);
@@ -321,21 +321,21 @@ public final class MapperUtils {
         return collection == null || collection.isEmpty() ? null : collection;
     }
 
-    private static final class ClassComparator implements Comparator<Class> {
+    private static final class ClassComparator implements Comparator<Class<?>> {
 
 //        private final Class[] classes;
-        private final Map<Class, Integer> classesMap;
+        private final Map<Class<?>, Integer> classesMap;
 
-        public ClassComparator(Class... classes) {
+        public ClassComparator(Class<?>... classes) {
 //            this.classes = classes;
-            this.classesMap = new LinkedHashMap<Class, Integer>();
+            this.classesMap = new LinkedHashMap<Class<?>, Integer>();
             for (int i = 0; i < classes.length; i++) {
                 classesMap.put(classes[i], i);
             }
         }
 
         @Override
-        public int compare(Class o1, Class o2) {
+        public int compare(Class<?> o1, Class<?> o2) {
             if (o1 == o2) {
                 return 0;
             } else {
@@ -343,7 +343,7 @@ public final class MapperUtils {
             }
         }
 
-        private int indexOf(Class c) {
+        private int indexOf(Class<?> c) {
             Integer index = classesMap.get(c);
             if (index == null) {
                 throw new IllegalStateException(String.valueOf(c));
@@ -354,9 +354,9 @@ public final class MapperUtils {
 
     }
 
-    private static Map<Class, List<Object>> createTypesMap(Collection<Class> types) {
-        Map<Class, List<Object>> result = new LinkedHashMap<Class, List<Object>>();
-        for (Class type : types) {
+    private static Map<Class<?>, List<Object>> createTypesMap(Collection<Class<?>> types) {
+        Map<Class<?>, List<Object>> result = new LinkedHashMap<Class<?>, List<Object>>();
+        for (Class<?> type : types) {
             result.put(type, null);
         }
         return result;

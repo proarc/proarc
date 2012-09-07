@@ -55,7 +55,7 @@ public final class ImportFileScanner {
      */
     private static final Comparator<File> FILE_COMPARATOR = new Comparator<File>() {
         
-        private final Comparator czech;
+        private final Comparator<Object> czech;
 
         {
             RuleBasedCollator czechDefault = (RuleBasedCollator) Collator.getInstance(new Locale("cs"));

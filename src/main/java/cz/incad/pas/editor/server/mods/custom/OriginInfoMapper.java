@@ -162,10 +162,10 @@ final class OriginInfoMapper {
             List<String> frequencies = new ArrayList<String>();
             for (JAXBElement<?> elm : source.getPlaceOrPublisherOrDateIssued()) {
                 if (ObjectFactory._OriginInfoTypeFrequency_QNAME.equals(elm.getName())) {
-                    StringPlusAuthority svalue = ((JAXBElement<StringPlusAuthority>) elm).getValue();
+                    StringPlusAuthority svalue = (StringPlusAuthority) elm.getValue();
                     frequencies.add(svalue.getValue());
                 } else if (ObjectFactory._OriginInfoTypeIssuance_QNAME.equals(elm.getName())) {
-                    result.setIssuance(((JAXBElement<String>) elm).getValue());
+                    result.setIssuance((String) elm.getValue());
                 }
             }
             result.setFrequencies(frequencies);

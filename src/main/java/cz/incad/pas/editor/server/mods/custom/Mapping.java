@@ -88,7 +88,7 @@ public final class Mapping {
 
         public ModsType map(ModsType mods, Object value) {
             if (type.isInstance(value)) {
-                return mapper.map(mods, (T) value);
+                return mapper.map(mods, type.cast(value));
             }
             throw new ClassCastException(String.format("%s does not support: %s", value));
         }

@@ -55,7 +55,7 @@ public final class IdentifierDataSource extends DataSource {
                 i18nPas.PageForm_IdentifierType_Title());
 
         ComboBoxItem typeEditor = new ComboBoxItem(IdentifierDataSource.FIELD_TYPE);
-        LinkedHashMap types = new LinkedHashMap();
+        LinkedHashMap<String, String> types = new LinkedHashMap<String, String>();
         types.put("issn", "ISSN");
         types.put("isbn", "ISBN");
         types.put("ccnb", "čČNB");

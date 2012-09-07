@@ -384,7 +384,7 @@ public class ListFormItem extends CanvasItem {
             /** removes other than fields mapping */
             private void clearMap(Map m, Set<String> fields) {
 //                Object[] keys = m.keySet().toArray();
-                Set keySet = m.keySet();
+                Set<?> keySet = m.keySet();
                 keySet.retainAll(fields);
 //                for (Object key : keys) {
 //                    if (!fields.contains(key)) {

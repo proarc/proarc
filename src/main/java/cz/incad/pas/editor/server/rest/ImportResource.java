@@ -161,7 +161,7 @@ public class ImportResource {
             result.add(new ImportFolder(subfolderName, subfolderStatus, parentPath, subfolderPath));
         }
 
-        return new SmartGwtResponse(result);
+        return new SmartGwtResponse<ImportFolder>(result);
     }
 
     private ImportFolder create(File folder, ImportFileScanner.State state, URI userRoot) {
@@ -239,7 +239,7 @@ public class ImportResource {
             batch = new FedoraImport(RemoteStorage.getInstance(pasConfig), importManager)
                     .importBatch(batch, user.getUserName());
         }
-        return new SmartGwtResponse(batch);
+        return new SmartGwtResponse<ImportBatch>(batch);
     }
 
     @GET

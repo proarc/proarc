@@ -271,10 +271,10 @@ final class PhysicalDescriptionMapper {
         public ArrayItem map(JAXBElement<?> source) {
             if (ObjectFactory._PhysicalDescriptionTypeExtent_QNAME.equals(source.getName())) {
                 ExtentItem result = new ExtentItem();
-                result.setValue(((JAXBElement<String>) source).getValue());
+                result.setValue((String) source.getValue());
                 return result;
             } else if (ObjectFactory._PhysicalDescriptionTypeNote_QNAME.equals(source.getName())) {
-                NoteType note = ((JAXBElement<NoteType>) source).getValue();
+                NoteType note = (NoteType) source.getValue();
                 return new NoteItem(null, note.getValue(), note.getAtType());
             } else {
                 return new UnkownItem();
@@ -304,7 +304,7 @@ final class PhysicalDescriptionMapper {
                 extentSource.setValue(extentItem.getValue() != null ? extentItem.getValue() : "");
             } else if (item instanceof NoteItem && !((NoteItem) item).ignore) {
                 NoteItem noteItem = (NoteItem) item;
-                NoteType noteType = ((JAXBElement<NoteType>) source).getValue();
+                NoteType noteType = (NoteType) source.getValue();
                 noteType.setValue(noteItem.getValue());
             }
             return source;
