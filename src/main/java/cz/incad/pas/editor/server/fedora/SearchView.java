@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
@@ -179,6 +180,9 @@ public final class SearchView {
     }
 
     public List<Item> find(List<String> pids) throws FedoraClientException, IOException {
+        if (pids.isEmpty()) {
+            return Collections.emptyList();
+        }
         StringBuilder expr = new StringBuilder(256);
         for (String pid : pids) {
             if (expr.length() > 0) {
