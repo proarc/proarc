@@ -19,6 +19,8 @@ package cz.incad.pas.editor.server.rest;
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.export.DataStreamExport;
+import cz.incad.pas.editor.server.export.ExportException;
 import cz.incad.pas.editor.server.export.Kramerius4Export;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.user.UserManager;
@@ -66,6 +68,32 @@ public class ExportResource {
             userName = UserManager.GUEST_ID;
         }
         user = userManager.find(userName);
+    }
+
+    @POST
+    @Path(ExportResourceApi.DATASTREAM_PATH)
+    public SmartGwtResponse<ExportResult> datastream(
+            @FormParam(ExportResourceApi.DATASTREAM_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.DATASTREAM_DSID_PARAM) List<String> dsIds,
+            @FormParam(ExportResourceApi.DATASTREAM_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
+            ) throws IOException, ExportException {
+
+        if (dsIds.isEmpty()) {
+            return SmartGwtResponse.<ExportResult>asError()
+                    .error(ExportResourceApi.DATASTREAM_DSID_PARAM, "No data stream.")
+                    .build();
+        }
+        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(pasConfig));
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        File target = export.export(exportFolder, hierarchy, pids, dsIds);
+        if (target == null) {
+            return SmartGwtResponse.<ExportResult>asError()
+                    .error(ExportResourceApi.DATASTREAM_DSID_PARAM, "Nothing to export.")
+                    .build();
+        }
+        URI targetPath = user.getUserHomeUri().relativize(target.toURI());
+        return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath.toASCIIString()));
     }
 
     @POST

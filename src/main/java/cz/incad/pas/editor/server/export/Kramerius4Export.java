@@ -95,18 +95,10 @@ public final class Kramerius4Export {
             return null;
         }
 
-        File target = getTarget(output, pids[0]);
+        File target = ExportUtils.createFolder(output, pids[0]);
         toExport.addAll(Arrays.asList(pids));
         for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
             exportPid(target, hierarchy, pid);
-        }
-        return target;
-    }
-
-    File getTarget(File output, String prefix) {
-        File target = new File(output, prefix);
-        for (int i = 1; !target.mkdir(); i++) {
-            target = new File(output, prefix + '_' + i);
         }
         return target;
     }

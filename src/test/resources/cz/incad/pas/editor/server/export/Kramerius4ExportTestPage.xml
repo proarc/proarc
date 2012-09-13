@@ -64,9 +64,7 @@
     </datastream>
     <datastream ID="TEXT_OCR" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">
         <datastreamVersion ID="TEXT_OCR.0" LABEL="OCR for this object" CREATED="2012-07-30T16:05:09.669Z" MIMETYPE="text/plain">
-            <binaryContent>
-
-            </binaryContent>
+            <binaryContent>T0NS</binaryContent><!--OCR-->
         </datastreamVersion>
     </datastream>
 </digitalObject>

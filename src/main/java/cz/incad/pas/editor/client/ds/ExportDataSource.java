@@ -44,6 +44,10 @@ public final class ExportDataSource extends RestDataSource {
         setOperationBindings(RestConfig.createAddOperation());
     }
 
+    public static ExportDataSource getDataStream() {
+        return new ExportDataSource(RestConfig.URL_EXPORT_DATASTREAM);
+    }
+
     public static ExportDataSource getKramerius4() {
         return new ExportDataSource(RestConfig.URL_EXPORT_KRAMERIUS4);
     }

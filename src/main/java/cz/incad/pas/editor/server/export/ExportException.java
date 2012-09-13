@@ -14,26 +14,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.incad.pas.editor.shared.rest;
+package cz.incad.pas.editor.server.export;
 
 /**
  *
  * @author Jan Pokorsky
  */
-public final class ExportResourceApi {
+public final class ExportException extends Exception {
 
-    public static final String PATH = "export";
-    
-    public static final String KRAMERIUS4_PATH = "kramerius4";
-    public static final String KRAMERIUS4_PID_PARAM = "pid";
-    public static final String KRAMERIUS4_HIERARCHY_PARAM = "hierarchy";
+    public ExportException() {
+    }
 
-    public static final String DATASTREAM_PATH = "datastream";
-    public static final String DATASTREAM_PID_PARAM = "pid";
-    public static final String DATASTREAM_DSID_PARAM = "dsid";
-    public static final String DATASTREAM_HIERARCHY_PARAM = "hierarchy";
-    
-    public static final String RESULT_TARGET = "target";
+    public ExportException(String msg) {
+        super(msg);
+    }
 
+    public ExportException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
+    public ExportException(Throwable cause) {
+        super(cause);
+    }
 }

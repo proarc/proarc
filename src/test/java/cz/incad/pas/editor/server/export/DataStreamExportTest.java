@@ -22,23 +22,16 @@ import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
-import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
-import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.FoxmlUtils;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.StringEditor;
-import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
-import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import java.io.File;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import javax.xml.transform.stream.StreamSource;
-import org.custommonkey.xmlunit.SimpleNamespaceContext;
-import org.custommonkey.xmlunit.XMLAssert;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -47,18 +40,19 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.xml.sax.InputSource;
 
 /**
- * XXX needs refactoring of fedora integration stuff
- * 
+ *
  * @author Jan Pokorsky
  */
-public class Kramerius4ExportTest {
-
+public class DataStreamExportTest {
+    
     private static FedoraClient client;
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+
+    public DataStreamExportTest() {
+    }
 
     @BeforeClass
     public static void setUpClass() {
@@ -77,7 +71,7 @@ public class Kramerius4ExportTest {
     }
 
     /**
-     * integration test
+     * Test of export method, of class DataStreamExport.
      */
     @Test
     public void testExport() throws Exception {
@@ -87,29 +81,19 @@ public class Kramerius4ExportTest {
 
         File output = temp.getRoot();
         boolean hierarchy = true;
-        String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
+        List<String> pids = Arrays.asList("uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2");
+        List<String> dsIds = Arrays.asList(StringEditor.OCR_ID, "PREVIEW");
         RemoteStorage storage = RemoteStorage.getInstance(PasConfigurationFactory.getInstance().defaultInstance());
-        Kramerius4Export instance = new Kramerius4Export(storage);
-        File target = instance.export(output, hierarchy, pids);
+        DataStreamExport instance = new DataStreamExport(storage);
+        File target = instance.export(output, hierarchy, pids, dsIds);
         assertNotNull(target);
 
-        // check datastreams with xpath
-        HashMap<String, String> namespaces = new HashMap<String, String>();
-        namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
-        XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
-        String foxmlSystemId = Kramerius4Export.pidAsFile(target, pids[0]).toURI().toASCIIString();
-        XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(DcStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(StringEditor.OCR_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(RelationEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath("IMG_FULL"), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath("IMG_PREVIEW"), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath("IMG_THUMBNAIL"), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathNotExists(streamXPath(BinaryEditor.RAW_ID), new InputSource(foxmlSystemId));
-    }
+        File ocr = new File(target, DataStreamExport.filename(pids.get(0), dsIds.get(0)));
+        assertTrue(ocr.exists());
+        assertTrue(ocr.length() == 3);
 
-    private static String streamXPath(String dsId) {
-        return "f:digitalObject/f:datastream[@ID='" + dsId + "']";
+        File preview = new File(target, DataStreamExport.filename(pids.get(0), dsIds.get(1)));
+        assertTrue(preview.exists());
     }
 
     public static void fedoraClientSetup() throws Exception {

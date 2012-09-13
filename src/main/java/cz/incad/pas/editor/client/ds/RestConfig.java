@@ -64,6 +64,8 @@ public final class RestConfig {
     public static final String URL_USER =  URL_ROOT + "/user";
     public static final String URL_USER_PERMISSIONS =  URL_USER + "/permissions";
     public static final String URL_EXPORT = path(URL_ROOT, ExportResourceApi.PATH);
+    public static final String URL_EXPORT_DATASTREAM = path(
+            URL_EXPORT, ExportResourceApi.DATASTREAM_PATH);
     public static final String URL_EXPORT_KRAMERIUS4 = path(
             URL_EXPORT, ExportResourceApi.KRAMERIUS4_PATH);
 

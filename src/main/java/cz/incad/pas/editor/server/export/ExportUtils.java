@@ -14,26 +14,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.incad.pas.editor.shared.rest;
+package cz.incad.pas.editor.server.export;
+
+import java.io.File;
 
 /**
  *
  * @author Jan Pokorsky
  */
-public final class ExportResourceApi {
+final class ExportUtils {
 
-    public static final String PATH = "export";
-    
-    public static final String KRAMERIUS4_PATH = "kramerius4";
-    public static final String KRAMERIUS4_PID_PARAM = "pid";
-    public static final String KRAMERIUS4_HIERARCHY_PARAM = "hierarchy";
-
-    public static final String DATASTREAM_PATH = "datastream";
-    public static final String DATASTREAM_PID_PARAM = "pid";
-    public static final String DATASTREAM_DSID_PARAM = "dsid";
-    public static final String DATASTREAM_HIERARCHY_PARAM = "hierarchy";
-    
-    public static final String RESULT_TARGET = "target";
-
+    /**
+     * Creates new folder. If name already exists it finds similar free name.
+     * @param parent target folder
+     * @param name name of the new folder
+     * @return the new folder
+     */
+    public static File createFolder(File parent, String name) {
+        File folder = new File(parent, name);
+        for (int i = 1; !folder.mkdir(); i++) {
+            folder = new File(parent, name + '_' + i);
+        }
+        return folder;
+    }
 
 }

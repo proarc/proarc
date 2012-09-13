@@ -29,6 +29,7 @@ import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
+import cz.incad.pas.editor.client.action.DataStreamExportAction;
 import cz.incad.pas.editor.client.action.FoxmlViewAction;
 import cz.incad.pas.editor.client.action.KrameriusExportAction;
 import cz.incad.pas.editor.client.action.Selectable;
@@ -105,6 +106,8 @@ public final class ManageDigObjects {
         IconMenuButton btnExport = Actions.asIconMenuButton(exportMenuAction, this);
         Menu menuExport = new Menu();
         menuExport.addItem(Actions.asMenuItem(new KrameriusExportAction(i18nPas), source));
+        menuExport.addItem(Actions.asMenuItem(DataStreamExportAction.full(i18nPas), source));
+        menuExport.addItem(Actions.asMenuItem(DataStreamExportAction.raw(i18nPas), source));
         btnExport.setMenu(menuExport);
         toolbar.addMember(btnExport);
     }
