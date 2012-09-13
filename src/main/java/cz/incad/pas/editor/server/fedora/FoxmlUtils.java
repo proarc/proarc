@@ -53,7 +53,7 @@ import javax.xml.transform.stream.StreamSource;
  *
  * @author Jan Pokorsky
  */
-final class FoxmlUtils {
+public final class FoxmlUtils {
 
     public static final String FOXML_NAMESPACE;
     static {

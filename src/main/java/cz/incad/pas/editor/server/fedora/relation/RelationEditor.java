@@ -24,8 +24,10 @@ import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.xml.transform.Source;
+import org.w3c.dom.Element;
 
 /**
  * RDF relations editor.
@@ -113,6 +115,36 @@ public final class RelationEditor {
     }
 
     /**
+     * Gets unrecognized relations.
+     *
+     * @return list of relations
+     */
+    public List<Element> getRelations() {
+        Rdf rdf = getRdf();
+        if (rdf != null) {
+            List<Element> elms = rdf.getDescription().getRelations();
+            return new ArrayList<Element>(elms);
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * Sets relations unrecognized by RelationEditor.
+     * <b>Do not use for members, model, ...</b>
+     * 
+     * @param elms list of custom relations
+     */
+    public void setRelations(List<Element> elms) {
+        Rdf rdf = getRdf();
+        if (rdf == null) {
+            relsExt = rdf = new Rdf(fobject.getPid());
+        }
+        List<Element> relations = rdf.getDescription().getRelations();
+        relations.clear();
+        relations.addAll(elms);
+    }
+
+    /**
      * Prepares updates for {@link FedoraObject#flush() }
      * @param timestamp timestamp
      */
@@ -121,10 +153,6 @@ public final class RelationEditor {
         Relations.marshal(result, relsExt, false);
         editor.write(result, timestamp);
     }
-
-//    public void getRelations() {
-//        relsExt.getDescription().getRelations();
-//    }
 
     private Rdf getRdf() {
         if (relsExt != null) {

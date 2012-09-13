@@ -37,6 +37,7 @@ public final class UserProfile {
     /** holds folder path in platform independent form */
     private transient URI userHomeUri;
     private String userHome;
+    private transient URI exportFolder;
     private transient URI importFolder;
     private String userName;
     private transient String userPassword;
@@ -55,7 +56,6 @@ public final class UserProfile {
         this.userId = id;
         this.userHomeUri = userHomeUri;
         this.userHome = userHomeUri.toASCIIString();
-        this.importFolder = new URI(this.userHomeUri + "import/");
         this.userName = userName;
         this.displayName = displayName;
 
@@ -89,6 +89,16 @@ public final class UserProfile {
             }
         }
         return importFolder;
+    }
+
+    public URI getExportFolder() {
+        if (exportFolder == null) {
+            URI u = getUserHomeUri();
+            if (u != null) {
+                exportFolder = URI.create(this.userHomeUri + UserUtil.EXPORT_FOLDER_NAME + '/');
+            }
+        }
+        return exportFolder;
     }
 
     public URI getUserHomeUri() {

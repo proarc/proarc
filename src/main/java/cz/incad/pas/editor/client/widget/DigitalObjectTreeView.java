@@ -31,6 +31,7 @@ import com.smartgwt.client.widgets.tree.TreeGridField;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction;
+import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
@@ -41,19 +42,21 @@ import java.util.HashMap;
  *
  * @author Jan Pokorsky
  */
-public final class DigitalObjectTreeView implements RefreshAction.Refreshable {
+public final class DigitalObjectTreeView implements Selectable<Record>, RefreshAction.Refreshable {
 
     private final Canvas rootWidget;
     private final TreeGrid treeSelector;
     private final PasEditorMessages i18nPas;
     private String rootPid;
+    private final ToolStrip toolbar;
 
     public DigitalObjectTreeView(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
         treeSelector = createTreeSelector();
 
         VLayout vLayout = new VLayout();
-        vLayout.addMember(createToolbar());
+        toolbar = createToolbar();
+        vLayout.addMember(toolbar);
         vLayout.addMember(treeSelector);
         rootWidget = vLayout;
     }
@@ -64,6 +67,10 @@ public final class DigitalObjectTreeView implements RefreshAction.Refreshable {
 
     public TreeGrid getTree() {
         return treeSelector;
+    }
+
+    public ToolStrip getToolbar() {
+        return toolbar;
     }
 
     private TreeGrid createTreeSelector() {
@@ -96,7 +103,7 @@ public final class DigitalObjectTreeView implements RefreshAction.Refreshable {
         return treeGrid;
     }
 
-    private Canvas createToolbar() {
+    private ToolStrip createToolbar() {
         ToolStrip toolbar = Actions.createToolStrip();
         toolbar.addMember(Actions.asIconButton(new RefreshAction(i18nPas), this));
         return toolbar;
@@ -147,6 +154,11 @@ public final class DigitalObjectTreeView implements RefreshAction.Refreshable {
         treeSelector.invalidateCache();
         loadModels();
         setRoot(rootPid);
+    }
+
+    @Override
+    public Record[] getSelection() {
+        return treeSelector.getSelectedRecords(true);
     }
 
 }

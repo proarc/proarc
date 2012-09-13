@@ -1,0 +1,111 @@
+/*
+ * Copyright (C) 2012 Jan Pokorsky
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package cz.incad.pas.editor.server.rest;
+
+import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.config.PasConfigurationException;
+import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.export.Kramerius4Export;
+import cz.incad.pas.editor.server.fedora.RemoteStorage;
+import cz.incad.pas.editor.server.user.UserManager;
+import cz.incad.pas.editor.server.user.UserProfile;
+import cz.incad.pas.editor.server.user.UserUtil;
+import cz.incad.pas.editor.shared.rest.ExportResourceApi;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.security.Principal;
+import java.util.List;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.SecurityContext;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+
+/**
+ * REST resource to export data from the system.
+ *
+ * @author Jan Pokorsky
+ */
+@Path(ExportResourceApi.PATH)
+public class ExportResource {
+
+    private final PasConfiguration pasConfig;
+    private final UserManager userManager;
+    private final UserProfile user;
+
+    public ExportResource(
+            @Context SecurityContext securityCtx
+            ) throws PasConfigurationException {
+        this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
+        this.userManager = UserUtil.getDefaultManger();
+
+        Principal userPrincipal = securityCtx.getUserPrincipal();
+        String userName;
+        if (userPrincipal != null) {
+            userName = userPrincipal.getName();
+        } else {
+            userName = UserManager.GUEST_ID;
+        }
+        user = userManager.find(userName);
+    }
+
+    @POST
+    @Path(ExportResourceApi.KRAMERIUS4_PATH)
+    public SmartGwtResponse<ExportResult> kramerius4(
+            @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
+            ) throws IOException {
+
+        Kramerius4Export export = new Kramerius4Export(RemoteStorage.getInstance(pasConfig));
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        File target = export.export(exportFolder, hierarchy, pids.toArray(new String[pids.size()]));
+        if (target == null) {
+            return SmartGwtResponse.<ExportResult>asError()
+                    .error(ExportResourceApi.KRAMERIUS4_PID_PARAM, "Nothing to export.")
+                    .build();
+        }
+        URI targetPath = user.getUserHomeUri().relativize(target.toURI());
+        return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath.toASCIIString()));
+    }
+
+    /**
+     * Export result.
+     */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class ExportResult {
+
+        /**
+         * The target folder path.
+         */
+        @XmlElement(name = ExportResourceApi.RESULT_TARGET)
+        private String target;
+
+        public ExportResult() {
+        }
+
+        public ExportResult(String target) {
+            this.target = target;
+        }
+
+    }
+}

@@ -76,6 +76,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     private final Canvas rootWidget;
     private final ListGrid foundGrid;
     private final PasEditorMessages i18nPas;
+    private final ToolStrip toolbar;
 
     public DigitalObjectSearchView(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
@@ -87,7 +88,8 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
         VLayout vLayout = new VLayout();
         vLayout.addMember(filters);
-        vLayout.addMember(createToolbar());
+        toolbar = createToolbar();
+        vLayout.addMember(toolbar);
         vLayout.addMember(foundGrid);
         rootWidget = vLayout;
     }
@@ -119,7 +121,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         return grid;
     }
 
-    private Canvas createToolbar() {
+    private ToolStrip createToolbar() {
         ToolStrip toolbar = Actions.createToolStrip();
         IconButton btnRefresh = Actions.asIconButton(new RefreshAction(i18nPas), this);
 
@@ -242,6 +244,10 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     public ListGrid getGrid() {
         return foundGrid;
+    }
+
+    public ToolStrip getToolbar() {
+        return toolbar;
     }
 
     public void onShow(final boolean select) {

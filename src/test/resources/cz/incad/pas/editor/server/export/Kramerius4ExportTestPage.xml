@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<digitalObject xmlns="info:fedora/fedora-system:def/foxml#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" VERSION="1.1" PID="uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2" xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
+    <objectProperties>
+        <property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+        <property NAME="info:fedora/fedora-system:def/model#label" VALUE="Kramerius4ExportTest"/>
+        <property NAME="info:fedora/fedora-system:def/model#ownerId" VALUE="junit"/>
+        <property NAME="info:fedora/fedora-system:def/model#createdDate" VALUE="2012-07-19T12:46:17.053Z"/>
+        <property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="2012-07-30T16:05:12.884Z"/>
+    </objectProperties>
+    <datastream ID="BIBLIO_MODS" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <datastreamVersion ID="BIBLIO_MODS.1" LABEL="MODS description" CREATED="2012-07-19T12:46:38.492Z" MIMETYPE="text/xml" FORMAT_URI="http://www.loc.gov/mods/v3" SIZE="1776">
+            <xmlContent>
+                <mods:mods xmlns:mods="http://www.loc.gov/mods/v3" xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:ns2="http://www.w3.org/1999/xlink" version="3.4">
+                    <mods:titleInfo>
+                        <mods:title>Kramerius4ExportTest</mods:title>
+                    </mods:titleInfo>
+                    <mods:identifier type="uuid">f74f3cf3-f3be-4cac-95da-8e50331414a2</mods:identifier>
+                </mods:mods>
+            </xmlContent>
+        </datastreamVersion>
+    </datastream>
+    <datastream ID="DC" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <datastreamVersion ID="DC.1" LABEL="Dublin Core Record for this object" CREATED="2012-07-19T12:46:38.677Z" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/" SIZE="572">
+            <xmlContent>
+                <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:foxml="info:fedora/fedora-system:def/foxml#">
+                    <dc:title>Kramerius4ExportTest</dc:title>
+                    <dc:type>Text</dc:type>
+                    <dc:type>model:page</dc:type>
+                    <dc:identifier>uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2</dc:identifier>
+                </oai_dc:dc>
+            </xmlContent>
+        </datastreamVersion>
+    </datastream>
+    <datastream ID="RELS-EXT" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <datastreamVersion ID="RELS-EXT.1" LABEL="RDF Statements about this object" CREATED="2012-09-12T02:47:27.104+02:00" MIMETYPE="text/xml" FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0" SIZE="1703">
+            <xmlContent>
+                <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:fedora-rels-ext="info:fedora/fedora-system:def/relations-external#">
+                    <rdf:Description rdf:about="info:fedora/uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2">
+                        <fedora-model:hasModel rdf:resource="info:fedora/model:page"/>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xmlContent>
+        </datastreamVersion>
+    </datastream>
+    <datastream ID="RAW" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">
+        <datastreamVersion ID="RAW.0" LABEL="Original digital content of this object" CREATED="2012-07-30T16:05:09.663Z" MIMETYPE="image/tiff">
+            <binaryContent>AAA</binaryContent>
+        </datastreamVersion>
+    </datastream>
+    <datastream ID="FULL" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
+        <datastreamVersion ID="FULL.0" LABEL="Presentable version of RAW" CREATED="2012-08-14T21:32:38.899+02:00" MIMETYPE="image/jpeg">
+            <binaryContent>AAA</binaryContent>
+        </datastreamVersion>
+    </datastream>
+    <datastream ID="PREVIEW" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">
+        <datastreamVersion ID="PREVIEW.0" LABEL="Preview of this object" CREATED="2012-07-30T16:05:09.663Z" MIMETYPE="image/jpeg">
+            <binaryContent>AAA</binaryContent>
+        </datastreamVersion>
+    </datastream>
+    <datastream ID="THUMBNAIL" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">
+        <datastreamVersion ID="THUMBNAIL.0" LABEL="Thumbnail of this object" CREATED="2012-07-30T16:05:09.663Z" MIMETYPE="image/jpeg">
+            <binaryContent>AAA</binaryContent>
+        </datastreamVersion>
+    </datastream>
+    <datastream ID="TEXT_OCR" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">
+        <datastreamVersion ID="TEXT_OCR.0" LABEL="OCR for this object" CREATED="2012-07-30T16:05:09.669Z" MIMETYPE="text/plain">
+            <binaryContent>
+
+            </binaryContent>
+        </datastreamVersion>
+    </datastream>
+</digitalObject>

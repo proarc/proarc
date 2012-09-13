@@ -53,6 +53,7 @@ import cz.incad.pas.editor.client.ds.UserDataSource;
 import cz.incad.pas.editor.client.ds.UserPermissionDataSource;
 import cz.incad.pas.editor.client.presenter.DigObjectEditorPresenter;
 import cz.incad.pas.editor.client.presenter.ImportPresenter;
+import cz.incad.pas.editor.client.widget.ManageDigObjects;
 import cz.incad.pas.editor.client.widget.UsersView;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -227,8 +228,8 @@ public class Editor implements EntryPoint {
                         createTreeNode("New Batch", i18nPas.MainMenu_Import_NewBatch_Title()),
                         createTreeNode("History", i18nPas.MainMenu_Import_Edit_Title())),
                 createTreeNode("Edit", i18nPas.MainMenu_Edit_Title(),
-                        createTreeNode("New Object", i18nPas.MainMenu_Edit_NewObject_Title())
-//                        createTreeNode("Search", i18nPas.MainMenu_Edit_Edit_Title())
+                        createTreeNode("New Object", i18nPas.MainMenu_Edit_NewObject_Title()),
+                        createTreeNode("Search", i18nPas.MainMenu_Edit_Edit_Title())
                 ),
 //                createTreeNode("Statistics", i18nPas.MainMenu_Statistics_Title()),
                 createTreeNode("Users", i18nPas.MainMenu_Users_Title(), Arrays.asList("proarc.permission.admin")),
@@ -300,10 +301,10 @@ public class Editor implements EntryPoint {
                     placesContainer.setMembers(ui);
                     objectEditorPresenter.newObject();
                 } else if ("Search".equals(name)) {
-                    DigObjectEditorPresenter objectEditorPresenter = placeFactory.getObjectEditorPresenter();
-                    Canvas ui = objectEditorPresenter.getUI();
+                    ManageDigObjects presenter = new ManageDigObjects(i18nPas);
+                    Canvas ui = presenter.getUI();
                     placesContainer.setMembers(ui);
-                    objectEditorPresenter.search();
+                    presenter.init();
                 } else if ("Console".equals(name)) {
                     SC.showConsole();
                 } else if ("Users".equals(name)) {

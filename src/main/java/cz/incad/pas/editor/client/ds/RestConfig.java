@@ -26,6 +26,7 @@ import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
 import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.incad.pas.editor.shared.rest.ExportResourceApi;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,6 +63,9 @@ public final class RestConfig {
             URL_BIBLIOCATALOG, BibliographicCatalogResourceApi.FIND_PATH);
     public static final String URL_USER =  URL_ROOT + "/user";
     public static final String URL_USER_PERMISSIONS =  URL_USER + "/permissions";
+    public static final String URL_EXPORT = path(URL_ROOT, ExportResourceApi.PATH);
+    public static final String URL_EXPORT_KRAMERIUS4 = path(
+            URL_EXPORT, ExportResourceApi.KRAMERIUS4_PATH);
 
     public static DSRequest createRestRequest(DSDataFormat format) {
         DSRequest dsr = new DSRequest();
