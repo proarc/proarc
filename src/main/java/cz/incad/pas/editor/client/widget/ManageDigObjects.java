@@ -56,8 +56,6 @@ public final class ManageDigObjects {
         widget.setHeight100();
 
         foundView = new DigitalObjectSearchView(i18nPas);
-        treeView = new DigitalObjectTreeView(i18nPas);
-
         foundView.getGrid().setSelectionType(SelectionStyle.MULTIPLE);
         foundView.getGrid().addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
@@ -71,6 +69,9 @@ public final class ManageDigObjects {
                 treeView.setRoot(pid);
             }
         });
+
+        treeView = new DigitalObjectTreeView(i18nPas);
+        treeView.getTree().setSelectionType(SelectionStyle.MULTIPLE);
 
         widget.addMember(foundView.asWidget());
         widget.addMember(treeView.asWidget());
