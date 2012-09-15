@@ -17,8 +17,6 @@
 package cz.incad.pas.editor.server.fedora;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraCredentials;
-import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
 import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
@@ -42,7 +40,6 @@ import javax.xml.transform.Source;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -57,6 +54,7 @@ import org.junit.rules.TestName;
 public class RemoteStorageTest {
     
     private static FedoraClient client;
+    private static FedoraTestSupport support;
 
     @Rule
     public TestName test = new TestName();
@@ -72,13 +70,8 @@ public class RemoteStorageTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        try {
-            client = new FedoraClient(new FedoraCredentials("http://localhost:8080/fedora", "fedoraAdmin", "fedoraAdmin"));
-            client.getServerVersion();
-        } catch (Exception ex) {
-//            Logger.getLogger(RemoteStorageTest.class.getName()).log(Level.SEVERE, null, ex);
-            Assume.assumeNoException(ex);
-        }
+        support = new FedoraTestSupport();
+        client = support.getClient();
     }
 
     @AfterClass
@@ -87,43 +80,11 @@ public class RemoteStorageTest {
 
     @Before
     public void setUp() throws Exception {
-        cleanUp();
+        support.cleanUp();
     }
 
     @After
     public void tearDown() {
-    }
-
-    private int cleanUp(FindObjectsResponse response) throws Exception {
-        List<String> pids = response.getPids();
-        for (String pid : pids) {
-            FedoraClient.purgeObject(pid).logMessage("junit cleanup").execute(client);
-        }
-        return pids.size();
-    }
-
-    private void cleanUp() throws Exception {
-//        client.debug(true);
-        FindObjectsResponse response = FedoraClient.findObjects()
-                .pid().query("ownerId='junit'")
-                .maxResults(5000)
-                .execute(client);
-//        String cursor = response.getCursor();
-//        String expirationDate = response.getExpirationDate();
-//        List<String> pids = response.getPids();
-//        String token = response.getToken();
-//        System.out.printf("cursor: %s, expiration: %s, token: %s,\n size: %s, pids: %s\n",
-//                cursor, expirationDate, token, pids.size(), pids);
-
-        int count = 0;
-        while (true) {
-            count += cleanUp(response);
-            if (!response.hasNext()) {
-                break;
-            }
-            response = FedoraClient.findObjects().sessionToken(response.getToken()).execute(client);
-        }
-        System.out.println("purged: " + count + " objects");
     }
 
     @Test

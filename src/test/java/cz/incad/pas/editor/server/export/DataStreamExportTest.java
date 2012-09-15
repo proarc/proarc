@@ -16,26 +16,15 @@
  */
 package cz.incad.pas.editor.server.export;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraCredentials;
-import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
-import cz.incad.pas.editor.server.config.PasConfigurationFactory;
-import cz.incad.pas.editor.server.fedora.FoxmlUtils;
-import cz.incad.pas.editor.server.fedora.LocalStorage;
-import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
-import cz.incad.pas.editor.server.fedora.RemoteStorage;
+import cz.incad.pas.editor.server.fedora.FedoraTestSupport;
 import cz.incad.pas.editor.server.fedora.StringEditor;
 import java.io.File;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
-import javax.xml.transform.stream.StreamSource;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -47,7 +36,6 @@ import org.junit.Test;
  */
 public class DataStreamExportTest {
     
-    private static FedoraClient client;
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
 
@@ -70,21 +58,17 @@ public class DataStreamExportTest {
     public void tearDown() {
     }
 
-    /**
-     * Test of export method, of class DataStreamExport.
-     */
     @Test
     public void testExport() throws Exception {
-        fedoraClientSetup();
-        cleanUp();
-        ingest(Kramerius4ExportTest.class.getResource("Kramerius4ExportTestPage.xml"));
+        FedoraTestSupport fedora = new FedoraTestSupport();
+        fedora.cleanUp();
+        fedora.ingest(DataStreamExportTest.class.getResource("Kramerius4ExportTestPage.xml"));
 
         File output = temp.getRoot();
         boolean hierarchy = true;
         List<String> pids = Arrays.asList("uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2");
         List<String> dsIds = Arrays.asList(StringEditor.OCR_ID, "PREVIEW");
-        RemoteStorage storage = RemoteStorage.getInstance(PasConfigurationFactory.getInstance().defaultInstance());
-        DataStreamExport instance = new DataStreamExport(storage);
+        DataStreamExport instance = new DataStreamExport(fedora.getRemoteStorage());
         File target = instance.export(output, hierarchy, pids, dsIds);
         assertNotNull(target);
 
@@ -94,49 +78,6 @@ public class DataStreamExportTest {
 
         File preview = new File(target, DataStreamExport.filename(pids.get(0), dsIds.get(1)));
         assertTrue(preview.exists());
-    }
-
-    public static void fedoraClientSetup() throws Exception {
-        try {
-            client = new FedoraClient(new FedoraCredentials("http://localhost:8080/fedora", "fedoraAdmin", "fedoraAdmin"));
-            client.getServerVersion();
-        } catch (Exception ex) {
-            Assume.assumeNoException(ex);
-        }
-    }
-
-    private void ingest(URL foxml) throws Exception {
-        assertNotNull(foxml);
-        DigitalObject dobj = FoxmlUtils.unmarshal(new StreamSource(foxml.toExternalForm()), DigitalObject.class);
-        RemoteStorage fedora = new RemoteStorage(client);
-        LocalObject object = new LocalStorage().create(dobj);
-        fedora.ingest(object, "junit");
-    }
-
-    private void cleanUp() throws Exception {
-//        client.debug(true);
-        FindObjectsResponse response = FedoraClient.findObjects()
-                .pid().query("ownerId='junit'")
-                .maxResults(5000)
-                .execute(client);
-
-        int count = 0;
-        while (true) {
-            count += cleanUp(response);
-            if (!response.hasNext()) {
-                break;
-            }
-            response = FedoraClient.findObjects().sessionToken(response.getToken()).execute(client);
-        }
-        System.out.println("purged: " + count + " objects");
-    }
-
-    private int cleanUp(FindObjectsResponse response) throws Exception {
-        List<String> pids = response.getPids();
-        for (String pid : pids) {
-            FedoraClient.purgeObject(pid).logMessage("junit cleanup").execute(client);
-        }
-        return pids.size();
     }
 
 }

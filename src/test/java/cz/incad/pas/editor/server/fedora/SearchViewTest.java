@@ -16,16 +16,11 @@
  */
 package cz.incad.pas.editor.server.fedora;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraCredentials;
 import cz.incad.pas.editor.server.fedora.SearchView.Item;
 import java.util.List;
 import org.junit.After;
-import org.junit.AfterClass;
 import static org.junit.Assert.*;
-import org.junit.Assume;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -34,30 +29,16 @@ import org.junit.Test;
  */
 public class SearchViewTest {
 
-    private static FedoraClient client;
     private RemoteStorage storage;
+    private FedoraTestSupport fedora;
 
     public SearchViewTest() {
     }
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        try {
-            client = new FedoraClient(new FedoraCredentials("http://localhost:8080/fedora", "fedoraAdmin", "fedoraAdmin"));
-            client.getServerVersion();
-        } catch (Exception ex) {
-//            Logger.getLogger(RemoteStorageTest.class.getName()).log(Level.SEVERE, null, ex);
-            Assume.assumeNoException(ex);
-        }
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
     @Before
-    public void setUp() {
-        storage = new RemoteStorage(client);
+    public void setUp() throws Exception {
+        fedora = new FedoraTestSupport();
+        storage = fedora.getRemoteStorage();
     }
 
     @After

@@ -16,33 +16,22 @@
  */
 package cz.incad.pas.editor.server.export;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraCredentials;
-import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
-import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
-import cz.incad.pas.editor.server.fedora.FoxmlUtils;
-import cz.incad.pas.editor.server.fedora.LocalStorage;
-import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
+import cz.incad.pas.editor.server.fedora.FedoraTestSupport;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.StringEditor;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import java.io.File;
-import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
-import javax.xml.transform.stream.StreamSource;
 import org.custommonkey.xmlunit.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -50,13 +39,11 @@ import org.junit.Test;
 import org.xml.sax.InputSource;
 
 /**
- * XXX needs refactoring of fedora integration stuff
  * 
  * @author Jan Pokorsky
  */
 public class Kramerius4ExportTest {
 
-    private static FedoraClient client;
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
 
@@ -81,14 +68,14 @@ public class Kramerius4ExportTest {
      */
     @Test
     public void testExport() throws Exception {
-        fedoraClientSetup();
-        cleanUp();
-        ingest(Kramerius4ExportTest.class.getResource("Kramerius4ExportTestPage.xml"));
+        FedoraTestSupport fedora = new FedoraTestSupport();
+        fedora.cleanUp();
+        fedora.ingest(Kramerius4ExportTest.class.getResource("Kramerius4ExportTestPage.xml"));
 
         File output = temp.getRoot();
         boolean hierarchy = true;
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
-        RemoteStorage storage = RemoteStorage.getInstance(PasConfigurationFactory.getInstance().defaultInstance());
+        RemoteStorage storage = fedora.getRemoteStorage();
         Kramerius4Export instance = new Kramerius4Export(storage);
         File target = instance.export(output, hierarchy, pids);
         assertNotNull(target);
@@ -110,49 +97,6 @@ public class Kramerius4ExportTest {
 
     private static String streamXPath(String dsId) {
         return "f:digitalObject/f:datastream[@ID='" + dsId + "']";
-    }
-
-    public static void fedoraClientSetup() throws Exception {
-        try {
-            client = new FedoraClient(new FedoraCredentials("http://localhost:8080/fedora", "fedoraAdmin", "fedoraAdmin"));
-            client.getServerVersion();
-        } catch (Exception ex) {
-            Assume.assumeNoException(ex);
-        }
-    }
-
-    private void ingest(URL foxml) throws Exception {
-        assertNotNull(foxml);
-        DigitalObject dobj = FoxmlUtils.unmarshal(new StreamSource(foxml.toExternalForm()), DigitalObject.class);
-        RemoteStorage fedora = new RemoteStorage(client);
-        LocalObject object = new LocalStorage().create(dobj);
-        fedora.ingest(object, "junit");
-    }
-
-    private void cleanUp() throws Exception {
-//        client.debug(true);
-        FindObjectsResponse response = FedoraClient.findObjects()
-                .pid().query("ownerId='junit'")
-                .maxResults(5000)
-                .execute(client);
-
-        int count = 0;
-        while (true) {
-            count += cleanUp(response);
-            if (!response.hasNext()) {
-                break;
-            }
-            response = FedoraClient.findObjects().sessionToken(response.getToken()).execute(client);
-        }
-        System.out.println("purged: " + count + " objects");
-    }
-
-    private int cleanUp(FindObjectsResponse response) throws Exception {
-        List<String> pids = response.getPids();
-        for (String pid : pids) {
-            FedoraClient.purgeObject(pid).logMessage("junit cleanup").execute(client);
-        }
-        return pids.size();
     }
 
 }
