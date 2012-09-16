@@ -22,6 +22,10 @@ package cz.incad.pas.editor.shared.rest;
  */
 public final class DigitalObjectResourceApi {
 
+    public static final String DELETE_HIERARCHY_PARAM = "hierarchy";
+    public static final String DELETE_PID_PARAM = "pid";
+    public static final String DELETE_PURGE_PARAM = "purge";
+
     public static final String SEARCH_PATH = "search";
     public static final String SEARCH_OWNER_PARAM = "owner";
     public static final String SEARCH_START_ROW_PARAM = "_startRow";

@@ -1,0 +1,5 @@
+select  $pid
+from    <#ri>
+where
+walk(   <${ROOT}>     <info:fedora/fedora-system:def/relations-external#hasMember>    $pid
+and     $subject        <info:fedora/fedora-system:def/relations-external#hasMember>    $pid)

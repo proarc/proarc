@@ -49,7 +49,9 @@ public final class SearchView {
 
     private static final String QUERY_LAST_CREATED = readQuery("lastCreated.itql");
     private static final String QUERY_FIND_MEMBERS = readQuery("findMembers.itql");
+    private static final String QUERY_FIND_MEMBER_HIERARCHY = readQuery("findMemberHierarchy.itql");
     private static final String QUERY_FIND_PIDS = readQuery("findPids.itql");
+    private static final String QUERY_FIND_REFERRERS = readQuery("findReferrers.itql");
 
     private final FedoraClient fedora;
     private final int maxLimit;
@@ -193,7 +195,7 @@ public final class SearchView {
                     pid));
         }
         String query = QUERY_FIND_PIDS.replace("${pids.expression}", expr);
-        LOG.info(query);
+        LOG.fine(query);
         RiSearch search = buildSearch(query);
         return consumeSearch(search.execute(fedora));
     }
@@ -231,6 +233,18 @@ public final class SearchView {
         return consumeSearch(search.execute(fedora));
     }
 
+    /**
+     * Traverses a graph of PID's members.
+     *
+     * @param pid PID to traverse
+     * @return list of all PID's members
+     */
+    public List<Item> findChildrenHierarchy(String pid) throws FedoraClientException, IOException {
+        String query = QUERY_FIND_MEMBER_HIERARCHY.replace("${ROOT}", RelationResource.fromPid(pid).getResource());
+        RiSearch search = buildSearch(query);
+        return consumeSearch(search.execute(fedora));
+    }
+
     public List<Item> findLastCreated(int offset, String model) throws FedoraClientException, IOException {
         return findLastCreated(offset, model, 100);
     }
@@ -251,13 +265,19 @@ public final class SearchView {
         String query = QUERY_LAST_CREATED.replace("${OFFSET}", String.valueOf(offset));
         query = query.replace("${MODEL_FILTER}", modelFilter);
         query = query.replace("${ORDERBY}", orderBy);
-        LOG.info(query);
+        LOG.fine(query);
         RiSearch search = buildSearch(query);
 
         if (limit > 0) {
             limit = Math.min(limit, maxLimit);
             search.limit(limit);
         }
+        return consumeSearch(search.execute(fedora));
+    }
+
+    public List<Item> findReferrers(String pid) throws IOException, FedoraClientException {
+        String query = QUERY_FIND_REFERRERS.replace("${PID}", pid);
+        RiSearch search = buildSearch(query);
         return consumeSearch(search.execute(fedora));
     }
 
@@ -268,11 +288,15 @@ public final class SearchView {
         return replaceUriWithPid(result.results);
     }
     
+    private static String replaceUriWithPid(String uri) {
+        return uri == null ? uri : RelationResource.toPid(uri);
+    }
+
     private static List<Item> replaceUriWithPid(List<Item> items) {
         for (Item item : items) {
-            item.pid = RelationResource.toPid(item.pid);
-            item.model = RelationResource.toPid(item.model);
-            item.state = RelationResource.toPid(item.state);
+            item.pid = replaceUriWithPid(item.pid);
+            item.model = replaceUriWithPid(item.model);
+            item.state = replaceUriWithPid(item.state);
         }
         return items;
     }
@@ -280,6 +304,7 @@ public final class SearchView {
     private static RiSearch buildSearch(String query) {
         RiSearch search = FedoraClient.riSearch(query).distinct(true)
                 .type("tuples").lang("itql")
+                .flush(true) // required to get reliable responses
 //                .format("json")
                 .xParam("format", "json");
         return search;

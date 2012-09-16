@@ -16,7 +16,11 @@
  */
 package cz.incad.pas.editor.client.widget;
 
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
@@ -30,10 +34,17 @@ import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.DataStreamExportAction;
+import cz.incad.pas.editor.client.action.DeleteAction;
+import cz.incad.pas.editor.client.action.DeleteAction.Deletable;
 import cz.incad.pas.editor.client.action.FoxmlViewAction;
 import cz.incad.pas.editor.client.action.KrameriusExportAction;
 import cz.incad.pas.editor.client.action.Selectable;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
+import cz.incad.pas.editor.client.ds.RestConfig;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * The component allows to search digital objects and perform actions on
@@ -94,7 +105,7 @@ public final class ManageDigObjects {
      */
     private void initToolbar(ToolStrip toolbar, Selectable<Record> source) {
         FoxmlViewAction foxmlAction = new FoxmlViewAction(i18nPas);
-        toolbar.addMember(Actions.asIconButton(foxmlAction, source));
+
         final AbstractAction exportMenuAction = new AbstractAction(
                 i18nPas.ExportsAction_Title(), "[SKIN]/actions/save.png", null) {
 
@@ -103,14 +114,65 @@ public final class ManageDigObjects {
                 // choose default action iff supported
             }
         };
-
         IconMenuButton btnExport = Actions.asIconMenuButton(exportMenuAction, this);
         Menu menuExport = new Menu();
         menuExport.addItem(Actions.asMenuItem(new KrameriusExportAction(i18nPas), source));
         menuExport.addItem(Actions.asMenuItem(DataStreamExportAction.full(i18nPas), source));
         menuExport.addItem(Actions.asMenuItem(DataStreamExportAction.raw(i18nPas), source));
         btnExport.setMenu(menuExport);
+
+        toolbar.addMember(Actions.asIconButton(foxmlAction, source));
         toolbar.addMember(btnExport);
+        toolbar.addMember(Actions.asIconButton(new DeleteAction(
+                new MultiRecordDeletable(), i18nPas), source));
+    }
+
+    /**
+     * XXX ask for delete hierarchy, prune or setInactive
+     * XXX setDeleted should use UPDATE instead of DELETE?
+     */
+    private final class MultiRecordDeletable implements Deletable {
+
+        @Override
+        public void delete(Object[] items) {
+            ArrayList<String> pids = new ArrayList<String>(items.length);
+            for (Object item : items) {
+                if (item instanceof Record) {
+                    String pid = ((Record) item).getAttribute(DigitalObjectDataSource.FIELD_PID);
+                    if (pid != null) {
+                        pids.add(pid);
+                    }
+                }
+            }
+            if (!pids.isEmpty()) {
+                Record record = new Record();
+                record.setAttribute(DigitalObjectDataSource.FIELD_PID,
+                        pids.toArray(new String[pids.size()]));
+                delete(record);
+            }
+        }
+
+        private void delete(Record query) {
+            HashMap<String, String> deleteParams = new HashMap<String, String>();
+            deleteParams.put(DigitalObjectResourceApi.DELETE_PURGE_PARAM,
+                    Boolean.FALSE.toString());
+            deleteParams.put(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM,
+                    Boolean.TRUE.toString());
+            DSRequest dsRequest = new DSRequest();
+            dsRequest.setPromptStyle(PromptStyle.DIALOG);
+            dsRequest.setPrompt(i18nPas.DeleteAction_Deleting_Msg());
+            dsRequest.setParams(deleteParams);
+            DigitalObjectDataSource.getInstance().removeData(query, new DSCallback() {
+
+                @Override
+                public void execute(DSResponse response, Object rawData, DSRequest request) {
+                    if (RestConfig.isStatusOk(response)) {
+                        foundView.getGrid().invalidateCache();
+                    }
+                }
+            }, dsRequest);
+        }
+
     }
 
 }

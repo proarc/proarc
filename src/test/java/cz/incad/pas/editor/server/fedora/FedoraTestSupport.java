@@ -21,7 +21,9 @@ import com.yourmediashelf.fedora.client.FedoraCredentials;
 import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
+import cz.incad.pas.editor.server.fedora.SearchView.Item;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import javax.xml.transform.stream.StreamSource;
 import static org.junit.Assert.*;
@@ -111,6 +113,35 @@ public class FedoraTestSupport {
             FedoraClient.purgeObject(pid).logMessage("junit cleanup").execute(client);
         }
         return pids.size();
+    }
+
+    public static void assertItem(List<Item> items, String... pids) {
+        assertItem(items, Arrays.asList(pids));
+    }
+    
+    public static void assertItem(List<Item> items, List<String> pids) {
+        for (String pid : pids) {
+            assertNotNull(pid, find(items, pid));
+        }
+    }
+
+    public static void assertNoItem(List<Item> items, String... pids) {
+        assertNoItem(items, Arrays.asList(pids));
+    }
+
+    public static void assertNoItem(List<Item> items, List<String> pids) {
+        for (String pid : pids) {
+            assertNull(pid, find(items, pid));
+        }
+    }
+
+    static Item find(List<Item> items, String pid) {
+        for (Item item : items) {
+            if (pid.equals(item.getPid())) {
+                return item;
+            }
+        }
+        return null;
     }
 
 }

@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.server.fedora;
 
+import static cz.incad.pas.editor.server.fedora.FedoraTestSupport.assertItem;
 import cz.incad.pas.editor.server.fedora.SearchView.Item;
 import java.util.List;
 import org.junit.After;
@@ -81,5 +82,43 @@ public class SearchViewTest {
         SearchView instance = new SearchView(storage);
         List<Item> result = instance.findQuery(null, null, null, null, "model:periodical");
         assertFalse(result.isEmpty());
+    }
+
+    @Test
+    public void testFindChildrenHierarchy() throws Exception {
+        fedora.cleanUp();
+        fedora.ingest(
+                getClass().getResource("tree1.xml"),
+                getClass().getResource("tree1-child1.xml"),
+                getClass().getResource("tree1-child1-child1.xml"),
+                getClass().getResource("tree1-child1-child1-child1.xml"),
+                getClass().getResource("tree1-child1-child1-child2.xml"),
+                getClass().getResource("tree1-child2.xml"),
+                getClass().getResource("tree1-child2-child1.xml"),
+                getClass().getResource("tree1-child2-child1-child1.xml")
+                );
+        SearchView instance = new SearchView(storage);
+        List<Item> result = instance.findChildrenHierarchy("uuid:tree1");
+        assertEquals(7, result.size());
+        assertItem(result, "uuid:tree1-child1",
+                "uuid:tree1-child1-child1",
+                "uuid:tree1-child1-child1-child1",
+                "uuid:tree1-child1-child1-child2",
+                "uuid:tree1-child2",
+                "uuid:tree1-child2-child1",
+                "uuid:tree1-child2-child1-child3");
+    }
+
+    @Test
+    public void testFindReferrers() throws Exception {
+        fedora.cleanUp();
+        fedora.ingest(
+                getClass().getResource("tree1-child1-child1.xml"),
+                getClass().getResource("tree1-child1-child1-child1.xml")
+                );
+        SearchView instance = new SearchView(storage);
+        List<Item> result = instance.findReferrers("uuid:tree1-child1-child1-child1");
+        assertEquals(1, result.size());
+        assertItem(result, "uuid:tree1-child1-child1");
     }
 }

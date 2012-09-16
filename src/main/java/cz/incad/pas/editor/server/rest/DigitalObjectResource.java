@@ -30,6 +30,8 @@ import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
+import cz.incad.pas.editor.server.fedora.PurgeFedoraObject;
+import cz.incad.pas.editor.server.fedora.PurgeFedoraObject.PurgeException;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.SearchView;
@@ -62,6 +64,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -205,6 +208,33 @@ public class DigitalObjectResource {
             throw ex;
         }
         return new SmartGwtResponse<DigitalObject>(new DigitalObject(localObject.getPid(), modelId));
+    }
+
+    /**
+     * @see PurgeFedoraObject
+     */
+    @DELETE
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DigitalObject> deleteObject(
+            @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
+            @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
+            @DefaultValue("true") boolean hierarchy,
+            @QueryParam(DigitalObjectResourceApi.DELETE_PURGE_PARAM)
+            @DefaultValue("false") boolean purge
+            ) throws IOException, PurgeException {
+
+        RemoteStorage fedora = RemoteStorage.getInstance(pasConfig);
+        ArrayList<DigitalObject> result = new ArrayList<DigitalObject>(pids.size());
+        PurgeFedoraObject service = new PurgeFedoraObject(fedora);
+        if (purge) {
+            service.purge(pids, hierarchy, user.getUserName());
+        } else {
+            service.delete(pids, hierarchy, user.getUserName());
+        }
+        for (String pid : pids) {
+            result.add(new DigitalObject(pid, null));
+        }
+        return new SmartGwtResponse<DigitalObject>(result);
     }
 
     @GET

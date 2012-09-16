@@ -1,0 +1,196 @@
+/*
+ * Copyright (C) 2012 Jan Pokorsky
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package cz.incad.pas.editor.server.fedora;
+
+import cz.incad.pas.editor.server.fedora.SearchView.Item;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.junit.After;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+/**
+ *
+ * @author Jan Pokorsky
+ */
+public class PurgeFedoraObjectTest {
+
+    private FedoraTestSupport support;
+
+    public PurgeFedoraObjectTest() {
+    }
+
+    @BeforeClass
+    public static void setUpClass() {
+    }
+
+    @AfterClass
+    public static void tearDownClass() {
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        support = new FedoraTestSupport();
+        support.cleanUp();
+        support.ingest(
+                getClass().getResource("tree1.xml"),
+                getClass().getResource("tree1-child1.xml"),
+                getClass().getResource("tree1-child1-child1.xml"),
+                getClass().getResource("tree1-child1-child1-child1.xml"),
+                getClass().getResource("tree1-child1-child1-child2.xml"),
+                getClass().getResource("tree1-child2.xml"),
+                getClass().getResource("tree1-child2-child1.xml"),
+                getClass().getResource("tree1-child2-child1-child1.xml")
+        );
+    }
+
+    @After
+    public void tearDown() {
+    }
+
+    @Test
+    public void testPurgeTreeLeaf() throws Exception {
+        String pid = "uuid:tree1-child2-child1-child1";
+        String parentPid = "uuid:tree1-child2-child1";
+        boolean hierarchy = true;
+        PurgeFedoraObject purge = new PurgeFedoraObject(support.getRemoteStorage());
+        purge.purge(pid, hierarchy, "junit");
+
+        List<String> pids = Arrays.asList(
+                "uuid:tree1",
+                "uuid:tree1-child1",
+                "uuid:tree1-child1-child1",
+                "uuid:tree1-child1-child1-child1",
+                "uuid:tree1-child1-child1-child2",
+                "uuid:tree1-child2",
+                "uuid:tree1-child2-child1",
+                "uuid:tree1-child2-child1-child1"
+        );
+        ArrayList<String> shouldRemain = new ArrayList<String>(pids);
+        shouldRemain.remove(pid);
+        List<Item> found = support.getRemoteStorage().getSearch().find(pids);
+        FedoraTestSupport.assertItem(found, shouldRemain);
+        FedoraTestSupport.assertNoItem(found, pid);
+        List<Item> children = support.getRemoteStorage().getSearch().findChildren(parentPid);
+        FedoraTestSupport.assertNoItem(children, pid);
+    }
+
+    @Test
+    public void testPurgeTree() throws Exception {
+        String pid = "uuid:tree1-child2";
+        String parentPid = "uuid:tree1";
+        boolean hierarchy = true;
+        PurgeFedoraObject purge = new PurgeFedoraObject(support.getRemoteStorage());
+        purge.purge(pid, hierarchy, "junit");
+
+        List<String> pids = Arrays.asList(
+                "uuid:tree1",
+                "uuid:tree1-child1",
+                "uuid:tree1-child1-child1",
+                "uuid:tree1-child1-child1-child1",
+                "uuid:tree1-child1-child1-child2",
+                "uuid:tree1-child2",
+                "uuid:tree1-child2-child1",
+                "uuid:tree1-child2-child1-child1"
+        );
+        List<String> removed = Arrays.asList(pid, "uuid:tree1-child2-child1", "uuid:tree1-child2-child1-child1");
+        ArrayList<String> shouldRemain = new ArrayList<String>(pids);
+        shouldRemain.removeAll(removed);
+        List<Item> found = support.getRemoteStorage().getSearch().find(pids);
+        FedoraTestSupport.assertItem(found, shouldRemain);
+        FedoraTestSupport.assertNoItem(found, removed);
+        List<Item> children = support.getRemoteStorage().getSearch().findChildren(parentPid);
+        FedoraTestSupport.assertNoItem(children, pid);
+    }
+
+    @Test
+    public void testPurgeTreeRoot() throws Exception {
+        String pid = "uuid:tree1-child2";
+        String parentPid = "uuid:tree1";
+        boolean hierarchy = false;
+        PurgeFedoraObject purge = new PurgeFedoraObject(support.getRemoteStorage());
+        purge.purge(pid, hierarchy, "junit");
+
+        List<String> pids = Arrays.asList(
+                "uuid:tree1",
+                "uuid:tree1-child1",
+                "uuid:tree1-child1-child1",
+                "uuid:tree1-child1-child1-child1",
+                "uuid:tree1-child1-child1-child2",
+                "uuid:tree1-child2",
+                "uuid:tree1-child2-child1",
+                "uuid:tree1-child2-child1-child1"
+        );
+        List<String> removed = Arrays.asList(pid);
+        ArrayList<String> shouldRemain = new ArrayList<String>(pids);
+        shouldRemain.removeAll(removed);
+        List<Item> found = support.getRemoteStorage().getSearch().find(pids);
+        FedoraTestSupport.assertItem(found, shouldRemain);
+        FedoraTestSupport.assertNoItem(found, removed);
+        List<Item> children = support.getRemoteStorage().getSearch().findChildren(parentPid);
+        FedoraTestSupport.assertNoItem(children, pid);
+    }
+
+    @Test
+    public void testPurgeTheWholeTree() throws Exception {
+        String pid = "uuid:tree1";
+        boolean hierarchy = true;
+        PurgeFedoraObject purge = new PurgeFedoraObject(support.getRemoteStorage());
+        purge.purge(pid, hierarchy, "junit");
+
+        String[] pids = {
+                "uuid:tree1",
+                "uuid:tree1-child1",
+                "uuid:tree1-child1-child1",
+                "uuid:tree1-child1-child1-child1",
+                "uuid:tree1-child1-child1-child2",
+                "uuid:tree1-child2",
+                "uuid:tree1-child2-child1",
+                "uuid:tree1-child2-child1-child1"
+        };
+        List<Item> found = support.getRemoteStorage().getSearch().find(pids);
+        FedoraTestSupport.assertNoItem(found, pids);
+    }
+
+    @Test
+    public void testDeleteTheWholeTree() throws Exception {
+        String pid = "uuid:tree1";
+        boolean hierarchy = true;
+        PurgeFedoraObject purge = new PurgeFedoraObject(support.getRemoteStorage());
+        purge.delete(pid, hierarchy, "junit");
+
+        String[] pids = {
+                "uuid:tree1",
+                "uuid:tree1-child1",
+                "uuid:tree1-child1-child1",
+                "uuid:tree1-child1-child1-child1",
+                "uuid:tree1-child1-child1-child2",
+                "uuid:tree1-child2",
+                "uuid:tree1-child2-child1",
+                "uuid:tree1-child2-child1-child1"
+        };
+        List<Item> found = support.getRemoteStorage().getSearch().find(pids);
+        FedoraTestSupport.assertItem(found, pids);
+        for (Item item : found) {
+            assertEquals(item.getPid(), "fedora-system:def/model#Deleted", item.getState());
+        }
+    }
+}

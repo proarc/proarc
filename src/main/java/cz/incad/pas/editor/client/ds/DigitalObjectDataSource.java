@@ -45,7 +45,7 @@ public final class DigitalObjectDataSource extends RestDataSource {
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
         setFields(pid, model);
 
-        setOperationBindings(RestConfig.createAddOperation());
+        setOperationBindings(RestConfig.createAddOperation(), RestConfig.createDeleteOperation());
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
 
