@@ -25,6 +25,7 @@ import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.tree.TreeGrid;
 import com.smartgwt.client.widgets.tree.TreeGridField;
@@ -100,6 +101,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         treeGrid.setEmptyMessage(i18nPas.ImportParentChooser_EmptySelection_Title());
         treeGrid.setAlternateRecordStyles(true);
         treeGrid.setSelectionType(SelectionStyle.SINGLE);
+        treeGrid.setContextMenu(new Menu());
         return treeGrid;
     }
 

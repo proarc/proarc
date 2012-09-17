@@ -17,9 +17,6 @@
 package cz.incad.pas.editor.client.widget;
 
 import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SelectionType;
@@ -43,14 +40,16 @@ import com.smartgwt.client.widgets.form.validator.RequiredIfValidator;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
+import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
+import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
-import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
@@ -95,7 +94,17 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     }
 
     private ListGrid createList() {
-        ListGrid grid = new ListGrid();
+        final ListGrid grid = new ListGrid();
+        grid.addDataArrivedHandler(new DataArrivedHandler() {
+
+            @Override
+            public void onDataArrived(DataArrivedEvent event) {
+                if (event.getStartRow() == 0 && event.getEndRow() > 0) {
+                    grid.focus();
+                    grid.selectSingleRecord(0);
+                }
+            }
+        });
         grid.setSelectionType(SelectionStyle.SINGLE);
         grid.setCanSort(false);
         grid.setDataSource(SearchDataSource.getInstance());
@@ -118,6 +127,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         ListGridField state = new ListGridField(SearchDataSource.FIELD_STATE,
                 i18nPas.DigitalObjectSearchView_ListHeaderState_Title());
         grid.setFields(label, model, pid, created, modified, owner, state);
+        grid.setContextMenu(new Menu());
         return grid;
     }
 
@@ -207,7 +217,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
             @Override
             public void onSubmitValues(SubmitValuesEvent event) {
                 if (filters.validate(false)) {
-                    filter(true);
+                    filter();
                 }
             }
         });
@@ -250,9 +260,9 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         return toolbar;
     }
 
-    public void onShow(final boolean select) {
+    public void onShow() {
         foundGrid.invalidateCache();
-        filter(select);
+        filter();
     }
 
     @Override
@@ -263,21 +273,13 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     @Override
     public void refresh() {
-        onShow(false);
+        onShow();
     }
 
-    private void filter(final boolean select) {
+    private void filter() {
         Criteria valuesAsCriteria = filters.getValuesAsCriteria();
         foundGrid.deselectAllRecords();
-        foundGrid.fetchData(valuesAsCriteria, new DSCallback() {
-
-            @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (select && RestConfig.isStatusOk(response)) {
-                    foundGrid.selectSingleRecord(0);
-                }
-            }
-        });
+        foundGrid.fetchData(valuesAsCriteria);
     }
 
     private static final class StringMatchFunction implements FormItemIfFunction {

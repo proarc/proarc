@@ -92,7 +92,7 @@ public final class ManageDigObjects {
 
     public void init() {
         treeView.loadModels();
-        foundView.onShow(true);
+        foundView.onShow();
         treeView.setRoot(null);
     }
 

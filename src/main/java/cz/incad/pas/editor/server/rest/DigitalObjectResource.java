@@ -244,6 +244,7 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.SEARCH_OWNER_PARAM) String owner,
             @DefaultValue(SearchType.DEFAULT)
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM) SearchType type,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM) String phrase,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM) String queryIdentifier,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM) String queryLabel,
@@ -261,6 +262,10 @@ public class DigitalObjectResource {
                 break;
             case QUERY:
                 items = search.findQuery(queryTitle, queryLabel, queryIdentifier, owner, queryModel);
+                page = 1;
+                break;
+            case PIDS:
+                items = search.find(pids);
                 page = 1;
                 break;
             case PHRASE:

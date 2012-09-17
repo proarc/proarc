@@ -30,6 +30,7 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_OWNER_PARAM = "owner";
     public static final String SEARCH_START_ROW_PARAM = "_startRow";
     public static final String SEARCH_PHRASE_PARAM = "phrase";
+    public static final String SEARCH_PID_PARAM = "pid";
     public static final String SEARCH_QUERY_IDENTIFIER_PARAM = "queryIdentifier";
     public static final String SEARCH_QUERY_LABEL_PARAM = "queryLabel";
     public static final String SEARCH_QUERY_MODEL_PARAM = "queryModel";
@@ -40,6 +41,7 @@ public final class DigitalObjectResourceApi {
         
         LAST_CREATED(SearchType.DEFAULT),
         LAST_MODIFIED("lastModified"),
+        PIDS("pids"),
         PHRASE("phrase"),
         QUERY("query");
         

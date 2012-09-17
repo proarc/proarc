@@ -85,6 +85,20 @@ public class SearchViewTest {
     }
 
     @Test
+    public void tetFindPid() throws Exception {
+//        fedora.getClient().debug(true);
+        fedora.cleanUp();
+        fedora.ingest(
+                getClass().getResource("tree1-child1-child1-child1.xml"),
+                getClass().getResource("tree1-child1-child1-child2.xml")
+        );
+        SearchView instance = new SearchView(storage);
+        String[] pids = {"uuid:tree1-child1-child1-child1", "uuid:tree1-child1-child1-child2"};
+        List<Item> result = instance.find(pids);
+        assertItem(result, pids);
+    }
+
+    @Test
     public void testFindChildrenHierarchy() throws Exception {
         fedora.cleanUp();
         fedora.ingest(
