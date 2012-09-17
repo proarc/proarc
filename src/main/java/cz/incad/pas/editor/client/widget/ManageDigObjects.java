@@ -28,6 +28,7 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItemSeparator;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.action.AbstractAction;
@@ -58,6 +59,11 @@ public final class ManageDigObjects {
     private final VLayout widget;
     private final DigitalObjectSearchView foundView;
     private final DigitalObjectTreeView treeView;
+    private FoxmlViewAction foxmlAction;
+    private KrameriusExportAction krameriusExportAction;
+    private DataStreamExportAction fullDataStreamExportAction;
+    private DataStreamExportAction rawDataStreamExportAction;
+    private DeleteAction deleteAction;
 
     public ManageDigObjects(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
@@ -86,8 +92,11 @@ public final class ManageDigObjects {
 
         widget.addMember(foundView.asWidget());
         widget.addMember(treeView.asWidget());
+        createActions();
         initToolbar(foundView.getToolbar(), foundView);
         initToolbar(treeView.getToolbar(), treeView);
+        initContextMenu(foundView.getGrid().getContextMenu(), foundView);
+        initContextMenu(treeView.getTree().getContextMenu(), treeView);
     }
 
     public void init() {
@@ -100,12 +109,17 @@ public final class ManageDigObjects {
         return widget;
     }
 
+    private void createActions() {
+        foxmlAction = new FoxmlViewAction(i18nPas);
+        krameriusExportAction = new KrameriusExportAction(i18nPas);
+        fullDataStreamExportAction = DataStreamExportAction.full(i18nPas);
+        rawDataStreamExportAction = DataStreamExportAction.raw(i18nPas);
+        deleteAction = new DeleteAction(new MultiRecordDeletable(), i18nPas);
+    }
     /**
      * export (Kramerius, Datastream), edit(MODS, Hierarchy), delete, view (Datastream)
      */
     private void initToolbar(ToolStrip toolbar, Selectable<Record> source) {
-        FoxmlViewAction foxmlAction = new FoxmlViewAction(i18nPas);
-
         final AbstractAction exportMenuAction = new AbstractAction(
                 i18nPas.ExportsAction_Title(), "[SKIN]/actions/save.png", null) {
 
@@ -115,16 +129,25 @@ public final class ManageDigObjects {
             }
         };
         IconMenuButton btnExport = Actions.asIconMenuButton(exportMenuAction, this);
-        Menu menuExport = new Menu();
-        menuExport.addItem(Actions.asMenuItem(new KrameriusExportAction(i18nPas), source));
-        menuExport.addItem(Actions.asMenuItem(DataStreamExportAction.full(i18nPas), source));
-        menuExport.addItem(Actions.asMenuItem(DataStreamExportAction.raw(i18nPas), source));
+        Menu menuExport = Actions.createMenu();
+        menuExport.addItem(Actions.asMenuItem(krameriusExportAction, source));
+        menuExport.addItem(Actions.asMenuItem(fullDataStreamExportAction, source));
+        menuExport.addItem(Actions.asMenuItem(rawDataStreamExportAction, source));
         btnExport.setMenu(menuExport);
 
         toolbar.addMember(Actions.asIconButton(foxmlAction, source));
         toolbar.addMember(btnExport);
-        toolbar.addMember(Actions.asIconButton(new DeleteAction(
-                new MultiRecordDeletable(), i18nPas), source));
+        toolbar.addMember(Actions.asIconButton(deleteAction, source));
+    }
+
+    private void initContextMenu(Menu menu, Selectable<Record> source) {
+        menu.addItem(Actions.asMenuItem(foxmlAction, source, true));
+        menu.addItem(new MenuItemSeparator());
+        menu.addItem(Actions.asMenuItem(krameriusExportAction, source));
+        menu.addItem(Actions.asMenuItem(fullDataStreamExportAction, source));
+        menu.addItem(Actions.asMenuItem(rawDataStreamExportAction, source));
+        menu.addItem(new MenuItemSeparator());
+        menu.addItem(Actions.asMenuItem(deleteAction, source, true));
     }
 
     /**

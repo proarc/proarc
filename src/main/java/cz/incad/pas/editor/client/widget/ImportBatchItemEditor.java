@@ -56,6 +56,7 @@ import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
+import com.smartgwt.client.widgets.menu.MenuItemSeparator;
 import com.smartgwt.client.widgets.tab.Tab;
 import com.smartgwt.client.widgets.tab.TabSet;
 import com.smartgwt.client.widgets.tab.events.TabDeselectedEvent;
@@ -107,6 +108,9 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private boolean selectListInProgress = false;
     private boolean selectTabInProgress = false;
     private BatchRecord batchRecord;
+    private BatchItemMultiEdit batchItemMultiEdit;
+    private FoxmlViewAction foxmlViewAction;
+    private DeleteAction deleteAction;
 
     public ImportBatchItemEditor(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
@@ -154,6 +158,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         editorThumbToolbarLayout.setShowResizeBar(true);
         editorThumbToolbarLayout.setResizeBarTarget("next");
 
+        createActions();
         ToolStrip editorToolStrip = createEditorToolBar();
         editorThumbToolbarLayout.addMember(editorToolStrip);
         editorThumbToolbarLayout.addMember(editorThumbLayout);
@@ -168,7 +173,8 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 //        previewLayout.setShowResizeBar(true);
 //        previewLayout.setResizeFrom("L");
         addMember(previewLayout);
-        batchItemGrid.setContextMenu(createEditorContextMenu(batchItemGrid));
+        createEditorContextMenu(batchItemGrid.getContextMenu(), this);
+        createEditorContextMenu(thumbViewer.getContextMenu(), this);
     }
 
     public void onShow(BatchRecord batch) {
@@ -229,6 +235,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         fieldPageType.setEmptyCellValue(ModsCustomDataSource.getPageTypes().get(ModsCustomDataSource.getDefaultPageType()));
 
         grid.setFields(fieldFilename, fieldPageNumber, fieldPageIndex, fieldPageType, fieldPid, fieldItemModel, fieldUser);
+        grid.setContextMenu(Actions.createMenu());
 
         // issue 7: default BodyKeyPressHandler does not change row focus properly
         // in case of mixing mouse and keyboard navigation.
@@ -356,7 +363,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         // thumbGrid.setLayoutPolicy(TileLayoutPolicy.FLOW);
         thumbGrid.setTileHeight(128 + 8 + 12 * 2);
         thumbGrid.setTileWidth(120);
-        thumbGrid.setContextMenu(createEditorContextMenu(thumbGrid));
+        thumbGrid.setContextMenu(Actions.createMenu());
 
         thumbGrid.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
@@ -403,19 +410,24 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         return thumbGrid;
     }
 
+    private void createActions() {
+        batchItemMultiEdit = new BatchItemMultiEdit();
+        foxmlViewAction = new FoxmlViewAction(i18nPas);
+        deleteAction = new DeleteAction(
+                new RecordDeletable(batchItemGrid.getDataSource()), i18nPas);
+    }
+
     private ToolStrip createEditorToolBar() {
         ToolStrip toolbar = Actions.createToolStrip();
         toolbar.addMember(Actions.asIconButton(new RefreshAction(i18nPas), this));
         toolbar.addMember(Actions.asIconButton(new SelectAction(), this));
-        toolbar.addMember(Actions.asIconButton(new BatchItemMultiEdit(), this));
-        toolbar.addMember(Actions.asIconButton(new FoxmlViewAction(i18nPas), this));
-        toolbar.addMember(Actions.asIconButton(new DeleteAction(
-                new RecordDeletable(batchItemGrid.getDataSource()), i18nPas), this));
+        toolbar.addMember(Actions.asIconButton(batchItemMultiEdit, this));
+        toolbar.addMember(Actions.asIconButton(foxmlViewAction, this));
+        toolbar.addMember(Actions.asIconButton(deleteAction, this));
         return toolbar;
     }
 
-    private Menu createEditorContextMenu(Object contextSource) {
-        Menu menu = new Menu();
+    private Menu createEditorContextMenu(Menu menu, Object contextSource) {
         MenuItem miRedraw = Actions.asMenuItem(new AbstractAction("Reset", null, null) {
 
             @Override
@@ -430,7 +442,12 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 }
             }
         }, contextSource);
-        menu.setItems(miRedraw);
+
+        menu.addItem(Actions.asMenuItem(batchItemMultiEdit, contextSource, true));
+        menu.addItem(Actions.asMenuItem(foxmlViewAction, contextSource, true));
+        menu.addItem(Actions.asMenuItem(deleteAction, contextSource, true));
+        menu.addItem(new MenuItemSeparator());
+        menu.addItem(miRedraw);
         return menu;
     }
 

@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.client.action;
 
+import com.smartgwt.client.util.Page;
 import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.events.ClickHandler;
@@ -123,13 +124,20 @@ public final class Actions {
     }
 
     public static MenuItem asMenuItem(final Action action, final Object source) {
+        return asMenuItem(action, source, false);
+    }
+
+    public static MenuItem asMenuItem(final Action action, final Object source, boolean willAsk) {
         MenuItem mi = new MenuItem();
         String title = action.getTitle();
         if (title != null) {
+            title = willAsk ? title + "..." : title;
             mi.setTitle(title);
         }
         String icon = action.getIcon();
         if (icon != null) {
+            // workaround: Menu uses own skin img dir default
+            icon = icon.replace("[SKIN]", Page.getSkinImgDir());
             mi.setIcon(icon);
         }
         mi.addClickHandler(new com.smartgwt.client.widgets.menu.events.ClickHandler() {
@@ -143,6 +151,18 @@ public final class Actions {
         return mi;
     }
 
+    /**
+     * Creates default menu.
+     */
+    public static Menu createMenu() {
+        Menu menu = new Menu();
+        menu.setShowShadow(true);
+        return menu;
+    }
+
+    /**
+     * Creates default toolbar.
+     */
     public static ToolStrip createToolStrip() {
         ToolStrip t = new ToolStrip();
         t.setMembersMargin(2);

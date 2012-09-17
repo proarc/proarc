@@ -127,7 +127,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         ListGridField state = new ListGridField(SearchDataSource.FIELD_STATE,
                 i18nPas.DigitalObjectSearchView_ListHeaderState_Title());
         grid.setFields(label, model, pid, created, modified, owner, state);
-        grid.setContextMenu(new Menu());
+        grid.setContextMenu(Actions.createMenu());
         return grid;
     }
 

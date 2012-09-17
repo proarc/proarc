@@ -101,7 +101,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         treeGrid.setEmptyMessage(i18nPas.ImportParentChooser_EmptySelection_Title());
         treeGrid.setAlternateRecordStyles(true);
         treeGrid.setSelectionType(SelectionStyle.SINGLE);
-        treeGrid.setContextMenu(new Menu());
+        treeGrid.setContextMenu(Actions.createMenu());
         return treeGrid;
     }
 
