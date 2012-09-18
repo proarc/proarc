@@ -120,7 +120,7 @@ public class SearchViewTest {
                 "uuid:tree1-child1-child1-child2",
                 "uuid:tree1-child2",
                 "uuid:tree1-child2-child1",
-                "uuid:tree1-child2-child1-child3");
+                "uuid:tree1-child2-child1-child1");
     }
 
     @Test
