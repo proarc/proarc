@@ -19,6 +19,7 @@ package cz.incad.pas.editor.server.config;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Properties;
 import org.apache.commons.configuration.Configuration;
@@ -100,10 +101,10 @@ public class PasConfigurationTest {
 
         // init paseditor.cfg
         Properties props = new Properties();
-        final String expectedPropValue = "test";
+        final String expectedPropValue = "test-čŇů"; // test UTF-8
         props.put(TEST_PROPERTY_NAME, expectedPropValue);
         final File configFile = new File(confHome, PasConfiguration.CONFIG_FILE_NAME);
-        FileOutputStream propsOut = new FileOutputStream(configFile);
+        OutputStreamWriter propsOut = new OutputStreamWriter(new FileOutputStream(configFile), "UTF-8");
         props.store(propsOut, null);
         propsOut.close();
         assertTrue(configFile.exists());
@@ -119,16 +120,22 @@ public class PasConfigurationTest {
         // test reload (like servlet reload)
         final String expectedReloadValue = "reload";
         props.put(TEST_PROPERTY_NAME, expectedReloadValue);
-        propsOut = new FileOutputStream(configFile);
+        propsOut = new OutputStreamWriter(new FileOutputStream(configFile), "UTF-8");
+        // FileChangedReloadingStrategy waits 5s to reload changes so give it a chance
+        Thread.sleep(5000);
         props.store(propsOut, null);
         propsOut.close();
         assertTrue(configFile.exists());
 
-        pconfig = factory.create(new HashMap<String, String>() {{
+        PasConfiguration pconfigNew = factory.create(new HashMap<String, String>() {{
             put(PasConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
 
-        config = pconfig.getConfiguration();
+        Configuration configNew = pconfigNew.getConfiguration();
+        assertEquals(expectedReloadValue, configNew.getString(TEST_PROPERTY_NAME));
+        assertEquals(EXPECTED_DEFAULT_VALUE, configNew.getString(TEST_DEFAULT_PROPERTY_NAME));
+
+        // test FileChangedReloadingStrategy
         assertEquals(expectedReloadValue, config.getString(TEST_PROPERTY_NAME));
         assertEquals(EXPECTED_DEFAULT_VALUE, config.getString(TEST_DEFAULT_PROPERTY_NAME));
     }

@@ -28,6 +28,7 @@ import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 
 /**
  * Server side configurations.
@@ -107,12 +108,17 @@ public final class PasConfiguration {
         this.homePath = home.getPath();
         this.configHome = initConfigFolder(home, environment.get(PROPERTY_APP_HOME));
         try {
-            // envConfig contains inerpolated properties
+            // envConfig contains interpolated properties
             PropertiesConfiguration envConfig = new PropertiesConfiguration();
             envConfig.addProperty(PROPERTY_APP_HOME, configHome.getPath());
             cc.addConfiguration(envConfig);
-            // external configuration editable by users
-            cc.addConfiguration(new PropertiesConfiguration(new File(configHome, CONFIG_FILE_NAME)));
+            // external configuration editable by users; UTF-8 expected
+            PropertiesConfiguration external = new PropertiesConfiguration();
+            external.setEncoding("UTF-8");
+            FileChangedReloadingStrategy reloading = new FileChangedReloadingStrategy();
+            external.setReloadingStrategy(reloading);
+            external.setFile(new File(configHome, CONFIG_FILE_NAME));
+            cc.addConfiguration(external);
             try {
                 // bundled default configurations
                 Enumeration<URL> resources = PasConfiguration.class.getClassLoader()
