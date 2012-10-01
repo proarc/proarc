@@ -55,8 +55,8 @@ public class CatalogConfigurationTest {
         conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_NAME, "catalog1Name");
         conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_URL, "catalog1URL");
         conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_TYPE, "catalog1Type");
-        catalog1ExtraOption = prefix + '.' + "extraOption";
-        conf.addProperty(catalog1ExtraOption, "catalog1ExtraOption");
+        catalog1ExtraOption = "extraOption";
+        conf.addProperty(prefix + '.' + catalog1ExtraOption, "catalog1ExtraOption");
         // Invalid catalog
         prefix = CatalogConfiguration.CATALOG_PREFIX + '.' + "catalogInvalid";
         conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_NAME, "catalogInvalidName");
@@ -87,13 +87,13 @@ public class CatalogConfigurationTest {
         assertEquals(2, catalogs.size());
         assertEquals("catalog1", catalogs.get(0).getId());
         assertEquals("catalog1Name", catalogs.get(0).getName());
-        assertEquals("catalog1URL", catalogs.get(0).getUrl());
+        assertEquals("http://catalog1URL", catalogs.get(0).getUrl());
         assertEquals("catalog1Type", catalogs.get(0).getType());
-        assertEquals("catalog1ExtraOption", catalogs.get(0).getProperties().get(catalog1ExtraOption));
+        assertEquals("catalog1ExtraOption", catalogs.get(0).getProperties().getString(catalog1ExtraOption));
 
         assertEquals("catalog2", catalogs.get(1).getId());
         assertEquals("catalog2Name", catalogs.get(1).getName());
-        assertEquals("catalog2URL", catalogs.get(1).getUrl());
+        assertEquals("http://catalog2URL", catalogs.get(1).getUrl());
         assertEquals("catalog2Type", catalogs.get(1).getType());
     }
 

@@ -101,8 +101,13 @@
         <dependency>
             <groupId>cz.incad</groupId>
             <artifactId>img-support</artifactId>
-            <version>jar</version>
+            <version>1.0-SNAPSHOT</version>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>z3950</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>commons-configuration</groupId>

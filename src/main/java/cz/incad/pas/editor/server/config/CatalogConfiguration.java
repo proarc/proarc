@@ -19,14 +19,15 @@ package cz.incad.pas.editor.server.config;
 import cz.incad.pas.editor.server.catalog.AlephXServer;
 import cz.incad.pas.editor.server.catalog.BibliographicCatalog;
 import cz.incad.pas.editor.server.catalog.DigitizationRegistryCatalog;
+import cz.incad.pas.editor.server.catalog.Z3950Catalog;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationUtils;
 
 /**
  * Bibliographic catalog configurations.
@@ -48,20 +49,35 @@ public final class CatalogConfiguration {
     public List<CatalogProperties> getCatalogs() {
         ArrayList<CatalogProperties> catalogs = new ArrayList<CatalogProperties>();
         for (String catalogId : config.getStringArray(PROPERTY_CATALOGS)) {
-            String catalogPrefix = CATALOG_PREFIX + '.' + catalogId;
-            HashMap<String, String> properties = new HashMap<String, String>();
-            CatalogProperties catalog = new CatalogProperties(catalogId, properties);
-            for (Iterator<String> it = config.getKeys(catalogPrefix); it.hasNext();) {
-                String key = it.next();
-                properties.put(key, config.getString(key));
+            CatalogProperties catalog = readCatalog(catalogId);
+            if (catalog != null) {
+                catalogs.add(catalog);
             }
-            if (!isValidProperty(catalogPrefix, CatalogProperties.PROPERTY_URL, catalog.getUrl())) {
-                continue;
-            }
-            isValidProperty(catalogPrefix, CatalogProperties.PROPERTY_NAME, catalog.getName());
-            catalogs.add(catalog);
         }
         return catalogs;
+    }
+
+    private CatalogProperties readCatalog(String catalogId) {
+        String catalogPrefix = CATALOG_PREFIX + '.' + catalogId;
+        Configuration catalogConfig = config.subset(catalogPrefix);
+        CatalogProperties catalog = new CatalogProperties(catalogId, catalogConfig);
+        if (!isValidProperty(catalogPrefix, CatalogProperties.PROPERTY_URL, catalog.getUrl())) {
+            return null;
+        }
+        isValidProperty(catalogPrefix, CatalogProperties.PROPERTY_NAME, catalog.getName());
+        return catalog;
+    }
+
+    /** Adds missing protocol that is required by URL/URI classes. */
+    private static String fixUrlProtocol(String url) {
+        if (url == null) {
+            return url;
+        }
+        if (url.contains("://")) {
+            return url;
+        } else {
+            return "http://" + url;
+        }
     }
 
     private static boolean isValidProperty(String prefix, String name, String value) {
@@ -82,6 +98,10 @@ public final class CatalogConfiguration {
             return catalog;
         }
         catalog = AlephXServer.get(props);
+        if (catalog != null) {
+            return catalog;
+        }
+        catalog = Z3950Catalog.get(props);
         return catalog;
     }
 
@@ -107,9 +127,9 @@ public final class CatalogConfiguration {
 
         private final String id;
         private final String prefix;
-        private final Map<String, String> properties;
+        private final Configuration properties;
 
-        private CatalogProperties(String id, Map<String, String> properties) {
+        public CatalogProperties(String id, Configuration properties) {
             this.id = id;
             this.properties = properties;
             this.prefix = CATALOG_PREFIX + '.' + id;
@@ -120,27 +140,36 @@ public final class CatalogConfiguration {
         }
 
         public String getName() {
-            return properties.get(prefix + '.' + PROPERTY_NAME);
+            return properties.getString(PROPERTY_NAME);
         }
 
         public String getType() {
-            return properties.get(prefix + '.' + PROPERTY_TYPE);
+            return properties.getString(PROPERTY_TYPE);
         }
 
         public String getUrl() {
-            return properties.get(prefix + '.' + PROPERTY_URL);
+            return fixUrlProtocol(properties.getString(PROPERTY_URL));
         }
 
         public String getPrefix() {
             return prefix;
         }
 
-        public Map<String, String> getProperties() {
+        public Configuration getProperties() {
             return properties;
         }
 
         public String getProperty(String name) {
-            return properties.get(prefix + '.' + name);
+            return properties.getString(name);
+        }
+
+        @Override
+        public String toString() {
+            StringWriter dump = new StringWriter();
+            PrintWriter printWriter = new PrintWriter(dump);
+            ConfigurationUtils.dump(properties, printWriter);
+            printWriter.flush();
+            return "CatalogProperties{id=" + id + ", prefix=" + prefix + ", properties:" + dump + '}';
         }
 
     }
