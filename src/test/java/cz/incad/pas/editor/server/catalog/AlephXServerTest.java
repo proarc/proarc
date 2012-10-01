@@ -84,7 +84,7 @@ public class AlephXServerTest {
         InputStream xmlIS = AlephXServerTest.class.getResourceAsStream("alephXServerFindResponse.xml");
         assertNotNull(xmlIS);
         try {
-            AlephXServer server = new AlephXServer("dummyUrl");
+            AlephXServer server = new AlephXServer("http://dummyUrl");
             AlephXServer.FindResponse found = server.createFindResponse(xmlIS);
             assertNotNull(found);
             assertEquals("183719", found.getNumber());
@@ -101,7 +101,7 @@ public class AlephXServerTest {
         assertNotNull(xmlIS);
 
         try {
-            AlephXServer server = new AlephXServer("dummyUrl");
+            AlephXServer server = new AlephXServer("http://dummyUrl");
             List<MetadataItem> details = server.createDetailResponse(xmlIS, null);
             assertNotNull(server);
             assertEquals(1, details.size());

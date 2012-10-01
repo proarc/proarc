@@ -66,6 +66,8 @@ public final class AlephXServer implements BibliographicCatalog {
         if (url != null) {
             try {
                 return new AlephXServer(url);
+            } catch (MalformedURLException ex) {
+                LOG.log(Level.SEVERE, c.getPrefix(), ex);
             } catch (URISyntaxException ex) {
                 LOG.log(Level.SEVERE, c.getPrefix(), ex);
             }
@@ -75,11 +77,11 @@ public final class AlephXServer implements BibliographicCatalog {
 
     public AlephXServer(URI uri) {
         this.server = uri;
-
     }
 
-    public AlephXServer(String url) throws URISyntaxException {
-        this(new URI(url));
+    public AlephXServer(String url) throws URISyntaxException, MalformedURLException {
+        // parse with URL that offers better error notification
+        this(new URL(url).toURI());
     }
 
     public List<MetadataItem> find(String fieldName, String value) throws TransformerException, IOException {
