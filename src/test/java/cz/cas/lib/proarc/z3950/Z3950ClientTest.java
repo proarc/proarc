@@ -53,9 +53,9 @@ public class Z3950ClientTest {
 
     @Before
     public void setUp() {
-        host = System.getProperty("cz.cas.lib.proarc.z3950.Z3950ClientTest.host");
-        port = System.getProperty("cz.cas.lib.proarc.z3950.Z3950ClientTest.port");
-        base = System.getProperty("cz.cas.lib.proarc.z3950.Z3950ClientTest.base");
+        host = System.getProperty("Z3950ClientTest.host");
+        port = System.getProperty("Z3950ClientTest.port");
+        base = System.getProperty("Z3950ClientTest.base");
         Assume.assumeNotNull(host, port, base);
     }
 
@@ -65,7 +65,7 @@ public class Z3950ClientTest {
 
     @Test
     public void testSearch() throws Exception {
-        String query = System.getProperty("cz.cas.lib.proarc.z3950.Z3950ClientTest.query");
+        String query = System.getProperty("Z3950ClientTest.testSearch.query");
         Assume.assumeNotNull(query);
         Z3950Client client = new Z3950Client(host, Integer.parseInt(port), base);
         try {
