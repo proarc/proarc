@@ -43,7 +43,7 @@ import javax.xml.transform.TransformerException;
 
 /**
  * The resource to list available bibliographic catalogs like Aleph
- * and registrdigitalizace.cz and to query them for meta data.
+ * and registrdigitalizace.cz and to query them for metadata.
  *
  * @author Jan Pokorsky
  */
@@ -86,7 +86,7 @@ public class BibliographicCatalogResource {
     }
     
     /**
-     * Finds meta data in bibliographic catalog.
+     * Finds metadata in bibliographic catalog.
      *
      * @param catalog catalog descriptor
      * @param fieldName issn|isbn|ccnb

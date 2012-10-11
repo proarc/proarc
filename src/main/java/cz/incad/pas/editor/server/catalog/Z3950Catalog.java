@@ -43,7 +43,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Document;
 
 /**
- * Z39.50 meta data provider.
+ * Z39.50 metadata provider.
  *
  * @author Jan Pokorsky
  */

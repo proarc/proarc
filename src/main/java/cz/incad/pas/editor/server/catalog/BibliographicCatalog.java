@@ -23,7 +23,7 @@ import java.util.Locale;
 import javax.xml.transform.TransformerException;
 
 /**
- * Bibliographic meta data catalog.
+ * Bibliographic metadata catalog.
  *
  * @author Jan Pokorsky
  */

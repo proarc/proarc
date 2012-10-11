@@ -27,7 +27,7 @@ import cz.incad.pas.editor.client.ClientUtils;
 import java.util.logging.Logger;
 
 /**
- * Bibliographic meta data queries.
+ * Bibliographic metadata queries.
  *
  * @author Jan Pokorsky
  */
