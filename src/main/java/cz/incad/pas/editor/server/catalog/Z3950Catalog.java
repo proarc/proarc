@@ -18,7 +18,7 @@ package cz.incad.pas.editor.server.catalog;
 
 import cz.cas.lib.proarc.z3950.Z3950Client;
 import cz.cas.lib.proarc.z3950.Z3950ClientException;
-import cz.incad.pas.editor.server.config.CatalogConfiguration.CatalogProperties;
+import cz.incad.pas.editor.server.config.CatalogConfiguration;
 import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import cz.incad.pas.editor.server.xml.Transformers;
@@ -71,7 +71,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
     /** fieldId -> field */
     private final Map<String, Field> fields;
 
-    public static Z3950Catalog get(CatalogProperties c) {
+    public static Z3950Catalog get(CatalogConfiguration c) {
         if (c == null || !TYPE.equals(c.getType())) {
             return null;
         }
@@ -83,16 +83,16 @@ public final class Z3950Catalog implements BibliographicCatalog {
                 URI uri = new URI(url);
                 host = uri.getHost();
                 if (host == null || host.isEmpty()) {
-                    LOG.log(Level.SEVERE, c.getPrefix(), "Missing host in URL: " + url);
+                    LOG.log(Level.SEVERE, "Missing host in URL.\n{0}", c);
                     return null;
                 }
                 port = uri.getPort();
                 if (port == -1) {
-                    LOG.log(Level.SEVERE, c.getPrefix(), "Missing port in URL: " + url);
+                    LOG.log(Level.SEVERE, "Missing port in URL.\n{0}", c);
                     return null;
                 }
             } catch (URISyntaxException ex) {
-                LOG.log(Level.SEVERE, c.getPrefix(), ex);
+                LOG.log(Level.SEVERE, c.toString(), ex);
                 return null;
             }
         }
@@ -103,7 +103,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
             try {
                 charset = Charset.forName(recordCharset);
             } catch (Exception ex) {
-                LOG.log(Level.SEVERE, c.getPrefix(), ex);
+                LOG.log(Level.SEVERE, c.toString(), ex);
             }
         }
 
@@ -111,7 +111,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
         return new Z3950Catalog(host, port, base, charset, fields);
     }
 
-    static Map<String, Field> readFields(CatalogProperties c) {
+    static Map<String, Field> readFields(CatalogConfiguration c) {
         String[] fieldIds = c.getProperties().getStringArray(PROPERTY_FIELDS);
         Map<String, Field> fields = new HashMap<String, Field>();
         for (String fieldId : fieldIds) {

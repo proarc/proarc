@@ -17,7 +17,6 @@
 package cz.incad.pas.editor.server.config;
 
 import cz.incad.pas.editor.server.catalog.BibliographicCatalog;
-import cz.incad.pas.editor.server.config.CatalogConfiguration.CatalogProperties;
 import java.util.List;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.junit.After;
@@ -51,28 +50,28 @@ public class CatalogConfigurationTest {
     public void setUp() {
         conf = new BaseConfiguration();
         // catalog1
-        String prefix = CatalogConfiguration.CATALOG_PREFIX + '.' + "catalog1";
-        conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_NAME, "catalog1Name");
-        conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_URL, "catalog1URL");
-        conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_TYPE, "catalog1Type");
+        String prefix = Catalogs.CATALOG_PREFIX + '.' + "catalog1";
+        conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_NAME, "catalog1Name");
+        conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_URL, "catalog1URL");
+        conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_TYPE, "catalog1Type");
         catalog1ExtraOption = "extraOption";
         conf.addProperty(prefix + '.' + catalog1ExtraOption, "catalog1ExtraOption");
         // Invalid catalog
-        prefix = CatalogConfiguration.CATALOG_PREFIX + '.' + "catalogInvalid";
-        conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_NAME, "catalogInvalidName");
-        conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_TYPE, "catalogInvalidType");
+        prefix = Catalogs.CATALOG_PREFIX + '.' + "catalogInvalid";
+        conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_NAME, "catalogInvalidName");
+        conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_TYPE, "catalogInvalidType");
         // Not listed catalog
-        prefix = CatalogConfiguration.CATALOG_PREFIX + '.' + "catalogNotListed";
-        conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_NAME, "catalogNotListedName");
-        conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_URL, "catalogNotListedURL");
-        conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_TYPE, "catalogNotListedType");
+        prefix = Catalogs.CATALOG_PREFIX + '.' + "catalogNotListed";
+        conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_NAME, "catalogNotListedName");
+        conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_URL, "catalogNotListedURL");
+        conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_TYPE, "catalogNotListedType");
         // catalog2
-        prefix = CatalogConfiguration.CATALOG_PREFIX + '.' + "catalog2";
-        conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_NAME, "catalog2Name");
-        conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_URL, "catalog2URL");
-        conf.addProperty(prefix + '.' + CatalogProperties.PROPERTY_TYPE, "catalog2Type");
+        prefix = Catalogs.CATALOG_PREFIX + '.' + "catalog2";
+        conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_NAME, "catalog2Name");
+        conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_URL, "catalog2URL");
+        conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_TYPE, "catalog2Type");
         // catalogs declaration
-        conf.addProperty(CatalogConfiguration.PROPERTY_CATALOGS, "catalog1, catalogInvalid, catalogMissing, catalog2");
+        conf.addProperty(Catalogs.PROPERTY_CATALOGS, "catalog1, catalogInvalid, catalogMissing, catalog2");
         conf.addProperty("dummyProperty", "dummy");
     }
 
@@ -82,8 +81,8 @@ public class CatalogConfigurationTest {
 
     @Test
     public void testGetCatalogs() {
-        CatalogConfiguration instance = new CatalogConfiguration(conf);
-        List<CatalogProperties> catalogs = instance.getCatalogs();
+        Catalogs instance = new Catalogs(conf);
+        List<CatalogConfiguration> catalogs = instance.getConfigurations();
         assertEquals(2, catalogs.size());
         assertEquals("catalog1", catalogs.get(0).getId());
         assertEquals("catalog1Name", catalogs.get(0).getName());
@@ -99,18 +98,18 @@ public class CatalogConfigurationTest {
 
     @Test
     public void testFindCatalog() {
-        CatalogConfiguration instance = new CatalogConfiguration(conf);
+        Catalogs instance = new Catalogs(conf);
         BibliographicCatalog bcatalog = instance.findCatalog("catalog1");
         assertNull(bcatalog);
     }
 
     @Test
     public void testFindConfig() {
-        CatalogConfiguration instance = new CatalogConfiguration(conf);
-        CatalogProperties catalog1 = instance.findConfig("catalog1");
+        Catalogs instance = new Catalogs(conf);
+        CatalogConfiguration catalog1 = instance.findConfiguration("catalog1");
         assertEquals("catalog1", catalog1.getId());
 
-        CatalogProperties catalogMissing = instance.findConfig("catalogMissing");
+        CatalogConfiguration catalogMissing = instance.findConfiguration("catalogMissing");
         assertNull(catalogMissing);
     }
 }

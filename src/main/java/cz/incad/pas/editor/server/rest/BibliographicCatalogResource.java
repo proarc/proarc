@@ -17,7 +17,7 @@
 package cz.incad.pas.editor.server.rest;
 
 import cz.incad.pas.editor.server.catalog.BibliographicCatalog;
-import cz.incad.pas.editor.server.config.CatalogConfiguration.CatalogProperties;
+import cz.incad.pas.editor.server.config.CatalogConfiguration;
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
@@ -67,11 +67,11 @@ public class BibliographicCatalogResource {
     public SmartGwtResponse<CatalogDescriptor> findCatalog(
             @QueryParam(BibliographicCatalogResourceApi.CATALOG_ID) String id) {
 
-        List<CatalogProperties> catalogs;
+        List<CatalogConfiguration> catalogs;
         if (id == null) {
-            catalogs = appConfig.getCatalogs().getCatalogs();
+            catalogs = appConfig.getCatalogs().getConfigurations();
         } else {
-            CatalogProperties catalog = appConfig.getCatalogs().findConfig(id);
+            CatalogConfiguration catalog = appConfig.getCatalogs().findConfiguration(id);
             if (catalog == null) {
                 return SmartGwtResponse.<CatalogDescriptor>asError()
                         .error(BibliographicCatalogResourceApi.CATALOG_ID, "Not found").build();
@@ -79,7 +79,7 @@ public class BibliographicCatalogResource {
             catalogs = Arrays.asList(catalog);
         }
         ArrayList<CatalogDescriptor> result = new ArrayList<CatalogDescriptor>(catalogs.size());
-        for (CatalogProperties cp : catalogs) {
+        for (CatalogConfiguration cp : catalogs) {
             result.add(CatalogDescriptor.create(cp));
         }
         return new SmartGwtResponse<CatalogDescriptor>(result);
@@ -116,7 +116,7 @@ public class BibliographicCatalogResource {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class CatalogDescriptor {
 
-        public static CatalogDescriptor create(CatalogProperties cp) {
+        public static CatalogDescriptor create(CatalogConfiguration cp) {
             return new CatalogDescriptor(cp.getId(), cp.getName());
         }
 

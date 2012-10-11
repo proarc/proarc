@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.server.catalog;
 
-import cz.incad.pas.editor.server.config.CatalogConfiguration.CatalogProperties;
+import cz.incad.pas.editor.server.config.CatalogConfiguration;
 import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import cz.incad.pas.editor.server.xml.Transformers;
@@ -51,13 +51,13 @@ public final class DigitizationRegistryCatalog implements BibliographicCatalog {
     private final DigitizationRegistry register;
     private Transformers transformers = new Transformers();
 
-    public static DigitizationRegistryCatalog get(CatalogProperties c) {
+    public static DigitizationRegistryCatalog get(CatalogConfiguration c) {
         if (c == null || !TYPE.equals(c.getType())) {
             return null;
         }
         String url = c.getUrl();
-        String user = c.getProperty(CatalogProperties.PROPERTY_USER);
-        String passwd = c.getProperty(CatalogProperties.PROPERTY_PASSWD);
+        String user = c.getProperty(CatalogConfiguration.PROPERTY_USER);
+        String passwd = c.getProperty(CatalogConfiguration.PROPERTY_PASSWD);
         return new DigitizationRegistryCatalog(url, user, passwd);
     }
 

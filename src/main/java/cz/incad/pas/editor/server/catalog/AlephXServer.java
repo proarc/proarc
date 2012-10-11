@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.server.catalog;
 
-import cz.incad.pas.editor.server.config.CatalogConfiguration.CatalogProperties;
+import cz.incad.pas.editor.server.config.CatalogConfiguration;
 import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import cz.incad.pas.editor.server.xml.Transformers;
@@ -58,7 +58,7 @@ public final class AlephXServer implements BibliographicCatalog {
     private final Transformers transformers = new Transformers();
     private final URI server;
 
-    public static AlephXServer get(CatalogProperties c) {
+    public static AlephXServer get(CatalogConfiguration c) {
         if (c == null || !TYPE.equals(c.getType())) {
             return null;
         }
@@ -67,9 +67,9 @@ public final class AlephXServer implements BibliographicCatalog {
             try {
                 return new AlephXServer(url);
             } catch (MalformedURLException ex) {
-                LOG.log(Level.SEVERE, c.getPrefix(), ex);
+                LOG.log(Level.SEVERE, c.toString(), ex);
             } catch (URISyntaxException ex) {
-                LOG.log(Level.SEVERE, c.getPrefix(), ex);
+                LOG.log(Level.SEVERE, c.toString(), ex);
             }
         }
         return null;

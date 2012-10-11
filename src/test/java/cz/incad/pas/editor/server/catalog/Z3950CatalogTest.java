@@ -17,7 +17,7 @@
 package cz.incad.pas.editor.server.catalog;
 
 import cz.incad.pas.editor.server.catalog.Z3950Catalog.Field;
-import cz.incad.pas.editor.server.config.CatalogConfiguration.CatalogProperties;
+import cz.incad.pas.editor.server.config.CatalogConfiguration;
 import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -66,10 +66,10 @@ public class Z3950CatalogTest {
         final String recordCharset = "UTF-8";
         final String id = "z3950";
 
-        CatalogProperties c = new CatalogProperties(id, new BaseConfiguration() {{
-            addProperty(CatalogProperties.PROPERTY_URL, "tcp://" + host + ":" + port);
-            addProperty(CatalogProperties.PROPERTY_NAME, "test");
-            addProperty(CatalogProperties.PROPERTY_TYPE, Z3950Catalog.TYPE);
+        CatalogConfiguration c = new CatalogConfiguration(id, "", new BaseConfiguration() {{
+            addProperty(CatalogConfiguration.PROPERTY_URL, "tcp://" + host + ":" + port);
+            addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
+            addProperty(CatalogConfiguration.PROPERTY_TYPE, Z3950Catalog.TYPE);
             addProperty(Z3950Catalog.PROPERTY_BASE, "testbase");
             addProperty(Z3950Catalog.PROPERTY_RECORD_CHARSET, "UTF-8");
         }});
@@ -103,7 +103,7 @@ public class Z3950CatalogTest {
     @Test
     public void testReadFields() {
         final String catalogId = "catalogId";
-        CatalogProperties c = new CatalogProperties(catalogId, new BaseConfiguration() {{
+        CatalogConfiguration c = new CatalogConfiguration(catalogId, "", new BaseConfiguration() {{
             addProperty(Z3950Catalog.PROPERTY_FIELDS, "field1,field2 , field3  ");
             addProperty(Z3950Catalog.PROPERTY_FIELD + '.' + "field1" + '.' + Z3950Catalog.PROPERTY_FIELD_QUERY, "query1");
             addProperty(Z3950Catalog.PROPERTY_FIELD + '.' + "field2" + '.' + Z3950Catalog.PROPERTY_FIELD_QUERY, "query2");
