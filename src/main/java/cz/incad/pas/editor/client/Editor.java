@@ -296,12 +296,12 @@ public class Editor implements EntryPoint {
                     importPresenter.bind();
                     importPresenter.selectBatchFromHistory();
                 } else if ("New Object".equals(name)) {
-                    DigObjectEditorPresenter objectEditorPresenter = placeFactory.getObjectEditorPresenter();
+                    DigObjectEditorPresenter objectEditorPresenter = placeFactory.getNewObjectPresenter();
                     Canvas ui = objectEditorPresenter.getUI();
                     placesContainer.setMembers(ui);
                     objectEditorPresenter.newObject();
                 } else if ("Search".equals(name)) {
-                    ManageDigObjects presenter = new ManageDigObjects(i18nPas);
+                    ManageDigObjects presenter = placeFactory.getManageObjectPresenter();
                     Canvas ui = presenter.getUI();
                     placesContainer.setMembers(ui);
                     presenter.init();
@@ -401,6 +401,7 @@ public class Editor implements EntryPoint {
     private static final class PlaceFactory {
         private ImportPresenter importPresenter;
         private DigObjectEditorPresenter objectEditorPresenter;
+        private ManageDigObjects manageDigObjects;
         private UsersView users;
         private final PasEditorMessages i18nPas;
 
@@ -415,11 +416,18 @@ public class Editor implements EntryPoint {
             return importPresenter;
         }
 
-        public DigObjectEditorPresenter getObjectEditorPresenter() {
+        public DigObjectEditorPresenter getNewObjectPresenter() {
             if (objectEditorPresenter == null) {
                 objectEditorPresenter = new DigObjectEditorPresenter(i18nPas);
             }
             return objectEditorPresenter;
+        }
+
+        public ManageDigObjects getManageObjectPresenter() {
+            if (manageDigObjects == null) {
+                manageDigObjects = new ManageDigObjects(i18nPas);
+            }
+            return manageDigObjects;
         }
 
         public UsersView getUsers() {
