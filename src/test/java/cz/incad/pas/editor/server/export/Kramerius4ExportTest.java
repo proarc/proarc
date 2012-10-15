@@ -83,6 +83,7 @@ public class Kramerius4ExportTest {
         // check datastreams with xpath
         HashMap<String, String> namespaces = new HashMap<String, String>();
         namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
+        namespaces.put("oai", Kramerius4Export.OAI_NS);
         XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
         String foxmlSystemId = Kramerius4Export.pidAsFile(target, pids[0]).toURI().toASCIIString();
         XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
@@ -93,6 +94,10 @@ public class Kramerius4ExportTest {
         XMLAssert.assertXpathExists(streamXPath("IMG_PREVIEW"), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath("IMG_THUMBNAIL"), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathNotExists(streamXPath(BinaryEditor.RAW_ID), new InputSource(foxmlSystemId));
+
+        // check OAI ID
+        XMLAssert.assertXpathExists("//oai:itemID", new InputSource(foxmlSystemId));
+
     }
 
     private static String streamXPath(String dsId) {

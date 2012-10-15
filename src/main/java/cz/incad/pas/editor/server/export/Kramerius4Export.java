@@ -60,6 +60,7 @@ public final class Kramerius4Export {
 
     public static final String KRAMERIUS_RELATION_NS = "http://www.nsdl.org/ontologies/relationships#";
     public static final String KRAMERIUS_RELATION_PREFIX = "kramerius";
+    public static final String OAI_NS = "http://www.openarchives.org/OAI/2.0/";
 
     private RemoteStorage rstorage;
     private LocalStorage lstorage = new LocalStorage();
@@ -135,6 +136,7 @@ public final class Kramerius4Export {
             DatastreamType datastream = it.next();
             if (excludeDatastreams.contains(datastream.getID())) {
                 it.remove();
+                continue;
             }
             excludeVersions(datastream);
             renameDatastream(datastream);
@@ -188,35 +190,36 @@ public final class Kramerius4Export {
 
     private void transformRelation2Kramerius(String pid, RelationEditor editor, List<Item> childDescriptors) {
         List<String> children = editor.getMembers();
-        if (!children.isEmpty()) {
-            try {
-                DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();
-                dfactory.setNamespaceAware(true);
-                Document doc = dfactory.newDocumentBuilder().newDocument();
-                List<Element> relations = editor.getRelations();
-                editor.setMembers(Collections.<String>emptyList());
-                for (String childPid : children) {
-                    Item desc = remove(childPid, childDescriptors);
-                    if (desc == null) {
-                        throw new IllegalStateException("Child " + childPid + " of " + pid + " not found in resource index!");
-                    }
-                    String krelation = relationMap.get(desc.getModel());
-                    if (krelation == null) {
-                        throw new IllegalStateException(String.format(
-                                "Cannot map to Kramerius relation! Child: %s, model: %s, parent: %s ",
-                                childPid, desc.getModel(), pid));
-                    }
-                    Element elm = doc.createElementNS(KRAMERIUS_RELATION_NS, KRAMERIUS_RELATION_PREFIX + ":" + krelation);
-                    elm.setAttributeNS(Relations.RDF_NS,
-                            "rdf:resource",
-                            RelationResource.fromPid(childPid).getResource());
-                    relations.add(elm);
+        try {
+            DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();
+            dfactory.setNamespaceAware(true);
+            Document doc = dfactory.newDocumentBuilder().newDocument();
+            List<Element> relations = editor.getRelations();
+
+            setOaiId(pid, relations, doc);
+
+            editor.setMembers(Collections.<String>emptyList());
+            for (String childPid : children) {
+                Item desc = remove(childPid, childDescriptors);
+                if (desc == null) {
+                    throw new IllegalStateException("Child " + childPid + " of " + pid + " not found in resource index!");
                 }
-                editor.setRelations(relations);
-                editor.write(editor.getLastModified());
-            } catch (ParserConfigurationException ex) {
-                throw new IllegalStateException(ex);
+                String krelation = relationMap.get(desc.getModel());
+                if (krelation == null) {
+                    throw new IllegalStateException(String.format(
+                            "Cannot map to Kramerius relation! Child: %s, model: %s, parent: %s ",
+                            childPid, desc.getModel(), pid));
+                }
+                Element elm = doc.createElementNS(KRAMERIUS_RELATION_NS, KRAMERIUS_RELATION_PREFIX + ":" + krelation);
+                elm.setAttributeNS(Relations.RDF_NS,
+                        "rdf:resource",
+                        RelationResource.fromPid(childPid).getResource());
+                relations.add(elm);
             }
+            editor.setRelations(relations);
+            editor.write(editor.getLastModified());
+        } catch (ParserConfigurationException ex) {
+            throw new IllegalStateException(ex);
         }
     }
 
@@ -229,6 +232,23 @@ public final class Kramerius4Export {
             }
         }
         return null;
+    }
+
+    /**
+     * Sets OAI ID as relation if necessary.
+     * @param pid PID to use as OAI ID
+     * @param relations list of existing relations
+     * @param doc DOM
+     */
+    private static void setOaiId(String pid, List<Element> relations, Document doc) {
+        for (Element relation : relations) {
+            if (OAI_NS.equals(relation.getNamespaceURI()) && "itemID".equals(relation.getLocalName())) {
+                return ;
+            }
+        }
+        Element elm = doc.createElementNS(OAI_NS, "oai:itemID");
+        elm.setTextContent(pid);
+        relations.add(elm);
     }
 
     static File pidAsFile(File output, String pid) {
