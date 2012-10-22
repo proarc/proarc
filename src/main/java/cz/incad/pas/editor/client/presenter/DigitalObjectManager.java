@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.incad.pas.editor.client.widget;
+package cz.incad.pas.editor.client.presenter;
 
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -44,7 +44,8 @@ import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
-import cz.incad.pas.editor.client.presenter.DigitalObjectEditor;
+import cz.incad.pas.editor.client.widget.DigitalObjectSearchView;
+import cz.incad.pas.editor.client.widget.DigitalObjectTreeView;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,7 +56,7 @@ import java.util.HashMap;
  *
  * @author Jan Pokorsky
  */
-public final class ManageDigObjects {
+public final class DigitalObjectManager {
 
     private final PasEditorMessages i18nPas;
     private final VLayout widget;
@@ -71,7 +72,7 @@ public final class ManageDigObjects {
     private DigitalObjectEditAction modsEditAction;
     private boolean initialized;
 
-    public ManageDigObjects(PasEditorMessages i18nPas) {
+    public DigitalObjectManager(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
         widget = new VLayout(4);
         widget.setLayoutMargin(4);

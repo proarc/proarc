@@ -53,9 +53,9 @@ import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.UserDataSource;
 import cz.incad.pas.editor.client.ds.UserPermissionDataSource;
 import cz.incad.pas.editor.client.presenter.DigObjectEditorPresenter;
-import cz.incad.pas.editor.client.presenter.ImportPresenter;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditor;
-import cz.incad.pas.editor.client.widget.ManageDigObjects;
+import cz.incad.pas.editor.client.presenter.DigitalObjectManager;
+import cz.incad.pas.editor.client.presenter.ImportPresenter;
 import cz.incad.pas.editor.client.widget.UsersView;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -319,7 +319,7 @@ public class Editor implements EntryPoint {
                     placesContainer.setMembers(ui);
                     objectEditorPresenter.newObject();
                 } else if ("Search".equals(name)) {
-                    ManageDigObjects presenter = presenterFactory.getManageObjectPresenter();
+                    DigitalObjectManager presenter = presenterFactory.getDigitalObjectManager();
                     Canvas ui = presenter.getUI();
                     placesContainer.setMembers(ui);
                     presenter.init();
@@ -420,7 +420,7 @@ public class Editor implements EntryPoint {
         private ImportPresenter importPresenter;
         private DigObjectEditorPresenter objectEditorPresenter;
         private DigitalObjectEditor digitalObjectEditor;
-        private ManageDigObjects manageDigObjects;
+        private DigitalObjectManager digitalObjectManager;
         private UsersView users;
         private final PasEditorMessages i18nPas;
 
@@ -449,11 +449,11 @@ public class Editor implements EntryPoint {
             return digitalObjectEditor;
         }
 
-        public ManageDigObjects getManageObjectPresenter() {
-            if (manageDigObjects == null) {
-                manageDigObjects = new ManageDigObjects(i18nPas);
+        public DigitalObjectManager getDigitalObjectManager() {
+            if (digitalObjectManager == null) {
+                digitalObjectManager = new DigitalObjectManager(i18nPas);
             }
-            return manageDigObjects;
+            return digitalObjectManager;
         }
 
         public UsersView getUsers() {
