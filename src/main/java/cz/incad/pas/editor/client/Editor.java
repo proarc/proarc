@@ -52,7 +52,7 @@ import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.UserDataSource;
 import cz.incad.pas.editor.client.ds.UserPermissionDataSource;
-import cz.incad.pas.editor.client.presenter.DigObjectEditorPresenter;
+import cz.incad.pas.editor.client.presenter.DigitalObjectCreator;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditor;
 import cz.incad.pas.editor.client.presenter.DigitalObjectManager;
 import cz.incad.pas.editor.client.presenter.ImportPresenter;
@@ -314,7 +314,7 @@ public class Editor implements EntryPoint {
                     importPresenter.bind();
                     importPresenter.selectBatchFromHistory();
                 } else if ("New Object".equals(name)) {
-                    DigObjectEditorPresenter objectEditorPresenter = presenterFactory.getNewObjectPresenter();
+                    DigitalObjectCreator objectEditorPresenter = presenterFactory.getDigitalObjectCreator();
                     Canvas ui = objectEditorPresenter.getUI();
                     placesContainer.setMembers(ui);
                     objectEditorPresenter.newObject();
@@ -418,7 +418,7 @@ public class Editor implements EntryPoint {
 
     public static final class PresenterFactory {
         private ImportPresenter importPresenter;
-        private DigObjectEditorPresenter objectEditorPresenter;
+        private DigitalObjectCreator digitalObjectCreator;
         private DigitalObjectEditor digitalObjectEditor;
         private DigitalObjectManager digitalObjectManager;
         private UsersView users;
@@ -435,11 +435,11 @@ public class Editor implements EntryPoint {
             return importPresenter;
         }
 
-        public DigObjectEditorPresenter getNewObjectPresenter() {
-            if (objectEditorPresenter == null) {
-                objectEditorPresenter = new DigObjectEditorPresenter(i18nPas);
+        public DigitalObjectCreator getDigitalObjectCreator() {
+            if (digitalObjectCreator == null) {
+                digitalObjectCreator = new DigitalObjectCreator(i18nPas);
             }
-            return objectEditorPresenter;
+            return digitalObjectCreator;
         }
 
         public DigitalObjectEditor getDigitalObjectEditor() {

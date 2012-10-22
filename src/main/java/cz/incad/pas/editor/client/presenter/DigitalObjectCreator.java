@@ -42,12 +42,13 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
+ * Creates new digital object.
  *
  * @author Jan Pokorsky
  */
-public final class DigObjectEditorPresenter {
+public final class DigitalObjectCreator {
 
-    private static final Logger LOG = Logger.getLogger(DigObjectEditorPresenter.class.getName());
+    private static final Logger LOG = Logger.getLogger(DigitalObjectCreator.class.getName());
 
     private final NewDigObjectStep newDigObjectStep;
     private final NewModsStep newModsStep;
@@ -58,7 +59,7 @@ public final class DigObjectEditorPresenter {
     private WizardContext wc;
     private final PasEditorMessages i18nPas;
 
-    public DigObjectEditorPresenter(PasEditorMessages i18nPas) {
+    public DigitalObjectCreator(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
         newDigObjectStep = new NewDigObjectStep();
         newModsStep = new NewModsStep();
@@ -72,25 +73,10 @@ public final class DigObjectEditorPresenter {
     public void newObject() {
         // bind object editor ui
         wizard.moveAt(newDigObjectStep);
-        // select dig object type
-//        rootPanel.setMembers(modsFullEditor.getUI());
-    }
-
-    public void edit() {
-
-    }
-    
-    public void search() {
-        // select digital object to edit
-        // edit digital object
-        //
-//        rootPanel.setMembers(modsFullEditor.getUI());
-//        modsFullEditor.loadData("id:sample");
     }
 
     public Canvas getUI() {
         return wizard;
-//        return rootPanel;
     }
     
     private void initContext() {
@@ -161,8 +147,8 @@ public final class DigObjectEditorPresenter {
             initContext();
             wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel(i18nPas.NewDigObjectWizard_DescriptionPrefix_Title(),
-                    i18nPas.NewDigObjectWizard_NewDigObjectStep_Description_Title());
+            wizard.setWizardLabel(i18nPas.DigitalObjectCreator_DescriptionPrefix_Title(),
+                    i18nPas.DigitalObjectCreator_NewDigObjectStep_Description_Title());
             newDigObject.bind(null);
 //            newDigObject.bind(new AdvancedCriteria("issn", OperatorId.ICONTAINS, "my issn"));
         }
@@ -254,8 +240,8 @@ public final class DigObjectEditorPresenter {
             this.wizard = wizard;
             wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel(i18nPas.NewDigObjectWizard_DescriptionPrefix_Title(),
-                    i18nPas.NewDigObjectWizard_NewModsStep_Description_Title());
+            wizard.setWizardLabel(i18nPas.DigitalObjectCreator_DescriptionPrefix_Title(),
+                    i18nPas.DigitalObjectCreator_NewModsStep_Description_Title());
 
             WizardContext wc = getContext();
             if (!wc.isModsInitialized()) {
@@ -303,8 +289,8 @@ public final class DigObjectEditorPresenter {
             this.wizard = wizard;
 //            wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel(i18nPas.NewDigObjectWizard_DescriptionPrefix_Title(),
-                    i18nPas.NewDigObjectWizard_NewDcStep_Description_Title());
+            wizard.setWizardLabel(i18nPas.DigitalObjectCreator_DescriptionPrefix_Title(),
+                    i18nPas.DigitalObjectCreator_NewDcStep_Description_Title());
 
             WizardContext wc = getContext();
             if (!wc.isDcInitialized()) {
@@ -343,8 +329,8 @@ public final class DigObjectEditorPresenter {
             this.wizard = wizard;
             wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel(i18nPas.NewDigObjectWizard_DescriptionPrefix_Title(),
-                    i18nPas.NewDigObjectWizard_SelectParentStep_Description_Title());
+            wizard.setWizardLabel(i18nPas.DigitalObjectCreator_DescriptionPrefix_Title(),
+                    i18nPas.DigitalObjectCreator_SelectParentStep_Description_Title());
 
             editor.setHandler(this);
             editor.setDataSource(getContext().getParentPid());
@@ -437,10 +423,10 @@ public final class DigObjectEditorPresenter {
 
         @Override
         public void onShow(Wizard wizard) {
-            wizard.setBackButton(true, i18nPas.NewDigObjectWizard_FinishedStep_CreateNewObjectButton_Title());
-            wizard.setForwardButton(true, i18nPas.NewDigObjectWizard_FinishedStep_OpenInEditorButton_Title());
-            wizard.setWizardLabel(i18nPas.NewDigObjectWizard_DescriptionPrefix_Title(),
-                    i18nPas.NewDigObjectWizard_FinishedStep_Description_Title());
+            wizard.setBackButton(true, i18nPas.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title());
+            wizard.setForwardButton(true, i18nPas.DigitalObjectCreator_FinishedStep_OpenInEditorButton_Title());
+            wizard.setWizardLabel(i18nPas.DigitalObjectCreator_DescriptionPrefix_Title(),
+                    i18nPas.DigitalObjectCreator_FinishedStep_Description_Title());
         }
 
         @Override
