@@ -37,6 +37,7 @@ import com.smartgwt.client.widgets.form.fields.LinkItem;
 import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
 import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
+import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.tree.Tree;
@@ -53,6 +54,7 @@ import cz.incad.pas.editor.client.ds.UserDataSource;
 import cz.incad.pas.editor.client.ds.UserPermissionDataSource;
 import cz.incad.pas.editor.client.presenter.DigObjectEditorPresenter;
 import cz.incad.pas.editor.client.presenter.ImportPresenter;
+import cz.incad.pas.editor.client.presenter.DigitalObjectEditor;
 import cz.incad.pas.editor.client.widget.ManageDigObjects;
 import cz.incad.pas.editor.client.widget.UsersView;
 import java.util.ArrayList;
@@ -65,10 +67,24 @@ import java.util.logging.Logger;
 public class Editor implements EntryPoint {
 
     private static final Logger LOG = Logger.getLogger(Editor.class.getName());
+    private static Editor INSTANCE;
 
     private PasEditorMessages i18nPas;
-    private PlaceFactory placeFactory;
+    private PresenterFactory presenterFactory;
     private final HashSet<String> permissions = new HashSet<String>();
+    private EditorWorkFlow editorWorkFlow;
+
+    public static Editor getInstance() {
+        return INSTANCE;
+    }
+
+    public EditorWorkFlow getEditorWorkFlow() {
+        return editorWorkFlow;
+    }
+
+    public PresenterFactory getPresenterFactory() {
+        return presenterFactory;
+    }
 
     @Override
     public void onModuleLoad() {
@@ -80,6 +96,7 @@ public class Editor implements EntryPoint {
 //            canvas.draw();
 //            return;
 //        }
+        INSTANCE = this;
         initLogging();
         
         ClientUtils.info(LOG, "onModuleLoad:\n module page: %s\n host page: %s"
@@ -91,7 +108,7 @@ public class Editor implements EntryPoint {
                 );
 
         i18nPas = GWT.create(PasEditorMessages.class);
-        placeFactory = new PlaceFactory(i18nPas);
+        presenterFactory = new PresenterFactory(i18nPas);
 
 ////        tabSet.setBorder("2px solid blue");
 
@@ -118,6 +135,7 @@ public class Editor implements EntryPoint {
 
         ModsCustomDataSource.loadPageTypes();
         loadPermissions(menu);
+        editorWorkFlow = new EditorWorkFlow((Layout) menuPlaces, i18nPas);
     }
 
     private void loadPermissions(final TreeGrid menu) {
@@ -284,31 +302,31 @@ public class Editor implements EntryPoint {
                         menu.getSelectedPaths(), menu.getSelectedRecord());
                 String name = event.getLeaf().getName();
                 if ("New Batch".equals(name)) {
-                    ImportPresenter importPresenter = placeFactory.getImportPresenter();
+                    ImportPresenter importPresenter = presenterFactory.getImportPresenter();
                     Canvas ui = importPresenter.getUI();
                     placesContainer.setMembers(ui);
                     importPresenter.bind();
                     importPresenter.importFolder();
                 } else if ("History".equals(name)) {
-                    ImportPresenter importPresenter = placeFactory.getImportPresenter();
+                    ImportPresenter importPresenter = presenterFactory.getImportPresenter();
                     Canvas ui = importPresenter.getUI();
                     placesContainer.setMembers(ui);
                     importPresenter.bind();
                     importPresenter.selectBatchFromHistory();
                 } else if ("New Object".equals(name)) {
-                    DigObjectEditorPresenter objectEditorPresenter = placeFactory.getNewObjectPresenter();
+                    DigObjectEditorPresenter objectEditorPresenter = presenterFactory.getNewObjectPresenter();
                     Canvas ui = objectEditorPresenter.getUI();
                     placesContainer.setMembers(ui);
                     objectEditorPresenter.newObject();
                 } else if ("Search".equals(name)) {
-                    ManageDigObjects presenter = placeFactory.getManageObjectPresenter();
+                    ManageDigObjects presenter = presenterFactory.getManageObjectPresenter();
                     Canvas ui = presenter.getUI();
                     placesContainer.setMembers(ui);
                     presenter.init();
                 } else if ("Console".equals(name)) {
                     SC.showConsole();
                 } else if ("Users".equals(name)) {
-                    UsersView users = placeFactory.getUsers();
+                    UsersView users = presenterFactory.getUsers();
                     Canvas ui = users.asWidget();
                     placesContainer.setMembers(ui);
                     users.onShow();
@@ -398,14 +416,15 @@ public class Editor implements EntryPoint {
         }
     }
 
-    private static final class PlaceFactory {
+    public static final class PresenterFactory {
         private ImportPresenter importPresenter;
         private DigObjectEditorPresenter objectEditorPresenter;
+        private DigitalObjectEditor digitalObjectEditor;
         private ManageDigObjects manageDigObjects;
         private UsersView users;
         private final PasEditorMessages i18nPas;
 
-        public PlaceFactory(PasEditorMessages i18nPas) {
+        PresenterFactory(PasEditorMessages i18nPas) {
             this.i18nPas = i18nPas;
         }
 
@@ -421,6 +440,13 @@ public class Editor implements EntryPoint {
                 objectEditorPresenter = new DigObjectEditorPresenter(i18nPas);
             }
             return objectEditorPresenter;
+        }
+
+        public DigitalObjectEditor getDigitalObjectEditor() {
+            if (digitalObjectEditor == null) {
+                digitalObjectEditor = new DigitalObjectEditor(i18nPas);
+            }
+            return digitalObjectEditor;
         }
 
         public ManageDigObjects getManageObjectPresenter() {

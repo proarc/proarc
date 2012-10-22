@@ -37,12 +37,14 @@ import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.DataStreamExportAction;
 import cz.incad.pas.editor.client.action.DeleteAction;
 import cz.incad.pas.editor.client.action.DeleteAction.Deletable;
+import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
 import cz.incad.pas.editor.client.action.FoxmlViewAction;
 import cz.incad.pas.editor.client.action.KrameriusExportAction;
 import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
+import cz.incad.pas.editor.client.presenter.DigitalObjectEditor;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,6 +66,10 @@ public final class ManageDigObjects {
     private DataStreamExportAction fullDataStreamExportAction;
     private DataStreamExportAction rawDataStreamExportAction;
     private DeleteAction deleteAction;
+    private DigitalObjectEditAction ocrEditAction;
+    private DigitalObjectEditAction noteEditAction;
+    private DigitalObjectEditAction modsEditAction;
+    private boolean initialized;
 
     public ManageDigObjects(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
@@ -100,6 +106,10 @@ public final class ManageDigObjects {
     }
 
     public void init() {
+        if (initialized) {
+            return ;
+        }
+        initialized = true;
         treeView.loadModels();
         foundView.onShow();
         treeView.setRoot(null);
@@ -115,7 +125,14 @@ public final class ManageDigObjects {
         fullDataStreamExportAction = DataStreamExportAction.full(i18nPas);
         rawDataStreamExportAction = DataStreamExportAction.raw(i18nPas);
         deleteAction = new DeleteAction(new MultiRecordDeletable(), i18nPas);
+        ocrEditAction = new DigitalObjectEditAction(
+                i18nPas.ImportBatchItemEditor_TabOcr_Title(), DigitalObjectEditor.Type.OCR, i18nPas);
+        noteEditAction = new DigitalObjectEditAction(
+                i18nPas.ImportBatchItemEditor_TabNote_Title(), DigitalObjectEditor.Type.NOTE, i18nPas);
+        modsEditAction = new DigitalObjectEditAction(
+                i18nPas.ImportBatchItemEditor_TabMods_Title(), DigitalObjectEditor.Type.MODS, i18nPas);
     }
+    
     /**
      * export (Kramerius, Datastream), edit(MODS, Hierarchy), delete, view (Datastream)
      */
@@ -135,12 +152,21 @@ public final class ManageDigObjects {
         menuExport.addItem(Actions.asMenuItem(rawDataStreamExportAction, source));
         btnExport.setMenu(menuExport);
 
+        toolbar.addSeparator();
+        toolbar.addMember(Actions.asIconButton(modsEditAction, source));
+        toolbar.addMember(Actions.asIconButton(ocrEditAction, source));
+        toolbar.addMember(Actions.asIconButton(noteEditAction, source));
+        toolbar.addSeparator();
         toolbar.addMember(Actions.asIconButton(foxmlAction, source));
         toolbar.addMember(btnExport);
         toolbar.addMember(Actions.asIconButton(deleteAction, source));
     }
 
     private void initContextMenu(Menu menu, Selectable<Record> source) {
+        menu.addItem(Actions.asMenuItem(modsEditAction, source));
+        menu.addItem(Actions.asMenuItem(ocrEditAction, source));
+        menu.addItem(Actions.asMenuItem(noteEditAction, source));
+        menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(foxmlAction, source, true));
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(krameriusExportAction, source));

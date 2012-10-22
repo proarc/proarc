@@ -39,12 +39,17 @@ import cz.fi.muni.xkremser.editor.client.mods.ModsTypeClient;
 import cz.fi.muni.xkremser.editor.client.view.ModsTab;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.action.ActionEvent;
+import cz.incad.pas.editor.client.action.Actions;
+import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
+import cz.incad.pas.editor.client.action.SaveAction;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.TextDataSource;
 import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
+import cz.incad.pas.editor.client.widget.DatastreamEditor;
 import cz.incad.pas.editor.client.widget.mods.MonographForm;
 import cz.incad.pas.editor.client.widget.mods.MonographUnitForm;
 import cz.incad.pas.editor.client.widget.mods.PageForm;
@@ -59,7 +64,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class ModsFullEditor {
+public final class ModsFullEditor implements DatastreamEditor, Refreshable {
 
     private static final Logger LOG = Logger.getLogger(ModsFullEditor.class.getName());
     private static final String TAB_FULL = "FULL_ModsFullEditor";
@@ -191,6 +196,41 @@ public final class ModsFullEditor {
 
     public ModsFullEditor(PasEditorMessages i18nPas) {
         this(true, i18nPas);
+    }
+
+    @Override
+    public void edit(String pid, String batchId, MetaModelRecord model) {
+        loadData(pid, model);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getCapability(Class<T> clazz) {
+        T c = null;
+        if (Refreshable.class.equals(clazz)) {
+            c = (T) this;
+        }
+        return c;
+    }
+
+    @Override
+    public Canvas[] getToolbarItems() {
+        SaveAction saveAction = new SaveAction(i18nPas) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+                save(null);
+            }
+        };
+        return new Canvas[] {
+            Actions.asIconButton(saveAction, this)
+        };
+    }
+
+    @Override
+    public void refresh() {
+        Criteria pidCriteria = new Criteria(ModsCustomDataSource.FIELD_PID, pid);
+        loadTabData(tabSet.getSelectedTab().getID(), pidCriteria);
     }
 
     private void loadFull(Criteria pid) {
@@ -389,6 +429,7 @@ public final class ModsFullEditor {
         return true;
     }
 
+    @Override
     public Canvas getUI() {
         return tabSet != null ? tabSet : modsContainer;
     }

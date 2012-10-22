@@ -2,6 +2,9 @@
 <module rename-to='PASEditor'>
     <!-- Inherit the core Web Toolkit stuff.                        -->
     <inherits name='com.google.gwt.user.User' />
+    <!-- Application workflow                                       -->
+    <inherits name="com.google.gwt.activity.Activity"/>
+    <inherits name='com.google.gwt.place.Place' />
 
     <inherits name='cz.fi.muni.xkremser.editor.ModsEditor' />
 

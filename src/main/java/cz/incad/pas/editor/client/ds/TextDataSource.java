@@ -33,6 +33,8 @@ public final class TextDataSource extends DataSource {
     public static final String ID_OCR = "OcrDataSource";
 
     public static final String FIELD_PID = "pid";
+    // Do not include batchId as DS field as DynamicForm always sets null for missing fetched values.
+    // It results in HTTP param batchId=null on update and Jersey reads is as "null" string.
     public static final String FIELD_BATCHID = "batchId";
     public static final String FIELD_TIMESTAMP = "timestamp";
     public static final String FIELD_CONTENT = "content";
@@ -49,9 +51,8 @@ public final class TextDataSource extends DataSource {
         fieldPid.setPrimaryKey(true);
         fieldPid.setRequired(true);
 
-        DataSourceField fieldBatchId = new DataSourceField(FIELD_BATCHID, FieldType.TEXT);
-        fieldBatchId.setHidden(true);
-        fieldBatchId.setCanView(true);
+//        DataSourceField fieldBatchId = new DataSourceField(FIELD_BATCHID, FieldType.TEXT);
+//        fieldBatchId.setHidden(true);
 
         DataSourceField fieldTimestamp = new DataSourceField(FIELD_TIMESTAMP, FieldType.TEXT);
         fieldTimestamp.setRequired(true);
@@ -59,7 +60,7 @@ public final class TextDataSource extends DataSource {
 
         DataSourceField fieldContent = new DataSourceField(FIELD_CONTENT, FieldType.TEXT);
 
-        setFields(fieldPid, fieldBatchId, fieldTimestamp, fieldContent);
+        setFields(fieldPid, fieldTimestamp, fieldContent);
 
         setOperationBindings(RestConfig.createUpdateOperation());
 
