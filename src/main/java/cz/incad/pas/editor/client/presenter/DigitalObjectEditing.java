@@ -16,15 +16,9 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
-import cz.incad.pas.editor.client.presenter.DigitalObjectEditor;
 import com.google.gwt.activity.shared.AbstractActivity;
-import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.core.client.JsonUtils;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONParser;
-import com.google.gwt.json.client.JSONString;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.place.shared.PlaceTokenizer;
@@ -33,6 +27,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.smartgwt.client.data.Record;
 import cz.incad.pas.editor.client.Editor;
 import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ds.SearchDataSource;
 
 /**
  * Integrates digital object editor to application workflow.
@@ -97,32 +92,28 @@ public final class DigitalObjectEditing extends AbstractActivity {
             this.selection = selection;
         }
 
-        @Prefix("doeditor")
+        @Prefix("doEditor")
         public static final class Tokenizer implements PlaceTokenizer<DigitalObjectEditorPlace> {
 
             private static final String EDITOR = "editor";
-            private static final String SELECTION = "selection";
 
             @Override
             public DigitalObjectEditorPlace getPlace(String token) {
                 DigitalObjectEditorPlace place = new DigitalObjectEditorPlace();
-                if (JsonUtils.safeToEval(token)) {
-                    JSONValue jsonv = JSONParser.parseStrict(token);
-                    JSONObject json = jsonv.isObject();
-                    JSONValue editorv = json.get(EDITOR);
-                    if (editorv != null) {
-                        String val = editorv.isString().stringValue();
-                        place.editor = DigitalObjectEditor.Type.valueOf(val);
+                JSONObject json = JsonTokenizer.parseObject(token);
+                if (json != null) {
+                    try {
+                        place.editor = DigitalObjectEditor.Type.valueOf(JsonTokenizer.getString(json, EDITOR));
+                    } catch (Exception e) {
+                        // ignore invalid editor
                     }
-                    JSONValue selectionv = json.get(SELECTION);
-                    if (selectionv != null) {
-                        JSONObject object = selectionv.isObject();
-                        if (object != null) {
-                            JavaScriptObject jso = object.getJavaScriptObject();
-                            place.selection = Record.getOrCreateRef(jso);
-                        }
-                    }
-                } else {
+                    place.selection = new Record();
+                    place.selection.setAttribute(SearchDataSource.FIELD_PID,
+                            JsonTokenizer.getString(json, SearchDataSource.FIELD_PID));
+                    place.selection.setAttribute(SearchDataSource.FIELD_MODEL,
+                            JsonTokenizer.getString(json, SearchDataSource.FIELD_MODEL));
+                    place.selection.setAttribute(SearchDataSource.FIELD_LABEL,
+                            JsonTokenizer.getString(json, SearchDataSource.FIELD_LABEL));
                 }
                 return place;
             }
@@ -130,8 +121,13 @@ public final class DigitalObjectEditing extends AbstractActivity {
             @Override
             public String getToken(DigitalObjectEditorPlace place) {
                 JSONObject json = new JSONObject();
-                json.put(EDITOR, new JSONString(place.editor.name()));
-                json.put(SELECTION, new JSONObject(place.selection.getJsObj()));
+                JsonTokenizer.putString(json, EDITOR, place.editor == null ? null : place.editor.name());
+                JsonTokenizer.putString(json, SearchDataSource.FIELD_PID,
+                        place.selection.getAttribute(SearchDataSource.FIELD_PID));
+                JsonTokenizer.putString(json, SearchDataSource.FIELD_MODEL,
+                        place.selection.getAttribute(SearchDataSource.FIELD_MODEL));
+                JsonTokenizer.putString(json, SearchDataSource.FIELD_LABEL,
+                        place.selection.getAttribute(SearchDataSource.FIELD_LABEL));
                 String jsonString = json.toString();
                 return jsonString;
             }

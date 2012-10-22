@@ -16,15 +16,18 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
+import com.google.gwt.place.shared.Place;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.Editor;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
@@ -84,6 +87,12 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         final String modelId = selection.getAttribute(SearchDataSource.FIELD_MODEL);
 
         editorContainer.hide();
+        if (type == null) {
+            // this should occur just in case someone breakes URL in browser.
+            SC.warn("Missing or invalid editor type!");
+            Editor.getInstance().getEditorWorkFlow().getPlaceController().goTo(Place.NOWHERE);
+            return ;
+        }
 
         MetaModelDataSource.getInstance().fetchData(null, new DSCallback() {
 

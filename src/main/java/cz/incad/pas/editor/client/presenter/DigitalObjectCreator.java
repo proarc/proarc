@@ -58,6 +58,8 @@ public final class DigitalObjectCreator {
     private final Wizard wizard;
     private WizardContext wc;
     private final PasEditorMessages i18nPas;
+    private String modelId;
+    private String parentPid;
 
     public DigitalObjectCreator(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
@@ -71,7 +73,13 @@ public final class DigitalObjectCreator {
     }
 
     public void newObject() {
+        newObject(null, null);
+    }
+    
+    public void newObject(String modelId, String parentPid) {
         // bind object editor ui
+        this.modelId = modelId;
+        this.parentPid = parentPid;
         wizard.moveAt(newDigObjectStep);
     }
 
@@ -81,6 +89,7 @@ public final class DigitalObjectCreator {
     
     private void initContext() {
         this.wc = new WizardContext();
+        wc.setParentPid(parentPid);
     }
     
     private WizardContext getContext() {
@@ -149,7 +158,7 @@ public final class DigitalObjectCreator {
 //            wizard.setForwardButton(true, "Resume");
             wizard.setWizardLabel(i18nPas.DigitalObjectCreator_DescriptionPrefix_Title(),
                     i18nPas.DigitalObjectCreator_NewDigObjectStep_Description_Title());
-            newDigObject.bind(null);
+            newDigObject.bind(modelId, null);
 //            newDigObject.bind(new AdvancedCriteria("issn", OperatorId.ICONTAINS, "my issn"));
         }
 

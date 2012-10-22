@@ -32,6 +32,8 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.layout.Layout;
+import cz.incad.pas.editor.client.presenter.DigitalObjectCreating;
+import cz.incad.pas.editor.client.presenter.DigitalObjectCreating.DigitalObjectCreatorPlace;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 
@@ -46,6 +48,7 @@ public final class EditorWorkFlow {
     private final PlaceController placeController;
     private final ActivityManager activityManager;
     private final PasEditorMessages i18n;
+    private final PlaceHistoryHandler placeHistoryHandler;
 
     public EditorWorkFlow(Layout delegate, PasEditorMessages i18n) {
         this(null, null, null, delegate, i18n);
@@ -66,8 +69,11 @@ public final class EditorWorkFlow {
                 : new ActivityManager(new EditorActivityMapper(), this.ebus);
         this.activityManager.setDisplay(new EditorDisplay(delegate));
         EditorPlaceHistoryMapper historyMapper = GWT.create(EditorPlaceHistoryMapper.class);
-        PlaceHistoryHandler placeHistoryHandler = new PlaceHistoryHandler(historyMapper);
+        placeHistoryHandler = new PlaceHistoryHandler(historyMapper);
         placeHistoryHandler.register(this.placeController, this.ebus, Place.NOWHERE);
+    }
+
+    public void init() {
         placeHistoryHandler.handleCurrentHistory();
     }
 
@@ -82,6 +88,8 @@ public final class EditorWorkFlow {
             Activity a = null;
             if (place instanceof DigitalObjectEditorPlace) {
                 a = new DigitalObjectEditing((DigitalObjectEditorPlace) place, placeController, i18n);
+            } else if (place instanceof DigitalObjectCreatorPlace) {
+                a = new DigitalObjectCreating((DigitalObjectCreatorPlace) place);
             }
             return a;
         }
@@ -99,7 +107,6 @@ public final class EditorWorkFlow {
         @Override
         public void setWidget(IsWidget w) {
             Widget asWidget = Widget.asWidgetOrNull(w);
-            System.out.println("widget: " + asWidget);
             if (asWidget instanceof Canvas) {
                 display.setMembers((Canvas) asWidget);
             } else if (asWidget == null) {
@@ -113,6 +120,7 @@ public final class EditorWorkFlow {
 
     @WithTokenizers({
         DigitalObjectEditorPlace.Tokenizer.class,
+        DigitalObjectCreatorPlace.Tokenizer.class,
     })
     static interface EditorPlaceHistoryMapper extends PlaceHistoryMapper {
     }

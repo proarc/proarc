@@ -41,6 +41,7 @@ import com.smartgwt.client.widgets.form.events.SearchHandler;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.validator.CustomValidator;
 import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
@@ -103,9 +104,12 @@ public final class NewDigObject extends VLayout {
         setMembers(sections);
     }
 
-    public void bind(AdvancedCriteria criteria) {
+    public void bind(String model, AdvancedCriteria criteria) {
         optionsForm.clearErrors(true);
         optionsForm.editNewRecord();
+        if (model != null) {
+            optionsForm.setValue(DigitalObjectDataSource.FIELD_MODEL, model);
+        }
         lgResult.setData(new Record[0]);
         if (criteria == null) {
 //            sections.collapseSection(1);
@@ -121,9 +125,9 @@ public final class NewDigObject extends VLayout {
     public MetaModelRecord getModel() {
         FormItem field = optionsForm.getField(DigitalObjectDataSource.FIELD_MODEL);
         ListGridRecord selectedRecord = field.getSelectedRecord();
-        Map<?, ?> values = selectedRecord.toMap();
-        ClientUtils.info(LOG, "getModel: %s", values);
-        return new MetaModelRecord(selectedRecord);
+//        Map<?, ?> values = selectedRecord.toMap();
+//        ClientUtils.info(LOG, "getModel: %s", values);
+        return MetaModelRecord.get(selectedRecord);
     }
 
     public String getMods() {
@@ -156,6 +160,14 @@ public final class NewDigObject extends VLayout {
         selectModel.setValueField(MetaModelDataSource.FIELD_PID);
         selectModel.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
         selectModel.setAutoFetchData(true);
+        selectModel.setValidators(new CustomValidator() {
+
+            @Override
+            protected boolean condition(Object value) {
+                boolean valid = getFormItem().getSelectedRecord() != null;
+                return valid;
+            }
+        });
 
         TextItem newPid = new TextItem(DigitalObjectDataSource.FIELD_PID);
         newPid.setTitle(i18nPas.NewDigObject_OptionPid_Title());
