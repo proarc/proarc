@@ -18,24 +18,27 @@ package cz.incad.pas.editor.client.ds;
 
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FetchMode;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 
 /**
+ * Lists Fedora models.
  *
  * @author Jan Pokorsky
  */
-public class MetaModelDataSource extends DataSource {
+public class MetaModelDataSource extends RestDataSource {
 
     public static final String ID = "MetaModelDataSource";
-    public static final String FIELD_PID = "pid";
-    public static final String FIELD_DISPLAY_NAME = "displayName";
-    public static final String FIELD_IS_ROOT = "root";
-    public static final String FIELD_IS_LEAF = "leaf";
-    public static final String FIELD_EDITOR = "editorId";
+    public static final String FIELD_PID = DigitalObjectResourceApi.METAMODEL_PID_PARAM;
+    public static final String FIELD_DISPLAY_NAME = DigitalObjectResourceApi.METAMODEL_DISPLAYNAME_PARAM;
+    public static final String FIELD_IS_ROOT = DigitalObjectResourceApi.METAMODEL_ROOT_PARAM;
+    public static final String FIELD_IS_LEAF = DigitalObjectResourceApi.METAMODEL_LEAF_PARAM;
+    public static final String FIELD_EDITOR = DigitalObjectResourceApi.METAMODEL_EDITORID_PARAM;
 
     public static final String EDITOR_PAGE = "cz.incad.pas.editor.client.widget.mods.PageForm";
     public static final String EDITOR_PERIODICAL = "cz.incad.pas.editor.client.widget.mods.PeriodicalForm";
@@ -48,9 +51,7 @@ public class MetaModelDataSource extends DataSource {
     public MetaModelDataSource() {
         setID(ID);
 
-//        setDataFormat(DSDataFormat.XML);
         setDataFormat(DSDataFormat.JSON);
-        setRecordXPath("/models/model");
         
         setDataURL(RestConfig.URL_DIGOBJECT_METAMODEL);
 
@@ -73,21 +74,21 @@ public class MetaModelDataSource extends DataSource {
     public static MetaModelDataSource getInstance() {
         MetaModelDataSource ds = (MetaModelDataSource) DataSource.get(ID);
         ds = ds != null ? ds : new MetaModelDataSource();
-//        ds.fetchData(null, new DSCallback() {
-//
-//            @Override
-//            public void execute(DSResponse response, Object rawData, DSRequest request) {
-//                String selectString = XMLTools.selectString(rawData, "//model/pid");
-//                System.out.println("## result: " + selectString);
-//            }
-//        });
         return ds;
     }
 
     public static ResultSet getModels() {
+        return getModels(false);
+    }
+
+    public static ResultSet getModels(boolean reload) {
         if (resultSet == null) {
             resultSet = new ResultSet(getInstance());
             resultSet.setFetchMode(FetchMode.LOCAL);
+            resultSet.get(0);
+        } else if (reload) {
+            resultSet.invalidateCache();
+            resultSet.get(0);
         }
         return resultSet;
     }
@@ -96,6 +97,10 @@ public class MetaModelDataSource extends DataSource {
         
         private final Record record;
 
+        public static MetaModelRecord get(Record r) {
+            return r == null ? null : new MetaModelRecord(r);
+        }
+        
         public MetaModelRecord(Record r) {
             this.record = r;
         }

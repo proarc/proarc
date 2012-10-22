@@ -465,14 +465,14 @@ public class DigitalObjectResource {
     }
 
     @GET
-    @Path("/metamodel")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public MetaModelList listModels() {
+    @Path(DigitalObjectResourceApi.METAMODEL_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<MetaModel> listModels() {
         List<Locale> acceptableLanguages = httpHeaders.getAcceptableLanguages();
         Locale locale = acceptableLanguages.isEmpty() ? Locale.ENGLISH : acceptableLanguages.get(0);
 
         Collection<MetaModel> models = metamodels.find(locale);
-        return new MetaModelList(models);
+        return new SmartGwtResponse<MetaModel>(new ArrayList<MetaModel>(models));
     }
 
     @GET
@@ -800,12 +800,16 @@ public class DigitalObjectResource {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class MetaModel {
         
-        @XmlElement(type=String.class, required=true)
+        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_PID_PARAM,
+                type = String.class, required = true)
         private Object pid;
+        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_ROOT_PARAM)
         private Boolean root;
+        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_LEAF_PARAM)
         private Boolean leaf;
+        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_DISPLAYNAME_PARAM)
         private String displayName;
-        @XmlElement(name="editorId")
+        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_EDITORID_PARAM)
         private String editor;
 
         private MetaModel() {
@@ -841,22 +845,6 @@ public class DigitalObjectResource {
 
         public String getEditor() {
             return editor;
-        }
-
-    }
-
-    @XmlRootElement(name="models")
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class MetaModelList {
-        
-        @XmlElement(name="model")
-        public Collection<MetaModel> models;
-
-        public MetaModelList() {
-        }
-
-        public MetaModelList(Collection<MetaModel> models) {
-            this.models = models;
         }
 
     }

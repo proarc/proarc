@@ -56,7 +56,8 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_RAW =  URL_DIGOBJECT + "/raw";
     public static final String URL_DIGOBJECT_SEARCH =  path(URL_DIGOBJECT, DigitalObjectResourceApi.SEARCH_PATH);
     public static final String URL_DIGOBJECT_THUMBNAIL =  URL_DIGOBJECT + "/thumb";
-    public static final String URL_DIGOBJECT_METAMODEL =  URL_DIGOBJECT + "/metamodel";
+    public static final String URL_DIGOBJECT_METAMODEL =  path(
+            URL_DIGOBJECT, DigitalObjectResourceApi.METAMODEL_PATH);
     public static final String URL_LOCALIZATION =  path(URL_ROOT, LocalizationResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG =  path(URL_ROOT, BibliographicCatalogResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG_QUERY =  path(

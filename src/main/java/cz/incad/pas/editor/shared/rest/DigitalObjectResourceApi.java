@@ -26,6 +26,13 @@ public final class DigitalObjectResourceApi {
     public static final String DELETE_PID_PARAM = "pid";
     public static final String DELETE_PURGE_PARAM = "purge";
 
+    public static final String METAMODEL_PATH = "metamodel";
+    public static final String METAMODEL_PID_PARAM = "pid";
+    public static final String METAMODEL_ROOT_PARAM = "root";
+    public static final String METAMODEL_LEAF_PARAM = "leaf";
+    public static final String METAMODEL_DISPLAYNAME_PARAM = "displayName";
+    public static final String METAMODEL_EDITORID_PARAM = "editorId";
+
     public static final String SEARCH_PATH = "search";
     public static final String SEARCH_OWNER_PARAM = "owner";
     public static final String SEARCH_START_ROW_PARAM = "_startRow";
