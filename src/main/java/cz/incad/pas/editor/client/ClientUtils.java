@@ -325,4 +325,57 @@ public final class ClientUtils {
 
     }
 
+    /**
+     * Helper to wait on running asynchronous tasks.
+     * It runs as soon as all expectations are released.
+     */
+    public static abstract class SweepTask implements Runnable, BooleanCallback {
+
+        private int semaphore = 0;
+
+        /**
+         * Provides task implementation.
+         */
+        protected abstract void processing();
+
+        /**
+         * Call to expect further async task.
+         */
+        public SweepTask expect() {
+            semaphore++;
+            return this;
+        }
+
+        /**
+         * Call when some async task is done.
+         */
+        public void release() {
+            semaphore--;
+            if (semaphore == 0) {
+                processing();
+            }
+        }
+
+        /**
+         * Async call of release in case the value is true.
+         */
+        @Override
+        public void execute(Boolean value) {
+            if (Boolean.TRUE.equals(value)) {
+                release();
+            }
+        }
+
+        /**
+         * Async call of release.
+         * @param value
+         */
+        @Override
+        public void run() {
+            release();
+        }
+
+
+    }
+
 }

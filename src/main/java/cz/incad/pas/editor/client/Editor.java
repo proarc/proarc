@@ -49,6 +49,7 @@ import com.smartgwt.client.widgets.tree.events.FolderClosedEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClosedHandler;
 import com.smartgwt.client.widgets.tree.events.LeafClickEvent;
 import com.smartgwt.client.widgets.tree.events.LeafClickHandler;
+import cz.incad.pas.editor.client.ClientUtils.SweepTask;
 import cz.incad.pas.editor.client.ds.LanguagesDataSource;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
@@ -80,6 +81,7 @@ public class Editor implements EntryPoint {
     private final HashSet<String> permissions = new HashSet<String>();
     private EditorWorkFlow editorWorkFlow;
     private Layout editorDisplay;
+    private SweepTask sweepTask;
 
     public static Editor getInstance() {
         return INSTANCE;
@@ -121,6 +123,19 @@ public class Editor implements EntryPoint {
 
         final TreeGrid menu = createMenu();
 
+        sweepTask = new SweepTask() {
+
+            @Override
+            public void processing() {
+                TreeNode[] menuContent = createMenuContent();
+                Tree tree = menu.getTree();
+                TreeNode root = tree.getRoot();
+                tree.addList(menuContent, root);
+                tree.openAll();
+                editorWorkFlow.init();
+            }
+        };
+
         createMenuPlaces(menu);
 
         final HLayout mainLayout = new HLayout();
@@ -140,12 +155,13 @@ public class Editor implements EntryPoint {
         desktop.setMembers(mainHeader, mainLayout);
         desktop.draw();
 
-        ModsCustomDataSource.loadPageTypes();
-        loadPermissions(menu);
+        ModsCustomDataSource.loadPageTypes(sweepTask.expect());
+        loadPermissions();
         editorWorkFlow = new EditorWorkFlow(getDisplay(), i18nPas);
     }
 
-    private void loadPermissions(final TreeGrid menu) {
+    private void loadPermissions() {
+        sweepTask.expect();
         UserPermissionDataSource.getInstance().fetchData(null, new DSCallback() {
 
             @Override
@@ -154,12 +170,7 @@ public class Editor implements EntryPoint {
                     Record[] data = response.getData();
                     permissions.clear();
                     permissions.addAll(UserPermissionDataSource.asPermissions(data));
-                    TreeNode[] menuContent = createMenuContent();
-                    Tree tree = menu.getTree();
-                    TreeNode root = tree.getRoot();
-                    tree.addList(menuContent, root);
-                    tree.openAll();
-                    editorWorkFlow.init();
+                    sweepTask.release();
                 }
             }
         });

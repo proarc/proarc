@@ -25,6 +25,7 @@ import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
+import com.smartgwt.client.util.BooleanCallback;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
 import java.util.LinkedHashMap;
@@ -153,7 +154,7 @@ public final class ModsCustomDataSource extends DataSource {
         return PAGE_TYPES;
     }
 
-    public static void loadPageTypes() {
+    public static void loadPageTypes(final BooleanCallback callback) {
         Criteria criteria = new Criteria(
                 LocalizationResourceApi.GETBUNDLE_BUNDLENAME_PARAM,
                 LocalizationResourceApi.BundleName.MODS_PAGE_TYPES.toString());
@@ -168,6 +169,9 @@ public final class ModsCustomDataSource extends DataSource {
                         PAGE_TYPES.put(record.getAttribute(LocalizationResourceApi.ITEM_KEY),
                                 record.getAttribute(LocalizationResourceApi.ITEM_VALUE));
                     }
+                    callback.execute(Boolean.TRUE);
+                } else {
+                    callback.execute(Boolean.FALSE);
                 }
             }
         });
