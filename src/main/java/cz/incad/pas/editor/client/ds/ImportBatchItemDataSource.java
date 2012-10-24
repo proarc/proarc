@@ -91,11 +91,12 @@ public final class ImportBatchItemDataSource extends RestDataSource {
         setOperationBindings(RestConfig.createUpdateOperation(), RestConfig.createDeleteOperation());
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
-        
+
     }
 
     @Override
     protected void transformResponse(DSResponse response, DSRequest request, Object data) {
+        super.transformResponse(response, request, data);
         if (RestConfig.isStatusOk(response)) {
             for (Record record : response.getData()) {
                 String pid = record.getAttribute(FIELD_PID);
@@ -106,8 +107,12 @@ public final class ImportBatchItemDataSource extends RestDataSource {
                 record.setAttribute(FIELD_PREVIEW, imgParams);
                 record.setAttribute(FIELD_THUMBNAIL, imgParams);
             }
+        } else {
+            // In case of any error DataSource invokes further fetches in never ending loop
+            // Following seems to help.
+            response.setEndRow(0);
+            response.setTotalRows(0);
         }
-        super.transformResponse(response, request, data);
     }
 
     public static ImportBatchItemDataSource getInstance() {

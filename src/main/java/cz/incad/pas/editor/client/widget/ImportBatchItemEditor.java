@@ -82,6 +82,7 @@ import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
+import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.TextDataSource;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -318,7 +319,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (response.getStatus() == DSResponse.STATUS_SUCCESS) {
+                if (RestConfig.isStatusOk(response)) {
                     batchItemGrid.selectSingleRecord(0);
                     batchItemGrid.focus();
                 }
@@ -675,6 +676,9 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                                     batchItemGrid.scrollToRow(nextSelection);
                                     form.focus();
                                 }
+                            } else {
+                                form.reset();
+                                dfTabs[tabSet.getSelectedTabNumber()].updateTitle();
                             }
                         }
                     });
