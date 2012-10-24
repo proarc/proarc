@@ -82,6 +82,7 @@ public class Editor implements EntryPoint {
     private EditorWorkFlow editorWorkFlow;
     private Layout editorDisplay;
     private SweepTask sweepTask;
+    private ErrorHandler errorHandler;
 
     public static Editor getInstance() {
         return INSTANCE;
@@ -93,6 +94,10 @@ public class Editor implements EntryPoint {
 
     public PresenterFactory getPresenterFactory() {
         return presenterFactory;
+    }
+
+    public ErrorHandler getTransportErrorHandler() {
+        return errorHandler;
     }
 
     @Override
@@ -117,6 +122,10 @@ public class Editor implements EntryPoint {
                 );
 
         i18nPas = GWT.create(PasEditorMessages.class);
+
+        errorHandler = new ErrorHandler();
+        errorHandler.initTransportErrorHandler();
+
         presenterFactory = new PresenterFactory(i18nPas);
 
 ////        tabSet.setBorder("2px solid blue");
