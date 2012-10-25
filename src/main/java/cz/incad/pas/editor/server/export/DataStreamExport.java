@@ -63,7 +63,7 @@ public final class DataStreamExport {
             throw new IllegalStateException(String.valueOf(output));
         }
         if (pids == null || pids.isEmpty() || dsIds == null || dsIds.isEmpty()) {
-            return null;
+            throw new IllegalArgumentException();
         }
 
         File target = ExportUtils.createFolder(output, filename(pids.get(0), dsIds.get(0)));

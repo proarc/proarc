@@ -72,15 +72,9 @@ public final class UserResource {
         }
         if (userId != null) {
             UserProfile found = userManager.find(userId);
-            if (found == null) {
-                return SmartGwtResponse.<UserProfile>asError().error("userId", "Not found").build();
-            }
             return new SmartGwtResponse<UserProfile>(found);
         } else if (userName != null && !userName.isEmpty()) {
             UserProfile found = userManager.find(userName);
-            if (found == null) {
-                return SmartGwtResponse.<UserProfile>asError().error("userName", "Not found").build();
-            }
             return new SmartGwtResponse<UserProfile>(found);
         }
         List<UserProfile> findAll = userManager.findAll();

@@ -61,7 +61,9 @@ public class SmartGwtResponse<T> {
     }
 
     public SmartGwtResponse(T singletonDataItem) {
-        this(STATUS_SUCCESS, 0, 0, 1, Collections.singletonList(singletonDataItem));
+        this(STATUS_SUCCESS, 0, 0, 1, singletonDataItem != null
+                ? Collections.singletonList(singletonDataItem)
+                : Collections.<T>emptyList());
     }
 
     public SmartGwtResponse(List<T> data) {

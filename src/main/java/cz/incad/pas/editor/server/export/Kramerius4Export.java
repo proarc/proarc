@@ -93,7 +93,7 @@ public final class Kramerius4Export {
             throw new IllegalStateException(String.valueOf(output));
         }
         if (pids == null || pids.length == 0) {
-            return null;
+            throw new IllegalArgumentException();
         }
 
         File target = ExportUtils.createFolder(output, pids[0]);

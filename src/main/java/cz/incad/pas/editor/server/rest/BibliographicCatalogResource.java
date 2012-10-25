@@ -25,6 +25,7 @@ import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
@@ -72,11 +73,7 @@ public class BibliographicCatalogResource {
             catalogs = appConfig.getCatalogs().getConfigurations();
         } else {
             CatalogConfiguration catalog = appConfig.getCatalogs().findConfiguration(id);
-            if (catalog == null) {
-                return SmartGwtResponse.<CatalogDescriptor>asError()
-                        .error(BibliographicCatalogResourceApi.CATALOG_ID, "Not found").build();
-            }
-            catalogs = Arrays.asList(catalog);
+            catalogs = catalog != null ? Arrays.asList(catalog) : Collections.<CatalogConfiguration>emptyList();
         }
         ArrayList<CatalogDescriptor> result = new ArrayList<CatalogDescriptor>(catalogs.size());
         for (CatalogConfiguration cp : catalogs) {

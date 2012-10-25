@@ -151,7 +151,7 @@ public class DigitalObjectResource {
 
         if (modelId == null) {
             // XXX validate modelId values
-            return SmartGwtResponse.<DigitalObject>asError().error("model", "Missing model!").build();
+            throw RestException.plainNotFound("model", modelId);
         }
         if (pid != null) {
             boolean invalid = pid.length() < 5;

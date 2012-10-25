@@ -37,6 +37,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -78,20 +79,16 @@ public class ExportResource {
             @FormParam(ExportResourceApi.DATASTREAM_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
             ) throws IOException, ExportException {
 
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_PID_PARAM);
+        }
         if (dsIds.isEmpty()) {
-            return SmartGwtResponse.<ExportResult>asError()
-                    .error(ExportResourceApi.DATASTREAM_DSID_PARAM, "No data stream.")
-                    .build();
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
         }
         DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(pasConfig));
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids, dsIds);
-        if (target == null) {
-            return SmartGwtResponse.<ExportResult>asError()
-                    .error(ExportResourceApi.DATASTREAM_DSID_PARAM, "Nothing to export.")
-                    .build();
-        }
         URI targetPath = user.getUserHomeUri().relativize(target.toURI());
         return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath.toASCIIString()));
     }
@@ -103,15 +100,13 @@ public class ExportResource {
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
             ) throws IOException {
 
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
+        }
         Kramerius4Export export = new Kramerius4Export(RemoteStorage.getInstance(pasConfig));
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids.toArray(new String[pids.size()]));
-        if (target == null) {
-            return SmartGwtResponse.<ExportResult>asError()
-                    .error(ExportResourceApi.KRAMERIUS4_PID_PARAM, "Nothing to export.")
-                    .build();
-        }
         URI targetPath = user.getUserHomeUri().relativize(target.toURI());
         return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath.toASCIIString()));
     }
