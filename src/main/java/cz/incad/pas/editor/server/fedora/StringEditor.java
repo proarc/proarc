@@ -198,7 +198,7 @@ public final class StringEditor {
 
         private String pid;
         
-        private String batchId;
+        private Integer batchId;
 
         private long timestamp;
 
@@ -213,11 +213,11 @@ public final class StringEditor {
             this.pid = pid;
         }
 
-        public String getBatchId() {
+        public Integer getBatchId() {
             return batchId;
         }
 
-        public void setBatchId(String batchId) {
+        public void setBatchId(Integer batchId) {
             this.batchId = batchId;
         }
 

@@ -56,11 +56,10 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
@@ -228,7 +227,7 @@ public class ImportResource {
 
         ImportBatch batch = importManager.get(batchId);
         if (batch == null) {
-            throw new NotFoundException("id", String.valueOf(batchId));
+            throw RestException.plainNotFound("id", String.valueOf(batchId));
         }
         if (parentPid != null) {
             batch.setParentPid(parentPid);
@@ -258,14 +257,12 @@ public class ImportResource {
             imports = importManager.findItems(batchId, pid);
         }
         if (imports == null) {
-            throw new WebApplicationException(
-                    Response.status(Response.Status.NOT_FOUND).entity("ID not found!")
-                    .type(MediaType.TEXT_PLAIN_TYPE).build());
+            throw RestException.plainText(Status.NOT_FOUND, String.format("Not found! batchId: %s, pid: %s", batchId, pid));
         }
 
         ImportBatch batch = importManager.get(batchId);
         if (batch.getState() == State.LOADING_FAILED) {
-            return SmartGwtResponse.<Item>asError().error("batchId", "Batch failed").build();
+            throw RestException.plainText(Status.FORBIDDEN, "Batch not loaded.");
         }
         int totalImports = imports.size();
         int totalRows = (batch.getState() == State.LOADING) ? batch.getEstimateFileCount() : totalImports;
@@ -304,11 +301,11 @@ public class ImportResource {
             item = importManager.findItem(pid);
         }
         if (item == null) {
-            throw new WebApplicationException(
-                    Response.status(Response.Status.NOT_FOUND).entity("item not found!")
-                    .type(MediaType.TEXT_PLAIN_TYPE).build());
+            throw RestException.plainText(Status.NOT_FOUND, "Item not found!");
         }
 
+        List<ImportBatch> batches = importManager.find(null, batchId, null);
+        checkBatchState(batches.get(0));
         Item updatedItem = new PageView().updateItem(batchId, item, timestamp, pageIndex, pageNumber, pageType);
         return new SmartGwtResponse<Item>(updatedItem);
     }
@@ -321,6 +318,15 @@ public class ImportResource {
             @QueryParam("pid") String pid
             ) {
 
+        ImportItem item = null;
+        if (batchId != null && pid != null && !pid.isEmpty()) {
+            item = importManager.findItem(pid);
+        }
+        if (item == null) {
+            throw RestException.plainText(Status.NOT_FOUND, "Batch item not found!");
+        }
+        List<ImportBatch> batches = importManager.find(null, batchId, null);
+        checkBatchState(batches.get(0));
         importManager.removeItem(batchId, pid);
         Item deletedItem = new PageView.Item(batchId, null, pid, null, null, null, null, 0, null);
         return new SmartGwtResponse<Item>(deletedItem);
@@ -356,6 +362,13 @@ public class ImportResource {
         }
         return parent;
 
+    }
+
+    public static void checkBatchState(ImportBatch batch) throws RestException {
+        if (batch.getState() != State.LOADED) {
+            throw RestException.plainText(Status.FORBIDDEN, String.format(
+                    "Batch %s is not editable! Unexpected state: %s", batch.getId(), batch.getState()));
+        }
     }
 
 }

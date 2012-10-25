@@ -40,6 +40,7 @@ import cz.incad.pas.editor.server.fedora.StringEditor;
 import cz.incad.pas.editor.server.fedora.StringEditor.StringRecord;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.json.JsonUtils;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
@@ -81,6 +82,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -308,16 +310,19 @@ public class DigitalObjectResource {
             @FormParam("pid") String memberPid
             ) throws IOException, FedoraClientException {
 
-        if (parentPid == null || memberPid == null) {
-            throw new NotFoundException("parent and pid must be specified!");
+        if (parentPid == null) {
+            throw RestException.plainNotFound("parent", null);
+        }
+        if (memberPid == null) {
+            throw RestException.plainNotFound("pid", null);
         }
         if (parentPid.equals(memberPid)) {
-            throw new IllegalArgumentException("parent and pid are same!");
+            throw RestException.plainText(Status.BAD_REQUEST, "parent and pid are same!");
         }
         RemoteStorage storage = RemoteStorage.getInstance(pasConfig);
         List<Item> memberSearch = storage.getSearch().find(memberPid);
         if (memberSearch.isEmpty()) {
-            throw new NotFoundException("pid", memberPid);
+            RestException.plainNotFound("pid", memberPid);
         }
         RemoteObject remote = storage.find(parentPid);
         RelationEditor editor = new RelationEditor(remote);
@@ -338,7 +343,7 @@ public class DigitalObjectResource {
     @Produces(MediaType.APPLICATION_XML)
     public DublinCoreRecord getDublinCore(
             @QueryParam("pid") String pid,
-            @QueryParam("batchId") String batchId
+            @QueryParam("batchId") Integer batchId
             ) throws IOException {
 
         // dev mode http://127.0.0.1:8888/rest/object/dc?pid=uuid:4a7c2e50-af36-11dd-9643-000d606f5dc6
@@ -346,7 +351,7 @@ public class DigitalObjectResource {
         DcStreamEditor dcEditor = new DcStreamEditor(fobject);
         DublinCoreRecord dc = dcEditor.read();
         if (dc == null) {
-            throw new NotFoundException("pid not found!");
+            throw RestException.plainNotFound("pid", null);
         }
         dc.setBatchId(batchId);
         return dc;
@@ -360,7 +365,7 @@ public class DigitalObjectResource {
         if (update == null || update.getDc() == null) {
             throw new IllegalArgumentException();
         }
-        FedoraObject fobject = findFedoraObject(update.getPid(), update.getBatchId());
+        FedoraObject fobject = findFedoraObject(update.getPid(), update.getBatchId(), false);
         DcStreamEditor dcEditor = new DcStreamEditor(fobject);
         dcEditor.write(update);
         String label = DcUtils.getLabel(update.getDc());
@@ -480,7 +485,7 @@ public class DigitalObjectResource {
     @Produces("*/*")
     public Response getPreview(
             @QueryParam("pid") String pid,
-            @QueryParam("batchId") String batchId
+            @QueryParam("batchId") Integer batchId
             ) throws IOException {
 
         return getDissemination(pid, batchId, BinaryEditor.PREVIEW_ID);
@@ -498,7 +503,7 @@ public class DigitalObjectResource {
     @Produces("*/*")
     public Response getFull(
             @QueryParam("pid") String pid,
-            @QueryParam("batchId") String batchId
+            @QueryParam("batchId") Integer batchId
             ) throws IOException {
 
         return getDissemination(pid, batchId, BinaryEditor.FULL_ID);
@@ -516,7 +521,7 @@ public class DigitalObjectResource {
     @Produces("*/*")
     public Response getRaw(
             @QueryParam("pid") String pid,
-            @QueryParam("batchId") String batchId
+            @QueryParam("batchId") Integer batchId
             ) throws IOException {
 
         return getDissemination(pid, batchId, BinaryEditor.RAW_ID);
@@ -536,7 +541,7 @@ public class DigitalObjectResource {
     @Produces("*/*")
     public Response getDissemination(
             @QueryParam("pid") String pid,
-            @QueryParam("batchId") String batchId,
+            @QueryParam("batchId") Integer batchId,
             @QueryParam("datastream") String dsId
             ) throws IOException {
 
@@ -550,11 +555,11 @@ public class DigitalObjectResource {
             LocalObject lobject = (LocalObject) fobject;
             BinaryEditor loader = BinaryEditor.dissemination(lobject, dsId);
             if (loader == null) {
-                throw new NotFoundException("dsId", dsId);
+                RestException.plainNotFound("dsId", dsId);
             }
             File entity = loader.read();
             if (entity == null) {
-                throw new NotFoundException("content not found");
+                RestException.plainNotFound("content not found");
             }
 
             Date lastModification = new Date(loader.getLastModified());
@@ -592,7 +597,7 @@ public class DigitalObjectResource {
     @Produces("image/*")
     public Response getThumbnail(
             @QueryParam("pid") String pid,
-            @QueryParam("batchId") String batchId
+            @QueryParam("batchId") Integer batchId
             ) throws IOException {
 
         return getDissemination(pid, batchId, BinaryEditor.THUMB_ID);
@@ -603,14 +608,14 @@ public class DigitalObjectResource {
     @Produces(MediaType.APPLICATION_JSON)
     public StringRecord getModsTxt(
             @QueryParam("pid") String pid,
-            @QueryParam("batchId") String batchId
+            @QueryParam("batchId") Integer batchId
             ) throws IOException {
 
-        FedoraObject fobject = findFedoraObject(pid, batchId);
+        FedoraObject fobject = findFedoraObject(pid, batchId, false);
         ModsStreamEditor meditor = new ModsStreamEditor(fobject);
         String content = meditor.readAsString();
         if (content == null) {
-            throw new NotFoundException("pid", pid);
+            RestException.plainNotFound("pid", pid);
         }
         StringRecord mods = new StringRecord(content, meditor.getLastModified(), pid);
         mods.setBatchId(batchId);
@@ -622,14 +627,14 @@ public class DigitalObjectResource {
     @Produces(MediaType.APPLICATION_JSON)
     public StringRecord getOcr(
             @QueryParam("pid") String pid,
-            @QueryParam("batchId") String batchId
+            @QueryParam("batchId") Integer batchId
             ) throws IOException {
 
         FedoraObject fobject = findFedoraObject(pid, batchId);
         StringEditor ocrEditor = StringEditor.ocr(fobject);
         StringRecord ocr = ocrEditor.readRecord();
         if (ocr == null) {
-            throw new NotFoundException("pid", pid);
+            RestException.plainNotFound("pid", pid);
         }
         ocr.setBatchId(batchId);
         return ocr;
@@ -640,15 +645,15 @@ public class DigitalObjectResource {
     @Produces(MediaType.APPLICATION_JSON)
     public StringRecord updateOcr(
             @FormParam("pid") String pid,
-            @FormParam("batchId") String batchId,
+            @FormParam("batchId") Integer batchId,
             @FormParam("timestamp") Long timestamp,
             @FormParam("content") String content
             ) throws IOException {
 
         if (timestamp == null) {
-            throw new IllegalArgumentException();
+            RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
         }
-        FedoraObject fobject = findFedoraObject(pid, batchId);
+        FedoraObject fobject = findFedoraObject(pid, batchId, false);
         StringEditor ocrEditor = StringEditor.ocr(fobject);
         ocrEditor.write(content, timestamp);
         fobject.flush();
@@ -662,14 +667,14 @@ public class DigitalObjectResource {
     @Produces(MediaType.APPLICATION_JSON)
     public StringRecord getPrivateNote(
             @QueryParam("pid") String pid,
-            @QueryParam("batchId") String batchId
+            @QueryParam("batchId") Integer batchId
             ) throws IOException {
 
         FedoraObject fobject = findFedoraObject(pid, batchId);
         StringEditor editor = StringEditor.privateNote(fobject);
         StringRecord content = editor.readRecord();
         if (content == null) {
-            throw new NotFoundException("pid", pid);
+            RestException.plainNotFound("pid", pid);
         }
         content.setBatchId(batchId);
         return content;
@@ -680,15 +685,15 @@ public class DigitalObjectResource {
     @Produces(MediaType.APPLICATION_JSON)
     public StringRecord updatePrivateNote(
             @FormParam("pid") String pid,
-            @FormParam("batchId") String batchId,
+            @FormParam("batchId") Integer batchId,
             @FormParam("timestamp") Long timestamp,
             @FormParam("content") String content
             ) throws IOException {
 
         if (timestamp == null) {
-            throw new IllegalArgumentException();
+            RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
         }
-        FedoraObject fobject = findFedoraObject(pid, batchId);
+        FedoraObject fobject = findFedoraObject(pid, batchId, false);
         StringEditor editor = StringEditor.privateNote(fobject);
         editor.write(content, timestamp);
         fobject.flush();
@@ -697,12 +702,20 @@ public class DigitalObjectResource {
         return result;
     }
 
-    private FedoraObject findFedoraObject(String pid, String batchId) throws IOException {
+    private FedoraObject findFedoraObject(String pid, Integer batchId) throws IOException {
+        return findFedoraObject(pid, batchId, true);
+    }
+
+    private FedoraObject findFedoraObject(String pid, Integer batchId, boolean readonly) throws IOException {
         FedoraObject fobject;
         if (batchId != null) {
             ImportItem item = importManager.findItem(pid);
             if (item == null) {
-                throw new NotFoundException("pid", pid);
+                throw RestException.plainNotFound("pid", pid);
+            }
+            if (!readonly) {
+                List<ImportBatch> batches = importManager.find(null, batchId, null);
+                ImportResource.checkBatchState(batches.get(0));
             }
             fobject = new LocalStorage().load(pid, item.getFoxmlAsFile());
         } else {

@@ -108,7 +108,7 @@ public class BibliographicCatalogResource {
         if (bCatalog != null) {
             result = bCatalog.find(fieldName, value, locale);
         } else {
-            throw new NotFoundException(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM, catalog);
+            throw RestException.plainNotFound(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM, catalog);
         }
         return new MetadataList(result);
     }

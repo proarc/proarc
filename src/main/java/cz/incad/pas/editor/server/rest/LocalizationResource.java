@@ -76,7 +76,7 @@ public class LocalizationResource {
             @QueryParam(LocalizationResourceApi.GETBUNDLE_SORTED_PARAM) boolean sorted) {
 
         if (bundleName == null) {
-            throw new NotFoundException(LocalizationResourceApi.GETBUNDLE_BUNDLENAME_PARAM, String.valueOf(bundleName));
+            throw RestException.plainNotFound(LocalizationResourceApi.GETBUNDLE_BUNDLENAME_PARAM, String.valueOf(bundleName));
         }
         Locale localeObj;
         if (locale == null || locale.isEmpty()) {
@@ -100,7 +100,7 @@ public class LocalizationResource {
             return new SmartGwtResponse<Item>(result);
         } catch (MissingResourceException ex) {
             LOG.log(Level.WARNING, bundleName.toString(), ex);
-            throw new NotFoundException(LocalizationResourceApi.GETBUNDLE_BUNDLENAME_PARAM, bundleName.toString());
+            throw RestException.plainNotFound(LocalizationResourceApi.GETBUNDLE_BUNDLENAME_PARAM, bundleName.toString());
         }
     }
 

@@ -127,7 +127,7 @@ public final class DcStreamEditor {
         private String pid;
 
         @XmlElement(name="batchId", namespace="http://www.incad.cz/pas/editor/dor/", nillable=true)
-        private String batchId;
+        private Integer batchId;
 
         /** last modification of the DC content*/
         @XmlElement(name="timestamp", namespace="http://www.incad.cz/pas/editor/dor/")
@@ -145,11 +145,11 @@ public final class DcStreamEditor {
             this.pid = pid;
         }
 
-        public String getBatchId() {
+        public Integer getBatchId() {
             return batchId;
         }
 
-        public void setBatchId(String batchId) {
+        public void setBatchId(Integer batchId) {
             this.batchId = batchId;
         }
 
