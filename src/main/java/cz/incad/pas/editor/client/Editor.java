@@ -223,7 +223,7 @@ public class Editor implements EntryPoint {
                 UrlBuilder urlBuilder = Window.Location.createUrlBuilder();
                 urlBuilder.setParameter("locale", locale);
                 String url = urlBuilder.buildString();
-                Window.Location.replace(url);
+                Window.Location.assign(url);
             }
         });
         return lang;
