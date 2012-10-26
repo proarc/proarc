@@ -42,9 +42,7 @@ public class Wizard extends VLayout {
 
     public enum StepKind {BACK, FORWARD, CANCEL}
     private final PasEditorMessages i18nPas;
-
-//    private Canvas[] steps = {new ImportSourceChooser(), new ProcessImportedView(), new ImportParentChooser()};
-    private WizardStep[] steps;
+    private LazyWizardStep[] steps;
     private int stepIdx = -1;
     private Button btnBack;
     private Button btnForward;
@@ -57,32 +55,19 @@ public class Wizard extends VLayout {
     public Wizard(PasEditorMessages i18nPas, WizardStep... steps) {
         assert steps != null && steps.length > 0 && steps[0] != null;
         this.i18nPas = i18nPas;
-        this.steps = steps;
+        this.steps = LazyWizardStep.asLazySteps(steps);
         setHeight100();
         setWidth100();
         
-        lblHeader = new Label(WIZARD_LABEL_PREFIX);
-//        lblHeader.setBackgroundColor("silver");
-//        lblHeader.setShowEdges(true);
+        lblHeader = new Label();
         lblHeader.setAutoHeight();
         lblHeader.setPadding(4);
         lblHeader.setStyleName("pasWizardTitle");
         addMember(lblHeader);
         
-//        HLayout stepWidget = new HLayout();
-//        stepWidget.setWidth100();
-//        stepWidget.setHeight100();
-        
         stepContainer = new Layout();
         stepContainer.setHeight100();
-        Canvas[] stepWidgets = new Canvas[steps.length];
-        for (int i = 0; i < steps.length; i++) {
-            stepWidgets[i] = steps[i].asWidget();
-        }
-        stepContainer.setMembers(stepWidgets);
-//        stepContainer.setVisibleMember(steps[0]);
         
-//        stepContainer.addChild(steps[0]);
         addMember(stepContainer);
         
         HLayout bottomLayout = new HLayout();
@@ -155,7 +140,7 @@ public class Wizard extends VLayout {
 
     private int getStepIndex(WizardStep step) {
         for (int i = 0; i < steps.length; i++) {
-            if (steps[i] == step) {
+            if (steps[i].getDelegate() == step) {
                 return i;
             }
         }
@@ -166,7 +151,7 @@ public class Wizard extends VLayout {
         if (oldStep >= 0 && oldStep != newStep) {
             steps[oldStep].onHide(this);
         }
-        stepContainer.setVisibleMember(stepContainer.getMember(newStep));
+        stepContainer.setMembers(steps[newStep].asWidget());
         
         // reset buttons
         setBackButton(true, null);
@@ -179,11 +164,9 @@ public class Wizard extends VLayout {
     }
 
     private void updateButtonStates() {
-        boolean btnBackDisabled = stepIdx < 1;
+        boolean btnBackDisabled = !canStepBack || stepIdx < 1;
         boolean btnForwardDisabled = (!canStepForward) || (stepIdx + 1 >= steps.length);
         boolean btnCancelDisabled = stepIdx % 2 > 0;
-        System.out.println(ClientUtils.format("Wizard: btnBackDisabled: %s, btnForwardDisabled: %s, btnCancelDisabled: %s",
-                btnBackDisabled, btnForwardDisabled, btnCancelDisabled));
 
         btnBack.setDisabled(btnBackDisabled);
         btnForward.setDisabled(btnForwardDisabled);
@@ -226,7 +209,7 @@ public class Wizard extends VLayout {
     }
 
     /**
-     * XXX rename to PanelItem
+     * One step of the wizard.
      */
     public interface WizardStep {
 
@@ -241,6 +224,58 @@ public class Wizard extends VLayout {
         public boolean onStepAction(Wizard wizard, StepKind step);
 
         public Canvas asWidget();
+
+    }
+
+    /**
+     * Creates and holds widget on demand.
+     */
+    private static final class LazyWizardStep implements WizardStep {
+
+        private final WizardStep delegate;
+        private Canvas widget;
+
+        public LazyWizardStep(WizardStep step) {
+            this.delegate = step;
+        }
+
+        @Override
+        public void onShow(Wizard wizard) {
+            delegate.onShow(wizard);
+        }
+
+        @Override
+        public void onHide(Wizard wizard) {
+            delegate.onHide(wizard);
+        }
+
+        @Override
+        public boolean onStepAction(Wizard wizard, StepKind step) {
+            return delegate.onStepAction(wizard, step);
+        }
+
+        @Override
+        public Canvas asWidget() {
+            if (widget == null) {
+                widget = delegate.asWidget();
+            }
+            return widget;
+        }
+
+        public WizardStep getDelegate() {
+            return delegate;
+        }
+
+        public static LazyWizardStep[] asLazySteps(WizardStep[] steps) {
+            if (steps == null) {
+                return null;
+            }
+            LazyWizardStep[] handles = new LazyWizardStep[steps.length];
+            for (int i = 0; i < steps.length; i++) {
+                handles[i] = new LazyWizardStep(steps[i]);
+            }
+            return handles;
+        }
 
     }
 
