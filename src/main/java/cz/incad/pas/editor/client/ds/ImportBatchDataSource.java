@@ -124,6 +124,10 @@ public final class ImportBatchDataSource extends RestDataSource {
             return delegate.getAttribute(FIELD_ID);
         }
 
+        public void setId(String id) {
+            delegate.setAttribute(FIELD_ID, id);
+        }
+
         public String getParentPid() {
             return delegate.getAttribute(FIELD_PARENT);
         }

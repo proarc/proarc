@@ -16,12 +16,12 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
+import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
@@ -32,6 +32,9 @@ import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.ImportTreeDataSource.ImportRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
+import cz.incad.pas.editor.client.ds.RestConfig;
+import cz.incad.pas.editor.client.presenter.Importing.ImportPlace;
+import cz.incad.pas.editor.client.presenter.Importing.ImportPlace.Type;
 import cz.incad.pas.editor.client.widget.ImportBatchChooser;
 import cz.incad.pas.editor.client.widget.ImportBatchChooser.ImportBatchChooserHandler;
 import cz.incad.pas.editor.client.widget.ImportBatchItemEditor;
@@ -61,8 +64,9 @@ public class ImportPresenter {
     private final FinishedStep finishedStep;
     private ImportContext importContext;
     private final PasEditorMessages i18nPas;
+    private final PlaceController placeController;
 
-    public ImportPresenter(PasEditorMessages i18nPas) {
+    public ImportPresenter(PasEditorMessages i18nPas, PlaceController placeController) {
         this.i18nPas = i18nPas;
         selectFolderStep = new SelectFolderStep();
         selectBatchStep = new SelectBatchStep();
@@ -71,15 +75,11 @@ public class ImportPresenter {
         finishedStep = new FinishedStep();
         wizard = new Wizard(i18nPas, selectFolderStep, selectBatchStep,
                 updateItemsStep, selectParentStep, finishedStep);
+        this.placeController = placeController;
     }
 
     public void bind() {
         importContext = new ImportContext();
-//        importFolder();
-//        wizard.stepInit();
-//        wizard.moveAt(importSourceStep);
-//        wizard.moveAt(updateImportStep);
-//        wizard.moveAt(selectParentStep);
     }
 
     public void unbind() {
@@ -101,8 +101,22 @@ public class ImportPresenter {
     public void updateImportedObjects() {
         wizard.moveAt(updateItemsStep);
     }
+    
+    public void updateImportedObjects(String batchId) {
+        BatchRecord batchRecord = new BatchRecord(new Record());
+        batchRecord.setId(batchId);
+        getImportContext().setBatch(batchRecord);
+        wizard.moveAt(updateItemsStep);
+    }
 
     public void selectParent() {
+        wizard.moveAt(selectParentStep);
+    }
+
+    public void selectParent(String batchId) {
+        BatchRecord batchRecord = new BatchRecord(new Record());
+        batchRecord.setId(batchId);
+        getImportContext().setBatch(batchRecord);
         wizard.moveAt(selectParentStep);
     }
 
@@ -112,6 +126,27 @@ public class ImportPresenter {
 
     public void finishImport() {
         wizard.moveAt(finishedStep);
+    }
+
+    private void loadBatch(final String batchId, final Runnable callback) {
+        Criteria criteria = new Criteria(ImportBatchDataSource.FIELD_ID, batchId);
+        ImportBatchDataSource.getInstance().fetchData(criteria, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                BatchRecord batchRecord = null;
+                if (RestConfig.isStatusOk(response)) {
+                    Record[] records = response.getData();
+                    if (records.length > 0) {
+                        batchRecord = new BatchRecord(records[0]);
+                    } else {
+                        SC.warn("Batch not found! " + batchId);
+                    }
+                }
+                getImportContext().setBatch(batchRecord);
+                callback.run();
+            }
+        });
     }
 
     private void ingest(String batchId, String parentId, final BooleanCallback call) {
@@ -127,11 +162,15 @@ public class ImportPresenter {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
-                    call.execute(false);
-                    return;
+                if (RestConfig.isStatusOk(response)) {
+                    Record[] records = response.getData();
+                    if (records != null && records.length > 0) {
+                        importContext.setBatch(new BatchRecord(records[0]));
+                        call.execute(true);
+                        return;
+                    }
                 }
-                call.execute(true);
+                call.execute(false);
             }
         }, dsRequest);
     }
@@ -141,21 +180,23 @@ public class ImportPresenter {
         DSRequest dsRequest = new DSRequest();
         Record update = new Record();
         update.setAttribute(ImportBatchDataSource.FIELD_ID, batchId);
-        update.setAttribute(ImportBatchDataSource.FIELD_PARENT, parentPid);
+        update.setAttribute(ImportBatchDataSource.FIELD_PARENT, parentPid != null ? parentPid : "");
         dsBatch.updateData(update, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
+                if (!RestConfig.isStatusOk(response)) {
+                    importContext.setParentPid(null);
                     call.execute(false);
                     return;
                 }
                 Record[] data = response.getData();
                 if (data != null && data.length > 0) {
-                    importContext.setParentPid(parentPid);
+                    importContext.setBatch(new BatchRecord(data[0]));
                     call.execute(true);
                 } else {
                     // XXX show warning something is wrong
+                    importContext.setBatch(null);
                     call.execute(false);
                 }
             }
@@ -189,10 +230,12 @@ public class ImportPresenter {
         public boolean onStepAction(Wizard wizard, StepKind step) {
             if (step == StepKind.FORWARD) {
                 Record record = widget.getSelectedBatch();
-                BatchRecord batch = record == null ? null : new BatchRecord(record);
+                BatchRecord batch = new BatchRecord(record);
                 getImportContext().setBatch(batch);
+                placeController.goTo(new ImportPlace(Type.EDIT_ITEMS, batch.getId()));
+                return false;
             }
-            return true;
+            return false;
         }
 
         @Override
@@ -285,7 +328,7 @@ public class ImportPresenter {
 
                     @Override
                     public void execute(DSResponse response, Object rawData, DSRequest request) {
-                        if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
+                        if (RestConfig.isStatusOk(response)) {
                             response.setInvalidateCache(true);
                             return;
                         }
@@ -321,21 +364,18 @@ public class ImportPresenter {
         }
 
         private void checkBatchState(BatchRecord batch) {
-            final Criteria criteria = new Criteria(ImportBatchDataSource.FIELD_ID, batch.getId());
-            ImportBatchDataSource.getInstance().fetchData(criteria, new DSCallback() {
+            loadBatch(batch.getId(), new Runnable() {
 
                 @Override
-                public void execute(DSResponse response, Object rawData, DSRequest request) {
-                    Record[] data = response.getData();
-                    if (data != null && data.length > 0) {
-                        BatchRecord batch = new BatchRecord(data[0]);
-                        if (batch.getState() == ImportBatchDataSource.State.LOADED) {
-                            ImportPresenter.this.getImportContext().setBatch(batch);
-                            ImportPresenter.this.updateImportedObjects();
-                            return ;
-                        }
+                public void run() {
+                    BatchRecord batch = getImportContext().getBatch();
+                    if (batch != null && batch.getState() == ImportBatchDataSource.State.LOADED) {
+                        ImportPresenter.this.getImportContext().setBatch(batch);
+                        ImportPresenter.this.updateImportedObjects();
+                        placeController.goTo(new ImportPlace(Type.EDIT_ITEMS, batch.getId()));
+                    } else {
+                        importSourceChooser.refresh();
                     }
-                    importSourceChooser.refresh();
                 }
             });
         }
@@ -367,11 +407,14 @@ public class ImportPresenter {
 
                 @Override
                 public void execute(Boolean value) {
+                    ImportPlace place;
                     if (step == StepKind.BACK) {
-                        ImportPresenter.this.importFolder();
+                        place = new ImportPlace(Type.CONTENT);
                     } else {
-                        ImportPresenter.this.selectParent();
+                        BatchRecord batch = getImportContext().getBatch();
+                        place = new ImportPlace(Type.EDIT_PARENT, batch.getId());
                     }
+                    placeController.goTo(place);
                 }
             });
             return false;
@@ -399,9 +442,34 @@ public class ImportPresenter {
             wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
                     i18nPas.ImportWizard_SelectParentStep_Description_Title());
             this.wizard = wizard;
-            widget.setHandler(this);
-            widget.setDataSource(ImportPresenter.this.getImportContext().getParentPid());
-            onParentSelectionUpdated();
+            BatchRecord batch = ImportPresenter.this.getImportContext().getBatch();
+            widget.hide();
+            loadBatch(batch.getId(), new Runnable() {
+
+                @Override
+                public void run() {
+                    bindData();
+                }
+            });
+
+        }
+
+        private void bindData() {
+            BatchRecord batch = ImportPresenter.this.getImportContext().getBatch();
+            if (batch != null && batch.getId() != null) {
+                widget.setHandler(this);
+                widget.setDataSource(ImportPresenter.this.getImportContext().getParentPid());
+            }
+            canStep();
+        }
+
+        private void canStep() {
+            BatchRecord batch = getImportContext().getBatch();
+            String batchId = batch != null ? batch.getId() : null;
+            String parentPid = batch != null ? batch.getParentPid() : null;
+            wizard.setCanStepBack(batchId != null);
+            wizard.setCanStepForward(batchId != null && parentPid != null);
+            widget.setVisible(batch != null);
         }
 
         @Override
@@ -420,11 +488,8 @@ public class ImportPresenter {
                 }
                 return false;
             } else {
-                if (parentPid != null) {
-                    updateBatchParent(batchId, parentPid);
-                    return false;
-                }
-                return true;
+                placeController.goTo(new ImportPlace(Type.EDIT_ITEMS, batchId));
+                return false;
             }
         }
 
@@ -433,8 +498,18 @@ public class ImportPresenter {
 
                 @Override
                 public void execute(Boolean value) {
+                    BooleanCallback bc = new BooleanCallback() {
+
+                        @Override
+                        public void execute(Boolean value) {
+                            placeController.goTo(new ImportPlace(Type.HISTORY));
+                        }
+                    };
+                    // XXX implement status page listing items and their states
                     if (value != null && value) {
-                        ImportPresenter.this.importFolder();
+                        SC.say(i18nPas.ImportWizard_Ingest_Done_Msg(), bc);
+                    } else {
+                        SC.warn(i18nPas.ImportWizard_Ingest_Failed_Msg(), bc);
                     }
                 }
             });
@@ -445,11 +520,7 @@ public class ImportPresenter {
 
                 @Override
                 public void execute(Boolean value) {
-                    if (value != null && value) {
-                        ImportPresenter.this.updateImportedObjects();
-                    } else {
-                        // show some warning
-                    }
+                    canStep();
                 }
             });
         }
@@ -468,9 +539,8 @@ public class ImportPresenter {
             String pid = (selectedParent != null)
                     ? selectedParent.getAttribute(RelationDataSource.FIELD_PID)
                     : null;
-            boolean valid = pid != null;
-            importContext.setParentPid(pid);
-            wizard.setCanStepForward(valid);
+            String batchId = getImportContext().getBatch().getId();
+            updateBatchParent(batchId, pid);
         }
     }
 
@@ -523,7 +593,7 @@ public class ImportPresenter {
         }
 
         public String getParentPid() {
-            return batch.getParentPid();
+            return batch != null ? batch.getParentPid() : null;
         }
 
         public void setParentPid(String pid) {

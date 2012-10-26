@@ -221,6 +221,7 @@ public class ImportResource {
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<ImportBatch> updateBatch(
             @FormParam("id") Integer batchId,
+            // empty string stands for remove
             @FormParam("parentPid") String parentPid,
             @FormParam("state") ImportBatch.State state
             ) throws IOException, FedoraClientException {
@@ -230,6 +231,9 @@ public class ImportResource {
             throw RestException.plainNotFound("id", String.valueOf(batchId));
         }
         if (parentPid != null) {
+            checkBatchState(batch);
+            // XXX check PID is valid and exists
+            parentPid = parentPid.isEmpty() ? null : parentPid;
             batch.setParentPid(parentPid);
             batch = importManager.update(batch);
         }

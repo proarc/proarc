@@ -60,6 +60,8 @@ import cz.incad.pas.editor.client.presenter.DigitalObjectCreator;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditor;
 import cz.incad.pas.editor.client.presenter.DigitalObjectManager;
 import cz.incad.pas.editor.client.presenter.ImportPresenter;
+import cz.incad.pas.editor.client.presenter.Importing.ImportPlace;
+import cz.incad.pas.editor.client.presenter.Importing.ImportPlace.Type;
 import cz.incad.pas.editor.client.widget.UsersView;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -128,6 +130,9 @@ public class Editor implements EntryPoint {
 
         presenterFactory = new PresenterFactory(i18nPas);
 
+        editorWorkFlow = new EditorWorkFlow(getDisplay(), presenterFactory, i18nPas);
+        presenterFactory.setPlaceController(editorWorkFlow.getPlaceController());
+
 ////        tabSet.setBorder("2px solid blue");
 
         final TreeGrid menu = createMenu();
@@ -166,7 +171,6 @@ public class Editor implements EntryPoint {
 
         ModsCustomDataSource.loadPageTypes(sweepTask.expect());
         loadPermissions();
-        editorWorkFlow = new EditorWorkFlow(getDisplay(), i18nPas);
     }
 
     private void loadPermissions() {
@@ -271,8 +275,8 @@ public class Editor implements EntryPoint {
     private TreeNode[] createMenuContent() {
         TreeNode[] trees = new TreeNode[] {
                 createTreeNode("Import", i18nPas.MainMenu_Import_Title(),
-                        createTreeNode("New Batch", i18nPas.MainMenu_Import_NewBatch_Title()),
-                        createTreeNode("History", i18nPas.MainMenu_Import_Edit_Title())),
+                        createTreeNode("New Batch", i18nPas.MainMenu_Import_NewBatch_Title(), new ImportPlace(Type.CONTENT)),
+                        createTreeNode("History", i18nPas.MainMenu_Import_Edit_Title(), new ImportPlace(Type.HISTORY))),
                 createTreeNode("Edit", i18nPas.MainMenu_Edit_Title(),
                         createTreeNode("New Object", i18nPas.MainMenu_Edit_NewObject_Title(), new DigitalObjectCreatorPlace()),
                         createTreeNode("Search", i18nPas.MainMenu_Edit_Edit_Title())
@@ -346,17 +350,6 @@ public class Editor implements EntryPoint {
                 }
                 // XXX deprecated; replace with places attached to nodes
                 if ("New Batch".equals(name)) {
-                    ImportPresenter importPresenter = presenterFactory.getImportPresenter();
-                    Canvas ui = importPresenter.getUI();
-                    placesContainer.setMembers(ui);
-                    importPresenter.bind();
-                    importPresenter.importFolder();
-                } else if ("History".equals(name)) {
-                    ImportPresenter importPresenter = presenterFactory.getImportPresenter();
-                    Canvas ui = importPresenter.getUI();
-                    placesContainer.setMembers(ui);
-                    importPresenter.bind();
-                    importPresenter.selectBatchFromHistory();
                 } else if ("Search".equals(name)) {
                     DigitalObjectManager presenter = presenterFactory.getDigitalObjectManager();
                     Canvas ui = presenter.getUI();
@@ -468,14 +461,19 @@ public class Editor implements EntryPoint {
         private DigitalObjectManager digitalObjectManager;
         private UsersView users;
         private final PasEditorMessages i18nPas;
+        private PlaceController placeController;
 
         PresenterFactory(PasEditorMessages i18nPas) {
             this.i18nPas = i18nPas;
         }
 
+        void setPlaceController(PlaceController placeController) {
+            this.placeController = placeController;
+        }
+
         public ImportPresenter getImportPresenter() {
             if (importPresenter == null) {
-                importPresenter = new ImportPresenter(i18nPas);
+                importPresenter = new ImportPresenter(i18nPas, placeController);
             }
             return importPresenter;
         }

@@ -32,10 +32,13 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.layout.Layout;
+import cz.incad.pas.editor.client.Editor.PresenterFactory;
 import cz.incad.pas.editor.client.presenter.DigitalObjectCreating;
 import cz.incad.pas.editor.client.presenter.DigitalObjectCreating.DigitalObjectCreatorPlace;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
+import cz.incad.pas.editor.client.presenter.Importing;
+import cz.incad.pas.editor.client.presenter.Importing.ImportPlace;
 
 /**
  * Implements editor workflow using GWT Places, Activities and History support.
@@ -49,14 +52,17 @@ public final class EditorWorkFlow {
     private final ActivityManager activityManager;
     private final PasEditorMessages i18n;
     private final PlaceHistoryHandler placeHistoryHandler;
+    private final PresenterFactory presenterFactory;
 
-    public EditorWorkFlow(Layout delegate, PasEditorMessages i18n) {
-        this(null, null, null, delegate, i18n);
+    public EditorWorkFlow(Layout delegate, PresenterFactory presenterFactory, PasEditorMessages i18n) {
+        this(null, null, null, delegate, presenterFactory, i18n);
     }
     
     public EditorWorkFlow(EventBus ebus, PlaceController placeController,
-            ActivityManager activityManager, Layout delegate, PasEditorMessages i18n) {
+            ActivityManager activityManager, Layout delegate,
+            PresenterFactory presenterFactory, PasEditorMessages i18n) {
 
+        this.presenterFactory = presenterFactory;
         this.i18n = i18n;
         this.ebus = (ebus != null) ? ebus : new SimpleEventBus();
         // PlaceController uses delegate to ask user with blocking Window.confirm
@@ -90,6 +96,8 @@ public final class EditorWorkFlow {
                 a = new DigitalObjectEditing((DigitalObjectEditorPlace) place, placeController, i18n);
             } else if (place instanceof DigitalObjectCreatorPlace) {
                 a = new DigitalObjectCreating((DigitalObjectCreatorPlace) place);
+            } else if (place instanceof ImportPlace) {
+                a = new Importing((ImportPlace) place, presenterFactory);
             }
             return a;
         }
@@ -121,6 +129,7 @@ public final class EditorWorkFlow {
     @WithTokenizers({
         DigitalObjectEditorPlace.Tokenizer.class,
         DigitalObjectCreatorPlace.Tokenizer.class,
+        ImportPlace.Tokenizer.class,
     })
     static interface EditorPlaceHistoryMapper extends PlaceHistoryMapper {
     }
