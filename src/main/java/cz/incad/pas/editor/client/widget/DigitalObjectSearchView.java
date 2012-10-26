@@ -16,8 +16,10 @@
  */
 package cz.incad.pas.editor.client.widget;
 
+import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SelectionType;
 import com.smartgwt.client.widgets.Canvas;
@@ -43,7 +45,6 @@ import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
 import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
-import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.action.Actions;
@@ -75,10 +76,12 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     private final Canvas rootWidget;
     private final ListGrid foundGrid;
     private final PasEditorMessages i18nPas;
+    private final SmartGwtMessages i18nSmartGwt;
     private final ToolStrip toolbar;
 
     public DigitalObjectSearchView(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
+        this.i18nSmartGwt = GWT.create(SmartGwtMessages.class);
 
         foundGrid = createList();
         
@@ -234,10 +237,11 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         return item;
     }
 
-    private static SelectItem createModelItem(String title, FormItemIfFunction showIf) {
+    private SelectItem createModelItem(String title, FormItemIfFunction showIf) {
         SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM, title);
         item.setOptionDataSource(MetaModelDataSource.getInstance());
         item.setAllowEmptyValue(true);
+        item.setEmptyDisplayValue("<i>" + i18nSmartGwt.filterBuilder_matchAllTitle() + "</i>");
         item.setValueField(MetaModelDataSource.FIELD_PID);
         item.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
         item.setAutoFetchData(true);
