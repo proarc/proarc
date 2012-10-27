@@ -29,7 +29,7 @@ import org.junit.Test;
 public class ModsStreamEditorTest {
 
     @Test
-    public void testRead() {
+    public void testRead() throws Exception {
         LocalStorage storage = new LocalStorage();
         LocalObject local = storage.create();
         ModsStreamEditor editor = new ModsStreamEditor(local);

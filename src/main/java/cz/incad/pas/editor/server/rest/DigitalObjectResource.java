@@ -27,6 +27,8 @@ import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
+import cz.incad.pas.editor.server.fedora.DigitalObjectException;
+import cz.incad.pas.editor.server.fedora.DigitalObjectNotFoundException;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
@@ -147,7 +149,7 @@ public class DigitalObjectResource {
             @FormParam("model") String modelId,
             @FormParam("pid") String pid,
             @FormParam("mods") String mods
-            ) throws URISyntaxException, IOException, FedoraClientException {
+            ) throws URISyntaxException, IOException, FedoraClientException, DigitalObjectException {
 
         if (modelId == null) {
             // XXX validate modelId values
@@ -289,7 +291,7 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> findMembers(
             @QueryParam("parent") String parent,
             @QueryParam("root") String root
-            ) throws FedoraClientException, IOException {
+            ) throws FedoraClientException, IOException, DigitalObjectException {
 
         SearchView search = RemoteStorage.getInstance(pasConfig).getSearch();
         List<Item> items;
@@ -308,7 +310,7 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> addMember(
             @FormParam("parent") String parentPid,
             @FormParam("pid") String memberPid
-            ) throws IOException, FedoraClientException {
+            ) throws IOException, FedoraClientException, DigitalObjectException {
 
         if (parentPid == null) {
             throw RestException.plainNotFound("parent", null);
@@ -344,24 +346,25 @@ public class DigitalObjectResource {
     public DublinCoreRecord getDublinCore(
             @QueryParam("pid") String pid,
             @QueryParam("batchId") Integer batchId
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         // dev mode http://127.0.0.1:8888/rest/object/dc?pid=uuid:4a7c2e50-af36-11dd-9643-000d606f5dc6
         FedoraObject fobject = findFedoraObject(pid, batchId);
         DcStreamEditor dcEditor = new DcStreamEditor(fobject);
-        DublinCoreRecord dc = dcEditor.read();
-        if (dc == null) {
+        try {
+            DublinCoreRecord dc = dcEditor.read();
+            dc.setBatchId(batchId);
+            return dc;
+        } catch (DigitalObjectNotFoundException ex) {
             throw RestException.plainNotFound("pid", null);
         }
-        dc.setBatchId(batchId);
-        return dc;
     }
 
     @PUT
     @Path("/dc")
     @Consumes({MediaType.TEXT_XML, MediaType.APPLICATION_XML})
     @Produces(MediaType.APPLICATION_XML)
-    public DublinCoreRecord updateDublinCore(DublinCoreRecord update) throws IOException {
+    public DublinCoreRecord updateDublinCore(DublinCoreRecord update) throws IOException, DigitalObjectException {
         if (update == null || update.getDc() == null) {
             throw new IllegalArgumentException();
         }
@@ -389,7 +392,7 @@ public class DigitalObjectResource {
     public CustomMods getCustomMods(
             @QueryParam("pid") String pid,
             @QueryParam("editorId") String editorId
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
         
         if (pid == null || pid.isEmpty()) {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
@@ -419,7 +422,7 @@ public class DigitalObjectResource {
             @FormParam("editorId") String editorId,
             @FormParam("timestamp") Long timestamp,
             @FormParam("customJsonData") String customJsonData
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, json: %s", pid, editorId, timestamp, customJsonData));
         if (pid == null || pid.isEmpty()) {
@@ -486,7 +489,7 @@ public class DigitalObjectResource {
     public Response getPreview(
             @QueryParam("pid") String pid,
             @QueryParam("batchId") Integer batchId
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         return getDissemination(pid, batchId, BinaryEditor.PREVIEW_ID);
     }
@@ -504,7 +507,7 @@ public class DigitalObjectResource {
     public Response getFull(
             @QueryParam("pid") String pid,
             @QueryParam("batchId") Integer batchId
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         return getDissemination(pid, batchId, BinaryEditor.FULL_ID);
     }
@@ -522,7 +525,7 @@ public class DigitalObjectResource {
     public Response getRaw(
             @QueryParam("pid") String pid,
             @QueryParam("batchId") Integer batchId
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         return getDissemination(pid, batchId, BinaryEditor.RAW_ID);
     }
@@ -543,7 +546,7 @@ public class DigitalObjectResource {
             @QueryParam("pid") String pid,
             @QueryParam("batchId") Integer batchId,
             @QueryParam("datastream") String dsId
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         FedoraObject fobject = findFedoraObject(pid, batchId);
         if (dsId == null) {
@@ -598,7 +601,7 @@ public class DigitalObjectResource {
     public Response getThumbnail(
             @QueryParam("pid") String pid,
             @QueryParam("batchId") Integer batchId
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         return getDissemination(pid, batchId, BinaryEditor.THUMB_ID);
     }
@@ -609,17 +612,18 @@ public class DigitalObjectResource {
     public StringRecord getModsTxt(
             @QueryParam("pid") String pid,
             @QueryParam("batchId") Integer batchId
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         FedoraObject fobject = findFedoraObject(pid, batchId, false);
         ModsStreamEditor meditor = new ModsStreamEditor(fobject);
-        String content = meditor.readAsString();
-        if (content == null) {
-            RestException.plainNotFound("pid", pid);
+        try {
+            String content = meditor.readAsString();
+            StringRecord mods = new StringRecord(content, meditor.getLastModified(), pid);
+            mods.setBatchId(batchId);
+            return mods;
+        } catch (DigitalObjectNotFoundException ex) {
+            throw RestException.plainNotFound("pid", pid);
         }
-        StringRecord mods = new StringRecord(content, meditor.getLastModified(), pid);
-        mods.setBatchId(batchId);
-        return mods;
     }
 
     @GET
@@ -628,16 +632,17 @@ public class DigitalObjectResource {
     public StringRecord getOcr(
             @QueryParam("pid") String pid,
             @QueryParam("batchId") Integer batchId
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         FedoraObject fobject = findFedoraObject(pid, batchId);
         StringEditor ocrEditor = StringEditor.ocr(fobject);
-        StringRecord ocr = ocrEditor.readRecord();
-        if (ocr == null) {
-            RestException.plainNotFound("pid", pid);
+        try {
+            StringRecord ocr = ocrEditor.readRecord();
+            ocr.setBatchId(batchId);
+            return ocr;
+        } catch (DigitalObjectNotFoundException ex) {
+            throw RestException.plainNotFound("pid", pid);
         }
-        ocr.setBatchId(batchId);
-        return ocr;
     }
 
     @PUT
@@ -648,18 +653,22 @@ public class DigitalObjectResource {
             @FormParam("batchId") Integer batchId,
             @FormParam("timestamp") Long timestamp,
             @FormParam("content") String content
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         if (timestamp == null) {
             RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
         }
         FedoraObject fobject = findFedoraObject(pid, batchId, false);
         StringEditor ocrEditor = StringEditor.ocr(fobject);
-        ocrEditor.write(content, timestamp);
-        fobject.flush();
-        StringRecord result = ocrEditor.readRecord();
-        result.setBatchId(batchId);
-        return result;
+        try {
+            ocrEditor.write(content, timestamp);
+            fobject.flush();
+            StringRecord result = ocrEditor.readRecord();
+            result.setBatchId(batchId);
+            return result;
+        } catch (DigitalObjectNotFoundException ex) {
+            throw RestException.plainNotFound("pid", pid);
+        }
     }
 
     @GET
@@ -668,16 +677,17 @@ public class DigitalObjectResource {
     public StringRecord getPrivateNote(
             @QueryParam("pid") String pid,
             @QueryParam("batchId") Integer batchId
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         FedoraObject fobject = findFedoraObject(pid, batchId);
         StringEditor editor = StringEditor.privateNote(fobject);
-        StringRecord content = editor.readRecord();
-        if (content == null) {
-            RestException.plainNotFound("pid", pid);
+        try {
+            StringRecord content = editor.readRecord();
+            content.setBatchId(batchId);
+            return content;
+        } catch (DigitalObjectNotFoundException ex) {
+            throw RestException.plainNotFound("pid", pid);
         }
-        content.setBatchId(batchId);
-        return content;
     }
 
     @PUT
@@ -688,7 +698,7 @@ public class DigitalObjectResource {
             @FormParam("batchId") Integer batchId,
             @FormParam("timestamp") Long timestamp,
             @FormParam("content") String content
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         if (timestamp == null) {
             RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");

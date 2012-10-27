@@ -27,7 +27,6 @@ import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.custom.PageMapper;
 import cz.incad.pas.editor.server.mods.custom.PageMapper.Page;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -40,7 +39,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
  */
 public final class PageView {
 
-    public List<Item> list(int batchId, Collection<ImportItem> imports) {
+    public List<Item> list(int batchId, Collection<ImportItem> imports) throws DigitalObjectException {
         ArrayList<Item> result = new ArrayList<Item>(imports.size());
         LocalStorage storage = new LocalStorage();
 //        Mapping mapping = new Mapping();
@@ -60,7 +59,7 @@ public final class PageView {
     }
 
     public Item updateItem(int batchId, ImportItem item, long timestamp, String pageIndex, String pageNumber, String pageType)
-            throws IOException {
+            throws DigitalObjectException {
         
         LocalStorage storage = new LocalStorage();
 //        PageMapper mapper = new PageMapper();

@@ -19,6 +19,8 @@ package cz.incad.pas.editor.server.fedora;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.FedoraCredentials;
+import com.yourmediashelf.fedora.client.response.AddDatastreamResponse;
+import com.yourmediashelf.fedora.client.response.DatastreamProfileResponse;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.client.response.GetDatastreamResponse;
 import com.yourmediashelf.fedora.client.response.IngestResponse;
@@ -27,16 +29,18 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
 import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.fedora.FoxmlUtils.ControlGroup;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -145,7 +149,7 @@ public final class RemoteStorage {
         }
 
         @Override
-        public void flush() {
+        public void flush() throws DigitalObjectException {
             super.flush();
             try {
                 if (label != null) {
@@ -169,7 +173,7 @@ public final class RemoteStorage {
     }
 
     /**
-     * XXX implement support for missing data stream (404 - FedoraClientException)
+     * The editor to access remote streams.
      */
     public static final class RemoteXmlStreamEditor implements XmlStreamEditor {
 
@@ -179,54 +183,124 @@ public final class RemoteStorage {
         private DatastreamProfile profile;
         private String data;
         private boolean modified;
+        private boolean missingDataStream;
+        private final DatastreamProfile defaultProfile;
 
+        /**
+         * Use to store whatever content in repository. I
+         */
+        public static DatastreamProfile managedProfile(
+                String dsId, MediaType mimetype, String label) {
+
+            if (dsId == null || dsId.isEmpty() || mimetype == null) {
+                throw new IllegalArgumentException();
+            }
+            return createProfileTemplate(dsId, null, label, mimetype, ControlGroup.MANAGED);
+        }
+
+        /**
+         * Use to embed XML content into FOXML. It expects you read and write
+         * well formed XML.
+         */
+        public static DatastreamProfile inlineProfile(
+                String dsId, String formatUri, String label) {
+
+            if (dsId == null || dsId.isEmpty()) {
+                throw new IllegalArgumentException();
+            }
+            return createProfileTemplate(dsId, formatUri, label,
+                    MediaType.TEXT_XML_TYPE, ControlGroup.INLINE);
+        }
+
+        /**
+         * Use to store whatever external content.
+         * XXX Data should be URL?
+         */
+        public static DatastreamProfile externalProfile(
+                String dsId, MediaType mimetype, String label) {
+
+            if (dsId == null || dsId.isEmpty() || mimetype == null) {
+                throw new IllegalArgumentException();
+            }
+            throw new UnsupportedOperationException();
+//            return createProfileTemplate(pid, dsId, null, label, mimetype, ControlGroup.EXTERNAL);
+        }
+
+        /**
+         * Constructor.
+         * @param object remote object
+         * @param defaultProfile optional profile to create new stream. {@code null}
+         *          means the editor can just edit existing stream.
+         */
+        public RemoteXmlStreamEditor(RemoteObject object, DatastreamProfile defaultProfile) {
+            if (object == null) {
+                throw new NullPointerException("object");
+            }
+            this.object = object;
+            defaultProfile.setPid(object.getPid());
+            this.defaultProfile = defaultProfile;
+            this.dsId = defaultProfile.getDsID();
+        }
+
+        /**
+         * Creates editor that will fail in case the stream not exist.
+         * @param object remote object
+         * @param dsId data stream ID
+         */
         public RemoteXmlStreamEditor(RemoteObject object, String dsId) {
             this.object = object;
             this.dsId = dsId;
+            this.defaultProfile = null;
         }
 
         @Override
-        public Source read() {
+        public Source read() throws DigitalObjectException {
             try {
                 fetchData();
-                return new StreamSource(new StringReader(data));
+                return missingDataStream ? null : new StreamSource(new StringReader(data));
+            } catch (DigitalObjectException ex) {
+                throw ex;
             } catch (Exception ex) {
-                throw new IllegalStateException(toLogString(), ex);
+                throw new DigitalObjectException(object.getPid(), toLogString(), ex);
             }
         }
 
         @Override
-        public long getLastModified() {
+        public long getLastModified() throws DigitalObjectException {
             try {
                 fetchProfile();
                 return lastModified;
-            } catch (FedoraClientException ex) {
-                throw new IllegalStateException(toLogString(), ex);
+            } catch (DigitalObjectException ex) {
+                throw ex;
+            } catch (Exception ex) {
+                throw new DigitalObjectException(object.getPid(), toLogString(), ex);
             }
         }
 
         @Override
-        public String getMimetype() {
+        public String getMimetype() throws DigitalObjectException {
             try {
                 fetchProfile();
                 return profile.getDsMIME();
-            } catch (FedoraClientException ex) {
-                throw new IllegalStateException(toLogString(), ex);
+            } catch (DigitalObjectException ex) {
+                throw ex;
+            } catch (Exception ex) {
+                throw new DigitalObjectException(object.getPid(), toLogString(), ex);
             }
         }
 
         @Override
-        public void write(EditorResult data, long timestamp) {
+        public void write(EditorResult data, long timestamp) throws DigitalObjectException {
             if (!(data instanceof EditorStreamResult)) {
                 throw new IllegalArgumentException("Unsupported data: " + data);
             }
 
             if (timestamp != getLastModified()) {
-                throw new ConcurrentModificationException(String.format(
+                String msg = String.format(
                         "%s, timestamp: %s (%s)",
                         toLogString(), timestamp,
-                        DateUtility.getXSDDateTime(new Date(timestamp))
-                        ));
+                        DateUtility.getXSDDateTime(new Date(timestamp)));
+                throw new DigitalObjectConcurrentModificationException(object.getPid(), msg);
             }
             EditorStreamResult result = (EditorStreamResult) data;
             this.data = result.asString();
@@ -239,59 +313,119 @@ public final class RemoteStorage {
             return new EditorStreamResult();
         }
 
-        private void fetchProfile() throws FedoraClientException {
-            if (profile != null) {
+        private void fetchProfile() throws DigitalObjectException {
+            if (profile != null || missingDataStream) {
                 return ;
             }
-            GetDatastreamResponse response = FedoraClient.getDatastream(object.getPid(), dsId)
-                    .format("xml").execute(object.getClient());
-            if (response.getStatus() != 200) {
-                throw new FedoraClientException(response.getStatus(), toLogString());
+            try {
+                GetDatastreamResponse response = FedoraClient.getDatastream(object.getPid(), dsId)
+                        .format("xml").execute(object.getClient());
+                profile = response.getDatastreamProfile();
+                lastModified = response.getLastModifiedDate().getTime();
+                missingDataStream = false;
+            } catch (FedoraClientException ex) {
+                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    // Missing datastream message:
+                    // HTTP 404 Error: No datastream could be found. Either there is no datastream for the digital object "uuid:5c3caa12-1e82-4670-a6aa-3d9ff8a7a3c5" with datastream ID of "TEXT_OCR"  OR  there are no datastreams that match the specified date/time value of "null".
+                    // Missing object message:
+                    // HTTP 404 Error: uuid:5c3caa12-1e82-4670-a6aa-3d9ff8a7a3c56
+                    // To check message see fcrepo-server/src/main/java/org/fcrepo/server/rest/DatastreamResource.java
+                    missingDataStream = ex.getMessage().contains("No datastream");
+                    lastModified = -1;
+                    if (missingDataStream) {
+                        if (defaultProfile != null) {
+                            profile = defaultProfile;
+                        } else {
+                            throw new DigitalObjectException(object.getPid(),
+                                    "Missing default profile! " + toLogString());
+                        }
+                    } else {
+                        throw new DigitalObjectNotFoundException(object.getPid());
+                    }
+                } else {
+                    throw new DigitalObjectException(object.getPid(), toLogString(), ex);
+                }
             }
-            profile = response.getDatastreamProfile();
-            lastModified = response.getLastModifiedDate().getTime();
         }
 
-        private void fetchData() throws FedoraClientException, IOException {
-            if (data != null) {
+        private void fetchData() throws DigitalObjectException {
+            if (data != null || missingDataStream) {
                 return ;
             }
             fetchProfile();
-            FedoraResponse response = FedoraClient.getDatastreamDissemination(object.getPid(), dsId)
-                    // ensure that it is content for given profile
-                    .asOfDateTime(DateUtility.getXSDDateTime(new Date(lastModified)))
-                    .execute(object.getClient());
-            if (response.getStatus() != 200) {
-                throw new FedoraClientException(response.getStatus(), toLogString());
+            if (missingDataStream) {
+                return ;
             }
-            data = response.getEntity(String.class);
+            try {
+                FedoraResponse response = FedoraClient.getDatastreamDissemination(object.getPid(), dsId)
+                        // ensure that it is content for given profile
+                        .asOfDateTime(DateUtility.getXSDDateTime(new Date(lastModified)))
+                        .execute(object.getClient());
+                data = response.getEntity(String.class);
+            } catch (FedoraClientException ex) {
+                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                }
+                throw new DigitalObjectException(object.getPid(), ex);
+            }
         }
 
         @Override
-        public void flush() {
+        public void flush() throws DigitalObjectException {
             if (!modified) {
                 return ;
             }
             try {
-                ModifyDatastreamResponse response = FedoraClient.modifyDatastream(object.getPid(), dsId)
-                        .dsLabel(profile.getDsLabel())
-                        .formatURI(profile.getDsFormatURI())
-                        .lastModifiedDate(new Date(lastModified))
-                        .content(data)
-                        .execute(object.getClient());
-                if (response.getStatus() != 200) {
-                    throw new FedoraClientException(response.getStatus(), toLogString());
-                }
+                DatastreamProfileResponse response = missingDataStream
+                        ? addDataStream() : modifyDataStream();
+                missingDataStream = false;
                 modified = false;
                 profile = response.getDatastreamProfile();
                 lastModified = response.getLastModifiedDate().getTime();
             } catch (FedoraClientException ex) {
                 // HTTP 409 - conflict with the current state of the resource
-                if (ex.getStatus() == 409) {
-                    throw new ConcurrentModificationException(ex.getMessage());
+                if (ex.getStatus() == Status.CONFLICT.getStatusCode()) {
+                    throw new DigitalObjectConcurrentModificationException(object.getPid(), ex.getMessage());
                 }
-                throw new IllegalStateException(toLogString(), ex);
+                throw new DigitalObjectException(object.getPid(), toLogString(), ex);
             }
+        }
+
+        private DatastreamProfileResponse addDataStream() throws FedoraClientException {
+            AddDatastreamResponse response = FedoraClient.addDatastream(profile.getPid(), profile.getDsID())
+                    .content(data)
+                    .controlGroup(profile.getDsControlGroup())
+                    .dsLabel(profile.getDsLabel())
+                    .dsState("A")
+                    .formatURI(profile.getDsFormatURI())
+                    .mimeType(profile.getDsMIME())
+                    .versionable(Boolean.parseBoolean(profile.getDsVersionable()))
+                    .execute(object.getClient());
+            return response;
+        }
+
+        private DatastreamProfileResponse modifyDataStream() throws FedoraClientException {
+            ModifyDatastreamResponse response = FedoraClient.modifyDatastream(object.getPid(), dsId)
+                    .content(data)
+                    .dsLabel(profile.getDsLabel())
+                    .formatURI(profile.getDsFormatURI())
+                    .lastModifiedDate(new Date(lastModified))
+                    .mimeType(profile.getDsMIME())
+                    .execute(object.getClient());
+            return response;
+        }
+
+        private static DatastreamProfile createProfileTemplate(String dsId, String formatUri,
+                String label, MediaType mimetype, ControlGroup control) {
+
+            DatastreamProfile df = new DatastreamProfile();
+            df.setDsMIME(mimetype.toString());
+            df.setDsID(dsId);
+            df.setDsControlGroup(control.toExternal());
+            df.setDsFormatURI(formatUri);
+            df.setDsLabel(label);
+            df.setDsVersionID(FoxmlUtils.versionDefaultId(dsId));
+            df.setDsVersionable(Boolean.FALSE.toString());
+            return df;
         }
 
         private String toLogString() {

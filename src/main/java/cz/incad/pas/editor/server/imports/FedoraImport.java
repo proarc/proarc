@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.server.imports;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
@@ -47,7 +48,7 @@ public final class FedoraImport {
         this.ibm = ibm;
     }
 
-    public ImportBatch importBatch(ImportBatch batch, String importer) throws FedoraClientException {
+    public ImportBatch importBatch(ImportBatch batch, String importer) throws FedoraClientException, DigitalObjectException {
         batch.setState(ImportBatch.State.INGESTING);
         batch = ibm.update(batch);
         String parentPid = batch.getParentPid();
@@ -93,7 +94,7 @@ public final class FedoraImport {
         fedora.ingest(foxml, item.getPid(), importer, "Ingested with ProArc from local file " + foxml);
     }
 
-    private void addParentMembers(String parent, List<String> pids) {
+    private void addParentMembers(String parent, List<String> pids) throws DigitalObjectException {
         RemoteObject remote = fedora.find(parent);
         RelationEditor editor = new RelationEditor(remote);
         List<String> members = editor.getMembers();

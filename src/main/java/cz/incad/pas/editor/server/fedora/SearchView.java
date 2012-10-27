@@ -209,7 +209,9 @@ public final class SearchView {
      * @throws FedoraClientException
      * @throws IOException
      */
-    public List<Item> findSortedChildren(String parentPid) throws FedoraClientException, IOException {
+    public List<Item> findSortedChildren(String parentPid)
+            throws FedoraClientException, IOException, DigitalObjectException {
+        
         RemoteObject parent = storage.find(parentPid);
         List<String> memberPids = new RelationEditor(parent).getMembers();
         List<Item> items = find(memberPids);

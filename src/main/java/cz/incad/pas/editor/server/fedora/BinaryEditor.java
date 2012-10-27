@@ -100,18 +100,18 @@ public final class BinaryEditor {
         this.object = object;
     }
 
-    public long getLastModified() {
+    public long getLastModified() throws DigitalObjectException {
         return editor.getLastModified();
     }
 
-    public String getMimetype() {
+    public String getMimetype() throws DigitalObjectException {
         return editor.getMimetype();
     }
 
-    public File read() {
+    public File read() throws DigitalObjectException {
         Source source = editor.read();
         if (source != null && !(source instanceof StreamSource)) {
-            throw new IllegalStateException("Unsupported: " + source.getClass());
+            throw new DigitalObjectException(object.getPid(), "Unsupported: " + source.getClass());
         }
         if (source != null) {
             StreamSource stream = (StreamSource) source;
@@ -125,13 +125,17 @@ public final class BinaryEditor {
         return null;
     }
 
-    public void write(File data, long timestamp) throws IOException {
+    public void write(File data, long timestamp) throws DigitalObjectException {
         EditorResult result = editor.createResult();
         if (!(result instanceof StreamResult)) {
-            throw new IllegalStateException("Unsupported: " + result.getClass());
+            throw new DigitalObjectException(object.getPid(), "Unsupported: " + result.getClass());
         }
-        write((StreamResult) result, data);
-        editor.write(result, timestamp);
+        try {
+            write((StreamResult) result, data);
+            editor.write(result, timestamp);
+        } catch (IOException ex) {
+            throw new DigitalObjectException(object.getPid(), ex);
+        }
     }
     private void write(StreamResult result, File data) throws IOException {
         result.setSystemId(data);

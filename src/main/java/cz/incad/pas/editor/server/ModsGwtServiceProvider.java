@@ -29,6 +29,7 @@ import cz.incad.pas.editor.server.config.PasConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.incad.pas.editor.server.dublincore.DcUtils;
+import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
@@ -73,23 +74,20 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
 
     @Override
     public ModsGwtRecord read(String id) {
-//        if (true) {
-//            throw new IllegalArgumentException("Invalid id: " + id);
-//        }
-        RemoteObject remote = repository.find(id);
-        ModsStreamEditor editor = new ModsStreamEditor(remote);
-        ModsType mods = editor.read();
-        if (mods == null) {
-            throw new IllegalArgumentException("Invalid id: " + id);
+        try {
+            RemoteObject remote = repository.find(id);
+            ModsStreamEditor editor = new ModsStreamEditor(remote);
+            ModsType mods = editor.read();
+            String xml = ModsUtils.toXml(mods, true);
+            int xmlHash = xml.hashCode();
+            LOG.log(Level.INFO, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
+            ModsCollection modsCollection = new ModsCollection();
+            modsCollection.setMods(Arrays.asList(mods));
+            ModsCollectionClient modsClient = BiblioModsUtils.toModsClient(modsCollection);
+            return new ModsGwtRecord(modsClient, editor.getLastModified(), xmlHash);
+        } catch (DigitalObjectException ex) {
+            throw new IllegalStateException(ex);
         }
-        String xml = ModsUtils.toXml(mods, true);
-        int xmlHash = xml.hashCode();
-        LOG.log(Level.INFO, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
-//        sleep(10);
-        ModsCollection modsCollection = new ModsCollection();
-        modsCollection.setMods(Arrays.asList(mods));
-        ModsCollectionClient modsClient = BiblioModsUtils.toModsClient(modsCollection);
-        return new ModsGwtRecord(modsClient, editor.getLastModified(), xmlHash);
     }
 
     /**
@@ -117,19 +115,19 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
         }
 
         RemoteObject remote = repository.find(id);
-        ModsStreamEditor editor = new ModsStreamEditor(remote);
-        editor.write(modsType, record.getTimestamp());
-        // DC
-        String model = new RelationEditor(remote).getModel();
-        DcStreamEditor dcEditor = new DcStreamEditor(remote);
         try {
+            ModsStreamEditor editor = new ModsStreamEditor(remote);
+            editor.write(modsType, record.getTimestamp());
+            // DC
+            String model = new RelationEditor(remote).getModel();
+            DcStreamEditor dcEditor = new DcStreamEditor(remote);
             dcEditor.write(modsType, model, dcEditor.getLastModified());
             DublinCoreRecord dcr = dcEditor.read();
             remote.setLabel(DcUtils.getLabel(dcr.getDc()));
-        } catch (IOException ex) {
+            remote.flush();
+        } catch (DigitalObjectException ex) {
             throw new IllegalStateException(ex);
         }
-        remote.flush();
 
         LOG.log(Level.INFO, "written id: {0}, old id: {1}", new Object[]{id, oldId});
 

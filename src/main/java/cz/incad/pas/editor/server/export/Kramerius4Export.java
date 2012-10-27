@@ -22,6 +22,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
@@ -83,7 +84,7 @@ public final class Kramerius4Export {
         put("model:periodicalitem", "hasItem");
     }};
 
-    public Kramerius4Export(RemoteStorage rstorage) throws IOException {
+    public Kramerius4Export(RemoteStorage rstorage) {
         this.rstorage = rstorage;
 
     }
@@ -118,12 +119,14 @@ public final class Kramerius4Export {
             File foxml = pidAsFile(output, pid);
             LocalObject local = lstorage.create(foxml, dobj);
             RelationEditor editor = new RelationEditor(local);
-            List<String> children = editor.getMembers();
             if (hierarchy) {
+                List<String> children = editor.getMembers();
                 toExport.addAll(children);
             }
             exportDatastreams(local, editor);
             local.flush();
+        } catch (DigitalObjectException ex) {
+            throw new IllegalStateException(pid, ex);
         } catch (FedoraClientException ex) {
             // replace with ExportException
             throw new IllegalStateException(pid, ex);
@@ -174,6 +177,8 @@ public final class Kramerius4Export {
         try {
             List<Item> childDescriptors = rstorage.getSearch().findChildren(pid);
             transformRelation2Kramerius(pid, editor, childDescriptors);
+        } catch (DigitalObjectException ex) {
+            throw new IllegalStateException(ex);
         } catch (FedoraClientException ex) {
             throw new IllegalStateException(ex);
         } catch (IOException ex) {
@@ -188,7 +193,10 @@ public final class Kramerius4Export {
                 KRAMERIUS_RELATION_NS);
     }
 
-    private void transformRelation2Kramerius(String pid, RelationEditor editor, List<Item> childDescriptors) {
+    private void transformRelation2Kramerius(
+            String pid, RelationEditor editor, List<Item> childDescriptors
+            ) throws DigitalObjectException {
+
         List<String> children = editor.getMembers();
         try {
             DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();

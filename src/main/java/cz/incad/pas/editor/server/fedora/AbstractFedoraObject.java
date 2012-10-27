@@ -49,7 +49,7 @@ public abstract class AbstractFedoraObject implements FedoraObject {
 //        }
 
     @Override
-    public void flush() {
+    public void flush() throws DigitalObjectException {
         // write changes
         for (XmlStreamEditor editor : editors) {
             editor.flush();

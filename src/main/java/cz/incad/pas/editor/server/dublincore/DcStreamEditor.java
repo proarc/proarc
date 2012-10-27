@@ -18,6 +18,7 @@ package cz.incad.pas.editor.server.dublincore;
 
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
+import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
@@ -27,7 +28,6 @@ import cz.incad.pas.editor.server.fedora.XmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.oaidublincore.OaiDcType;
-import java.io.IOException;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -58,7 +58,9 @@ public final class DcStreamEditor {
         if (object instanceof LocalObject) {
             editor = new LocalXmlStreamEditor((LocalObject) object, DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL);
         } else if (object instanceof RemoteObject) {
-            editor = new RemoteXmlStreamEditor((RemoteObject) object, DATASTREAM_ID);
+            editor = new RemoteXmlStreamEditor(
+                    (RemoteObject) object,
+                    RemoteXmlStreamEditor.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL));
         } else {
             throw new IllegalArgumentException("Unsupported fedora object: " + object.getClass());
         }
@@ -82,27 +84,29 @@ public final class DcStreamEditor {
         this.object = object;
     }
 
-    public long getLastModified() {
+    public long getLastModified() throws DigitalObjectException {
         return editor.getLastModified();
     }
 
-    public DublinCoreRecord read() {
+    public DublinCoreRecord read() throws DigitalObjectException {
         Source src = editor.read();
-        if (src == null) {
-            return null;
+        OaiDcType dc;
+        if (src != null) {
+            dc = DcUtils.unmarshal(src, OaiDcType.class);
+        } else {
+            dc = new OaiDcType();
         }
-        return new DublinCoreRecord(DcUtils.unmarshal(src, OaiDcType.class),
-                editor.getLastModified(), object.getPid());
+        return new DublinCoreRecord(dc, editor.getLastModified(), object.getPid());
     }
 
-    public void write(DublinCoreRecord record) {
+    public void write(DublinCoreRecord record) throws DigitalObjectException {
         EditorResult result = editor.createResult();
         // DO NOT include schemaLocation. Fedora validator does not accept it.
         DcUtils.marshal(result, record.getDc(), false);
         editor.write(result, record.getTimestamp());
     }
 
-    public void write(ModsType mods, String model, long timestamp) throws IOException {
+    public void write(ModsType mods, String model, long timestamp) throws DigitalObjectException {
         try {
             JAXBSource jaxbSource = new JAXBSource(ModsUtils.defaultMarshaller(false),
                     new ObjectFactory().createMods(mods));
@@ -112,9 +116,9 @@ public final class DcStreamEditor {
             t.transform(jaxbSource, result);
             editor.write(result, timestamp);
         } catch (TransformerException ex) {
-            throw new IOException(ex);
+            throw new DigitalObjectException(object.getPid(), ex);
         } catch (JAXBException ex) {
-            throw new IOException(ex);
+            throw new DigitalObjectException(object.getPid(), ex);
         }
     }
 

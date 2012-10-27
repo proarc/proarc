@@ -42,6 +42,8 @@ import javax.xml.transform.stream.StreamSource;
 /**
  * Supports plaint text as Fedora data stream binary content.
  *
+ * <p>Non XML content can be stored as managed or external but not inline.
+ *
  * @author Jan Pokorsky
  */
 public final class StringEditor {
@@ -71,7 +73,9 @@ public final class StringEditor {
         if (object instanceof LocalStorage.LocalObject) {
             editor = new LocalXmlStreamEditor((LocalObject) object, dsId, mimetype, label, control);
         } else if (object instanceof RemoteObject) {
-            editor = new RemoteXmlStreamEditor((RemoteStorage.RemoteObject) object, dsId);
+            editor = new RemoteXmlStreamEditor(
+                    (RemoteObject) object,
+                    RemoteXmlStreamEditor.managedProfile(dsId, mimetype, label));
         } else {
             throw new IllegalArgumentException("Unsupported fedora object: " + object.getClass());
         }
@@ -88,44 +92,52 @@ public final class StringEditor {
         this.object = object;
     }
 
-    public String read() throws IOException {
+    public String read() throws DigitalObjectException {
         StringRecord r = readRecord();
-        return r == null ? null : r.getContent();
+        return r.getContent();
     }
 
-    public StringRecord readRecord() throws IOException {
+    public StringRecord readRecord() throws DigitalObjectException {
         Source source = editor.read();
         if (source != null && !(source instanceof StreamSource)) {
             throw new IllegalStateException("Unsupported: " + source.getClass());
         }
-        StringRecord result = null;
+        StringRecord result;
         if (source != null) {
-            StreamSource stream = (StreamSource) source;
-            String content = read(stream);
-            result = new StringRecord(content, getLastModified(), object.getPid());
+            try {
+                StreamSource stream = (StreamSource) source;
+                String content = read(stream);
+                result = new StringRecord(content, getLastModified(), object.getPid());
+            } catch (IOException ex) {
+                throw new DigitalObjectException(object.getPid(), ex);
+            }
         } else {
             result = new StringRecord("", -1, object.getPid());
         }
         return result;
     }
 
-    public void write(String data, long timestamp) throws IOException {
+    public void write(String data, long timestamp) throws DigitalObjectException {
         EditorResult result = editor.createResult();
         if (!(result instanceof StreamResult)) {
-            throw new IllegalStateException("Unsupported: " + result.getClass());
+            throw new DigitalObjectException(object.getPid(), "Unsupported: " + result.getClass());
         }
-        write((StreamResult) result, data);
-        editor.write(result, timestamp);
+        try {
+            write((StreamResult) result, data);
+            editor.write(result, timestamp);
+        } catch (IOException ex) {
+            throw new DigitalObjectException(object.getPid());
+        }
     }
 
-    public long getLastModified() {
+    public long getLastModified() throws DigitalObjectException {
         return editor.getLastModified();
     }
 
-    private void write(StreamResult result, String data) throws IOException {
+    private void write(StreamResult result, String data) throws IOException, DigitalObjectException {
         if (!write(result.getOutputStream(), data)) {
             if (!write(result.getWriter(), data)) {
-                throw new IllegalStateException("Data not written: " + this.object.getPid());
+                throw new DigitalObjectException(object.getPid(), "Data not written: " + this.object.getPid());
             }
         }
     }
@@ -149,7 +161,7 @@ public final class StringEditor {
         return false;
     }
 
-    private static String read(StreamSource source) throws IOException {
+    static String read(StreamSource source) throws IOException {
         String result;
         result = read(source.getInputStream());
         if (result == null) {

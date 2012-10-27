@@ -164,9 +164,17 @@ public final class FoxmlUtils {
             datastreamVersion = new DatastreamVersionType();
             versions.add(datastreamVersion);
             // for now expect version ordering from oldest to newest
-            datastreamVersion.setID(String.format("%s.%s", dsId, versions.size() - 1));
+            datastreamVersion.setID(versionNewId(dsId, versions.size() - 1));
         }
         return datastreamVersion;
+    }
+
+    public static String versionDefaultId(String dsId) {
+        return versionNewId(dsId, 0);
+    }
+    
+    private static String versionNewId(String dsId, int existingVersionCount) {
+        return String.format("%s.%s", dsId, existingVersionCount);
     }
 
     public static DatastreamVersionType findDataStreamVersion(DigitalObject dobj, String dsId) {

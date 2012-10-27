@@ -31,7 +31,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.util.ConcurrentModificationException;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -120,7 +119,7 @@ public final class LocalStorage {
         }
 
         @Override
-        public void flush() {
+        public void flush() throws DigitalObjectException {
             super.flush();
             if (foxml != null) {
                 FoxmlUtils.marshal(new StreamResult(foxml), dobj, true);
@@ -277,7 +276,7 @@ public final class LocalStorage {
         }
 
         @Override
-        public void write(EditorResult data, long timestamp) {
+        public void write(EditorResult data, long timestamp) throws DigitalObjectException {
             DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
             if (version == null) {
                 version = FoxmlUtils.createDataStreamVersion(
@@ -285,7 +284,7 @@ public final class LocalStorage {
                 version.setMIMETYPE(getMimetype());
                 version.setLABEL(defaultLabel);
             } else if (timestamp != getLastModified(version)) {
-                throw new ConcurrentModificationException(dsId);
+                throw new DigitalObjectConcurrentModificationException(object.getPid(), dsId);
             }
 
             if (data instanceof EditorBinaryResult) {
@@ -293,7 +292,7 @@ public final class LocalStorage {
             } else if (data instanceof EditorDomResult) {
                 writeXmlContent(version, (EditorDomResult) data);
             } else {
-                throw new IllegalArgumentException("Unsupported data: " + data);
+                throw new DigitalObjectException(object.getPid(), "Unsupported data: " + data);
             }
 
             version.setCREATED(FoxmlUtils.createXmlDate());
@@ -310,12 +309,12 @@ public final class LocalStorage {
             // no op
         }
 
-        private void writeBinaryData(DatastreamVersionType version, EditorBinaryResult data) {
+        private void writeBinaryData(DatastreamVersionType version, EditorBinaryResult data) throws DigitalObjectException {
             storeExternally |= version.getContentLocation() != null;
             if (storeExternally) {
                 String systemId = data.getSystemId();
                 if (systemId == null) {
-                    throw new IllegalStateException("Missing systemId of external resource. " + toString());
+                    throw new DigitalObjectException(object.getPid(), "Missing systemId of external resource. " + toString());
                 }
                 ContentLocationType contentLocation = new ContentLocationType();
                 contentLocation.setREF(systemId);

@@ -20,7 +20,7 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 
 /**
- * Editor for FOXML streams with XML content.
+ * Editor for FOXML streams.
  *
  * @author Jan Pokorsky
  */
@@ -32,19 +32,43 @@ public interface XmlStreamEditor {
      */
     EditorResult createResult();
 
-    long getLastModified();
+    long getLastModified() throws DigitalObjectException;
 
-    String getMimetype();
+    String getMimetype() throws DigitalObjectException;
 
-    Source read();
+    /**
+     * Provides content of the stream.
+     *
+     * @return source or {@code null} if stream not exist yet
+     * @throws DigitalObjectNotFoundException object that should contain the stream not found
+     * @throws DigitalObjectException general failure
+     */
+    Source read() throws DigitalObjectException;
 
-    void write(EditorResult data, long timestamp);
+    /**
+     * Writes content to stream.
+     *
+     * @param data content {@link #createResult() holder}
+     * @param timestamp time stamp
+     * @throws DigitalObjectConcurrentModificationException
+     *      stream has already changed. Reload and try again.
+     * @throws DigitalObjectNotFoundException
+     *      object that should contain the stream not found
+     * @throws DigitalObjectException general failure
+     * @see #createResult() to
+     */
+    void write(EditorResult data, long timestamp) throws DigitalObjectException;
 
     /**
      * Makes modifications persistent. Use {@link FedoraObject#flush() }
      * in case of several editors.
+     * @throws DigitalObjectConcurrentModificationException
+     *      stream has already changed. Reload and try again.
+     * @throws DigitalObjectNotFoundException
+     *      object that should contain the stream not found
+     * @throws DigitalObjectException general failure
      */
-    void flush();
+    void flush() throws DigitalObjectException;
 
     /**
      * Helper interface for {@link XmlStreamEditor#write} to enforce compatible result.

@@ -23,6 +23,7 @@ import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
+import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.StringEditor;
@@ -64,6 +65,14 @@ public final class TiffImporter {
     }
     
     public ImportItem consume(File f, String mimetype, ImportOptions ctx) throws IOException {
+        try {
+            return consumeImpl(f, mimetype, ctx);
+        } catch (DigitalObjectException ex) {
+            throw new IOException(ex);
+        }
+    }
+
+    private ImportItem consumeImpl(File f, String mimetype, ImportOptions ctx) throws IOException, DigitalObjectException {
         // check tiff file
         if (!isTiff(f, mimetype)) {
             return null;
@@ -118,7 +127,9 @@ public final class TiffImporter {
         return ImageMimeType.TIFF.getMimeType().equals(mimetype);
     }
 
-    private void createImages(File tempBatchFolder, File original, String originalFilename, LocalObject foxml) throws IOException {
+    private void createImages(File tempBatchFolder, File original, String originalFilename, LocalObject foxml)
+            throws IOException, DigitalObjectException {
+        
         long start = System.nanoTime();
         BufferedImage tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
         long endRead = System.nanoTime() - start;

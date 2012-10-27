@@ -30,13 +30,15 @@ import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import java.io.File;
-import java.util.ConcurrentModificationException;
 import java.util.List;
+import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -167,18 +169,73 @@ public class RemoteStorageTest {
         assertTrue(String.valueOf(lastModified), lastModified != 0 && lastModified < System.currentTimeMillis());
     }
 
-//    @Test
-    public void testXmlReadMissing() throws Exception {
+    @Test(expected = DigitalObjectNotFoundException.class)
+    public void testXmlReadDataStreamOfMissingPid() throws Exception {
+        RemoteStorage fedora = new RemoteStorage(client);
+        LocalObject local = new LocalStorage().create();
+        local.setLabel(test.getMethodName());
+        // no ingest!
+        RemoteObject remote = fedora.find(local.getPid());
+        RemoteXmlStreamEditor editor = new RemoteXmlStreamEditor(remote,
+                RemoteXmlStreamEditor.managedProfile("managedDatastream",
+                        MediaType.TEXT_PLAIN_TYPE, "managedDatastreamLabel"));
+        editor.read();
+    }
+
+    /**
+     * test read missing data stream with
+     * {@link RemoteXmlStreamEditor#RemoteXmlStreamEditor(RemoteObject, String) }.
+     */
+    @Test(expected = DigitalObjectException.class)
+    public void testReadMissingDataStreamFailure() throws Exception {
         RemoteStorage fedora = new RemoteStorage(client);
         LocalObject local = new LocalStorage().create();
         local.setLabel(test.getMethodName());
         fedora.ingest(local, "junit");
         RemoteObject remote = fedora.find(local.getPid());
-        RemoteXmlStreamEditor editor = new RemoteXmlStreamEditor(remote, "test");
-        Source src = editor.read();
-        long lastModified = editor.getLastModified();
-        assertNull(src);
+        RemoteXmlStreamEditor editor = new RemoteXmlStreamEditor(remote, "missingDatastream");
+        editor.read();
     }
+
+    @Test
+    public void testPlainTextReadWriteMissingDataStream() throws Exception {
+        RemoteStorage fedora = new RemoteStorage(client);
+        LocalObject local = new LocalStorage().create();
+        local.setLabel(test.getMethodName());
+        fedora.ingest(local, "junit");
+        RemoteObject remote = fedora.find(local.getPid());
+        RemoteXmlStreamEditor editor = new RemoteXmlStreamEditor(remote,
+                RemoteXmlStreamEditor.managedProfile("managedDatastream",
+                        MediaType.TEXT_PLAIN_TYPE, "managedDatastreamLabel"));
+        Source src = editor.read();
+        assertNull(src);
+        long lastModified = editor.getLastModified();
+        assertEquals(-1, lastModified);
+        assertEquals(MediaType.TEXT_PLAIN, editor.getMimetype());
+        EditorResult edResult = editor.createResult();
+        ((StreamResult) edResult).getWriter().write("plain text");
+        editor.write(edResult, lastModified);
+        remote.flush();
+        
+        // first test current editor
+        src = editor.read();
+        assertNotNull(src);
+        assertEquals(MediaType.TEXT_PLAIN, editor.getMimetype());
+        assertTrue(lastModified < editor.getLastModified());
+        String content = StringEditor.read((StreamSource) src);
+        assertEquals("plain text", content);
+
+        // test new editor
+        editor = new RemoteXmlStreamEditor(remote,
+            RemoteXmlStreamEditor.managedProfile("managedDatastream",
+                    MediaType.TEXT_PLAIN_TYPE, "managedDatastreamLabel"));
+        src = editor.read();
+        assertNotNull(src);
+        assertEquals(MediaType.TEXT_PLAIN, editor.getMimetype());
+        assertTrue(lastModified < editor.getLastModified());
+        content = StringEditor.read((StreamSource) src);
+        assertEquals("plain text", content);
+}
 
     @Test
     public void testXmlWrite() throws Exception {
@@ -226,7 +283,7 @@ public class RemoteStorageTest {
         assertEquals(expectLastModified, resultLastModified);
     }
 
-    @Test
+    @Test(expected = DigitalObjectConcurrentModificationException.class)
     public void testXmlWriteConcurrent() throws Exception {
         String dsId = "testId";
         LocalObject local = new LocalStorage().create();
@@ -264,7 +321,6 @@ public class RemoteStorageTest {
         long lastModified = editor.getLastModified();
         editor.write(editorResult, lastModified);
 
-        thrown.expect(ConcurrentModificationException.class);
         remote.flush();
     }
 

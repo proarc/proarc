@@ -20,6 +20,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.incad.pas.editor.server.config.PasConfiguration;
 import cz.incad.pas.editor.server.config.PasConfigurationException;
 import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.PageView;
 import cz.incad.pas.editor.server.fedora.PageView.Item;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
@@ -224,7 +225,7 @@ public class ImportResource {
             // empty string stands for remove
             @FormParam("parentPid") String parentPid,
             @FormParam("state") ImportBatch.State state
-            ) throws IOException, FedoraClientException {
+            ) throws IOException, FedoraClientException, DigitalObjectException {
 
         ImportBatch batch = importManager.get(batchId);
         if (batch == null) {
@@ -252,7 +253,7 @@ public class ImportResource {
             @QueryParam("batchId") Integer batchId,
             @QueryParam("pid") String pid,
             @QueryParam("_startRow") int startRow
-            ) {
+            ) throws DigitalObjectException {
 
         startRow = Math.max(0, startRow);
         List<ImportItem> imports = null;
@@ -298,7 +299,7 @@ public class ImportResource {
             @FormParam("pageNumber") String pageNumber,
             @FormParam("pageType") String pageType,
             @FormParam("filename") String filename
-            ) throws IOException {
+            ) throws IOException, DigitalObjectException {
 
         ImportItem item = null;
         if (batchId != null && pid != null && !pid.isEmpty()) {

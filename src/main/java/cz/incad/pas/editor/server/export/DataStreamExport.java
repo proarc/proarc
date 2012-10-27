@@ -21,6 +21,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
+import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
@@ -89,9 +90,13 @@ public final class DataStreamExport {
         }
 
         if (hierarchy) {
-            RelationEditor relationEditor = new RelationEditor(remote);
-            List<String> members = relationEditor.getMembers();
-            toExport.addAll(members);
+            try {
+                RelationEditor relationEditor = new RelationEditor(remote);
+                List<String> members = relationEditor.getMembers();
+                toExport.addAll(members);
+            } catch (DigitalObjectException ex) {
+                throw new ExportException(ex);
+            }
         }
 
         for (String dsId : dsIds) {

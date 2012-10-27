@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.server.fedora.relation;
 
+import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
@@ -24,7 +25,6 @@ import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import javax.xml.transform.Source;
 import org.w3c.dom.Element;
@@ -53,25 +53,22 @@ public final class RelationEditor {
         this.editor = createEditor(fobject);
     }
 
-    public long getLastModified() {
+    public long getLastModified() throws DigitalObjectException {
         return editor.getLastModified();
     }
 
     /**
      * @param model PID of the model
      */
-    public void setModel(String model) {
+    public void setModel(String model) throws DigitalObjectException {
         Rdf rdf = getRdf();
-        if (rdf == null) {
-            relsExt = rdf = new Rdf(fobject.getPid());
-        }
         rdf.getDescription().setModel(model);
     }
 
     /**
      * @return PID of the model
      */
-    public String getModel() {
+    public String getModel() throws DigitalObjectException {
         Rdf rdf = getRdf();
         return rdf.getDescription().getModel().getModelPid();
     }
@@ -81,17 +78,14 @@ public final class RelationEditor {
      *
      * @return list of PIDs or {@code null} if Fedora object not found.
      */
-    public List<String> getMembers() {
+    public List<String> getMembers() throws DigitalObjectException {
         Rdf rdf = getRdf();
-        if (rdf != null) {
-            List<HasMemberRelation> members = rdf.getDescription().getMemberRelations();
-            ArrayList<String> result = new ArrayList<String>(members.size());
-            for (HasMemberRelation hasMember : members) {
-                result.add(hasMember.getMember());
-            }
-            return result;
+        List<HasMemberRelation> members = rdf.getDescription().getMemberRelations();
+        ArrayList<String> result = new ArrayList<String>(members.size());
+        for (HasMemberRelation hasMember : members) {
+            result.add(hasMember.getMember());
         }
-        return null;
+        return result;
     }
 
     /**
@@ -100,11 +94,8 @@ public final class RelationEditor {
      *
      * @param members list of PIDs
      */
-    public void setMembers(List<String> members) {
+    public void setMembers(List<String> members) throws DigitalObjectException {
         Rdf rdf = getRdf();
-        if (rdf == null) {
-            relsExt = rdf = new Rdf(fobject.getPid());
-        }
         ArrayList<HasMemberRelation> relations = new ArrayList<HasMemberRelation>(members.size());
         for (String member : members) {
             relations.add(new HasMemberRelation(member));
@@ -119,13 +110,10 @@ public final class RelationEditor {
      *
      * @return list of relations
      */
-    public List<Element> getRelations() {
+    public List<Element> getRelations() throws DigitalObjectException {
         Rdf rdf = getRdf();
-        if (rdf != null) {
-            List<Element> elms = rdf.getDescription().getRelations();
-            return new ArrayList<Element>(elms);
-        }
-        return Collections.emptyList();
+        List<Element> elms = rdf.getDescription().getRelations();
+        return new ArrayList<Element>(elms);
     }
 
     /**
@@ -134,11 +122,8 @@ public final class RelationEditor {
      * 
      * @param elms list of custom relations
      */
-    public void setRelations(List<Element> elms) {
+    public void setRelations(List<Element> elms) throws DigitalObjectException {
         Rdf rdf = getRdf();
-        if (rdf == null) {
-            relsExt = rdf = new Rdf(fobject.getPid());
-        }
         List<Element> relations = rdf.getDescription().getRelations();
         relations.clear();
         relations.addAll(elms);
@@ -148,25 +133,27 @@ public final class RelationEditor {
      * Prepares updates for {@link FedoraObject#flush() }
      * @param timestamp timestamp
      */
-    public void write(long timestamp) {
+    public void write(long timestamp) throws DigitalObjectException {
         EditorResult result = editor.createResult();
         Relations.marshal(result, relsExt, false);
         editor.write(result, timestamp);
     }
 
-    private Rdf getRdf() {
+    private Rdf getRdf() throws DigitalObjectException {
         if (relsExt != null) {
             return relsExt;
         }
         Source source = editor.read();
         if (source == null) {
             if (fobject instanceof RemoteObject) {
-                throw new IllegalStateException("missing RELS-EXT!");
+                // it should never arise; broken Fedora?
+                throw new DigitalObjectException(fobject.getPid(), "missing RELS-EXT!");
             }
-            return null;
+            relsExt = new Rdf(fobject.getPid());
+        } else {
+            relsExt = Relations.unmarshal(source, Rdf.class);
         }
 
-        relsExt = Relations.unmarshal(source, Rdf.class);
         return relsExt;
     }
 
@@ -175,7 +162,9 @@ public final class RelationEditor {
         if (object instanceof LocalObject) {
             editor = new LocalXmlStreamEditor((LocalObject) object, DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL);
         } else if (object instanceof RemoteObject) {
-            editor = new RemoteXmlStreamEditor((RemoteObject) object, DATASTREAM_ID);
+            editor = new RemoteXmlStreamEditor(
+                    (RemoteObject) object,
+                    RemoteXmlStreamEditor.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL));
         } else {
             throw new IllegalArgumentException("Unsupported fedora object: " + object.getClass());
         }

@@ -80,8 +80,11 @@ public final class PurgeFedoraObject {
         for (String pid : pids) {
             process(pid, hierarchy);
         }
-
-        updateRelations(toUpdate);
+        try {
+            updateRelations(toUpdate);
+        } catch (DigitalObjectException ex) {
+            throw new PurgeException(ex);
+        }
         if (setDeleted) {
             setDeleted(toPurge);
         } else {
@@ -144,7 +147,7 @@ public final class PurgeFedoraObject {
      * Removes all objects that will be deleted from PID's relations in RELS-EXT.
      * @param pid object to update
      */
-    private void updateRelations(String pid) {
+    private void updateRelations(String pid) throws DigitalObjectException {
         RemoteObject remote = storage.find(pid);
         RelationEditor editor = new RelationEditor(remote);
         List<String> members = editor.getMembers();
@@ -157,7 +160,7 @@ public final class PurgeFedoraObject {
     /**
      * @see #updateRelations(java.lang.String)
      */
-    private void updateRelations(Iterable<String> pids) {
+    private void updateRelations(Iterable<String> pids) throws DigitalObjectException {
         for (String pid : pids) {
             updateRelations(pid);
         }
@@ -194,6 +197,10 @@ public final class PurgeFedoraObject {
     }
 
     public static class PurgeException extends Exception {
+
+        public PurgeException(Throwable cause) {
+            super(cause);
+        }
 
         public PurgeException(String message, Throwable cause) {
             super(message, cause);

@@ -18,6 +18,7 @@ package cz.incad.pas.editor.server.mods;
 
 import cz.fi.muni.xkremser.editor.server.mods.IdentifierType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
@@ -46,13 +47,16 @@ public final class ModsStreamEditor {
     public static final String DATASTREAM_LABEL = "MODS description";
 
     private final XmlStreamEditor editor;
+    private final FedoraObject object;
 
     private static XmlStreamEditor createEditor(FedoraObject object) {
         XmlStreamEditor editor;
         if (object instanceof LocalObject) {
             editor = new LocalXmlStreamEditor((LocalObject) object, DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL);
         } else if (object instanceof RemoteObject) {
-            editor = new RemoteXmlStreamEditor((RemoteObject) object, DATASTREAM_ID);
+            editor = new RemoteXmlStreamEditor(
+                    (RemoteObject) object,
+                    RemoteXmlStreamEditor.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL));
         } else {
             throw new IllegalArgumentException("Unsupported fedora object: " + object.getClass());
         }
@@ -60,22 +64,24 @@ public final class ModsStreamEditor {
     }
 
     public ModsStreamEditor(FedoraObject object) {
-        editor = createEditor(object);
+        this(createEditor(object), object);
     }
 
     ModsStreamEditor(XmlStreamEditor editor, FedoraObject object) {
         this.editor = editor;
+        this.object = object;
     }
 
-    public ModsType read() {
+    public ModsType read() throws DigitalObjectException {
         Source src = editor.read();
         if (src == null) {
-            return null;
+            // it should never arise; it would need to create datastream again with default data
+            throw new DigitalObjectException(object.getPid(), "MODS not initialized!");
         }
         return ModsUtils.unmarshalModsType(src);
     }
 
-    public String readAsString() {
+    public String readAsString() throws DigitalObjectException {
         ModsType mods = read();
         if (mods != null) {
             return ModsUtils.toXml(mods, true);
@@ -83,11 +89,11 @@ public final class ModsStreamEditor {
         return null;
     }
 
-    public long getLastModified() {
+    public long getLastModified() throws DigitalObjectException {
         return editor.getLastModified();
     }
 
-    public void write(ModsType mods, long timestamp) {
+    public void write(ModsType mods, long timestamp) throws DigitalObjectException {
         EditorResult marshaled = editor.createResult();
         ModsUtils.marshal(marshaled, mods, true);
         editor.write(marshaled, timestamp);
