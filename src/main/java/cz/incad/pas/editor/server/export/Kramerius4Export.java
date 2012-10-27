@@ -225,7 +225,7 @@ public final class Kramerius4Export {
                 relations.add(elm);
             }
             editor.setRelations(relations);
-            editor.write(editor.getLastModified());
+            editor.write(editor.getLastModified(), null);
         } catch (ParserConfigurationException ex) {
             throw new IllegalStateException(ex);
         }

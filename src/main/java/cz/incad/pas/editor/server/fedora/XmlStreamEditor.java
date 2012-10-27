@@ -50,6 +50,7 @@ public interface XmlStreamEditor {
      *
      * @param data content {@link #createResult() holder}
      * @param timestamp time stamp
+     * @param message log message
      * @throws DigitalObjectConcurrentModificationException
      *      stream has already changed. Reload and try again.
      * @throws DigitalObjectNotFoundException
@@ -57,7 +58,7 @@ public interface XmlStreamEditor {
      * @throws DigitalObjectException general failure
      * @see #createResult() to
      */
-    void write(EditorResult data, long timestamp) throws DigitalObjectException;
+    void write(EditorResult data, long timestamp, String message) throws DigitalObjectException;
 
     /**
      * Makes modifications persistent. Use {@link FedoraObject#flush() }

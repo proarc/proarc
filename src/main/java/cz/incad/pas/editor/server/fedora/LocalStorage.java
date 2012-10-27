@@ -276,7 +276,7 @@ public final class LocalStorage {
         }
 
         @Override
-        public void write(EditorResult data, long timestamp) throws DigitalObjectException {
+        public void write(EditorResult data, long timestamp, String message) throws DigitalObjectException {
             DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
             if (version == null) {
                 version = FoxmlUtils.createDataStreamVersion(

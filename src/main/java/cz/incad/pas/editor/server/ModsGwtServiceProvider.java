@@ -35,6 +35,7 @@ import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.ModsUtils;
+import cz.incad.pas.editor.server.rest.SessionContext;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -103,6 +104,7 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
      */
     @Override
     public String write(String id, ModsGwtRecord record) {
+        SessionContext session = SessionContext.from(getThreadLocalRequest());
         String oldId = id;
         LOG.log(Level.INFO, "id: {0}, modsClient: {1}, hash: {2}", new Object[]{id, record.getMods(), record.getXmlHash()});
         ModsCollection mods = BiblioModsUtils.toMods(record.getMods());
@@ -117,11 +119,11 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
         RemoteObject remote = repository.find(id);
         try {
             ModsStreamEditor editor = new ModsStreamEditor(remote);
-            editor.write(modsType, record.getTimestamp());
+            editor.write(modsType, record.getTimestamp(), session.asFedoraLog());
             // DC
             String model = new RelationEditor(remote).getModel();
             DcStreamEditor dcEditor = new DcStreamEditor(remote);
-            dcEditor.write(modsType, model, dcEditor.getLastModified());
+            dcEditor.write(modsType, model, dcEditor.getLastModified(), session.asFedoraLog());
             DublinCoreRecord dcr = dcEditor.read();
             remote.setLabel(DcUtils.getLabel(dcr.getDc()));
             remote.flush();

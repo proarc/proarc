@@ -48,7 +48,7 @@ public final class FedoraImport {
         this.ibm = ibm;
     }
 
-    public ImportBatch importBatch(ImportBatch batch, String importer) throws FedoraClientException, DigitalObjectException {
+    public ImportBatch importBatch(ImportBatch batch, String importer, String message) throws FedoraClientException, DigitalObjectException {
         batch.setState(ImportBatch.State.INGESTING);
         batch = ibm.update(batch);
         String parentPid = batch.getParentPid();
@@ -72,7 +72,7 @@ public final class FedoraImport {
                 }
             }
 
-            addParentMembers(parentPid, ingests);
+            addParentMembers(parentPid, ingests, message);
             done = true;
         } finally {
             if (done && failures.isEmpty()) {
@@ -91,16 +91,18 @@ public final class FedoraImport {
             throw new IllegalStateException("Cannot read foxml: " + foxml);
         }
 //        LocalObject local = istorage.load(item.getPid(), foxml);
-        fedora.ingest(foxml, item.getPid(), importer, "Ingested with ProArc from local file " + foxml);
+        fedora.ingest(foxml, item.getPid(), importer,
+                "Ingested with ProArc by " + importer
+                + " from local file " + foxml);
     }
 
-    private void addParentMembers(String parent, List<String> pids) throws DigitalObjectException {
+    private void addParentMembers(String parent, List<String> pids, String message) throws DigitalObjectException {
         RemoteObject remote = fedora.find(parent);
         RelationEditor editor = new RelationEditor(remote);
         List<String> members = editor.getMembers();
         members.addAll(pids);
         editor.setMembers(members);
-        editor.write(editor.getLastModified());
+        editor.write(editor.getLastModified(), message);
         remote.flush();
     }
 

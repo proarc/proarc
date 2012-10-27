@@ -117,14 +117,14 @@ public final class StringEditor {
         return result;
     }
 
-    public void write(String data, long timestamp) throws DigitalObjectException {
+    public void write(String data, long timestamp, String message) throws DigitalObjectException {
         EditorResult result = editor.createResult();
         if (!(result instanceof StreamResult)) {
             throw new DigitalObjectException(object.getPid(), "Unsupported: " + result.getClass());
         }
         try {
             write((StreamResult) result, data);
-            editor.write(result, timestamp);
+            editor.write(result, timestamp, message);
         } catch (IOException ex) {
             throw new DigitalObjectException(object.getPid());
         }

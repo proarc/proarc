@@ -185,6 +185,7 @@ public final class RemoteStorage {
         private boolean modified;
         private boolean missingDataStream;
         private final DatastreamProfile defaultProfile;
+        private String logMessage;
 
         /**
          * Use to store whatever content in repository. I
@@ -290,7 +291,7 @@ public final class RemoteStorage {
         }
 
         @Override
-        public void write(EditorResult data, long timestamp) throws DigitalObjectException {
+        public void write(EditorResult data, long timestamp, String message) throws DigitalObjectException {
             if (!(data instanceof EditorStreamResult)) {
                 throw new IllegalArgumentException("Unsupported data: " + data);
             }
@@ -304,6 +305,7 @@ public final class RemoteStorage {
             }
             EditorStreamResult result = (EditorStreamResult) data;
             this.data = result.asString();
+            this.logMessage = message;
             object.register(this);
             modified = true;
         }
@@ -379,6 +381,7 @@ public final class RemoteStorage {
                         ? addDataStream() : modifyDataStream();
                 missingDataStream = false;
                 modified = false;
+                logMessage = null;
                 profile = response.getDatastreamProfile();
                 lastModified = response.getLastModifiedDate().getTime();
             } catch (FedoraClientException ex) {
@@ -397,6 +400,7 @@ public final class RemoteStorage {
                     .dsLabel(profile.getDsLabel())
                     .dsState("A")
                     .formatURI(profile.getDsFormatURI())
+                    .logMessage(logMessage)
                     .mimeType(profile.getDsMIME())
                     .versionable(Boolean.parseBoolean(profile.getDsVersionable()))
                     .execute(object.getClient());
@@ -409,6 +413,7 @@ public final class RemoteStorage {
                     .dsLabel(profile.getDsLabel())
                     .formatURI(profile.getDsFormatURI())
                     .lastModifiedDate(new Date(lastModified))
+                    .logMessage(logMessage)
                     .mimeType(profile.getDsMIME())
                     .execute(object.getClient());
             return response;

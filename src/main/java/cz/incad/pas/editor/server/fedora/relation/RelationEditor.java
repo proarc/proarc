@@ -133,10 +133,10 @@ public final class RelationEditor {
      * Prepares updates for {@link FedoraObject#flush() }
      * @param timestamp timestamp
      */
-    public void write(long timestamp) throws DigitalObjectException {
+    public void write(long timestamp, String message) throws DigitalObjectException {
         EditorResult result = editor.createResult();
         Relations.marshal(result, relsExt, false);
-        editor.write(result, timestamp);
+        editor.write(result, timestamp, message);
     }
 
     private Rdf getRdf() throws DigitalObjectException {

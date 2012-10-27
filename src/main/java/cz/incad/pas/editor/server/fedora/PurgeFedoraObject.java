@@ -52,6 +52,7 @@ public final class PurgeFedoraObject {
      * set of PIDs to update
      */
     private final Set<String> toUpdate;
+    private String logMessage;
 
     public PurgeFedoraObject(RemoteStorage storage) {
         this.storage = storage;
@@ -59,24 +60,26 @@ public final class PurgeFedoraObject {
         this.toUpdate = new HashSet<String>();
     }
 
-    public void delete(String pid, boolean hierarchy, String user) throws PurgeException {
-        process(Collections.singletonList(pid), hierarchy, true, user);
+    public void delete(String pid, boolean hierarchy, String message) throws PurgeException {
+        process(Collections.singletonList(pid), hierarchy, true, message);
     }
 
-    public void delete(List<String> pids, boolean hierarchy, String user) throws PurgeException {
-        process(pids, hierarchy, true, user);
+    public void delete(List<String> pids, boolean hierarchy, String message) throws PurgeException {
+        process(pids, hierarchy, true, message);
     }
 
-    public void purge(String pid, boolean hierarchy, String user) throws PurgeException {
-        purge(Collections.singletonList(pid), hierarchy, user);
+    public void purge(String pid, boolean hierarchy, String message) throws PurgeException {
+        purge(Collections.singletonList(pid), hierarchy, message);
     }
 
-    public void purge(List<String> pids, boolean hierarchy, String user) throws PurgeException {
-        process(pids, hierarchy, false, user);
+    public void purge(List<String> pids, boolean hierarchy, String message) throws PurgeException {
+        process(pids, hierarchy, false, message);
     }
-    private void process(List<String> pids, boolean hierarchy, boolean setDeleted, String user) throws PurgeException {
+    
+    private void process(List<String> pids, boolean hierarchy, boolean setDeleted, String message) throws PurgeException {
         toPurge.clear();
         toUpdate.clear();
+        this.logMessage = message;
         for (String pid : pids) {
             process(pid, hierarchy);
         }
@@ -88,7 +91,7 @@ public final class PurgeFedoraObject {
         if (setDeleted) {
             setDeleted(toPurge);
         } else {
-            purge(toPurge, user);
+            purge(toPurge);
         }
     }
 
@@ -153,7 +156,7 @@ public final class PurgeFedoraObject {
         List<String> members = editor.getMembers();
         members.removeAll(toPurge);
         editor.setMembers(members);
-        editor.write(editor.getLastModified());
+        editor.write(editor.getLastModified(), logMessage);
         remote.flush();
     }
 
@@ -166,18 +169,18 @@ public final class PurgeFedoraObject {
         }
     }
 
-    private void purge(String pid, String user) throws PurgeException {
+    private void purge(String pid) throws PurgeException {
         try {
             RemoteObject remote = storage.find(pid);
-            FedoraClient.purgeObject(pid).logMessage("Purged by " + user).execute(remote.getClient());
+            FedoraClient.purgeObject(pid).logMessage(logMessage).execute(remote.getClient());
         } catch (FedoraClientException ex) {
             throw new PurgeException(pid, ex);
         }
     }
 
-    private void purge(Set<String> pids, String user) throws PurgeException {
+    private void purge(Set<String> pids) throws PurgeException {
         for (String pid : pids) {
-            purge(pid, user);
+            purge(pid);
         }
     }
 
@@ -190,7 +193,9 @@ public final class PurgeFedoraObject {
     private void setDeleted(String pid) throws PurgeException {
         try {
             RemoteObject remote = storage.find(pid);
-            FedoraClient.modifyObject(pid).state(StateType.D.value()).execute(remote.getClient());
+            FedoraClient.modifyObject(pid).state(StateType.D.value())
+                    .logMessage(logMessage)
+                    .execute(remote.getClient());
         } catch (FedoraClientException ex) {
             throw new PurgeException(pid, ex);
         }

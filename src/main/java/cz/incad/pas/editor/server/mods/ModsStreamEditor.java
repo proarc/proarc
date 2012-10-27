@@ -93,10 +93,10 @@ public final class ModsStreamEditor {
         return editor.getLastModified();
     }
 
-    public void write(ModsType mods, long timestamp) throws DigitalObjectException {
+    public void write(ModsType mods, long timestamp, String message) throws DigitalObjectException {
         EditorResult marshaled = editor.createResult();
         ModsUtils.marshal(marshaled, mods, true);
-        editor.write(marshaled, timestamp);
+        editor.write(marshaled, timestamp, message);
     }
 
     public static ModsType defaultMods(String pid) {

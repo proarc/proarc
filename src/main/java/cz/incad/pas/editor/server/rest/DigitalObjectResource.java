@@ -66,6 +66,7 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -109,13 +110,16 @@ public class DigitalObjectResource {
     private final Request httpRequest;
     private final HttpHeaders httpHeaders;
     private final UserProfile user;
+    private final SessionContext session;
 
     public DigitalObjectResource(
             @Context Request request,
             @Context SecurityContext securityCtx,
             @Context HttpHeaders httpHeaders,
-            @Context UriInfo uriInfo
+            @Context UriInfo uriInfo,
+            @Context HttpServletRequest httpRequest
             ) throws PasConfigurationException {
+        
         this.httpRequest = request;
         this.httpHeaders = httpHeaders;
         this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
@@ -130,7 +134,8 @@ public class DigitalObjectResource {
             userName = UserManager.GUEST_ID;
         }
         user = userManager.find(userName);
-        LOG.info(user.toString());
+        session = SessionContext.from(httpRequest);
+        LOG.fine(user.toString());
     }
 
     /**
@@ -181,11 +186,11 @@ public class DigitalObjectResource {
         } else {
             modsType = modsEditor.create(localObject.getPid(), modelId, mods);
         }
-        modsEditor.write(modsType, 0);
+        modsEditor.write(modsType, 0, session.asFedoraLog());
 
         // DC
         DcStreamEditor dcEditor = new DcStreamEditor(localObject);
-        dcEditor.write(modsType, modelId, 0);
+        dcEditor.write(modsType, modelId, 0, session.asFedoraLog());
         DublinCoreRecord dcRecord = dcEditor.read();
         String label = DcUtils.getLabel(dcRecord.getDc());
         localObject.setLabel(label);
@@ -194,13 +199,13 @@ public class DigitalObjectResource {
         // RELS-EXT
         RelationEditor relsExt = new RelationEditor(localObject);
         relsExt.setModel(modelId);
-        relsExt.write(0);
+        relsExt.write(0, session.asFedoraLog());
 
         localObject.flush();
 
         RemoteStorage fedora = RemoteStorage.getInstance(pasConfig);
         try {
-            fedora.ingest(localObject, user.getUserName(), "Ingested with ProArc");
+            fedora.ingest(localObject, user.getUserName(), session.asFedoraLog());
         } catch (FedoraClientException ex) {
             // XXX hack: Fedora server does not notify existing object conflict with HTTP 409.
             // Workaround parses error message.
@@ -231,9 +236,9 @@ public class DigitalObjectResource {
         ArrayList<DigitalObject> result = new ArrayList<DigitalObject>(pids.size());
         PurgeFedoraObject service = new PurgeFedoraObject(fedora);
         if (purge) {
-            service.purge(pids, hierarchy, user.getUserName());
+            service.purge(pids, hierarchy, session.asFedoraLog());
         } else {
-            service.delete(pids, hierarchy, user.getUserName());
+            service.delete(pids, hierarchy, session.asFedoraLog());
         }
         for (String pid : pids) {
             result.add(new DigitalObject(pid, null));
@@ -332,7 +337,7 @@ public class DigitalObjectResource {
         if (!members.contains(memberPid)) {
             members.add(memberPid);
             editor.setMembers(members);
-            editor.write(editor.getLastModified());
+            editor.write(editor.getLastModified(), session.asFedoraLog());
             remote.flush();
         }
 
@@ -370,7 +375,7 @@ public class DigitalObjectResource {
         }
         FedoraObject fobject = findFedoraObject(update.getPid(), update.getBatchId(), false);
         DcStreamEditor dcEditor = new DcStreamEditor(fobject);
-        dcEditor.write(update);
+        dcEditor.write(update, session.asFedoraLog());
         String label = DcUtils.getLabel(update.getDc());
         fobject.setLabel(label);
 
@@ -448,12 +453,12 @@ public class DigitalObjectResource {
                 String toXml = ModsUtils.toXml(mods, true);
                 LOG.fine(toXml);
             }
-            modsEditor.write(mods, timestamp);
+            modsEditor.write(mods, timestamp, session.asFedoraLog());
 
             // DC
             String model = new RelationEditor(remote).getModel();
             DcStreamEditor dcEditor = new DcStreamEditor(remote);
-            dcEditor.write(mods, model, dcEditor.getLastModified());
+            dcEditor.write(mods, model, dcEditor.getLastModified(), session.asFedoraLog());
             DublinCoreRecord dcRecord = dcEditor.read();
             String label = DcUtils.getLabel(dcRecord.getDc());
             remote.setLabel(label);
@@ -661,7 +666,7 @@ public class DigitalObjectResource {
         FedoraObject fobject = findFedoraObject(pid, batchId, false);
         StringEditor ocrEditor = StringEditor.ocr(fobject);
         try {
-            ocrEditor.write(content, timestamp);
+            ocrEditor.write(content, timestamp, session.asFedoraLog());
             fobject.flush();
             StringRecord result = ocrEditor.readRecord();
             result.setBatchId(batchId);
@@ -705,7 +710,7 @@ public class DigitalObjectResource {
         }
         FedoraObject fobject = findFedoraObject(pid, batchId, false);
         StringEditor editor = StringEditor.privateNote(fobject);
-        editor.write(content, timestamp);
+        editor.write(content, timestamp, session.asFedoraLog());
         fobject.flush();
         StringRecord result = editor.readRecord();
         result.setBatchId(batchId);

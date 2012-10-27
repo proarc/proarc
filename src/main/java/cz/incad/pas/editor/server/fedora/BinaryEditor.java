@@ -125,14 +125,14 @@ public final class BinaryEditor {
         return null;
     }
 
-    public void write(File data, long timestamp) throws DigitalObjectException {
+    public void write(File data, long timestamp, String message) throws DigitalObjectException {
         EditorResult result = editor.createResult();
         if (!(result instanceof StreamResult)) {
             throw new DigitalObjectException(object.getPid(), "Unsupported: " + result.getClass());
         }
         try {
             write((StreamResult) result, data);
-            editor.write(result, timestamp);
+            editor.write(result, timestamp, message);
         } catch (IOException ex) {
             throw new DigitalObjectException(object.getPid(), ex);
         }

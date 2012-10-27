@@ -58,7 +58,8 @@ public final class PageView {
         return result;
     }
 
-    public Item updateItem(int batchId, ImportItem item, long timestamp, String pageIndex, String pageNumber, String pageType)
+    public Item updateItem(int batchId, ImportItem item, long timestamp, String message,
+            String pageIndex, String pageNumber, String pageType)
             throws DigitalObjectException {
         
         LocalStorage storage = new LocalStorage();
@@ -69,14 +70,14 @@ public final class PageView {
         ModsStreamEditor editor = new ModsStreamEditor(local);
         ModsType mods = editor.read();
         editor.updatePage(mods, pageIndex, pageNumber, pageType);
-        editor.write(mods, timestamp);
+        editor.write(mods, timestamp, message);
 
         // performance: store model inside batch item
         String model = new RelationEditor(local).getModel();
 
         // DC
         DcStreamEditor dcEditor = new DcStreamEditor(local);
-        dcEditor.write(mods, model, dcEditor.getLastModified());
+        dcEditor.write(mods, model, dcEditor.getLastModified(), message);
         DublinCoreRecord dcr = dcEditor.read();
         local.setLabel(DcUtils.getLabel(dcr.getDc()));
 

@@ -108,19 +108,19 @@ public class RemoteStorageTest {
         ModsType mods = modsEditor.createPage(local.getPid(), "1", "[1]", "Blank");
         DcStreamEditor dcEditor = new DcStreamEditor(local);
         String model = "model:page";
-        dcEditor.write(mods, model, 0);
-        modsEditor.write(mods, 0);
+        dcEditor.write(mods, model, 0, null);
+        modsEditor.write(mods, 0, null);
 
         RelationEditor relsExt = new RelationEditor(local);
         relsExt.setModel(model);
-        relsExt.write(0);
+        relsExt.write(0, null);
 
         StringEditor ocrEditor = StringEditor.ocr(local);
-        ocrEditor.write("ocr", 0);
+        ocrEditor.write("ocr", 0, null);
 
         File thumb = tmp.newFile();
         assertTrue(thumb.exists());
-        BinaryEditor.dissemination(local, BinaryEditor.THUMB_ID).write(thumb, 0);
+        BinaryEditor.dissemination(local, BinaryEditor.THUMB_ID).write(thumb, 0, null);
         local.flush();
         System.out.println(FoxmlUtils.toXml(local.getDigitalObject(), true));
 
@@ -154,7 +154,7 @@ public class RemoteStorageTest {
         EditorResult editorResult = leditor.createResult();
         TestXml content = new TestXml("test content");
         JAXB.marshal(content, editorResult);
-        leditor.write(editorResult, 0);
+        leditor.write(editorResult, 0, null);
 
         RemoteStorage fedora = new RemoteStorage(client);
         fedora.ingest(local, "junit");
@@ -214,7 +214,7 @@ public class RemoteStorageTest {
         assertEquals(MediaType.TEXT_PLAIN, editor.getMimetype());
         EditorResult edResult = editor.createResult();
         ((StreamResult) edResult).getWriter().write("plain text");
-        editor.write(edResult, lastModified);
+        editor.write(edResult, lastModified, null);
         remote.flush();
         
         // first test current editor
@@ -246,7 +246,7 @@ public class RemoteStorageTest {
         EditorResult editorResult = leditor.createResult();
         TestXml content = new TestXml("test content");
         JAXB.marshal(content, editorResult);
-        leditor.write(editorResult, 0);
+        leditor.write(editorResult, 0, null);
 
         RemoteStorage fedora = new RemoteStorage(client);
         fedora.ingest(local, "junit");
@@ -263,7 +263,7 @@ public class RemoteStorageTest {
         editorResult = editor.createResult();
         JAXB.marshal(resultContent, editorResult);
         long lastModified = editor.getLastModified();
-        editor.write(editorResult, lastModified);
+        editor.write(editorResult, lastModified, null);
         remote.flush();
 
         // test current editor
@@ -292,7 +292,7 @@ public class RemoteStorageTest {
         EditorResult editorResult = leditor.createResult();
         TestXml content = new TestXml("test content");
         JAXB.marshal(content, editorResult);
-        leditor.write(editorResult, 0);
+        leditor.write(editorResult, 0, null);
 
         RemoteStorage fedora = new RemoteStorage(client);
         fedora.ingest(local, "junit");
@@ -310,7 +310,7 @@ public class RemoteStorageTest {
         concurrentContent.data = "concurrent change";
         EditorResult concurrentResult = concurrentEditor.createResult();
         JAXB.marshal(concurrentContent, concurrentResult);
-        concurrentEditor.write(concurrentResult, editor.getLastModified());
+        concurrentEditor.write(concurrentResult, editor.getLastModified(), null);
         concurrentRemote.flush();
 
         // write out of date modification
@@ -319,7 +319,7 @@ public class RemoteStorageTest {
         editorResult = editor.createResult();
         JAXB.marshal(resultContent, editorResult);
         long lastModified = editor.getLastModified();
-        editor.write(editorResult, lastModified);
+        editor.write(editorResult, lastModified, null);
 
         remote.flush();
     }

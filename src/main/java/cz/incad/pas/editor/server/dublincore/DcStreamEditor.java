@@ -99,14 +99,14 @@ public final class DcStreamEditor {
         return new DublinCoreRecord(dc, editor.getLastModified(), object.getPid());
     }
 
-    public void write(DublinCoreRecord record) throws DigitalObjectException {
+    public void write(DublinCoreRecord record, String message) throws DigitalObjectException {
         EditorResult result = editor.createResult();
         // DO NOT include schemaLocation. Fedora validator does not accept it.
         DcUtils.marshal(result, record.getDc(), false);
-        editor.write(result, record.getTimestamp());
+        editor.write(result, record.getTimestamp(), message);
     }
 
-    public void write(ModsType mods, String model, long timestamp) throws DigitalObjectException {
+    public void write(ModsType mods, String model, long timestamp, String message) throws DigitalObjectException {
         try {
             JAXBSource jaxbSource = new JAXBSource(ModsUtils.defaultMarshaller(false),
                     new ObjectFactory().createMods(mods));
@@ -114,7 +114,7 @@ public final class DcStreamEditor {
             Transformer t = DcUtils.modsTransformer(model);
             EditorResult result = editor.createResult();
             t.transform(jaxbSource, result);
-            editor.write(result, timestamp);
+            editor.write(result, timestamp, message);
         } catch (TransformerException ex) {
             throw new DigitalObjectException(object.getPid(), ex);
         } catch (JAXBException ex) {

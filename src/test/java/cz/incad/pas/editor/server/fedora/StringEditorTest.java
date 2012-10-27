@@ -39,7 +39,7 @@ public class StringEditorTest {
         LocalObject local = storage.create();
         StringEditor instance = StringEditor.ocr(local);
         final String content = "ocr";
-        instance.write(content, 0);
+        instance.write(content, 0, null);
         local.flush();
 
         StringRecord result = instance.readRecord();
@@ -47,7 +47,7 @@ public class StringEditorTest {
         assertEquals(content, result.getContent());
         assertEquals(local.getPid(), result.getPid());
 
-        instance.write("update", result.getTimestamp());
+        instance.write("update", result.getTimestamp(), null);
     }
 
     @Test
@@ -57,7 +57,7 @@ public class StringEditorTest {
         LocalObject local = storage.create(foxml);
         StringEditor instance = StringEditor.ocr(local);
         final String content = "ocr";
-        instance.write(content, 0);
+        instance.write(content, 0, null);
         local.flush();
 
         local = storage.load(local.getPid(), foxml);
@@ -66,7 +66,7 @@ public class StringEditorTest {
 
         local = storage.load(local.getPid(), foxml);
         instance = StringEditor.ocr(local);
-        instance.write("update", result.getTimestamp());
+        instance.write("update", result.getTimestamp(), null);
         local.flush();
 
         local = storage.load(local.getPid(), foxml);

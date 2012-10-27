@@ -83,7 +83,7 @@ public class RelationEditorTest {
         List<String> members = Arrays.asList("test:member1", "test:member2");
         instance.setModel(model);
         instance.setMembers(members);
-        instance.write(0);
+        instance.write(0, null);
         lobject.flush();
 
         lobject = storage.load(lobject.getPid(), foxml);
@@ -100,7 +100,7 @@ public class RelationEditorTest {
         members = Arrays.asList("test:member1", "test:member3");
         instance.setModel(model);
         instance.setMembers(members);
-        instance.write(timestamp);
+        instance.write(timestamp, null);
         lobject.flush();
 
         lobject = storage.load(lobject.getPid(), foxml);

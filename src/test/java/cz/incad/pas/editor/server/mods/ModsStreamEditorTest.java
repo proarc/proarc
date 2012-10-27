@@ -33,7 +33,7 @@ public class ModsStreamEditorTest {
         LocalStorage storage = new LocalStorage();
         LocalObject local = storage.create();
         ModsStreamEditor editor = new ModsStreamEditor(local);
-        editor.write(new ModsType(), 0);
+        editor.write(new ModsType(), 0, null);
         ModsType result = editor.read();
         assertNotNull(result);
     }

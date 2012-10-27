@@ -47,7 +47,7 @@ public class DcStreamEditorTest {
         LocalStorage.LocalObject local = storage.create();
         DcStreamEditor instance = new DcStreamEditor(local);
         DublinCoreRecord dcRecord = new DublinCoreRecord(new OaiDcType(), 0, local.getPid());
-        instance.write(dcRecord);
+        instance.write(dcRecord, null);
         local.flush();
 
         // validate DC
@@ -74,7 +74,7 @@ public class DcStreamEditorTest {
         String model = "model:page";
         long timestamp = 0L;
         DcStreamEditor instance = new DcStreamEditor(local);
-        instance.write(mods, model, timestamp);
+        instance.write(mods, model, timestamp, null);
         local.flush();
 
         DublinCoreRecord result = instance.read();

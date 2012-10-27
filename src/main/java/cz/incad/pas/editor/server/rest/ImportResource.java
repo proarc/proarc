@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
@@ -103,11 +104,13 @@ public class ImportResource {
     private final UserProfile user;
     private final HttpHeaders httpHeaders;
     private final UriInfo uriInfo;
+    private final SessionContext session;
 
     public ImportResource(
             @Context SecurityContext securityCtx,
             @Context HttpHeaders httpHeaders,
-            @Context UriInfo uriInfo
+            @Context UriInfo uriInfo,
+            @Context HttpServletRequest httpRequest
             /*UserManager userManager*/
             ) throws PasConfigurationException {
 
@@ -126,6 +129,7 @@ public class ImportResource {
 
         this.httpHeaders = httpHeaders;
         this.uriInfo = uriInfo;
+        session = SessionContext.from(httpRequest);
     }
 
     /**
@@ -241,7 +245,7 @@ public class ImportResource {
         if (state == ImportBatch.State.INGESTING) {
             // ingest
             batch = new FedoraImport(RemoteStorage.getInstance(pasConfig), importManager)
-                    .importBatch(batch, user.getUserName());
+                    .importBatch(batch, user.getUserName(), session.asFedoraLog());
         }
         return new SmartGwtResponse<ImportBatch>(batch);
     }
@@ -311,7 +315,8 @@ public class ImportResource {
 
         List<ImportBatch> batches = importManager.find(null, batchId, null);
         checkBatchState(batches.get(0));
-        Item updatedItem = new PageView().updateItem(batchId, item, timestamp, pageIndex, pageNumber, pageType);
+        Item updatedItem = new PageView().updateItem(
+                batchId, item, timestamp, session.asFedoraLog(), pageIndex, pageNumber, pageType);
         return new SmartGwtResponse<Item>(updatedItem);
     }
 

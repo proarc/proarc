@@ -93,28 +93,28 @@ public final class TiffImporter {
         ModsStreamEditor modsEditor = new ModsStreamEditor(localObj);
         String pageIndex = ctx.isGenerateIndices() ? String.valueOf(ctx.getConsumedFileCounter() + 1) : null;
         ModsType mods = modsEditor.createPage(pid, pageIndex, null, null);
-        modsEditor.write(mods, 0);
+        modsEditor.write(mods, 0, null);
 
         // DC
         DcStreamEditor dcEditor = new DcStreamEditor(localObj);
-        dcEditor.write(mods, fedoraModel, 0);
+        dcEditor.write(mods, fedoraModel, 0, null);
         DublinCoreRecord dcr = dcEditor.read();
         localObj.setLabel(DcUtils.getLabel(dcr.getDc()));
 
         // RELS-EXT
         RelationEditor relEditor = new RelationEditor(localObj);
         relEditor.setModel(fedoraModel);
-        relEditor.write(0);
+        relEditor.write(0, null);
         // XXX use fedora-model:downloadFilename in RELS-INT or label of datastream to specify filename
 
         // Images
         BinaryEditor.dissemination(localObj, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF)
-                .write(f, 0);
+                .write(f, 0, null);
         createImages(tempBatchFolder, f, originalFilename, localObj);
 
         // OCR
         StringEditor ocrEditor = StringEditor.ocr(localObj);
-        ocrEditor.write("", 0);
+        ocrEditor.write("", 0, null);
         
         // XXX generate ATM
         // writes FOXML
@@ -140,19 +140,19 @@ public final class TiffImporter {
         String targetName = String.format("%s.full.%s", originalFilename, imageType.getDefaultFileExtension());
         File f = writeImage(tiff, tempBatchFolder, targetName, imageType);
         long endFull = System.nanoTime() - start;
-        BinaryEditor.dissemination(foxml, BinaryEditor.FULL_ID, mediaType).write(f, 0);
+        BinaryEditor.dissemination(foxml, BinaryEditor.FULL_ID, mediaType).write(f, 0, null);
 
         start = System.nanoTime();
         targetName = String.format("%s.preview.%s", originalFilename, imageType.getDefaultFileExtension());
         f = writeImage(scale(tiff, null, 1000), tempBatchFolder, targetName, imageType);
         long endPreview = System.nanoTime() - start;
-        BinaryEditor.dissemination(foxml, BinaryEditor.PREVIEW_ID, mediaType).write(f, 0);
+        BinaryEditor.dissemination(foxml, BinaryEditor.PREVIEW_ID, mediaType).write(f, 0, null);
 
         start = System.nanoTime();
         targetName = String.format("%s.thumb.%s", originalFilename, imageType.getDefaultFileExtension());
         f = writeImage(scale(tiff, 120, 128), tempBatchFolder, targetName, imageType);
         long endThumb = System.nanoTime() - start;
-        BinaryEditor.dissemination(foxml, BinaryEditor.THUMB_ID, mediaType).write(f, 0);
+        BinaryEditor.dissemination(foxml, BinaryEditor.THUMB_ID, mediaType).write(f, 0, null);
 
         LOG.info(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
                 originalFilename, endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));
