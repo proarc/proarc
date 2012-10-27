@@ -328,7 +328,7 @@ public class ImportPresenter {
 
                     @Override
                     public void execute(DSResponse response, Object rawData, DSRequest request) {
-                        if (RestConfig.isStatusOk(response)) {
+                        if (!RestConfig.isStatusOk(response)) {
                             response.setInvalidateCache(true);
                             return;
                         }
