@@ -62,6 +62,7 @@ import cz.incad.pas.editor.client.presenter.DigitalObjectManager;
 import cz.incad.pas.editor.client.presenter.ImportPresenter;
 import cz.incad.pas.editor.client.presenter.Importing.ImportPlace;
 import cz.incad.pas.editor.client.presenter.Importing.ImportPlace.Type;
+import cz.incad.pas.editor.client.presenter.UserManaging.UsersPlace;
 import cz.incad.pas.editor.client.widget.UsersView;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -282,7 +283,7 @@ public class Editor implements EntryPoint {
                         createTreeNode("Search", i18nPas.MainMenu_Edit_Edit_Title())
                 ),
 //                createTreeNode("Statistics", i18nPas.MainMenu_Statistics_Title()),
-                createTreeNode("Users", i18nPas.MainMenu_Users_Title(), Arrays.asList("proarc.permission.admin")),
+                createTreeNode("Users", i18nPas.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
                 createTreeNode("Console", i18nPas.MainMenu_Console_Title()),
         };
         trees = reduce(trees);
@@ -329,12 +330,6 @@ public class Editor implements EntryPoint {
 
     private void createMenuPlaces(final TreeGrid menu) {
         final Layout placesContainer = getDisplay();
-        final Canvas empty = new Canvas();
-        empty.setHeight100();
-        empty.setWidth100();
-        empty.setContents("Select action.");
-        placesContainer.setMembers(empty);
-
         menu.addLeafClickHandler(new LeafClickHandler() {
 
             @Override
@@ -357,30 +352,19 @@ public class Editor implements EntryPoint {
                     presenter.init();
                 } else if ("Console".equals(name)) {
                     SC.showConsole();
-                } else if ("Users".equals(name)) {
-                    UsersView users = presenterFactory.getUsers();
-                    Canvas ui = users.asWidget();
-                    placesContainer.setMembers(ui);
-                    users.onShow();
                 } else {
-                    placesContainer.setMembers(empty);
+                    placesContainer.removeMembers(placesContainer.getMembers());
                 }
             }
         });
 
     }
 
-    /**
-     * Helper method to workaround GWT compiler issue with varargs.
-     * DO NOT REMOVE till
-     * {@link #createTreeNode(java.lang.String, java.lang.String, com.smartgwt.client.widgets.tree.TreeNode[])}
-     * exists!
-     */
-    private TreeNode createTreeNode(String name, String displayName, List<String> requires) {
+    private TreeNode createTreeNode(String name, String displayName, Place place, List<String> requires) {
         if (requires != null && !permissions.containsAll(requires)) {
             return null;
         }
-        return createTreeNode(name, displayName, (TreeNode[]) null);
+        return createTreeNode(name, displayName, place, (TreeNode[]) null);
     }
 
     private TreeNode createTreeNode(String name, String displayName, TreeNode... children) {
