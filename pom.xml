@@ -9,7 +9,7 @@
     <artifactId>editor</artifactId>
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>PAS Editor</name>
+    <name>ProArc Editor</name>
 
     <licenses>
         <license>
@@ -24,6 +24,7 @@
         <smartGwtVersion>3.0</smartGwtVersion>
         <maven.compiler.source>1.6</maven.compiler.source>
         <maven.compiler.target>1.6</maven.compiler.target>
+        <warName>proarc</warName>
         <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- JAX-WS 2.2 JDK 1.6 support-->
@@ -192,7 +193,7 @@
                 <!-- Plugin configuration. There are many available options, see
                   gwt-maven-plugin documentation at codehaus.org -->
                 <configuration>
-                    <runTarget>paseditor/Editor.html</runTarget>
+                    <runTarget>${warName}/index.html</runTarget>
                     <hostedWebapp>${webappDirectory}</hostedWebapp>
                     <i18nMessagesBundle>cz.incad.pas.editor.client.ClientMessages</i18nMessagesBundle>
                     <enableAssertions>true</enableAssertions>
@@ -223,6 +224,7 @@
                 </executions>
                 <configuration>
                     <webappDirectory>${webappDirectory}</webappDirectory>
+                    <warName>${warName}</warName>
                 </configuration>
             </plugin>
 

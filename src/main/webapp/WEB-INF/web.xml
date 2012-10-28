@@ -44,12 +44,12 @@
 
     <servlet-mapping>
         <servlet-name>ModsGwtServiceProvider</servlet-name>
-        <url-pattern>/PASEditor/modsgwt</url-pattern>
+        <url-pattern>/proarc/modsgwt</url-pattern>
     </servlet-mapping>
 
     <!-- Default page to serve -->
     <welcome-file-list>
-        <welcome-file>Editor.html</welcome-file>
+        <welcome-file>index.html</welcome-file>
     </welcome-file-list>
 
     <security-constraint>
