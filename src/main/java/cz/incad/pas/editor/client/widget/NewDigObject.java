@@ -52,9 +52,9 @@ import com.smartgwt.client.widgets.layout.HStack;
 import com.smartgwt.client.widgets.layout.SectionStack;
 import com.smartgwt.client.widgets.layout.SectionStackSection;
 import com.smartgwt.client.widgets.layout.VLayout;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.DataSourceFieldBuilder;
-import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.BibliographyDataSource;
 import cz.incad.pas.editor.client.ds.BibliographyQueryDataSource;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
@@ -77,24 +77,24 @@ public final class NewDigObject extends VLayout {
     private final SectionStack sections;
     private final DynamicForm optionsForm;
     private DynamicForm formCatalog;
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
     private ListGrid lgResult;
 
-    public NewDigObject(PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    public NewDigObject(ClientMessages i18n) {
+        this.i18n = i18n;
         setHeight100();
         setWidth100();
 
         optionsForm = createOptionsForm();
 
         SectionStackSection sectionMain = new SectionStackSection(
-                i18nPas.NewDigObject_SectionOptions_Title());
+                i18n.NewDigObject_SectionOptions_Title());
         sectionMain.setExpanded(true);
         sectionMain.setCanCollapse(false);
         sectionMain.setItems(optionsForm);
 
         SectionStackSection sectionAdvanced = new SectionStackSection(
-                i18nPas.NewDigObject_SectionAdvancedOptions_Title());
+                i18n.NewDigObject_SectionAdvancedOptions_Title());
         sectionAdvanced.setItems(createAdvancedOptions());
 
         sections = new SectionStack();
@@ -152,7 +152,7 @@ public final class NewDigObject extends VLayout {
 
     private DynamicForm createOptionsForm() {
         SelectItem selectModel = new SelectItem(DigitalObjectDataSource.FIELD_MODEL,
-                i18nPas.NewDigObject_OptionModel_Title());
+                i18n.NewDigObject_OptionModel_Title());
         selectModel.setRequired(true);
         selectModel.setDefaultToFirstOption(true);
         selectModel.setOptionDataSource(MetaModelDataSource.getInstance());
@@ -170,8 +170,8 @@ public final class NewDigObject extends VLayout {
         });
 
         TextItem newPid = new TextItem(DigitalObjectDataSource.FIELD_PID);
-        newPid.setTitle(i18nPas.NewDigObject_OptionPid_Title());
-        newPid.setTooltip(i18nPas.NewDigObject_OptionPid_Hint());
+        newPid.setTitle(i18n.NewDigObject_OptionPid_Title());
+        newPid.setTooltip(i18n.NewDigObject_OptionPid_Hint());
         newPid.setLength(36 + 5);
         newPid.setWidth((36 + 5) * 8);
         newPid.setValidators(new RegExpValidator(
@@ -192,19 +192,19 @@ public final class NewDigObject extends VLayout {
         DataSource ds = new DataSource();
         ds.setFields(
                 DataSourceFieldBuilder.field(new DataSourceTextField(
-                            "issn", i18nPas.NewDigObject_CatalogFieldIssn_Title()))
+                            "issn", i18n.NewDigObject_CatalogFieldIssn_Title()))
                         .validOperators(OperatorId.ICONTAINS).build(),
                 DataSourceFieldBuilder.field(new DataSourceTextField(
-                            "isbn", i18nPas.NewDigObject_CatalogFieldIsbn_Title()))
+                            "isbn", i18n.NewDigObject_CatalogFieldIsbn_Title()))
                         .validOperators(OperatorId.ICONTAINS).build(),
                 DataSourceFieldBuilder.field(new DataSourceTextField(
-                            "ccnb", i18nPas.NewDigObject_CatalogFieldCcnb_Title()))
+                            "ccnb", i18n.NewDigObject_CatalogFieldCcnb_Title()))
                         .validOperators(OperatorId.ICONTAINS).build(),
                 DataSourceFieldBuilder.field(new DataSourceTextField(
-                            "barcode", i18nPas.NewDigObject_CatalogFieldBarcode_Title()))
+                            "barcode", i18n.NewDigObject_CatalogFieldBarcode_Title()))
                         .validOperators(OperatorId.ICONTAINS).build(),
                 DataSourceFieldBuilder.field(new DataSourceTextField(
-                            "signature", i18nPas.NewDigObject_CatalogFieldSignature_Title()))
+                            "signature", i18n.NewDigObject_CatalogFieldSignature_Title()))
                         .validOperators(OperatorId.ICONTAINS).build()
                 );
         
@@ -239,7 +239,7 @@ public final class NewDigObject extends VLayout {
             }
         });
 
-        IButton find = new IButton(i18nPas.NewDigObject_CatalogFind_Title(), new ClickHandler() {
+        IButton find = new IButton(i18n.NewDigObject_CatalogFind_Title(), new ClickHandler() {
 
             @Override
             public void onClick(ClickEvent event) {
@@ -255,9 +255,9 @@ public final class NewDigObject extends VLayout {
         lgResult.setDataSource(BibliographyQueryDataSource.getInstance());
 //        lgResult.setUseAllDataSourceFields(true);
         ListGridField preview = new ListGridField(BibliographyQueryDataSource.FIELD_PREVIEW,
-                i18nPas.NewDigObject_CatalogHeaderPreview_Title());
+                i18n.NewDigObject_CatalogHeaderPreview_Title());
         ListGridField title = new ListGridField(BibliographyQueryDataSource.FIELD_TITLE,
-                i18nPas.NewDigObject_CatalogHeaderTitle_Title());
+                i18n.NewDigObject_CatalogHeaderTitle_Title());
         lgResult.setDetailField(BibliographyQueryDataSource.FIELD_PREVIEW);
         lgResult.setFields(title, preview);
 //        lgResult.setAutoFetchData(true);
@@ -291,7 +291,7 @@ public final class NewDigObject extends VLayout {
         AdvancedCriteria criteria = filter.getCriteria(false);
         Criterion[] criterions = criteria.getCriteria();
         if (criterions == null || criterions.length == 0) {
-            SC.warn(i18nPas.NewDigObject_CatalogFind_MissingParam_Msg());
+            SC.warn(i18n.NewDigObject_CatalogFind_MissingParam_Msg());
         } else {
             Criteria plain = formCatalog.getValuesAsCriteria();
             plain.addCriteria(criterions[0]);
@@ -303,7 +303,7 @@ public final class NewDigObject extends VLayout {
 
     private DynamicForm createCatalogForm() {
         SelectItem selection = new SelectItem(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM,
-                i18nPas.NewDigObject_OptionCatalog_Title());
+                i18n.NewDigObject_OptionCatalog_Title());
         selection.setRequired(true);
         selection.setOptionDataSource(BibliographyDataSource.getInstance());
 //        selectModel.setShowOptionsFromDataSource(true);

@@ -25,11 +25,10 @@ import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.layout.VLayout;
-import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.tree.TreeGrid;
 import com.smartgwt.client.widgets.tree.TreeGridField;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.Selectable;
@@ -47,12 +46,12 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
 
     private final Canvas rootWidget;
     private final TreeGrid treeSelector;
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
     private String rootPid;
     private final ToolStrip toolbar;
 
-    public DigitalObjectTreeView(PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    public DigitalObjectTreeView(ClientMessages i18n) {
+        this.i18n = i18n;
         treeSelector = createTreeSelector();
 
         VLayout vLayout = new VLayout();
@@ -79,26 +78,26 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         treeGrid.setCanSort(false);
         treeGrid.setDataSource(RelationDataSource.getInstance());
         TreeGridField model = new TreeGridField(RelationDataSource.FIELD_MODEL,
-                i18nPas.DigitalObjectSearchView_ListHeaderModel_Title());
+                i18n.DigitalObjectSearchView_ListHeaderModel_Title());
 //        model.setOptionDataSource(MetaModelDataSource.getInstance());
 //        model.setValueField(MetaModelDataSource.FIELD_PID);
 //        model.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
         treeGrid.setFields(
                 new TreeGridField(RelationDataSource.FIELD_LABEL,
-                        i18nPas.DigitalObjectSearchView_ListHeaderLabel_Title()),
+                        i18n.DigitalObjectSearchView_ListHeaderLabel_Title()),
                 model,
                 new TreeGridField(RelationDataSource.FIELD_PID,
-                        i18nPas.DigitalObjectSearchView_ListHeaderPid_Title()),
+                        i18n.DigitalObjectSearchView_ListHeaderPid_Title()),
                 new TreeGridField(RelationDataSource.FIELD_CREATED,
-                        i18nPas.DigitalObjectSearchView_ListHeaderCreated_Title()),
+                        i18n.DigitalObjectSearchView_ListHeaderCreated_Title()),
                 new TreeGridField(RelationDataSource.FIELD_MODIFIED,
-                        i18nPas.DigitalObjectSearchView_ListHeaderModified_Title()),
+                        i18n.DigitalObjectSearchView_ListHeaderModified_Title()),
                 new TreeGridField(RelationDataSource.FIELD_OWNER,
-                        i18nPas.DigitalObjectSearchView_ListHeaderOwner_Title())
+                        i18n.DigitalObjectSearchView_ListHeaderOwner_Title())
                 );
         treeGrid.setTitleField(RelationDataSource.FIELD_LABEL);
         treeGrid.setShowConnectors(true);
-        treeGrid.setEmptyMessage(i18nPas.ImportParentChooser_EmptySelection_Title());
+        treeGrid.setEmptyMessage(i18n.ImportParentChooser_EmptySelection_Title());
         treeGrid.setAlternateRecordStyles(true);
         treeGrid.setSelectionType(SelectionStyle.SINGLE);
         treeGrid.setContextMenu(Actions.createMenu());
@@ -107,7 +106,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
 
     private ToolStrip createToolbar() {
         ToolStrip toolbar = Actions.createToolStrip();
-        toolbar.addMember(Actions.asIconButton(new RefreshAction(i18nPas), this));
+        toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n), this));
         return toolbar;
     }
 

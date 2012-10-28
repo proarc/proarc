@@ -36,8 +36,8 @@ import com.smartgwt.client.widgets.events.CloseClickEvent;
 import com.smartgwt.client.widgets.events.CloseClickHandler;
 import com.smartgwt.client.widgets.layout.HStack;
 import com.smartgwt.client.widgets.layout.VLayout;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
-import cz.incad.pas.editor.client.PasEditorMessages;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -69,11 +69,11 @@ public final class ProgressTracker {
     private ProgressHandler progressHandler;
     private Runnable exitCallback;
     private Window window;
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
     private String progressPrefix;
 
-    public ProgressTracker(PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    public ProgressTracker(ClientMessages i18n) {
+        this.i18n = i18n;
         widget = new VLayout(4);
         label = new Label();
         label.setWidth100();
@@ -87,7 +87,7 @@ public final class ProgressTracker {
         widget.setMembers(label, progressbar);
         widget.setWidth100();
         widget.setAutoHeight();
-        progressPrefix = i18nPas.ProgressTracker_Progress_0();
+        progressPrefix = i18n.ProgressTracker_Progress_0();
     }
 
     public VLayout asPanel() {
@@ -95,7 +95,7 @@ public final class ProgressTracker {
     }
 
     public void showInWindow(Runnable exitCallback) {
-        showInWindow(exitCallback, i18nPas.ProgressTracker_Window_Title());
+        showInWindow(exitCallback, i18n.ProgressTracker_Window_Title());
     }
 
     public void showInWindow(Runnable exitCallback, String title) {
@@ -122,14 +122,14 @@ public final class ProgressTracker {
     }
 
     private Canvas createControls() {
-        IButton continueBtn = new IButton(i18nPas.ProgressTracker_Continue_Title(), new ClickHandler() {
+        IButton continueBtn = new IButton(i18n.ProgressTracker_Continue_Title(), new ClickHandler() {
 
             @Override
             public void onClick(ClickEvent event) {
                 stop();
             }
         });
-        continueBtn.setTooltip(i18nPas.ProgressTracker_Continue_Hint());
+        continueBtn.setTooltip(i18n.ProgressTracker_Continue_Hint());
         continueBtn.setAutoFit(true);
 
         HStack btnLayout = new HStack(5);
@@ -142,7 +142,7 @@ public final class ProgressTracker {
 
     public void setInit() {
         lastDone = lastTotal = 0;
-        label.setContents(i18nPas.ProgressTracker_Initializing_Msg());
+        label.setContents(i18n.ProgressTracker_Initializing_Msg());
         progressbar.setPercentDone(0);
         if (datasource != null) {
             progressHandler = new ProgressHandler(datasource, criteria);
@@ -159,7 +159,7 @@ public final class ProgressTracker {
         lastDone = done;
         lastTotal = total;
         int progress = total == 0 ? 0 : done * 100 / total;
-        String msg = i18nPas.ProgressTracker_Progress_Msg(
+        String msg = i18n.ProgressTracker_Progress_Msg(
                 progressPrefix, String.valueOf(done), String.valueOf(total));
         label.setContents(msg);
         progressbar.setPercentDone(progress);
@@ -272,9 +272,9 @@ public final class ProgressTracker {
             if (iterator.hasNext()) {
                 sb.append(iterator.next());
             } else {
-                sb.append(i18nPas.ProgressTracker_Failure_UnknownReason_Title());
+                sb.append(i18n.ProgressTracker_Failure_UnknownReason_Title());
             }
-            String msg = i18nPas.ProgressTracker_Failure_Msg(sb.toString());
+            String msg = i18n.ProgressTracker_Failure_Msg(sb.toString());
             tracker.setDone(msg);
             done();
         }

@@ -22,7 +22,7 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.DateItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
 
@@ -33,25 +33,25 @@ import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
  */
 public final class PeriodicalIssueForm extends DynamicForm {
 
-    public PeriodicalIssueForm(PasEditorMessages i18nPas) {
+    public PeriodicalIssueForm(ClientMessages i18n) {
         setWidth100();
         setHeight100();
         setTitleOrientation(TitleOrientation.TOP);
         setNumCols(1);
 
         TextItem issueNumber = new TextItem(ModsCustomDataSource.FIELD_PER_ISSUE_NUMBER,
-                i18nPas.PeriodicalIssueForm_Number_Title());
+                i18n.PeriodicalIssueForm_Number_Title());
 
         TextItem issueSequenceNumber = new TextItem(ModsCustomDataSource.FIELD_PER_ISSUE_NUMBER_SORTING,
-                i18nPas.PeriodicalIssueForm_NumberSorting_Title());
+                i18n.PeriodicalIssueForm_NumberSorting_Title());
 
-        DateItem date = new DateItem(ModsCustomDataSource.FIELD_PER_ISSUE_DATE, i18nPas.PeriodicalIssueForm_Date_Title());
+        DateItem date = new DateItem(ModsCustomDataSource.FIELD_PER_ISSUE_DATE, i18n.PeriodicalIssueForm_Date_Title());
         date.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATE);
         date.setUseTextField(true);
 
         // identifiers
         final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
-                i18nPas.PeriodicalIssueForm_Identifiers_Title());
+                i18n.PeriodicalIssueForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
         DynamicForm identifierForm = new DynamicForm();
         identifierForm.setUseAllDataSourceFields(true);
@@ -60,7 +60,7 @@ public final class PeriodicalIssueForm extends DynamicForm {
         identifiers.setEndRow(true);
         identifiers.setColSpan("2");
 
-        TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE, i18nPas.PeriodicalIssueForm_Note_Title());
+        TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE, i18n.PeriodicalIssueForm_Note_Title());
         note.setWidth("*");
         note.setHeight("*");
         note.setColSpan("*");

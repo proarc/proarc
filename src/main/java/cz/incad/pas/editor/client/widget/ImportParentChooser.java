@@ -33,7 +33,7 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
@@ -47,23 +47,23 @@ import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
 
 public final class ImportParentChooser extends VLayout {
 
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
     private ImportParentHandler handler;
     private final DigitalObjectSearchView foundView;
     private final DigitalObjectTreeView treeView;
     private final DynamicForm selectionForm;
     private AbstractAction selectParentAction;
     
-    public ImportParentChooser(PasEditorMessages i18nPas) {
+    public ImportParentChooser(ClientMessages i18n) {
         super(4);
-        this.i18nPas = i18nPas;
+        this.i18n = i18n;
         setLayoutMargin(4);
         setWidth100();
         setHeight100();
 
         selectionForm = createSelectionForm();
-        foundView = new DigitalObjectSearchView(i18nPas);
-        treeView = new DigitalObjectTreeView(i18nPas);
+        foundView = new DigitalObjectSearchView(i18n);
+        treeView = new DigitalObjectTreeView(i18n);
 
         foundView.getGrid().setSelectionType(SelectionStyle.SINGLE);
         foundView.getGrid().addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
@@ -134,22 +134,22 @@ public final class ImportParentChooser extends VLayout {
         form.setBrowserSpellCheck(false);
         form.setCanEdit(false);
         form.setCanFocus(false);
-        form.setGroupTitle(i18nPas.ImportParentChooser_SelectionForm_Title());
+        form.setGroupTitle(i18n.ImportParentChooser_SelectionForm_Title());
         form.setIsGroup(true);
         form.setTitleWidth(1); // to compute real width of titles
         TextItem model = new TextItem(SearchDataSource.FIELD_MODEL,
-                i18nPas.DigitalObjectSearchView_ListHeaderModel_Title());
+                i18n.DigitalObjectSearchView_ListHeaderModel_Title());
         model.setOptionDataSource(MetaModelDataSource.getInstance());
         model.setValueField(MetaModelDataSource.FIELD_PID);
         model.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
         TextItem pid = new TextItem(SearchDataSource.FIELD_PID,
-                i18nPas.DigitalObjectSearchView_ListHeaderPid_Title());
+                i18n.DigitalObjectSearchView_ListHeaderPid_Title());
         TextItem label = new TextItem(SearchDataSource.FIELD_LABEL,
-                i18nPas.DigitalObjectSearchView_ListHeaderLabel_Title());
+                i18n.DigitalObjectSearchView_ListHeaderLabel_Title());
         label.setWidth(400);
         ButtonItem clear = new ButtonItem("clear",
-                i18nPas.ImportParentChooser_SelectionForm_Clear_Title());
-        clear.setTooltip(i18nPas.ImportParentChooser_SelectionForm_Clear_Hint());
+                i18n.ImportParentChooser_SelectionForm_Clear_Title());
+        clear.setTooltip(i18n.ImportParentChooser_SelectionForm_Clear_Hint());
         clear.setStartRow(false);
         clear.setCanEdit(true);
         clear.addClickHandler(new ClickHandler() {
@@ -166,9 +166,9 @@ public final class ImportParentChooser extends VLayout {
 
     private void createActions() {
         selectParentAction = new AbstractAction(
-                i18nPas.ImportParentChooser_SelectAction_Title(),
+                i18n.ImportParentChooser_SelectAction_Title(),
                 "[SKIN]/actions/approve.png",
-                i18nPas.ImportParentChooser_SelectAction_Hint()) {
+                i18n.ImportParentChooser_SelectAction_Hint()) {
 
             @Override
             public void performAction(ActionEvent event) {

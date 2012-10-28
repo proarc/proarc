@@ -25,8 +25,8 @@ import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import cz.fi.muni.xkremser.editor.client.mods.IdentifierTypeClient;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
-import cz.incad.pas.editor.client.PasEditorMessages;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,10 +49,10 @@ public final class IdentifierDataSource extends DataSource {
 
     public IdentifierDataSource() {
         setID(ID);
-        PasEditorMessages i18nPas = GWT.create(PasEditorMessages.class);
+        ClientMessages i18n = GWT.create(ClientMessages.class);
 
         DataSourceField type = new DataSourceField(FIELD_TYPE, FieldType.TEXT,
-                i18nPas.PageForm_IdentifierType_Title());
+                i18n.PageForm_IdentifierType_Title());
 
         ComboBoxItem typeEditor = new ComboBoxItem(IdentifierDataSource.FIELD_TYPE);
         LinkedHashMap<String, String> types = new LinkedHashMap<String, String>();
@@ -67,7 +67,7 @@ public final class IdentifierDataSource extends DataSource {
         type.setEditorType(typeEditor);
 
         DataSourceField value = new DataSourceField(FIELD_VALUE, FieldType.TEXT,
-                i18nPas.PageForm_IdentifierValue_Title());
+                i18n.PageForm_IdentifierValue_Title());
         TextItem valueEditor = new TextItem(IdentifierDataSource.FIELD_VALUE);
         valueEditor.setWidth("200");
         value.setEditorType(valueEditor);

@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.client.action;
 
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 
 /**
  * Helper class providing description for subclasses that saves some content.
@@ -25,7 +25,7 @@ import cz.incad.pas.editor.client.PasEditorMessages;
  */
 public abstract class SaveAction extends AbstractAction {
 
-    public SaveAction(PasEditorMessages i18n) {
+    public SaveAction(ClientMessages i18n) {
         super(i18n.SaveAction_Title(),
                 "[SKIN]/actions/save.png",
                 i18n.SaveAction_Hint());

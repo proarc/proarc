@@ -34,7 +34,7 @@ import com.smartgwt.client.widgets.tree.TreeGridField;
 import com.smartgwt.client.widgets.tree.TreeNode;
 import com.smartgwt.client.widgets.tree.events.FolderClickEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClickHandler;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 import cz.incad.pas.editor.client.ds.ImportTreeDataSource;
 import java.util.LinkedHashMap;
@@ -50,15 +50,15 @@ public final class ImportSourceChooser extends VLayout {
     private final DynamicForm optionsForm;
     private final Label lblCurrSelection;
     private ImportSourceChooserHandler viewHandler;
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
     
-    public ImportSourceChooser(PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    public ImportSourceChooser(ClientMessages i18n) {
+        this.i18n = i18n;
         VLayout layout = this;
         setWidth100();
         setHeight100();
         
-        lblCurrSelection = new Label(i18nPas.ImportSourceChooser_NothingSelected_Title());
+        lblCurrSelection = new Label(i18n.ImportSourceChooser_NothingSelected_Title());
         lblCurrSelection.setWidth100();
         lblCurrSelection.setAutoFit(true);
         layout.addMember(lblCurrSelection);
@@ -67,10 +67,10 @@ public final class ImportSourceChooser extends VLayout {
         treeGrid.setHeight100();
         treeGrid.setDataSource(dataSource);
         treeGrid.setFields(
-                new TreeGridField(ImportTreeDataSource.FIELD_NAME, i18nPas.ImportSourceChooser_TreeHeaderFolderName_Title()),
-                new TreeGridField(ImportTreeDataSource.FIELD_STATE, i18nPas.ImportSourceChooser_TreeHeaderImportState_Title()));
+                new TreeGridField(ImportTreeDataSource.FIELD_NAME, i18n.ImportSourceChooser_TreeHeaderFolderName_Title()),
+                new TreeGridField(ImportTreeDataSource.FIELD_STATE, i18n.ImportSourceChooser_TreeHeaderImportState_Title()));
         treeGrid.setShowConnectors(true);
-        treeGrid.setEmptyMessage(i18nPas.ImportSourceChooser_NoDataOnServer_Title());
+        treeGrid.setEmptyMessage(i18n.ImportSourceChooser_NoDataOnServer_Title());
         treeGrid.setAlternateRecordStyles(true);
         treeGrid.setSelectionType(SelectionStyle.SINGLE);
 
@@ -85,13 +85,13 @@ public final class ImportSourceChooser extends VLayout {
         layout.addMember(treeGrid);
 
         optionsForm = new DynamicForm();
-//        SelectItem selectModel = new SelectItem("model", i18nPas.ImportSourceChooser_OptionImportModel_Title());
+//        SelectItem selectModel = new SelectItem("model", i18n.ImportSourceChooser_OptionImportModel_Title());
         CheckboxItem cbiPageIndexes = new CheckboxItem(ImportBatchDataSource.FIELD_INDICES,
-                i18nPas.ImportSourceChooser_OptionPageIndices_Title());
+                i18n.ImportSourceChooser_OptionPageIndices_Title());
         cbiPageIndexes.setValue(true);
 
         SelectItem selectScanner = new SelectItem(ImportBatchDataSource.FIELD_DEVICE,
-                i18nPas.ImportSourceChooser_OptionScanner_Title());
+                i18n.ImportSourceChooser_OptionScanner_Title());
         LinkedHashMap<String, String> scannerMap = new LinkedHashMap<String, String>();
         scannerMap.put("device:digibook_suprascan_10000 rgb", "Digibook Suprascan 10000 RGB");
         scannerMap.put("device:panasonic_kv_s1025c", "Panasonic KV-S1025C");
@@ -160,7 +160,7 @@ public final class ImportSourceChooser extends VLayout {
     private void updateOnSelection() {
         ListGridRecord selectedRecord = treeGrid.getSelectedRecord();
         String label = (selectedRecord == null)
-                ? i18nPas.ImportSourceChooser_NothingSelected_Title()
+                ? i18n.ImportSourceChooser_NothingSelected_Title()
                 : selectedRecord.getAttribute(ImportTreeDataSource.FIELD_PATH);
         lblCurrSelection.setContents(label);
         viewHandler.sourceSelected();

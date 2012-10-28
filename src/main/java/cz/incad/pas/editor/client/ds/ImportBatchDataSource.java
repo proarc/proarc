@@ -26,7 +26,7 @@ import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DateDisplayFormat;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import java.util.LinkedHashMap;
 
 /**
@@ -56,7 +56,7 @@ public final class ImportBatchDataSource extends RestDataSource {
 
         setDataURL(RestConfig.URL_IMPORT_BATCH);
 
-        PasEditorMessages i18nPas = GWT.create(PasEditorMessages.class);
+        ClientMessages i18n = GWT.create(ClientMessages.class);
 
         DataSourceIntegerField id = new DataSourceIntegerField(FIELD_ID);
         id.setPrimaryKey(true);
@@ -73,12 +73,12 @@ public final class ImportBatchDataSource extends RestDataSource {
 
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
         LinkedHashMap<String, String> states = new LinkedHashMap<String, String>();
-        states.put(State.LOADING.name(), i18nPas.ImportBatchDataSource_State_LOADING());
-        states.put(State.LOADING_FAILED.name(), i18nPas.ImportBatchDataSource_State_LOADING_FAILED());
-        states.put(State.LOADED.name(), i18nPas.ImportBatchDataSource_State_LOADED());
-        states.put(State.INGESTING.name(), i18nPas.ImportBatchDataSource_State_INGESTING());
-        states.put(State.INGESTING_FAILED.name(), i18nPas.ImportBatchDataSource_State_INGESTING_FAILED());
-        states.put(State.INGESTED.name(), i18nPas.ImportBatchDataSource_State_INGESTED());
+        states.put(State.LOADING.name(), i18n.ImportBatchDataSource_State_LOADING());
+        states.put(State.LOADING_FAILED.name(), i18n.ImportBatchDataSource_State_LOADING_FAILED());
+        states.put(State.LOADED.name(), i18n.ImportBatchDataSource_State_LOADED());
+        states.put(State.INGESTING.name(), i18n.ImportBatchDataSource_State_INGESTING());
+        states.put(State.INGESTING_FAILED.name(), i18n.ImportBatchDataSource_State_INGESTING_FAILED());
+        states.put(State.INGESTED.name(), i18n.ImportBatchDataSource_State_INGESTED());
         state.setValueMap(states);
 
         DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);

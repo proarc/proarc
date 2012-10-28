@@ -46,7 +46,7 @@ import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
 import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.Selectable;
@@ -75,12 +75,12 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     private final DynamicForm filters;
     private final Canvas rootWidget;
     private final ListGrid foundGrid;
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
     private final SmartGwtMessages i18nSmartGwt;
     private final ToolStrip toolbar;
 
-    public DigitalObjectSearchView(PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    public DigitalObjectSearchView(ClientMessages i18n) {
+        this.i18n = i18n;
         this.i18nSmartGwt = GWT.create(SmartGwtMessages.class);
 
         foundGrid = createList();
@@ -113,22 +113,22 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         grid.setDataSource(SearchDataSource.getInstance());
 
         ListGridField label = new ListGridField(SearchDataSource.FIELD_LABEL,
-                i18nPas.DigitalObjectSearchView_ListHeaderLabel_Title());
+                i18n.DigitalObjectSearchView_ListHeaderLabel_Title());
         ListGridField model = new ListGridField(SearchDataSource.FIELD_MODEL,
-                i18nPas.DigitalObjectSearchView_ListHeaderModel_Title());
+                i18n.DigitalObjectSearchView_ListHeaderModel_Title());
         model.setOptionDataSource(MetaModelDataSource.getInstance());
         model.setValueField(MetaModelDataSource.FIELD_PID);
         model.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
         ListGridField pid = new ListGridField(SearchDataSource.FIELD_PID,
-                i18nPas.DigitalObjectSearchView_ListHeaderPid_Title());
+                i18n.DigitalObjectSearchView_ListHeaderPid_Title());
         ListGridField created = new ListGridField(SearchDataSource.FIELD_CREATED,
-                i18nPas.DigitalObjectSearchView_ListHeaderCreated_Title());
+                i18n.DigitalObjectSearchView_ListHeaderCreated_Title());
         ListGridField modified = new ListGridField(SearchDataSource.FIELD_MODIFIED,
-                i18nPas.DigitalObjectSearchView_ListHeaderModified_Title());
+                i18n.DigitalObjectSearchView_ListHeaderModified_Title());
         ListGridField owner = new ListGridField(SearchDataSource.FIELD_OWNER,
-                i18nPas.DigitalObjectSearchView_ListHeaderOwner_Title());
+                i18n.DigitalObjectSearchView_ListHeaderOwner_Title());
         ListGridField state = new ListGridField(SearchDataSource.FIELD_STATE,
-                i18nPas.DigitalObjectSearchView_ListHeaderState_Title());
+                i18n.DigitalObjectSearchView_ListHeaderState_Title());
         grid.setFields(label, model, pid, created, modified, owner, state);
         grid.setContextMenu(Actions.createMenu());
         return grid;
@@ -136,13 +136,13 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     private ToolStrip createToolbar() {
         ToolStrip toolbar = Actions.createToolStrip();
-        IconButton btnRefresh = Actions.asIconButton(new RefreshAction(i18nPas), this);
+        IconButton btnRefresh = Actions.asIconButton(new RefreshAction(i18n), this);
 
         IconButton btnFilter = new IconButton();
         btnFilter.setActionType(SelectionType.CHECKBOX);
         btnFilter.setIcon("[SKIN]/actions/filter.png");
-        btnFilter.setTitle(i18nPas.DigitalObjectSearchView_FilterButton_Title());
-        btnFilter.setTooltip(i18nPas.DigitalObjectSearchView_FilterButton_Hint());
+        btnFilter.setTitle(i18n.DigitalObjectSearchView_FilterButton_Title());
+        btnFilter.setTooltip(i18n.DigitalObjectSearchView_FilterButton_Hint());
         btnFilter.addClickHandler(new ClickHandler() {
 
             @Override
@@ -177,10 +177,10 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         filterType.setRedrawOnChange(true);
         filterType.setColSpan(2);
         final LinkedHashMap<String, String> filterMap = new LinkedHashMap<String, String>();
-        filterMap.put(FILTER_LAST_CREATED, i18nPas.DigitalObjectSearchView_FilterGroupLastCreated_Title());
-        filterMap.put(FILTER_LAST_MODIFIED, i18nPas.DigitalObjectSearchView_FilterGroupLastModified_Title());
-        filterMap.put(FILTER_PHRASE, i18nPas.DigitalObjectSearchView_FilterGroupPhrase_Title());
-        filterMap.put(FILTER_QUERY, i18nPas.DigitalObjectSearchView_FilterGroupAdvanced_Title());
+        filterMap.put(FILTER_LAST_CREATED, i18n.DigitalObjectSearchView_FilterGroupLastCreated_Title());
+        filterMap.put(FILTER_LAST_MODIFIED, i18n.DigitalObjectSearchView_FilterGroupLastModified_Title());
+        filterMap.put(FILTER_PHRASE, i18n.DigitalObjectSearchView_FilterGroupPhrase_Title());
+        filterMap.put(FILTER_QUERY, i18n.DigitalObjectSearchView_FilterGroupAdvanced_Title());
         filterType.setValueMap(filterMap);
         filterType.setValue(FILTER_LAST_CREATED);
 
@@ -188,7 +188,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         FormItemIfFunction showIfPhrase = new StringMatchFunction(filterType, FILTER_PHRASE);
 
         final TextItem phrase = createAdvancedItem(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM,
-                i18nPas.DigitalObjectSearchView_FilterPhrase_Title(), showIfPhrase);
+                i18n.DigitalObjectSearchView_FilterPhrase_Title(), showIfPhrase);
         phrase.setValidators(new RequiredIfValidator(new RequiredIfFunction() {
 
             @Override
@@ -199,19 +199,19 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
             setMax(1000);
         }});
         
-        SubmitItem submit = new SubmitItem("search", i18nPas.DigitalObjectSearchView_FilterSearchButton_Title());
+        SubmitItem submit = new SubmitItem("search", i18n.DigitalObjectSearchView_FilterSearchButton_Title());
 
         form.setFields(filterType, new SpacerItem() {{setWidth("100%");}},
                 phrase,
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_TITLE_PARAM,
-                        i18nPas.DigitalObjectSearchView_FilterAdvancedTitle_Title(), showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedTitle_Title(), showIfAdvanced),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM,
-                        i18nPas.DigitalObjectSearchView_FilterAdvancedIdentifier_Title(), showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedIdentifier_Title(), showIfAdvanced),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM,
-                        i18nPas.DigitalObjectSearchView_FilterAdvancedLabel_Title(), showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedLabel_Title(), showIfAdvanced),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_OWNER_PARAM,
-                        i18nPas.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfAdvanced),
-                createModelItem(i18nPas.DigitalObjectSearchView_FilterAdvancedModel_Title(),
+                        i18n.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfAdvanced),
+                createModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Title(),
                         new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY)),
                 submit);
         

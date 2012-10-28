@@ -37,8 +37,8 @@ import com.smartgwt.client.widgets.tab.events.TabSelectedHandler;
 import cz.fi.muni.xkremser.editor.client.mods.ModsCollectionClient;
 import cz.fi.muni.xkremser.editor.client.mods.ModsTypeClient;
 import cz.fi.muni.xkremser.editor.client.view.ModsTab;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
-import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
@@ -83,22 +83,22 @@ public final class ModsFullEditor implements DatastreamEditor, Refreshable {
     private DynamicForm sourceForm;
     private boolean ignoreTabSelection = false;
     private boolean ignoreTabDeselection = false;
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
 
-    private ModsFullEditor(boolean tabbed, PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    private ModsFullEditor(boolean tabbed, ClientMessages i18n) {
+        this.i18n = i18n;
         modsContainer = new VLayout();
         modsContainer.setHeight100();
         modsContainer.setWidth100();
         if (tabbed) {
-            Tab tabFull = new Tab(verticalTitle(i18nPas.ModsFullEditor_TabFull_Title()));
+            Tab tabFull = new Tab(verticalTitle(i18n.ModsFullEditor_TabFull_Title()));
             tabFull.setID(TAB_FULL);
             tabFull.setPane(modsContainer);
 
-            Tab tabCustom = new Tab(verticalTitle(i18nPas.ModsFullEditor_TabSimple_Title()));
+            Tab tabCustom = new Tab(verticalTitle(i18n.ModsFullEditor_TabSimple_Title()));
             tabCustom.setID(TAB_CUSTOM);
 
-            Tab tabSource = new Tab(verticalTitle(i18nPas.ModsFullEditor_TabSource_Title()));
+            Tab tabSource = new Tab(verticalTitle(i18n.ModsFullEditor_TabSource_Title()));
             tabSource.setID(TAB_XML);
             sourceForm = new DynamicForm();
             sourceForm.setCanEdit(false);
@@ -194,8 +194,8 @@ public final class ModsFullEditor implements DatastreamEditor, Refreshable {
         return sb.toString();
     }
 
-    public ModsFullEditor(PasEditorMessages i18nPas) {
-        this(true, i18nPas);
+    public ModsFullEditor(ClientMessages i18n) {
+        this(true, i18n);
     }
 
     @Override
@@ -215,7 +215,7 @@ public final class ModsFullEditor implements DatastreamEditor, Refreshable {
 
     @Override
     public Canvas[] getToolbarItems() {
-        SaveAction saveAction = new SaveAction(i18nPas) {
+        SaveAction saveAction = new SaveAction(i18n) {
 
             @Override
             public void performAction(ActionEvent event) {
@@ -303,17 +303,17 @@ public final class ModsFullEditor implements DatastreamEditor, Refreshable {
         DynamicForm form = null;
         final String editorId = model.getEditorId();
         if (MetaModelDataSource.EDITOR_PAGE.equals(editorId)) {
-            form = new PageForm(i18nPas);
+            form = new PageForm(i18n);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL.equals(editorId)) {
-            form = new PeriodicalForm(i18nPas);
+            form = new PeriodicalForm(i18n);
         } else if (MetaModelDataSource.EDITOR_MONOGRAPH.equals(editorId)) {
-            form = new MonographForm(i18nPas);
+            form = new MonographForm(i18n);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL_VOLUME.equals(editorId)) {
-            form = new PeriodicalVolumeForm(i18nPas);
+            form = new PeriodicalVolumeForm(i18n);
         } else if (MetaModelDataSource.EDITOR_PERIODICAL_ISSUE.equals(editorId)) {
-            form = new PeriodicalIssueForm(i18nPas);
+            form = new PeriodicalIssueForm(i18n);
         } else if (MetaModelDataSource.EDITOR_MONOGRAPH_UNIT.equals(editorId)) {
-            form = new MonographUnitForm(i18nPas);
+            form = new MonographUnitForm(i18n);
         } else {
             ClientUtils.warning(LOG, "Uknown model editor: %s, editor: %s", model.getId(), model.getEditorId());
         }

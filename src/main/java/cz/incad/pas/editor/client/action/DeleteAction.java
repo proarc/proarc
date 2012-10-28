@@ -20,7 +20,7 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 
 /**
  * The delete action invokes {@link Deletable} with selection received from
@@ -31,12 +31,12 @@ import cz.incad.pas.editor.client.PasEditorMessages;
 public final class DeleteAction extends AbstractAction {
 
     private final Deletable deletable;
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
 
-    public DeleteAction(Deletable deletable, PasEditorMessages i18nPas) {
-        super(i18nPas.DeleteAction_Title(), "[SKIN]/actions/remove.png", i18nPas.DeleteAction_Hint());
+    public DeleteAction(Deletable deletable, ClientMessages i18n) {
+        super(i18n.DeleteAction_Title(), "[SKIN]/actions/remove.png", i18n.DeleteAction_Hint());
         this.deletable = deletable;
-        this.i18nPas = i18nPas;
+        this.i18n = i18n;
     }
 
     @Override
@@ -51,8 +51,8 @@ public final class DeleteAction extends AbstractAction {
         if (selection == null || selection.length == 0) {
             return ;
         }
-        SC.ask(i18nPas.DeleteAction_Window_Title(),
-                i18nPas.DeleteAction_Window_Msg(String.valueOf(selection.length)),
+        SC.ask(i18n.DeleteAction_Window_Title(),
+                i18n.DeleteAction_Window_Msg(String.valueOf(selection.length)),
                 new BooleanCallback() {
 
             @Override

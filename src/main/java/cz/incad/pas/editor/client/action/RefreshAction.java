@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.client.action;
 
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 
 /**
  * The refresh action invokes {@link Refreshable} on the source object.
@@ -25,8 +25,8 @@ import cz.incad.pas.editor.client.PasEditorMessages;
  */
 public final class RefreshAction extends AbstractAction {
 
-    public RefreshAction(PasEditorMessages i18nPas) {
-        super(i18nPas.RefreshAction_Title(), "[SKIN]/actions/refresh.png", i18nPas.RefreshAction_Hint());
+    public RefreshAction(ClientMessages i18n) {
+        super(i18n.RefreshAction_Title(), "[SKIN]/actions/refresh.png", i18n.RefreshAction_Hint());
     }
 
     @Override

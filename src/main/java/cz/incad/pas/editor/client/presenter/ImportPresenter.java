@@ -26,7 +26,7 @@ import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
@@ -63,17 +63,17 @@ public class ImportPresenter {
     private final SelectParentStep selectParentStep;
     private final FinishedStep finishedStep;
     private ImportContext importContext;
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
     private final PlaceController placeController;
 
-    public ImportPresenter(PasEditorMessages i18nPas, PlaceController placeController) {
-        this.i18nPas = i18nPas;
+    public ImportPresenter(ClientMessages i18n, PlaceController placeController) {
+        this.i18n = i18n;
         selectFolderStep = new SelectFolderStep();
         selectBatchStep = new SelectBatchStep();
         selectParentStep = new SelectParentStep();
         updateItemsStep = new UpdateItemsStep();
         finishedStep = new FinishedStep();
-        wizard = new Wizard(i18nPas, selectFolderStep, selectBatchStep,
+        wizard = new Wizard(i18n, selectFolderStep, selectBatchStep,
                 updateItemsStep, selectParentStep, finishedStep);
         this.placeController = placeController;
     }
@@ -153,7 +153,7 @@ public class ImportPresenter {
         ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
         DSRequest dsRequest = new DSRequest();
         dsRequest.setPromptStyle(PromptStyle.DIALOG);
-        dsRequest.setPrompt(i18nPas.ImportWizard_UpdateItemsStep_Ingesting_Title());
+        dsRequest.setPrompt(i18n.ImportWizard_UpdateItemsStep_Ingesting_Title());
         Record update = new Record();
         update.setAttribute(ImportBatchDataSource.FIELD_ID, batchId);
         update.setAttribute(ImportBatchDataSource.FIELD_PARENT, parentId);
@@ -212,9 +212,9 @@ public class ImportPresenter {
         public void onShow(Wizard wizard) {
             this.wizard = wizard;
             wizard.setBackButton(false, null); // XXX this could be "Import New Folder"
-            wizard.setForwardButton(true, i18nPas.ImportWizard_ButtonResume_Title());
-            wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
-                    i18nPas.ImportWizard_SelectBatchStep_Description_Title());
+            wizard.setForwardButton(true, i18n.ImportWizard_ButtonResume_Title());
+            wizard.setWizardLabel(i18n.ImportWizard_DescriptionPrefix_Title(),
+                    i18n.ImportWizard_SelectBatchStep_Description_Title());
             wizard.setCanStepForward(false);
             widget.setHandler(this);
             widget.bind();
@@ -241,7 +241,7 @@ public class ImportPresenter {
         @Override
         public Canvas asWidget() {
             if (widget == null) {
-                widget = new ImportBatchChooser(i18nPas);
+                widget = new ImportBatchChooser(i18n);
             }
             return widget;
         }
@@ -267,9 +267,9 @@ public class ImportPresenter {
         public void onShow(Wizard wizard) {
             this.wizard = wizard;
             wizard.setBackButton(false, null);
-            wizard.setForwardButton(true, i18nPas.ImportWizard_ButtonLoadFolder_Title());
-            wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
-                    i18nPas.ImportWizard_SelectFolderStep_Description_Title());
+            wizard.setForwardButton(true, i18n.ImportWizard_ButtonLoadFolder_Title());
+            wizard.setWizardLabel(i18n.ImportWizard_DescriptionPrefix_Title(),
+                    i18n.ImportWizard_SelectFolderStep_Description_Title());
             wizard.setCanStepForward(false);
 
             ImportPresenter.this.importContext = new ImportContext();
@@ -295,7 +295,7 @@ public class ImportPresenter {
         @Override
         public Canvas asWidget() {
             if (importSourceChooser == null) {
-                importSourceChooser = new ImportSourceChooser(i18nPas);
+                importSourceChooser = new ImportSourceChooser(i18n);
             }
             return importSourceChooser;
         }
@@ -319,7 +319,7 @@ public class ImportPresenter {
                 ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
                 DSRequest dsRequest = new DSRequest();
                 dsRequest.setPromptStyle(PromptStyle.DIALOG);
-                dsRequest.setPrompt(i18nPas.ImportWizard_SelectFolderStep_Wait_Title());
+                dsRequest.setPrompt(i18n.ImportWizard_SelectFolderStep_Wait_Title());
                 Record newBatch = dsBatch.newBatch(importRecord.getPath(),
                         importSourceChooser.getImportAsType(),
                         importSourceChooser.getDevice(),
@@ -338,7 +338,7 @@ public class ImportPresenter {
                             showProgress(newBatch);
                         } else {
                             response.setInvalidateCache(true);
-                            SC.warn(i18nPas.ImportWizard_SelectFolderStep_NothingToImport_Msg());
+                            SC.warn(i18n.ImportWizard_SelectFolderStep_NothingToImport_Msg());
                         }
                     }
                 }, dsRequest);
@@ -350,17 +350,17 @@ public class ImportPresenter {
         private void showProgress(final BatchRecord batch) {
             final Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batch.getId());
             ImportBatchItemDataSource ds = ImportBatchItemDataSource.getInstance();
-            ProgressTracker progress = new ProgressTracker(i18nPas);
+            ProgressTracker progress = new ProgressTracker(i18n);
             progress.setDataSource(ds, criteria);
             progress.setInit();
-            progress.setProgressPrefix(i18nPas.ImportWizard_SelectFolderStep_ImportProgress_Prefix_Title());
+            progress.setProgressPrefix(i18n.ImportWizard_SelectFolderStep_ImportProgress_Prefix_Title());
             progress.showInWindow(new Runnable() {
 
                 @Override
                 public void run() {
                     checkBatchState(batch);
                 }
-            }, i18nPas.ImportWizard_SelectFolderStep_ImportProgress_Title());
+            }, i18n.ImportWizard_SelectFolderStep_ImportProgress_Title());
         }
 
         private void checkBatchState(BatchRecord batch) {
@@ -388,10 +388,10 @@ public class ImportPresenter {
 
         @Override
         public void onShow(Wizard wizard) {
-            wizard.setBackButton(true, i18nPas.ImportWizard_ButtonLoadNextFolder_Title());
+            wizard.setBackButton(true, i18n.ImportWizard_ButtonLoadNextFolder_Title());
             wizard.setForwardButton(true, null);
-            wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
-                    i18nPas.ImportWizard_UpdateItemsStep_Description_Title());
+            wizard.setWizardLabel(i18n.ImportWizard_DescriptionPrefix_Title(),
+                    i18n.ImportWizard_UpdateItemsStep_Description_Title());
             BatchRecord batch = getImportContext().getBatch();
             widget.onShow(batch);
         }
@@ -423,7 +423,7 @@ public class ImportPresenter {
         @Override
         public Canvas asWidget() {
             if (widget == null) {
-                widget = new ImportBatchItemEditor(i18nPas);
+                widget = new ImportBatchItemEditor(i18n);
             }
             return widget;
         }
@@ -438,9 +438,9 @@ public class ImportPresenter {
         @Override
         public void onShow(Wizard wizard) {
             wizard.setBackButton(true, null);
-            wizard.setForwardButton(true, i18nPas.ImportWizard_ButtonImport_Title());
-            wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(),
-                    i18nPas.ImportWizard_SelectParentStep_Description_Title());
+            wizard.setForwardButton(true, i18n.ImportWizard_ButtonImport_Title());
+            wizard.setWizardLabel(i18n.ImportWizard_DescriptionPrefix_Title(),
+                    i18n.ImportWizard_SelectParentStep_Description_Title());
             this.wizard = wizard;
             BatchRecord batch = ImportPresenter.this.getImportContext().getBatch();
             widget.hide();
@@ -507,9 +507,9 @@ public class ImportPresenter {
                     };
                     // XXX implement status page listing items and their states
                     if (value != null && value) {
-                        SC.say(i18nPas.ImportWizard_Ingest_Done_Msg(), bc);
+                        SC.say(i18n.ImportWizard_Ingest_Done_Msg(), bc);
                     } else {
-                        SC.warn(i18nPas.ImportWizard_Ingest_Failed_Msg(), bc);
+                        SC.warn(i18n.ImportWizard_Ingest_Failed_Msg(), bc);
                     }
                 }
             });
@@ -528,7 +528,7 @@ public class ImportPresenter {
         @Override
         public Canvas asWidget() {
             if (widget == null) {
-                widget = new ImportParentChooser(i18nPas);
+                widget = new ImportParentChooser(i18n);
             }
             return widget;
         }
@@ -560,7 +560,7 @@ public class ImportPresenter {
         public void onShow(Wizard wizard) {
             wizard.setBackButton(true, "Import New Folder");
             wizard.setForwardButton(false, null);
-            wizard.setWizardLabel(i18nPas.ImportWizard_DescriptionPrefix_Title(), "done");
+            wizard.setWizardLabel(i18n.ImportWizard_DescriptionPrefix_Title(), "done");
         }
 
         @Override

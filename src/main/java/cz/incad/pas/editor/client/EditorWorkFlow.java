@@ -54,17 +54,17 @@ public final class EditorWorkFlow {
     private final EventBus ebus;
     private final PlaceController placeController;
     private final ActivityManager activityManager;
-    private final PasEditorMessages i18n;
+    private final ClientMessages i18n;
     private final PlaceHistoryHandler placeHistoryHandler;
     private final PresenterFactory presenterFactory;
 
-    public EditorWorkFlow(Layout delegate, PresenterFactory presenterFactory, PasEditorMessages i18n) {
+    public EditorWorkFlow(Layout delegate, PresenterFactory presenterFactory, ClientMessages i18n) {
         this(null, null, null, delegate, presenterFactory, i18n);
     }
     
     public EditorWorkFlow(EventBus ebus, PlaceController placeController,
             ActivityManager activityManager, Layout delegate,
-            PresenterFactory presenterFactory, PasEditorMessages i18n) {
+            PresenterFactory presenterFactory, ClientMessages i18n) {
 
         this.presenterFactory = presenterFactory;
         this.i18n = i18n;

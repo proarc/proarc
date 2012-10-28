@@ -18,7 +18,7 @@ package cz.incad.pas.editor.client.action;
 
 import com.google.gwt.user.client.Window;
 import com.smartgwt.client.data.Record;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 
@@ -30,8 +30,8 @@ import cz.incad.pas.editor.client.ds.RestConfig;
  */
 public final class FoxmlViewAction extends AbstractAction {
 
-    public FoxmlViewAction(PasEditorMessages i18nPas) {
-        super(i18nPas.FoxmlViewAction_Title(), "[SKIN]/actions/view.png", i18nPas.FoxmlViewAction_Hint());
+    public FoxmlViewAction(ClientMessages i18n) {
+        super(i18n.FoxmlViewAction_Title(), "[SKIN]/actions/view.png", i18n.FoxmlViewAction_Hint());
     }
 
     @Override

@@ -17,8 +17,8 @@
 package cz.incad.pas.editor.client.action;
 
 import com.smartgwt.client.data.Record;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.Editor;
-import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditor.Type;
 
@@ -33,7 +33,7 @@ public final class DigitalObjectEditAction extends AbstractAction {
 
     private Type editorType;
 
-    public DigitalObjectEditAction(String title, Type editorType, PasEditorMessages i18n) {
+    public DigitalObjectEditAction(String title, Type editorType, ClientMessages i18n) {
         this(title, i18n.DigitalObjectEditAction_Hint(), editorType);
     }
     

@@ -20,7 +20,7 @@ import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
 import java.util.logging.Logger;
@@ -34,7 +34,7 @@ public final class MonographUnitForm extends DynamicForm {
 
     private static final Logger LOG = Logger.getLogger(MonographUnitForm.class.getName());
 
-    public MonographUnitForm(final PasEditorMessages i18nPas) {
+    public MonographUnitForm(final ClientMessages i18n) {
         setWidth100();
         setHeight100();
         setTitleOrientation(TitleOrientation.TOP);
@@ -42,7 +42,7 @@ public final class MonographUnitForm extends DynamicForm {
 
         // identifiers
         final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
-                i18nPas.MonographUnitForm_Identifiers_Title());
+                i18n.MonographUnitForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
         DynamicForm identifierForm = new DynamicForm();
         identifierForm.setUseAllDataSourceFields(true);
@@ -52,9 +52,9 @@ public final class MonographUnitForm extends DynamicForm {
         identifiers.setColSpan("2");
 
         TextItem unitNumber = new TextItem(ModsCustomDataSource.FIELD_MONOGRAPHUNIT_NUMBER);
-        unitNumber.setTitle(i18nPas.MonographUnitForm_UnitNumber_Title());
+        unitNumber.setTitle(i18n.MonographUnitForm_UnitNumber_Title());
 
-        TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE, i18nPas.MonographUnitForm_Note_Title());
+        TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE, i18n.MonographUnitForm_Note_Title());
         note.setWidth("*");
         note.setHeight("*");
         note.setColSpan("*");

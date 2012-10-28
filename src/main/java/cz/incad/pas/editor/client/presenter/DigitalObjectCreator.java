@@ -25,8 +25,8 @@ import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
-import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.BibliographyQueryDataSource;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
@@ -57,18 +57,18 @@ public final class DigitalObjectCreator {
     private final FinishedStep finishStep;
     private final Wizard wizard;
     private WizardContext wc;
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
     private String modelId;
     private String parentPid;
 
-    public DigitalObjectCreator(PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    public DigitalObjectCreator(ClientMessages i18n) {
+        this.i18n = i18n;
         newDigObjectStep = new NewDigObjectStep();
         newModsStep = new NewModsStep();
 //        newDcStep = new NewDcStep();
         selectParentStep = new SelectParentStep();
         finishStep = new FinishedStep();
-        wizard = new Wizard(i18nPas, newDigObjectStep, newModsStep,
+        wizard = new Wizard(i18n, newDigObjectStep, newModsStep,
                 selectParentStep, finishStep, Wizard.emptyStep());
     }
 
@@ -156,8 +156,8 @@ public final class DigitalObjectCreator {
             initContext();
             wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel(i18nPas.DigitalObjectCreator_DescriptionPrefix_Title(),
-                    i18nPas.DigitalObjectCreator_NewDigObjectStep_Description_Title());
+            wizard.setWizardLabel(i18n.DigitalObjectCreator_DescriptionPrefix_Title(),
+                    i18n.DigitalObjectCreator_NewDigObjectStep_Description_Title());
             newDigObject.bind(modelId, null);
 //            newDigObject.bind(new AdvancedCriteria("issn", OperatorId.ICONTAINS, "my issn"));
         }
@@ -229,7 +229,7 @@ public final class DigitalObjectCreator {
         @Override
         public Canvas asWidget() {
             if (newDigObject == null) {
-                newDigObject = new NewDigObject(i18nPas);
+                newDigObject = new NewDigObject(i18n);
             }
 //            if (true) {
 //                RepeatableForm dfl = new RepeatableForm("Identifiers");
@@ -249,8 +249,8 @@ public final class DigitalObjectCreator {
             this.wizard = wizard;
             wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel(i18nPas.DigitalObjectCreator_DescriptionPrefix_Title(),
-                    i18nPas.DigitalObjectCreator_NewModsStep_Description_Title());
+            wizard.setWizardLabel(i18n.DigitalObjectCreator_DescriptionPrefix_Title(),
+                    i18n.DigitalObjectCreator_NewModsStep_Description_Title());
 
             WizardContext wc = getContext();
             if (!wc.isModsInitialized()) {
@@ -281,7 +281,7 @@ public final class DigitalObjectCreator {
         @Override
         public Canvas asWidget() {
             if (modsFullEditor == null) {
-                modsFullEditor = new ModsFullEditor(i18nPas);
+                modsFullEditor = new ModsFullEditor(i18n);
             }
             return modsFullEditor.getUI();
         }
@@ -298,8 +298,8 @@ public final class DigitalObjectCreator {
             this.wizard = wizard;
 //            wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel(i18nPas.DigitalObjectCreator_DescriptionPrefix_Title(),
-                    i18nPas.DigitalObjectCreator_NewDcStep_Description_Title());
+            wizard.setWizardLabel(i18n.DigitalObjectCreator_DescriptionPrefix_Title(),
+                    i18n.DigitalObjectCreator_NewDcStep_Description_Title());
 
             WizardContext wc = getContext();
             if (!wc.isDcInitialized()) {
@@ -321,7 +321,7 @@ public final class DigitalObjectCreator {
         @Override
         public Canvas asWidget() {
             if (dcEditor == null) {
-                dcEditor = new DCEditor(i18nPas);
+                dcEditor = new DCEditor(i18n);
                 dcEditor.setOverflow(Overflow.AUTO);
             }
             return dcEditor;
@@ -338,8 +338,8 @@ public final class DigitalObjectCreator {
             this.wizard = wizard;
             wizard.setBackButton(false, null);
 //            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel(i18nPas.DigitalObjectCreator_DescriptionPrefix_Title(),
-                    i18nPas.DigitalObjectCreator_SelectParentStep_Description_Title());
+            wizard.setWizardLabel(i18n.DigitalObjectCreator_DescriptionPrefix_Title(),
+                    i18n.DigitalObjectCreator_SelectParentStep_Description_Title());
 
             editor.setHandler(this);
             editor.setDataSource(getContext().getParentPid());
@@ -400,7 +400,7 @@ public final class DigitalObjectCreator {
         @Override
         public Canvas asWidget() {
             if (editor == null) {
-                editor = new ImportParentChooser(i18nPas);
+                editor = new ImportParentChooser(i18n);
 //                editor = new VLayout();
 //                editor.setContents("ImportParentChooser");
             }
@@ -432,10 +432,10 @@ public final class DigitalObjectCreator {
 
         @Override
         public void onShow(Wizard wizard) {
-            wizard.setBackButton(true, i18nPas.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title());
-            wizard.setForwardButton(true, i18nPas.DigitalObjectCreator_FinishedStep_OpenInEditorButton_Title());
-            wizard.setWizardLabel(i18nPas.DigitalObjectCreator_DescriptionPrefix_Title(),
-                    i18nPas.DigitalObjectCreator_FinishedStep_Description_Title());
+            wizard.setBackButton(true, i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title());
+            wizard.setForwardButton(true, i18n.DigitalObjectCreator_FinishedStep_OpenInEditorButton_Title());
+            wizard.setWizardLabel(i18n.DigitalObjectCreator_DescriptionPrefix_Title(),
+                    i18n.DigitalObjectCreator_FinishedStep_Description_Title());
         }
 
         @Override

@@ -41,7 +41,7 @@ import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import com.smartgwt.client.widgets.form.validator.RequiredIfFunction;
 import com.smartgwt.client.widgets.form.validator.RequiredIfValidator;
 import com.smartgwt.client.widgets.layout.HStack;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.shared.series.Series;
 import java.util.Iterator;
@@ -81,14 +81,14 @@ public final class PageMetadataEditor {
     private Window window;
     private DynamicForm form;
     private BooleanCallback windowCallback;
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
 
     public static PageMetadataEditor getInstance() {
         return INSTANCE;
     }
 
     private PageMetadataEditor() {
-        this.i18nPas = GWT.create(PasEditorMessages.class);
+        this.i18n = GWT.create(ClientMessages.class);
     }
 
     public Canvas getFormPanel() {
@@ -122,7 +122,7 @@ public final class PageMetadataEditor {
     }
 
     private void createPageIndexUi() {
-        allowPageIndexes = new CheckboxItem("fillPageIndexes", i18nPas.PageMetadataEditor_CheckboxPageIndices_Title());
+        allowPageIndexes = new CheckboxItem("fillPageIndexes", i18n.PageMetadataEditor_CheckboxPageIndices_Title());
         allowPageIndexes.setStartRow(true);
         allowPageIndexes.setColSpan("*");
         allowPageIndexes.setShowTitle(false);
@@ -131,7 +131,7 @@ public final class PageMetadataEditor {
         indexValidator.setMin(0);
         indexValidator.setMax(1000000);
 
-        indexStart = new IntegerItem("indexStart", i18nPas.PageMetadataEditor_IndexStartValue_Title());
+        indexStart = new IntegerItem("indexStart", i18n.PageMetadataEditor_IndexStartValue_Title());
         indexStart.setSelectOnFocus(true);
         indexStart.setValidators(indexValidator);
         indexStart.setValidateOnChange(true);
@@ -140,7 +140,7 @@ public final class PageMetadataEditor {
     }
 
     private void createPageNumberUi() {
-        allowPageNumbers = new CheckboxItem("fillPageNumbers", i18nPas.PageMetadataEditor_CheckboxPageNubers_Title());
+        allowPageNumbers = new CheckboxItem("fillPageNumbers", i18n.PageMetadataEditor_CheckboxPageNubers_Title());
         allowPageNumbers.setStartRow(true);
         allowPageNumbers.setColSpan("*");
         allowPageNumbers.setShowTitle(false);
@@ -163,24 +163,24 @@ public final class PageMetadataEditor {
                 return allowPageNumbers.getValueAsBoolean() && (prefixValue != null || suffixValue != null);
             }
         });
-        numberStart = new IntegerItem("numberStart", i18nPas.PageMetadataEditor_NumberStartValue_Title());
+        numberStart = new IntegerItem("numberStart", i18n.PageMetadataEditor_NumberStartValue_Title());
         numberStart.setSelectOnFocus(true);
         numberStart.addChangedHandler(pageNumberChangeHandler);
         numberStart.setValidateOnChange(true);
         numberStart.setStopOnError(true);
 
-        prefix = new TextItem("prefix", i18nPas.PageMetadataEditor_NumberPrefix_Title());
+        prefix = new TextItem("prefix", i18n.PageMetadataEditor_NumberPrefix_Title());
         prefix.setLength(20);
         prefix.addChangedHandler(pageNumberChangeHandler);
 
-        suffix = new TextItem("suffix", i18nPas.PageMetadataEditor_NumberSuffix_Title());
+        suffix = new TextItem("suffix", i18n.PageMetadataEditor_NumberSuffix_Title());
         suffix.setLength(20);
         suffix.addChangedHandler(pageNumberChangeHandler);
 
         integerIncrementValidator = new IntegerRangeValidator();
         integerIncrementValidator.setMin(-1000);
         integerIncrementValidator.setMax(1000);
-        numberIncrement = new IntegerItem("numberIncrement", i18nPas.PageMetadataEditor_NumberIncrement_Title());
+        numberIncrement = new IntegerItem("numberIncrement", i18n.PageMetadataEditor_NumberIncrement_Title());
         numberIncrement.setSelectOnFocus(true);
         numberIncrement.addChangedHandler(pageNumberChangeHandler);
         numberIncrement.setValidators(integerIncrementValidator, new RequiredIfValidator(new RequiredIfFunction() {
@@ -193,11 +193,11 @@ public final class PageMetadataEditor {
         numberIncrement.setValidateOnChange(true);
         numberIncrement.setStopOnError(true);
 
-        numberExample = new StaticTextItem("numberExample", i18nPas.PageMetadataEditor_NumberPreview_Title());
+        numberExample = new StaticTextItem("numberExample", i18n.PageMetadataEditor_NumberPreview_Title());
         numberExample.setClipValue(true);
         numberExample.setWidth(120); // enforce clip value
 
-        seriesType = new SelectItem("seriesType", i18nPas.PageMetadataEditor_NumberSeriesType_Title());
+        seriesType = new SelectItem("seriesType", i18n.PageMetadataEditor_NumberSeriesType_Title());
         seriesType.setValueMap(ARABIC_SERIES, ROMAN_UPPER_SERIES,
                 ROMAN_LOWER_SERIES, ALPHABET_UPPER_SERIES, ALPHABET_LOWER_SERIES);
         seriesType.setDefaultValue(ARABIC_SERIES);
@@ -214,12 +214,12 @@ public final class PageMetadataEditor {
     }
 
     private void createPageTypeUi() {
-        allowPageTypes = new CheckboxItem("fillPageTypes", i18nPas.PageMetadataEditor_CheckboxPageTypes_Title());
+        allowPageTypes = new CheckboxItem("fillPageTypes", i18n.PageMetadataEditor_CheckboxPageTypes_Title());
         allowPageTypes.setStartRow(true);
         allowPageTypes.setColSpan("*");
         allowPageTypes.setShowTitle(false);
 
-        pageType = new SelectItem(ModsCustomDataSource.FIELD_PAGE_TYPE, i18nPas.PageForm_PageType_Title());
+        pageType = new SelectItem(ModsCustomDataSource.FIELD_PAGE_TYPE, i18n.PageForm_PageType_Title());
         pageType.setValueMap(ModsCustomDataSource.getPageTypes());
         pageType.setDefaultValue(ModsCustomDataSource.getDefaultPageType());
         
@@ -303,7 +303,7 @@ public final class PageMetadataEditor {
             window.setIsModal(true);
             window.addItem(panelForm);
             window.addItem(panelButtons);
-            window.setTitle(i18nPas.PageMetadataEditor_Window_Title());
+            window.setTitle(i18n.PageMetadataEditor_Window_Title());
             window.setShowMinimizeButton(false);
             window.setShowModalMask(true);
         } else {

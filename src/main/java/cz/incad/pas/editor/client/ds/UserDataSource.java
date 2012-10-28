@@ -26,7 +26,7 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.widgets.form.fields.StaticTextItem;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 
 /**
  *
@@ -49,7 +49,7 @@ public final class UserDataSource extends RestDataSource {
     public UserDataSource() {
         setID(ID);
 
-        PasEditorMessages i18nPas = GWT.create(PasEditorMessages.class);
+        ClientMessages i18n = GWT.create(ClientMessages.class);
 
         setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_USER);
@@ -58,38 +58,38 @@ public final class UserDataSource extends RestDataSource {
         userId.setPrimaryKey(true);
         userId.setCanEdit(false);
         userId.setHidden(true);
-        userId.setTitle(i18nPas.UsersView_ListHeader_Id_Title());
+        userId.setTitle(i18n.UsersView_ListHeader_Id_Title());
 
         DataSourceTextField userName = new DataSourceTextField(FIELD_USERNAME);
         userName.setCanEdit(false);
         userName.setRequired(true);
         userName.setReadOnlyEditorType(new StaticTextItem());
-        userName.setTitle(i18nPas.UsersView_ListHeader_Username_Title());
-        userName.setPrompt(i18nPas.UsersView_ListHeader_Username_Hint());
+        userName.setTitle(i18n.UsersView_ListHeader_Username_Title());
+        userName.setPrompt(i18n.UsersView_ListHeader_Username_Hint());
 
         DataSourcePasswordField passwd = new DataSourcePasswordField(FIELD_PASSWORD);
         passwd.setHidden(true);
-        passwd.setTitle(i18nPas.UsersView_ListHeader_Password_Title());
+        passwd.setTitle(i18n.UsersView_ListHeader_Password_Title());
 
         DataSourceTextField surname = new DataSourceTextField(FIELD_SURNAME);
         surname.setRequired(true);
-        surname.setTitle(i18nPas.UsersView_ListHeader_Surname_Title());
+        surname.setTitle(i18n.UsersView_ListHeader_Surname_Title());
 
         DataSourceTextField forename = new DataSourceTextField(FIELD_FORENAME);
-        forename.setTitle(i18nPas.UsersView_ListHeader_Forename_Title());
+        forename.setTitle(i18n.UsersView_ListHeader_Forename_Title());
 
         DataSourceTextField email = new DataSourceTextField(FIELD_EMAIL);
-        email.setTitle(i18nPas.UsersView_ListHeader_Email_Title());
+        email.setTitle(i18n.UsersView_ListHeader_Email_Title());
 
         DataSourceTextField home = new DataSourceTextField(FIELD_HOME);
         home.setCanEdit(false);
         home.setReadOnlyEditorType(new StaticTextItem());
         home.setHidden(true);
-        home.setTitle(i18nPas.UsersView_ListHeader_Home_Title());
+        home.setTitle(i18n.UsersView_ListHeader_Home_Title());
 
         DataSourceDateTimeField created = new DataSourceDateTimeField(FIELD_CREATED);
         created.setCanEdit(false);
-        created.setTitle(i18nPas.UsersView_ListHeader_Created_Title());
+        created.setTitle(i18n.UsersView_ListHeader_Created_Title());
         created.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
         setFields(userId, userName, passwd, surname, forename, email, created, home);

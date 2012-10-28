@@ -20,7 +20,7 @@ import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.DateItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.widget.mods.RepeatableFormItem.CustomFormFactory;
 
@@ -31,11 +31,11 @@ import cz.incad.pas.editor.client.widget.mods.RepeatableFormItem.CustomFormFacto
  */
 final class PrinterPublisherFormFactory implements CustomFormFactory {
     private final boolean publisher;
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
 
-    public PrinterPublisherFormFactory(boolean publisher, PasEditorMessages i18nPas) {
+    public PrinterPublisherFormFactory(boolean publisher, ClientMessages i18n) {
         this.publisher = publisher;
-        this.i18nPas = i18nPas;
+        this.i18n = i18n;
     }
 
     @Override
@@ -43,15 +43,15 @@ final class PrinterPublisherFormFactory implements CustomFormFactory {
         DynamicForm form = new DynamicForm();
         form.setNumCols(6);
         TextItem place = new TextItem(ModsCustomDataSource.FIELD_PRINTER_PUBLISHER_PLACE,
-                i18nPas.PeriodicalForm_PrinterPublisherPlace_Title());
-        place.setPrompt(i18nPas.PeriodicalForm_PrinterPublisherPlace_Hint());
+                i18n.PeriodicalForm_PrinterPublisherPlace_Title());
+        place.setPrompt(i18n.PeriodicalForm_PrinterPublisherPlace_Hint());
         TextItem name = new TextItem(ModsCustomDataSource.FIELD_PRINTER_PUBLISHER_NAME,
-                i18nPas.PeriodicalForm_PrinterPublisherName_Title());
+                i18n.PeriodicalForm_PrinterPublisherName_Title());
         name.setPrompt(publisher
-                ? i18nPas.PeriodicalForm_PublisherName_Hint()
-                : i18nPas.PeriodicalForm_PrinterName_Hint());
+                ? i18n.PeriodicalForm_PublisherName_Hint()
+                : i18n.PeriodicalForm_PrinterName_Hint());
         DateItem date = new DateItem(ModsCustomDataSource.FIELD_PRINTER_PUBLISHER_DATE,
-                i18nPas.PeriodicalForm_PrinterPublisherDate_Title());
+                i18n.PeriodicalForm_PrinterPublisherDate_Title());
         date.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATE);
         date.setUseTextField(true);
         form.setFields(name, place, date);

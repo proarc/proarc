@@ -27,8 +27,8 @@ import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
-import cz.incad.pas.editor.client.PasEditorMessages;
 
 /**
  * The wizard allows to connect multiple layout widgets as steps
@@ -41,7 +41,7 @@ public class Wizard extends VLayout {
     private final String WIZARD_LABEL_PREFIX = "<b>%s</b> - %s";
 
     public enum StepKind {BACK, FORWARD, CANCEL}
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
     private LazyWizardStep[] steps;
     private int stepIdx = -1;
     private Button btnBack;
@@ -52,9 +52,9 @@ public class Wizard extends VLayout {
     private boolean canStepForward = true;
     private boolean canStepBack = true;
     
-    public Wizard(PasEditorMessages i18nPas, WizardStep... steps) {
+    public Wizard(ClientMessages i18n, WizardStep... steps) {
         assert steps != null && steps.length > 0 && steps[0] != null;
-        this.i18nPas = i18nPas;
+        this.i18n = i18n;
         this.steps = LazyWizardStep.asLazySteps(steps);
         setHeight100();
         setWidth100();
@@ -78,7 +78,7 @@ public class Wizard extends VLayout {
         bottomLayout.setPadding(2);
         bottomLayout.setMembersMargin(2);
         
-        btnBack = new Button(i18nPas.Wizard_ButtonBack_Title());
+        btnBack = new Button(i18n.Wizard_ButtonBack_Title());
         btnBack.addClickHandler(new ClickHandler() {
             
             @Override
@@ -88,7 +88,7 @@ public class Wizard extends VLayout {
         });
         bottomLayout.addMember(btnBack);
         
-        btnForward = new Button(i18nPas.Wizard_ButtonForward_Title());
+        btnForward = new Button(i18n.Wizard_ButtonForward_Title());
         btnForward.addClickHandler(new ClickHandler() {
             @Override
             public void onClick(ClickEvent event) {
@@ -188,11 +188,11 @@ public class Wizard extends VLayout {
     }
 
     public void setBackButton(boolean show, String title) {
-        setButton(btnBack, show, title == null ? i18nPas.Wizard_ButtonBack_Title() : title);
+        setButton(btnBack, show, title == null ? i18n.Wizard_ButtonBack_Title() : title);
     }
 
     public void setForwardButton(boolean show, String title) {
-        setButton(btnForward, show, title == null ? i18nPas.Wizard_ButtonForward_Title() : title);
+        setButton(btnForward, show, title == null ? i18n.Wizard_ButtonForward_Title() : title);
     }
 
     private void setButton(Button btn, boolean show, String title) {

@@ -30,7 +30,7 @@ import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItemSeparator;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
@@ -58,7 +58,7 @@ import java.util.HashMap;
  */
 public final class DigitalObjectManager {
 
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
     private final VLayout widget;
     private final DigitalObjectSearchView foundView;
     private final DigitalObjectTreeView treeView;
@@ -72,14 +72,14 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction modsEditAction;
     private boolean initialized;
 
-    public DigitalObjectManager(PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    public DigitalObjectManager(ClientMessages i18n) {
+        this.i18n = i18n;
         widget = new VLayout(4);
         widget.setLayoutMargin(4);
         widget.setWidth100();
         widget.setHeight100();
 
-        foundView = new DigitalObjectSearchView(i18nPas);
+        foundView = new DigitalObjectSearchView(i18n);
         foundView.getGrid().setSelectionType(SelectionStyle.MULTIPLE);
         foundView.getGrid().addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
@@ -94,7 +94,7 @@ public final class DigitalObjectManager {
             }
         });
 
-        treeView = new DigitalObjectTreeView(i18nPas);
+        treeView = new DigitalObjectTreeView(i18n);
         treeView.getTree().setSelectionType(SelectionStyle.MULTIPLE);
 
         widget.addMember(foundView.asWidget());
@@ -121,17 +121,17 @@ public final class DigitalObjectManager {
     }
 
     private void createActions() {
-        foxmlAction = new FoxmlViewAction(i18nPas);
-        krameriusExportAction = new KrameriusExportAction(i18nPas);
-        fullDataStreamExportAction = DataStreamExportAction.full(i18nPas);
-        rawDataStreamExportAction = DataStreamExportAction.raw(i18nPas);
-        deleteAction = new DeleteAction(new MultiRecordDeletable(), i18nPas);
+        foxmlAction = new FoxmlViewAction(i18n);
+        krameriusExportAction = new KrameriusExportAction(i18n);
+        fullDataStreamExportAction = DataStreamExportAction.full(i18n);
+        rawDataStreamExportAction = DataStreamExportAction.raw(i18n);
+        deleteAction = new DeleteAction(new MultiRecordDeletable(), i18n);
         ocrEditAction = new DigitalObjectEditAction(
-                i18nPas.ImportBatchItemEditor_TabOcr_Title(), DigitalObjectEditor.Type.OCR, i18nPas);
+                i18n.ImportBatchItemEditor_TabOcr_Title(), DigitalObjectEditor.Type.OCR, i18n);
         noteEditAction = new DigitalObjectEditAction(
-                i18nPas.ImportBatchItemEditor_TabNote_Title(), DigitalObjectEditor.Type.NOTE, i18nPas);
+                i18n.ImportBatchItemEditor_TabNote_Title(), DigitalObjectEditor.Type.NOTE, i18n);
         modsEditAction = new DigitalObjectEditAction(
-                i18nPas.ImportBatchItemEditor_TabMods_Title(), DigitalObjectEditor.Type.MODS, i18nPas);
+                i18n.ImportBatchItemEditor_TabMods_Title(), DigitalObjectEditor.Type.MODS, i18n);
     }
     
     /**
@@ -139,7 +139,7 @@ public final class DigitalObjectManager {
      */
     private void initToolbar(ToolStrip toolbar, Selectable<Record> source) {
         final AbstractAction exportMenuAction = new AbstractAction(
-                i18nPas.ExportsAction_Title(), "[SKIN]/actions/save.png", null) {
+                i18n.ExportsAction_Title(), "[SKIN]/actions/save.png", null) {
 
             @Override
             public void performAction(ActionEvent event) {
@@ -210,7 +210,7 @@ public final class DigitalObjectManager {
                     Boolean.TRUE.toString());
             DSRequest dsRequest = new DSRequest();
             dsRequest.setPromptStyle(PromptStyle.DIALOG);
-            dsRequest.setPrompt(i18nPas.DeleteAction_Deleting_Msg());
+            dsRequest.setPrompt(i18n.DeleteAction_Deleting_Msg());
             dsRequest.setParams(deleteParams);
             DigitalObjectDataSource.getInstance().removeData(query, new DSCallback() {
 

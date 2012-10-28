@@ -25,8 +25,8 @@ import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.smartgwt.client.data.Record;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.Editor;
-import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
 
 /**
@@ -38,12 +38,12 @@ public final class DigitalObjectEditing extends AbstractActivity {
 
     private final DigitalObjectEditorPlace place;
     private final PlaceController places;
-    private final PasEditorMessages i18n;
+    private final ClientMessages i18n;
 
     public DigitalObjectEditing(
             DigitalObjectEditorPlace place,
             PlaceController places,
-            PasEditorMessages i18n
+            ClientMessages i18n
             ) {
         
         this.place = place;

@@ -18,7 +18,7 @@ package cz.incad.pas.editor.client.widget.mods;
 
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.TextItem;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.widget.mods.RepeatableFormItem.CustomFormFactory;
 
@@ -28,20 +28,20 @@ import cz.incad.pas.editor.client.widget.mods.RepeatableFormItem.CustomFormFacto
  * @author Jan Pokorsky
  */
 final class PersonFormFactory implements CustomFormFactory {
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
 
-    public PersonFormFactory(PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    public PersonFormFactory(ClientMessages i18n) {
+        this.i18n = i18n;
     }
 
     @Override
     public DynamicForm create() {
         DynamicForm form = new DynamicForm();
         form.setNumCols(4);
-        TextItem family = new TextItem(ModsCustomDataSource.FIELD_NAME_FAMILY, i18nPas.PeriodicalForm_FamilyName_Title());
-        family.setPrompt(i18nPas.PeriodicalForm_FamilyName_Hint());
-        TextItem given = new TextItem(ModsCustomDataSource.FIELD_NAME_GIVEN, i18nPas.PeriodicalForm_GivenName_Title());
-        given.setPrompt(i18nPas.PeriodicalForm_GivenName_Hint());
+        TextItem family = new TextItem(ModsCustomDataSource.FIELD_NAME_FAMILY, i18n.PeriodicalForm_FamilyName_Title());
+        family.setPrompt(i18n.PeriodicalForm_FamilyName_Hint());
+        TextItem given = new TextItem(ModsCustomDataSource.FIELD_NAME_GIVEN, i18n.PeriodicalForm_GivenName_Title());
+        given.setPrompt(i18n.PeriodicalForm_GivenName_Hint());
         form.setFields(family, given);
         return form;
     }

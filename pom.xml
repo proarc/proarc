@@ -194,7 +194,7 @@
                 <configuration>
                     <runTarget>paseditor/Editor.html</runTarget>
                     <hostedWebapp>${webappDirectory}</hostedWebapp>
-                    <i18nMessagesBundle>cz.incad.pas.editor.client.PasEditorMessages</i18nMessagesBundle>
+                    <i18nMessagesBundle>cz.incad.pas.editor.client.ClientMessages</i18nMessagesBundle>
                     <enableAssertions>true</enableAssertions>
                     <compileSourcesArtifacts>
                         <artifact>cz.mzk:EditMods</artifact>

@@ -23,7 +23,7 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.SC;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ExportDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
@@ -38,26 +38,26 @@ import java.util.List;
  */
 public final class DataStreamExportAction extends AbstractAction {
 
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
     private final String dsId;
 
-    public static DataStreamExportAction full(PasEditorMessages i18nPas) {
-        DataStreamExportAction action = new DataStreamExportAction(i18nPas, "FULL");
-        action.setTitle(i18nPas.DataStreamExportAction_Full_Title());
-        action.setTooltip(i18nPas.DataStreamExportAction_Full_Hint());
+    public static DataStreamExportAction full(ClientMessages i18n) {
+        DataStreamExportAction action = new DataStreamExportAction(i18n, "FULL");
+        action.setTitle(i18n.DataStreamExportAction_Full_Title());
+        action.setTooltip(i18n.DataStreamExportAction_Full_Hint());
         return action;
     }
 
-    public static DataStreamExportAction raw(PasEditorMessages i18nPas) {
-        DataStreamExportAction action = new DataStreamExportAction(i18nPas, "RAW");
-        action.setTitle(i18nPas.DataStreamExportAction_Raw_Title());
-        action.setTooltip(i18nPas.DataStreamExportAction_Raw_Hint());
+    public static DataStreamExportAction raw(ClientMessages i18n) {
+        DataStreamExportAction action = new DataStreamExportAction(i18n, "RAW");
+        action.setTitle(i18n.DataStreamExportAction_Raw_Title());
+        action.setTooltip(i18n.DataStreamExportAction_Raw_Hint());
         return action;
     }
 
-    private DataStreamExportAction(PasEditorMessages i18nPas, String dsId) {
+    private DataStreamExportAction(ClientMessages i18n, String dsId) {
         super(null, null, null);
-        this.i18nPas = i18nPas;
+        this.i18n = i18n;
         this.dsId = dsId;
     }
 
@@ -84,14 +84,14 @@ public final class DataStreamExportAction extends AbstractAction {
         export.setAttribute(ExportResourceApi.DATASTREAM_DSID_PARAM, dsId);
         DSRequest dsRequest = new DSRequest();
         dsRequest.setPromptStyle(PromptStyle.DIALOG);
-        dsRequest.setPrompt(i18nPas.KrameriusExportAction_Add_Msg());
+        dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
         ds.addData(export, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
-                    SC.say(i18nPas.KrameriusExportAction_AddDone_Msg(
+                    SC.say(i18n.KrameriusExportAction_AddDone_Msg(
                             data[0].getAttribute(ExportResourceApi.RESULT_TARGET)));
                 }
             }

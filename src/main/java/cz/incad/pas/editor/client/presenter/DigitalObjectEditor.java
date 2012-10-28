@@ -26,9 +26,9 @@ import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.Editor;
-import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
 import cz.incad.pas.editor.client.action.RefreshAction;
@@ -48,7 +48,7 @@ import cz.incad.pas.editor.client.widget.TextEditor;
  */
 public final class DigitalObjectEditor implements Refreshable, Selectable<Record> {
 
-    private final PasEditorMessages i18n;
+    private final ClientMessages i18n;
     private final VLayout widget;
     private final Label lblHeader;
     private final ToolStrip toolbar;
@@ -61,7 +61,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private TextEditor noteEditor;
     private ModsFullEditor modsEditor;
 
-    public DigitalObjectEditor(PasEditorMessages i18n) {
+    public DigitalObjectEditor(ClientMessages i18n) {
         this.i18n = i18n;
         this.widget = new VLayout();
         this.lblHeader = new Label();

@@ -80,7 +80,7 @@ public class Editor implements EntryPoint {
     private static final String PLACE_ATTRIBUTE = "GoToPlace";
     private static Editor INSTANCE;
 
-    private PasEditorMessages i18nPas;
+    private ClientMessages i18n;
     private PresenterFactory presenterFactory;
     private final HashSet<String> permissions = new HashSet<String>();
     private EditorWorkFlow editorWorkFlow;
@@ -125,14 +125,14 @@ public class Editor implements EntryPoint {
                 Page.getAppDir(), LanguagesDataSource.activeLocale()
                 );
 
-        i18nPas = GWT.create(PasEditorMessages.class);
+        i18n = GWT.create(ClientMessages.class);
 
         errorHandler = new ErrorHandler();
         errorHandler.initTransportErrorHandler();
 
-        presenterFactory = new PresenterFactory(i18nPas);
+        presenterFactory = new PresenterFactory(i18n);
 
-        editorWorkFlow = new EditorWorkFlow(getDisplay(), presenterFactory, i18nPas);
+        editorWorkFlow = new EditorWorkFlow(getDisplay(), presenterFactory, i18n);
         presenterFactory.setPlaceController(editorWorkFlow.getPlaceController());
 
         final TreeGrid menu = createMenu();
@@ -204,7 +204,7 @@ public class Editor implements EntryPoint {
 
         mainHeader.addSpacer(6);
 
-        Label headerItem = new Label(i18nPas.Editor_Header_Title());
+        Label headerItem = new Label(i18n.Editor_Header_Title());
         headerItem.setStyleName("pasMainTitle");
         headerItem.setWrap(false);
         headerItem.setIcon("24/cube_frame.png");
@@ -270,16 +270,16 @@ public class Editor implements EntryPoint {
 
     private TreeNode[] createMenuContent() {
         TreeNode[] trees = new TreeNode[] {
-                createTreeNode("Import", i18nPas.MainMenu_Import_Title(),
-                        createTreeNode("New Batch", i18nPas.MainMenu_Import_NewBatch_Title(), new ImportPlace(Type.CONTENT)),
-                        createTreeNode("History", i18nPas.MainMenu_Import_Edit_Title(), new ImportPlace(Type.HISTORY))),
-                createTreeNode("Edit", i18nPas.MainMenu_Edit_Title(),
-                        createTreeNode("New Object", i18nPas.MainMenu_Edit_NewObject_Title(), new DigitalObjectCreatorPlace()),
-                        createTreeNode("Search", i18nPas.MainMenu_Edit_Edit_Title(), new DigitalObjectManagerPlace())
+                createTreeNode("Import", i18n.MainMenu_Import_Title(),
+                        createTreeNode("New Batch", i18n.MainMenu_Import_NewBatch_Title(), new ImportPlace(Type.CONTENT)),
+                        createTreeNode("History", i18n.MainMenu_Import_Edit_Title(), new ImportPlace(Type.HISTORY))),
+                createTreeNode("Edit", i18n.MainMenu_Edit_Title(),
+                        createTreeNode("New Object", i18n.MainMenu_Edit_NewObject_Title(), new DigitalObjectCreatorPlace()),
+                        createTreeNode("Search", i18n.MainMenu_Edit_Edit_Title(), new DigitalObjectManagerPlace())
                 ),
-//                createTreeNode("Statistics", i18nPas.MainMenu_Statistics_Title()),
-                createTreeNode("Users", i18nPas.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
-                createTreeNode("Console", i18nPas.MainMenu_Console_Title()),
+//                createTreeNode("Statistics", i18n.MainMenu_Statistics_Title()),
+                createTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
+                createTreeNode("Console", i18n.MainMenu_Console_Title()),
         };
         trees = reduce(trees);
         for (int i = 0; i < trees.length; i++) {
@@ -416,11 +416,11 @@ public class Editor implements EntryPoint {
         private DigitalObjectEditor digitalObjectEditor;
         private DigitalObjectManager digitalObjectManager;
         private UsersView users;
-        private final PasEditorMessages i18nPas;
+        private final ClientMessages i18n;
         private PlaceController placeController;
 
-        PresenterFactory(PasEditorMessages i18nPas) {
-            this.i18nPas = i18nPas;
+        PresenterFactory(ClientMessages i18n) {
+            this.i18n = i18n;
         }
 
         void setPlaceController(PlaceController placeController) {
@@ -429,35 +429,35 @@ public class Editor implements EntryPoint {
 
         public ImportPresenter getImportPresenter() {
             if (importPresenter == null) {
-                importPresenter = new ImportPresenter(i18nPas, placeController);
+                importPresenter = new ImportPresenter(i18n, placeController);
             }
             return importPresenter;
         }
 
         public DigitalObjectCreator getDigitalObjectCreator() {
             if (digitalObjectCreator == null) {
-                digitalObjectCreator = new DigitalObjectCreator(i18nPas);
+                digitalObjectCreator = new DigitalObjectCreator(i18n);
             }
             return digitalObjectCreator;
         }
 
         public DigitalObjectEditor getDigitalObjectEditor() {
             if (digitalObjectEditor == null) {
-                digitalObjectEditor = new DigitalObjectEditor(i18nPas);
+                digitalObjectEditor = new DigitalObjectEditor(i18n);
             }
             return digitalObjectEditor;
         }
 
         public DigitalObjectManager getDigitalObjectManager() {
             if (digitalObjectManager == null) {
-                digitalObjectManager = new DigitalObjectManager(i18nPas);
+                digitalObjectManager = new DigitalObjectManager(i18n);
             }
             return digitalObjectManager;
         }
 
         public UsersView getUsers() {
             if (users == null) {
-                users = new UsersView(i18nPas);
+                users = new UsersView(i18n);
             }
             return users;
         }

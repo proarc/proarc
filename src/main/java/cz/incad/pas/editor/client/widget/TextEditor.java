@@ -22,7 +22,7 @@ import com.smartgwt.client.types.TextAreaWrap;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.action.Action;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
@@ -41,22 +41,22 @@ public final class TextEditor implements DatastreamEditor, Refreshable, Selectab
 
     public static final String OCR_TYPE = "OCR";
     public static final String NOTE_TYPE = "NOTE";
-    private final PasEditorMessages i18n;
+    private final ClientMessages i18n;
     private final DynamicForm editor;
     private SaveAction saveAction;
 
-    private TextEditor(PasEditorMessages i18n, TextDataSource dataSource) {
+    private TextEditor(ClientMessages i18n, TextDataSource dataSource) {
         this.i18n = i18n;
         initActions();
         this.editor = createForm(dataSource);
     }
 
-    public static TextEditor ocr(PasEditorMessages i18nPas) {
-        return new TextEditor(i18nPas, TextDataSource.getOcr());
+    public static TextEditor ocr(ClientMessages i18n) {
+        return new TextEditor(i18n, TextDataSource.getOcr());
     }
 
-    public static TextEditor note(PasEditorMessages i18nPas) {
-        return new TextEditor(i18nPas, TextDataSource.getNote());
+    public static TextEditor note(ClientMessages i18n) {
+        return new TextEditor(i18n, TextDataSource.getNote());
     }
 
     @Override

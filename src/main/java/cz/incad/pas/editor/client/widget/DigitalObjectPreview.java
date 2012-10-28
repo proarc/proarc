@@ -31,8 +31,8 @@ import com.smartgwt.client.widgets.form.events.ColorSelectedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.toolbar.ToolStripButton;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
-import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
@@ -55,10 +55,10 @@ public final class DigitalObjectPreview {
     private final Img preview;
     private String selectedPreview;
     private final ArrayList<Canvas> backgroundListeners = new ArrayList<Canvas>();
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
 
-    public DigitalObjectPreview(PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    public DigitalObjectPreview(ClientMessages i18n) {
+        this.i18n = i18n;
         preview = new Img();
         preview.setImageType(ImageStyle.CENTER);
         preview.setOverflow(Overflow.AUTO);
@@ -100,7 +100,7 @@ public final class DigitalObjectPreview {
         ToolStrip toolbar = Actions.createToolStrip();
 
         ToolStripButton btnViewFull = Actions.asToolStripButton(new AbstractAction(
-                null, "[SKIN]/actions/view.png", i18nPas.DigitalObjectPreview_ViewFullButton_Hint()) {
+                null, "[SKIN]/actions/view.png", i18n.DigitalObjectPreview_ViewFullButton_Hint()) {
 
             @Override
             public void performAction(ActionEvent event) {
@@ -109,7 +109,7 @@ public final class DigitalObjectPreview {
         }, this);
 
         ToolStripButton btnViewRaw = Actions.asToolStripButton(new AbstractAction(
-                null, "[SKIN]/actions/download.png", i18nPas.DigitalObjectPreview_ViewRawButton_Hint()) {
+                null, "[SKIN]/actions/download.png", i18n.DigitalObjectPreview_ViewRawButton_Hint()) {
 
             @Override
             public void performAction(ActionEvent event) {
@@ -118,7 +118,7 @@ public final class DigitalObjectPreview {
         }, this);
 
         ToolStripButton btnColorChooser = Actions.asToolStripButton(new AbstractAction(
-                null, "[SKIN]/actions/color_swatch.png", i18nPas.DigitalObjectPreview_ColorChooserButton_Hint()) {
+                null, "[SKIN]/actions/color_swatch.png", i18n.DigitalObjectPreview_ColorChooserButton_Hint()) {
 
             @Override
             public void performAction(ActionEvent event) {

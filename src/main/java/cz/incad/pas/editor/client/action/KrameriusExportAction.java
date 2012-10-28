@@ -23,7 +23,7 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.SC;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ExportDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
@@ -40,11 +40,11 @@ import java.util.List;
  */
 public final class KrameriusExportAction extends AbstractAction {
 
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
 
-    public KrameriusExportAction(PasEditorMessages i18nPas) {
-        super(i18nPas.KrameriusExportAction_Title(), null, i18nPas.KrameriusExportAction_Hint());
-        this.i18nPas = i18nPas;
+    public KrameriusExportAction(ClientMessages i18n) {
+        super(i18n.KrameriusExportAction_Title(), null, i18n.KrameriusExportAction_Hint());
+        this.i18n = i18n;
     }
 
     @Override
@@ -69,14 +69,14 @@ public final class KrameriusExportAction extends AbstractAction {
                 pids.toArray(new String[pids.size()]));
         DSRequest dsRequest = new DSRequest();
         dsRequest.setPromptStyle(PromptStyle.DIALOG);
-        dsRequest.setPrompt(i18nPas.KrameriusExportAction_Add_Msg());
+        dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
         ds.addData(export, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
-                    SC.say(i18nPas.KrameriusExportAction_AddDone_Msg(
+                    SC.say(i18n.KrameriusExportAction_AddDone_Msg(
                             data[0].getAttribute(ExportResourceApi.RESULT_TARGET)));
                 }
             }

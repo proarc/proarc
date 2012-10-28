@@ -31,11 +31,10 @@ import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
 import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.form.validator.IntegerRangeValidator;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
-import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -48,26 +47,26 @@ public final class PageForm extends DynamicForm {
 
     private static final Logger LOG = Logger.getLogger(PageForm.class.getName());
 
-    public PageForm(PasEditorMessages i18nPas) {
+    public PageForm(ClientMessages i18n) {
         setWidth100();
         setHeight100();
         setTitleOrientation(TitleOrientation.TOP);
         setNumCols(4);
         setColWidths(20, 20, 20);
-        SelectItem pageType = new SelectItem(ModsCustomDataSource.FIELD_PAGE_TYPE, i18nPas.PageForm_PageType_Title());
+        SelectItem pageType = new SelectItem(ModsCustomDataSource.FIELD_PAGE_TYPE, i18n.PageForm_PageType_Title());
         pageType.setValueMap(ModsCustomDataSource.getPageTypes());
         pageType.setDefaultValue(ModsCustomDataSource.getDefaultPageType());
 
         IntegerItem pageIndex = new IntegerItem(ModsCustomDataSource.FIELD_PAGE_INDEX);
-        pageIndex.setTitle(i18nPas.PageForm_PageIndex_Title());
+        pageIndex.setTitle(i18n.PageForm_PageIndex_Title());
 
         TextItem pageNumber = new TextItem(ModsCustomDataSource.FIELD_PAGE_NUMBER);
-        pageNumber.setTitle(i18nPas.PageForm_PageNumber_Title());
+        pageNumber.setTitle(i18n.PageForm_PageNumber_Title());
         pageNumber.setEndRow(true);
 //        pageNumber.setLength(5);
 
         final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
-                i18nPas.PageForm_Identifiers_Title());
+                i18n.PageForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
         DynamicForm identifierForm = new DynamicForm();
         identifierForm.setUseAllDataSourceFields(true);
@@ -77,7 +76,7 @@ public final class PageForm extends DynamicForm {
         identifiers.setColSpan("3");
 
 //        TextAreaItem note = new AutoFitTextAreaItem(ModsCustomDataSource.FIELD_NOTE, "Note");
-        TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE, i18nPas.PageForm_Note_Title());
+        TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE, i18n.PageForm_Note_Title());
         note.setWidth("*");
         note.setHeight("*");
         note.setColSpan("*");

@@ -39,7 +39,7 @@ import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
@@ -56,17 +56,17 @@ import java.util.logging.Logger;
 public final class UsersView implements RefreshAction.Refreshable {
 
     private static final Logger LOG = Logger.getLogger(UsersView.class.getName());
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
     private final Canvas widget;
     private final ListGrid userGrid;
     private DynamicForm newEditor;
     private DynamicForm rowEditor;
     private Window window;
 
-    public UsersView(PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    public UsersView(ClientMessages i18n) {
+        this.i18n = i18n;
 
-        ToolStrip toolbar = createToolbar(i18nPas);
+        ToolStrip toolbar = createToolbar(i18n);
         userGrid = createUserList(toolbar);
 
         VLayout main = new VLayout();
@@ -84,7 +84,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         refresh();
     }
 
-    private ToolStrip createToolbar(PasEditorMessages i18n) {
+    private ToolStrip createToolbar(ClientMessages i18n) {
         ToolStrip gridEditControls = Actions.createToolStrip();
 
         IconButton newButton = Actions.asIconButton(new AbstractAction(
@@ -168,10 +168,10 @@ public final class UsersView implements RefreshAction.Refreshable {
         form.setAutoFocus(true);
         TextItem username = new TextItem(UserDataSource.FIELD_USERNAME);
         username.setValidators(new RegExpValidator("[a-z][a-z0-9]{4,}"));
-        username.setTooltip(i18nPas.UsersView_UserForm_Username_Hint());
+        username.setTooltip(i18n.UsersView_UserForm_Username_Hint());
         PasswordItem password = new PasswordItem(UserDataSource.FIELD_PASSWORD);
         password.setRequired(isNew);
-        password.setPrompt(i18nPas.UsersView_UserForm_Password_Hint());
+        password.setPrompt(i18n.UsersView_UserForm_Password_Hint());
         LengthRangeValidator pswdLengthValidator = new LengthRangeValidator();
         pswdLengthValidator.setMin(6);
         pswdLengthValidator.setMax(20);
@@ -236,7 +236,7 @@ public final class UsersView implements RefreshAction.Refreshable {
             window.setIsModal(true);
             window.setModalMaskOpacity(10);
             window.setShowModalMask(true);
-            window.setTitle(i18nPas.UsersView_NewUser_Window_Title());
+            window.setTitle(i18n.UsersView_NewUser_Window_Title());
 
             window.addItem(form);
         }

@@ -67,8 +67,8 @@ import com.smartgwt.client.widgets.tile.TileGrid;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.viewer.DetailFormatter;
 import com.smartgwt.client.widgets.viewer.DetailViewerField;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
-import cz.incad.pas.editor.client.PasEditorMessages;
 import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
@@ -97,7 +97,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
     private static final Logger LOG = Logger.getLogger(ImportBatchItemEditor.class.getName());
 
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
 
     private final ListGrid batchItemGrid;
     private ListGridField fieldItemModel;
@@ -113,8 +113,8 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private FoxmlViewAction foxmlViewAction;
     private DeleteAction deleteAction;
 
-    public ImportBatchItemEditor(PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    public ImportBatchItemEditor(ClientMessages i18n) {
+        this.i18n = i18n;
         this.setHeight100();
         this.setWidth100();
         
@@ -166,7 +166,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
         addMember(editorThumbToolbarLayout);
 
-        digitalObjectPreview = new DigitalObjectPreview(i18nPas);
+        digitalObjectPreview = new DigitalObjectPreview(i18n);
         digitalObjectPreview.addBackgroundListeners(thumbViewer);
         Canvas previewLayout = digitalObjectPreview.asCanvas();
         previewLayout.setWidth("40%");
@@ -199,8 +199,8 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         grid.setDataSource(ImportBatchItemDataSource.getInstance());
 
         fieldItemModel = new ListGridField(ImportBatchItemDataSource.FIELD_MODEL,
-                i18nPas.ImportBatchItemEditor_ListHeaderModel_Title());
-        fieldItemModel.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderModel_Hint());
+                i18n.ImportBatchItemEditor_ListHeaderModel_Title());
+        fieldItemModel.setPrompt(i18n.ImportBatchItemEditor_ListHeaderModel_Hint());
         fieldItemModel.setOptionDataSource(MetaModelDataSource.getInstance());
         fieldItemModel.setValueField(MetaModelDataSource.FIELD_PID);
         fieldItemModel.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
@@ -208,31 +208,31 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         fieldItemModel.setHidden(true);
 
         ListGridField fieldPid = new ListGridField(ImportBatchItemDataSource.FIELD_PID,
-                i18nPas.ImportBatchItemEditor_ListHeaderPID_Title());
-        fieldPid.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderPID_Hint());
+                i18n.ImportBatchItemEditor_ListHeaderPID_Title());
+        fieldPid.setPrompt(i18n.ImportBatchItemEditor_ListHeaderPID_Hint());
         fieldPid.setHidden(true);
 
         ListGridField fieldUser = new ListGridField(ImportBatchItemDataSource.FIELD_USER,
-                i18nPas.ImportBatchItemEditor_ListHeaderUser_Title());
-        fieldUser.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderUser_Hint());
+                i18n.ImportBatchItemEditor_ListHeaderUser_Title());
+        fieldUser.setPrompt(i18n.ImportBatchItemEditor_ListHeaderUser_Hint());
         fieldUser.setHidden(true);
 
         ListGridField fieldFilename = new ListGridField(ImportBatchItemDataSource.FIELD_FILENAME,
-                i18nPas.ImportBatchItemEditor_ListHeaderFilename_Title());
-        fieldFilename.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderFilename_Hint());
+                i18n.ImportBatchItemEditor_ListHeaderFilename_Title());
+        fieldFilename.setPrompt(i18n.ImportBatchItemEditor_ListHeaderFilename_Hint());
 
         ListGridField fieldPageIndex = new ListGridField(ImportBatchItemDataSource.FIELD_PAGE_INDEX,
-                i18nPas.ImportBatchItemEditor_ListHeaderPageIndex_Title());
-        fieldPageIndex.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderPageIndex_Hint());
+                i18n.ImportBatchItemEditor_ListHeaderPageIndex_Title());
+        fieldPageIndex.setPrompt(i18n.ImportBatchItemEditor_ListHeaderPageIndex_Hint());
         fieldPageIndex.setHidden(true);
 
         ListGridField fieldPageNumber = new ListGridField(ImportBatchItemDataSource.FIELD_PAGE_NUMBER,
-                i18nPas.ImportBatchItemEditor_ListHeaderPageNumber_Title());
-        fieldPageNumber.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderPageNumber_Hint());
+                i18n.ImportBatchItemEditor_ListHeaderPageNumber_Title());
+        fieldPageNumber.setPrompt(i18n.ImportBatchItemEditor_ListHeaderPageNumber_Hint());
 
         ListGridField fieldPageType = new ListGridField(ImportBatchItemDataSource.FIELD_PAGE_TYPE,
-                i18nPas.ImportBatchItemEditor_ListHeaderPageType_Title());
-        fieldPageType.setPrompt(i18nPas.ImportBatchItemEditor_ListHeaderPageType_Hint());
+                i18n.ImportBatchItemEditor_ListHeaderPageType_Title());
+        fieldPageType.setPrompt(i18n.ImportBatchItemEditor_ListHeaderPageType_Hint());
         fieldPageType.setEmptyCellValue(ModsCustomDataSource.getPageTypes().get(ModsCustomDataSource.getDefaultPageType()));
 
         grid.setFields(fieldFilename, fieldPageNumber, fieldPageIndex, fieldPageType, fieldPid, fieldItemModel, fieldUser);
@@ -413,14 +413,14 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
     private void createActions() {
         batchItemMultiEdit = new BatchItemMultiEdit();
-        foxmlViewAction = new FoxmlViewAction(i18nPas);
+        foxmlViewAction = new FoxmlViewAction(i18n);
         deleteAction = new DeleteAction(
-                new RecordDeletable(batchItemGrid.getDataSource()), i18nPas);
+                new RecordDeletable(batchItemGrid.getDataSource()), i18n);
     }
 
     private ToolStrip createEditorToolBar() {
         ToolStrip toolbar = Actions.createToolStrip();
-        toolbar.addMember(Actions.asIconButton(new RefreshAction(i18nPas), this));
+        toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n), this));
         toolbar.addMember(Actions.asIconButton(new SelectAction(), this));
         toolbar.addMember(Actions.asIconButton(batchItemMultiEdit, this));
         toolbar.addMember(Actions.asIconButton(foxmlViewAction, this));
@@ -468,21 +468,21 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
     private DynamicFormTab[] createTabs() {
         DynamicFormTab dcTab = new DynamicFormTab(
-                i18nPas.ImportBatchItemEditor_TabDublinCore_Title(),
+                i18n.ImportBatchItemEditor_TabDublinCore_Title(),
                 null,
-                createDcForm(), i18nPas);
+                createDcForm(), i18n);
         DynamicFormTab noteTab = new DynamicFormTab(
-                i18nPas.ImportBatchItemEditor_TabNote_Title(),
-                i18nPas.ImportBatchItemEditor_TabNote_Hint(),
-                createNoteForm(), i18nPas);
+                i18n.ImportBatchItemEditor_TabNote_Title(),
+                i18n.ImportBatchItemEditor_TabNote_Hint(),
+                createNoteForm(), i18n);
         DynamicFormTab modsTab = new DynamicFormTab(
-                i18nPas.ImportBatchItemEditor_TabMods_Title(),
+                i18n.ImportBatchItemEditor_TabMods_Title(),
                 null,
-                createModsForm(), i18nPas);
+                createModsForm(), i18n);
         DynamicFormTab ocrTab = new DynamicFormTab(
-                i18nPas.ImportBatchItemEditor_TabOcr_Title(),
+                i18n.ImportBatchItemEditor_TabOcr_Title(),
                 null,
-                createOcrForm(), i18nPas);
+                createOcrForm(), i18n);
         return new DynamicFormTab[] {
             modsTab,
             noteTab,
@@ -493,7 +493,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
     private DynamicForm createDcForm() {
         DcRecordDataSource dsDc = DcRecordDataSource.getInstance();
-        DCEditor dcEditor = new DCEditor(i18nPas);
+        DCEditor dcEditor = new DCEditor(i18n);
         dcEditor.setDataSource(dsDc);
         dcEditor.setDataPath(DcRecordDataSource.FIELD_DC.getQualifiedName());
         return dcEditor;
@@ -507,15 +507,15 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         form.setSaveOnEnter(true);
 
         SelectItem pageType = new SelectItem(ImportBatchItemDataSource.FIELD_PAGE_TYPE,
-                i18nPas.PageForm_PageType_Title());
+                i18n.PageForm_PageType_Title());
         pageType.setDefaultValue(ModsCustomDataSource.getDefaultPageType());
         pageType.setValueMap(ModsCustomDataSource.getPageTypes());
 
         IntegerItem pageIndex = new IntegerItem(ImportBatchItemDataSource.FIELD_PAGE_INDEX);
-        pageIndex.setTitle(i18nPas.PageForm_PageIndex_Title());
+        pageIndex.setTitle(i18n.PageForm_PageIndex_Title());
 
         TextItem pageNumber = new TextItem(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
-        pageNumber.setTitle(i18nPas.PageForm_PageNumber_Title());
+        pageNumber.setTitle(i18n.PageForm_PageNumber_Title());
         pageNumber.setLength(20);
 
         form.setFields(pageType, pageIndex, pageNumber);
@@ -649,7 +649,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
         public EditorForm(final DynamicForm form) {
             super(4);
-            IButton save = new IButton(i18nPas.ImportBatchItemEditor_Tab_Submit_Title(), new ClickHandler() {
+            IButton save = new IButton(i18n.ImportBatchItemEditor_Tab_Submit_Title(), new ClickHandler() {
 
                 @Override
                 public void onClick(ClickEvent event) {
@@ -693,15 +693,15 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     }
 
     private final class DynamicFormTab {
-        private final PasEditorMessages i18nPas;
+        private final ClientMessages i18n;
         private final Tab tab;
         private final DynamicForm form;
         private final EditorForm eform;
         private String title;
         private final Canvas emptyContent;
 
-        public DynamicFormTab(String title, String hint, DynamicForm form, PasEditorMessages i18nPas) {
-            this.i18nPas = i18nPas;
+        public DynamicFormTab(String title, String hint, DynamicForm form, ClientMessages i18n) {
+            this.i18n = i18n;
             this.title = title;
             this.tab = new Tab(title);
             this.tab.setPrompt(hint);
@@ -791,9 +791,9 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private final class BatchItemMultiEdit extends AbstractAction {
 
         public BatchItemMultiEdit() {
-            super(i18nPas.ImportBatchItemEditor_ActionEdit_Title(),
+            super(i18n.ImportBatchItemEditor_ActionEdit_Title(),
                     "[SKIN]/actions/edit.png",
-                    i18nPas.ImportBatchItemEditor_ActionEdit_Hint());
+                    i18n.ImportBatchItemEditor_ActionEdit_Hint());
         }
 
         @Override
@@ -865,9 +865,9 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private final class SelectAction extends AbstractAction {
 
         SelectAction() {
-            super(i18nPas.ImportBatchItemEditor_ActionSaveAll_Title(),
+            super(i18n.ImportBatchItemEditor_ActionSaveAll_Title(),
                     "[SKIN]/actions/approve.png",
-                    i18nPas.ImportBatchItemEditor_ActionSaveAll_Hint());
+                    i18n.ImportBatchItemEditor_ActionSaveAll_Hint());
         }
 
         @Override

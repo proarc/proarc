@@ -19,7 +19,7 @@ package cz.incad.pas.editor.client.widget;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.grid.ListGridField;
-import cz.incad.pas.editor.client.PasEditorMessages;
+import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.DcRecordDataSource;
 import cz.incad.pas.editor.client.ds.DcRecordDataSource.QName;
 import java.util.ArrayList;
@@ -34,48 +34,48 @@ public class DCEditor extends DynamicForm {
     
     private static final Logger LOG = Logger.getLogger(DCEditor.class.getName());
 
-    private final PasEditorMessages i18nPas;
+    private final ClientMessages i18n;
 
-    public DCEditor(PasEditorMessages i18nPas) {
-        this.i18nPas = i18nPas;
+    public DCEditor(ClientMessages i18n) {
+        this.i18n = i18n;
     }
 
     @Override
     protected void onDraw() {
         setFields(
-                createDCListFormItem(DcRecordDataSource.FIELD_TITLE, i18nPas.DCEditor_Titles_Title(),
-                    i18nPas.DCEditor_Titles_Hint()),
-                createDCListFormItem(DcRecordDataSource.FIELD_CREATOR, i18nPas.DCEditor_Creators_Title(),
-                    i18nPas.DCEditor_Creators_Hint()),
-                createDCListFormItem(DcRecordDataSource.FIELD_SUBJECT, i18nPas.DCEditor_Subjects_Title(),
-                    i18nPas.DCEditor_Subjects_Hint()),
-                createDCListFormItem(DcRecordDataSource.FIELD_DESCRIPTION, i18nPas.DCEditor_Descriptions_Title(),
-                    i18nPas.DCEditor_Descriptions_Hint()),
-                createDCListFormItem(DcRecordDataSource.FIELD_PUBLISHER, i18nPas.DCEditor_Publishers_Title(),
-                    i18nPas.DCEditor_Publishers_Hint()),
-                createDCListFormItem(DcRecordDataSource.FIELD_CONTRIBUTOR, i18nPas.DCEditor_Contributors_Title(),
-                    i18nPas.DCEditor_Contributors_Hint()),
-                createDCListFormItem(DcRecordDataSource.FIELD_DATE, i18nPas.DCEditor_Dates_Title(),
-                    i18nPas.DCEditor_Dates_Hint(),
+                createDCListFormItem(DcRecordDataSource.FIELD_TITLE, i18n.DCEditor_Titles_Title(),
+                    i18n.DCEditor_Titles_Hint()),
+                createDCListFormItem(DcRecordDataSource.FIELD_CREATOR, i18n.DCEditor_Creators_Title(),
+                    i18n.DCEditor_Creators_Hint()),
+                createDCListFormItem(DcRecordDataSource.FIELD_SUBJECT, i18n.DCEditor_Subjects_Title(),
+                    i18n.DCEditor_Subjects_Hint()),
+                createDCListFormItem(DcRecordDataSource.FIELD_DESCRIPTION, i18n.DCEditor_Descriptions_Title(),
+                    i18n.DCEditor_Descriptions_Hint()),
+                createDCListFormItem(DcRecordDataSource.FIELD_PUBLISHER, i18n.DCEditor_Publishers_Title(),
+                    i18n.DCEditor_Publishers_Hint()),
+                createDCListFormItem(DcRecordDataSource.FIELD_CONTRIBUTOR, i18n.DCEditor_Contributors_Title(),
+                    i18n.DCEditor_Contributors_Hint()),
+                createDCListFormItem(DcRecordDataSource.FIELD_DATE, i18n.DCEditor_Dates_Title(),
+                    i18n.DCEditor_Dates_Hint(),
                     false),
-                createDCListFormItem(DcRecordDataSource.FIELD_TYPE, i18nPas.DCEditor_Types_Title(),
-                    i18nPas.DCEditor_Types_Hint()),
-                createDCListFormItem(DcRecordDataSource.FIELD_FORMAT, i18nPas.DCEditor_Formats_Title(),
-                    i18nPas.DCEditor_Formats_Hint()),
-                createDCListFormItem(DcRecordDataSource.FIELD_IDENTIFIER, i18nPas.DCEditor_Identifiers_Title(),
-                    i18nPas.DCEditor_Identifiers_Hint(),
+                createDCListFormItem(DcRecordDataSource.FIELD_TYPE, i18n.DCEditor_Types_Title(),
+                    i18n.DCEditor_Types_Hint()),
+                createDCListFormItem(DcRecordDataSource.FIELD_FORMAT, i18n.DCEditor_Formats_Title(),
+                    i18n.DCEditor_Formats_Hint()),
+                createDCListFormItem(DcRecordDataSource.FIELD_IDENTIFIER, i18n.DCEditor_Identifiers_Title(),
+                    i18n.DCEditor_Identifiers_Hint(),
                     false),
-                createDCListFormItem(DcRecordDataSource.FIELD_SOURCE, i18nPas.DCEditor_Sources_Title(),
-                    i18nPas.DCEditor_Sources_Hint()),
-                createDCListFormItem(DcRecordDataSource.FIELD_LANGUAGE, i18nPas.DCEditor_Languages_Title(),
-                    i18nPas.DCEditor_Languages_Hint(),
+                createDCListFormItem(DcRecordDataSource.FIELD_SOURCE, i18n.DCEditor_Sources_Title(),
+                    i18n.DCEditor_Sources_Hint()),
+                createDCListFormItem(DcRecordDataSource.FIELD_LANGUAGE, i18n.DCEditor_Languages_Title(),
+                    i18n.DCEditor_Languages_Hint(),
                     false),
-                createDCListFormItem(DcRecordDataSource.FIELD_RELATION, i18nPas.DCEditor_Relations_Title(),
-                    i18nPas.DCEditor_Relations_Hint()),
-                createDCListFormItem(DcRecordDataSource.FIELD_COVERAGE, i18nPas.DCEditor_Coverage_Title(),
-                    i18nPas.DCEditor_Coverage_Hint()),
-                createDCListFormItem(DcRecordDataSource.FIELD_RIGHTS, i18nPas.DCEditor_Rights_Title(),
-                    i18nPas.DCEditor_Rights_Hint())
+                createDCListFormItem(DcRecordDataSource.FIELD_RELATION, i18n.DCEditor_Relations_Title(),
+                    i18n.DCEditor_Relations_Hint()),
+                createDCListFormItem(DcRecordDataSource.FIELD_COVERAGE, i18n.DCEditor_Coverage_Title(),
+                    i18n.DCEditor_Coverage_Hint()),
+                createDCListFormItem(DcRecordDataSource.FIELD_RIGHTS, i18n.DCEditor_Rights_Title(),
+                    i18n.DCEditor_Rights_Hint())
         );
     }
 
@@ -99,7 +99,7 @@ public class DCEditor extends DynamicForm {
     //        langComboBoxItem.setDefaultValue("cs");
             langComboBoxItem.setShowAllOptions(true);
             ListGridField fieldLang = new ListGridField(DcRecordDataSource.FIELD_XML_LANG,
-                    i18nPas.DCEditor_Language_Title());
+                    i18n.DCEditor_Language_Title());
     //        Map<String, String> langMap = new HashMap<String, String>();
     //        langMap.put("cs", "Czech");
     //        langMap.put("de", "German");
