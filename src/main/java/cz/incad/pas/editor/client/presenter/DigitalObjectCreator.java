@@ -433,7 +433,7 @@ public final class DigitalObjectCreator {
         @Override
         public void onShow(Wizard wizard) {
             wizard.setBackButton(true, i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title());
-            wizard.setForwardButton(true, i18n.DigitalObjectCreator_FinishedStep_OpenInEditorButton_Title());
+            wizard.setForwardButton(false, i18n.DigitalObjectCreator_FinishedStep_OpenInEditorButton_Title());
             wizard.setWizardLabel(i18n.DigitalObjectCreator_DescriptionPrefix_Title(),
                     i18n.DigitalObjectCreator_FinishedStep_Description_Title());
         }
