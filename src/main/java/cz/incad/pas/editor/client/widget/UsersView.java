@@ -21,6 +21,7 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.types.ListGridComponent;
 import com.smartgwt.client.types.ListGridEditEvent;
+import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.Window;
@@ -43,6 +44,7 @@ import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction;
+import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.UserDataSource;
 import java.util.logging.Logger;
 
@@ -63,51 +65,9 @@ public final class UsersView implements RefreshAction.Refreshable {
 
     public UsersView(PasEditorMessages i18nPas) {
         this.i18nPas = i18nPas;
-        userGrid = new ListGrid() {
 
-            @Override
-            protected Canvas getExpansionComponent(ListGridRecord record) {
-                return getRowProfileEditor(record);
-            }
-
-        };
-        userGrid.setDataSource(UserDataSource.getInstance());
-        userGrid.setUseAllDataSourceFields(true);
-        userGrid.setEditEvent(ListGridEditEvent.DOUBLECLICK);
-        userGrid.setCanExpandRecords(true);
-        userGrid.setCanExpandMultipleRecords(false);
-
-        ToolStrip gridEditControls = Actions.createToolStrip();
-
-        IconButton newButton = Actions.asIconButton(new AbstractAction(
-                i18nPas.UsersView_Button_New_Title(),
-                "[SKIN]/actions/add.png",
-                i18nPas.UsersView_Button_New_Hint()) {
-
-            @Override
-            public void performAction(ActionEvent event) {
-                showNewWindow();
-            }
-        }, this);
-
-        IconButton editButton = Actions.asIconButton(new AbstractAction(
-                i18nPas.UsersView_Button_Edit_Title(),
-                "[SKIN]/actions/edit.png",
-                i18nPas.UsersView_Button_Edit_Hint()) {
-
-            @Override
-            public void performAction(ActionEvent event) {
-                ListGridRecord selection = userGrid.getSelectedRecord();
-                if (selection != null) {
-                    userGrid.expandRecord(selection);
-                }
-            }
-        }, this);
-
-
-        gridEditControls.setMembers(Actions.asIconButton(new RefreshAction(i18nPas), this), newButton, editButton);
-
-        userGrid.setGridComponents(gridEditControls, ListGridComponent.HEADER, ListGridComponent.BODY);
+        ToolStrip toolbar = createToolbar(i18nPas);
+        userGrid = createUserList(toolbar);
 
         VLayout main = new VLayout();
         main.setWidth100();
@@ -122,6 +82,57 @@ public final class UsersView implements RefreshAction.Refreshable {
 
     public void onShow() {
         refresh();
+    }
+
+    private ToolStrip createToolbar(PasEditorMessages i18n) {
+        ToolStrip gridEditControls = Actions.createToolStrip();
+
+        IconButton newButton = Actions.asIconButton(new AbstractAction(
+                i18n.UsersView_Button_New_Title(),
+                "[SKIN]/actions/add.png",
+                i18n.UsersView_Button_New_Hint()) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+                showNewWindow();
+            }
+        }, this);
+
+        IconButton editButton = Actions.asIconButton(new AbstractAction(
+                i18n.UsersView_Button_Edit_Title(),
+                "[SKIN]/actions/edit.png",
+                i18n.UsersView_Button_Edit_Hint()) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+                ListGridRecord selection = userGrid.getSelectedRecord();
+                if (selection != null) {
+                    userGrid.expandRecord(selection);
+                }
+            }
+        }, this);
+
+        gridEditControls.setMembers(Actions.asIconButton(new RefreshAction(i18n), this), newButton, editButton);
+        return gridEditControls;
+    }
+
+    private ListGrid createUserList(ToolStrip gridEditControls) {
+        final ListGrid grid = new ListGrid() {
+
+            @Override
+            protected Canvas getExpansionComponent(ListGridRecord record) {
+                return getRowProfileEditor(record);
+            }
+
+        };
+        grid.setDataSource(UserDataSource.getInstance());
+        grid.setUseAllDataSourceFields(true);
+        grid.setSelectionType(SelectionStyle.SINGLE);
+        grid.setEditEvent(ListGridEditEvent.DOUBLECLICK);
+        grid.setCanExpandRecords(true);
+        grid.setCanExpandMultipleRecords(false);
+        grid.setGridComponents(gridEditControls, ListGridComponent.HEADER, ListGridComponent.BODY);
+        return grid;
     }
 
     private DynamicForm getNewProfileEditor() {
@@ -200,7 +211,7 @@ public final class UsersView implements RefreshAction.Refreshable {
 
                     @Override
                     public void execute(DSResponse response, Object rawData, DSRequest request) {
-                        if (response.getStatus() == DSResponse.STATUS_SUCCESS) {
+                        if (RestConfig.isStatusOk(response)) {
                             closeEditor();
                         }
                     }
@@ -246,6 +257,15 @@ public final class UsersView implements RefreshAction.Refreshable {
     @Override
     public void refresh() {
         userGrid.invalidateCache();
-        userGrid.fetchData();
+        userGrid.fetchData(null, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (RestConfig.isStatusOk(response) && response.getData().length > 0) {
+                    userGrid.focus();
+                    userGrid.selectSingleRecord(0);
+                }
+            }
+        });
     }
 }
