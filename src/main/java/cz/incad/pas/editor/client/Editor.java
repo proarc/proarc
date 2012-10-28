@@ -59,6 +59,7 @@ import cz.incad.pas.editor.client.presenter.DigitalObjectCreating.DigitalObjectC
 import cz.incad.pas.editor.client.presenter.DigitalObjectCreator;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditor;
 import cz.incad.pas.editor.client.presenter.DigitalObjectManager;
+import cz.incad.pas.editor.client.presenter.DigitalObjectManaging.DigitalObjectManagerPlace;
 import cz.incad.pas.editor.client.presenter.ImportPresenter;
 import cz.incad.pas.editor.client.presenter.Importing.ImportPlace;
 import cz.incad.pas.editor.client.presenter.Importing.ImportPlace.Type;
@@ -134,8 +135,6 @@ public class Editor implements EntryPoint {
         editorWorkFlow = new EditorWorkFlow(getDisplay(), presenterFactory, i18nPas);
         presenterFactory.setPlaceController(editorWorkFlow.getPlaceController());
 
-////        tabSet.setBorder("2px solid blue");
-
         final TreeGrid menu = createMenu();
 
         sweepTask = new SweepTask() {
@@ -151,17 +150,12 @@ public class Editor implements EntryPoint {
             }
         };
 
-        createMenuPlaces(menu);
-
         final HLayout mainLayout = new HLayout();
 //        mainLayout.setLayoutMargin(5);
         mainLayout.setWidth100();
         mainLayout.setHeight100();
         mainLayout.setMembers(menu, getDisplay());
 
-//        selectDefaultPlace(menu, "Import/History");
-//        selectDefaultPlace(menu, "Edit/New Object");
-        
         Canvas mainHeader = createMainHeader();
 
         VLayout desktop = new VLayout(0);
@@ -188,6 +182,18 @@ public class Editor implements EntryPoint {
                 }
             }
         });
+    }
+
+    /**
+     * Gets container to display editor activities.
+     */
+    private Layout getDisplay() {
+        if (editorDisplay == null) {
+            editorDisplay = new HLayout();
+            editorDisplay.setHeight100();
+            editorDisplay.setWidth100();
+        }
+        return editorDisplay;
     }
 
     private Canvas createMainHeader() {
@@ -262,17 +268,6 @@ public class Editor implements EntryPoint {
         return link;
     }
 
-    private void selectDefaultPlace(TreeGrid menu, String menuPath) {
-//        TreeNode find = tree.find("Import/New Batch");
-        Tree tree = menu.getTree();
-        TreeNode find = tree.find(menuPath);
-        int menuItemIdx = menu.getRecordIndex(find);
-        ClientUtils.info(LOG, "Found: %s, menuItemIdx: %s, name: %s",
-                find, menuItemIdx, find != null ? find.getName() : null);
-        menu.selectRecord(find);
-        menu.rowClick(find, menuItemIdx, 0);
-    }
-
     private TreeNode[] createMenuContent() {
         TreeNode[] trees = new TreeNode[] {
                 createTreeNode("Import", i18nPas.MainMenu_Import_Title(),
@@ -280,7 +275,7 @@ public class Editor implements EntryPoint {
                         createTreeNode("History", i18nPas.MainMenu_Import_Edit_Title(), new ImportPlace(Type.HISTORY))),
                 createTreeNode("Edit", i18nPas.MainMenu_Edit_Title(),
                         createTreeNode("New Object", i18nPas.MainMenu_Edit_NewObject_Title(), new DigitalObjectCreatorPlace()),
-                        createTreeNode("Search", i18nPas.MainMenu_Edit_Edit_Title())
+                        createTreeNode("Search", i18nPas.MainMenu_Edit_Edit_Title(), new DigitalObjectManagerPlace())
                 ),
 //                createTreeNode("Statistics", i18nPas.MainMenu_Statistics_Title()),
                 createTreeNode("Users", i18nPas.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
@@ -313,23 +308,6 @@ public class Editor implements EntryPoint {
                 event.cancel();
             }
         });
-        return menu;
-    }
-
-    /**
-     * Gets container to display editor activities.
-     */
-    private Layout getDisplay() {
-        if (editorDisplay == null) {
-            editorDisplay = new HLayout();
-            editorDisplay.setHeight100();
-            editorDisplay.setWidth100();
-        }
-        return editorDisplay;
-    }
-
-    private void createMenuPlaces(final TreeGrid menu) {
-        final Layout placesContainer = getDisplay();
         menu.addLeafClickHandler(new LeafClickHandler() {
 
             @Override
@@ -343,21 +321,15 @@ public class Editor implements EntryPoint {
                     placeController.goTo((Place) placeObj);
                     return ;
                 }
-                // XXX deprecated; replace with places attached to nodes
-                if ("New Batch".equals(name)) {
-                } else if ("Search".equals(name)) {
-                    DigitalObjectManager presenter = presenterFactory.getDigitalObjectManager();
-                    Canvas ui = presenter.getUI();
-                    placesContainer.setMembers(ui);
-                    presenter.init();
-                } else if ("Console".equals(name)) {
+                if ("Console".equals(name)) {
                     SC.showConsole();
                 } else {
+                    Layout placesContainer = getDisplay();
                     placesContainer.removeMembers(placesContainer.getMembers());
                 }
             }
         });
-
+        return menu;
     }
 
     private TreeNode createTreeNode(String name, String displayName, Place place, List<String> requires) {

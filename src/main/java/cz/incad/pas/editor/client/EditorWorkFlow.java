@@ -37,6 +37,8 @@ import cz.incad.pas.editor.client.presenter.DigitalObjectCreating;
 import cz.incad.pas.editor.client.presenter.DigitalObjectCreating.DigitalObjectCreatorPlace;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
+import cz.incad.pas.editor.client.presenter.DigitalObjectManaging;
+import cz.incad.pas.editor.client.presenter.DigitalObjectManaging.DigitalObjectManagerPlace;
 import cz.incad.pas.editor.client.presenter.Importing;
 import cz.incad.pas.editor.client.presenter.Importing.ImportPlace;
 import cz.incad.pas.editor.client.presenter.UserManaging;
@@ -102,6 +104,8 @@ public final class EditorWorkFlow {
                 a = new Importing((ImportPlace) place, presenterFactory);
             } else if (place instanceof UsersPlace) {
                 a = new UserManaging((UsersPlace) place, presenterFactory);
+            } else if (place instanceof DigitalObjectManagerPlace) {
+                a = new DigitalObjectManaging((DigitalObjectManagerPlace) place, presenterFactory);
             }
             return a;
         }
@@ -133,6 +137,7 @@ public final class EditorWorkFlow {
     @WithTokenizers({
         DigitalObjectEditorPlace.Tokenizer.class,
         DigitalObjectCreatorPlace.Tokenizer.class,
+        DigitalObjectManagerPlace.Tokenizer.class,
         ImportPlace.Tokenizer.class,
         UsersPlace.Tokenizer.class,
     })
