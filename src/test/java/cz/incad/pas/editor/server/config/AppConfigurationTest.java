@@ -35,7 +35,7 @@ import org.junit.Test;
  *
  * @author Jan Pokorsky
  */
-public class PasConfigurationTest {
+public class AppConfigurationTest {
 
     private static final String EXPECTED_DEFAULT_VALUE = "defaultValue";
     private static final String TEST_PROPERTY_NAME = "cz.incad.pas.editor.server.config.testProperty";
@@ -43,9 +43,9 @@ public class PasConfigurationTest {
 
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder();
-    private PasConfigurationFactory factory;
+    private AppConfigurationFactory factory;
 
-    public PasConfigurationTest() {
+    public AppConfigurationTest() {
     }
 
     @BeforeClass
@@ -58,7 +58,7 @@ public class PasConfigurationTest {
 
     @Before
     public void setUp() {
-        factory = PasConfigurationFactory.getInstance();
+        factory = AppConfigurationFactory.getInstance();
     }
 
     @After
@@ -69,22 +69,22 @@ public class PasConfigurationTest {
     public void testGetConfigHome() throws Exception {
         final File confHome = temp.getRoot();
         assertNotNull(confHome);
-        PasConfiguration config = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.PROPERTY_APP_HOME, confHome.toString());
+        AppConfiguration config = factory.create(new HashMap<String, String>() {{
+            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
         assertNotNull(config);
         assertEquals(confHome, config.getConfigHome());
         assertNull(config.getConfiguration().getString(TEST_PROPERTY_NAME));
         // test internal property
-        assertEquals(confHome.toString(), config.getConfiguration().getString(PasConfiguration.PROPERTY_APP_HOME));
+        assertEquals(confHome.toString(), config.getConfiguration().getString(AppConfiguration.PROPERTY_APP_HOME));
     }
 
     @Test
     public void testGetAllUserHome() throws Exception {
         final File confHome = temp.getRoot();
         assertNotNull(confHome);
-        PasConfiguration config = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.PROPERTY_APP_HOME, confHome.toString());
+        AppConfiguration config = factory.create(new HashMap<String, String>() {{
+            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
         assertNotNull(config);
         File expectedUserFolder = new File(confHome, "users");
@@ -97,20 +97,20 @@ public class PasConfigurationTest {
 
     @Test
     public void testReadProperty() throws Exception {
-        final File confHome = temp.newFolder(PasConfiguration.DEFAULT_APP_HOME_NAME);
+        final File confHome = temp.newFolder(AppConfiguration.DEFAULT_APP_HOME_NAME);
 
-        // init paseditor.cfg
+        // init proarc.cfg
         Properties props = new Properties();
         final String expectedPropValue = "test-čŇů"; // test UTF-8
         props.put(TEST_PROPERTY_NAME, expectedPropValue);
-        final File configFile = new File(confHome, PasConfiguration.CONFIG_FILE_NAME);
+        final File configFile = new File(confHome, AppConfiguration.CONFIG_FILE_NAME);
         OutputStreamWriter propsOut = new OutputStreamWriter(new FileOutputStream(configFile), "UTF-8");
         props.store(propsOut, null);
         propsOut.close();
         assertTrue(configFile.exists());
 
-        PasConfiguration pconfig = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.PROPERTY_APP_HOME, confHome.toString());
+        AppConfiguration pconfig = factory.create(new HashMap<String, String>() {{
+            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
 
         Configuration config = pconfig.getConfiguration();
@@ -127,8 +127,8 @@ public class PasConfigurationTest {
         propsOut.close();
         assertTrue(configFile.exists());
 
-        PasConfiguration pconfigNew = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.PROPERTY_APP_HOME, confHome.toString());
+        AppConfiguration pconfigNew = factory.create(new HashMap<String, String>() {{
+            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
 
         Configuration configNew = pconfigNew.getConfiguration();
@@ -142,21 +142,21 @@ public class PasConfigurationTest {
 
     @Test
     public void testOverrideProperty() throws Exception {
-        final File confHome = temp.newFolder(PasConfiguration.DEFAULT_APP_HOME_NAME);
+        final File confHome = temp.newFolder(AppConfiguration.DEFAULT_APP_HOME_NAME);
 
-        // init paseditor.cfg
+        // init proarc.cfg
         Properties props = new Properties();
         final String expPropValue = "overriddenValue";
         props.put(TEST_DEFAULT_PROPERTY_NAME, expPropValue);
         
-        final File configFile = new File(confHome, PasConfiguration.CONFIG_FILE_NAME);
+        final File configFile = new File(confHome, AppConfiguration.CONFIG_FILE_NAME);
         FileOutputStream propsOut = new FileOutputStream(configFile);
         props.store(propsOut, null);
         propsOut.close();
         assertTrue(configFile.exists());
 
-        PasConfiguration pconfig = factory.create(new HashMap<String, String>() {{
-            put(PasConfiguration.PROPERTY_APP_HOME, confHome.toString());
+        AppConfiguration pconfig = factory.create(new HashMap<String, String>() {{
+            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
 
         Configuration config = pconfig.getConfiguration();

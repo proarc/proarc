@@ -20,30 +20,30 @@ package cz.incad.pas.editor.server.config;
  *
  * @author Jan Pokorsky
  */
-public class PasConfigurationException extends Exception {
+public class AppConfigurationException extends Exception {
 
     /**
      * Creates a new instance of
-     * <code>PasConfigurationException</code> without detail message.
+     * <code>AppConfigurationException</code> without detail message.
      */
-    public PasConfigurationException() {
+    public AppConfigurationException() {
     }
 
     /**
      * Constructs an instance of
-     * <code>PasConfigurationException</code> with the specified detail message.
+     * <code>AppConfigurationException</code> with the specified detail message.
      *
      * @param msg the detail message.
      */
-    public PasConfigurationException(String msg) {
+    public AppConfigurationException(String msg) {
         super(msg);
     }
 
-    public PasConfigurationException(String message, Throwable cause) {
+    public AppConfigurationException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public PasConfigurationException(Throwable cause) {
+    public AppConfigurationException(Throwable cause) {
         super(cause);
     }
 }

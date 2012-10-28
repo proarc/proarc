@@ -16,9 +16,9 @@
  */
 package cz.incad.pas.editor.server;
 
-import cz.incad.pas.editor.server.config.PasConfiguration;
-import cz.incad.pas.editor.server.config.PasConfigurationException;
-import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.incad.pas.editor.server.config.AppConfigurationException;
+import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
 import cz.incad.pas.editor.server.imports.ImportDispatcher;
 import cz.incad.pas.editor.server.imports.ImportProcess;
@@ -48,7 +48,7 @@ public final class EditorServletConfiguration implements ServletContextListener 
     public void contextInitialized(ServletContextEvent sce) {
         LOG.fine("contextInitialized");
 
-        PasConfiguration config = initConfig(sce.getServletContext());
+        AppConfiguration config = initConfig(sce.getServletContext());
         DataSource proarcSource = initProarcDb();
         initUsers(config, proarcSource);
         initImport(config);
@@ -62,13 +62,13 @@ public final class EditorServletConfiguration implements ServletContextListener 
         LOG.fine("contextDestroyed");
     }
 
-    private PasConfiguration initConfig(ServletContext ctx) {
+    private AppConfiguration initConfig(ServletContext ctx) {
         try {
-            PasConfigurationFactory configFactory = PasConfigurationFactory.getInstance();
-            PasConfiguration config = configFactory.create(ctx);
+            AppConfigurationFactory configFactory = AppConfigurationFactory.getInstance();
+            AppConfiguration config = configFactory.create(ctx);
             configFactory.setDefaultInstance(config);
             return configFactory.defaultInstance();
-        } catch (PasConfigurationException ex) {
+        } catch (AppConfigurationException ex) {
             throw new IllegalStateException(ex);
         }
     }
@@ -91,7 +91,7 @@ public final class EditorServletConfiguration implements ServletContextListener 
         }
     }
 
-    private void initUsers(PasConfiguration config, DataSource source) {
+    private void initUsers(AppConfiguration config, DataSource source) {
         try {
             UserManager manager = UserUtil.createUserManagerPostgressImpl(config, source);
             UserUtil.setDefaultManger(manager);
@@ -101,7 +101,7 @@ public final class EditorServletConfiguration implements ServletContextListener 
         }
     }
 
-    private void initImport(PasConfiguration config) {
+    private void initImport(AppConfiguration config) {
         ImportBatchManager ibm = ImportBatchManager.getInstance(config);
         ImportDispatcher importDispatcher = new ImportDispatcher();
         ImportDispatcher.setDefault(importDispatcher);

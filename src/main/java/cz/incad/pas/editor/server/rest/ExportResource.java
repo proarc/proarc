@@ -16,9 +16,9 @@
  */
 package cz.incad.pas.editor.server.rest;
 
-import cz.incad.pas.editor.server.config.PasConfiguration;
-import cz.incad.pas.editor.server.config.PasConfigurationException;
-import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.incad.pas.editor.server.config.AppConfigurationException;
+import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.export.DataStreamExport;
 import cz.incad.pas.editor.server.export.ExportException;
 import cz.incad.pas.editor.server.export.Kramerius4Export;
@@ -51,14 +51,14 @@ import javax.xml.bind.annotation.XmlElement;
 @Path(ExportResourceApi.PATH)
 public class ExportResource {
 
-    private final PasConfiguration pasConfig;
+    private final AppConfiguration appConfig;
     private final UserManager userManager;
     private final UserProfile user;
 
     public ExportResource(
             @Context SecurityContext securityCtx
-            ) throws PasConfigurationException {
-        this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
+            ) throws AppConfigurationException {
+        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
         this.userManager = UserUtil.getDefaultManger();
 
         Principal userPrincipal = securityCtx.getUserPrincipal();
@@ -85,7 +85,7 @@ public class ExportResource {
         if (dsIds.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
         }
-        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(pasConfig));
+        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig));
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids, dsIds);
@@ -103,7 +103,7 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
-        Kramerius4Export export = new Kramerius4Export(RemoteStorage.getInstance(pasConfig));
+        Kramerius4Export export = new Kramerius4Export(RemoteStorage.getInstance(appConfig));
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids.toArray(new String[pids.size()]));

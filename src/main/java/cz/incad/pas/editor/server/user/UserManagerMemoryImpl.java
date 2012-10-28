@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.server.user;
 
-import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.config.AppConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,12 +31,12 @@ import java.util.Set;
  */
 final class UserManagerMemoryImpl implements UserManager {
     
-    private static final Map<PasConfiguration, UserManagerMemoryImpl> INSTANCES = new HashMap<PasConfiguration, UserManagerMemoryImpl>();
+    private static final Map<AppConfiguration, UserManagerMemoryImpl> INSTANCES = new HashMap<AppConfiguration, UserManagerMemoryImpl>();
     /** memory storage for now */
     private final Map<String, UserProfile> map = new HashMap<String, UserProfile>();
-    private final PasConfiguration pasConfig;
+    private final AppConfiguration appConfig;
 
-    static UserManager getInstance(PasConfiguration config) {
+    static UserManager getInstance(AppConfiguration config) {
         UserManagerMemoryImpl mngr;
         synchronized (INSTANCES) {
             mngr = INSTANCES.get(config);
@@ -56,8 +56,8 @@ final class UserManagerMemoryImpl implements UserManager {
         return mngr;
     }
 
-    private UserManagerMemoryImpl(PasConfiguration pasConfig) {
-        this.pasConfig = pasConfig;
+    private UserManagerMemoryImpl(AppConfiguration appConfig) {
+        this.appConfig = appConfig;
     }
 
     @Override
@@ -134,7 +134,7 @@ final class UserManagerMemoryImpl implements UserManager {
 
         File toRollback = null;
         try {
-            File allUsersHome = pasConfig.getDefaultUsersHome();
+            File allUsersHome = appConfig.getDefaultUsersHome();
             synchronized (map) {
                 if (findImpl(userName) != null) {
                     throw new IllegalArgumentException("Invalid user name: " + userName);

@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.server.imports;
 
-import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.config.AppConfiguration;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch.State;
 import cz.incad.pas.editor.server.imports.ImportProcess.ImportOptions;
 import cz.incad.pas.editor.server.user.UserManager;
@@ -51,11 +51,11 @@ public final class ImportBatchManager {
 
     /** memory storage for now */
     private final Map<Integer, ImportBatch> map = new HashMap<Integer, ImportBatch>();
-    private PasConfiguration pasConfig;
+    private AppConfiguration appConfig;
     private int temp_itemSequence;
 
     /** XXX replace with guice */
-    public static ImportBatchManager getInstance(PasConfiguration config) {
+    public static ImportBatchManager getInstance(AppConfiguration config) {
         synchronized (ImportBatchManager.class) {
             if (INSTANCE == null) {
                 INSTANCE = new ImportBatchManager(config);
@@ -90,8 +90,8 @@ public final class ImportBatchManager {
     }
 
     /** package private for unit tests */
-    ImportBatchManager(PasConfiguration pasConfig) {
-        this.pasConfig = pasConfig;
+    ImportBatchManager(AppConfiguration appConfig) {
+        this.appConfig = appConfig;
     }
 
 //    public Collection<ImportBatch> findAll() {
@@ -161,7 +161,7 @@ public final class ImportBatchManager {
             }
 
             updateBatch(update, batch);
-            save(pasConfig.getConfigHome(), this);
+            save(appConfig.getConfigHome(), this);
             return copyBatch(batch, false);
         }
     }
@@ -175,7 +175,7 @@ public final class ImportBatchManager {
             if (item != foundItem) {
                 throw new UnsupportedOperationException();
             }
-            save(pasConfig.getConfigHome(), this);
+            save(appConfig.getConfigHome(), this);
             return item;
         }
     }
@@ -186,7 +186,7 @@ public final class ImportBatchManager {
             ImportBatch batch = updateBatch(newBatch, new ImportBatch(id));
             batch.timeStamp = new Date();
             map.put(id, batch);
-            save(pasConfig.getConfigHome(), this);
+            save(appConfig.getConfigHome(), this);
             return copyBatch(batch, false);
         }
     }
@@ -210,7 +210,7 @@ public final class ImportBatchManager {
             item.id = ++temp_itemSequence;
             item.batchId = batchId;
             batch.addItem(item);
-            save(pasConfig.getConfigHome(), this);
+            save(appConfig.getConfigHome(), this);
             return item;
         }
     }
@@ -225,7 +225,7 @@ public final class ImportBatchManager {
                 ImportItem item = it.next();
                 if (item.getPid().equals(pid)) {
                     it.remove();
-                    save(pasConfig.getConfigHome(), this);
+                    save(appConfig.getConfigHome(), this);
                     return true;
                 }
             }
@@ -240,7 +240,7 @@ public final class ImportBatchManager {
                 return false;
             }
             batch.getItems().clear();
-            save(pasConfig.getConfigHome(), this);
+            save(appConfig.getConfigHome(), this);
             return true;
         }
     }

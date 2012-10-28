@@ -27,18 +27,18 @@ import javax.servlet.ServletContext;
  *
  * @author Jan Pokorsky
  */
-public final class PasConfigurationFactory {
+public final class AppConfigurationFactory {
 
-    private static final Logger LOG = Logger.getLogger(PasConfigurationFactory.class.getName());
-    private static final PasConfigurationFactory INSTANCE = new PasConfigurationFactory();
+    private static final Logger LOG = Logger.getLogger(AppConfigurationFactory.class.getName());
+    private static final AppConfigurationFactory INSTANCE = new AppConfigurationFactory();
 
-    private PasConfiguration defaultInstance;
+    private AppConfiguration defaultInstance;
 
-    public static PasConfigurationFactory getInstance() {
+    public static AppConfigurationFactory getInstance() {
         return INSTANCE;
     }
 
-    public PasConfiguration create() throws PasConfigurationException {
+    public AppConfiguration create() throws AppConfigurationException {
         return create(new HashMap<String, String>());
     }
 
@@ -48,11 +48,11 @@ public final class PasConfigurationFactory {
      *
      * @param ctx servlet context
      * @return the configuration
-     * @throws PasConfigurationException
+     * @throws AppConfigurationException
      */
-    public PasConfiguration create(ServletContext ctx) throws PasConfigurationException {
+    public AppConfiguration create(ServletContext ctx) throws AppConfigurationException {
         Map<String, String> env = new HashMap<String, String>();
-        readServletParameter(PasConfiguration.PROPERTY_APP_HOME, ctx, env);
+        readServletParameter(AppConfiguration.PROPERTY_APP_HOME, ctx, env);
         return create(env);
     }
 
@@ -62,29 +62,29 @@ public final class PasConfigurationFactory {
      * 
      * @param defaults properties to override defaults.
      * @return the configuration
-     * @throws PasConfigurationException
+     * @throws AppConfigurationException
      */
-    public PasConfiguration create(Map<String, String> defaults) throws PasConfigurationException {
-        readParameter(PasConfiguration.PROPERTY_USER_HOME, null, defaults);
-        readParameter(PasConfiguration.PROPERTY_APP_HOME, PasConfiguration.ENV_APP_HOME, defaults);
-        PasConfiguration pc;
+    public AppConfiguration create(Map<String, String> defaults) throws AppConfigurationException {
+        readParameter(AppConfiguration.PROPERTY_USER_HOME, null, defaults);
+        readParameter(AppConfiguration.PROPERTY_APP_HOME, AppConfiguration.ENV_APP_HOME, defaults);
+        AppConfiguration pc;
         try {
-            pc = new PasConfiguration(defaults);
+            pc = new AppConfiguration(defaults);
         } catch (IOException ex) {
-            throw new PasConfigurationException(ex);
+            throw new AppConfigurationException(ex);
         }
         return pc;
     }
 
     /** XXX replace with guice */
-    public PasConfiguration defaultInstance() throws PasConfigurationException {
+    public AppConfiguration defaultInstance() throws AppConfigurationException {
         if (defaultInstance == null) {
             defaultInstance = create();
         }
         return defaultInstance;
     }
 
-    public void setDefaultInstance(PasConfiguration config) {
+    public void setDefaultInstance(AppConfiguration config) {
         this.defaultInstance = config;
     }
 

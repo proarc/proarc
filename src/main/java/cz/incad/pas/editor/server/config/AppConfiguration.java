@@ -35,7 +35,7 @@ import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
  *
  * @author Jan Pokorsky
  */
-public final class PasConfiguration {
+public final class AppConfiguration {
     
     public static final String PROPERTY_USER_HOME = "user.home";
     /** environment variable name to override default application home */
@@ -53,7 +53,7 @@ public final class PasConfiguration {
     private static final String PROPERTY_FEDORA_CLIENT_USERNAME = "fedora.client.username";
     private static final String PROPERTY_USERS_HOME = "proarc.users.home";
     
-    private static final Logger LOG = Logger.getLogger(PasConfiguration.class.getName());
+    private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
 
     private String homePath;
     private File configHome;
@@ -61,7 +61,7 @@ public final class PasConfiguration {
     /** read only configuration */
     private final Configuration config;
 
-    PasConfiguration(Map<String, String> environment) throws IOException {
+    AppConfiguration(Map<String, String> environment) throws IOException {
         this.environment = environment;
         this.config = new CompositeConfiguration();
         init((CompositeConfiguration) config);
@@ -121,8 +121,8 @@ public final class PasConfiguration {
             cc.addConfiguration(external);
             try {
                 // bundled default configurations
-                Enumeration<URL> resources = PasConfiguration.class.getClassLoader()
-                        .getResources("cz/incad/pas/editor/server/config/paseditor.properties");
+                Enumeration<URL> resources = AppConfiguration.class.getClassLoader()
+                        .getResources("cz/incad/pas/editor/server/config/proarc.properties");
                 for (URL resource; resources.hasMoreElements(); ) {
                     resource = resources.nextElement();
                     LOG.log(Level.FINE, "classpath config: {0}", resource);

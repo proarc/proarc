@@ -28,7 +28,7 @@ import com.yourmediashelf.fedora.client.response.ModifyDatastreamResponse;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
-import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.config.AppConfiguration;
 import cz.incad.pas.editor.server.fedora.FoxmlUtils.ControlGroup;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
@@ -62,7 +62,7 @@ public final class RemoteStorage {
         this.client = client;
     }
 
-    public static RemoteStorage getInstance(PasConfiguration conf) throws IOException {
+    public static RemoteStorage getInstance(AppConfiguration conf) throws IOException {
         if (INSTANCE == null) {
             INSTANCE = new RemoteStorage(new FedoraClient(new FedoraCredentials(
                     conf.getFedoraUrl(), conf.getFedoraUsername(), conf.getFedoraPassword())));

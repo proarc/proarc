@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.server.user;
 
-import cz.incad.pas.editor.server.config.PasConfiguration;
+import cz.incad.pas.editor.server.config.AppConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -40,11 +40,11 @@ public final class UserUtil {
 
     private static UserManager MANGER = null;
 
-    public static UserManager createUserManagerMemoryImpl(PasConfiguration config) {
+    public static UserManager createUserManagerMemoryImpl(AppConfiguration config) {
         return UserManagerMemoryImpl.getInstance(config);
     }
 
-    public static UserManager createUserManagerPostgressImpl(PasConfiguration config, DataSource source) throws IOException {
+    public static UserManager createUserManagerPostgressImpl(AppConfiguration config, DataSource source) throws IOException {
         return new UserManagerSql(source, config.getDefaultUsersHome());
     }
 

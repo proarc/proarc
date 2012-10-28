@@ -17,9 +17,9 @@
 package cz.incad.pas.editor.server.rest;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
-import cz.incad.pas.editor.server.config.PasConfiguration;
-import cz.incad.pas.editor.server.config.PasConfigurationException;
-import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.incad.pas.editor.server.config.AppConfigurationException;
+import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.PageView;
 import cz.incad.pas.editor.server.fedora.PageView.Item;
@@ -98,7 +98,7 @@ public class ImportResource {
     // XXX inject with guice
     private final UserManager userManager;
     private final ImportBatchManager importManager;
-    private final PasConfiguration pasConfig;
+    private final AppConfiguration appConfig;
 
     private final SecurityContext securityCtx;
     private final UserProfile user;
@@ -112,10 +112,10 @@ public class ImportResource {
             @Context UriInfo uriInfo,
             @Context HttpServletRequest httpRequest
             /*UserManager userManager*/
-            ) throws PasConfigurationException {
+            ) throws AppConfigurationException {
 
-        this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
-        this.importManager = ImportBatchManager.getInstance(pasConfig);
+        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        this.importManager = ImportBatchManager.getInstance(appConfig);
         this.securityCtx = securityCtx;
         this.userManager = UserUtil.getDefaultManger(); // XXX replace with injection
         Principal userPrincipal = securityCtx.getUserPrincipal();
@@ -244,7 +244,7 @@ public class ImportResource {
         }
         if (state == ImportBatch.State.INGESTING) {
             // ingest
-            batch = new FedoraImport(RemoteStorage.getInstance(pasConfig), importManager)
+            batch = new FedoraImport(RemoteStorage.getInstance(appConfig), importManager)
                     .importBatch(batch, user.getUserName(), session.asFedoraLog());
         }
         return new SmartGwtResponse<ImportBatch>(batch);

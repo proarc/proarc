@@ -17,8 +17,8 @@
 package cz.incad.pas.editor.server.user;
 
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
-import cz.incad.pas.editor.server.config.PasConfiguration;
-import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,7 +38,7 @@ public class UserManagerMemoryImplTest {
 
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder();
-    private PasConfiguration config;
+    private AppConfiguration config;
 
     public UserManagerMemoryImplTest() {
     }
@@ -53,8 +53,8 @@ public class UserManagerMemoryImplTest {
 
     @Before
     public void setUp() throws Exception {
-        config = PasConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
-            put(PasConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
+        config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
+            put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
         }});
     }
 

@@ -20,9 +20,9 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
-import cz.incad.pas.editor.server.config.PasConfiguration;
-import cz.incad.pas.editor.server.config.PasConfigurationException;
-import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.incad.pas.editor.server.config.AppConfigurationException;
+import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.incad.pas.editor.server.dublincore.DcUtils;
@@ -103,7 +103,7 @@ public class DigitalObjectResource {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectResource.class.getName());
 
-    private final PasConfiguration pasConfig;
+    private final AppConfiguration appConfig;
     private final MetaModelRepository metamodels = MetaModelRepository.getInstance();
     private final ImportBatchManager importManager;
     private final UserManager userManager;
@@ -118,12 +118,12 @@ public class DigitalObjectResource {
             @Context HttpHeaders httpHeaders,
             @Context UriInfo uriInfo,
             @Context HttpServletRequest httpRequest
-            ) throws PasConfigurationException {
+            ) throws AppConfigurationException {
         
         this.httpRequest = request;
         this.httpHeaders = httpHeaders;
-        this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
-        this.importManager = ImportBatchManager.getInstance(pasConfig);
+        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        this.importManager = ImportBatchManager.getInstance(appConfig);
         this.userManager = UserUtil.getDefaultManger();
 
         Principal userPrincipal = securityCtx.getUserPrincipal();
@@ -203,7 +203,7 @@ public class DigitalObjectResource {
 
         localObject.flush();
 
-        RemoteStorage fedora = RemoteStorage.getInstance(pasConfig);
+        RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
         try {
             fedora.ingest(localObject, user.getUserName(), session.asFedoraLog());
         } catch (FedoraClientException ex) {
@@ -232,7 +232,7 @@ public class DigitalObjectResource {
             @DefaultValue("false") boolean purge
             ) throws IOException, PurgeException {
 
-        RemoteStorage fedora = RemoteStorage.getInstance(pasConfig);
+        RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
         ArrayList<DigitalObject> result = new ArrayList<DigitalObject>(pids.size());
         PurgeFedoraObject service = new PurgeFedoraObject(fedora);
         if (purge) {
@@ -262,7 +262,7 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow
             ) throws FedoraClientException, IOException {
 
-        SearchView search = RemoteStorage.getInstance(pasConfig).getSearch();
+        SearchView search = RemoteStorage.getInstance(appConfig).getSearch();
         List<Item> items;
         int page = 20;
         switch (type) {
@@ -298,7 +298,7 @@ public class DigitalObjectResource {
             @QueryParam("root") String root
             ) throws FedoraClientException, IOException, DigitalObjectException {
 
-        SearchView search = RemoteStorage.getInstance(pasConfig).getSearch();
+        SearchView search = RemoteStorage.getInstance(appConfig).getSearch();
         List<Item> items;
         if (parent == null || "null".equals(parent)) {
             items = search.find(root);
@@ -326,7 +326,7 @@ public class DigitalObjectResource {
         if (parentPid.equals(memberPid)) {
             throw RestException.plainText(Status.BAD_REQUEST, "parent and pid are same!");
         }
-        RemoteStorage storage = RemoteStorage.getInstance(pasConfig);
+        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
         List<Item> memberSearch = storage.getSearch().find(memberPid);
         if (memberSearch.isEmpty()) {
             RestException.plainNotFound("pid", memberPid);
@@ -404,7 +404,7 @@ public class DigitalObjectResource {
                     .entity("invalid pid").type(MediaType.TEXT_PLAIN).build());
         }
 
-        RemoteStorage storage = RemoteStorage.getInstance(pasConfig);
+        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
         RemoteObject remote = storage.find(pid);
         ModsStreamEditor modsEditor = new ModsStreamEditor(remote);
 
@@ -438,7 +438,7 @@ public class DigitalObjectResource {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                     .entity("invalid timestamp").type(MediaType.TEXT_PLAIN).build());
         }
-        RemoteStorage storage = RemoteStorage.getInstance(pasConfig);
+        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
         RemoteObject remote = storage.find(pid);
         ModsStreamEditor modsEditor = new ModsStreamEditor(remote);
 
@@ -734,7 +734,7 @@ public class DigitalObjectResource {
             }
             fobject = new LocalStorage().load(pid, item.getFoxmlAsFile());
         } else {
-            fobject = RemoteStorage.getInstance(pasConfig).find(pid);
+            fobject = RemoteStorage.getInstance(appConfig).find(pid);
         }
         return fobject;
     }

@@ -18,9 +18,9 @@ package cz.incad.pas.editor.server.rest;
 
 import cz.incad.pas.editor.server.catalog.BibliographicCatalog;
 import cz.incad.pas.editor.server.config.CatalogConfiguration;
-import cz.incad.pas.editor.server.config.PasConfiguration;
-import cz.incad.pas.editor.server.config.PasConfigurationException;
-import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.incad.pas.editor.server.config.AppConfigurationException;
+import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,14 +53,14 @@ public class BibliographicCatalogResource {
 
     private static final Logger LOG = Logger.getLogger(BibliographicCatalogResource.class.getName());
     private final HttpHeaders httpHeaders;
-    private final PasConfiguration appConfig;
+    private final AppConfiguration appConfig;
 
     public BibliographicCatalogResource(
             @Context HttpHeaders httpHeaders
-            ) throws PasConfigurationException {
+            ) throws AppConfigurationException {
 
         this.httpHeaders = httpHeaders;
-        this.appConfig = PasConfigurationFactory.getInstance().defaultInstance();
+        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
     }
 
     @GET

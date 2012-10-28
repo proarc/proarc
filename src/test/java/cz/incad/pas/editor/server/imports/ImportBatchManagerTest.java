@@ -17,8 +17,8 @@
 package cz.incad.pas.editor.server.imports;
 
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
-import cz.incad.pas.editor.server.config.PasConfiguration;
-import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.user.UserManager;
@@ -43,7 +43,7 @@ public class ImportBatchManagerTest {
 
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder();
-    private PasConfiguration pasConf;
+    private AppConfiguration appConf;
 
     public ImportBatchManagerTest() {
     }
@@ -59,29 +59,29 @@ public class ImportBatchManagerTest {
     @Before
     public void setUp() throws Exception {
         // use temporary configuration
-        File configHome = temp.newFolder(PasConfiguration.DEFAULT_APP_HOME_NAME);
+        File configHome = temp.newFolder(AppConfiguration.DEFAULT_APP_HOME_NAME);
         Map<String, String> env = new HashMap<String, String>();
-        env.put(PasConfiguration.PROPERTY_APP_HOME, configHome.toString());
-        pasConf = PasConfigurationFactory.getInstance().create(env);
+        env.put(AppConfiguration.PROPERTY_APP_HOME, configHome.toString());
+        appConf = AppConfigurationFactory.getInstance().create(env);
 
-//        System.setProperty(PasConfiguration.ENV_APP_HOME, config.toString());
-//        pasConf = PasConfiguration.getInstance();
-//        pasConf.reload();
+//        System.setProperty(AppConfiguration.ENV_APP_HOME, config.toString());
+//        appConf = AppConfiguration.getInstance();
+//        appConf.reload();
     }
 
     @After
     public void tearDown() {
-//        System.clearProperty(PasConfiguration.ENV_APP_HOME);
-//        pasConf.reload();
+//        System.clearProperty(AppConfiguration.ENV_APP_HOME);
+//        appConf.reload();
     }
 
     @Test
     public void testSaveEmpty() {
 //        File configHome = temp.getRoot();
 //        assertNotNull(configHome);
-        ImportBatchManager ibm = new ImportBatchManager(pasConf);
+        ImportBatchManager ibm = new ImportBatchManager(appConf);
         assertEquals(0, ibm.getMap().size());
-        ImportBatchManager.save(pasConf.getConfigHome(), ibm);
+        ImportBatchManager.save(appConf.getConfigHome(), ibm);
         assertEquals(0, ibm.getMap().size());
     }
 
@@ -89,9 +89,9 @@ public class ImportBatchManagerTest {
     public void testSave() {
 //        File configHome = temp.getRoot();
 //        assertNotNull(configHome);
-        ImportBatchManager ibm = new ImportBatchManager(pasConf);
+        ImportBatchManager ibm = new ImportBatchManager(appConf);
 
-        UserManager users = UserUtil.createUserManagerMemoryImpl(pasConf);
+        UserManager users = UserUtil.createUserManagerMemoryImpl(appConf);
         UserProfile admin = users.find("admin");
         ImportBatch batch = new ImportBatch();
         batch.setDescription("description");
@@ -105,26 +105,26 @@ public class ImportBatchManagerTest {
         ibm.addItem(batch.getId(), new ImportItem("url/to/foxml3", "tiff3", "uuid:3"));
 
         assertEquals(1, ibm.getMap().size());
-//        ImportBatchManager.save(pasConf.getConfigHome(), ibm);
+//        ImportBatchManager.save(appConf.getConfigHome(), ibm);
 //        assertEquals(1, ibm.getMap().size());
 
         // XXX check XML with XMLAssert
 
         // test rewrite
-        ImportBatchManager.save(pasConf.getConfigHome(), ibm);
+        ImportBatchManager.save(appConf.getConfigHome(), ibm);
         assertEquals(1, ibm.getMap().size());
 
         // test reload
-        ImportBatchManager.load(pasConf.getConfigHome(), ibm, users);
+        ImportBatchManager.load(appConf.getConfigHome(), ibm, users);
         assertEquals(1, ibm.getMap().size());
     }
 
     @Test
     public void testLoadEmpty() {
-        ImportBatchManager ibm = new ImportBatchManager(pasConf);
+        ImportBatchManager ibm = new ImportBatchManager(appConf);
         assertEquals(0, ibm.getMap().size());
-        UserManager users = UserUtil.createUserManagerMemoryImpl(pasConf);
-        ImportBatchManager.load(pasConf.getConfigHome(), ibm, users);
+        UserManager users = UserUtil.createUserManagerMemoryImpl(appConf);
+        ImportBatchManager.load(appConf.getConfigHome(), ibm, users);
         assertEquals(0, ibm.getMap().size());
     }
 

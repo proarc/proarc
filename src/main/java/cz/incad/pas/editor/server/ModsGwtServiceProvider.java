@@ -23,9 +23,9 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.util.BiblioModsUtils;
 import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtService;
-import cz.incad.pas.editor.server.config.PasConfiguration;
-import cz.incad.pas.editor.server.config.PasConfigurationException;
-import cz.incad.pas.editor.server.config.PasConfigurationFactory;
+import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.incad.pas.editor.server.config.AppConfigurationException;
+import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.incad.pas.editor.server.dublincore.DcUtils;
@@ -55,19 +55,19 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
 
     private static final Logger LOG = Logger.getLogger(ModsGwtServiceProvider.class.getName());
 
-    private PasConfiguration pasConfig;
+    private AppConfiguration appConfig;
     private RemoteStorage repository;
 
     @Override
     public void init() throws ServletException {
         super.init();
         try {
-            this.pasConfig = PasConfigurationFactory.getInstance().defaultInstance();
-            this.repository = RemoteStorage.getInstance(pasConfig);
+            this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+            this.repository = RemoteStorage.getInstance(appConfig);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
             throw new UnavailableException("Cannot access Fedora");
-        } catch (PasConfigurationException ex) {
+        } catch (AppConfigurationException ex) {
             LOG.log(Level.SEVERE, "Invalid editor configuration.", ex);
             throw new UnavailableException("Invalid editor configuration.");
         }
