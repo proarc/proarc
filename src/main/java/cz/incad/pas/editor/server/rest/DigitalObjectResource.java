@@ -60,7 +60,10 @@ import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -254,6 +257,7 @@ public class DigitalObjectResource {
             @DefaultValue(SearchType.DEFAULT)
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM) SearchType type,
             @QueryParam(DigitalObjectResourceApi.SEARCH_PID_PARAM) List<String> pids,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM) String phrase,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM) String queryIdentifier,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM) String queryLabel,
@@ -281,6 +285,10 @@ public class DigitalObjectResource {
                 items = search.findPhrase(phrase);
                 page = 1;
                 break;
+            case PARENT:
+                items = searchParent(batchId, pids, search);
+                page = 1;
+                break;
             default:
                 items = search.findLastCreated(startRow, queryModel);
         }
@@ -288,6 +296,25 @@ public class DigitalObjectResource {
         int endRow = startRow + count - 1;
         int total = count == 0 ? startRow : endRow + page;
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
+    }
+
+    private List<Item> searchParent(Integer batchId, List<String> pids, SearchView search)
+            throws IOException, FedoraClientException {
+        
+        if (batchId != null) {
+            List<ImportBatch> batches = importManager.find(null, batchId, null);
+            if (batches.isEmpty()) {
+                return Collections.emptyList();
+            } else {
+                String parentPid = batches.get(0).getParentPid();
+                return search.find(parentPid);
+            }
+        } else {
+            if (pids == null || pids.size() != 1) {
+                throw RestException.plainText(Status.BAD_REQUEST, "parent search requires single pid parameter");
+            }
+            return search.findReferrers(pids.get(0));
+        }
     }
 
     @GET
@@ -300,49 +327,140 @@ public class DigitalObjectResource {
 
         SearchView search = RemoteStorage.getInstance(appConfig).getSearch();
         List<Item> items;
+        String parentPid;
         if (parent == null || "null".equals(parent)) {
             items = search.find(root);
+            parentPid = root;
         } else {
             items = search.findSortedChildren(parent);
+            parentPid = parent;
         }
-        int count = items.size();
-        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, count - 1, count, items);
+        for (Item item : items) {
+            item.setParentPid(parentPid);
+        }
+        return new SmartGwtResponse<Item>(items);
     }
 
+    /**
+     * Adds new object members. Members that already exists remain untouched.
+     * 
+     * @param parentPid PID of parent object
+     * @param toAddPids list of PIDs to add; cannot contain parent PID
+     * @return list of added members
+     */
     @POST
     @Path("members")
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Item> addMember(
+    public SmartGwtResponse<Item> addMembers(
             @FormParam("parent") String parentPid,
-            @FormParam("pid") String memberPid
+            @FormParam("pid") List<String> toAddPids
             ) throws IOException, FedoraClientException, DigitalObjectException {
 
         if (parentPid == null) {
             throw RestException.plainNotFound("parent", null);
         }
-        if (memberPid == null) {
+        if (toAddPids == null || toAddPids.isEmpty()) {
             throw RestException.plainNotFound("pid", null);
         }
-        if (parentPid.equals(memberPid)) {
+        if (toAddPids.contains(parentPid)) {
             throw RestException.plainText(Status.BAD_REQUEST, "parent and pid are same!");
         }
-        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
-        List<Item> memberSearch = storage.getSearch().find(memberPid);
-        if (memberSearch.isEmpty()) {
-            RestException.plainNotFound("pid", memberPid);
+
+        HashSet<String> toAddPidSet = new HashSet<String>(toAddPids);
+        if (toAddPidSet.isEmpty()) {
+            return new SmartGwtResponse<Item>(Collections.<Item>emptyList());
         }
+
+        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
+        // fetch PID[] -> Item[]
+        List<Item> memberSearch = storage.getSearch().find(toAddPids);
+        HashMap<String, Item> memberSearchMap = new HashMap<String, Item>(memberSearch.size());
+        for (Item item : memberSearch) {
+            memberSearchMap.put(item.getPid(), item);
+        }
+
+        // check if fetched items corresponds to queried pids
+        if (memberSearch.size() != toAddPidSet.size()) {
+            ArrayList<String> memberSearchAsPids = new ArrayList<String>(memberSearch.size());
+            for (Item item : memberSearch) {
+                memberSearchAsPids.add(item.getPid());
+            }
+            toAddPidSet.removeAll(memberSearchAsPids);
+            throw RestException.plainNotFound("pid", toAddPidSet.toString());
+        }
+        // load current members
         RemoteObject remote = storage.find(parentPid);
         RelationEditor editor = new RelationEditor(remote);
         List<String> members = editor.getMembers();
-        if (!members.contains(memberPid)) {
-            members.add(memberPid);
+        // add new members
+        ArrayList<Item> added = new ArrayList<Item>();
+        for (String addPid : toAddPids) {
+            if (!members.contains(addPid)) {
+                members.add(addPid);
+                Item item = memberSearchMap.get(addPid);
+                if (item == null) {
+                    throw RestException.plainNotFound("pid", toAddPidSet.toString());
+                }
+                item.setParentPid(parentPid);
+                added.add(item);
+            }
+        }
+        // write if any change
+        if (!added.isEmpty()) {
+            editor.setMembers(members);
+            editor.write(editor.getLastModified(), session.asFedoraLog());
+            remote.flush();
+        }
+        return new SmartGwtResponse<Item>(added);
+    }
+
+    /**
+     * Deletes object members from digital object.
+     * @param parentPid digital object ID
+     * @param toRemovePids member IDs to remove
+     * @return list of removed IDs
+     */
+    @DELETE
+    @Path("members")
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Item> deleteMembers(
+            @QueryParam("parent") String parentPid,
+            @QueryParam("pid") List<String> toRemovePids
+            ) throws IOException, DigitalObjectException {
+
+        if (parentPid == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing parent parameter!");
+        }
+        if (toRemovePids == null || toRemovePids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing pid parameter!");
+        }
+        if (toRemovePids.contains(parentPid)) {
+            throw RestException.plainText(Status.BAD_REQUEST, "parent and pid are same!");
+        }
+
+        HashSet<String> toRemovePidSet = new HashSet<String>(toRemovePids);
+        if (toRemovePidSet.isEmpty()) {
+            return new SmartGwtResponse<Item>(Collections.<Item>emptyList());
+        }
+
+        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
+        RemoteObject remote = storage.find(parentPid);
+        RelationEditor editor = new RelationEditor(remote);
+        List<String> members = editor.getMembers();
+        if (members.removeAll(toRemovePidSet)) {
             editor.setMembers(members);
             editor.write(editor.getLastModified(), session.asFedoraLog());
             remote.flush();
         }
 
-        int count = memberSearch.size();
-        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, count - 1, count, memberSearch);
+        ArrayList<Item> removed = new ArrayList<Item>(toRemovePidSet.size());
+        for (String removePid : toRemovePidSet) {
+            Item item = new Item(removePid);
+            item.setParentPid(parentPid);
+            removed.add(item);
+        }
+
+        return new SmartGwtResponse<Item>(removed);
     }
     
     @GET

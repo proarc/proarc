@@ -333,6 +333,15 @@ public final class SearchView {
         private String state;
         private String created;
         private String modified;
+        /** Parent PID. Optional for some queries */
+        private String parent;
+
+        public Item() {
+        }
+
+        public Item(String pid) {
+            this.pid = pid;
+        }
 
         public String getCreated() {
             return created;
@@ -389,6 +398,15 @@ public final class SearchView {
         public void setState(String state) {
             this.state = state;
         }
+
+        public String getParentPid() {
+            return parent;
+        }
+
+        public void setParentPid(String parentPid) {
+            this.parent = parentPid;
+        }
+
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)

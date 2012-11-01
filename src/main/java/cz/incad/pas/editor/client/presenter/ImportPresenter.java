@@ -443,7 +443,7 @@ public class ImportPresenter {
                     i18n.ImportWizard_SelectParentStep_Description_Title());
             this.wizard = wizard;
             BatchRecord batch = ImportPresenter.this.getImportContext().getBatch();
-            widget.hide();
+            widget.getUI().hide();
             loadBatch(batch.getId(), new Runnable() {
 
                 @Override
@@ -458,7 +458,7 @@ public class ImportPresenter {
             BatchRecord batch = ImportPresenter.this.getImportContext().getBatch();
             if (batch != null && batch.getId() != null) {
                 widget.setHandler(this);
-                widget.setDataSource(ImportPresenter.this.getImportContext().getParentPid());
+                widget.setImport(batch.getId());
             }
             canStep();
         }
@@ -469,7 +469,7 @@ public class ImportPresenter {
             String parentPid = batch != null ? batch.getParentPid() : null;
             wizard.setCanStepBack(batchId != null);
             wizard.setCanStepForward(batchId != null && parentPid != null);
-            widget.setVisible(batch != null);
+            widget.getUI().setVisible(batch != null);
         }
 
         @Override
@@ -530,7 +530,7 @@ public class ImportPresenter {
             if (widget == null) {
                 widget = new ImportParentChooser(i18n);
             }
-            return widget;
+            return widget.getUI();
         }
 
         @Override

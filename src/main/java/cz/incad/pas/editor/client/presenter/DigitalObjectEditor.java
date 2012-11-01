@@ -39,6 +39,7 @@ import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
+import cz.incad.pas.editor.client.widget.DigitalObjectParentEditor;
 import cz.incad.pas.editor.client.widget.TextEditor;
 
 /**
@@ -60,6 +61,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private TextEditor ocrEditor;
     private TextEditor noteEditor;
     private ModsFullEditor modsEditor;
+    private DigitalObjectParentEditor parentEditor;
 
     public DigitalObjectEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -149,11 +151,14 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 i18n.ImportBatchItemEditor_TabOcr_Title(), Type.OCR, i18n);
         DigitalObjectEditAction noteEditAction = new DigitalObjectEditAction(
                 i18n.ImportBatchItemEditor_TabNote_Title(), Type.NOTE, i18n);
+        DigitalObjectEditAction parentEditAction = new DigitalObjectEditAction(
+                i18n.DigitalObjectEditor_ParentAction_Title(), Type.PARENT, i18n);
         ToolStrip t = Actions.createToolStrip();
         t.addMember(Actions.asIconButton(refreshAction, this));
         t.addMember(Actions.asIconButton(modsEditAction, this));
         t.addMember(Actions.asIconButton(ocrEditAction, this));
         t.addMember(Actions.asIconButton(noteEditAction, this));
+        t.addMember(Actions.asIconButton(parentEditAction, this));
         return t;
     }
 
@@ -172,6 +177,10 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             case MODS:
                 title = i18n.ImportBatchItemEditor_TabMods_Title();
                 deditor = modsEditor = (modsEditor != null) ? modsEditor : new ModsFullEditor(i18n);
+                break;
+            case PARENT:
+                title = i18n.DigitalObjectEditor_ParentEditor_Title();
+                deditor = parentEditor = (parentEditor != null) ? parentEditor : new DigitalObjectParentEditor(i18n);
                 break;
         }
         editorTitle = ClientUtils.format("<b>%s</b>", title);
@@ -192,7 +201,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
      * Supported editors.
      */
     public enum Type {
-        NOTE, OCR, MODS
+        NOTE, OCR, MODS, PARENT
     }
 
 }

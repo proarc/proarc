@@ -16,6 +16,8 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
@@ -24,13 +26,14 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
+import com.smartgwt.client.util.BooleanCallback;
 
 /**
+ * Data provider for member relations of digital objects.
  *
  * @author Jan Pokorsky
  */
@@ -38,6 +41,16 @@ public class RelationDataSource extends RestDataSource {
 
     public static final String ID = "RelationDataSource";
 
+    /**
+     * Synthetic record ID to support TreeGrid. Format: {@code PID['|'PID]*}.
+     * @see #transformResponse
+     */
+    public static final String FIELD_ID = "id";
+    /**
+     * Synthetic parent record ID to support TreeGrid.
+     * @see #transformResponse
+     */
+    public static final String FIELD_PARENTID = "parentId";
     public static final String FIELD_PID = "pid";
     public static final String FIELD_PARENT = "parent";
     public static final String FIELD_ROOT = "root";
@@ -54,13 +67,18 @@ public class RelationDataSource extends RestDataSource {
         setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_DIGOBJECT_CHILDREN);
 
+        DataSourceField recorId = new DataSourceField(FIELD_ID, FieldType.TEXT);
+        recorId.setPrimaryKey(true);
+        recorId.setHidden(true);
+        DataSourceField parentId = new DataSourceField(FIELD_PARENTID, FieldType.TEXT);
+        parentId.setForeignKey(ID + '.' + FIELD_ID);
+        parentId.setRequired(true);
+        parentId.setHidden(true);
+
         DataSourceField pid = new DataSourceField(FIELD_PID, FieldType.TEXT);
-        pid.setPrimaryKey(true);
         pid.setRequired(true);
 
         DataSourceField parent = new DataSourceField(FIELD_PARENT, FieldType.TEXT);
-        parent.setForeignKey(ID + '.' + FIELD_PID);
-        parent.setRequired(true);
 
         DataSourceField root = new DataSourceField(FIELD_ROOT, FieldType.TEXT);
         root.setHidden(true);
@@ -73,30 +91,151 @@ public class RelationDataSource extends RestDataSource {
         DataSourceDateTimeField modified = new DataSourceDateTimeField(FIELD_MODIFIED);
         modified.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
-        setFields(pid, parent, label, model, created, modified, owner);
+        setFields(recorId, parentId, pid, parent, label, model, created, modified, owner);
         setTitleField(FIELD_LABEL);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
+        setOperationBindings(
+                RestConfig.createAddOperation(),
+                RestConfig.createDeleteOperation());
         
     }
 
+    /**
+     * Sets {@code pid} and {@code parent} parameters to the fetch request
+     * as TreeGrid passes only primary key and parent ID.
+     */
     @Override
-    protected void transformResponse(DSResponse response, DSRequest request, Object data) {
-        if (response.getStatus() == RPCResponse.STATUS_SUCCESS
-                && request.getOperationType() == DSOperationType.FETCH) {
-            // fill parent fields
-            String parent = request.getCriteria().getAttribute(FIELD_PARENT);
-            for (Record record : response.getData()) {
-                record.setAttribute(FIELD_PARENT, parent);
+    protected Object transformRequest(DSRequest dsRequest) {
+        if (dsRequest.getOperationType() == DSOperationType.FETCH) {
+            // criteria can be queried just in case of FETCH!
+            Criteria c = dsRequest.getCriteria();
+            String parentId = c.getAttribute(FIELD_PARENTID);
+            if (parentId != null) {
+                Record selection = dsRequest.getAttributeAsRecord("parentNode");
+                String parentPid = selection.getAttribute(FIELD_PID);
+                c.addCriteria(FIELD_PARENT, parentPid);
             }
         }
+        return super.transformRequest(dsRequest);
+    }
+
+    /**
+     * Sets synthetic ID and parent ID to each response record
+     * in order to comply with DataSource policy of single primary key.
+     *
+     * <p>For fetch it reads request criteria to get parent ID.
+     * <br>For other operations it uses request attribute to get parent ID.
+     */
+    @Override
+    protected void transformResponse(DSResponse response, DSRequest request, Object data) {
         super.transformResponse(response, request, data);
+        if (RestConfig.isStatusOk(response)) {
+            String parentId = null;
+            if (request.getOperationType() == DSOperationType.FETCH) {
+                // criteria can be queried just in case of FETCH!
+                parentId = request.getCriteria().getAttribute(FIELD_PARENTID);
+            }
+            if (parentId == null) {
+                parentId = request.getAttribute(FIELD_PARENTID);
+            }
+            for (Record record : response.getData()) {
+                String pid = record.getAttribute(FIELD_PID);
+                String recordId = parentId == null ? pid : parentId + '|' + pid;
+                record.setAttribute(FIELD_ID, recordId);
+                record.setAttribute(FIELD_PARENTID, parentId);
+            }
+        }
     }
 
     public static RelationDataSource getInstance() {
         RelationDataSource ds = (RelationDataSource) DataSource.get(ID);
         ds = ds != null ? ds : new RelationDataSource();
         return ds;
+    }
+
+    public void addChild(String parentId, String parentPid, String pid, final BooleanCallback call) {
+        if (pid == null || pid.isEmpty()) {
+            throw new IllegalArgumentException("Missing PID!");
+        }
+        if (parentPid == null || parentPid.isEmpty()) {
+            throw new IllegalArgumentException("Missing parent PID!");
+        }
+
+        DSRequest dsRequest = new DSRequest();
+        // set parent ID to request to build synthetic ID later in transformResponse
+        dsRequest.setAttribute(FIELD_PARENTID, parentId);
+
+        Record update = new Record();
+        update.setAttribute(RelationDataSource.FIELD_PARENT, parentPid);
+        update.setAttribute(RelationDataSource.FIELD_PID, pid);
+        addData(update, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (!RestConfig.isStatusOk(response)) {
+                    call.execute(false);
+                    return;
+                }
+                call.execute(true);
+            }
+        }, dsRequest);
+    }
+
+    public void removeChild(String parentId, String parentPid, String pid, final BooleanCallback call) {
+        if (pid == null || pid.isEmpty()) {
+            throw new IllegalArgumentException("Missing PID!");
+        }
+        if (parentPid == null || parentPid.isEmpty()) {
+            throw new IllegalArgumentException("Missing parent PID!");
+        }
+
+        Record update = new Record();
+        update.setAttribute(RelationDataSource.FIELD_PARENT, parentPid);
+        update.setAttribute(RelationDataSource.FIELD_PID, pid);
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setData(update);
+        // set parent ID to request to build synthetic ID later in transformResponse
+        dsRequest.setAttribute(FIELD_PARENTID, parentId);
+        removeData(update, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (!RestConfig.isStatusOk(response)) {
+                    call.execute(false);
+                    return;
+                }
+                call.execute(true);
+            }
+        }, dsRequest);
+    }
+
+    public void moveChild(final String pid,
+            final String oldParentId, final String oldParentPid,
+            final String parentId, final String parentPid,
+            final BooleanCallback call) {
+
+        final RelationDataSource ds = RelationDataSource.getInstance();
+        BooleanCallback toAdd = new BooleanCallback() {
+
+            @Override
+            public void execute(Boolean value) {
+                if (value != null && value) {
+                    if (parentPid != null) {
+                        ds.addChild(parentId, parentPid, pid, call);
+                    } else {
+                        call.execute(value);
+                    }
+                } else {
+                    call.execute(value);
+                }
+            }
+        };
+        if (oldParentPid != null) {
+            ds.removeChild(oldParentId, oldParentPid, pid, toAdd);
+        } else {
+            toAdd.execute(Boolean.TRUE);
+        }
     }
 
 }

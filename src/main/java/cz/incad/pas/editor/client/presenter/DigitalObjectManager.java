@@ -70,6 +70,7 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction ocrEditAction;
     private DigitalObjectEditAction noteEditAction;
     private DigitalObjectEditAction modsEditAction;
+    private DigitalObjectEditAction parentEditAction;
     private boolean initialized;
 
     public DigitalObjectManager(ClientMessages i18n) {
@@ -132,6 +133,8 @@ public final class DigitalObjectManager {
                 i18n.ImportBatchItemEditor_TabNote_Title(), DigitalObjectEditor.Type.NOTE, i18n);
         modsEditAction = new DigitalObjectEditAction(
                 i18n.ImportBatchItemEditor_TabMods_Title(), DigitalObjectEditor.Type.MODS, i18n);
+        parentEditAction = new DigitalObjectEditAction(
+                i18n.DigitalObjectEditor_ParentAction_Title(), DigitalObjectEditor.Type.PARENT, i18n);
     }
     
     /**
@@ -157,6 +160,7 @@ public final class DigitalObjectManager {
         toolbar.addMember(Actions.asIconButton(modsEditAction, source));
         toolbar.addMember(Actions.asIconButton(ocrEditAction, source));
         toolbar.addMember(Actions.asIconButton(noteEditAction, source));
+        toolbar.addMember(Actions.asIconButton(parentEditAction, source));
         toolbar.addSeparator();
         toolbar.addMember(Actions.asIconButton(foxmlAction, source));
         toolbar.addMember(btnExport);
@@ -167,6 +171,7 @@ public final class DigitalObjectManager {
         menu.addItem(Actions.asMenuItem(modsEditAction, source));
         menu.addItem(Actions.asMenuItem(ocrEditAction, source));
         menu.addItem(Actions.asMenuItem(noteEditAction, source));
+        menu.addItem(Actions.asMenuItem(parentEditAction, source));
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(foxmlAction, source, true));
         menu.addItem(new MenuItemSeparator());

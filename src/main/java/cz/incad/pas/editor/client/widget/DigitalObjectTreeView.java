@@ -82,7 +82,13 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
 //        model.setOptionDataSource(MetaModelDataSource.getInstance());
 //        model.setValueField(MetaModelDataSource.FIELD_PID);
 //        model.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
+        TreeGridField id = new TreeGridField(RelationDataSource.FIELD_ID);
+        id.setHidden(true);
+        TreeGridField parentId = new TreeGridField(RelationDataSource.FIELD_PARENTID);
+        parentId.setHidden(true);
         treeGrid.setFields(
+                id,
+                parentId,
                 new TreeGridField(RelationDataSource.FIELD_LABEL,
                         i18n.DigitalObjectSearchView_ListHeaderLabel_Title()),
                 model,

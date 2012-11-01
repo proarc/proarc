@@ -342,7 +342,7 @@ public final class DigitalObjectCreator {
                     i18n.DigitalObjectCreator_SelectParentStep_Description_Title());
 
             editor.setHandler(this);
-            editor.setDataSource(getContext().getParentPid());
+            editor.setDigitalObject(getContext().getPid());
             onParentSelectionUpdated();
         }
 
@@ -361,7 +361,7 @@ public final class DigitalObjectCreator {
             }
             if (step == StepKind.FORWARD) {
                 if (parentPid != null) {
-                    addMember(wc.getPid(), parentPid, new BooleanCallback() {
+                    addMember(wc.getPid(), new BooleanCallback() {
 
                         @Override
                         public void execute(Boolean value) {
@@ -378,33 +378,23 @@ public final class DigitalObjectCreator {
             return true;
         }
 
-        private void addMember(String memberPid, final String parentPid, final BooleanCallback call) {
-            RelationDataSource dsBatch = RelationDataSource.getInstance();
-            DSRequest dsRequest = new DSRequest();
-            Record update = new Record();
-            update.setAttribute(RelationDataSource.FIELD_PID, memberPid);
-            update.setAttribute(RelationDataSource.FIELD_PARENT, parentPid);
-            dsBatch.addData(update, new DSCallback() {
-
-                @Override
-                public void execute(DSResponse response, Object rawData, DSRequest request) {
-                    if (response.getStatus() != RPCResponse.STATUS_SUCCESS) {
-                        call.execute(false);
-                        return;
-                    }
-                    call.execute(true);
-                }
-            }, dsRequest);
+        private void addMember(String memberPid, final BooleanCallback call) {
+            RelationDataSource ds = RelationDataSource.getInstance();
+            Record oldParent = editor.getOldParent();
+            Record newParent = editor.getSelectedParent();
+            String parentPid = editor.getSelectedParentPid();
+            String oldParentPid = editor.getOldParentPid();
+            String oldParentId = oldParent == null ? null : oldParent.getAttribute(RelationDataSource.FIELD_ID);
+            String parentId = parentPid == null ? null : newParent.getAttribute(RelationDataSource.FIELD_ID);
+            ds.moveChild(memberPid, oldParentId, oldParentPid, parentId, parentPid, call);
         }
 
         @Override
         public Canvas asWidget() {
             if (editor == null) {
                 editor = new ImportParentChooser(i18n);
-//                editor = new VLayout();
-//                editor.setContents("ImportParentChooser");
             }
-            return editor;
+            return editor.getUI();
         }
 
         @Override
