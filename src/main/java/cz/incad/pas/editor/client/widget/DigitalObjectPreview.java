@@ -24,6 +24,8 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Image;
 import com.smartgwt.client.types.Alignment;
+import com.smartgwt.client.types.Cursor;
+import com.smartgwt.client.types.DragAppearance;
 import com.smartgwt.client.types.HeaderControls;
 import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.util.Page;
@@ -32,6 +34,12 @@ import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Img;
 import com.smartgwt.client.widgets.WidgetCanvas;
 import com.smartgwt.client.widgets.Window;
+import com.smartgwt.client.widgets.events.DragMoveEvent;
+import com.smartgwt.client.widgets.events.DragMoveHandler;
+import com.smartgwt.client.widgets.events.DragStartEvent;
+import com.smartgwt.client.widgets.events.DragStartHandler;
+import com.smartgwt.client.widgets.events.DragStopEvent;
+import com.smartgwt.client.widgets.events.DragStopHandler;
 import com.smartgwt.client.widgets.events.DrawEvent;
 import com.smartgwt.client.widgets.events.DrawHandler;
 import com.smartgwt.client.widgets.events.ResizedEvent;
@@ -197,6 +205,51 @@ public final class DigitalObjectPreview {
         imageWindow.focus();
         windowLoadTask.loadImage(url);
         imageWindow.show();
+    }
+
+    /**
+     * Scrolls container by dragging the image.
+     * @param container image container
+     * @param image image
+     */
+    private static void addContainerMoveListener(final Layout container, final Img image) {
+        final int[] lastX = { 0 };
+        final int[] lastY = { 0 };
+        final Cursor[] cursor = new Cursor[1];
+        image.setCanDrag(Boolean.TRUE);
+        image.setDragAppearance(DragAppearance.NONE);
+        image.addDragStartHandler(new DragStartHandler() {
+
+            @Override
+            public void onDragStart(DragStartEvent event) {
+                lastX[0] = event.getX();
+                lastY[0] = event.getY();
+                cursor[0] = image.getCursor();
+                image.setCursor(Cursor.MOVE);
+                ClientUtils.fine(LOG, "dragStart [%s, %s]", lastX[0], lastY[0]);
+            }
+        });
+        image.addDragMoveHandler(new DragMoveHandler() {
+
+            @Override
+            public void onDragMove(DragMoveEvent event) {
+                int dx = lastX[0] - event.getX();
+                int dy = lastY[0] - event.getY();
+                lastX[0] = event.getX();
+                lastY[0] = event.getY();
+                container.scrollBy(-2 * dx, -2 * dy);
+                ClientUtils.fine(LOG, "dragMove: delta[%s, %s], new position[%s, %s]", dx, dy, lastX[0], lastY[0]);
+            }
+        });
+        image.addDragStopHandler(new DragStopHandler() {
+
+            @Override
+            public void onDragStop(DragStopEvent event) {
+                image.setCursor(cursor[0]);
+                ClientUtils.fine(LOG, "dragStop");
+            }
+        });
+
     }
 
     private static final class Zoom {
@@ -369,6 +422,7 @@ public final class DigitalObjectPreview {
             int scrollLeft = (int) (imgContainer.getWidth() * scrollHorizontal);
             int scrollTop = (int) (imgContainer.getHeight() * scrollVertical);
             imgContainer.scrollTo(scrollLeft, scrollTop);
+            addContainerMoveListener(imgContainer, img);
             if (focus) {
                 img.focus();
             }
