@@ -67,7 +67,9 @@ public final class ClientUtils {
      * @param args arguments referenced by the format specifiers
      */
     public static void log(Logger logger, Level level, String format, Object... args) {
-        logger.log(level, format(format, args));
+        if (logger.isLoggable(level)) {
+            logger.log(level, format(format, args));
+        }
     }
 
     /** Info {@link #log(java.util.logging.Logger, java.util.logging.Level, java.lang.String, java.lang.Object[]) log}. */
