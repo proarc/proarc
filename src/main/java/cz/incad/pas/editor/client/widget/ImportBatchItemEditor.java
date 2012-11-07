@@ -104,7 +104,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private final TabSet tabSet;
     private DynamicFormTab[] dfTabs;
     private final TileGrid thumbViewer;
-    private final DigitalObjectPreview digitalObjectPreview;
+    private final MediaEditor digitalObjectPreview;
     private boolean selectThumbInProgress = false;
     private boolean selectListInProgress = false;
     private boolean selectTabInProgress = false;
@@ -166,9 +166,12 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
         addMember(editorThumbToolbarLayout);
 
-        digitalObjectPreview = new DigitalObjectPreview(i18n);
-        digitalObjectPreview.addBackgroundListeners(thumbViewer);
-        Canvas previewLayout = digitalObjectPreview.asCanvas();
+        digitalObjectPreview = new MediaEditor(i18n);
+        digitalObjectPreview.addBackgroundColorListeners(thumbViewer);
+        ToolStrip previewToolbar = Actions.createToolStrip();
+        previewToolbar.setMembers(digitalObjectPreview.getToolbarItems());
+        VLayout previewLayout = new VLayout();
+        previewLayout.setMembers(previewToolbar, digitalObjectPreview.getUI());
         previewLayout.setWidth("40%");
         previewLayout.setHeight100();
 //        previewLayout.setShowResizeBar(true);
@@ -293,8 +296,9 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
             @Override
             public void onRecordClick(RecordClickEvent event) {
+                Record record = grid.anySelected() ? event.getRecord() : null;
                 // always preview last clicked record
-                previewItem(event.getRecord());
+                previewItem(record);
             }
         });
         return grid;
@@ -312,7 +316,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batchRecord.getId());
         batchItemGrid.invalidateCache();
         thumbViewer.invalidateCache();
-        digitalObjectPreview.selectPreviewField(null);
+        previewItem(null);
         dfTabs[tabSet.getSelectedTabNumber()].onShow();
 
         batchItemGrid.fetchData(criteria, new DSCallback() {
@@ -607,8 +611,16 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     }
 
     private void previewItem(Record r) {
-        String preview = r == null ? null : r.getAttribute(ImportBatchItemDataSource.FIELD_PREVIEW);
-        digitalObjectPreview.selectPreviewField(preview);
+        String pid = (r == null) ? null : r.getAttribute(ImportBatchItemDataSource.FIELD_PID);
+        Canvas preview = digitalObjectPreview.getUI();
+        if (pid != null) {
+            digitalObjectPreview.edit(pid, batchRecord.getId(), null);
+            preview.show();
+            preview.getParentElement().enable();
+        } else {
+            preview.hide();
+            preview.getParentElement().disable();
+        }
     }
 
     private void selectTab(Tab newTab) {

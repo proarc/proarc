@@ -40,6 +40,7 @@ import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
 import cz.incad.pas.editor.client.widget.DigitalObjectParentEditor;
+import cz.incad.pas.editor.client.widget.MediaEditor;
 import cz.incad.pas.editor.client.widget.TextEditor;
 
 /**
@@ -62,6 +63,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private TextEditor noteEditor;
     private ModsFullEditor modsEditor;
     private DigitalObjectParentEditor parentEditor;
+    private MediaEditor mediaEditor;
 
     public DigitalObjectEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -153,12 +155,17 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 i18n.ImportBatchItemEditor_TabNote_Title(), Type.NOTE, i18n);
         DigitalObjectEditAction parentEditAction = new DigitalObjectEditAction(
                 i18n.DigitalObjectEditor_ParentAction_Title(), Type.PARENT, i18n);
+        DigitalObjectEditAction mediaEditAction = new DigitalObjectEditAction(
+                i18n.DigitalObjectEditor_MediaAction_Title(),
+                i18n.DigitalObjectEditor_MediaAction_Hint(),
+                Type.MEDIA);
         ToolStrip t = Actions.createToolStrip();
         t.addMember(Actions.asIconButton(refreshAction, this));
         t.addMember(Actions.asIconButton(modsEditAction, this));
         t.addMember(Actions.asIconButton(ocrEditAction, this));
         t.addMember(Actions.asIconButton(noteEditAction, this));
         t.addMember(Actions.asIconButton(parentEditAction, this));
+        t.addMember(Actions.asIconButton(mediaEditAction, this));
         return t;
     }
 
@@ -173,6 +180,10 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             case NOTE:
                 title = i18n.ImportBatchItemEditor_TabNote_Title();
                 deditor = noteEditor = (noteEditor != null) ? noteEditor : TextEditor.note(i18n);
+                break;
+            case MEDIA:
+                title = i18n.DigitalObjectEditor_MediaEditor_Title();
+                deditor = mediaEditor = (mediaEditor != null) ? mediaEditor : new MediaEditor(i18n);
                 break;
             case MODS:
                 title = i18n.ImportBatchItemEditor_TabMods_Title();
@@ -201,7 +212,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
      * Supported editors.
      */
     public enum Type {
-        NOTE, OCR, MODS, PARENT
+        NOTE, OCR, MEDIA, MODS, PARENT
     }
 
 }
