@@ -42,6 +42,7 @@ import cz.incad.pas.editor.client.widget.DatastreamEditor;
 import cz.incad.pas.editor.client.widget.DigitalObjectParentEditor;
 import cz.incad.pas.editor.client.widget.MediaEditor;
 import cz.incad.pas.editor.client.widget.TextEditor;
+import java.util.HashMap;
 
 /**
  * Edits digital object data streams.
@@ -55,15 +56,9 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private final Label lblHeader;
     private final ToolStrip toolbar;
     private final VLayout editorContainer;
-    private DatastreamEditor editor;
+    private EditorDescriptor currentEditor;
     private Record selection;
-    private String editorTitle;
-    private Canvas[] customToolbar = {};
-    private TextEditor ocrEditor;
-    private TextEditor noteEditor;
-    private ModsFullEditor modsEditor;
-    private DigitalObjectParentEditor parentEditor;
-    private MediaEditor mediaEditor;
+    private HashMap<Type, EditorDescriptor> editorCache = new HashMap<Type, EditorDescriptor>();
 
     public DigitalObjectEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -113,12 +108,14 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             }
         });
 
-        editor = createDatastreamEditor(type);
-        updateToolbar(editor);
+        EditorDescriptor previousEditor = currentEditor;
+        currentEditor = getDatastreamEditor(type);
+        updateToolbar(previousEditor, currentEditor);
     }
 
     private void edit(String pid, MetaModelRecord mr) {
-        setDesctiption(selection, mr);
+        setDesctiption(currentEditor.getTitle(), selection, mr);
+        DatastreamEditor editor = currentEditor.getEditor();
         editor.edit(pid, null, mr);
         editorContainer.setMembers(editor.getUI());
         editorContainer.show();
@@ -126,7 +123,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
 
     @Override
     public void refresh() {
-        Refreshable r = editor.getCapability(Refreshable.class);
+        Refreshable r = currentEditor.getEditor().getCapability(Refreshable.class);
         if (r != null) {
             r.refresh();
         }
@@ -137,9 +134,11 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         return new Record[] { selection };
     }
 
-    private void updateToolbar(DatastreamEditor editor) {
-        toolbar.removeMembers(customToolbar);
-        customToolbar = editor.getToolbarItems();
+    private void updateToolbar(EditorDescriptor oldEditor, EditorDescriptor newEditor) {
+        if (oldEditor != null) {
+            toolbar.removeMembers(oldEditor.getToolbarItems());
+        }
+        Canvas[] customToolbar = newEditor.getToolbarItems();
         for (Canvas item : customToolbar) {
             toolbar.addMember(item);
         }
@@ -169,36 +168,42 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         return t;
     }
 
-    private DatastreamEditor createDatastreamEditor(Type type) {
+    private EditorDescriptor getDatastreamEditor(Type type) {
+        EditorDescriptor desc = editorCache.get(type);
+        if (desc != null) {
+            return desc;
+        }
         DatastreamEditor deditor = null;
         String title = "";
         switch (type) {
             case OCR:
                 title = i18n.ImportBatchItemEditor_TabOcr_Title();
-                deditor = ocrEditor = (ocrEditor != null) ? ocrEditor : TextEditor.ocr(i18n);
+                deditor = TextEditor.ocr(i18n);
                 break;
             case NOTE:
                 title = i18n.ImportBatchItemEditor_TabNote_Title();
-                deditor = noteEditor = (noteEditor != null) ? noteEditor : TextEditor.note(i18n);
+                deditor = TextEditor.note(i18n);
                 break;
             case MEDIA:
                 title = i18n.DigitalObjectEditor_MediaEditor_Title();
-                deditor = mediaEditor = (mediaEditor != null) ? mediaEditor : new MediaEditor(i18n);
+                deditor = new MediaEditor(i18n);
                 break;
             case MODS:
                 title = i18n.ImportBatchItemEditor_TabMods_Title();
-                deditor = modsEditor = (modsEditor != null) ? modsEditor : new ModsFullEditor(i18n);
+                deditor = new ModsFullEditor(i18n);
                 break;
             case PARENT:
                 title = i18n.DigitalObjectEditor_ParentEditor_Title();
-                deditor = parentEditor = (parentEditor != null) ? parentEditor : new DigitalObjectParentEditor(i18n);
+                deditor = new DigitalObjectParentEditor(i18n);
                 break;
         }
-        editorTitle = ClientUtils.format("<b>%s</b>", title);
-        return deditor;
+        title = ClientUtils.format("<b>%s</b>", title);
+        desc = new EditorDescriptor(deditor, title);
+        editorCache.put(type, desc);
+        return desc;
     }
 
-    private void setDesctiption(Record r, MetaModelRecord mr) {
+    private void setDesctiption(String editorTitle, Record r, MetaModelRecord mr) {
         // Editor Name - Model - Label
         String label = r.getAttribute(SearchDataSource.FIELD_LABEL);
         String modelId = r.getAttribute(SearchDataSource.FIELD_MODEL);
@@ -213,6 +218,33 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
      */
     public enum Type {
         NOTE, OCR, MEDIA, MODS, PARENT
+    }
+
+    /** Holds already created editor end its toolbar */
+    private static final class EditorDescriptor {
+
+        private final DatastreamEditor editor;
+        private final Canvas[] toolbarItems;
+        private final String title;
+
+        EditorDescriptor(DatastreamEditor editor, String title) {
+            this.editor = editor;
+            toolbarItems = editor.getToolbarItems();
+            this.title = title;
+        }
+
+        public DatastreamEditor getEditor() {
+            return editor;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public Canvas[] getToolbarItems() {
+            return toolbarItems;
+        }
+
     }
 
 }
