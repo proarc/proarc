@@ -24,6 +24,7 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.util.HashMap;
 
 /**
@@ -34,13 +35,13 @@ public final class SearchDataSource extends RestDataSource {
 
     public static final String ID = "SearchDataSource";
 
-    public static final String FIELD_PID = "pid";
-    public static final String FIELD_MODEL = "model";
-    public static final String FIELD_OWNER = "owner";
-    public static final String FIELD_LABEL = "label";
-    public static final String FIELD_STATE = "state";
-    public static final String FIELD_CREATED = "created";
-    public static final String FIELD_MODIFIED = "modified";
+    public static final String FIELD_PID = DigitalObjectResourceApi.MEMBERS_ITEM_PID;
+    public static final String FIELD_MODEL = DigitalObjectResourceApi.MEMBERS_ITEM_MODEL;
+    public static final String FIELD_OWNER = DigitalObjectResourceApi.MEMBERS_ITEM_OWNER;
+    public static final String FIELD_LABEL = DigitalObjectResourceApi.MEMBERS_ITEM_LABEL;
+    public static final String FIELD_STATE = DigitalObjectResourceApi.MEMBERS_ITEM_STATE;
+    public static final String FIELD_CREATED = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED;
+    public static final String FIELD_MODIFIED = DigitalObjectResourceApi.MEMBERS_ITEM_MODIFIED;
 
     public SearchDataSource() {
         setID(ID);

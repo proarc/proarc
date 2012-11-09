@@ -22,6 +22,7 @@ package cz.incad.pas.editor.shared.rest;
  */
 public final class DigitalObjectResourceApi {
 
+    // resource /object
     public static final String PATH = "object";
 
     public static final String DIGITALOBJECT_PID = "pid";
@@ -32,17 +33,6 @@ public final class DigitalObjectResourceApi {
     public static final String DELETE_HIERARCHY_PARAM = "hierarchy";
     public static final String DELETE_PID_PARAM = DIGITALOBJECT_PID;
     public static final String DELETE_PURGE_PARAM = "purge";
-
-    public static final String METAMODEL_PATH = "metamodel";
-    public static final String METAMODEL_PID_PARAM = "pid";
-    public static final String METAMODEL_ROOT_PARAM = "root";
-    public static final String METAMODEL_LEAF_PARAM = "leaf";
-    public static final String METAMODEL_DISPLAYNAME_PARAM = "displayName";
-    public static final String METAMODEL_MODSCUSTOMEDITORID_PARAM = "editorId";
-    /**
-     * @see DatastreamEditorType
-     */
-    public static final String METAMODEL_DATASTREAMEDITOR_PARAM = "dataStreamEditor";
 
     public static final String SEARCH_PATH = "search";
     public static final String SEARCH_OWNER_PARAM = "owner";
@@ -55,6 +45,31 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_QUERY_MODEL_PARAM = "queryModel";
     public static final String SEARCH_QUERY_TITLE_PARAM = "queryTitle";
     public static final String SEARCH_TYPE_PARAM = "type";
+
+    // resource /object/member
+    public static final String MEMBERS_PATH = "member";
+    public static final String MEMBERS_ITEM_PID = "pid";
+    public static final String MEMBERS_ITEM_MODEL = "model";
+    public static final String MEMBERS_ITEM_OWNER = "owner";
+    public static final String MEMBERS_ITEM_LABEL = "label";
+    public static final String MEMBERS_ITEM_STATE = "state";
+    public static final String MEMBERS_ITEM_CREATED = "created";
+    public static final String MEMBERS_ITEM_MODIFIED = "modified";
+    public static final String MEMBERS_ITEM_PARENT = "parent";
+
+    public static final String MEMBERS_ROOT_PARAM = "root";
+
+    // resource /object/metamodel
+    public static final String METAMODEL_PATH = "metamodel";
+    public static final String METAMODEL_PID_PARAM = "pid";
+    public static final String METAMODEL_ROOT_PARAM = "root";
+    public static final String METAMODEL_LEAF_PARAM = "leaf";
+    public static final String METAMODEL_DISPLAYNAME_PARAM = "displayName";
+    public static final String METAMODEL_MODSCUSTOMEDITORID_PARAM = "editorId";
+    /**
+     * @see DatastreamEditorType
+     */
+    public static final String METAMODEL_DATASTREAMEDITOR_PARAM = "dataStreamEditor";
 
     public enum SearchType {
         

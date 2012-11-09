@@ -43,7 +43,7 @@ public final class RestConfig {
     public static final String URL_IMPORT_BATCH =  URL_SCAN_IMPORT + "/batch";
     public static final String URL_IMPORT_BATCH_ITEM =  URL_IMPORT_BATCH + "/item";
     public static final String URL_DIGOBJECT =  path(URL_ROOT, DigitalObjectResourceApi.PATH);
-    public static final String URL_DIGOBJECT_CHILDREN =  URL_DIGOBJECT + "/members";
+    public static final String URL_DIGOBJECT_CHILDREN =  path(URL_DIGOBJECT, DigitalObjectResourceApi.MEMBERS_PATH);
     public static final String URL_DIGOBJECT_DC =  URL_DIGOBJECT + "/dc";
     public static final String URL_DIGOBJECT_DISSEMINATION =  URL_DIGOBJECT + "/dissemination";
     public static final String URL_DIGOBJECT_FULL =  URL_DIGOBJECT + "/full";

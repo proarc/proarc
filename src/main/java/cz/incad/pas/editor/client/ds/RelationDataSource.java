@@ -31,6 +31,7 @@ import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.BooleanCallback;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 
 /**
  * Data provider for member relations of digital objects.
@@ -51,15 +52,15 @@ public class RelationDataSource extends RestDataSource {
      * @see #transformResponse
      */
     public static final String FIELD_PARENTID = "parentId";
-    public static final String FIELD_PID = "pid";
-    public static final String FIELD_PARENT = "parent";
-    public static final String FIELD_ROOT = "root";
-    public static final String FIELD_MODEL = "model";
-    public static final String FIELD_OWNER = "owner";
-    public static final String FIELD_LABEL = "label";
-    public static final String FIELD_STATE = "state";
-    public static final String FIELD_CREATED = "created";
-    public static final String FIELD_MODIFIED = "modified";
+    public static final String FIELD_PID = DigitalObjectResourceApi.MEMBERS_ITEM_PID;
+    public static final String FIELD_PARENT = DigitalObjectResourceApi.MEMBERS_ITEM_PARENT;
+    public static final String FIELD_ROOT = DigitalObjectResourceApi.MEMBERS_ROOT_PARAM;
+    public static final String FIELD_MODEL = DigitalObjectResourceApi.MEMBERS_ITEM_MODEL;
+    public static final String FIELD_OWNER = DigitalObjectResourceApi.MEMBERS_ITEM_OWNER;
+    public static final String FIELD_LABEL = DigitalObjectResourceApi.MEMBERS_ITEM_LABEL;
+    public static final String FIELD_STATE = DigitalObjectResourceApi.MEMBERS_ITEM_STATE;
+    public static final String FIELD_CREATED = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED;
+    public static final String FIELD_MODIFIED = DigitalObjectResourceApi.MEMBERS_ITEM_MODIFIED;
 
     public RelationDataSource() {
         setID(ID);

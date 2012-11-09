@@ -322,11 +322,11 @@ public class DigitalObjectResource {
     }
 
     @GET
-    @Path("members")
+    @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Item> findMembers(
-            @QueryParam("parent") String parent,
-            @QueryParam("root") String root
+            @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parent,
+            @QueryParam(DigitalObjectResourceApi.MEMBERS_ROOT_PARAM) String root
             ) throws FedoraClientException, IOException, DigitalObjectException {
 
         SearchView search = RemoteStorage.getInstance(appConfig).getSearch();
@@ -353,18 +353,18 @@ public class DigitalObjectResource {
      * @return list of added members
      */
     @POST
-    @Path("members")
+    @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Item> addMembers(
-            @FormParam("parent") String parentPid,
-            @FormParam("pid") List<String> toAddPids
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toAddPids
             ) throws IOException, FedoraClientException, DigitalObjectException {
 
         if (parentPid == null) {
-            throw RestException.plainNotFound("parent", null);
+            throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT, null);
         }
         if (toAddPids == null || toAddPids.isEmpty()) {
-            throw RestException.plainNotFound("pid", null);
+            throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_PID, null);
         }
         if (toAddPids.contains(parentPid)) {
             throw RestException.plainText(Status.BAD_REQUEST, "parent and pid are same!");
@@ -390,7 +390,8 @@ public class DigitalObjectResource {
                 memberSearchAsPids.add(item.getPid());
             }
             toAddPidSet.removeAll(memberSearchAsPids);
-            throw RestException.plainNotFound("pid", toAddPidSet.toString());
+            throw RestException.plainNotFound(
+                    DigitalObjectResourceApi.MEMBERS_ITEM_PID, toAddPidSet.toString());
         }
         // load current members
         RemoteObject remote = storage.find(parentPid);
@@ -425,11 +426,11 @@ public class DigitalObjectResource {
      * @return list of removed IDs
      */
     @DELETE
-    @Path("members")
+    @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Item> deleteMembers(
-            @QueryParam("parent") String parentPid,
-            @QueryParam("pid") List<String> toRemovePids
+            @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
+            @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toRemovePids
             ) throws IOException, DigitalObjectException {
 
         if (parentPid == null) {
