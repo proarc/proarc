@@ -192,7 +192,7 @@ public final class DigitalObjectCreator {
             DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
             r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
             if (mods != null) {
-                r.setAttribute(BibliographyQueryDataSource.FIELD_MODS, mods);
+                r.setAttribute(DigitalObjectDataSource.FIELD_MODS, mods);
             }
             if (pid != null && !pid.isEmpty()) {
                 r.setAttribute(DigitalObjectDataSource.FIELD_PID, pid);

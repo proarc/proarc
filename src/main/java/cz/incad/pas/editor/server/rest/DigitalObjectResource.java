@@ -104,7 +104,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  *
  * @author Jan Pokorsky
  */
-@Path("/object")
+@Path(DigitalObjectResourceApi.PATH)
 public class DigitalObjectResource {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectResource.class.getName());
@@ -157,14 +157,14 @@ public class DigitalObjectResource {
     @POST
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DigitalObject> newObject(
-            @FormParam("model") String modelId,
-            @FormParam("pid") String pid,
-            @FormParam("mods") String mods
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.NEWOBJECT_MODS_PARAM) String mods
             ) throws URISyntaxException, IOException, FedoraClientException, DigitalObjectException {
 
         if (modelId == null) {
             // XXX validate modelId values
-            throw RestException.plainNotFound("model", modelId);
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, modelId);
         }
         if (pid != null) {
             boolean invalid = pid.length() < 5;
@@ -177,7 +177,8 @@ public class DigitalObjectResource {
                 invalid = true;
             }
             if (invalid) {
-                return SmartGwtResponse.<DigitalObject>asError().error("pid", "Invalid PID!").build();
+                return SmartGwtResponse.<DigitalObject>asError().error(
+                        DigitalObjectResourceApi.DIGITALOBJECT_PID, "Invalid PID!").build();
             }
         }
         mods = (mods == null || mods.isEmpty() || "null".equals(mods)) ? null : mods;
@@ -1039,7 +1040,9 @@ public class DigitalObjectResource {
 
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class DigitalObject {
+        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_PID)
         private String pid;
+        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_MODEL)
         private String model;
 
         public DigitalObject(String pid, String model) {

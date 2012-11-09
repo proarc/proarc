@@ -20,6 +20,7 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.util.logging.Logger;
 
 /**
@@ -29,8 +30,9 @@ import java.util.logging.Logger;
 public final class DigitalObjectDataSource extends RestDataSource {
 
     public static final String ID = "DigitalObjectDataSource";
-    public static final String FIELD_PID = "pid";
-    public static final String FIELD_MODEL = "model";
+    public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
+    public static final String FIELD_MODEL = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
+    public static final String FIELD_MODS = DigitalObjectResourceApi.NEWOBJECT_MODS_PARAM;
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectDataSource.class.getName());
 

@@ -22,8 +22,15 @@ package cz.incad.pas.editor.shared.rest;
  */
 public final class DigitalObjectResourceApi {
 
+    public static final String PATH = "object";
+
+    public static final String DIGITALOBJECT_PID = "pid";
+    public static final String DIGITALOBJECT_MODEL = "model";
+
+    public static final String NEWOBJECT_MODS_PARAM = "mods";
+
     public static final String DELETE_HIERARCHY_PARAM = "hierarchy";
-    public static final String DELETE_PID_PARAM = "pid";
+    public static final String DELETE_PID_PARAM = DIGITALOBJECT_PID;
     public static final String DELETE_PURGE_PARAM = "purge";
 
     public static final String METAMODEL_PATH = "metamodel";
