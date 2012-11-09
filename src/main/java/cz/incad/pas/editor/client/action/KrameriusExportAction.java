@@ -48,6 +48,12 @@ public final class KrameriusExportAction extends AbstractAction {
     }
 
     @Override
+    public boolean accept(ActionEvent event) {
+        Object[] selection = Actions.getSelection(event);
+        return selection != null && selection.length > 0 && selection instanceof Record[];
+    }
+
+    @Override
     public void performAction(ActionEvent event) {
         Record[] selection = Actions.getSelection(event);
         if (selection != null && selection.length > 0) {

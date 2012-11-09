@@ -149,7 +149,7 @@ public final class ModsStreamEditor {
     public ModsType create(String pid, String model, ModsType mods) {
         MetaModel metaModel = MetaModelRepository.getInstance().find(model);
         if (metaModel != null) {
-            String mapper = metaModel.getEditor();
+            String mapper = metaModel.getModsCustomEditor();
             Mapping mapping = new Mapping();
             Object customData = mapping.read(mods, mapper);
             mapping.update(mods, customData, mapper);

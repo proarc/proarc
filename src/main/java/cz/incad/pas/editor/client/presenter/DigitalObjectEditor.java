@@ -16,11 +16,14 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.place.shared.Place;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
+import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.data.events.DataArrivedEvent;
+import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
@@ -28,21 +31,21 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
-import cz.incad.pas.editor.client.Editor;
 import cz.incad.pas.editor.client.action.Actions;
+import cz.incad.pas.editor.client.action.Actions.ActionSource;
 import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
-import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
 import cz.incad.pas.editor.client.widget.DigitalObjectParentEditor;
 import cz.incad.pas.editor.client.widget.MediaEditor;
 import cz.incad.pas.editor.client.widget.TextEditor;
-import java.util.HashMap;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
+import java.util.EnumMap;
 
 /**
  * Edits digital object data streams.
@@ -58,16 +61,24 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private final VLayout editorContainer;
     private EditorDescriptor currentEditor;
     private Record selection;
-    private HashMap<Type, EditorDescriptor> editorCache = new HashMap<Type, EditorDescriptor>();
+    private final EnumMap<DatastreamEditorType, EditorDescriptor> editorCache;
+    private final ActionSource actionSource;
+    private ResultSet modelResultSet;
+    private String pid;
+    private String modelId;
+    private final PlaceController places;
 
-    public DigitalObjectEditor(ClientMessages i18n) {
+    public DigitalObjectEditor(ClientMessages i18n, PlaceController places) {
         this.i18n = i18n;
+        this.places = places;
+        this.editorCache = new EnumMap<DatastreamEditorType, EditorDescriptor>(DatastreamEditorType.class);
         this.widget = new VLayout();
         this.lblHeader = new Label();
         lblHeader.setAutoHeight();
         lblHeader.setPadding(4);
         lblHeader.setStyleName("pasWizardTitle");
-        this.toolbar = createToolbar();
+        this.actionSource = new ActionSource(this);
+        this.toolbar = createToolbar(actionSource);
         this.editorContainer = new VLayout();
         editorContainer.setWidth100();
         editorContainer.setHeight100();
@@ -80,45 +91,63 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         return widget;
     }
 
-    public void edit(Type type, Record selection) {
+    public void edit(DatastreamEditorType type, Record selection) {
         this.selection = selection;
-        final String pid = selection.getAttribute(SearchDataSource.FIELD_PID);
-        final String modelId = selection.getAttribute(SearchDataSource.FIELD_MODEL);
+        pid = selection.getAttribute(SearchDataSource.FIELD_PID);
+        modelId = selection.getAttribute(SearchDataSource.FIELD_MODEL);
 
         editorContainer.hide();
         if (type == null) {
             // this should occur just in case someone breakes URL in browser.
             SC.warn("Missing or invalid editor type!");
-            Editor.getInstance().getEditorWorkFlow().getPlaceController().goTo(Place.NOWHERE);
+            places.goTo(Place.NOWHERE);
             return ;
         }
 
-        MetaModelDataSource.getInstance().fetchData(null, new DSCallback() {
-
-            @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (RestConfig.isStatusOk(response)) {
-                    MetaModelRecord mr = MetaModelRecord.get(
-                            response.getDataAsRecordList().find(MetaModelDataSource.FIELD_PID, modelId));
-                    if (mr == null) {
-                        throw new IllegalStateException("Invalid model ID: " + modelId);
-                    }
-                    edit(pid, mr);
-                }
-            }
-        });
+        initModels();
 
         EditorDescriptor previousEditor = currentEditor;
         currentEditor = getDatastreamEditor(type);
         updateToolbar(previousEditor, currentEditor);
+        if (modelResultSet.lengthIsKnown()) {
+            edit(pid, getModel(modelResultSet, modelId));
+        }
     }
 
-    private void edit(String pid, MetaModelRecord mr) {
+    private void initModels() {
+        if (modelResultSet == null) {
+            modelResultSet = MetaModelDataSource.getModels();
+            modelResultSet.addDataArrivedHandler(new DataArrivedHandler() {
+
+                @Override
+                public void onDataArrived(DataArrivedEvent event) {
+                    edit(pid, getModel(modelResultSet, modelId));
+                }
+            });
+        }
+    }
+
+    private static MetaModelRecord getModel(ResultSet rs, String modelId) {
+        MetaModelRecord m = MetaModelRecord.get(rs.findByKey(modelId));
+        if (m == null) {
+            throw new IllegalStateException("Invalid model ID: " + modelId);
+        }
+        return m;
+    }
+
+    private void edit(final String pid, final MetaModelRecord mr) {
         setDesctiption(currentEditor.getTitle(), selection, mr);
-        DatastreamEditor editor = currentEditor.getEditor();
-        editor.edit(pid, null, mr);
-        editorContainer.setMembers(editor.getUI());
-        editorContainer.show();
+        actionSource.fireEvent();
+        final DatastreamEditor editor = currentEditor.getEditor();
+        Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+
+            @Override
+            public void execute() {
+                editor.edit(pid, null, mr);
+                editorContainer.setMembers(editor.getUI());
+                editorContainer.show();
+            }
+        });
     }
 
     @Override
@@ -131,7 +160,8 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
 
     @Override
     public Record[] getSelection() {
-        return new Record[] { selection };
+        return MetaModelDataSource.addModelObjectField(
+                SearchDataSource.FIELD_MODEL, new Record[] { selection });
     }
 
     private void updateToolbar(EditorDescriptor oldEditor, EditorDescriptor newEditor) {
@@ -144,31 +174,31 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         }
     }
 
-    private ToolStrip createToolbar() {
+    private ToolStrip createToolbar(ActionSource source) {
         RefreshAction refreshAction = new RefreshAction(i18n);
         DigitalObjectEditAction modsEditAction = new DigitalObjectEditAction(
-                i18n.ImportBatchItemEditor_TabMods_Title(), Type.MODS, i18n);
+                i18n.ImportBatchItemEditor_TabMods_Title(), DatastreamEditorType.MODS, i18n);
         DigitalObjectEditAction ocrEditAction = new DigitalObjectEditAction(
-                i18n.ImportBatchItemEditor_TabOcr_Title(), Type.OCR, i18n);
+                i18n.ImportBatchItemEditor_TabOcr_Title(), DatastreamEditorType.OCR, i18n);
         DigitalObjectEditAction noteEditAction = new DigitalObjectEditAction(
-                i18n.ImportBatchItemEditor_TabNote_Title(), Type.NOTE, i18n);
+                i18n.ImportBatchItemEditor_TabNote_Title(), DatastreamEditorType.NOTE, i18n);
         DigitalObjectEditAction parentEditAction = new DigitalObjectEditAction(
-                i18n.DigitalObjectEditor_ParentAction_Title(), Type.PARENT, i18n);
+                i18n.DigitalObjectEditor_ParentAction_Title(), DatastreamEditorType.PARENT, i18n);
         DigitalObjectEditAction mediaEditAction = new DigitalObjectEditAction(
                 i18n.DigitalObjectEditor_MediaAction_Title(),
                 i18n.DigitalObjectEditor_MediaAction_Hint(),
-                Type.MEDIA);
+                DatastreamEditorType.MEDIA);
         ToolStrip t = Actions.createToolStrip();
-        t.addMember(Actions.asIconButton(refreshAction, this));
-        t.addMember(Actions.asIconButton(modsEditAction, this));
-        t.addMember(Actions.asIconButton(ocrEditAction, this));
-        t.addMember(Actions.asIconButton(noteEditAction, this));
-        t.addMember(Actions.asIconButton(parentEditAction, this));
-        t.addMember(Actions.asIconButton(mediaEditAction, this));
+        t.addMember(Actions.asIconButton(refreshAction, source));
+        t.addMember(Actions.asIconButton(modsEditAction, source));
+        t.addMember(Actions.asIconButton(noteEditAction, source));
+        t.addMember(Actions.asIconButton(parentEditAction, source));
+        t.addMember(Actions.asIconButton(mediaEditAction, source));
+        t.addMember(Actions.asIconButton(ocrEditAction, source));
         return t;
     }
 
-    private EditorDescriptor getDatastreamEditor(Type type) {
+    private EditorDescriptor getDatastreamEditor(DatastreamEditorType type) {
         EditorDescriptor desc = editorCache.get(type);
         if (desc != null) {
             return desc;
@@ -208,19 +238,11 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         String label = r.getAttribute(SearchDataSource.FIELD_LABEL);
         String modelId = r.getAttribute(SearchDataSource.FIELD_MODEL);
         String model = mr == null ? modelId : mr.getDisplayName();
-        String pid = r.getAttribute(SearchDataSource.FIELD_PID);
         String content = ClientUtils.format("%s - %s: %s", editorTitle, model, label);
         lblHeader.setContents(content);
     }
 
-    /**
-     * Supported editors.
-     */
-    public enum Type {
-        NOTE, OCR, MEDIA, MODS, PARENT
-    }
-
-    /** Holds already created editor end its toolbar */
+    /** Holds already created editor and its toolbar */
     private static final class EditorDescriptor {
 
         private final DatastreamEditor editor;

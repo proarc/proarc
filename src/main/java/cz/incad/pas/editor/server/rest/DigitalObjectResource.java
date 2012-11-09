@@ -52,6 +52,7 @@ import cz.incad.pas.editor.server.user.UserManager;
 import cz.incad.pas.editor.server.user.UserProfile;
 import cz.incad.pas.editor.server.user.UserUtil;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.io.File;
 import java.io.IOException;
@@ -62,10 +63,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -876,12 +879,42 @@ public class DigitalObjectResource {
             // for now it is read only repository
             String lang = locale.getLanguage();
             List<MetaModel> models = new ArrayList<MetaModel>();
-            models.add(new MetaModel("model:periodical", true, null, "cs".equals(lang) ? "Periodikum" : "Periodical", MetaModelDataSource.EDITOR_PERIODICAL));
-            models.add(new MetaModel("model:periodicalvolume", null, null, "cs".equals(lang) ? "Ročník" : "Periodical Volume", MetaModelDataSource.EDITOR_PERIODICAL_VOLUME));
-            models.add(new MetaModel("model:periodicalitem", null, null, "cs".equals(lang) ? "Výtisk" : "Periodical Item", MetaModelDataSource.EDITOR_PERIODICAL_ISSUE));
-            models.add(new MetaModel("model:monograph", true, null, "cs".equals(lang) ? "Monografie" : "Monograph", MetaModelDataSource.EDITOR_MONOGRAPH));
-            models.add(new MetaModel("model:monographunit", null, null, "cs".equals(lang) ? "Monografie - volná část" : "Monograph Unit", MetaModelDataSource.EDITOR_MONOGRAPH_UNIT));
-            models.add(new MetaModel("model:page", null, true, "cs".equals(lang) ? "Strana" : "Page", MetaModelDataSource.EDITOR_PAGE));
+            models.add(new MetaModel(
+                    "model:periodical", true, null,
+                    "cs".equals(lang) ? "Periodikum" : "Periodical",
+                    MetaModelDataSource.EDITOR_PERIODICAL,
+                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE)
+                    ));
+            models.add(new MetaModel(
+                    "model:periodicalvolume", null, null,
+                    "cs".equals(lang) ? "Ročník" : "Periodical Volume",
+                    MetaModelDataSource.EDITOR_PERIODICAL_VOLUME,
+                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE, DatastreamEditorType.PARENT)
+                    ));
+            models.add(new MetaModel(
+                    "model:periodicalitem", null, null,
+                    "cs".equals(lang) ? "Výtisk" : "Periodical Item",
+                    MetaModelDataSource.EDITOR_PERIODICAL_ISSUE,
+                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE, DatastreamEditorType.PARENT)
+                    ));
+            models.add(new MetaModel(
+                    "model:monograph", true, null,
+                    "cs".equals(lang) ? "Monografie" : "Monograph",
+                    MetaModelDataSource.EDITOR_MONOGRAPH,
+                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE)
+                    ));
+            models.add(new MetaModel(
+                    "model:monographunit", null, null,
+                    "cs".equals(lang) ? "Monografie - volná část" : "Monograph Unit",
+                    MetaModelDataSource.EDITOR_MONOGRAPH_UNIT,
+                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE, DatastreamEditorType.PARENT)
+                    ));
+            models.add(new MetaModel(
+                    "model:page", null, true,
+                    "cs".equals(lang) ? "Strana" : "Page",
+                    MetaModelDataSource.EDITOR_PAGE,
+                    EnumSet.allOf(DatastreamEditorType.class)
+                    ));
 
             return models;
         }
@@ -955,22 +988,27 @@ public class DigitalObjectResource {
         private Boolean leaf;
         @XmlElement(name = DigitalObjectResourceApi.METAMODEL_DISPLAYNAME_PARAM)
         private String displayName;
-        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_EDITORID_PARAM)
-        private String editor;
+        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_MODSCUSTOMEDITORID_PARAM)
+        private String modsCustomEditor;
+        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_DATASTREAMEDITOR_PARAM)
+        private EnumSet<DatastreamEditorType> dataStreamEditors;
 
         private MetaModel() {
         }
 
         public MetaModel(Object pid, Boolean root, Boolean leaf, String displayName) {
-            this(pid, root, leaf, displayName, null);
+            this(pid, root, leaf, displayName, null, null);
         }
 
-        public MetaModel(Object pid, Boolean root, Boolean leaf, String displayName, String editor) {
+        public MetaModel(Object pid, Boolean root, Boolean leaf, String displayName,
+                String modsCustomEditor, EnumSet<DatastreamEditorType> dataStreamEditors) {
+
             this.pid = pid;
             this.root = root;
             this.leaf = leaf;
             this.displayName = displayName;
-            this.editor = editor;
+            this.modsCustomEditor = modsCustomEditor;
+            this.dataStreamEditors = dataStreamEditors;
         }
 
         public String getDisplayName() {
@@ -989,8 +1027,12 @@ public class DigitalObjectResource {
             return root;
         }
 
-        public String getEditor() {
-            return editor;
+        public String getModsCustomEditor() {
+            return modsCustomEditor;
+        }
+
+        public Set<DatastreamEditorType> getDataStreamEditors() {
+            return dataStreamEditors;
         }
 
     }

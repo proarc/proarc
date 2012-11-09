@@ -21,6 +21,9 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.data.events.DataArrivedEvent;
+import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
@@ -46,6 +49,8 @@ import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * UI to show and change parent for given digital object or import batch.
@@ -64,6 +69,7 @@ public final class ImportParentChooser {
     private Record newParent;
     private Record oldParent;
     private boolean loadFailed;
+    private ResultSet modelResultSet;
     
     public ImportParentChooser(ClientMessages i18n) {
         this.i18n = i18n;
@@ -130,9 +136,30 @@ public final class ImportParentChooser {
         oldParent = null;
         newParent = null;
         loadFailed = true;
+        initModels();
         loadParentSelection(pid, batchId);
-        treeView.loadModels();
+        treeView.setModels(modelResultSet);
         foundView.onShow();
+        foundView.setModels(modelResultSet);
+    }
+
+    private void initModels() {
+        if (modelResultSet != null) {
+            return ;
+        }
+        modelResultSet = MetaModelDataSource.getModels(true);
+        modelResultSet.addDataArrivedHandler(new DataArrivedHandler() {
+
+            @Override
+            public void onDataArrived(DataArrivedEvent event) {
+                Map<?,?> valueMap = modelResultSet.getValueMap(
+                        MetaModelDataSource.FIELD_PID, MetaModelDataSource.FIELD_DISPLAY_NAME);
+                treeView.setModels(valueMap);
+                foundView.setModels(valueMap);
+                selectionForm.getField(SearchDataSource.FIELD_MODEL)
+                        .setValueMap(new LinkedHashMap<Object, Object>(valueMap));
+            }
+        });
     }
 
     /**
@@ -248,9 +275,6 @@ public final class ImportParentChooser {
         form.setTitleWidth(1); // to compute real width of titles
         TextItem model = new TextItem(SearchDataSource.FIELD_MODEL,
                 i18n.DigitalObjectSearchView_ListHeaderModel_Title());
-        model.setOptionDataSource(MetaModelDataSource.getInstance());
-        model.setValueField(MetaModelDataSource.FIELD_PID);
-        model.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
         TextItem pid = new TextItem(SearchDataSource.FIELD_PID,
                 i18n.DigitalObjectSearchView_ListHeaderPid_Title());
         TextItem label = new TextItem(SearchDataSource.FIELD_LABEL,

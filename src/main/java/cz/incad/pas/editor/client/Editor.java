@@ -443,7 +443,7 @@ public class Editor implements EntryPoint {
 
         public DigitalObjectEditor getDigitalObjectEditor() {
             if (digitalObjectEditor == null) {
-                digitalObjectEditor = new DigitalObjectEditor(i18n);
+                digitalObjectEditor = new DigitalObjectEditor(i18n, placeController);
             }
             return digitalObjectEditor;
         }

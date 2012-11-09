@@ -21,6 +21,7 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.grid.ListGridField;
@@ -35,7 +36,7 @@ import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Shows hierarchy of digital objects for the particular digital object.
@@ -49,6 +50,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
     private final ClientMessages i18n;
     private String rootPid;
     private final ToolStrip toolbar;
+    private ResultSet modelResultSet;
 
     public DigitalObjectTreeView(ClientMessages i18n) {
         this.i18n = i18n;
@@ -79,9 +81,6 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         treeGrid.setDataSource(RelationDataSource.getInstance());
         TreeGridField model = new TreeGridField(RelationDataSource.FIELD_MODEL,
                 i18n.DigitalObjectSearchView_ListHeaderModel_Title());
-//        model.setOptionDataSource(MetaModelDataSource.getInstance());
-//        model.setValueField(MetaModelDataSource.FIELD_PID);
-//        model.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
         TreeGridField id = new TreeGridField(RelationDataSource.FIELD_ID);
         id.setHidden(true);
         TreeGridField parentId = new TreeGridField(RelationDataSource.FIELD_PARENTID);
@@ -117,6 +116,9 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
     }
 
     public void setRoot(String pid) {
+        if (rootPid == null ? pid == null : rootPid.equals(pid)) {
+            return ;
+        }
         rootPid = pid;
         if (pid == null) {
             treeSelector.setData((Record[]) null);
@@ -133,39 +135,26 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         });
     }
 
-    /**
-     * workaround for broken TreeGridField.setOptionDataSource implementation.
-     * @see <a href='http://forums.smartclient.com/showpost.php?p=59004&postcount=9'>SmartGWT solution</a>
-     */
-    public void loadModels() {
-        MetaModelDataSource.getInstance().fetchData(null, new DSCallback() {
+    public void setModels(Map<?, ?> valueMap) {
+        ListGridField field = treeSelector.getField(RelationDataSource.FIELD_MODEL);
+        field.setValueMap(valueMap);
+    }
 
-            @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (RestConfig.isStatusOk(response)) {
-                    Record[] data = response.getData();
-                    ListGridField field = treeSelector.getField(RelationDataSource.FIELD_MODEL);
-                    HashMap<String, String> modelMap = new HashMap<String, String>();
-                    for (Record record : data) {
-                        MetaModelDataSource.MetaModelRecord m = new MetaModelDataSource.MetaModelRecord(record);
-                        modelMap.put(m.getId(), m.getDisplayName());
-                    }
-                    field.setValueMap(modelMap);
-                }
-            }
-        });
+    public void setModels(ResultSet rs) {
+        this.modelResultSet = rs;
     }
 
     @Override
     public void refresh() {
         treeSelector.invalidateCache();
-        loadModels();
-        setRoot(rootPid);
+        modelResultSet.invalidateCache();
+        modelResultSet.get(0);
     }
 
     @Override
     public Record[] getSelection() {
-        return treeSelector.getSelectedRecords(true);
+        return MetaModelDataSource.addModelObjectField(
+                RelationDataSource.FIELD_MODEL, treeSelector.getSelectedRecords(true));
     }
 
 }

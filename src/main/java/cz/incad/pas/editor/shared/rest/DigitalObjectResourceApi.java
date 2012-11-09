@@ -31,7 +31,11 @@ public final class DigitalObjectResourceApi {
     public static final String METAMODEL_ROOT_PARAM = "root";
     public static final String METAMODEL_LEAF_PARAM = "leaf";
     public static final String METAMODEL_DISPLAYNAME_PARAM = "displayName";
-    public static final String METAMODEL_EDITORID_PARAM = "editorId";
+    public static final String METAMODEL_MODSCUSTOMEDITORID_PARAM = "editorId";
+    /**
+     * @see DatastreamEditorType
+     */
+    public static final String METAMODEL_DATASTREAMEDITOR_PARAM = "dataStreamEditor";
 
     public static final String SEARCH_PATH = "search";
     public static final String SEARCH_OWNER_PARAM = "owner";
@@ -76,6 +80,13 @@ public final class DigitalObjectResourceApi {
             return null;
         }
 
+    }
+
+    /**
+     * Supported datastream UI editors.
+     */
+    public enum DatastreamEditorType {
+        NOTE, OCR, MEDIA, MODS, PARENT
     }
 
 }

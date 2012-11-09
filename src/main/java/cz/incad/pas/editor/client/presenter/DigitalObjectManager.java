@@ -20,6 +20,9 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.data.events.DataArrivedEvent;
+import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
@@ -34,21 +37,24 @@ import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
+import cz.incad.pas.editor.client.action.Actions.ActionSource;
 import cz.incad.pas.editor.client.action.DataStreamExportAction;
 import cz.incad.pas.editor.client.action.DeleteAction;
 import cz.incad.pas.editor.client.action.DeleteAction.Deletable;
 import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
 import cz.incad.pas.editor.client.action.FoxmlViewAction;
 import cz.incad.pas.editor.client.action.KrameriusExportAction;
-import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
+import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.widget.DigitalObjectSearchView;
 import cz.incad.pas.editor.client.widget.DigitalObjectTreeView;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The component allows to search digital objects and perform actions on
@@ -73,6 +79,7 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction parentEditAction;
     private DigitalObjectEditAction mediaEditAction;
     private boolean initialized;
+    private ResultSet modelResultSet;
 
     public DigitalObjectManager(ClientMessages i18n) {
         this.i18n = i18n;
@@ -83,29 +90,40 @@ public final class DigitalObjectManager {
 
         foundView = new DigitalObjectSearchView(i18n);
         foundView.getGrid().setSelectionType(SelectionStyle.MULTIPLE);
+        final ActionSource listSource = new ActionSource(foundView);
         foundView.getGrid().addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
             @Override
             public void onSelectionUpdated(SelectionUpdatedEvent event) {
                 final ListGridRecord[] selectedRecords = foundView.getGrid().getSelectedRecords();
-                String pid = null;
+                listSource.fireEvent();
                 if (selectedRecords != null && selectedRecords.length == 1) {
-                    pid = selectedRecords[0].getAttribute(RelationDataSource.FIELD_PID);
+                    String pid = selectedRecords[0].getAttribute(RelationDataSource.FIELD_PID);
+                    treeView.setRoot(pid);
                 }
-                treeView.setRoot(pid);
             }
         });
 
         treeView = new DigitalObjectTreeView(i18n);
         treeView.getTree().setSelectionType(SelectionStyle.MULTIPLE);
+        final ActionSource treeSource = new ActionSource(treeView);
+        treeView.getTree().addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
+
+            @Override
+            public void onSelectionUpdated(SelectionUpdatedEvent event) {
+                treeSource.fireEvent();
+            }
+        });
 
         widget.addMember(foundView.asWidget());
         widget.addMember(treeView.asWidget());
         createActions();
-        initToolbar(foundView.getToolbar(), foundView);
-        initToolbar(treeView.getToolbar(), treeView);
-        initContextMenu(foundView.getGrid().getContextMenu(), foundView);
-        initContextMenu(treeView.getTree().getContextMenu(), treeView);
+        initToolbar(foundView.getToolbar(), listSource);
+        initToolbar(treeView.getToolbar(), treeSource);
+        initContextMenu(foundView.getGrid().getContextMenu(), listSource);
+        initContextMenu(treeView.getTree().getContextMenu(), treeSource);
+        Actions.fixListGridContextMenu(foundView.getGrid());
+        Actions.fixListGridContextMenu(treeView.getTree());
     }
 
     public void init() {
@@ -113,9 +131,28 @@ public final class DigitalObjectManager {
             return ;
         }
         initialized = true;
-        treeView.loadModels();
+        initModels();
+        foundView.setModels(modelResultSet);
+        treeView.setModels(modelResultSet);
         foundView.onShow();
         treeView.setRoot(null);
+    }
+
+    private void initModels() {
+        if (modelResultSet != null) {
+            return ;
+        }
+        modelResultSet = MetaModelDataSource.getModels(true);
+        modelResultSet.addDataArrivedHandler(new DataArrivedHandler() {
+
+            @Override
+            public void onDataArrived(DataArrivedEvent event) {
+                Map valueMap = modelResultSet.getValueMap(
+                        MetaModelDataSource.FIELD_PID, MetaModelDataSource.FIELD_DISPLAY_NAME);
+                treeView.setModels(valueMap);
+                foundView.setModels(valueMap);
+            }
+        });
     }
 
     public VLayout getUI() {
@@ -129,64 +166,70 @@ public final class DigitalObjectManager {
         rawDataStreamExportAction = DataStreamExportAction.raw(i18n);
         deleteAction = new DeleteAction(new MultiRecordDeletable(), i18n);
         ocrEditAction = new DigitalObjectEditAction(
-                i18n.ImportBatchItemEditor_TabOcr_Title(), DigitalObjectEditor.Type.OCR, i18n);
+                i18n.ImportBatchItemEditor_TabOcr_Title(), DatastreamEditorType.OCR, i18n);
         noteEditAction = new DigitalObjectEditAction(
-                i18n.ImportBatchItemEditor_TabNote_Title(), DigitalObjectEditor.Type.NOTE, i18n);
+                i18n.ImportBatchItemEditor_TabNote_Title(), DatastreamEditorType.NOTE, i18n);
         modsEditAction = new DigitalObjectEditAction(
-                i18n.ImportBatchItemEditor_TabMods_Title(), DigitalObjectEditor.Type.MODS, i18n);
+                i18n.ImportBatchItemEditor_TabMods_Title(), DatastreamEditorType.MODS, i18n);
         parentEditAction = new DigitalObjectEditAction(
-                i18n.DigitalObjectEditor_ParentAction_Title(), DigitalObjectEditor.Type.PARENT, i18n);
+                i18n.DigitalObjectEditor_ParentAction_Title(), DatastreamEditorType.PARENT, i18n);
         mediaEditAction = new DigitalObjectEditAction(
                 i18n.DigitalObjectEditor_MediaAction_Title(),
                 i18n.DigitalObjectEditor_MediaAction_Hint(),
-                DigitalObjectEditor.Type.MEDIA);
+                DatastreamEditorType.MEDIA);
     }
     
     /**
      * export (Kramerius, Datastream), edit(MODS, Hierarchy), delete, view (Datastream)
      */
-    private void initToolbar(ToolStrip toolbar, Selectable<Record> source) {
+    private void initToolbar(ToolStrip toolbar, ActionSource actionSource) {
         final AbstractAction exportMenuAction = new AbstractAction(
                 i18n.ExportsAction_Title(), "[SKIN]/actions/save.png", null) {
 
+            @Override
+            public boolean accept(ActionEvent event) {
+                Object[] selection = Actions.getSelection(event);
+                return selection != null && selection.length > 0;
+            }
+            
             @Override
             public void performAction(ActionEvent event) {
                 // choose default action iff supported
             }
         };
-        IconMenuButton btnExport = Actions.asIconMenuButton(exportMenuAction, this);
+        IconMenuButton btnExport = Actions.asIconMenuButton(exportMenuAction, actionSource);
         Menu menuExport = Actions.createMenu();
-        menuExport.addItem(Actions.asMenuItem(krameriusExportAction, source));
-        menuExport.addItem(Actions.asMenuItem(fullDataStreamExportAction, source));
-        menuExport.addItem(Actions.asMenuItem(rawDataStreamExportAction, source));
+        menuExport.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(fullDataStreamExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(rawDataStreamExportAction, actionSource, false));
         btnExport.setMenu(menuExport);
 
         toolbar.addSeparator();
-        toolbar.addMember(Actions.asIconButton(modsEditAction, source));
-        toolbar.addMember(Actions.asIconButton(ocrEditAction, source));
-        toolbar.addMember(Actions.asIconButton(noteEditAction, source));
-        toolbar.addMember(Actions.asIconButton(parentEditAction, source));
-        toolbar.addMember(Actions.asIconButton(mediaEditAction, source));
+        toolbar.addMember(Actions.asIconButton(modsEditAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(noteEditAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(parentEditAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(mediaEditAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(ocrEditAction, actionSource));
         toolbar.addSeparator();
-        toolbar.addMember(Actions.asIconButton(foxmlAction, source));
+        toolbar.addMember(Actions.asIconButton(foxmlAction, actionSource));
         toolbar.addMember(btnExport);
-        toolbar.addMember(Actions.asIconButton(deleteAction, source));
+        toolbar.addMember(Actions.asIconButton(deleteAction, actionSource));
     }
 
-    private void initContextMenu(Menu menu, Selectable<Record> source) {
-        menu.addItem(Actions.asMenuItem(modsEditAction, source));
-        menu.addItem(Actions.asMenuItem(ocrEditAction, source));
-        menu.addItem(Actions.asMenuItem(noteEditAction, source));
-        menu.addItem(Actions.asMenuItem(parentEditAction, source));
-        menu.addItem(Actions.asMenuItem(mediaEditAction, source));
+    private void initContextMenu(Menu menu, ActionSource actionSource) {
+        menu.addItem(Actions.asMenuItem(modsEditAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(noteEditAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(parentEditAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(mediaEditAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(ocrEditAction, actionSource, false));
         menu.addItem(new MenuItemSeparator());
-        menu.addItem(Actions.asMenuItem(foxmlAction, source, true));
+        menu.addItem(Actions.asMenuItem(foxmlAction, actionSource, true));
         menu.addItem(new MenuItemSeparator());
-        menu.addItem(Actions.asMenuItem(krameriusExportAction, source));
-        menu.addItem(Actions.asMenuItem(fullDataStreamExportAction, source));
-        menu.addItem(Actions.asMenuItem(rawDataStreamExportAction, source));
+        menu.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(fullDataStreamExportAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(rawDataStreamExportAction, actionSource, false));
         menu.addItem(new MenuItemSeparator());
-        menu.addItem(Actions.asMenuItem(deleteAction, source, true));
+        menu.addItem(Actions.asMenuItem(deleteAction, actionSource, true));
     }
 
     /**

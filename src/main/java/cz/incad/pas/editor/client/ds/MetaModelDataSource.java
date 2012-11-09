@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.client.ds;
 
 import com.smartgwt.client.data.DataSource;
+import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.ResultSet;
@@ -24,6 +25,7 @@ import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FetchMode;
+import com.smartgwt.client.types.FieldType;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 
 /**
@@ -38,7 +40,12 @@ public class MetaModelDataSource extends RestDataSource {
     public static final String FIELD_DISPLAY_NAME = DigitalObjectResourceApi.METAMODEL_DISPLAYNAME_PARAM;
     public static final String FIELD_IS_ROOT = DigitalObjectResourceApi.METAMODEL_ROOT_PARAM;
     public static final String FIELD_IS_LEAF = DigitalObjectResourceApi.METAMODEL_LEAF_PARAM;
-    public static final String FIELD_EDITOR = DigitalObjectResourceApi.METAMODEL_EDITORID_PARAM;
+    public static final String FIELD_EDITOR = DigitalObjectResourceApi.METAMODEL_MODSCUSTOMEDITORID_PARAM;
+    public static final String FIELD_DATASTREAM_EDITORS = DigitalObjectResourceApi.METAMODEL_DATASTREAMEDITOR_PARAM;
+    /**
+     * Synthetic field holding {@link MetaModelRecord} instance.
+     */
+    public static final String FIELD_MODELOBJECT = "MetaModelRecord";
 
     public static final String EDITOR_PAGE = "cz.incad.pas.editor.client.widget.mods.PageForm";
     public static final String EDITOR_PERIODICAL = "cz.incad.pas.editor.client.widget.mods.PeriodicalForm";
@@ -66,7 +73,11 @@ public class MetaModelDataSource extends RestDataSource {
 
         DataSourceTextField editor = new DataSourceTextField(FIELD_EDITOR);
 
-        setFields(pid, displayName, isRoot, isLeaf, editor);
+        DataSourceField dataStreamEditors = new DataSourceField(FIELD_DATASTREAM_EDITORS, FieldType.ANY);
+        dataStreamEditors.setCanEdit(Boolean.FALSE);
+        dataStreamEditors.setHidden(Boolean.TRUE);
+
+        setFields(pid, displayName, isRoot, isLeaf, editor, dataStreamEditors);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
@@ -91,6 +102,21 @@ public class MetaModelDataSource extends RestDataSource {
             resultSet.get(0);
         }
         return resultSet;
+    }
+
+    /**
+     * Adds {@link MetaModelRecord} instance to each {@code record} as
+     * an {@link #FIELD_MODELOBJECT attribute}.
+     * @param modelKey model ID attribute name in records
+     * @param records records
+     * @return records with synthetic attribute
+     */
+    public static Record[] addModelObjectField(String modelKey, Record[] records) {
+        for (Record r : records) {
+            Record model = resultSet.findByKey(r.getAttribute(modelKey));
+            r.setAttribute(FIELD_MODELOBJECT, MetaModelRecord.get(model));
+        }
+        return records;
     }
 
     public static final class MetaModelRecord {
@@ -119,6 +145,16 @@ public class MetaModelDataSource extends RestDataSource {
 
         public String getDisplayName() {
             return record.getAttribute(FIELD_DISPLAY_NAME);
+        }
+
+        public boolean isSupportedDatastream(String dsEditor) {
+            String[] supportedEditors = record.getAttributeAsStringArray(FIELD_DATASTREAM_EDITORS);
+            for (String supportedEditor : supportedEditors) {
+                if (dsEditor.equals(supportedEditor)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

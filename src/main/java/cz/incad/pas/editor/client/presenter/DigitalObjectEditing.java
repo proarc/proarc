@@ -28,6 +28,7 @@ import com.smartgwt.client.data.Record;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.Editor;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 
 /**
  * Integrates digital object editor to application workflow.
@@ -65,22 +66,22 @@ public final class DigitalObjectEditing extends AbstractActivity {
 
     public static final class DigitalObjectEditorPlace extends Place {
 
-        private DigitalObjectEditor.Type editor;
+        private DatastreamEditorType editor;
         private Record selection;
 
         public DigitalObjectEditorPlace() {
         }
 
-        public DigitalObjectEditorPlace(DigitalObjectEditor.Type editor, Record selection) {
+        public DigitalObjectEditorPlace(DatastreamEditorType editor, Record selection) {
             this.editor = editor;
             this.selection = selection;
         }
 
-        public DigitalObjectEditor.Type getEditorId() {
+        public DatastreamEditorType getEditorId() {
             return editor;
         }
 
-        public void setEditorId(DigitalObjectEditor.Type editor) {
+        public void setEditorId(DatastreamEditorType editor) {
             this.editor = editor;
         }
 
@@ -103,7 +104,7 @@ public final class DigitalObjectEditing extends AbstractActivity {
                 JSONObject json = JsonTokenizer.parseObject(token);
                 if (json != null) {
                     try {
-                        place.editor = DigitalObjectEditor.Type.valueOf(JsonTokenizer.getString(json, EDITOR));
+                        place.editor = DatastreamEditorType.valueOf(JsonTokenizer.getString(json, EDITOR));
                     } catch (Exception e) {
                         // ignore invalid editor
                     }

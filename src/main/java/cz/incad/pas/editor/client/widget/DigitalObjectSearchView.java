@@ -19,6 +19,7 @@ package cz.incad.pas.editor.client.widget;
 import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SelectionType;
@@ -57,6 +58,7 @@ import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -78,6 +80,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     private final ClientMessages i18n;
     private final SmartGwtMessages i18nSmartGwt;
     private final ToolStrip toolbar;
+    private ResultSet modelResultSet;
 
     public DigitalObjectSearchView(ClientMessages i18n) {
         this.i18n = i18n;
@@ -116,9 +119,6 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
                 i18n.DigitalObjectSearchView_ListHeaderLabel_Title());
         ListGridField model = new ListGridField(SearchDataSource.FIELD_MODEL,
                 i18n.DigitalObjectSearchView_ListHeaderModel_Title());
-        model.setOptionDataSource(MetaModelDataSource.getInstance());
-        model.setValueField(MetaModelDataSource.FIELD_PID);
-        model.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
         ListGridField pid = new ListGridField(SearchDataSource.FIELD_PID,
                 i18n.DigitalObjectSearchView_ListHeaderPid_Title());
         ListGridField created = new ListGridField(SearchDataSource.FIELD_CREATED,
@@ -269,14 +269,26 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         filter();
     }
 
+    public void setModels(ResultSet rs) {
+        this.modelResultSet = rs;
+    }
+
+    public void setModels(Map<?, ?> valueMap) {
+        ListGridField field = foundGrid.getField(SearchDataSource.FIELD_MODEL);
+        field.setValueMap(valueMap);
+    }
+
     @Override
     public Record[] getSelection() {
         ListGridRecord[] selections = foundGrid.getSelectedRecords();
-        return selections;
+        return MetaModelDataSource.addModelObjectField(
+                SearchDataSource.FIELD_MODEL, selections);
     }
 
     @Override
     public void refresh() {
+        modelResultSet.invalidateCache();
+        modelResultSet.get(0);
         onShow();
     }
 

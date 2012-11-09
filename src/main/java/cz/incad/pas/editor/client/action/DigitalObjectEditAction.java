@@ -19,8 +19,10 @@ package cz.incad.pas.editor.client.action;
 import com.smartgwt.client.data.Record;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.Editor;
+import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
-import cz.incad.pas.editor.client.presenter.DigitalObjectEditor.Type;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 
 /**
  * Opens data stream editor.
@@ -31,13 +33,13 @@ import cz.incad.pas.editor.client.presenter.DigitalObjectEditor.Type;
  */
 public final class DigitalObjectEditAction extends AbstractAction {
 
-    private Type editorType;
+    private DatastreamEditorType editorType;
 
-    public DigitalObjectEditAction(String title, Type editorType, ClientMessages i18n) {
+    public DigitalObjectEditAction(String title, DatastreamEditorType editorType, ClientMessages i18n) {
         this(title, i18n.DigitalObjectEditAction_Hint(), editorType);
     }
     
-    public DigitalObjectEditAction(String title, String tooltip, Type editorType) {
+    public DigitalObjectEditAction(String title, String tooltip, DatastreamEditorType editorType) {
         super(title, "[SKIN]/actions/edit.png", tooltip);
         this.editorType = editorType;
     }
@@ -51,6 +53,21 @@ public final class DigitalObjectEditAction extends AbstractAction {
 
         DigitalObjectEditorPlace place = new DigitalObjectEditorPlace(editorType, selection[0]);
         Editor.getInstance().getEditorWorkFlow().getPlaceController().goTo(place);
+    }
+
+    @Override
+    public boolean accept(ActionEvent event) {
+        Record[] selection = Actions.getSelection(event);
+        if (selection == null || selection.length != 1) {
+            return false;
+        }
+        // check object model
+        MetaModelRecord model = (MetaModelRecord) selection[0].getAttributeAsObject(
+                MetaModelDataSource.FIELD_MODELOBJECT);
+        if (model != null) {
+            return model.isSupportedDatastream(editorType.name());
+        }
+        return false;
     }
 
 }

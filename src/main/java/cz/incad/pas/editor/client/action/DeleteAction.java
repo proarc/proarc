@@ -40,6 +40,12 @@ public final class DeleteAction extends AbstractAction {
     }
 
     @Override
+    public boolean accept(ActionEvent event) {
+        Object[] selection = Actions.getSelection(event);
+        return selection != null && selection.length > 0;
+    }
+
+    @Override
     public void performAction(ActionEvent event) {
         Object[] selection = Actions.getSelection(event);
         if (selection != null && selection.length > 0) {
