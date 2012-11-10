@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 public final class DigitalObjectDataSource extends RestDataSource {
 
     public static final String ID = "DigitalObjectDataSource";
-    public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
+    public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     public static final String FIELD_MODEL = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
     public static final String FIELD_MODS = DigitalObjectResourceApi.NEWOBJECT_MODS_PARAM;
 
