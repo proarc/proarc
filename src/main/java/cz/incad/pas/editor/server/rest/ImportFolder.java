@@ -16,21 +16,25 @@
  */
 package cz.incad.pas.editor.server.rest;
 
+import cz.incad.pas.editor.shared.rest.ImportResourceApi;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
  * @author Jan Pokorsky
  */
-@XmlRootElement(name="folder")
+@XmlRootElement(name = ImportResourceApi.IMPORT_FOLDER_ELEMENT)
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ImportFolder {
 
     private transient String name;
+    @XmlElement(name = ImportResourceApi.IMPORT_FOLDER_STATE)
     private String state;
     private transient String parent;
+    @XmlElement(name = ImportResourceApi.IMPORT_FOLDER_PATH)
     private String path;
 
     public ImportFolder() {
@@ -80,7 +84,5 @@ public class ImportFolder {
         return String.format("ImportFolder{name=%s, state=%s, parent=%s, path=%s}",
                 name, state, parent, path);
     }
-
-
 
 }

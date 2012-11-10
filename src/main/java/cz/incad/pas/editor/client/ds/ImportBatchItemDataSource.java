@@ -28,6 +28,7 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.shared.rest.ImportResourceApi;
 
 /**
  *
@@ -37,16 +38,18 @@ public final class ImportBatchItemDataSource extends RestDataSource {
 
     public static final String ID = "ImportBatchItemDataSource";
 
-    public static final String FIELD_BATCHID = "batchId";
-    public static final String FIELD_FILENAME = "filename";
-    public static final String FIELD_PID = "pid";
-    public static final String FIELD_MODEL = "model";
-    public static final String FIELD_PAGE_TYPE = "pageType";
-    public static final String FIELD_PAGE_INDEX = "pageIndex";
-    public static final String FIELD_PAGE_NUMBER = "pageNumber";
-    public static final String FIELD_TIMESTAMP = "timestamp";
-    public static final String FIELD_USER = "user";
+    public static final String FIELD_BATCHID = ImportResourceApi.BATCHITEM_BATCHID;
+    public static final String FIELD_FILENAME = ImportResourceApi.BATCHITEM_FILENAME;
+    public static final String FIELD_PID = ImportResourceApi.BATCHITEM_PID;
+    public static final String FIELD_MODEL = ImportResourceApi.BATCHITEM_MODEL;
+    public static final String FIELD_PAGE_TYPE = ImportResourceApi.BATCHITEM_PAGETYPE;
+    public static final String FIELD_PAGE_INDEX = ImportResourceApi.BATCHITEM_PAGEINDEX;
+    public static final String FIELD_PAGE_NUMBER = ImportResourceApi.BATCHITEM_PAGENUMBER;
+    public static final String FIELD_TIMESTAMP = ImportResourceApi.BATCHITEM_TIMESTAMP;
+    public static final String FIELD_USER = ImportResourceApi.BATCHITEM_USER;
+    /** synthetic field holding batchid and pid URL parameters */
     public static final String FIELD_PREVIEW = "preview";
+    /** synthetic field holding batchid and pid URL parameters */
     public static final String FIELD_THUMBNAIL = "thumbnail";
 
     public ImportBatchItemDataSource() {

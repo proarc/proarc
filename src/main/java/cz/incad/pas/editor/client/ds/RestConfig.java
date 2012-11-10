@@ -27,6 +27,7 @@ import com.smartgwt.client.types.DSProtocol;
 import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.ExportResourceApi;
+import cz.incad.pas.editor.shared.rest.ImportResourceApi;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,9 +40,10 @@ public final class RestConfig {
 
 //    public static final String URL_ROOT =  "/rest";
     public static final String URL_ROOT =  GWT.getHostPageBaseURL() + "rest";
-    public static final String URL_SCAN_IMPORT =  URL_ROOT + "/import";
-    public static final String URL_IMPORT_BATCH =  URL_SCAN_IMPORT + "/batch";
-    public static final String URL_IMPORT_BATCH_ITEM =  URL_IMPORT_BATCH + "/item";
+    public static final String URL_IMPORT = path(URL_ROOT, ImportResourceApi.PATH);
+    public static final String URL_IMPORT_FOLDER = path(URL_IMPORT, ImportResourceApi.FOLDER_PATH);
+    public static final String URL_IMPORT_BATCH = path(URL_IMPORT, ImportResourceApi.BATCH_PATH);
+    public static final String URL_IMPORT_BATCH_ITEM = path(URL_IMPORT_BATCH, ImportResourceApi.BATCHITEM_PATH);
     public static final String URL_DIGOBJECT =  path(URL_ROOT, DigitalObjectResourceApi.PATH);
     public static final String URL_DIGOBJECT_CHILDREN =  path(URL_DIGOBJECT, DigitalObjectResourceApi.MEMBERS_PATH);
     public static final String URL_DIGOBJECT_DC =  URL_DIGOBJECT + "/dc";

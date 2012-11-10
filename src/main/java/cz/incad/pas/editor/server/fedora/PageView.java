@@ -26,12 +26,14 @@ import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.custom.PageMapper;
 import cz.incad.pas.editor.server.mods.custom.PageMapper.Page;
+import cz.incad.pas.editor.shared.rest.ImportResourceApi;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
@@ -91,14 +93,23 @@ public final class PageView {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class Item {
 
+        @XmlElement(name = ImportResourceApi.BATCHITEM_BATCHID)
         private Integer batchId;
+        @XmlElement(name = ImportResourceApi.BATCHITEM_FILENAME)
         private String filename;
+        @XmlElement(name = ImportResourceApi.BATCHITEM_PID)
         private String pid;
+        @XmlElement(name = ImportResourceApi.BATCHITEM_MODEL)
         private String model;
+        @XmlElement(name = ImportResourceApi.BATCHITEM_PAGEINDEX)
         private String pageIndex;
+        @XmlElement(name = ImportResourceApi.BATCHITEM_PAGENUMBER)
         private String pageNumber;
+        @XmlElement(name = ImportResourceApi.BATCHITEM_PAGETYPE)
         private String pageType;
+        @XmlElement(name = ImportResourceApi.BATCHITEM_TIMESTAMP)
         private long timestamp;
+        @XmlElement(name = ImportResourceApi.BATCHITEM_USER)
         private String user;
 
         public Item(Integer batchId, String filename, String pid, String model,

@@ -28,15 +28,16 @@ import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.shared.rest.ImportResourceApi;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ImportTreeDataSource extends RestDataSource {
 
     public static final String FIELD_NAME = "name";
-    public static final String FIELD_PARENT = "parent";
-    public static final String FIELD_PATH = "path";
-    public static final String FIELD_STATE = "state";
+    public static final String FIELD_PARENT = ImportResourceApi.IMPORT_FOLDER_PARENT_PARAM;
+    public static final String FIELD_PATH = ImportResourceApi.IMPORT_FOLDER_PATH;
+    public static final String FIELD_STATE = ImportResourceApi.IMPORT_FOLDER_STATE;
     private static final String ID = "ImportTreeDataSource";
     private static final Map<String, String> states = new HashMap<String, String>();
 
@@ -68,7 +69,7 @@ public class ImportTreeDataSource extends RestDataSource {
         state.setValueMap(states);
 
         setFields(path, parent, name, state);
-        setDataURL(RestConfig.URL_SCAN_IMPORT);
+        setDataURL(RestConfig.URL_IMPORT_FOLDER);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
 

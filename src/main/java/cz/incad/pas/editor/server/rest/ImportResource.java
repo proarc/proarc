@@ -36,6 +36,7 @@ import cz.incad.pas.editor.server.imports.ImportProcess;
 import cz.incad.pas.editor.server.user.UserManager;
 import cz.incad.pas.editor.server.user.UserProfile;
 import cz.incad.pas.editor.server.user.UserUtil;
+import cz.incad.pas.editor.shared.rest.ImportResourceApi;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -66,30 +67,18 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 /**
- * REST resource to retrieve import folders.
+ * Resource to handle imports.
  *
- * TODO /import/ GET - lists subfolders; POST - import folder; DELETE - delete folder
+ *      /import/folder/ GET - lists subfolders; POST - import folder; DELETE - delete folder
  *      /import/batch/ GET - lists imported folders; POST - import folder
- *      /import/object/ GET - lists imported objects; POST - import folder
- * TODO /object/{pid}/ GET - read DigObjDesc:{pid, displayname, date, owner};
- *      /object/ GET - lists all DigObjDesc
- *      /object/{pid}/foxml
- *      /object/{pid}/scan
- *      /object/{pid}/preview
- *      /object/{pid}/thumb
- *      /object/{pid}/ocr
- *      /object/{pid}/metadata
- *      /object/{pid}/relations
- *      /object/metamodel/ GET - lists model:{pid, displayname, type:(TOP|LEAF)}
- *      /user/ GET list User:{id, uname, displayName}, POST - new user, DELETE - delete user, PUT - update user
- *      /user/{id}/profile GET profile:{importFolder, roles:[IMPORTER|ADMIN|...]}, PUT - update
+ *      /import/item/ GET - lists imported objects; POST - import folder
  * 
  * @author Jan Pokorsky
  * @see <a href="http://127.0.0.1:8888/Editor/rest/import">test in dev mode</a>
  * @see <a href="http://127.0.0.1:8888/Editor/rest/application.wadl">WADL in dev mode</a>
  * @see <a href="http://127.0.0.1:8888/Editor/rest/application.wadl/xsd0.xsd">XML Scema in dev mode</a>
  */
-@Path("/import")
+@Path(ImportResourceApi.PATH)
 public class ImportResource {
 
     private static final Logger LOG = Logger.getLogger(ImportResource.class.getName());
@@ -140,10 +129,11 @@ public class ImportResource {
      * @throws FileNotFoundException
      * @throws URISyntaxException
      */
+    @Path(ImportResourceApi.FOLDER_PATH)
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ImportFolder> list(
-            @QueryParam("parent") @DefaultValue("") String parent
+    public SmartGwtResponse<ImportFolder> listFolder(
+            @QueryParam(ImportResourceApi.IMPORT_FOLDER_PARENT_PARAM) @DefaultValue("") String parent
             ) throws FileNotFoundException, URISyntaxException {
 
         String parentPath = validateParentPath(parent);
@@ -176,13 +166,13 @@ public class ImportResource {
     }
 
     @POST
-    @Path("batch")
+    @Path(ImportResourceApi.BATCH_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ImportBatch> importFolder(
-            @FormParam("folderPath") @DefaultValue("") String path,
-            @FormParam("model") @DefaultValue("model:page") String model,
-            @FormParam("device") String device,
-            @FormParam("indices") @DefaultValue("true") boolean indices
+    public SmartGwtResponse<ImportBatch> newBatch(
+            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
+            @FormParam(ImportResourceApi.NEWBATCH_MODEL_PARAM) @DefaultValue("model:page") String model,
+            @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
+            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices
             ) throws URISyntaxException, IOException {
         
         LOG.log(Level.FINE, "import path: {0} as model: {1}, indices: {2}, device: {3}",
@@ -205,10 +195,10 @@ public class ImportResource {
     }
 
     @GET
-    @Path("batch")
+    @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<ImportBatch> listBatches(
-            @QueryParam("id") Integer batchId,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
             @QueryParam("_startRow") int startRow
             ) {
 
@@ -222,18 +212,19 @@ public class ImportResource {
     }
 
     @PUT
-    @Path("batch")
+    @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<ImportBatch> updateBatch(
-            @FormParam("id") Integer batchId,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
             // empty string stands for remove
-            @FormParam("parentPid") String parentPid,
-            @FormParam("state") ImportBatch.State state
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PARENTPID) String parentPid,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_STATE) ImportBatch.State state
             ) throws IOException, FedoraClientException, DigitalObjectException {
 
         ImportBatch batch = importManager.get(batchId);
         if (batch == null) {
-            throw RestException.plainNotFound("id", String.valueOf(batchId));
+            throw RestException.plainNotFound(
+                    ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
         if (parentPid != null) {
             checkBatchState(batch);
@@ -251,11 +242,11 @@ public class ImportResource {
     }
 
     @GET
-    @Path("batch/item")
+    @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCHITEM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<PageView.Item> listBatchItems(
-            @QueryParam("batchId") Integer batchId,
-            @QueryParam("pid") String pid,
+            @QueryParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
+            @QueryParam(ImportResourceApi.BATCHITEM_PID) String pid,
             @QueryParam("_startRow") int startRow
             ) throws DigitalObjectException {
 
@@ -293,16 +284,16 @@ public class ImportResource {
     }
 
     @PUT
-    @Path("batch/item")
+    @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCHITEM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<PageView.Item> updateBatchItem(
-            @FormParam("batchId") Integer batchId,
-            @FormParam("pid") String pid,
-            @FormParam("timestamp") long timestamp,
-            @FormParam("pageIndex") String pageIndex,
-            @FormParam("pageNumber") String pageNumber,
-            @FormParam("pageType") String pageType,
-            @FormParam("filename") String filename
+            @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
+            @FormParam(ImportResourceApi.BATCHITEM_PID) String pid,
+            @FormParam(ImportResourceApi.BATCHITEM_TIMESTAMP) long timestamp,
+            @FormParam(ImportResourceApi.BATCHITEM_PAGEINDEX) String pageIndex,
+            @FormParam(ImportResourceApi.BATCHITEM_PAGENUMBER) String pageNumber,
+            @FormParam(ImportResourceApi.BATCHITEM_PAGETYPE) String pageType,
+            @FormParam(ImportResourceApi.BATCHITEM_FILENAME) String filename
             ) throws IOException, DigitalObjectException {
 
         ImportItem item = null;
@@ -321,11 +312,11 @@ public class ImportResource {
     }
 
     @DELETE
-    @Path("batch/item")
+    @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCHITEM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<PageView.Item> deleteBatchItem(
-            @QueryParam("batchId") Integer batchId,
-            @QueryParam("pid") String pid
+            @QueryParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
+            @QueryParam(ImportResourceApi.BATCHITEM_PID) String pid
             ) {
 
         ImportItem item = null;
@@ -340,16 +331,6 @@ public class ImportResource {
         importManager.removeItem(batchId, pid);
         Item deletedItem = new PageView.Item(batchId, null, pid, null, null, null, null, 0, null);
         return new SmartGwtResponse<Item>(deletedItem);
-    }
-
-    private static String normalizeParam(String p) {
-        if (p != null) {
-            p = p.trim();
-            if (p.isEmpty() || "null".equals(p)) {
-                p = null;
-            }
-        }
-        return p;
     }
 
     private static String validateParentPath(String parent) {

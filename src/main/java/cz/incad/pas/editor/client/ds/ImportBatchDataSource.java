@@ -27,6 +27,7 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DateDisplayFormat;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.shared.rest.ImportResourceApi;
 import java.util.LinkedHashMap;
 
 /**
@@ -36,18 +37,18 @@ import java.util.LinkedHashMap;
 public final class ImportBatchDataSource extends RestDataSource {
 
     public static final String ID = "ImportBatchDataSource";
-    public static final String FIELD_ID = "id";
-    public static final String FIELD_PATH = "folderPath";
-    public static final String FIELD_DESCRIPTION = "description";
-    public static final String FIELD_TIMESTAMP = "timeStamp";
-    public static final String FIELD_STATE = "state";
-    public static final String FIELD_USER_ID = "userId";
-    public static final String FIELD_USER_DISPLAYNAME = "user";
-    public static final String FIELD_PARENT = "parentPid";
+    public static final String FIELD_ID = ImportResourceApi.IMPORT_BATCH_ID;
+    public static final String FIELD_PATH = ImportResourceApi.IMPORT_BATCH_FOLDER;
+    public static final String FIELD_DESCRIPTION = ImportResourceApi.IMPORT_BATCH_DESCRIPTION;
+    public static final String FIELD_TIMESTAMP = ImportResourceApi.IMPORT_BATCH_TIMESTAMP;
+    public static final String FIELD_STATE = ImportResourceApi.IMPORT_BATCH_STATE;
+    public static final String FIELD_USER_ID = ImportResourceApi.IMPORT_BATCH_USERID;
+    public static final String FIELD_USER_DISPLAYNAME = ImportResourceApi.IMPORT_BATCH_USER;
+    public static final String FIELD_PARENT = ImportResourceApi.IMPORT_BATCH_PARENTPID;
 
-    public static final String FIELD_MODEL = "model";
-    public static final String FIELD_DEVICE = "device";
-    public static final String FIELD_INDICES = "indices";
+    public static final String FIELD_MODEL = ImportResourceApi.NEWBATCH_MODEL_PARAM;
+    public static final String FIELD_DEVICE = ImportResourceApi.NEWBATCH_DEVICE_PARAM;
+    public static final String FIELD_INDICES = ImportResourceApi.NEWBATCH_INDICES_PARAM;
 
     public ImportBatchDataSource() {
         setID(ID);

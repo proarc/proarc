@@ -22,6 +22,7 @@ import cz.incad.pas.editor.server.imports.ImportProcess.ImportOptions;
 import cz.incad.pas.editor.server.user.UserManager;
 import cz.incad.pas.editor.server.user.UserProfile;
 import cz.incad.pas.editor.server.user.UserUtil;
+import cz.incad.pas.editor.shared.rest.ImportResourceApi;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -276,7 +277,7 @@ public final class ImportBatchManager {
         return map;
     }
 
-    @javax.xml.bind.annotation.XmlRootElement(name="batch")
+    @javax.xml.bind.annotation.XmlRootElement(name = ImportResourceApi.IMPORT_BATCH_ELEMENT)
     @javax.xml.bind.annotation.XmlAccessorType(XmlAccessType.FIELD)
     public static class ImportBatch {
 
@@ -284,20 +285,31 @@ public final class ImportBatchManager {
             EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED
         }
 
-        @XmlElement(required=true)
+        @XmlElement(required = true, name = ImportResourceApi.IMPORT_BATCH_ID)
         private int id;
+        @XmlElement(name = ImportResourceApi.IMPORT_BATCH_FOLDER)
         private String folderPath;
+        @XmlElement(name = ImportResourceApi.IMPORT_BATCH_DESCRIPTION)
         private String description;
+        @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PARENTPID)
         private String parentPid;
         @XmlSchemaType(name="dateTime")
+        @XmlElement(name = ImportResourceApi.IMPORT_BATCH_TIMESTAMP)
         private Date timeStamp;
+        @XmlElement(name = ImportResourceApi.IMPORT_BATCH_USERID)
         private int userId;
+        @XmlElement(name = ImportResourceApi.IMPORT_BATCH_USER)
         private String user;
+        @XmlElement(name = ImportResourceApi.IMPORT_BATCH_STATE)
         private State state;
         /** list of batch option fromString context asString be persisted*/
+        @XmlElement(name = ImportResourceApi.IMPORT_BATCH_OPTIONS)
         private String options;
+        @XmlElement(name = ImportResourceApi.IMPORT_BATCH_ESTIMATEFILECOUNT)
         private int estimateFileCount;
+        @XmlElement(name = ImportResourceApi.IMPORT_BATCH_FAILURE)
         private String failure;
+        @XmlElement(name = ImportResourceApi.IMPORT_BATCH_ITEMS)
         private List<ImportItem> items;
         private transient UserProfile userProfile;
 
