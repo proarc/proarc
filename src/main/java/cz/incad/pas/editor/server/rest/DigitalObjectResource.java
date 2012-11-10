@@ -620,11 +620,11 @@ public class DigitalObjectResource {
     }
 
     @GET
-    @Path("/preview")
+    @Path(DigitalObjectResourceApi.PREVIEW_PATH)
     @Produces("*/*")
     public Response getPreview(
-            @QueryParam("pid") String pid,
-            @QueryParam("batchId") Integer batchId
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
             ) throws IOException, DigitalObjectException {
 
         return getDissemination(pid, batchId, BinaryEditor.PREVIEW_ID);
@@ -638,11 +638,11 @@ public class DigitalObjectResource {
      * @return raw version of the archived object
      */
     @GET
-    @Path("full")
+    @Path(DigitalObjectResourceApi.FULL_PATH)
     @Produces("*/*")
     public Response getFull(
-            @QueryParam("pid") String pid,
-            @QueryParam("batchId") Integer batchId
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
             ) throws IOException, DigitalObjectException {
 
         return getDissemination(pid, batchId, BinaryEditor.FULL_ID);
@@ -656,11 +656,11 @@ public class DigitalObjectResource {
      * @return raw version of the archived object
      */
     @GET
-    @Path("raw")
+    @Path(DigitalObjectResourceApi.RAW_PATH)
     @Produces("*/*")
     public Response getRaw(
-            @QueryParam("pid") String pid,
-            @QueryParam("batchId") Integer batchId
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
             ) throws IOException, DigitalObjectException {
 
         return getDissemination(pid, batchId, BinaryEditor.RAW_ID);
@@ -676,12 +676,12 @@ public class DigitalObjectResource {
      * @throws IOException
      */
     @GET
-    @Path("/dissemination")
+    @Path(DigitalObjectResourceApi.DISSEMINATION_PATH)
     @Produces("*/*")
     public Response getDissemination(
-            @QueryParam("pid") String pid,
-            @QueryParam("batchId") Integer batchId,
-            @QueryParam("datastream") String dsId
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @QueryParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId
             ) throws IOException, DigitalObjectException {
 
         FedoraObject fobject = findFedoraObject(pid, batchId);
@@ -694,7 +694,7 @@ public class DigitalObjectResource {
             LocalObject lobject = (LocalObject) fobject;
             BinaryEditor loader = BinaryEditor.dissemination(lobject, dsId);
             if (loader == null) {
-                RestException.plainNotFound("dsId", dsId);
+                RestException.plainNotFound(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM, dsId);
             }
             File entity = loader.read();
             if (entity == null) {
@@ -732,11 +732,11 @@ public class DigitalObjectResource {
     }
 
     @GET
-    @Path("/thumb")
+    @Path(DigitalObjectResourceApi.THUMB_PATH)
     @Produces("image/*")
     public Response getThumbnail(
-            @QueryParam("pid") String pid,
-            @QueryParam("batchId") Integer batchId
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
             ) throws IOException, DigitalObjectException {
 
         return getDissemination(pid, batchId, BinaryEditor.THUMB_ID);
@@ -763,11 +763,11 @@ public class DigitalObjectResource {
     }
 
     @GET
-    @Path("/ocr")
+    @Path(DigitalObjectResourceApi.OCR_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public StringRecord getOcr(
-            @QueryParam("pid") String pid,
-            @QueryParam("batchId") Integer batchId
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
             ) throws IOException, DigitalObjectException {
 
         FedoraObject fobject = findFedoraObject(pid, batchId);
@@ -777,18 +777,18 @@ public class DigitalObjectResource {
             ocr.setBatchId(batchId);
             return ocr;
         } catch (DigitalObjectNotFoundException ex) {
-            throw RestException.plainNotFound("pid", pid);
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
     }
 
     @PUT
-    @Path("/ocr")
+    @Path(DigitalObjectResourceApi.OCR_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public StringRecord updateOcr(
-            @FormParam("pid") String pid,
-            @FormParam("batchId") Integer batchId,
-            @FormParam("timestamp") Long timestamp,
-            @FormParam("content") String content
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.STRINGRECORD_CONTENT) String content
             ) throws IOException, DigitalObjectException {
 
         if (timestamp == null) {
@@ -803,16 +803,16 @@ public class DigitalObjectResource {
             result.setBatchId(batchId);
             return result;
         } catch (DigitalObjectNotFoundException ex) {
-            throw RestException.plainNotFound("pid", pid);
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
     }
 
     @GET
-    @Path("privatenote")
+    @Path(DigitalObjectResourceApi.PRIVATENOTE_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public StringRecord getPrivateNote(
-            @QueryParam("pid") String pid,
-            @QueryParam("batchId") Integer batchId
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
             ) throws IOException, DigitalObjectException {
 
         FedoraObject fobject = findFedoraObject(pid, batchId);
@@ -822,18 +822,18 @@ public class DigitalObjectResource {
             content.setBatchId(batchId);
             return content;
         } catch (DigitalObjectNotFoundException ex) {
-            throw RestException.plainNotFound("pid", pid);
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
     }
 
     @PUT
-    @Path("privatenote")
+    @Path(DigitalObjectResourceApi.PRIVATENOTE_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public StringRecord updatePrivateNote(
-            @FormParam("pid") String pid,
-            @FormParam("batchId") Integer batchId,
-            @FormParam("timestamp") Long timestamp,
-            @FormParam("content") String content
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.STRINGRECORD_CONTENT) String content
             ) throws IOException, DigitalObjectException {
 
         if (timestamp == null) {
@@ -857,7 +857,7 @@ public class DigitalObjectResource {
         if (batchId != null) {
             ImportItem item = importManager.findItem(pid);
             if (item == null) {
-                throw RestException.plainNotFound("pid", pid);
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
             }
             if (!readonly) {
                 List<ImportBatch> batches = importManager.find(null, batchId, null);

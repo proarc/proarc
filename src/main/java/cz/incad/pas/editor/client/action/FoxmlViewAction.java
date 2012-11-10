@@ -21,6 +21,7 @@ import com.smartgwt.client.data.Record;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 
 /**
  * Displays digital object in FOXML format. Uses {@link Selectable} on
@@ -60,9 +61,9 @@ public final class FoxmlViewAction extends AbstractAction {
         }
         StringBuilder sb = new StringBuilder();
         sb.append(RestConfig.URL_DIGOBJECT_DISSEMINATION);
-        sb.append("?pid=").append(pid);
+        sb.append('?').append(DigitalObjectResourceApi.DIGITALOBJECT_PID).append('=').append(pid);
         if (batchId != null) {
-            sb.append("&batchId=").append(batchId);
+            sb.append('&').append(DigitalObjectResourceApi.BATCHID_PARAM).append('=').append(batchId);
         }
         Window.open(sb.toString(), "_blanc", "");
     }

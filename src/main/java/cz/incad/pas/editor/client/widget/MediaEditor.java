@@ -29,6 +29,7 @@ import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RestConfig;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.util.ArrayList;
 
 /**
@@ -58,9 +59,9 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
             throw new NullPointerException();
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("pid").append('=').append(pid);
+        sb.append(DigitalObjectResourceApi.DIGITALOBJECT_PID).append('=').append(pid);
         if (batchId != null) {
-            sb.append('&').append("batchId").append('=').append(batchId);
+            sb.append('&').append(DigitalObjectResourceApi.BATCHID_PARAM).append('=').append(batchId);
         }
         imgParams = sb.toString();
         String previewUrl = buildResourceUrl(RestConfig.URL_DIGOBJECT_PREVIEW, imgParams);

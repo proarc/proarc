@@ -47,19 +47,21 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT =  path(URL_ROOT, DigitalObjectResourceApi.PATH);
     public static final String URL_DIGOBJECT_CHILDREN =  path(URL_DIGOBJECT, DigitalObjectResourceApi.MEMBERS_PATH);
     public static final String URL_DIGOBJECT_DC = path(URL_DIGOBJECT, DigitalObjectResourceApi.DC_PATH);
-    public static final String URL_DIGOBJECT_DISSEMINATION =  URL_DIGOBJECT + "/dissemination";
-    public static final String URL_DIGOBJECT_FULL =  URL_DIGOBJECT + "/full";
+    public static final String URL_DIGOBJECT_DISSEMINATION = path(
+            URL_DIGOBJECT, DigitalObjectResourceApi.DISSEMINATION_PATH);
+    public static final String URL_DIGOBJECT_FULL = path(URL_DIGOBJECT, DigitalObjectResourceApi.FULL_PATH);
     public static final String URL_DIGOBJECT_MODS = path(URL_DIGOBJECT, DigitalObjectResourceApi.MODS_PATH);
     public static final String URL_DIGOBJECT_MODS_CUSTOM = path(
             URL_DIGOBJECT_MODS, DigitalObjectResourceApi.MODS_CUSTOM_PATH);
     public static final String URL_DIGOBJECT_MODS_PLAIN = path(
             URL_DIGOBJECT_MODS, DigitalObjectResourceApi.MODS_PLAIN_PATH);
-    public static final String URL_DIGOBJECT_OCR =  URL_DIGOBJECT + "/ocr";
-    public static final String URL_DIGOBJECT_PREVIEW =  URL_DIGOBJECT + "/preview";
-    public static final String URL_DIGOBJECT_PRIVATE_NOTE =  URL_DIGOBJECT + "/privatenote";
-    public static final String URL_DIGOBJECT_RAW =  URL_DIGOBJECT + "/raw";
+    public static final String URL_DIGOBJECT_OCR = path(URL_DIGOBJECT, DigitalObjectResourceApi.OCR_PATH);
+    public static final String URL_DIGOBJECT_PREVIEW = path(URL_DIGOBJECT, DigitalObjectResourceApi.PREVIEW_PATH);
+    public static final String URL_DIGOBJECT_PRIVATE_NOTE = path(
+            URL_DIGOBJECT, DigitalObjectResourceApi.PRIVATENOTE_PATH);
+    public static final String URL_DIGOBJECT_RAW = path(URL_DIGOBJECT, DigitalObjectResourceApi.RAW_PATH);
     public static final String URL_DIGOBJECT_SEARCH =  path(URL_DIGOBJECT, DigitalObjectResourceApi.SEARCH_PATH);
-    public static final String URL_DIGOBJECT_THUMBNAIL =  URL_DIGOBJECT + "/thumb";
+    public static final String URL_DIGOBJECT_THUMBNAIL = path(URL_DIGOBJECT, DigitalObjectResourceApi.THUMB_PATH);
     public static final String URL_DIGOBJECT_METAMODEL =  path(
             URL_DIGOBJECT, DigitalObjectResourceApi.METAMODEL_PATH);
     public static final String URL_LOCALIZATION =  path(URL_ROOT, LocalizationResourceApi.PATH);

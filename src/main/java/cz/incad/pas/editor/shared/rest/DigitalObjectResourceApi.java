@@ -104,6 +104,28 @@ public final class DigitalObjectResourceApi {
     public static final String STRINGRECORD_ELEMENT = "record";
     public static final String STRINGRECORD_CONTENT = "content";
 
+    /** Resource /object/dissemination */
+    public static final String DISSEMINATION_PATH = "dissemination";
+    public static final String DISSEMINATION_DATASTREAM = "datastream";
+
+    /** Resource /object/full */
+    public static final String FULL_PATH = "full";
+
+    /** Resource /object/ocr */
+    public static final String OCR_PATH = "ocr";
+
+    /** Resource /object/preview */
+    public static final String PREVIEW_PATH = "preview";
+
+    /** Resource /object/privatenote */
+    public static final String PRIVATENOTE_PATH = "privatenote";
+
+    /** Resource /object/raw */
+    public static final String RAW_PATH = "raw";
+
+    /** Resource /object/thumb */
+    public static final String THUMB_PATH = "thumb";
+
     public enum SearchType {
         
         LAST_CREATED(SearchType.DEFAULT),
