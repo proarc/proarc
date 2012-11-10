@@ -29,6 +29,7 @@ import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.JSOHelper;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -44,24 +45,28 @@ public class DcRecordDataSource extends DataSource {
 
     public static final String ID = "DcRecordDataSource";
 
+    public static final String PREFIX_DCR = "dcr";
+    public static final String PREFIX_DC = "dc";
+    public static final String PREFIX_OAI_DC = "oai_dc";
     private static final HashMap<String, String> XML_NAMESPACE_MAP = new HashMap<String, String>();
     private static final XmlNamespaces XML_NAMESPACES = new XmlNamespaces();
 
     static {
-        XML_NAMESPACE_MAP.put("oai_dc", "http://www.openarchives.org/OAI/2.0/oai_dc/");
-        XML_NAMESPACE_MAP.put("dc", "http://purl.org/dc/elements/1.1/");
-        XML_NAMESPACE_MAP.put("dcr", "http://www.incad.cz/pas/editor/dor/");
+        XML_NAMESPACE_MAP.put(PREFIX_OAI_DC, DigitalObjectResourceApi.DUBLINCORERECORD_NS_OAIDC);
+        XML_NAMESPACE_MAP.put(PREFIX_DC, DigitalObjectResourceApi.DUBLINCORERECORD_NS_DC);
+        XML_NAMESPACE_MAP.put(PREFIX_DCR, DigitalObjectResourceApi.DUBLINCORERECORD_NS);
 
         for (Map.Entry<String, String> entry : XML_NAMESPACE_MAP.entrySet()) {
             XML_NAMESPACES.addNamespace(entry.getKey(), entry.getValue());
         }
     }
 
-    public static final String PREFIX_DCR = "dcr";
-    public static final String PREFIX_DC = "dc";
-    public static final QName FIELD_PID = new QName(XML_NAMESPACE_MAP, "pid", PREFIX_DCR);
-    public static final QName FIELD_TIMESTAMP = new QName(XML_NAMESPACE_MAP, "timestamp", PREFIX_DCR);
-    public static final QName FIELD_DC = new QName(XML_NAMESPACE_MAP, "dc", "oai_dc");
+    public static final QName FIELD_PID = new QName(XML_NAMESPACE_MAP,
+            DigitalObjectResourceApi.DUBLINCORERECORD_PID, PREFIX_DCR);
+    public static final QName FIELD_TIMESTAMP = new QName(XML_NAMESPACE_MAP,
+            DigitalObjectResourceApi.DUBLINCORERECORD_TIMESTAMP, PREFIX_DCR);
+    public static final QName FIELD_DC = new QName(XML_NAMESPACE_MAP,
+            DigitalObjectResourceApi.DUBLINCORERECORD_DC, PREFIX_OAI_DC);
     
     public static final QName FIELD_CREATOR = new QName(XML_NAMESPACE_MAP, "creator", PREFIX_DC);
     public static final QName FIELD_CONTRIBUTOR = new QName(XML_NAMESPACE_MAP, "contributor", PREFIX_DC);
@@ -288,7 +293,7 @@ public class DcRecordDataSource extends DataSource {
     private static void fixField(Record r, DataSourceField field) {
         String fieldName = field.getName();
         Object fieldValue = r.getAttributeAsObject(fieldName);
-        LOG.finest(ClientUtils.format("fixField: %s, fieldValue: %s, class: %s", fieldName, fieldValue, fieldValue.getClass()));
+        LOG.finest(ClientUtils.format("fixField: %s, fieldValue: %s, class: %s", fieldName, fieldValue, ClientUtils.safeGetClass(fieldValue)));
         if (JSOHelper.isJSO(fieldValue)) {
             JavaScriptObject jso = r.getAttributeAsJavaScriptObject(fieldName);
             if (JSOHelper.isArray(jso)) {

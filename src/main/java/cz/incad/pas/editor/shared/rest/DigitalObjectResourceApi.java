@@ -46,6 +46,19 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_QUERY_TITLE_PARAM = "queryTitle";
     public static final String SEARCH_TYPE_PARAM = "type";
 
+    // resource /object/dc
+    public static final String DC_PATH = "dc";
+
+    // DublinCoreRecord
+    public static final String DUBLINCORERECORD_ELEMENT = "dcRecord";
+    public static final String DUBLINCORERECORD_NS = "http://proarc.lib.cas.cz/xml/dor/v1/";
+    public static final String DUBLINCORERECORD_NS_OAIDC = "http://www.openarchives.org/OAI/2.0/oai_dc/";
+    public static final String DUBLINCORERECORD_NS_DC = "http://purl.org/dc/elements/1.1/";
+    public static final String DUBLINCORERECORD_PID = "pid";
+    public static final String DUBLINCORERECORD_BATCHID = "batchId";
+    public static final String DUBLINCORERECORD_TIMESTAMP = "timestamp";
+    public static final String DUBLINCORERECORD_DC = "dc";
+
     // resource /object/member
     public static final String MEMBERS_PATH = "member";
     public static final String MEMBERS_ITEM_PID = "pid";

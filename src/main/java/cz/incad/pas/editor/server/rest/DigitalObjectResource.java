@@ -101,6 +101,18 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
+ * Resource to manage digital objects.
+ * 
+ *      /object/{pid}/ GET - read DigObjDesc:{pid, displayname, date, owner};
+ *      /object/ GET - lists all DigObjDesc
+ *      /object/{pid}/foxml
+ *      /object/{pid}/scan
+ *      /object/{pid}/preview
+ *      /object/{pid}/thumb
+ *      /object/{pid}/ocr
+ *      /object/{pid}/metadata
+ *      /object/{pid}/relations
+ *      /object/metamodel/ GET - lists model:{pid, displayname, type:(TOP|LEAF)}
  *
  * @author Jan Pokorsky
  */
@@ -469,14 +481,13 @@ public class DigitalObjectResource {
     }
     
     @GET
-    @Path("/dc")
+    @Path(DigitalObjectResourceApi.DC_PATH)
     @Produces(MediaType.APPLICATION_XML)
     public DublinCoreRecord getDublinCore(
-            @QueryParam("pid") String pid,
-            @QueryParam("batchId") Integer batchId
+            @QueryParam(DigitalObjectResourceApi.DUBLINCORERECORD_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.DUBLINCORERECORD_BATCHID) Integer batchId
             ) throws IOException, DigitalObjectException {
 
-        // dev mode http://127.0.0.1:8888/rest/object/dc?pid=uuid:4a7c2e50-af36-11dd-9643-000d606f5dc6
         FedoraObject fobject = findFedoraObject(pid, batchId);
         DcStreamEditor dcEditor = new DcStreamEditor(fobject);
         try {
@@ -484,12 +495,12 @@ public class DigitalObjectResource {
             dc.setBatchId(batchId);
             return dc;
         } catch (DigitalObjectNotFoundException ex) {
-            throw RestException.plainNotFound("pid", null);
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
     }
 
     @PUT
-    @Path("/dc")
+    @Path(DigitalObjectResourceApi.DC_PATH)
     @Consumes({MediaType.TEXT_XML, MediaType.APPLICATION_XML})
     @Produces(MediaType.APPLICATION_XML)
     public DublinCoreRecord updateDublinCore(DublinCoreRecord update) throws IOException, DigitalObjectException {

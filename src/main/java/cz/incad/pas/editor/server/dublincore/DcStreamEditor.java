@@ -27,6 +27,7 @@ import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import cz.incad.pas.editor.server.mods.ModsUtils;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.oaidublincore.OaiDcType;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -122,22 +123,29 @@ public final class DcStreamEditor {
         }
     }
 
-    @XmlRootElement(name="dcRecord", namespace="http://www.incad.cz/pas/editor/dor/")
+    @XmlRootElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_ELEMENT,
+            namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
     @XmlAccessorType(XmlAccessType.FIELD)
-    @XmlType(namespace="http://www.incad.cz/pas/editor/dor/")
+    @XmlType(namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
     public static class DublinCoreRecord {
 
-        @XmlElement(name="pid", namespace="http://www.incad.cz/pas/editor/dor/")
+        @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_PID,
+                namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
         private String pid;
 
-        @XmlElement(name="batchId", namespace="http://www.incad.cz/pas/editor/dor/", nillable=true)
+        @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_BATCHID,
+                namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS,
+                nillable = true)
         private Integer batchId;
 
         /** last modification of the DC content*/
-        @XmlElement(name="timestamp", namespace="http://www.incad.cz/pas/editor/dor/")
+        @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_TIMESTAMP,
+                namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
         private long timestamp;
 
-        @XmlElement(namespace = "http://www.openarchives.org/OAI/2.0/oai_dc/", name = "dc", required = true)
+        @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_DC,
+                namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS_OAIDC,
+                required = true)
         private OaiDcType dc;
 
         public DublinCoreRecord() {
