@@ -27,6 +27,7 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.BooleanCallback;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
@@ -56,10 +57,10 @@ public final class ModsCustomDataSource extends DataSource {
     private static final Logger LOG = Logger.getLogger(ModsCustomDataSource.class.getName());
 
     public static final String ID = "ModsCustomDataSource";
-    public static final String FIELD_PID = "pid";
-    public static final String FIELD_EDITOR = "editor";
-    public static final String FIELD_TIMESTAMP = "timestamp";
-    public static final String FIELD_DATA = "customJsonData";
+    public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
+    public static final String FIELD_EDITOR = DigitalObjectResourceApi.MODS_CUSTOM_EDITORID;
+    public static final String FIELD_TIMESTAMP = DigitalObjectResourceApi.TIMESTAMP_PARAM;
+    public static final String FIELD_DATA = DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA;
     
     // follows custom field names
     public static final String FIELD_STRING_VALUE = "value";
@@ -114,7 +115,7 @@ public final class ModsCustomDataSource extends DataSource {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_DIGOBJECT_MODS_CUSTOM);
-        setRecordXPath("/mods");
+        setRecordXPath('/' + DigitalObjectResourceApi.CUSTOMMODS_ELEMENT);
 
         DataSourceField fieldPid = new DataSourceField(FIELD_PID, FieldType.TEXT);
         fieldPid.setPrimaryKey(true);

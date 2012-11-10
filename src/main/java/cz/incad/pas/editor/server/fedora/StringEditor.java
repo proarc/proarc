@@ -22,6 +22,7 @@ import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,6 +35,7 @@ import java.net.URL;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
@@ -204,16 +206,20 @@ public final class StringEditor {
         return read(new BufferedInputStream(is));
     }
 
-    @XmlRootElement(name = "record")
+    @XmlRootElement(name = DigitalObjectResourceApi.STRINGRECORD_ELEMENT)
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class StringRecord {
 
+        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_PID)
         private String pid;
         
+        @XmlElement(name = DigitalObjectResourceApi.BATCHID_PARAM)
         private Integer batchId;
 
+        @XmlElement(name = DigitalObjectResourceApi.TIMESTAMP_PARAM)
         private long timestamp;
 
+        @XmlElement(name = DigitalObjectResourceApi.STRINGRECORD_CONTENT)
         private String content;
 
         public StringRecord() {

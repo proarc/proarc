@@ -27,6 +27,8 @@ public final class DigitalObjectResourceApi {
 
     public static final String DIGITALOBJECT_PID = "pid";
     public static final String DIGITALOBJECT_MODEL = "model";
+    public static final String BATCHID_PARAM = "batchId";
+    public static final String TIMESTAMP_PARAM = "timestamp";
 
     public static final String NEWOBJECT_MODS_PARAM = "mods";
 
@@ -83,6 +85,24 @@ public final class DigitalObjectResourceApi {
      * @see DatastreamEditorType
      */
     public static final String METAMODEL_DATASTREAMEDITOR_PARAM = "dataStreamEditor";
+
+    // resource /object/mods
+    public static final String MODS_PATH = "mods";
+    
+    // resource /object/mods/custom
+    public static final String MODS_CUSTOM_PATH = "custom";
+    public static final String MODS_CUSTOM_EDITORID = "editorId";
+    public static final String MODS_CUSTOM_CUSTOMJSONDATA = "customJsonData";
+
+    // CustomMods
+    public static final String CUSTOMMODS_ELEMENT = "mods";
+
+    // resource /object/mods/plain
+    public static final String MODS_PLAIN_PATH = "plain";
+
+    // StringRecord
+    public static final String STRINGRECORD_ELEMENT = "record";
+    public static final String STRINGRECORD_CONTENT = "content";
 
     public enum SearchType {
         

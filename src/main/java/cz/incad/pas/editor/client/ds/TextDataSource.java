@@ -20,6 +20,7 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 
 /**
  * Data source for digital object's data streams as raw text.
@@ -32,17 +33,17 @@ public final class TextDataSource extends DataSource {
     public static final String ID_PRIVATE_NOTE = "PrivateNoteTextDataSource";
     public static final String ID_OCR = "OcrDataSource";
 
-    public static final String FIELD_PID = "pid";
+    public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     // Do not include batchId as DS field as DynamicForm always sets null for missing fetched values.
     // It results in HTTP param batchId=null on update and Jersey reads is as "null" string.
-    public static final String FIELD_BATCHID = "batchId";
-    public static final String FIELD_TIMESTAMP = "timestamp";
-    public static final String FIELD_CONTENT = "content";
+    public static final String FIELD_BATCHID = DigitalObjectResourceApi.BATCHID_PARAM;
+    public static final String FIELD_TIMESTAMP = DigitalObjectResourceApi.TIMESTAMP_PARAM;
+    public static final String FIELD_CONTENT = DigitalObjectResourceApi.STRINGRECORD_CONTENT;
 
     public TextDataSource(String dsId, String dsUrl) {
         setID(id);
 
-        setRecordXPath("/record");
+        setRecordXPath('/' + DigitalObjectResourceApi.STRINGRECORD_ELEMENT);
         setDataFormat(DSDataFormat.JSON);
 
         setDataURL(dsUrl);

@@ -49,9 +49,11 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_DC = path(URL_DIGOBJECT, DigitalObjectResourceApi.DC_PATH);
     public static final String URL_DIGOBJECT_DISSEMINATION =  URL_DIGOBJECT + "/dissemination";
     public static final String URL_DIGOBJECT_FULL =  URL_DIGOBJECT + "/full";
-    public static final String URL_DIGOBJECT_MODS =  URL_DIGOBJECT + "/mods";
-    public static final String URL_DIGOBJECT_MODS_CUSTOM =  URL_DIGOBJECT_MODS + "/custom";
-    public static final String URL_DIGOBJECT_MODS_PLAIN =  URL_DIGOBJECT_MODS + "/plain";
+    public static final String URL_DIGOBJECT_MODS = path(URL_DIGOBJECT, DigitalObjectResourceApi.MODS_PATH);
+    public static final String URL_DIGOBJECT_MODS_CUSTOM = path(
+            URL_DIGOBJECT_MODS, DigitalObjectResourceApi.MODS_CUSTOM_PATH);
+    public static final String URL_DIGOBJECT_MODS_PLAIN = path(
+            URL_DIGOBJECT_MODS, DigitalObjectResourceApi.MODS_PLAIN_PATH);
     public static final String URL_DIGOBJECT_OCR =  URL_DIGOBJECT + "/ocr";
     public static final String URL_DIGOBJECT_PREVIEW =  URL_DIGOBJECT + "/preview";
     public static final String URL_DIGOBJECT_PRIVATE_NOTE =  URL_DIGOBJECT + "/privatenote";

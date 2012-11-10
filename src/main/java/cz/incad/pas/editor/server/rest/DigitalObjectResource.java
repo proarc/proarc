@@ -526,16 +526,15 @@ public class DigitalObjectResource {
      * @param editorId view defining subset of MODS properties
      */
     @GET
-    @Path("mods/custom")
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public CustomMods getCustomMods(
-            @QueryParam("pid") String pid,
-            @QueryParam("editorId") String editorId
+    public CustomMods<?> getCustomMods(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
             ) throws IOException, DigitalObjectException {
         
         if (pid == null || pid.isEmpty()) {
-            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                    .entity("invalid pid").type(MediaType.TEXT_PLAIN).build());
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
 
         RemoteStorage storage = RemoteStorage.getInstance(appConfig);
@@ -554,23 +553,21 @@ public class DigitalObjectResource {
     }
 
     @PUT
-    @Path("mods/custom")
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public CustomMods updateCustomMods(
-            @FormParam("pid") String pid,
-            @FormParam("editorId") String editorId,
-            @FormParam("timestamp") Long timestamp,
-            @FormParam("customJsonData") String customJsonData
+    public CustomMods<?> updateCustomMods(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String customJsonData
             ) throws IOException, DigitalObjectException {
 
         LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, json: %s", pid, editorId, timestamp, customJsonData));
         if (pid == null || pid.isEmpty()) {
-            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                    .entity("invalid pid").type(MediaType.TEXT_PLAIN).build());
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
         if (timestamp == null) {
-            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                    .entity("invalid timestamp").type(MediaType.TEXT_PLAIN).build());
+            throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
         }
         RemoteStorage storage = RemoteStorage.getInstance(appConfig);
         RemoteObject remote = storage.find(pid);
@@ -746,11 +743,11 @@ public class DigitalObjectResource {
     }
 
     @GET
-    @Path("mods/plain")
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_PLAIN_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public StringRecord getModsTxt(
-            @QueryParam("pid") String pid,
-            @QueryParam("batchId") Integer batchId
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
             ) throws IOException, DigitalObjectException {
 
         FedoraObject fobject = findFedoraObject(pid, batchId, false);
@@ -761,7 +758,7 @@ public class DigitalObjectResource {
             mods.setBatchId(batchId);
             return mods;
         } catch (DigitalObjectNotFoundException ex) {
-            throw RestException.plainNotFound("pid", pid);
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
     }
 
@@ -942,15 +939,17 @@ public class DigitalObjectResource {
         }
     }
 
-    @XmlRootElement(name="mods")
+    @XmlRootElement(name = DigitalObjectResourceApi.CUSTOMMODS_ELEMENT)
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class CustomMods<T> {
-        
+
+        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_PID)
         private String pid;
+        @XmlElement(name = DigitalObjectResourceApi.TIMESTAMP_PARAM)
         private long timestamp;
-        @XmlElement(name = "editorId")
+        @XmlElement(name = DigitalObjectResourceApi.MODS_CUSTOM_EDITORID)
         private String editor;
-        @XmlElement(name = "customJsonData")
+        @XmlElement(name = DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA)
         private T data;
 
         public CustomMods() {
