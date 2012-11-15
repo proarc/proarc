@@ -19,7 +19,7 @@
     </licenses>
 
     <properties>
-        <gwtVersion>2.4.0</gwtVersion>
+        <gwtVersion>2.5.0</gwtVersion>
         <jerseyVersion>1.11.1</jerseyVersion>
         <smartGwtVersion>3.0</smartGwtVersion>
         <maven.compiler.source>1.6</maven.compiler.source>
@@ -179,7 +179,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>gwt-maven-plugin</artifactId>
-                <version>2.4.0</version>
+                <version>${gwtVersion}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -204,8 +204,6 @@
                     <noserver>true</noserver>
                     <noServer>true</noServer>
                     <port>8080</port>
-                    <!-- style=DETAILED seems to prevent random javascript NPEs -->
-                    <style>DETAILED</style>
                 </configuration>
             </plugin>
 

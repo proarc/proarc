@@ -47,6 +47,10 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_QUERY_MODEL_PARAM = "queryModel";
     public static final String SEARCH_QUERY_TITLE_PARAM = "queryTitle";
     public static final String SEARCH_TYPE_PARAM = "type";
+    /** XXX workaround to fix GWT 2.5 compiler bug related to the use of enum's static
+     * field in enum's constant declaration.
+     */
+    private static final String SEARCH_TYPE_PARAM_DEFAULT = SearchType.DEFAULT;
 
     // resource /object/dc
     public static final String DC_PATH = "dc";
@@ -128,7 +132,7 @@ public final class DigitalObjectResourceApi {
 
     public enum SearchType {
         
-        LAST_CREATED(SearchType.DEFAULT),
+        LAST_CREATED(SEARCH_TYPE_PARAM_DEFAULT),
         LAST_MODIFIED("lastModified"),
         /** Search object's parents. Accepted parameters: pid | batchId */
         PARENT("parent"),
