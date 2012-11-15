@@ -27,7 +27,6 @@ import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
-import cz.incad.pas.editor.client.ds.BibliographyQueryDataSource;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
@@ -242,7 +241,7 @@ public final class DigitalObjectCreator {
     private final class NewModsStep implements WizardStep {
 
         private Wizard wizard;
-        private ModsFullEditor modsFullEditor;
+        private ModsMultiEditor modsEditor;
 
         @Override
         public void onShow(Wizard wizard) {
@@ -254,7 +253,7 @@ public final class DigitalObjectCreator {
 
             WizardContext wc = getContext();
             if (!wc.isModsInitialized()) {
-                modsFullEditor.loadData(wc.getPid(), wc.getModel());
+                modsEditor.edit(wc.getPid(), null, wc.getModel());
                 wc.setModsInitialized(true);
             }
         }
@@ -267,11 +266,13 @@ public final class DigitalObjectCreator {
         @Override
         public boolean onStepAction(Wizard w, StepKind step) {
             if (step == StepKind.FORWARD) {
-                modsFullEditor.save(new Runnable() {
+                modsEditor.save(new BooleanCallback() {
 
                     @Override
-                    public void run() {
-                        wizard.moveAt(selectParentStep);
+                    public void execute(Boolean value) {
+                        if (value != null && value) {
+                            wizard.moveAt(selectParentStep);
+                        }
                     }
                 });
             }
@@ -280,10 +281,10 @@ public final class DigitalObjectCreator {
 
         @Override
         public Canvas asWidget() {
-            if (modsFullEditor == null) {
-                modsFullEditor = new ModsFullEditor(i18n);
+            if (modsEditor == null) {
+                modsEditor = new ModsMultiEditor(i18n);
             }
-            return modsFullEditor.getUI();
+            return modsEditor.getUI();
         }
 
     }

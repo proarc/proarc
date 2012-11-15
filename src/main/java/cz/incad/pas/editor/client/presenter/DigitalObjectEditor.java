@@ -80,6 +80,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         this.actionSource = new ActionSource(this);
         this.toolbar = createToolbar(actionSource);
         this.editorContainer = new VLayout();
+        editorContainer.setLayoutMargin(4);
         editorContainer.setWidth100();
         editorContainer.setHeight100();
         widget.addMember(lblHeader);
@@ -220,7 +221,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 break;
             case MODS:
                 title = i18n.ImportBatchItemEditor_TabMods_Title();
-                deditor = new ModsFullEditor(i18n);
+                deditor = new ModsMultiEditor(i18n);
                 break;
             case PARENT:
                 title = i18n.DigitalObjectEditor_ParentEditor_Title();
