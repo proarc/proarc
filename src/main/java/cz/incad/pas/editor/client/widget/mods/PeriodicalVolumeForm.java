@@ -20,16 +20,19 @@ import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.validator.IsIntegerValidator;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
+import cz.incad.pas.editor.client.widget.StringTrimValidator;
+import java.util.Arrays;
 
 /**
  * Simple form to edit MODS of periodical volume object.
  *
  * @author Jan Pokorsky
  */
-public final class PeriodicalVolumeForm extends DynamicForm {
+public final class PeriodicalVolumeForm extends AbstractModelForm {
 
     public PeriodicalVolumeForm(ClientMessages i18n) {
         setWidth100();
@@ -39,8 +42,12 @@ public final class PeriodicalVolumeForm extends DynamicForm {
 
         TextItem volumeNumber = new TextItem(ModsCustomDataSource.FIELD_PER_VOLUME_NUMBER,
                 i18n.PeriodicalVolumeForm_Number_Title());
+        volumeNumber.setRequired(true);
+        volumeNumber.setValidators(new IsIntegerValidator());
         TextItem date = new TextItem(ModsCustomDataSource.FIELD_PER_VOLUME_YEAR,
                 i18n.PeriodicalVolumeForm_Date_Title());
+        date.setRequired(true);
+        date.setValidators(new StringTrimValidator());
 //        DateItem date = new DateItem(ModsCustomDataSource.FIELD_PER_VOLUME_YEAR, "Date of Issue");
         // work arounds missing DateItemSelectorFormat.YEAR
 //        date.setAttribute("selectorFormat", "Y");
@@ -54,6 +61,8 @@ public final class PeriodicalVolumeForm extends DynamicForm {
         final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
                 i18n.PeriodicalVolumeForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
+        identifiers.setValidators(
+                new IdentifiersValidator(i18n, Arrays.asList(IdentifierDataSource.TYPE_UUID)));
         DynamicForm identifierForm = new DynamicForm();
         identifierForm.setUseAllDataSourceFields(true);
         identifierForm.setNumCols(4);

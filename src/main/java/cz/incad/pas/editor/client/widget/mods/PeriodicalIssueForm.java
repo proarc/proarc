@@ -16,22 +16,23 @@
  */
 package cz.incad.pas.editor.client.widget.mods;
 
-import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.fields.DateItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.validator.IsIntegerValidator;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
+import cz.incad.pas.editor.client.widget.StringTrimValidator;
+import java.util.Arrays;
 
 /**
  * Simple form to edit MODS of periodical issue object.
  *
  * @author Jan Pokorsky
  */
-public final class PeriodicalIssueForm extends DynamicForm {
+public final class PeriodicalIssueForm extends AbstractModelForm {
 
     public PeriodicalIssueForm(ClientMessages i18n) {
         setWidth100();
@@ -41,18 +42,24 @@ public final class PeriodicalIssueForm extends DynamicForm {
 
         TextItem issueNumber = new TextItem(ModsCustomDataSource.FIELD_PER_ISSUE_NUMBER,
                 i18n.PeriodicalIssueForm_Number_Title());
+        issueNumber.setRequired(true);
+        issueNumber.setValidators(new StringTrimValidator());
 
         TextItem issueSequenceNumber = new TextItem(ModsCustomDataSource.FIELD_PER_ISSUE_NUMBER_SORTING,
                 i18n.PeriodicalIssueForm_NumberSorting_Title());
+        issueSequenceNumber.setRequired(true);
+        issueSequenceNumber.setValidators(new IsIntegerValidator());
 
-        DateItem date = new DateItem(ModsCustomDataSource.FIELD_PER_ISSUE_DATE, i18n.PeriodicalIssueForm_Date_Title());
-        date.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATE);
-        date.setUseTextField(true);
+        TextItem date = new TextItem(ModsCustomDataSource.FIELD_PER_ISSUE_DATE, i18n.PeriodicalIssueForm_Date_Title());
+        date.setRequired(true);
+        date.setValidators(new StringTrimValidator());
 
         // identifiers
         final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
                 i18n.PeriodicalIssueForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
+        identifiers.setValidators(
+                new IdentifiersValidator(i18n, Arrays.asList(IdentifierDataSource.TYPE_UUID)));
         DynamicForm identifierForm = new DynamicForm();
         identifierForm.setUseAllDataSourceFields(true);
         identifierForm.setNumCols(4);

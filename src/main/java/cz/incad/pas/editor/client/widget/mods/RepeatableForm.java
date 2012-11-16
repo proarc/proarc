@@ -19,7 +19,6 @@ package cz.incad.pas.editor.client.widget.mods;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
-import com.smartgwt.client.util.JSOHelper;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
 import com.smartgwt.client.widgets.events.ClickEvent;
@@ -29,24 +28,43 @@ import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
 import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
-import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.widget.mods.RepeatableFormItem.CustomFormFactory;
 import cz.incad.pas.editor.client.widget.mods.event.HasListChangedHandlers;
 import cz.incad.pas.editor.client.widget.mods.event.ListChangedEvent;
 import cz.incad.pas.editor.client.widget.mods.event.ListChangedHandler;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 /**
+ * Widget to display {@link RepeatableFormItem}.
  *
  * @author Jan Pokorsky
  */
 public final class RepeatableForm extends VLayout implements HasListChangedHandlers {
 
     private static final Logger LOG = Logger.getLogger(RepeatableForm.class.getName());
-    
-    RecordList dataModel3 = new RecordList();
+
+    /** Holds origin records with special fields. */
+    private RecordList dataModel = new RecordList();
     private final CustomFormFactory formFactory;
+    /** active forms */
+    private ArrayList<DynamicForm> forms = new ArrayList<DynamicForm>();
+    /** pool of available form widgets */
+    private ArrayList<ItemForm> pool = new ArrayList<ItemForm>();
+    /** active form widgets */
+    private ArrayList<ItemForm> active = new ArrayList<ItemForm>();
+
+    private static final class ItemForm {
+        private DynamicForm form;
+        private Canvas view;
+
+        public ItemForm(DynamicForm form, Canvas view) {
+            this.form = form;
+            this.view = view;
+        }
+    }
 
     public RepeatableForm(String title, CustomFormFactory customForm) {
         setGroupTitle(title);
@@ -71,103 +89,116 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
         setData(recordList);
     }
 
+    public boolean validate(boolean showError) {
+        boolean valid = true;
+        for (DynamicForm df : forms) {
+            valid &= showError ? df.validate() : df.valuesAreValid(false);
+        }
+        return valid;
+    }
+
+    public void showErrors() {
+        for (DynamicForm df : forms) {
+            if (!df.getErrors().isEmpty()) {
+                df.showErrors();
+            }
+        }
+    }
+
+    public void clearErrors(boolean show) {
+        for (DynamicForm df : forms) {
+            if (!df.getErrors().isEmpty()) {
+                df.clearErrors(show);
+            }
+        }
+    }
+
+    public List<Map<Object, Object>> getErrors() {
+        ArrayList<Map<Object, Object>> result = new ArrayList<Map<Object, Object>>();
+        for (DynamicForm df : forms) {
+            @SuppressWarnings("unchecked")
+            Map<Object, Object> errors = df.getErrors();
+            if (!errors.isEmpty()) {
+                result.add(errors);
+            }
+        }
+        return result;
+    }
 
     /**
      * for now it uses ResultSet as a plain static array of records
      */
     public void setData(RecordList data) {
-//    public void setData(Record... recods) {
-//        System.out.println("## setData: " + data.getLength()
-//                + ", allRowsCached: " + data.allRowsCached()
-//                + ", allMatchingRowsCached: " + data.allMatchingRowsCached()
-//                + ", lengthIsKnown: " + data.lengthIsKnown()
-//                + ", rangeIsLoaded: " + data.rangeIsLoaded(1, 2)
-//                + ", findAll: " + data.findAll(Collections.emptyMap())
-//                );
-
-        Canvas[] members = getMembers();
-        removeMembers(members); // XXX discard members to safe memory?
-
-//        this.dataModel = data;
-//        this.dataModel2 = new ResultSet(identifierDataSource);
-//        dataModel2.setInitialData(data.toArray());
-        dataModel3 = data;
-//        identifierDataSource.setTestData(data.toArray());
-
+        forms.clear();
+        dataModel = data;
         if (data.isEmpty()) {
             data.add(new Record());
         }
-        for (Record record : data.toArray()) {
-            DynamicForm form = createIdentifierForm(record);
-            Canvas listItem = createListItem(form);
-            addMember(listItem);
+
+        int itemSize = 0;
+        for (; itemSize < data.getLength(); itemSize++) {
+            Record record = data.get(itemSize);
+            DynamicForm form;
+            if (itemSize < active.size()) {
+                ItemForm itemForm = active.get(itemSize);
+                form = itemForm.form;
+            } else {
+                ItemForm itemForm = getItemForm();
+                form = itemForm.form;
+                addMember(itemForm.view);
+                active.add(itemForm);
+            }
+            form.editRecord(record);
+            forms.add(form);
+        }
+        while (itemSize < active.size()) {
+            ItemForm remove = active.remove(itemSize);
+            pool.add(remove);
+            removeMember(remove.view);
         }
     }
 
+    /**
+     * Gets available item from the pool or creates new one.
+     */
+    private ItemForm getItemForm() {
+        ItemForm itemForm;
+        if (pool.isEmpty()) {
+            DynamicForm form = createIdentifierForm();
+            Canvas listItem = createListItem(form);
+            itemForm = new ItemForm(form, listItem);
+        } else {
+            itemForm = pool.remove(0);
+            if (!itemForm.form.getErrors().isEmpty()) {
+                itemForm.form.clearErrors(true);
+            }
+        }
+        return itemForm;
+    }
+
     public Record[] getData() {
-        // XXX get modified records
-//        return dataModel2.toArray();
-        LOG.info("## RepeatableForm.getData: " + ClientUtils.dump(JSOHelper.convertToJavaScriptArray(dataModel3.toArray())));
-        return dataModel3.toArray();
+        return getDataAsRecordList().toArray();
     }
 
     public RecordList getDataAsRecordList() {
-        LOG.info("## RepeatableForm.getDataList: " + dataModel3.getLength() + ", json: " + ClientUtils.dump(JSOHelper.convertToJavaScriptArray(dataModel3.toArray())));
-        return dataModel3;
+        return dataModel;
     }
 
-    private DynamicForm createIdentifierForm(final Record record) {
+    private DynamicForm createIdentifierForm() {
         final DynamicForm form = formFactory.create();
+        form.setShowInlineErrors(true);
+        form.setShowErrorStyle(true);
 
         form.addItemChangedHandler(new ItemChangedHandler() {
 
             @Override
             public void onItemChanged(ItemChangedEvent event) {
-                LOG.info("DynamFormList.formItemChanged: " + form.getID()
-                        + ", item: " + event.getItem().getName()
-                        + ", newVal: " + event.getNewValue()
-//                        + ", RL[0]" + form.getRecordList().get(0)
-                        );
-                //                GWT.log("DynamFormList.formItemChanged2: " + form.getID()
-                //                        + ", item: " + event.getItem().getName()
-                //                        + ", RL.valManager: " + form.getValuesManager()
-                //                        + ", RL.valAsRecord: " + ClientUtils.dump(form.getValuesAsRecord().getJsObj())
-                //                        + ", RL.record: " + ClientUtils.dump(record.getJsObj())
-                //                        + ", RL.value: " + form.getValue("type")
-                ////                        + ", RL.isEmpty: " + form.getRecordList().isEmpty()
-                //                        );
-                //                form.saveData();
-                //                GWT.log("DynamFormList.formItemChanged3: " + form.getID()
-                //                        + ", item: " + event.getItem().getName()
-                //                        + ", RL.valManager: " + form.getValuesManager()
-                //                        + ", RL.valAsRecord: " + ClientUtils.dump(form.getValuesAsRecord().getJsObj())
-                //                        + ", RL.record: " + ClientUtils.dump(record.getJsObj())
-                //                        + ", RL.value: " + form.getValue("type")
-                //                        );
-                Record valuesAsRecord = form.getValuesAsRecord();
-                Map values = form.getValues();
-                LOG.info("DynamFormList.formItemChanged2: " + ClientUtils.dump(valuesAsRecord.getJsObj()));
-                LOG.info("DynamFormList.formItemChanged3: " + ClientUtils.dump(values, "", "  ", new StringBuilder()).toString());
-
+                // get original record and update its attribute with new values
+                Record record = dataModel.get(forms.indexOf(form));
                 record.setAttribute(event.getItem().getName(), event.getNewValue());
-//                Record copyRecord = identifierDataSource.copyRecord(record);
-////                dataModel3.
                 RepeatableForm.this.fireEvent(new ListChangedEvent());
-//                Timer timer = new Timer() {
-//
-//                                  @Override
-//                                  public void run() {
-//                RepeatableForm.this.fireEvent(new ListChangedEvent());
-//                                  }
-//                              };
-//                timer.schedule(100);
             }
         });
-        if (record != null) {
-            form.editRecord(record);
-        } else {
-//            form.editNewRecord();
-        }
         return form;
     }
 
@@ -200,12 +231,8 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
             @Override
             public void onClick(ClickEvent event) {
                 Record newRecord = new Record();
-                DynamicForm form = createIdentifierForm(newRecord);
-//                DynamicForm form = createIdentifierForm(new Record() {{
-//                    setAttribute("type", "UUID");
-//                    setAttribute("value", "aaaa");
-//                }});
-                Canvas newListItem = createListItem(form);
+                ItemForm itemForm = getItemForm();
+                Canvas newListItem = itemForm.view;
                 int itemIndex = -1;
                 if (empty) {
                     RepeatableForm.this.removeMember(item);
@@ -213,7 +240,9 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
                     itemIndex = RepeatableForm.this.getMemberNumber(item);
                 }
                 RepeatableForm.this.addMember(newListItem, itemIndex + 1);
-                dataModel3.addAt(newRecord, itemIndex + 1);
+                forms.add(itemIndex + 1, itemForm.form);
+                dataModel.addAt(newRecord, itemIndex + 1);
+                active.add(itemIndex + 1, itemForm);
                 RepeatableForm.this.fireEvent(new ListChangedEvent());
             }
         });
@@ -227,13 +256,16 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
 
             @Override
             public void onClick(ClickEvent event) {
-                int itemIndex = RepeatableForm.this.getMemberNumber(item);
-                dataModel3.removeAt(itemIndex);
-                RepeatableForm.this.removeMember(item);
-                if (RepeatableForm.this.getMembers().length == 0) {
-                    Canvas emptyItem = createEmptyListItem();
-                    RepeatableForm.this.addMember(emptyItem);
+                if (RepeatableForm.this.getMembers().length == 1) {
+                    // do not remove last item
+                    return ;
                 }
+                int itemIndex = RepeatableForm.this.getMemberNumber(item);
+                forms.remove(itemIndex);
+                ItemForm itemForm = active.remove(itemIndex);
+                pool.add(itemForm);
+                dataModel.removeAt(itemIndex);
+                RepeatableForm.this.removeMember(item);
                 RepeatableForm.this.fireEvent(new ListChangedEvent());
             }
         });

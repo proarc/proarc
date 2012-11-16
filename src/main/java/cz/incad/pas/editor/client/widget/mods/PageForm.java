@@ -31,10 +31,13 @@ import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
 import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.form.validator.IntegerRangeValidator;
+import com.smartgwt.client.widgets.form.validator.IsIntegerValidator;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
+import cz.incad.pas.editor.client.widget.StringTrimValidator;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -43,7 +46,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class PageForm extends DynamicForm {
+public final class PageForm extends AbstractModelForm {
 
     private static final Logger LOG = Logger.getLogger(PageForm.class.getName());
 
@@ -59,15 +62,22 @@ public final class PageForm extends DynamicForm {
 
         IntegerItem pageIndex = new IntegerItem(ModsCustomDataSource.FIELD_PAGE_INDEX);
         pageIndex.setTitle(i18n.PageForm_PageIndex_Title());
+        pageIndex.setValidators(new IsIntegerValidator());
+        pageIndex.setRequired(true);
 
         TextItem pageNumber = new TextItem(ModsCustomDataSource.FIELD_PAGE_NUMBER);
         pageNumber.setTitle(i18n.PageForm_PageNumber_Title());
         pageNumber.setEndRow(true);
+        pageNumber.setRequired(true);
+        pageNumber.setValidators(new StringTrimValidator());
 //        pageNumber.setLength(5);
 
         final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
                 i18n.PageForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
+        identifiers.setRequired(true);
+        identifiers.setValidators(
+                new IdentifiersValidator(i18n, Arrays.asList(IdentifierDataSource.TYPE_UUID)));
         DynamicForm identifierForm = new DynamicForm();
         identifierForm.setUseAllDataSourceFields(true);
         identifierForm.setNumCols(4);

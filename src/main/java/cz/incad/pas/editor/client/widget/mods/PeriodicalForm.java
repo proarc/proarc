@@ -16,17 +16,20 @@
  */
 package cz.incad.pas.editor.client.widget.mods;
 
+import com.smartgwt.client.types.CharacterCasing;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
-import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.LanguagesDataSource;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
+import cz.incad.pas.editor.client.widget.StringTrimValidator;
 import cz.incad.pas.editor.client.widget.mods.RepeatableFormItem.CustomFormFactory;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -34,7 +37,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class PeriodicalForm extends DynamicForm {
+public final class PeriodicalForm extends AbstractModelForm {
 
     private static final Logger LOG = Logger.getLogger(PeriodicalForm.class.getName());
 
@@ -48,6 +51,10 @@ public final class PeriodicalForm extends DynamicForm {
         final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
                 i18n.PeriodicalForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
+        identifiers.setValidators(
+                new IdentifiersValidator(i18n, Arrays.asList(
+                                IdentifierDataSource.TYPE_UUID,
+                                IdentifierDataSource.TYPE_ISSN)));
         DynamicForm identifierForm = new DynamicForm();
         identifierForm.setUseAllDataSourceFields(true);
         identifierForm.setNumCols(4);
@@ -56,10 +63,16 @@ public final class PeriodicalForm extends DynamicForm {
         identifiers.setColSpan("2");
 
         TextItem sigla = new TextItem(ModsCustomDataSource.FIELD_SIGLA, i18n.PeriodicalForm_Sigla_Title());
+        sigla.setRequired(true);
+        sigla.setValidators(new StringTrimValidator(), new RegExpValidator("^[A-Z]{3}[0-9]{3}$"));
+        sigla.setCharacterCasing(CharacterCasing.UPPER);
 
         RepeatableFormItem shelfLocators = new RepeatableFormItem(
                 ModsCustomDataSource.FIELD_SHELF_LOCATORS, i18n.PeriodicalForm_ShelfLocators_Title(),
-                new StringFormFactory(ModsCustomDataSource.FIELD_STRING_VALUE, null, false));
+                new StringFormFactory(ModsCustomDataSource.FIELD_STRING_VALUE, null, false)
+                        .required(true)
+                );
+        shelfLocators.setRequired(true);
 //        shelfLocators.setRowSpan(2);
 
         RepeatableFormItem periodicity = new RepeatableFormItem(
@@ -68,7 +81,10 @@ public final class PeriodicalForm extends DynamicForm {
         
         RepeatableFormItem titles = new RepeatableFormItem(
                 ModsCustomDataSource.FIELD_TITLES, i18n.PeriodicalForm_Titles_Title(),
-                new StringFormFactory(ModsCustomDataSource.FIELD_STRING_VALUE, null, false, 600));
+                new StringFormFactory(ModsCustomDataSource.FIELD_STRING_VALUE, null, false, 600)
+                        .required(true)
+                );
+        titles.setRequired(true);
         oneRow(titles);
 
         RepeatableFormItem subtitles = new RepeatableFormItem(
@@ -130,8 +146,10 @@ public final class PeriodicalForm extends DynamicForm {
                 form.setNumCols(4);
                 TextItem udc = new TextItem(ModsCustomDataSource.FIELD_CLASSIFICATION_UDC,
                         i18n.PeriodicalForm_SubjectsUdc_Title()); // MDT in czech
+                udc.setValidators(new StringTrimValidator());
                 TextItem ddc = new TextItem(ModsCustomDataSource.FIELD_CLASSIFICATION_DDC,
                         i18n.PeriodicalForm_SubjectsDdc_Title()); // DDT in czech
+                ddc.setValidators(new StringTrimValidator());
                 form.setFields(udc, ddc);
                 return form;
             }
@@ -153,8 +171,10 @@ public final class PeriodicalForm extends DynamicForm {
                 form.setNumCols(4);
                 TextItem extent = new TextItem(ModsCustomDataSource.FIELD_PHYSICAL_DESCRIPTIONS_EXTENT,
                         i18n.PeriodicalForm_PhysicalDescriptionsExtent_Title()); // rozsah
+                extent.setValidators(new StringTrimValidator());
                 TextItem size = new TextItem(ModsCustomDataSource.FIELD_PHYSICAL_DESCRIPTIONS_SIZE,
                         i18n.PeriodicalForm_PhysicalDescriptionsSize_Title()); // Rozmery
+                size.setValidators(new StringTrimValidator());
                 form.setFields(extent, size);
                 return form;
             }
@@ -164,6 +184,7 @@ public final class PeriodicalForm extends DynamicForm {
         TextItem recordOrigin = new TextItem(ModsCustomDataSource.FIELD_RECORD_ORIGIN,
                 i18n.PeriodicalForm_RecordOrigin_Title());
         recordOrigin.setWidth("*");
+        recordOrigin.setValidators(new StringTrimValidator());
         oneRow(recordOrigin);
 
         TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE,
@@ -178,12 +199,6 @@ public final class PeriodicalForm extends DynamicForm {
                 alternativeTitles, keyTitles, authors, contribs, printers, publishers,
                 languages, keywords, subjects, physicalDescriptions, recordOrigin, note
                 );
-    }
-
-    private static void oneRow(FormItem fi) {
-        fi.setEndRow(true);
-        fi.setStartRow(true);
-        fi.setColSpan("*");
     }
 
 }

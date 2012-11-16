@@ -17,13 +17,18 @@
 package cz.incad.pas.editor.client.ds.mods;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.regexp.shared.RegExp;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.CharacterCasing;
 import com.smartgwt.client.types.FieldType;
+import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
+import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.validator.CustomValidator;
 import cz.fi.muni.xkremser.editor.client.mods.IdentifierTypeClient;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
@@ -46,30 +51,46 @@ public final class IdentifierDataSource extends DataSource {
     public static final String FIELD_VALUE = "value";
     /** fetched object */
     public static final String FIELD_OBJECT = "IdentifierTypeClient";
+    public static final LinkedHashMap<String, String> TYPES;
+    public static final String TYPE_ISSN = "issn";
+    public static final String TYPE_ISBN = "isbn";
+    public static final String TYPE_CCNB = "ccnb";
+    public static final String TYPE_SICI = "sici";
+    public static final String TYPE_UUID = "uuid";
+
+    static {
+        TYPES = new LinkedHashMap<String, String>();
+        TYPES.put(TYPE_ISSN, "ISSN");
+        TYPES.put(TYPE_ISBN, "ISBN");
+        TYPES.put(TYPE_CCNB, "čČNB");
+        TYPES.put(TYPE_SICI, "SICI");
+        TYPES.put(TYPE_UUID, "UUID");
+    }
 
     public IdentifierDataSource() {
         setID(ID);
         ClientMessages i18n = GWT.create(ClientMessages.class);
+        SmartGwtMessages i18nSmartGwt = GWT.create(SmartGwtMessages.class);
 
         DataSourceField type = new DataSourceField(FIELD_TYPE, FieldType.TEXT,
                 i18n.PageForm_IdentifierType_Title());
+        type.setRequired(Boolean.TRUE);
 
         ComboBoxItem typeEditor = new ComboBoxItem(IdentifierDataSource.FIELD_TYPE);
-        LinkedHashMap<String, String> types = new LinkedHashMap<String, String>();
-        types.put("issn", "ISSN");
-        types.put("isbn", "ISBN");
-        types.put("ccnb", "čČNB");
-        types.put("sici", "SICI");
-        types.put("uuid", "UUID");
-        typeEditor.setValueMap(types);
+        typeEditor.setValueMap(TYPES);
         typeEditor.setType("comboBox");
         typeEditor.setCharacterCasing(CharacterCasing.LOWER);
+        typeEditor.setBrowserSpellCheck(Boolean.FALSE);
         type.setEditorType(typeEditor);
 
         DataSourceField value = new DataSourceField(FIELD_VALUE, FieldType.TEXT,
                 i18n.PageForm_IdentifierValue_Title());
+        value.setRequired(Boolean.TRUE);
         TextItem valueEditor = new TextItem(IdentifierDataSource.FIELD_VALUE);
-        valueEditor.setWidth("200");
+        valueEditor.setWidth("250");
+        valueEditor.setBrowserSpellCheck(Boolean.FALSE);
+        valueEditor.setRequired(Boolean.TRUE);
+        valueEditor.setValidators(new IdentifierValidator(i18n, i18nSmartGwt));
         value.setEditorType(valueEditor);
 
         DataSourceField object = new DataSourceField(FIELD_VALUE, FieldType.ANY);
@@ -121,6 +142,70 @@ public final class IdentifierDataSource extends DataSource {
         IdentifierDataSource ds = (IdentifierDataSource) DataSource.get(ID);
         ds = ds != null ? ds : new IdentifierDataSource();
         return ds;
+    }
+
+    /**
+     * Validates values according to selected identifier type.
+     */
+    public static final class IdentifierValidator extends CustomValidator {
+
+        private static final RegExp RE_UUID = RegExp.compile(
+                "^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$");
+        private static final RegExp RE_ISSN = RegExp.compile(
+                "^[0-9]{4}-[0-9]{3}[0-9X]$");
+        /** rough approximation */
+        private static final RegExp RE_ISBN = RegExp.compile("^[0-9- ]{9,20}$");
+        private static final RegExp RE_CCNB = RegExp.compile("^cnb[0-9]{1,20}$");
+
+        private final ClientMessages i18n;
+        private final SmartGwtMessages i18nSmartGwt;
+
+        public IdentifierValidator(ClientMessages i18n, SmartGwtMessages i18nSmartGwt) {
+            this.i18n = i18n;
+            this.i18nSmartGwt = i18nSmartGwt;
+        }
+
+        @Override
+        protected boolean condition(Object value) {
+            boolean valid = true;
+            if (value instanceof String) {
+                String svalue = (String) value;
+                svalue = svalue.trim();
+                setResultingValue(svalue);
+                FormItem fi = getFormItem();
+                DynamicForm form = fi.getForm();
+                String type = form.getValueAsString(FIELD_TYPE);
+                if (TYPE_UUID.equals(type)) {
+                    if (!RE_UUID.test(svalue)) {
+                        valid = false;
+                        setErrorMessage(i18n.Validation_Invalid_UUID_Msg());
+                    }
+                } else if (TYPE_ISSN.equals(type)) {
+                    if (!RE_ISSN.test(svalue)) {
+                        valid = false;
+                        setErrorMessage(i18n.Validation_Invalid_ISSN_Msg());
+                    }
+                } else if (TYPE_ISBN.equals(type)) {
+                    if (!RE_ISBN.test(svalue)) {
+                        valid = false;
+                        setErrorMessage(i18n.Validation_Invalid_ISBN_Msg());
+                    }
+                } else if (TYPE_CCNB.equals(type)) {
+                    if (!RE_CCNB.test(svalue)) {
+                        valid = false;
+                        setErrorMessage(i18n.Validation_Invalid_CCNB_Msg());
+                    }
+                } else if (svalue.isEmpty()) {
+                    valid = false;
+                    setErrorMessage(i18nSmartGwt.validator_requiredField());
+                }
+            } else {
+                valid = false;
+                setErrorMessage(i18nSmartGwt.validator_requiredField());
+            }
+            return valid;
+        }
+
     }
 
 }

@@ -20,9 +20,11 @@ import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.validator.IsIntegerValidator;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -30,7 +32,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class MonographUnitForm extends DynamicForm {
+public final class MonographUnitForm extends AbstractModelForm {
 
     private static final Logger LOG = Logger.getLogger(MonographUnitForm.class.getName());
 
@@ -44,6 +46,8 @@ public final class MonographUnitForm extends DynamicForm {
         final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
                 i18n.MonographUnitForm_Identifiers_Title());
         identifiers.setDataSource(IdentifierDataSource.getInstance());
+        identifiers.setValidators(
+                new IdentifiersValidator(i18n, Arrays.asList(IdentifierDataSource.TYPE_UUID)));
         DynamicForm identifierForm = new DynamicForm();
         identifierForm.setUseAllDataSourceFields(true);
         identifierForm.setNumCols(4);
@@ -53,13 +57,15 @@ public final class MonographUnitForm extends DynamicForm {
 
         TextItem unitNumber = new TextItem(ModsCustomDataSource.FIELD_MONOGRAPHUNIT_NUMBER);
         unitNumber.setTitle(i18n.MonographUnitForm_UnitNumber_Title());
+        unitNumber.setRequired(true);
+        unitNumber.setValidators(new IsIntegerValidator());
 
         TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE, i18n.MonographUnitForm_Note_Title());
         note.setWidth("*");
         note.setHeight("*");
         note.setColSpan("*");
 
-        setFields(identifiers, unitNumber, note);
+        setFields(unitNumber, identifiers, note);
     }
 
 }

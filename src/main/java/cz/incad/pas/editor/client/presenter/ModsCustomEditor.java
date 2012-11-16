@@ -30,6 +30,9 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
+import cz.incad.pas.editor.client.action.SaveAction;
+import cz.incad.pas.editor.client.action.SaveAction.Savable;
+import cz.incad.pas.editor.client.action.SaveAction.SaveValidation;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
@@ -87,10 +90,38 @@ final class ModsCustomEditor implements DatastreamEditor, Refreshable {
     }
 
     public void save(final BooleanCallback callback) {
+        save(callback, false, SaveValidation.ASK);
+    }
+
+    /**
+     * Stores editor content.
+     *
+     * @param callback notifies whether the save was successful
+     * @param ask ask user before the save
+     * @param strategy validation strategy
+     * @see SaveAction#saveTask
+     */
+    public void save(final BooleanCallback callback, boolean ask, SaveValidation strategy) {
         if (editedCustomRecord == null) {
             callback.execute(Boolean.TRUE);
             return ;
         }
+        SaveAction.saveTask(new Savable() {
+
+            @Override
+            public void save(BooleanCallback result) {
+                saveImpl(result);
+            }
+
+            @Override
+            public void validate(BooleanCallback result) {
+                Boolean valid = activeEditor.validate();
+                result.execute(valid);
+            }
+        }, callback, ask, strategy, i18n);
+    }
+
+    private void saveImpl(final BooleanCallback callback) {
         // do not use customForm.getValuesAsRecord()
         Record r = new Record(activeEditor.getValues());
         if (LOG.isLoggable(Level.FINE)) {

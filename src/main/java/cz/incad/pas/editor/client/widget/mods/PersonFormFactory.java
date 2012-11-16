@@ -20,6 +20,7 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
+import cz.incad.pas.editor.client.widget.StringTrimValidator;
 import cz.incad.pas.editor.client.widget.mods.RepeatableFormItem.CustomFormFactory;
 
 /**
@@ -40,8 +41,10 @@ final class PersonFormFactory implements CustomFormFactory {
         form.setNumCols(4);
         TextItem family = new TextItem(ModsCustomDataSource.FIELD_NAME_FAMILY, i18n.PeriodicalForm_FamilyName_Title());
         family.setPrompt(i18n.PeriodicalForm_FamilyName_Hint());
+        family.setValidators(new StringTrimValidator());
         TextItem given = new TextItem(ModsCustomDataSource.FIELD_NAME_GIVEN, i18n.PeriodicalForm_GivenName_Title());
         given.setPrompt(i18n.PeriodicalForm_GivenName_Hint());
+        given.setValidators(new StringTrimValidator());
         form.setFields(family, given);
         return form;
     }

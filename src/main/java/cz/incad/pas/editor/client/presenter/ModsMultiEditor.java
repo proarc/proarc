@@ -30,6 +30,7 @@ import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
+import cz.incad.pas.editor.client.widget.StatusView;
 import java.util.logging.Logger;
 
 /**
@@ -93,7 +94,15 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
 
             @Override
             public void performAction(ActionEvent event) {
-                save(ClientUtils.EMPTY_BOOLEAN_CALLBACK);
+                save(new BooleanCallback() {
+
+                    @Override
+                    public void execute(Boolean value) {
+                        if (value != null && value) {
+                            StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
+                        }
+                    }
+                });
             }
         };
         return new Canvas[] {

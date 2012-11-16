@@ -18,6 +18,8 @@ package cz.incad.pas.editor.client.widget.mods;
 
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.validator.IsStringValidator;
+import cz.incad.pas.editor.client.widget.StringTrimValidator;
 import cz.incad.pas.editor.client.widget.mods.RepeatableFormItem.CustomFormFactory;
 
 /**
@@ -31,6 +33,7 @@ final class StringFormFactory implements CustomFormFactory {
     private final boolean showTitle;
     private final String name;
     private final int width;
+    private Boolean required;
 
     public StringFormFactory(String name, String title, boolean showTitle) {
         this(name, title, showTitle, Integer.MIN_VALUE);
@@ -41,6 +44,11 @@ final class StringFormFactory implements CustomFormFactory {
         this.showTitle = showTitle;
         this.name = name;
         this.width = width;
+    }
+
+    public StringFormFactory required(boolean required) {
+        this.required = required;
+        return this;
     }
 
     @Override
@@ -54,6 +62,8 @@ final class StringFormFactory implements CustomFormFactory {
         } else if (width > 0) {
             value.setWidth(width);
         }
+        value.setRequired(required);
+        value.setValidators(new StringTrimValidator());
         form.setFields(value);
         return form;
     }
