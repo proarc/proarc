@@ -26,6 +26,9 @@
     <inherits name="com.smartgwt.SmartGwt"/>
     <inherits name="com.smartgwt.tools.SmartGwtTools"/>
 
+    <!-- CodeMirror Editor                                          -->
+    <inherits name="com.google.codemirror2_gwt.CodeMirror2GWT" />
+
     <!-- Logging setup       -->
     <inherits name="com.google.gwt.logging.Logging"/>
 <!--    <set-property name="gwt.logging.enabled" value="FALSE"/> -->

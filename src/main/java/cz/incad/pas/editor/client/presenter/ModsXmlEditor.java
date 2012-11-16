@@ -16,13 +16,27 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
+import com.google.codemirror2_gwt.client.CodeMirrorConfig;
+import com.google.codemirror2_gwt.client.CodeMirrorWrapper;
+import com.google.codemirror2_gwt.client.GutterClickHandler;
+import com.google.gwt.core.client.JavaScriptObject;
+import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.user.client.ui.TextArea;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.fields.StaticTextItem;
+import com.smartgwt.client.widgets.WidgetCanvas;
+import com.smartgwt.client.widgets.events.DrawEvent;
+import com.smartgwt.client.widgets.events.DrawHandler;
+import com.smartgwt.client.widgets.events.ResizedEvent;
+import com.smartgwt.client.widgets.events.ResizedHandler;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
+import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.TextDataSource;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
 import java.util.logging.Logger;
@@ -31,32 +45,59 @@ import java.util.logging.Logger;
  * Edits MODS data in XML format.
  *
  * For now it is read only.
- * XXX add syntax highlighting
  *
  * @author Jan Pokorsky
  */
 final class ModsXmlEditor implements DatastreamEditor, Refreshable {
 
     private static final Logger LOG = Logger.getLogger(ModsXmlEditor.class.getName());
-    private final DynamicForm sourceForm;
+    private final Canvas sourceForm;
     private String pid;
+    private final CodeMirrorConfig config;
+    private final TextArea textArea;
+    private CodeMirrorWrapper wrapper;
+    private JavaScriptObject folding;
 
     public ModsXmlEditor() {
-        sourceForm = new DynamicForm();
-        sourceForm.setCanEdit(false);
+        config = CodeMirrorConfig.makeBuilder();
+        config.setMode("application/xml")
+                .setShowLineNumbers(true)
+                .setUndoDepth(0)
+                .setReadOnly(true)
+                .setOnGutterClick(new GutterClickHandler() {
+
+                        @Override
+                        public void onClick(int lineNumber) {
+                            fold(wrapper, lineNumber);
+                        }
+                })
+                ;
+        folding = initFolding();
+
+        textArea = new TextArea();
+
+        sourceForm = new WidgetCanvas(textArea);
+//        sourceForm.setBorder("1px solid #A7ABB4");
+        sourceForm.addStyleName("defaultBorder");
         sourceForm.setWidth100();
         sourceForm.setHeight100();
-        sourceForm.setColWidths("*");
-        sourceForm.setNumCols(1);
-        // TextAreaItem sourceItem = new TextAreaItem(ModsTextDataSource.FIELD_CONTENT);
-        // TextAreaItem.setCanEdit is unsupported http://mytechscratchpad.blogspot.com/2011/08/smartgwt-textareaitem-readonly.html
-        StaticTextItem sourceItem = new StaticTextItem(TextDataSource.FIELD_CONTENT);
-        sourceItem.setEscapeHTML(true);
-        sourceItem.setWidth("*");
-        sourceItem.setHeight("*");
-        sourceItem.setShowTitle(false);
-        sourceForm.setFields(sourceItem);
-        sourceForm.setDataSource(TextDataSource.getMods());
+        sourceForm.addDrawHandler(new DrawHandler() {
+
+            @Override
+            public void onDraw(DrawEvent event) {
+                // create wrapper on each draw as it is being discarded each time
+                // the parent layout sets new members
+                wrapper = CodeMirrorWrapper.createEditorFromTextArea(textArea.getElement(), config);
+                refreshEditorHeight();
+            }
+        });
+        sourceForm.addResizedHandler(new ResizedHandler() {
+
+            @Override
+            public void onResized(ResizedEvent event) {
+                refreshEditorHeight();
+            }
+        });
     }
 
     @Override
@@ -89,8 +130,47 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
     public void refresh() {
         if (pid != null) {
             Criteria pidCriteria = new Criteria(ModsCustomDataSource.FIELD_PID, pid);
-            sourceForm.fetchData(pidCriteria);
+            TextDataSource.getMods().fetchData(pidCriteria, new DSCallback() {
+
+                @Override
+                public void execute(DSResponse response, Object rawData, DSRequest request) {
+                    handleFetchResponse(response);
+                }
+            });
         }
     }
+
+    private void handleFetchResponse(DSResponse response) {
+        if (RestConfig.isStatusOk(response)) {
+            Record[] data = response.getData();
+            if (data != null && data.length == 1) {
+                String xml = data[0].getAttribute(TextDataSource.FIELD_CONTENT);
+                wrapper.setValue(xml);
+                wrapper.clearHistory();
+                wrapper.refresh();
+            }
+        }
+    }
+
+    /**
+     * Helps to stretch CodeMirrorWrapper in height as tweaking CodeMirror-scroll
+     * in codemirror.css does not work.
+     */
+    private void refreshEditorHeight() {
+        if (wrapper != null) {
+            Integer height = sourceForm.getInnerContentHeight() - 8;
+            wrapper.getScrollerElement().getStyle().setHeight(height, Unit.PX);
+            wrapper.refresh();
+        }
+    }
+
+    private native JavaScriptObject initFolding() /*-{
+        return $wnd.CodeMirror.newFoldFunction($wnd.CodeMirror.tagRangeFinder);
+    }-*/;
+
+    private native void fold(CodeMirrorWrapper wrapper, int line) /*-{
+        var f = this.@cz.incad.pas.editor.client.presenter.ModsXmlEditor::folding;
+        f(wrapper, line);
+    }-*/;
 
 }

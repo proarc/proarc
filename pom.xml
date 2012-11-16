@@ -67,6 +67,12 @@
             <artifactId>EditMods</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+        <!-- CodeMirror Editor -->
+        <dependency>
+            <groupId>com.google.codemirror2gwt</groupId>
+            <artifactId>codemirror2gwt</artifactId>
+            <version>1.1.0</version>
+        </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-servlet</artifactId>
