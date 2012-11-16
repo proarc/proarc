@@ -29,6 +29,7 @@ import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import com.smartgwt.client.widgets.toolbar.ToolStripSeparator;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.Actions;
@@ -58,6 +59,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private final VLayout widget;
     private final Label lblHeader;
     private final ToolStrip toolbar;
+    private ToolStripSeparator customToolbarSeparator;
     private final VLayout editorContainer;
     private EditorDescriptor currentEditor;
     private Record selection;
@@ -170,6 +172,11 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             toolbar.removeMembers(oldEditor.getToolbarItems());
         }
         Canvas[] customToolbar = newEditor.getToolbarItems();
+        if (customToolbar.length > 0 && !(customToolbar[0] instanceof ToolStripSeparator)) {
+            customToolbarSeparator.setVisible(true);
+        } else {
+            customToolbarSeparator.setVisible(false);
+        }
         for (Canvas item : customToolbar) {
             toolbar.addMember(item);
         }
@@ -196,6 +203,9 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         t.addMember(Actions.asIconButton(parentEditAction, source));
         t.addMember(Actions.asIconButton(mediaEditAction, source));
         t.addMember(Actions.asIconButton(ocrEditAction, source));
+        customToolbarSeparator = new ToolStripSeparator();
+        customToolbarSeparator.setVisible(false);
+        t.addMember(customToolbarSeparator);
         return t;
     }
 
