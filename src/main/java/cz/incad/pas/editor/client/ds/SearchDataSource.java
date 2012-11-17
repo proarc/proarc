@@ -16,15 +16,23 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
+import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
+import com.smartgwt.client.util.BooleanCallback;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.util.HashMap;
 
 /**
@@ -75,6 +83,34 @@ public final class SearchDataSource extends RestDataSource {
         SearchDataSource ds = (SearchDataSource) DataSource.get(ID);
         ds = (ds != null) ? ds : new SearchDataSource();
         return ds;
+    }
+
+    public RecordList find(String pid, final BooleanCallback callback) {
+        final RecordList rs = new RecordList();
+        Criteria criteria = new Criteria(
+                DigitalObjectResourceApi.SEARCH_TYPE_PARAM, SearchType.PIDS.toString());
+        if (pid != null && !pid.isEmpty()) {
+            criteria.addCriteria(DigitalObjectResourceApi.SEARCH_PID_PARAM, pid);
+        } else {
+            throw new IllegalArgumentException("pid");
+        }
+        fetchData(criteria, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (RestConfig.isStatusOk(response)) {
+                    rs.addList(response.getData());
+                    callback.execute(Boolean.TRUE);
+                } else {
+                    callback.execute(Boolean.FALSE);
+                }
+            }
+        });
+        return rs;
+    }
+
+    public static boolean isDeleted(Record r) {
+        return "fedora-system:def/model#Deleted".equals(r.getAttribute(FIELD_STATE));
     }
 
 }

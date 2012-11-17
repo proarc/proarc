@@ -21,6 +21,7 @@ import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.Editor;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 
@@ -51,7 +52,8 @@ public final class DigitalObjectEditAction extends AbstractAction {
             return ;
         }
 
-        DigitalObjectEditorPlace place = new DigitalObjectEditorPlace(editorType, selection[0]);
+        DigitalObjectEditorPlace place = new DigitalObjectEditorPlace(editorType,
+                selection[0].getAttribute(SearchDataSource.FIELD_PID));
         Editor.getInstance().getEditorWorkFlow().getPlaceController().goTo(place);
     }
 

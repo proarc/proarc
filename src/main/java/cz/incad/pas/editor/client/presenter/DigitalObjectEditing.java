@@ -24,10 +24,8 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import com.smartgwt.client.data.Record;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.Editor;
-import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 
 /**
@@ -56,7 +54,7 @@ public final class DigitalObjectEditing extends AbstractActivity {
     public void start(AcceptsOneWidget panel, EventBus eventBus) {
         DigitalObjectEditor editor = Editor.getInstance().getPresenterFactory().getDigitalObjectEditor();
         panel.setWidget(editor.getUI());
-        editor.edit(place.getEditorId(), place.getSelection());
+        editor.edit(place.getEditorId(), place.getPid());
     }
 
     @Override
@@ -67,14 +65,14 @@ public final class DigitalObjectEditing extends AbstractActivity {
     public static final class DigitalObjectEditorPlace extends Place {
 
         private DatastreamEditorType editor;
-        private Record selection;
+        private String pid;
 
         public DigitalObjectEditorPlace() {
         }
 
-        public DigitalObjectEditorPlace(DatastreamEditorType editor, Record selection) {
+        public DigitalObjectEditorPlace(DatastreamEditorType editor, String pid) {
             this.editor = editor;
-            this.selection = selection;
+            this.pid = pid;
         }
 
         public DatastreamEditorType getEditorId() {
@@ -85,18 +83,19 @@ public final class DigitalObjectEditing extends AbstractActivity {
             this.editor = editor;
         }
 
-        public Record getSelection() {
-            return selection;
+        public String getPid() {
+            return pid;
         }
 
-        public void setSelection(Record selection) {
-            this.selection = selection;
+        public void setPid(String pid) {
+            this.pid = pid;
         }
 
         @Prefix("doEditor")
         public static final class Tokenizer implements PlaceTokenizer<DigitalObjectEditorPlace> {
 
             private static final String EDITOR = "editor";
+            private static final String PID = "pid";
 
             @Override
             public DigitalObjectEditorPlace getPlace(String token) {
@@ -108,13 +107,7 @@ public final class DigitalObjectEditing extends AbstractActivity {
                     } catch (Exception e) {
                         // ignore invalid editor
                     }
-                    place.selection = new Record();
-                    place.selection.setAttribute(SearchDataSource.FIELD_PID,
-                            JsonTokenizer.getString(json, SearchDataSource.FIELD_PID));
-                    place.selection.setAttribute(SearchDataSource.FIELD_MODEL,
-                            JsonTokenizer.getString(json, SearchDataSource.FIELD_MODEL));
-                    place.selection.setAttribute(SearchDataSource.FIELD_LABEL,
-                            JsonTokenizer.getString(json, SearchDataSource.FIELD_LABEL));
+                    place.setPid(JsonTokenizer.getString(json, PID));
                 }
                 return place;
             }
@@ -123,14 +116,7 @@ public final class DigitalObjectEditing extends AbstractActivity {
             public String getToken(DigitalObjectEditorPlace place) {
                 JSONObject json = new JSONObject();
                 JsonTokenizer.putString(json, EDITOR, place.editor == null ? null : place.editor.name());
-                if (place.selection != null) {
-                    JsonTokenizer.putString(json, SearchDataSource.FIELD_PID,
-                            place.selection.getAttribute(SearchDataSource.FIELD_PID));
-                    JsonTokenizer.putString(json, SearchDataSource.FIELD_MODEL,
-                            place.selection.getAttribute(SearchDataSource.FIELD_MODEL));
-                    JsonTokenizer.putString(json, SearchDataSource.FIELD_LABEL,
-                            place.selection.getAttribute(SearchDataSource.FIELD_LABEL));
-                }
+                JsonTokenizer.putString(json, PID, place.getPid());
                 String jsonString = json.toString();
                 return jsonString;
             }
