@@ -50,6 +50,7 @@ import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.widget.DigitalObjectSearchView;
 import cz.incad.pas.editor.client.widget.DigitalObjectTreeView;
+import cz.incad.pas.editor.client.widget.StatusView;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import java.util.ArrayList;
@@ -272,6 +273,7 @@ public final class DigitalObjectManager {
                 @Override
                 public void execute(DSResponse response, Object rawData, DSRequest request) {
                     if (RestConfig.isStatusOk(response)) {
+                        StatusView.getInstance().show(i18n.DeleteAction_Done_Msg());
                         foundView.getGrid().invalidateCache();
                     }
                 }

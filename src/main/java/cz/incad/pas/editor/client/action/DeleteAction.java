@@ -16,11 +16,16 @@
  */
 package cz.incad.pas.editor.client.action;
 
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ds.RestConfig;
+import cz.incad.pas.editor.client.widget.StatusView;
 
 /**
  * The delete action invokes {@link Deletable} with selection received from
@@ -91,12 +96,14 @@ public final class DeleteAction extends AbstractAction {
     public static final class RecordDeletable implements Deletable {
 
         private final DataSource ds;
+        private final ClientMessages i18n;
 
-        public RecordDeletable(DataSource ds) {
+        public RecordDeletable(DataSource ds, ClientMessages i18n) {
             if (ds == null) {
                 throw new NullPointerException();
             }
             this.ds = ds;
+            this.i18n = i18n;
         }
 
         @Override
@@ -106,7 +113,15 @@ public final class DeleteAction extends AbstractAction {
                 // TileGrid.removeSelectedData uses queuing support in case of multi-selection.
                 // It will require extra support on server. For now remove data in separate requests.
                 //thumbGrid.removeSelectedData();
-                    ds.removeData((Record) item);
+                    ds.removeData((Record) item, new DSCallback() {
+
+                        @Override
+                        public void execute(DSResponse response, Object rawData, DSRequest request) {
+                            if (RestConfig.isStatusOk(response)) {
+                                StatusView.getInstance().show(i18n.DeleteAction_Done_Msg());
+                            }
+                        }
+                    });
                 }
             }
         }

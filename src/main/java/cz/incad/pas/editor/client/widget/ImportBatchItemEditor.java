@@ -419,7 +419,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         batchItemMultiEdit = new BatchItemMultiEdit();
         foxmlViewAction = new FoxmlViewAction(i18n);
         deleteAction = new DeleteAction(
-                new RecordDeletable(batchItemGrid.getDataSource()), i18n);
+                new RecordDeletable(batchItemGrid.getDataSource(), i18n), i18n);
     }
 
     private ToolStrip createEditorToolBar() {
