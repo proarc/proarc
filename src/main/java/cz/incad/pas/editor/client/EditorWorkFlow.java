@@ -99,7 +99,8 @@ public final class EditorWorkFlow {
             if (place instanceof DigitalObjectEditorPlace) {
                 a = new DigitalObjectEditing((DigitalObjectEditorPlace) place, placeController, i18n);
             } else if (place instanceof DigitalObjectCreatorPlace) {
-                a = new DigitalObjectCreating((DigitalObjectCreatorPlace) place);
+                a = new DigitalObjectCreating((DigitalObjectCreatorPlace) place,
+                        presenterFactory);
             } else if (place instanceof ImportPlace) {
                 a = new Importing((ImportPlace) place, presenterFactory);
             } else if (place instanceof UsersPlace) {

@@ -23,7 +23,7 @@ import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import cz.incad.pas.editor.client.Editor;
+import cz.incad.pas.editor.client.Editor.PresenterFactory;
 
 /**
  * Integrates digital object creator to the application workflow.
@@ -33,14 +33,20 @@ import cz.incad.pas.editor.client.Editor;
 public final class DigitalObjectCreating extends AbstractActivity {
 
     private final DigitalObjectCreatorPlace place;
+    private final PresenterFactory presenters;
 
-    public DigitalObjectCreating(DigitalObjectCreatorPlace place) {
+    public DigitalObjectCreating(
+            DigitalObjectCreatorPlace place,
+            PresenterFactory presenters
+            ) {
+
         this.place = place;
+        this.presenters = presenters;
     }
 
     @Override
     public void start(AcceptsOneWidget panel, EventBus eventBus) {
-        DigitalObjectCreator doc = Editor.getInstance().getPresenterFactory().getDigitalObjectCreator();
+        DigitalObjectCreator doc = presenters.getDigitalObjectCreator();
         panel.setWidget(doc.getUI());
         doc.newObject(place.getModel(), place.getParent());
     }

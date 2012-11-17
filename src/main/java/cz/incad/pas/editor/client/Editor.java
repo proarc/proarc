@@ -436,7 +436,7 @@ public class Editor implements EntryPoint {
 
         public DigitalObjectCreator getDigitalObjectCreator() {
             if (digitalObjectCreator == null) {
-                digitalObjectCreator = new DigitalObjectCreator(i18n);
+                digitalObjectCreator = new DigitalObjectCreator(i18n, placeController);
             }
             return digitalObjectCreator;
         }

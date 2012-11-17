@@ -16,32 +16,32 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
+import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.rpc.RPCResponse;
-import com.smartgwt.client.types.Overflow;
-import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
-import cz.incad.pas.editor.client.ds.RelationDataSource;
-import cz.incad.pas.editor.client.widget.DCEditor;
-import cz.incad.pas.editor.client.widget.ImportParentChooser;
-import cz.incad.pas.editor.client.widget.ImportParentChooser.ImportParentHandler;
+import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 import cz.incad.pas.editor.client.widget.NewDigObject;
+import cz.incad.pas.editor.client.widget.StatusView;
 import cz.incad.pas.editor.client.widget.Wizard;
 import cz.incad.pas.editor.client.widget.Wizard.StepKind;
 import cz.incad.pas.editor.client.widget.Wizard.WizardStep;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import java.util.Map;
 import java.util.logging.Logger;
 
 /**
  * Creates new digital object.
+ *
+ * <p>XXX replace wizard with toolbar
  *
  * @author Jan Pokorsky
  */
@@ -50,25 +50,18 @@ public final class DigitalObjectCreator {
     private static final Logger LOG = Logger.getLogger(DigitalObjectCreator.class.getName());
 
     private final NewDigObjectStep newDigObjectStep;
-    private final NewModsStep newModsStep;
-//    private final NewDcStep newDcStep;
-    private final SelectParentStep selectParentStep;
-    private final FinishedStep finishStep;
     private final Wizard wizard;
     private WizardContext wc;
     private final ClientMessages i18n;
     private String modelId;
     private String parentPid;
+    private final PlaceController places;
 
-    public DigitalObjectCreator(ClientMessages i18n) {
+    public DigitalObjectCreator(ClientMessages i18n, PlaceController places) {
         this.i18n = i18n;
+        this.places = places;
         newDigObjectStep = new NewDigObjectStep();
-        newModsStep = new NewModsStep();
-//        newDcStep = new NewDcStep();
-        selectParentStep = new SelectParentStep();
-        finishStep = new FinishedStep();
-        wizard = new Wizard(i18n, newDigObjectStep, newModsStep,
-                selectParentStep, finishStep, Wizard.emptyStep());
+        wizard = new Wizard(i18n, newDigObjectStep, Wizard.emptyStep());
     }
 
     public void newObject() {
@@ -154,11 +147,10 @@ public final class DigitalObjectCreator {
             this.wizard = wizard;
             initContext();
             wizard.setBackButton(false, null);
-//            wizard.setForwardButton(true, "Resume");
+            wizard.setForwardButton(true, i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title());
             wizard.setWizardLabel(i18n.DigitalObjectCreator_DescriptionPrefix_Title(),
                     i18n.DigitalObjectCreator_NewDigObjectStep_Description_Title());
             newDigObject.bind(modelId, null);
-//            newDigObject.bind(new AdvancedCriteria("issn", OperatorId.ICONTAINS, "my issn"));
         }
 
         @Override
@@ -177,7 +169,7 @@ public final class DigitalObjectCreator {
                 wc.setModel(model);
                 String mods = newDigObject.getMods();
                 String newPid = newDigObject.getNewPid();
-                ClientUtils.info(LOG, "NewDigObjectStep.onStepAction.FORWARD: model: %s pid: %s",
+                ClientUtils.fine(LOG, "NewDigObjectStep.onStepAction.FORWARD: model: %s pid: %s",
                         model.getId(), newPid);
                 saveNewDigitalObject(model.getId(), newPid, mods);
                 return false;
@@ -215,8 +207,10 @@ public final class DigitalObjectCreator {
                         Record[] data = response.getData();
                         if (data != null && data.length > 0) {
                             String pid = data[0].getAttribute(DigitalObjectDataSource.FIELD_PID);
-                            wc.setPid(pid);
-                            wizard.moveAt(newModsStep);
+                            // here should be updated DigitalObject data stream
+                            // caches to prevent server round-trip delays
+                            StatusView.getInstance().show(i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
+                            places.goTo(new DigitalObjectEditorPlace(DatastreamEditorType.MODS, pid));
                         } else {
                             SC.warn("Failed to create digital object!");
                         }
@@ -230,224 +224,9 @@ public final class DigitalObjectCreator {
             if (newDigObject == null) {
                 newDigObject = new NewDigObject(i18n);
             }
-//            if (true) {
-//                RepeatableForm dfl = new RepeatableForm("Identifiers");
-//                return dfl;
-//            }
             return newDigObject;
         }
     }
 
-    private final class NewModsStep implements WizardStep {
-
-        private Wizard wizard;
-        private ModsMultiEditor modsEditor;
-
-        @Override
-        public void onShow(Wizard wizard) {
-            this.wizard = wizard;
-            wizard.setBackButton(false, null);
-//            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel(i18n.DigitalObjectCreator_DescriptionPrefix_Title(),
-                    i18n.DigitalObjectCreator_NewModsStep_Description_Title());
-
-            WizardContext wc = getContext();
-            if (!wc.isModsInitialized()) {
-                modsEditor.edit(wc.getPid(), null, wc.getModel());
-                wc.setModsInitialized(true);
-            }
-        }
-
-        @Override
-        public void onHide(Wizard wizard) {
-            wizard = null;
-        }
-
-        @Override
-        public boolean onStepAction(Wizard w, StepKind step) {
-            if (step == StepKind.FORWARD) {
-                modsEditor.save(new BooleanCallback() {
-
-                    @Override
-                    public void execute(Boolean value) {
-                        if (value != null && value) {
-                            wizard.moveAt(selectParentStep);
-                        }
-                    }
-                });
-            }
-            return false;
-        }
-
-        @Override
-        public Canvas asWidget() {
-            if (modsEditor == null) {
-                modsEditor = new ModsMultiEditor(i18n);
-            }
-            return modsEditor.getUI();
-        }
-
-    }
-
-    private final class NewDcStep implements WizardStep {
-
-        private Wizard wizard;
-        private DCEditor dcEditor;
-
-        @Override
-        public void onShow(Wizard wizard) {
-            this.wizard = wizard;
-//            wizard.setBackButton(false, null);
-//            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel(i18n.DigitalObjectCreator_DescriptionPrefix_Title(),
-                    i18n.DigitalObjectCreator_NewDcStep_Description_Title());
-
-            WizardContext wc = getContext();
-            if (!wc.isDcInitialized()) {
-//                modsFullEditor.newData();
-                wc.setDcInitialized(true);
-            }
-        }
-
-        @Override
-        public void onHide(Wizard wizard) {
-            wizard = null;
-        }
-
-        @Override
-        public boolean onStepAction(Wizard wizard, StepKind step) {
-            return true;
-        }
-
-        @Override
-        public Canvas asWidget() {
-            if (dcEditor == null) {
-                dcEditor = new DCEditor(i18n);
-                dcEditor.setOverflow(Overflow.AUTO);
-            }
-            return dcEditor;
-        }
-    }
-
-    private final class SelectParentStep implements WizardStep, ImportParentHandler {
-
-        private Wizard wizard;
-        private ImportParentChooser editor;
-
-        @Override
-        public void onShow(Wizard wizard) {
-            this.wizard = wizard;
-            wizard.setBackButton(false, null);
-//            wizard.setForwardButton(true, "Resume");
-            wizard.setWizardLabel(i18n.DigitalObjectCreator_DescriptionPrefix_Title(),
-                    i18n.DigitalObjectCreator_SelectParentStep_Description_Title());
-
-            editor.setHandler(this);
-            editor.setDigitalObject(getContext().getPid());
-            onParentSelectionUpdated();
-        }
-
-        @Override
-        public void onHide(Wizard wizard) {
-            wizard = null;
-        }
-
-        @Override
-        public boolean onStepAction(Wizard w, StepKind step) {
-            Record selectedParent = editor.getSelectedParent();
-            String parentPid = null;
-            WizardContext wc = getContext();
-            if (selectedParent != null) {
-                parentPid = selectedParent.getAttribute(RelationDataSource.FIELD_PID);
-            }
-            if (step == StepKind.FORWARD) {
-                if (parentPid != null) {
-                    addMember(wc.getPid(), new BooleanCallback() {
-
-                        @Override
-                        public void execute(Boolean value) {
-                            if (value != null && value) {
-                                wizard.moveAt(finishStep);
-                            }
-                        }
-                    });
-                }
-                return false;
-            } else {
-                wc.setParentPid(parentPid);
-            }
-            return true;
-        }
-
-        private void addMember(String memberPid, final BooleanCallback call) {
-            RelationDataSource ds = RelationDataSource.getInstance();
-            Record oldParent = editor.getOldParent();
-            Record newParent = editor.getSelectedParent();
-            String parentPid = editor.getSelectedParentPid();
-            String oldParentPid = editor.getOldParentPid();
-            String oldParentId = oldParent == null ? null : oldParent.getAttribute(RelationDataSource.FIELD_ID);
-            String parentId = parentPid == null ? null : newParent.getAttribute(RelationDataSource.FIELD_ID);
-            ds.moveChild(memberPid, oldParentId, oldParentPid, parentId, parentPid, call);
-        }
-
-        @Override
-        public Canvas asWidget() {
-            if (editor == null) {
-                editor = new ImportParentChooser(i18n);
-            }
-            return editor.getUI();
-        }
-
-        @Override
-        public void onParentSelectionUpdated() {
-            Record selectedParent = editor.getSelectedParent();
-            String pid = (selectedParent != null)
-                    ? selectedParent.getAttribute(RelationDataSource.FIELD_PID)
-                    : null;
-            boolean valid = pid != null && !pid.equals(getContext().getPid());
-            wizard.setCanStepForward(valid);
-        }
-    }
-
-    /**
-     * This should summerize created objects and error logs.
-     */
-    private final class FinishedStep implements WizardStep {
-
-        private final Canvas widget;
-
-        public FinishedStep() {
-            widget = new Canvas();
-            widget.setContents("Object created!");
-        }
-
-        @Override
-        public void onShow(Wizard wizard) {
-            wizard.setBackButton(true, i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title());
-            wizard.setForwardButton(false, i18n.DigitalObjectCreator_FinishedStep_OpenInEditorButton_Title());
-            wizard.setWizardLabel(i18n.DigitalObjectCreator_DescriptionPrefix_Title(),
-                    i18n.DigitalObjectCreator_FinishedStep_Description_Title());
-        }
-
-        @Override
-        public void onHide(Wizard wizard) {
-        }
-
-        @Override
-        public boolean onStepAction(Wizard wizard, StepKind step) {
-            if (step == StepKind.BACK) {
-                newObject();
-            } else {
-                // XXX fire place change
-            }
-            return false;
-        }
-
-        @Override
-        public Canvas asWidget() {
-            return widget;
-        }
-
-    }
 
 }
