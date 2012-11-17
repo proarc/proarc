@@ -47,6 +47,7 @@ import cz.incad.pas.editor.client.widget.MediaEditor;
 import cz.incad.pas.editor.client.widget.TextEditor;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import java.util.EnumMap;
+import java.util.logging.Logger;
 
 /**
  * Edits digital object data streams.
@@ -55,6 +56,7 @@ import java.util.EnumMap;
  */
 public final class DigitalObjectEditor implements Refreshable, Selectable<Record> {
 
+    private static final Logger LOG = Logger.getLogger(DigitalObjectEditor.class.getName());
     private final ClientMessages i18n;
     private final VLayout widget;
     private final Label lblHeader;
@@ -96,16 +98,17 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
 
     public void edit(DatastreamEditorType type, Record selection) {
         this.selection = selection;
-        pid = selection.getAttribute(SearchDataSource.FIELD_PID);
-        modelId = selection.getAttribute(SearchDataSource.FIELD_MODEL);
-
-        editorContainer.hide();
-        if (type == null) {
+        pid = selection == null ? null : selection.getAttribute(SearchDataSource.FIELD_PID);
+        if (type == null || pid == null) {
             // this should occur just in case someone breakes URL in browser.
-            SC.warn("Missing or invalid editor type!");
+            ClientUtils.severe(LOG, "invalid edit parameters: %s, %s, %s", type, pid, selection);
+            SC.warn("Invalid URL!");
             places.goTo(Place.NOWHERE);
             return ;
         }
+        modelId = selection.getAttribute(SearchDataSource.FIELD_MODEL);
+
+        editorContainer.hide();
 
         initModels();
 

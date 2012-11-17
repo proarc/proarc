@@ -123,12 +123,14 @@ public final class DigitalObjectEditing extends AbstractActivity {
             public String getToken(DigitalObjectEditorPlace place) {
                 JSONObject json = new JSONObject();
                 JsonTokenizer.putString(json, EDITOR, place.editor == null ? null : place.editor.name());
-                JsonTokenizer.putString(json, SearchDataSource.FIELD_PID,
-                        place.selection.getAttribute(SearchDataSource.FIELD_PID));
-                JsonTokenizer.putString(json, SearchDataSource.FIELD_MODEL,
-                        place.selection.getAttribute(SearchDataSource.FIELD_MODEL));
-                JsonTokenizer.putString(json, SearchDataSource.FIELD_LABEL,
-                        place.selection.getAttribute(SearchDataSource.FIELD_LABEL));
+                if (place.selection != null) {
+                    JsonTokenizer.putString(json, SearchDataSource.FIELD_PID,
+                            place.selection.getAttribute(SearchDataSource.FIELD_PID));
+                    JsonTokenizer.putString(json, SearchDataSource.FIELD_MODEL,
+                            place.selection.getAttribute(SearchDataSource.FIELD_MODEL));
+                    JsonTokenizer.putString(json, SearchDataSource.FIELD_LABEL,
+                            place.selection.getAttribute(SearchDataSource.FIELD_LABEL));
+                }
                 String jsonString = json.toString();
                 return jsonString;
             }
