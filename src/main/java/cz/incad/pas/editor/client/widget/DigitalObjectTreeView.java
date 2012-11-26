@@ -21,7 +21,6 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.grid.ListGridField;
@@ -50,7 +49,6 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
     private final ClientMessages i18n;
     private String rootPid;
     private final ToolStrip toolbar;
-    private ResultSet modelResultSet;
 
     public DigitalObjectTreeView(ClientMessages i18n) {
         this.i18n = i18n;
@@ -111,7 +109,6 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
 
     private ToolStrip createToolbar() {
         ToolStrip toolbar = Actions.createToolStrip();
-        toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n), this));
         return toolbar;
     }
 
@@ -140,15 +137,9 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         field.setValueMap(valueMap);
     }
 
-    public void setModels(ResultSet rs) {
-        this.modelResultSet = rs;
-    }
-
     @Override
     public void refresh() {
         treeSelector.invalidateCache();
-        modelResultSet.invalidateCache();
-        modelResultSet.get(0);
     }
 
     @Override

@@ -16,13 +16,12 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
+import com.google.gwt.core.client.Callback;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
-import com.smartgwt.client.data.events.DataArrivedEvent;
-import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
@@ -34,6 +33,7 @@ import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItemSeparator;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
@@ -44,6 +44,8 @@ import cz.incad.pas.editor.client.action.DeleteAction.Deletable;
 import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
 import cz.incad.pas.editor.client.action.FoxmlViewAction;
 import cz.incad.pas.editor.client.action.KrameriusExportAction;
+import cz.incad.pas.editor.client.action.RefreshAction;
+import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
@@ -55,7 +57,7 @@ import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 /**
  * The component allows to search digital objects and perform actions on
@@ -80,7 +82,6 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction parentEditAction;
     private DigitalObjectEditAction mediaEditAction;
     private boolean initialized;
-    private ResultSet modelResultSet;
 
     public DigitalObjectManager(ClientMessages i18n) {
         this.i18n = i18n;
@@ -132,23 +133,21 @@ public final class DigitalObjectManager {
             return ;
         }
         initialized = true;
-        initModels();
-        foundView.setModels(modelResultSet);
-        treeView.setModels(modelResultSet);
+        fetchModels(false);
         foundView.onShow();
         treeView.setRoot(null);
     }
 
-    private void initModels() {
-        if (modelResultSet != null) {
-            return ;
-        }
-        modelResultSet = MetaModelDataSource.getModels(true);
-        modelResultSet.addDataArrivedHandler(new DataArrivedHandler() {
+    private void fetchModels(boolean reload) {
+        MetaModelDataSource.getModels(reload, new Callback<ResultSet, Void>() {
 
             @Override
-            public void onDataArrived(DataArrivedEvent event) {
-                Map valueMap = modelResultSet.getValueMap(
+            public void onFailure(Void reason) {
+            }
+
+            @Override
+            public void onSuccess(ResultSet modelResultSet) {
+                LinkedHashMap<?, ?> valueMap = ClientUtils.getValueMap(modelResultSet,
                         MetaModelDataSource.FIELD_PID, MetaModelDataSource.FIELD_DISPLAY_NAME);
                 treeView.setModels(valueMap);
                 foundView.setModels(valueMap);
@@ -205,6 +204,8 @@ public final class DigitalObjectManager {
         menuExport.addItem(Actions.asMenuItem(rawDataStreamExportAction, actionSource, false));
         btnExport.setMenu(menuExport);
 
+        toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n),
+                new RefreshableView((Refreshable) actionSource.getSource())));
         toolbar.addSeparator();
         toolbar.addMember(Actions.asIconButton(modsEditAction, actionSource));
         toolbar.addMember(Actions.asIconButton(noteEditAction, actionSource));
@@ -280,6 +281,21 @@ public final class DigitalObjectManager {
             }, dsRequest);
         }
 
+    }
+
+    private final class RefreshableView implements Refreshable {
+
+        private final Refreshable delegate;
+
+        RefreshableView(Refreshable delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void refresh() {
+            fetchModels(true);
+            delegate.refresh();
+        }
     }
 
 }

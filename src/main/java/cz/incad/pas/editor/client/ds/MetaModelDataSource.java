@@ -16,11 +16,15 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.google.gwt.core.client.Callback;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.data.events.DataArrivedEvent;
+import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
@@ -102,6 +106,23 @@ public class MetaModelDataSource extends RestDataSource {
             resultSet.get(0);
         }
         return resultSet;
+    }
+
+    public static void getModels(boolean reload, final Callback<ResultSet, Void> callback) {
+        final ResultSet models = getModels(reload);
+        if (models.lengthIsKnown()) {
+            callback.onSuccess(models);
+        } else {
+            final HandlerRegistration[] handler = new HandlerRegistration[1];
+            handler[0] = models.addDataArrivedHandler(new DataArrivedHandler() {
+
+                @Override
+                public void onDataArrived(DataArrivedEvent event) {
+                    handler[0].removeHandler();
+                    callback.onSuccess(models);
+                }
+            });
+        }
     }
 
     /**

@@ -16,14 +16,13 @@
  */
 package cz.incad.pas.editor.client.widget;
 
+import com.google.gwt.core.client.Callback;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
-import com.smartgwt.client.data.events.DataArrivedEvent;
-import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
@@ -39,9 +38,12 @@ import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.tree.TreeNode;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
+import cz.incad.pas.editor.client.action.RefreshAction;
+import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
@@ -50,7 +52,6 @@ import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * UI to show and change parent for given digital object or import batch.
@@ -69,7 +70,6 @@ public final class ImportParentChooser {
     private Record newParent;
     private Record oldParent;
     private boolean loadFailed;
-    private ResultSet modelResultSet;
     
     public ImportParentChooser(ClientMessages i18n) {
         this.i18n = i18n;
@@ -136,28 +136,26 @@ public final class ImportParentChooser {
         oldParent = null;
         newParent = null;
         loadFailed = true;
-        initModels();
+        fetchModels(false);
         loadParentSelection(pid, batchId);
-        treeView.setModels(modelResultSet);
         foundView.onShow();
-        foundView.setModels(modelResultSet);
     }
 
-    private void initModels() {
-        if (modelResultSet != null) {
-            return ;
-        }
-        modelResultSet = MetaModelDataSource.getModels(true);
-        modelResultSet.addDataArrivedHandler(new DataArrivedHandler() {
+    private void fetchModels(boolean reload) {
+        MetaModelDataSource.getModels(reload, new Callback<ResultSet, Void>() {
 
             @Override
-            public void onDataArrived(DataArrivedEvent event) {
-                Map<?,?> valueMap = modelResultSet.getValueMap(
+            public void onFailure(Void reason) {
+            }
+
+            @Override
+            public void onSuccess(ResultSet modelResultSet) {
+                LinkedHashMap<?, ?> valueMap = ClientUtils.getValueMap(modelResultSet,
                         MetaModelDataSource.FIELD_PID, MetaModelDataSource.FIELD_DISPLAY_NAME);
                 treeView.setModels(valueMap);
                 foundView.setModels(valueMap);
                 selectionForm.getField(SearchDataSource.FIELD_MODEL)
-                        .setValueMap(new LinkedHashMap<Object, Object>(valueMap));
+                        .setValueMap(valueMap);
             }
         });
     }
@@ -318,6 +316,8 @@ public final class ImportParentChooser {
     }
 
     private void initToolbar(ToolStrip toolbar, Selectable<Record> source) {
+        toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n),
+                new RefreshableView((Refreshable) source)));
         toolbar.addMember(Actions.asIconButton(selectParentAction, source));
     }
 
@@ -327,6 +327,21 @@ public final class ImportParentChooser {
 
     public interface ImportParentHandler {
         void onParentSelectionUpdated();
+    }
+
+    private final class RefreshableView implements Refreshable {
+
+        private final Refreshable delegate;
+
+        RefreshableView(Refreshable delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void refresh() {
+            fetchModels(true);
+            delegate.refresh();
+        }
     }
 
 }

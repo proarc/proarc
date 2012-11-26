@@ -29,6 +29,7 @@ import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.JSONEncoder;
 import com.smartgwt.client.widgets.tile.TileGrid;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -269,6 +270,24 @@ public final class ClientUtils {
         } catch (ArrayStoreException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
+    }
+
+    /**
+     * Helper to get value map from the result set as a linked hash map.
+     * It specifies origin contract of {@link ResultSet#getValueMap(String, String) ResultSet.getValueMap}
+     * to make the map usable for e.g.
+     * {@link com.smartgwt.client.widgets.form.fields.FormItem#setValueMap(java.util.LinkedHashMap) FormItem}.
+     *
+     * @param rs result set
+     * @param idField field name holding IDs
+     * @param displayField field name holding display values
+     * @return linked map
+     */
+    public static LinkedHashMap<?, ?> getValueMap(ResultSet rs, String idField, String displayField) {
+        Map<?, ?> valueMap = rs.getValueMap(idField, displayField);
+        // ResultSet implementation (SmartGWT 3.0) returns the map as LinkedHashMap,
+        // no extra processing required for now
+        return (LinkedHashMap<?, ?>) valueMap;
     }
 
     public static final BooleanCallback EMPTY_BOOLEAN_CALLBACK = new BooleanCallback() {

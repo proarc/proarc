@@ -19,7 +19,6 @@ package cz.incad.pas.editor.client.widget;
 import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SelectionType;
@@ -58,7 +57,6 @@ import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -80,7 +78,6 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     private final ClientMessages i18n;
     private final SmartGwtMessages i18nSmartGwt;
     private final ToolStrip toolbar;
-    private ResultSet modelResultSet;
 
     public DigitalObjectSearchView(ClientMessages i18n) {
         this.i18n = i18n;
@@ -136,8 +133,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     private ToolStrip createToolbar() {
         ToolStrip toolbar = Actions.createToolStrip();
-        IconButton btnRefresh = Actions.asIconButton(new RefreshAction(i18n), this);
-
+        
         IconButton btnFilter = new IconButton();
         btnFilter.setActionType(SelectionType.CHECKBOX);
         btnFilter.setIcon("[SKIN]/actions/filter.png");
@@ -155,7 +151,6 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
             }
         });
 
-        toolbar.addMember(btnRefresh);
         toolbar.addMember(btnFilter);
         return toolbar;
     }
@@ -239,12 +234,8 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     private SelectItem createModelItem(String title, FormItemIfFunction showIf) {
         SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM, title);
-        item.setOptionDataSource(MetaModelDataSource.getInstance());
         item.setAllowEmptyValue(true);
         item.setEmptyDisplayValue("<i>" + i18nSmartGwt.filterBuilder_matchAllTitle() + "</i>");
-        item.setValueField(MetaModelDataSource.FIELD_PID);
-        item.setDisplayField(MetaModelDataSource.FIELD_DISPLAY_NAME);
-        item.setAutoFetchData(true);
         item.setValue("model:periodical");
         if (showIf != null) {
             item.setShowIfCondition(showIf);
@@ -269,13 +260,11 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         filter();
     }
 
-    public void setModels(ResultSet rs) {
-        this.modelResultSet = rs;
-    }
-
-    public void setModels(Map<?, ?> valueMap) {
+    public void setModels(LinkedHashMap<?, ?> valueMap) {
         ListGridField field = foundGrid.getField(SearchDataSource.FIELD_MODEL);
         field.setValueMap(valueMap);
+        FormItem filterModel = filters.getField(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM);
+        filterModel.setValueMap(valueMap);
     }
 
     @Override
@@ -287,8 +276,6 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     @Override
     public void refresh() {
-        modelResultSet.invalidateCache();
-        modelResultSet.get(0);
         onShow();
     }
 
