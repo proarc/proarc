@@ -100,7 +100,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
                 );
         treeGrid.setTitleField(RelationDataSource.FIELD_LABEL);
         treeGrid.setShowConnectors(true);
-        treeGrid.setEmptyMessage(i18n.ImportParentChooser_EmptySelection_Title());
+        treeGrid.setEmptyMessage(i18n.DigitalObjectTreeView_EmptySelection_Msg());
         treeGrid.setAlternateRecordStyles(true);
         treeGrid.setSelectionType(SelectionStyle.SINGLE);
         treeGrid.setContextMenu(Actions.createMenu());

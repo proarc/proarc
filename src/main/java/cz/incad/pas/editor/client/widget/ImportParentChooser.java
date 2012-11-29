@@ -17,19 +17,19 @@
 package cz.incad.pas.editor.client.widget;
 
 import com.google.gwt.core.client.Callback;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.fields.ButtonItem;
-import com.smartgwt.client.widgets.form.fields.TextItem;
-import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
-import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
+import com.smartgwt.client.widgets.IButton;
+import com.smartgwt.client.widgets.events.ClickEvent;
+import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
@@ -64,7 +64,7 @@ public final class ImportParentChooser {
     private ImportParentHandler handler;
     private final DigitalObjectSearchView foundView;
     private final DigitalObjectTreeView treeView;
-    private final DynamicForm selectionForm;
+    private final SelectionView selectionView;
     private AbstractAction selectParentAction;
     private final VLayout widget;
     private Record newParent;
@@ -74,11 +74,11 @@ public final class ImportParentChooser {
     public ImportParentChooser(ClientMessages i18n) {
         this.i18n = i18n;
         this.widget = new VLayout(4);
-        widget.setLayoutMargin(4);
         widget.setWidth100();
         widget.setHeight100();
+        widget.setOverflow(Overflow.AUTO);
 
-        selectionForm = createSelectionForm();
+        selectionView = createSelectionView(i18n);
         foundView = new DigitalObjectSearchView(i18n);
         treeView = new DigitalObjectTreeView(i18n);
 
@@ -95,7 +95,7 @@ public final class ImportParentChooser {
             }
         });
 
-        widget.addMember(selectionForm);
+        widget.addMember(selectionView);
         widget.addMember(foundView.asWidget());
         widget.addMember(treeView.asWidget());
         createActions();
@@ -154,8 +154,7 @@ public final class ImportParentChooser {
                         MetaModelDataSource.FIELD_PID, MetaModelDataSource.FIELD_DISPLAY_NAME);
                 treeView.setModels(valueMap);
                 foundView.setModels(valueMap);
-                selectionForm.getField(SearchDataSource.FIELD_MODEL)
-                        .setValueMap(valueMap);
+                selectionView.setModels(valueMap);
             }
         });
     }
@@ -232,7 +231,7 @@ public final class ImportParentChooser {
 
     private void loadParentSelection(final String pid, String batchId) {
         if (pid == null && batchId == null) {
-            selectionForm.clearValues();
+            selectionView.setSelection(null);
             return ;
         }
         Criteria criteria = new Criteria(
@@ -251,9 +250,9 @@ public final class ImportParentChooser {
                     Record[] data = response.getData();
                     if (data != null && data.length > 0) {
                         newParent = oldParent = data[0];
-                        selectionForm.editRecord(data[0]);
+                        selectionView.setSelection(data[0]);
                     } else {
-                        selectionForm.clearValues();
+                        selectionView.setSelection(null);
                     }
                     loadFailed = false;
                 }
@@ -261,41 +260,20 @@ public final class ImportParentChooser {
         });
     }
 
-    private DynamicForm createSelectionForm() {
-        final DynamicForm form = new DynamicForm();
-        form.setAutoWidth();
-        form.setNumCols(7);
-        form.setBrowserSpellCheck(false);
-        form.setCanEdit(false);
-        form.setCanFocus(false);
-        form.setGroupTitle(i18n.ImportParentChooser_SelectionForm_Title());
-        form.setIsGroup(true);
-        form.setTitleWidth(1); // to compute real width of titles
-        TextItem model = new TextItem(SearchDataSource.FIELD_MODEL,
-                i18n.DigitalObjectSearchView_ListHeaderModel_Title());
-        TextItem pid = new TextItem(SearchDataSource.FIELD_PID,
-                i18n.DigitalObjectSearchView_ListHeaderPid_Title());
-        TextItem label = new TextItem(SearchDataSource.FIELD_LABEL,
-                i18n.DigitalObjectSearchView_ListHeaderLabel_Title());
-        label.setWidth(400);
-        ButtonItem clear = new ButtonItem("clear",
-                i18n.ImportParentChooser_SelectionForm_Clear_Title());
-        clear.setTooltip(i18n.ImportParentChooser_SelectionForm_Clear_Hint());
-        clear.setStartRow(false);
-        clear.setCanEdit(true);
-        clear.addClickHandler(new ClickHandler() {
+    private SelectionView createSelectionView(ClientMessages i18n) {
+        final SelectionView view = new SelectionView(i18n);
+        view.addClearClickHandler(new ClickHandler() {
 
             @Override
             public void onClick(ClickEvent event) {
-                form.clearValues();
                 newParent = null;
+                view.setSelection(null);
                 handler.onParentSelectionUpdated();
             }
         });
-        form.setItems(label, model, pid, clear);
-        return form;
+        return view;
     }
-
+    
     private void createActions() {
         selectParentAction = new AbstractAction(
                 i18n.ImportParentChooser_SelectAction_Title(),
@@ -308,7 +286,7 @@ public final class ImportParentChooser {
                 if (selection != null && selection.length == 1) {
                     newParent = treeView.getTree().getTree().find(
                             RelationDataSource.FIELD_PID, selection[0].getAttribute(RelationDataSource.FIELD_PID));
-                    selectionForm.editRecord(selection[0]);
+                    selectionView.setSelection(selection[0]);
                     handler.onParentSelectionUpdated();
                 }
             }
@@ -343,5 +321,65 @@ public final class ImportParentChooser {
             delegate.refresh();
         }
     }
+
+    /**
+     * Shows selected parent object.
+     */
+    private final static class SelectionView extends VLayout {
+
+        private final Canvas selection;
+        private LinkedHashMap<?, ?> models;
+        private Record parentRecord;
+        private final IButton clear;
+        private final ClientMessages i18n;
+
+        SelectionView(ClientMessages i18n) {
+            this.i18n = i18n;
+            setAutoHeight();
+            setIsGroup(true);
+            setGroupTitle(i18n.ImportParentChooser_SelectionForm_Title());
+            setLayoutMargin(4);
+            selection = new Canvas();
+            selection.setWidth100();
+            selection.setAutoHeight();
+            selection.setMargin(4);
+            selection.setCanSelectText(Boolean.TRUE);
+            clear = new IButton(i18n.ImportParentChooser_SelectionForm_Clear_Title());
+            clear.setTooltip(i18n.ImportParentChooser_SelectionForm_Clear_Hint());
+            clear.setAutoFit(Boolean.TRUE);
+            setMembers(selection, clear);
+        }
+
+        public HandlerRegistration addClearClickHandler(ClickHandler handler) {
+            return clear.addClickHandler(handler);
+        }
+
+        private void setSelection(Record parentRecord) {
+            this.parentRecord = parentRecord;
+            if (parentRecord == null) {
+                selection.setContents(i18n.ImportParentChooser_EmptySelection_Msg());
+                return ;
+            }
+            String model = parentRecord.getAttribute(SearchDataSource.FIELD_MODEL);
+            if (models != null) {
+                Object obj = models.get(model);
+                if (obj != null) {
+                    model = String.valueOf(obj);
+                }
+            }
+            selection.setContents(ClientUtils.format("%s: <b>%s</b>, %s",
+                    model,
+                    parentRecord.getAttribute(SearchDataSource.FIELD_LABEL),
+                    parentRecord.getAttribute(SearchDataSource.FIELD_PID)
+                    ));
+        }
+
+        public void setModels(LinkedHashMap<?, ?> models) {
+            this.models = models;
+            setSelection(parentRecord);
+        }
+
+    }
+
 
 }
