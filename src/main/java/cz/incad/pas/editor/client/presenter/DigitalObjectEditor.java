@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
+import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -266,38 +267,34 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     /**
      * Opens editor when object description and model object are fetched.
      */
-    private final class OpenEditorTask extends SweepTask implements DataChangedHandler {
+    private final class OpenEditorTask extends SweepTask implements DataChangedHandler, Callback<ResultSet, Void> {
 
         private RecordList searchList;
         private ResultSet modelResultSet;
         private final String pid;
-        private HandlerRegistration modelChangedHandler;
+        private HandlerRegistration searchChangedHandler;
 
         OpenEditorTask(String pid) {
             this.pid = pid;
         }
 
         public void start() {
-            this.searchList = initSearchList(pid);
-            this.modelResultSet = initModels();
             expect();
+            this.searchList = initSearchList(pid);
+            initModels();
             release();
         }
 
-        private ResultSet initModels() {
-            ResultSet rs = MetaModelDataSource.getModels();
-            if (rs.isEmpty()) {
-                expect();
-                modelChangedHandler = rs.addDataChangedHandler(this);
-            }
-            return rs;
+        private void initModels() {
+            expect();
+            MetaModelDataSource.getModels(false, this);
         }
 
         private RecordList initSearchList(String pid) {
             RecordList rl = SearchDataSource.getInstance().find(pid, ClientUtils.EMPTY_BOOLEAN_CALLBACK);
             if (rl.isEmpty()) {
                 expect();
-                rl.addDataChangedHandler(this);
+                searchChangedHandler = rl.addDataChangedHandler(this);
             }
             return rl;
         }
@@ -326,9 +323,21 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
 
         @Override
         public void onDataChanged(DataChangedEvent event) {
-            if (modelResultSet == event.getSource()) {
-                modelChangedHandler.removeHandler();
+            if (searchList == event.getSource() && searchChangedHandler != null) {
+                searchChangedHandler.removeHandler();
+                release();
             }
+        }
+
+        @Override
+        public void onFailure(Void reason) {
+            modelResultSet = new ResultSet();
+            release();
+        }
+
+        @Override
+        public void onSuccess(ResultSet result) {
+            modelResultSet = result;
             release();
         }
 
