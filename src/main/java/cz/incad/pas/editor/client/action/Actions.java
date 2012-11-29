@@ -28,6 +28,8 @@ import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.events.ShowContextMenuEvent;
 import com.smartgwt.client.widgets.events.ShowContextMenuHandler;
+import com.smartgwt.client.widgets.events.VisibilityChangedEvent;
+import com.smartgwt.client.widgets.events.VisibilityChangedHandler;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
@@ -37,6 +39,7 @@ import com.smartgwt.client.widgets.menu.events.MenuItemClickEvent;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.toolbar.ToolStripButton;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -235,8 +238,17 @@ public final class Actions {
      * Creates default menu.
      */
     public static Menu createMenu() {
-        Menu menu = new Menu();
-        menu.setShowShadow(true);
+        final LiveMenu menu = new LiveMenu();
+        menu.setShowShadow(Boolean.TRUE);
+        menu.addVisibilityChangedHandler(new VisibilityChangedHandler() {
+
+            @Override
+            public void onVisibilityChanged(VisibilityChangedEvent event) {
+                if (event.getIsVisible()) {
+                    menu.includeEnabled();
+                }
+            }
+        });
         return menu;
     }
 
@@ -267,14 +279,12 @@ public final class Actions {
     }
 
     /**
-     * Fixes {@link ListGrid} context menu to show only enabled items and
+     * Fixes {@link ListGrid} context menu
      * to update grid selection on right click properly.
      * <p>Bug: right click selects row without firing selection event.
      */
     public static void fixListGridContextMenu(final ListGrid grid) {
         grid.addShowContextMenuHandler(new ShowContextMenuHandler() {
-
-            private MenuItem[] originItems;
 
             @Override
             public void onShowContextMenu(ShowContextMenuEvent event) {
@@ -290,31 +300,8 @@ public final class Actions {
                     grid.selectSingleRecord(eventRow);
                 }
                 Menu contextMenu = grid.getContextMenu();
-                if (originItems == null) {
-                    originItems = contextMenu.getItems();
-                }
-                updateMenu(contextMenu, originItems);
                 contextMenu.showContextMenu();
                 event.cancel();
-            }
-
-            /**
-             * Hides disable items and superfluous separators.
-             * @param items origin menu item array
-             * @param m menu to update
-             */
-            private void updateMenu(Menu m, MenuItem[] items) {
-                ArrayList<MenuItem> enabled = new ArrayList<MenuItem>(items.length);
-                // skip separators of hidden actions
-                boolean lastWasSeparator = true;
-                for (MenuItem item : items) {
-                    if (item.getEnabled() || (item.getIsSeparator() && !lastWasSeparator)) {
-                        enabled.add(item);
-                        lastWasSeparator = item.getIsSeparator();
-                    }
-                }
-                MenuItem[] toArray = enabled.toArray(new MenuItem[enabled.size()]);
-                m.setItems(toArray);
             }
         });
 
@@ -355,6 +342,64 @@ public final class Actions {
             ValueChangeEvent.fire(this, new ActionEvent(source));
         }
 
+    }
+
+    /**
+     * Hides disabled items and superfluous separators.
+     */
+    private static final class LiveMenu extends Menu {
+
+        private final ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
+
+        /**
+         * Recomputes menu.
+         */
+        public void includeEnabled() {
+            ArrayList<MenuItem> enabled = new ArrayList<MenuItem>(menuItems.size());
+            // skip separators of hidden actions
+            boolean lastWasSeparator = true;
+            for (MenuItem item : menuItems) {
+                if (item.getEnabled() || (item.getIsSeparator() && !lastWasSeparator)) {
+                    enabled.add(item);
+                    lastWasSeparator = item.getIsSeparator();
+                }
+            }
+            MenuItem[] toArray = enabled.toArray(new MenuItem[enabled.size()]);
+            super.setItems(toArray);
+        }
+
+        public void includeAll() {
+            if (menuItems.size() != getItems().length) {
+                MenuItem[] toArray = menuItems.toArray(new MenuItem[menuItems.size()]);
+                super.setItems(toArray);
+            }
+        }
+
+        @Override
+        public void addItem(MenuItem item) {
+            menuItems.add(item);
+            super.addItem(item);
+        }
+
+        @Override
+        public void addItem(MenuItem item, int index) {
+            includeAll();
+            menuItems.add(index, item);
+            super.addItem(item, index);
+        }
+
+        @Override
+        public void setItems(MenuItem... items) {
+            menuItems.clear();
+            menuItems.addAll(Arrays.asList(items));
+            super.setItems(items);
+        }
+
+        @Override
+        public void removeItem(MenuItem item) {
+            menuItems.remove(item);
+            super.removeItem(item);
+        }
     }
 
 }
