@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.client.action;
 
+import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.Record;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.Editor;
@@ -35,14 +36,27 @@ import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditor
 public final class DigitalObjectEditAction extends AbstractAction {
 
     private DatastreamEditorType editorType;
+    private final PlaceController places;
 
-    public DigitalObjectEditAction(String title, DatastreamEditorType editorType, ClientMessages i18n) {
-        this(title, i18n.DigitalObjectEditAction_Hint(), editorType);
+    public DigitalObjectEditAction(
+            String title,
+            DatastreamEditorType editorType,
+            ClientMessages i18n) {
+
+        this(title, i18n.DigitalObjectEditAction_Hint(), null, editorType,
+                Editor.getInstance().getEditorWorkFlow().getPlaceController());
     }
     
-    public DigitalObjectEditAction(String title, String tooltip, DatastreamEditorType editorType) {
-        super(title, "[SKIN]/actions/edit.png", tooltip);
+    public DigitalObjectEditAction(
+            String title,
+            String tooltip,
+            String icon,
+            DatastreamEditorType editorType,
+            PlaceController places) {
+
+        super(title, icon == null ? "[SKIN]/actions/edit.png" : icon, tooltip);
         this.editorType = editorType;
+        this.places = places;
     }
 
     @Override
@@ -54,7 +68,7 @@ public final class DigitalObjectEditAction extends AbstractAction {
 
         DigitalObjectEditorPlace place = new DigitalObjectEditorPlace(editorType,
                 selection[0].getAttribute(SearchDataSource.FIELD_PID));
-        Editor.getInstance().getEditorWorkFlow().getPlaceController().goTo(place);
+        places.goTo(place);
     }
 
     @Override

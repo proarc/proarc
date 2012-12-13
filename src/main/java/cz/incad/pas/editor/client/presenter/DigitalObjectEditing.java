@@ -25,7 +25,6 @@ import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import cz.incad.pas.editor.client.ClientMessages;
-import cz.incad.pas.editor.client.Editor;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 
 /**
@@ -37,22 +36,24 @@ public final class DigitalObjectEditing extends AbstractActivity {
 
     private final DigitalObjectEditorPlace place;
     private final PlaceController places;
+    private final DigitalObjectEditor editor;
     private final ClientMessages i18n;
 
     public DigitalObjectEditing(
             DigitalObjectEditorPlace place,
             PlaceController places,
+            DigitalObjectEditor editor,
             ClientMessages i18n
             ) {
         
         this.place = place;
         this.places = places;
+        this.editor = editor;
         this.i18n = i18n;
     }
 
     @Override
     public void start(AcceptsOneWidget panel, EventBus eventBus) {
-        DigitalObjectEditor editor = Editor.getInstance().getPresenterFactory().getDigitalObjectEditor();
         panel.setWidget(editor.getUI());
         editor.edit(place.getEditorId(), place.getPid());
     }
@@ -89,6 +90,24 @@ public final class DigitalObjectEditing extends AbstractActivity {
 
         public void setPid(String pid) {
             this.pid = pid;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final DigitalObjectEditorPlace other = (DigitalObjectEditorPlace) obj;
+            if (this.editor != other.editor) {
+                return false;
+            }
+            if ((this.pid == null) ? (other.pid != null) : !this.pid.equals(other.pid)) {
+                return false;
+            }
+            return true;
         }
 
         @Prefix("doEditor")

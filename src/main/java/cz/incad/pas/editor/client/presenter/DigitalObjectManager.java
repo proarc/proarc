@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.client.presenter;
 
 import com.google.gwt.core.client.Callback;
+import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
@@ -68,6 +69,7 @@ import java.util.LinkedHashMap;
 public final class DigitalObjectManager {
 
     private final ClientMessages i18n;
+    private final PlaceController places;
     private final VLayout widget;
     private final DigitalObjectSearchView foundView;
     private final DigitalObjectTreeView treeView;
@@ -83,8 +85,9 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction mediaEditAction;
     private boolean initialized;
 
-    public DigitalObjectManager(ClientMessages i18n) {
+    public DigitalObjectManager(ClientMessages i18n, PlaceController places) {
         this.i18n = i18n;
+        this.places = places;
         widget = new VLayout(4);
         widget.setLayoutMargin(4);
         widget.setWidth100();
@@ -176,7 +179,8 @@ public final class DigitalObjectManager {
         mediaEditAction = new DigitalObjectEditAction(
                 i18n.DigitalObjectEditor_MediaAction_Title(),
                 i18n.DigitalObjectEditor_MediaAction_Hint(),
-                DatastreamEditorType.MEDIA);
+                null,
+                DatastreamEditorType.MEDIA, places);
     }
     
     /**

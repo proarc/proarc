@@ -450,7 +450,7 @@ public class Editor implements EntryPoint {
 
         public DigitalObjectManager getDigitalObjectManager() {
             if (digitalObjectManager == null) {
-                digitalObjectManager = new DigitalObjectManager(i18n);
+                digitalObjectManager = new DigitalObjectManager(i18n, placeController);
             }
             return digitalObjectManager;
         }

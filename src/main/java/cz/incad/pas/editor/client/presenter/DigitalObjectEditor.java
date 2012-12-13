@@ -31,11 +31,15 @@ import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.menu.IconMenuButton;
+import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.toolbar.ToolStripSeparator;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.SweepTask;
+import cz.incad.pas.editor.client.action.AbstractAction;
+import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.Actions.ActionSource;
 import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
@@ -75,6 +79,10 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private final PlaceController places;
 
     public DigitalObjectEditor(ClientMessages i18n, PlaceController places) {
+        this(i18n, places, false);
+    }
+
+    public DigitalObjectEditor(ClientMessages i18n, PlaceController places, boolean embedded) {
         this.i18n = i18n;
         this.places = places;
         this.editorCache = new EnumMap<DatastreamEditorType, EditorDescriptor>(DatastreamEditorType.class);
@@ -84,7 +92,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         lblHeader.setPadding(4);
         lblHeader.setStyleName("pasWizardTitle");
         this.actionSource = new ActionSource(this);
-        this.toolbar = createToolbar(actionSource);
+        this.toolbar = createToolbar(actionSource, embedded);
         this.editorContainer = new VLayout();
         editorContainer.setLayoutMargin(4);
         editorContainer.setWidth100();
@@ -123,11 +131,14 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         task.start();
     }
 
-    private void openEditor(final String pid, final MetaModelRecord mr) {
+    private void setSelection(final String pid, final MetaModelRecord mr) {
         selection = new Record();
         selection.setAttribute(SearchDataSource.FIELD_PID, pid);
         selection.setAttribute(MetaModelDataSource.FIELD_MODELOBJECT, mr);
         actionSource.fireEvent();
+    }
+
+    private void openEditor(final String pid, final MetaModelRecord mr) {
         final DatastreamEditor editor = currentEditor.getEditor();
         Scheduler.get().scheduleDeferred(new ScheduledCommand() {
 
@@ -142,6 +153,9 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
 
     @Override
     public void refresh() {
+        if (currentEditor == null) {
+            return ;
+        }
         Refreshable r = currentEditor.getEditor().getCapability(Refreshable.class);
         if (r != null) {
             r.refresh();
@@ -157,7 +171,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         if (oldEditor != null) {
             toolbar.removeMembers(oldEditor.getToolbarItems());
         }
-        Canvas[] customToolbar = newEditor.getToolbarItems();
+        Canvas[] customToolbar = newEditor == null ? new Canvas[0] : newEditor.getToolbarItems();
         if (customToolbar.length > 0 && !(customToolbar[0] instanceof ToolStripSeparator)) {
             customToolbarSeparator.setVisible(true);
         } else {
@@ -168,27 +182,60 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         }
     }
 
-    private ToolStrip createToolbar(ActionSource source) {
+    private ToolStrip createToolbar(ActionSource source, boolean tiny) {
         RefreshAction refreshAction = new RefreshAction(i18n);
         DigitalObjectEditAction modsEditAction = new DigitalObjectEditAction(
-                i18n.ImportBatchItemEditor_TabMods_Title(), DatastreamEditorType.MODS, i18n);
+                i18n.ImportBatchItemEditor_TabMods_Title(),
+                i18n.DigitalObjectEditAction_Hint(),
+                null,
+                DatastreamEditorType.MODS, places);
         DigitalObjectEditAction ocrEditAction = new DigitalObjectEditAction(
-                i18n.ImportBatchItemEditor_TabOcr_Title(), DatastreamEditorType.OCR, i18n);
+                i18n.ImportBatchItemEditor_TabOcr_Title(),
+                i18n.DigitalObjectEditAction_Hint(),
+                null,
+                DatastreamEditorType.OCR, places);
         DigitalObjectEditAction noteEditAction = new DigitalObjectEditAction(
-                i18n.ImportBatchItemEditor_TabNote_Title(), DatastreamEditorType.NOTE, i18n);
+                i18n.ImportBatchItemEditor_TabNote_Title(),
+                i18n.DigitalObjectEditAction_Hint(),
+                null,
+                DatastreamEditorType.NOTE, places);
         DigitalObjectEditAction parentEditAction = new DigitalObjectEditAction(
-                i18n.DigitalObjectEditor_ParentAction_Title(), DatastreamEditorType.PARENT, i18n);
+                i18n.DigitalObjectEditor_ParentAction_Title(),
+                i18n.DigitalObjectEditAction_Hint(),
+                null,
+                DatastreamEditorType.PARENT, places);
         DigitalObjectEditAction mediaEditAction = new DigitalObjectEditAction(
                 i18n.DigitalObjectEditor_MediaAction_Title(),
                 i18n.DigitalObjectEditor_MediaAction_Hint(),
-                DatastreamEditorType.MEDIA);
+                null,
+                DatastreamEditorType.MEDIA, places);
         ToolStrip t = Actions.createToolStrip();
-        t.addMember(Actions.asIconButton(refreshAction, source));
-        t.addMember(Actions.asIconButton(modsEditAction, source));
-        t.addMember(Actions.asIconButton(noteEditAction, source));
-        t.addMember(Actions.asIconButton(parentEditAction, source));
-        t.addMember(Actions.asIconButton(mediaEditAction, source));
-        t.addMember(Actions.asIconButton(ocrEditAction, source));
+        if (tiny) {
+            IconMenuButton actionsMenu = Actions.asIconMenuButton(new AbstractAction(
+                    i18n.ActionsMenu_Title(), null, null) {
+
+                @Override
+                public void performAction(ActionEvent event) {
+                    throw new UnsupportedOperationException("Not supported.");
+                }
+            }, source);
+            t.addMember(actionsMenu);
+            Menu menu = Actions.createMenu();
+            menu.addItem(Actions.asMenuItem(refreshAction, source, false));
+            menu.addItem(Actions.asMenuItem(modsEditAction, source, false));
+            menu.addItem(Actions.asMenuItem(noteEditAction, source, false));
+            menu.addItem(Actions.asMenuItem(parentEditAction, source, false));
+            menu.addItem(Actions.asMenuItem(mediaEditAction, source, false));
+            menu.addItem(Actions.asMenuItem(ocrEditAction, source, false));
+            actionsMenu.setMenu(menu);
+        } else {
+            t.addMember(Actions.asIconButton(refreshAction, source));
+            t.addMember(Actions.asIconButton(modsEditAction, source));
+            t.addMember(Actions.asIconButton(noteEditAction, source));
+            t.addMember(Actions.asIconButton(parentEditAction, source));
+            t.addMember(Actions.asIconButton(mediaEditAction, source));
+            t.addMember(Actions.asIconButton(ocrEditAction, source));
+        }
         customToolbarSeparator = new ToolStripSeparator();
         customToolbarSeparator.setVisible(false);
         t.addMember(customToolbarSeparator);
@@ -225,7 +272,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 break;
         }
         title = ClientUtils.format("<b>%s</b>", title);
-        desc = new EditorDescriptor(deditor, title);
+        desc = new EditorDescriptor(deditor, title, type);
         editorCache.put(type, desc);
         return desc;
     }
@@ -243,15 +290,21 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         private final DatastreamEditor editor;
         private final Canvas[] toolbarItems;
         private final String title;
+        private final DatastreamEditorType type;
 
-        EditorDescriptor(DatastreamEditor editor, String title) {
+        EditorDescriptor(DatastreamEditor editor, String title, DatastreamEditorType type) {
             this.editor = editor;
             toolbarItems = editor.getToolbarItems();
             this.title = title;
+            this.type = type;
         }
 
         public DatastreamEditor getEditor() {
             return editor;
+        }
+
+        public DatastreamEditorType getType() {
+            return type;
         }
 
         public String getTitle() {
@@ -318,6 +371,12 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             }
             MetaModelRecord model = getModel(getModelId());
             setDesctiption(currentEditor.getTitle(), getLabel(), model);
+            setSelection(pid, model);
+            if (!model.isSupportedDatastream(currentEditor.getType().name())) {
+                updateToolbar(currentEditor, null);
+                currentEditor = null;
+                return ;
+            }
             openEditor(pid, model);
         }
 
