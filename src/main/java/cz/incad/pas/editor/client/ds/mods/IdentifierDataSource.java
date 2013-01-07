@@ -152,7 +152,7 @@ public final class IdentifierDataSource extends DataSource {
         private static final RegExp RE_UUID = RegExp.compile(
                 "^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$");
         private static final RegExp RE_ISSN = RegExp.compile(
-                "^[0-9]{4}-[0-9]{3}[0-9X]$");
+                "^[0-9]{4}-[0-9X]{4}$");
         /** rough approximation */
         private static final RegExp RE_ISBN = RegExp.compile("^[0-9- ]{9,20}$");
         private static final RegExp RE_CCNB = RegExp.compile("^cnb[0-9]{1,20}$");
