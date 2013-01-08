@@ -31,8 +31,11 @@ import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.EventHandler;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
+import com.smartgwt.client.widgets.events.BrowserEvent;
 import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.events.ClickHandler;
+import com.smartgwt.client.widgets.events.KeyPressEvent;
+import com.smartgwt.client.widgets.events.KeyPressHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
 import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
@@ -112,6 +115,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private BatchItemMultiEdit batchItemMultiEdit;
     private FoxmlViewAction foxmlViewAction;
     private DeleteAction deleteAction;
+    private SelectAction selectAllAction;
 
     public ImportBatchItemEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -248,7 +252,8 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
             @Override
             public void onBodyKeyPress(BodyKeyPressEvent event) {
-                if (event.isCtrlKeyDown() || EventHandler.shiftKeyDown()) {
+                selectAllAction.processEvent(event);
+                if (event.isCancelled() || event.isCtrlKeyDown() || EventHandler.shiftKeyDown()) {
                     return ;
                 }
                 if ("Arrow_Down".equals(EventHandler.getKey())) {
@@ -412,6 +417,14 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             }
         });
 
+        thumbGrid.addKeyPressHandler(new KeyPressHandler() {
+
+            @Override
+            public void onKeyPress(KeyPressEvent event) {
+                selectAllAction.processEvent(event);
+            }
+        });
+
         return thumbGrid;
     }
 
@@ -420,12 +433,13 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         foxmlViewAction = new FoxmlViewAction(i18n);
         deleteAction = new DeleteAction(
                 new RecordDeletable(batchItemGrid.getDataSource(), i18n), i18n);
+        selectAllAction = new SelectAction();
     }
 
     private ToolStrip createEditorToolBar() {
         ToolStrip toolbar = Actions.createToolStrip();
         toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n), this));
-        toolbar.addMember(Actions.asIconButton(new SelectAction(), this));
+        toolbar.addMember(Actions.asIconButton(selectAllAction, this));
         toolbar.addMember(Actions.asIconButton(batchItemMultiEdit, this));
         toolbar.addMember(Actions.asIconButton(foxmlViewAction, this));
         toolbar.addMember(Actions.asIconButton(deleteAction, this));
@@ -892,6 +906,34 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
         public void selectAll(ImportBatchItemEditor editor) {
             batchItemGrid.selectAllRecords();
+        }
+
+        /** Runs the action on CTRL+a */
+        public void processEvent(BodyKeyPressEvent event) {
+            if (!event.isCancelled()) {
+                if (processBrowserEvent(event)) {
+                    event.cancel();
+                }
+            }
+        }
+
+        /** Runs the action on CTRL+a */
+        public void processEvent(KeyPressEvent event) {
+            if (!event.isCancelled()) {
+                if (processBrowserEvent(event)) {
+                    event.cancel();
+                }
+            }
+        }
+
+        private boolean processBrowserEvent(BrowserEvent<?> event) {
+            if (event.isCtrlKeyDown()) {
+                if ("a".equals(EventHandler.getKeyEventCharacter())) {
+                    selectAll(ImportBatchItemEditor.this);
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
