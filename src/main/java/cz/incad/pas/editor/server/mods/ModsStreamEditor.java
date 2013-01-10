@@ -26,12 +26,15 @@ import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
+import cz.incad.pas.editor.server.mods.custom.IdentifierMapper;
+import cz.incad.pas.editor.server.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.incad.pas.editor.server.mods.custom.Mapping;
 import cz.incad.pas.editor.server.mods.custom.PageMapper;
 import cz.incad.pas.editor.server.mods.custom.PageMapper.Page;
 import cz.incad.pas.editor.server.rest.DigitalObjectResource.MetaModel;
 import cz.incad.pas.editor.server.rest.DigitalObjectResource.MetaModelRepository;
 import java.io.StringReader;
+import java.util.List;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
@@ -109,6 +112,14 @@ public final class ModsStreamEditor {
         return mods;
     }
 
+    private static ModsType addPid(ModsType mods, String pid) {
+        IdentifierMapper identMapper = new IdentifierMapper();
+        List<IdentifierItem> identifierItems = identMapper.map(mods);
+        identifierItems.add(0, new IdentifierItem("uuid", pid.substring("uuid:".length())));
+        identMapper.map(mods, identifierItems);
+        return mods;
+    }
+
     public ModsType createPage(String pid, String pageIndex, String pageNumber, String pageType) {
         ModsType mods = defaultMods(pid);
         PageMapper mapper = new PageMapper();
@@ -143,6 +154,7 @@ public final class ModsStreamEditor {
     public ModsType create(String pid, String model, String xml) {
         ModsType mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xml)));
         // XXX normalize MODS?
+        addPid(mods, pid);
         return create(pid, model, mods);
     }
 
