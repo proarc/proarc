@@ -110,6 +110,7 @@ public final class NewDigObject extends VLayout {
         if (model != null) {
             optionsForm.setValue(DigitalObjectDataSource.FIELD_MODEL, model);
         }
+        fixExpandedListGrid();
         lgResult.setData(new Record[0]);
         if (criteria == null) {
 //            sections.collapseSection(1);
@@ -319,4 +320,24 @@ public final class NewDigObject extends VLayout {
         form.setWrapItemTitles(false);
         return form;
     }
+
+    /**
+     * Switching panels containing ListGrid with an expanded record results
+     * to NPE in GWT javascript code.
+     * Steps to reproduce:
+     * 1. New Object
+     * 2. find catalog records
+     * 3. expand some record
+     * 4. select whatever item in main menu
+     * 5. select New Object again
+     * 6. panel content not shown
+     * The workaround is to collapse the selected record before rendering.
+     */
+    private void fixExpandedListGrid() {
+        ListGridRecord selectedResult = lgResult.getSelectedRecord();
+        if (selectedResult != null) {
+            lgResult.collapseRecord(selectedResult);
+        }
+    }
+    
 }
