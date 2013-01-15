@@ -17,6 +17,9 @@
 package cz.incad.pas.editor.client.widget;
 
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.TextAreaWrap;
 import com.smartgwt.client.widgets.Canvas;
@@ -30,6 +33,7 @@ import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
 import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.TextDataSource;
 
 /**
@@ -77,7 +81,15 @@ public final class TextEditor implements DatastreamEditor, Refreshable, Selectab
             @Override
             public void performAction(ActionEvent event) {
                 Record r = editor.getValuesAsRecord();
-                editor.saveData();
+                editor.saveData(new DSCallback() {
+
+                    @Override
+                    public void execute(DSResponse response, Object rawData, DSRequest request) {
+                        if (RestConfig.isStatusOk(response)) {
+                            StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
+                        }
+                    }
+                });
             }
         };
         return new Action[] {saveAction};

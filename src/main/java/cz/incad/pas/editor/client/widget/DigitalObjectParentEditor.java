@@ -126,6 +126,7 @@ public final class DigitalObjectParentEditor implements DatastreamEditor, Refres
                 public void execute(Boolean value) {
                     if (value != null && value) {
                         chooser.onSave(newParent);
+                        StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
                     }
                     // else refresh?
                 }

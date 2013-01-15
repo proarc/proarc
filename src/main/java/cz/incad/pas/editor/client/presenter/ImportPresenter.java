@@ -43,6 +43,7 @@ import cz.incad.pas.editor.client.widget.ImportParentChooser.ImportParentHandler
 import cz.incad.pas.editor.client.widget.ImportSourceChooser;
 import cz.incad.pas.editor.client.widget.ImportSourceChooser.ImportSourceChooserHandler;
 import cz.incad.pas.editor.client.widget.ProgressTracker;
+import cz.incad.pas.editor.client.widget.StatusView;
 import cz.incad.pas.editor.client.widget.Wizard;
 import cz.incad.pas.editor.client.widget.Wizard.StepKind;
 import cz.incad.pas.editor.client.widget.Wizard.WizardStep;
@@ -520,6 +521,7 @@ public class ImportPresenter {
 
                 @Override
                 public void execute(Boolean value) {
+                    StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
                     canStep();
                 }
             });
