@@ -119,7 +119,6 @@ public final class DigitalObjectParentEditor implements DatastreamEditor, Refres
             String oldParentPid = chooser.getOldParentPid();
             String oldParentId = oldParent == null ? null : oldParent.getAttribute(RelationDataSource.FIELD_ID);
             RelationDataSource ds = RelationDataSource.getInstance();
-//            saveDigitalObjectParent(pid, oldParentId, oldParentPid, parentId, parentPid, new BooleanCallback() {
             ds.moveChild(pid, oldParentId, oldParentPid, parentId, parentPid, new BooleanCallback() {
 
                 @Override
@@ -133,33 +132,5 @@ public final class DigitalObjectParentEditor implements DatastreamEditor, Refres
             });
         }
     }
-//
-//    private void saveDigitalObjectParent(final String pid,
-//            final String oldParentId, final String oldParentPid,
-//            final String parentId, final String parentPid,
-//            final BooleanCallback call) {
-//
-//        final RelationDataSource ds = RelationDataSource.getInstance();
-//        BooleanCallback toAdd = new BooleanCallback() {
-//
-//            @Override
-//            public void execute(Boolean value) {
-//                if (value != null && value) {
-//                    if (parentPid != null) {
-//                        ds.addChild(parentId, parentPid, pid, call);
-//                    } else {
-//                        call.execute(value);
-//                    }
-//                } else {
-//                    call.execute(value);
-//                }
-//            }
-//        };
-//        if (oldParentPid != null) {
-//            ds.removeChild(oldParentId, oldParentPid, pid, toAdd);
-//        } else {
-//            toAdd.execute(Boolean.TRUE);
-//        }
-//    }
 
 }
