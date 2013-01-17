@@ -109,7 +109,7 @@
             <xsl:when test="child::*">
                 <tr>
                     <td colspan="2">
-                        <p style="margin-left: 1em">
+                        <div style="margin-left: 1em">
                             <xsl:call-template name="longName">
                                 <xsl:with-param name="name">
                                     <xsl:value-of select="local-name()"/>
@@ -117,7 +117,7 @@
                             </xsl:call-template>
 
                             <xsl:call-template name="attr"/>
-                        </p>
+                        </div>
                     </td>
                 </tr>
                 <xsl:apply-templates mode="level3"/>
@@ -126,7 +126,7 @@
             <xsl:otherwise>
                 <tr>
                     <td>
-                        <p style="margin-left: 1em">
+                        <div style="margin-left: 1em">
                             <xsl:call-template name="longName">
                                 <xsl:with-param name="name">
                                     <xsl:value-of select="local-name()"/>
@@ -134,7 +134,7 @@
                             </xsl:call-template>
 
                             <xsl:call-template name="attr"/>
-                        </p>
+                        </div>
                     </td>
                     <td>
                         <xsl:call-template name="formatValue"/>
@@ -151,7 +151,7 @@
             <xsl:when test="child::*">
                 <tr>
                     <td colspan="2">
-                        <p style="margin-left: 2em">
+                        <div style="margin-left: 2em">
                             <xsl:call-template name="longName">
                                 <xsl:with-param name="name">
                                     <xsl:value-of select="local-name()"/>
@@ -159,7 +159,7 @@
                             </xsl:call-template>
 
                             <xsl:call-template name="attr"/>
-                        </p>
+                        </div>
                     </td>
                 </tr>
                 <xsl:apply-templates mode="level4"/>
@@ -168,7 +168,7 @@
             <xsl:otherwise>
                 <tr>
                     <td>
-                        <p style="margin-left: 2em">
+                        <div style="margin-left: 2em">
                             <xsl:call-template name="longName">
                                 <xsl:with-param name="name">
                                     <xsl:value-of select="local-name()"/>
@@ -176,7 +176,7 @@
                             </xsl:call-template>
 
                             <xsl:call-template name="attr"/>
-                        </p>
+                        </div>
                     </td>
                     <td>
                         <xsl:call-template name="formatValue"/>
@@ -189,7 +189,7 @@
     <xsl:template match="*" mode="level4">
         <tr>
             <td>
-                <p style="margin-left: 3em">
+                <div style="margin-left: 3em">
                     <xsl:call-template name="longName">
                         <xsl:with-param name="name">
                             <xsl:value-of select="local-name()"/>
@@ -197,7 +197,7 @@
                     </xsl:call-template>
 
                     <xsl:call-template name="attr"/>
-                </p>
+                </div>
             </td>
             <td>
                 <xsl:value-of select="text()"/>
