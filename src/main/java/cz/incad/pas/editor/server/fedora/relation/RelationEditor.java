@@ -62,7 +62,7 @@ public final class RelationEditor {
      */
     public void setModel(String model) throws DigitalObjectException {
         Rdf rdf = getRdf();
-        rdf.getDescription().setModel(model);
+        rdf.getDescription().setModel(RdfRelation.fromPid(model));
     }
 
     /**
@@ -70,7 +70,7 @@ public final class RelationEditor {
      */
     public String getModel() throws DigitalObjectException {
         Rdf rdf = getRdf();
-        return rdf.getDescription().getModel().getModelPid();
+        return RdfRelation.toPid(rdf.getDescription().getModel());
     }
 
     /**
@@ -80,10 +80,10 @@ public final class RelationEditor {
      */
     public List<String> getMembers() throws DigitalObjectException {
         Rdf rdf = getRdf();
-        List<HasMemberRelation> members = rdf.getDescription().getMemberRelations();
+        List<RdfRelation> members = rdf.getDescription().getMemberRelations();
         ArrayList<String> result = new ArrayList<String>(members.size());
-        for (HasMemberRelation hasMember : members) {
-            result.add(hasMember.getMember());
+        for (RdfRelation hasMember : members) {
+            result.add(RdfRelation.toPid(hasMember));
         }
         return result;
     }
@@ -96,11 +96,11 @@ public final class RelationEditor {
      */
     public void setMembers(List<String> members) throws DigitalObjectException {
         Rdf rdf = getRdf();
-        ArrayList<HasMemberRelation> relations = new ArrayList<HasMemberRelation>(members.size());
+        ArrayList<RdfRelation> relations = new ArrayList<RdfRelation>(members.size());
         for (String member : members) {
-            relations.add(new HasMemberRelation(member));
+            relations.add(RdfRelation.fromPid(member));
         }
-        List<HasMemberRelation> oldies = rdf.getDescription().getMemberRelations();
+        List<RdfRelation> oldies = rdf.getDescription().getMemberRelations();
         oldies.clear();
         oldies.addAll(relations);
     }

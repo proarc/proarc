@@ -43,8 +43,8 @@ public class RelationEditorTest {
         String model = "model:page";
 
         Rdf rdf = new Rdf(pid);
-        rdf.getDescription().setModel(model);
-        rdf.getDescription().getMemberRelations().add(new HasMemberRelation("test:test"));
+        rdf.getDescription().setModel(RdfRelation.fromPid(model));
+        rdf.getDescription().getMemberRelations().add(RdfRelation.fromPid("test:test"));
         String toXml = Relations.toXml(rdf, true);
         // XXX needs XPath asserts
         System.out.println(toXml);
@@ -58,13 +58,13 @@ public class RelationEditorTest {
         assertEquals(about, description.getAbout().getResource());
 
         assertNotNull(description.getModel());
-        assertEquals("fedora-system:ContentModel-3.0", description.getModel().getModelPid());
+        assertEquals("fedora-system:ContentModel-3.0", description.getModel().getResourcePid());
 
         assertNotNull(description.getMemberRelations());
         assertEquals(3, description.getMemberRelations().size());
-        assertEquals("test:member1", description.getMemberRelations().get(0).getMember());
-        assertEquals("test:member2", description.getMemberRelations().get(1).getMember());
-        assertEquals("test:member3", description.getMemberRelations().get(2).getMember());
+        assertEquals("test:member1", description.getMemberRelations().get(0).getResourcePid());
+        assertEquals("test:member2", description.getMemberRelations().get(1).getResourcePid());
+        assertEquals("test:member3", description.getMemberRelations().get(2).getResourcePid());
 
         assertNotNull(description.getRelations());
         assertEquals(3, description.getRelations().size());

@@ -36,11 +36,27 @@ public class RdfDescription {
     @XmlAttribute(namespace = Relations.RDF_NS)
     private RelationResource about;
 
+    /**
+     * RDF relation defines model of the digital object. E.g.:
+     *
+     * <p/>{@code <fedora-model:hasModel rdf:resource="info:fedora/mode:page"/>}
+     *
+     * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Content+Model+Architecture'>
+     *      Content Model Architecture</a>
+     */
     @XmlElement(namespace = Relations.FEDORA_MODEL_NS)
-    private HasModelRelation hasModel;
+    private RdfRelation hasModel;
 
+    /**
+     * RDF relation referencing members of the digital object.
+     *
+     * <p/>{@code <fedora-rels-ext:hasMember rdf:resource="info:fedora/uuid:ebbd1d68-f5e0-4074-a2a6-19ecef6a6759"/>}
+     *
+     * @see <a href='http://www.fedora.info/definitions/1/0/fedora-relsext-ontology.rdfs'>
+     *      Fedora Relationships</a>
+     */
     @XmlElement(name = "hasMember", namespace = Relations.FEDORA_EXTERNALS_NS)
-    private List<HasMemberRelation> hasMembers;
+    private List<RdfRelation> hasMembers;
     
     @XmlAnyElement
     private List<Element> relations;
@@ -86,19 +102,19 @@ public class RdfDescription {
      * Relations defining object hierarchy graph.
      * @return list of members
      */
-    public List<HasMemberRelation> getMemberRelations() {
+    public List<RdfRelation> getMemberRelations() {
         if (hasMembers == null) {
-            hasMembers = new ArrayList<HasMemberRelation>();
+            hasMembers = new ArrayList<RdfRelation>();
         }
         return hasMembers;
     }
 
-    public HasModelRelation getModel() {
+    public RdfRelation getModel() {
         return hasModel;
     }
 
-    public void setModel(String model) {
-        this.hasModel = new HasModelRelation(model);
+    public void setModel(RdfRelation model) {
+        this.hasModel = model;
     }
 
 }
