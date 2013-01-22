@@ -48,6 +48,16 @@ public class RdfDescription {
     private RdfRelation hasModel;
 
     /**
+     * RDF relation defines digital device of the digital object. E.g.:
+     *
+     * <p/>{@code <proarc-rels:hasDevice rdf:resource="info:fedora/device:scanner1"/>}
+     *
+     * @author Jan Pokorsky
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private RdfRelation hasDevice;
+
+    /**
      * RDF relation referencing members of the digital object.
      *
      * <p/>{@code <fedora-rels-ext:hasMember rdf:resource="info:fedora/uuid:ebbd1d68-f5e0-4074-a2a6-19ecef6a6759"/>}
@@ -115,6 +125,14 @@ public class RdfDescription {
 
     public void setModel(RdfRelation model) {
         this.hasModel = model;
+    }
+
+    public RdfRelation getDevice() {
+        return hasDevice;
+    }
+
+    public void setDevice(RdfRelation hasDevice) {
+        this.hasDevice = hasDevice;
     }
 
 }

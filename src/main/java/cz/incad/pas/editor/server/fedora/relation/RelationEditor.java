@@ -74,6 +74,22 @@ public final class RelationEditor {
     }
 
     /**
+     * @param device PID of the device
+     */
+    public void setDevice(String device) throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        rdf.getDescription().setDevice(RdfRelation.fromPid(device));
+    }
+
+    /**
+     * @return PID of the device
+     */
+    public String getDevice() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        return RdfRelation.toPid(rdf.getDescription().getDevice());
+    }
+
+    /**
      * Relations defining object hierarchy graph.
      *
      * @return list of PIDs or {@code null} if Fedora object not found.

@@ -39,16 +39,6 @@ public class RelationEditorTest {
 
     @Test
     public void testRdfParse() {
-        String pid = "test:123";
-        String model = "model:page";
-
-        Rdf rdf = new Rdf(pid);
-        rdf.getDescription().setModel(RdfRelation.fromPid(model));
-        rdf.getDescription().getMemberRelations().add(RdfRelation.fromPid("test:test"));
-        String toXml = Relations.toXml(rdf, true);
-        // XXX needs XPath asserts
-        System.out.println(toXml);
-
         URL resource = RelationEditorTest.class.getResource("rels-ext.xml");
         String about="info:fedora/demo:999";
         assertNotNull(resource);
@@ -60,6 +50,8 @@ public class RelationEditorTest {
         assertNotNull(description.getModel());
         assertEquals("fedora-system:ContentModel-3.0", description.getModel().getResourcePid());
 
+        assertEquals("device:scanner", description.getDevice().getResourcePid());
+
         assertNotNull(description.getMemberRelations());
         assertEquals(3, description.getMemberRelations().size());
         assertEquals("test:member1", description.getMemberRelations().get(0).getResourcePid());
@@ -69,7 +61,7 @@ public class RelationEditorTest {
         assertNotNull(description.getRelations());
         assertEquals(3, description.getRelations().size());
 
-        toXml = Relations.toXml(unmarshal, true);
+        String toXml = Relations.toXml(unmarshal, true);
         System.out.println(toXml);
     }
 
@@ -82,6 +74,8 @@ public class RelationEditorTest {
         String model = "mode:page";
         List<String> members = Arrays.asList("test:member1", "test:member2");
         instance.setModel(model);
+        String device = "device:scanner";
+        instance.setDevice(device);
         instance.setMembers(members);
         instance.write(0, null);
         lobject.flush();
@@ -89,6 +83,7 @@ public class RelationEditorTest {
         lobject = storage.load(lobject.getPid(), foxml);
         instance = new RelationEditor(lobject);
         assertEquals(model, instance.getModel());
+        assertEquals(device, instance.getDevice());
         assertThat(instance.getMembers(), Is.is(members));
         long timestamp = instance.getLastModified();
         assertTrue(timestamp > 0);
@@ -97,8 +92,10 @@ public class RelationEditorTest {
         lobject = storage.load(lobject.getPid(), foxml);
         instance = new RelationEditor(lobject);
         model = "model:update";
+        device = "device:update";
         members = Arrays.asList("test:member1", "test:member3");
         instance.setModel(model);
+        instance.setDevice(device);
         instance.setMembers(members);
         instance.write(timestamp, null);
         lobject.flush();
@@ -106,6 +103,7 @@ public class RelationEditorTest {
         lobject = storage.load(lobject.getPid(), foxml);
         instance = new RelationEditor(lobject);
         assertEquals(model, instance.getModel());
+        assertEquals(device, instance.getDevice());
         assertThat(instance.getMembers(), Is.is(members));
         assertTrue(timestamp < instance.getLastModified());
     }
