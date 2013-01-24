@@ -41,8 +41,7 @@ public final class Relations {
     public static final String FEDORA_MODEL_NS = "info:fedora/fedora-system:def/model#";
     public static final String FEDORA_EXTERNALS_NS = "info:fedora/fedora-system:def/relations-external#";
     public static final String PROARC_RELS_NS = "http://proarc.lib.cas.cz/relations#";
-    public static final QName RDF_QNAME = new QName(
-            "http://www.w3.org/1999/02/22-rdf-syntax-ns#", "RDF", "rdf");
+    public static final QName RDF_QNAME = new QName(RDF_NS, "RDF", "rdf");
 
     private static JAXBContext defaultJaxbContext;
     private static ThreadLocal<Marshaller> defaultMarshaller = new ThreadLocal<Marshaller>();
