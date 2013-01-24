@@ -23,6 +23,7 @@ import cz.incad.pas.editor.server.fedora.FedoraTestSupport;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.StringEditor;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
+import cz.incad.pas.editor.server.fedora.relation.Relations;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import java.io.File;
 import java.util.HashMap;
@@ -85,6 +86,7 @@ public class Kramerius4ExportTest {
         namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
         namespaces.put("kramerius", Kramerius4Export.KRAMERIUS_RELATION_NS);
         namespaces.put("oai", Kramerius4Export.OAI_NS);
+        namespaces.put("proarc-rels", Relations.PROARC_RELS_NS);
         XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
         String foxmlSystemId = Kramerius4Export.pidAsFile(target, pids[0]).toURI().toASCIIString();
         XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
@@ -100,6 +102,8 @@ public class Kramerius4ExportTest {
         XMLAssert.assertXpathExists("//oai:itemID", new InputSource(foxmlSystemId));
         // check kramerius:file
         XMLAssert.assertXpathExists("//kramerius:file", new InputSource(foxmlSystemId));
+        // check exclusion of proarc-rels:hasDevice
+        XMLAssert.assertXpathNotExists("//proarc-rels:hasDevice", new InputSource(foxmlSystemId));
 
     }
 

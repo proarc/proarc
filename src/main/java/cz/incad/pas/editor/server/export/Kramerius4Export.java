@@ -208,6 +208,8 @@ public final class Kramerius4Export {
             
             setImportFile(editor, relations, doc);
 
+            editor.setDevice(null);
+
             editor.setMembers(Collections.<String>emptyList());
             for (String childPid : children) {
                 Item desc = remove(childPid, childDescriptors);
