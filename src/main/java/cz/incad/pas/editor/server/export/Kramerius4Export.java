@@ -205,6 +205,8 @@ public final class Kramerius4Export {
             List<Element> relations = editor.getRelations();
 
             setOaiId(pid, relations, doc);
+            
+            setImportFile(editor, relations, doc);
 
             editor.setMembers(Collections.<String>emptyList());
             for (String childPid : children) {
@@ -257,6 +259,19 @@ public final class Kramerius4Export {
         Element elm = doc.createElementNS(OAI_NS, "oai:itemID");
         elm.setTextContent(pid);
         relations.add(elm);
+    }
+
+    /**
+     * Replaces proarc-rels:importFile with kramerius:file.
+     */
+    private void setImportFile(RelationEditor editor, List<Element> relations, Document doc) throws DigitalObjectException {
+        String importFile = editor.getImportFile();
+        if (importFile != null) {
+            editor.setImportFile(null);
+            Element elm = doc.createElementNS(KRAMERIUS_RELATION_NS, KRAMERIUS_RELATION_PREFIX + ":file");
+            elm.setTextContent(importFile);
+            relations.add(0, elm);
+        }
     }
 
     static File pidAsFile(File output, String pid) {

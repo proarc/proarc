@@ -51,6 +51,7 @@ public class RelationEditorTest {
         assertEquals("fedora-system:ContentModel-3.0", description.getModel().getResourcePid());
 
         assertEquals("device:scanner", description.getDevice().getResourcePid());
+        assertEquals("ABA00726009905207199800001.tif", description.getImportFile());
 
         assertNotNull(description.getMemberRelations());
         assertEquals(3, description.getMemberRelations().size());
@@ -76,6 +77,8 @@ public class RelationEditorTest {
         instance.setModel(model);
         String device = "device:scanner";
         instance.setDevice(device);
+        String filename = "file.name";
+        instance.setImportFile(filename);
         instance.setMembers(members);
         instance.write(0, null);
         lobject.flush();
@@ -84,6 +87,7 @@ public class RelationEditorTest {
         instance = new RelationEditor(lobject);
         assertEquals(model, instance.getModel());
         assertEquals(device, instance.getDevice());
+        assertEquals(filename, instance.getImportFile());
         assertThat(instance.getMembers(), Is.is(members));
         long timestamp = instance.getLastModified();
         assertTrue(timestamp > 0);

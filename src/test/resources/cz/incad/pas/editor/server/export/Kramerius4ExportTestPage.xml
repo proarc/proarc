@@ -34,9 +34,10 @@
     <datastream ID="RELS-EXT" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
         <datastreamVersion ID="RELS-EXT.1" LABEL="RDF Statements about this object" CREATED="2012-09-12T02:47:27.104+02:00" MIMETYPE="text/xml" FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0" SIZE="1703">
             <xmlContent>
-                <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:fedora-rels-ext="info:fedora/fedora-system:def/relations-external#">
+                <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:fedora-rels-ext="info:fedora/fedora-system:def/relations-external#" xmlns:proarc-rels="http://proarc.lib.cas.cz/relations#">
                     <rdf:Description rdf:about="info:fedora/uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2">
                         <fedora-model:hasModel rdf:resource="info:fedora/model:page"/>
+                        <proarc-rels:importFile>ABA00726009905207199800001.tif</proarc-rels:importFile>
                     </rdf:Description>
                 </rdf:RDF>
             </xmlContent>

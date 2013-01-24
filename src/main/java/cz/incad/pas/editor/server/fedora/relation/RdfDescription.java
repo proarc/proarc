@@ -58,6 +58,16 @@ public class RdfDescription {
     private RdfRelation hasDevice;
 
     /**
+     * RDF relation defines filename of the imported digital content. E.g.:
+     *
+     * <p/>{@code <proarc-rels:importFile>ABA00726009905207199800001.tif<importFile/>}
+     *
+     * @author Jan Pokorsky
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String importFile;
+
+    /**
      * RDF relation referencing members of the digital object.
      *
      * <p/>{@code <fedora-rels-ext:hasMember rdf:resource="info:fedora/uuid:ebbd1d68-f5e0-4074-a2a6-19ecef6a6759"/>}
@@ -133,6 +143,14 @@ public class RdfDescription {
 
     public void setDevice(RdfRelation hasDevice) {
         this.hasDevice = hasDevice;
+    }
+
+    public String getImportFile() {
+        return importFile;
+    }
+
+    public void setImportFile(String importFile) {
+        this.importFile = importFile;
     }
 
 }

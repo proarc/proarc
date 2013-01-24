@@ -90,6 +90,21 @@ public final class RelationEditor {
     }
 
     /**
+     * @param filename filename of the imported digital content
+     */
+    public void setImportFile(String filename) throws DigitalObjectException {
+        getRdf().getDescription().setImportFile(filename);
+    }
+
+    /**
+     *
+     * @return filename of the imported digital content
+     */
+    public String getImportFile() throws DigitalObjectException {
+        return getRdf().getDescription().getImportFile();
+    }
+
+    /**
      * Relations defining object hierarchy graph.
      *
      * @return list of PIDs or {@code null} if Fedora object not found.

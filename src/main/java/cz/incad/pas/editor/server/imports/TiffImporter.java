@@ -105,6 +105,7 @@ public final class TiffImporter {
         RelationEditor relEditor = new RelationEditor(localObj);
         relEditor.setModel(fedoraModel);
         relEditor.setDevice(ctx.getDevice());
+        relEditor.setImportFile(f.getName());
         relEditor.write(0, null);
         // XXX use fedora-model:downloadFilename in RELS-INT or label of datastream to specify filename
 

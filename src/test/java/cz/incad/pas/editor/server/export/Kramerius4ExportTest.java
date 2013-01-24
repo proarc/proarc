@@ -83,6 +83,7 @@ public class Kramerius4ExportTest {
         // check datastreams with xpath
         HashMap<String, String> namespaces = new HashMap<String, String>();
         namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
+        namespaces.put("kramerius", Kramerius4Export.KRAMERIUS_RELATION_NS);
         namespaces.put("oai", Kramerius4Export.OAI_NS);
         XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
         String foxmlSystemId = Kramerius4Export.pidAsFile(target, pids[0]).toURI().toASCIIString();
@@ -97,6 +98,8 @@ public class Kramerius4ExportTest {
 
         // check OAI ID
         XMLAssert.assertXpathExists("//oai:itemID", new InputSource(foxmlSystemId));
+        // check kramerius:file
+        XMLAssert.assertXpathExists("//kramerius:file", new InputSource(foxmlSystemId));
 
     }
 

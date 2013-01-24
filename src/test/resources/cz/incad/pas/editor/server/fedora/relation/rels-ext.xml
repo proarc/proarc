@@ -20,5 +20,6 @@
         <fedora-model:hasModel rdf:resource="info:fedora/fedora-system:ContentModel-3.0"/>
         <rel:hasMember rdf:resource="info:fedora/test:member3" />
         <proarc-rels:hasDevice rdf:resource="info:fedora/device:scanner" />
+        <proarc-rels:importFile>ABA00726009905207199800001.tif</proarc-rels:importFile>
     </rdf:Description>
 </rdf:RDF>
