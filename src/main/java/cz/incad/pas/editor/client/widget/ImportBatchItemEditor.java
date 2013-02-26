@@ -244,6 +244,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
         grid.setFields(fieldFilename, fieldPageNumber, fieldPageIndex, fieldPageType, fieldPid, fieldItemModel, fieldUser);
         grid.setContextMenu(Actions.createMenu());
+        Actions.fixListGridContextMenu(grid);
 
         // issue 7: default BodyKeyPressHandler does not change row focus properly
         // in case of mixing mouse and keyboard navigation.
