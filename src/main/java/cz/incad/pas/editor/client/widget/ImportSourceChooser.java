@@ -93,7 +93,7 @@ public final class ImportSourceChooser extends VLayout {
         SelectItem selectScanner = new SelectItem(ImportBatchDataSource.FIELD_DEVICE,
                 i18n.ImportSourceChooser_OptionScanner_Title());
         LinkedHashMap<String, String> scannerMap = new LinkedHashMap<String, String>();
-        scannerMap.put("device:digibook_suprascan_10000 rgb", "Digibook Suprascan 10000 RGB");
+        scannerMap.put("device:digibook_suprascan_10000rgb", "Digibook Suprascan 10000 RGB");
         scannerMap.put("device:panasonic_kv_s1025c", "Panasonic KV-S1025C");
         scannerMap.put("device:proserv_scanntech_600i", "ProServ ScannTech 600i");
         scannerMap.put("device:scanrobot_sr301", "ScanRobot SR301");
