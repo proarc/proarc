@@ -201,6 +201,7 @@ public final class Actions {
             ActionSource actionSource, boolean willAsk) {
 
         final MenuItem mi = new MenuItem();
+        mi.setEnabled(Boolean.TRUE);
         String title = action.getTitle();
         if (title != null) {
             title = willAsk ? title + "..." : title;
