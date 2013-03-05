@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.server.imports;
 
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
+import cz.incad.pas.editor.server.imports.FileSet.FileEntry;
 import cz.incad.pas.editor.server.imports.ImportFileScanner.Folder;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -139,5 +140,47 @@ public class ImportFileScannerTest {
         String[] expectedOrder = {"1", "23", "A", "AAA", "b", "B", "BB", "C", "Č",
                 "H", "CH", "Na", "Na návrší", "Na Návrší", "Nad návrším"};
         assertArrayEquals(Arrays.toString(resultAsArray), expectedOrder, resultAsArray);
+    }
+
+    @Test
+    public void testFindDigitalContent() throws Exception {
+        File f1 = tmpFolder.newFile("f1.ext");
+        File f2 = tmpFolder.newFile("f2.ext");
+        ImportFileScanner instance = new ImportFileScanner();
+        List<File> result = instance.findDigitalContent(tmpFolder.getRoot());
+        assertNotNull(result);
+        assertArrayEquals(new Object[] {f1, f2}, result.toArray());
+    }
+
+    @Test
+    public void testGetFileSets() throws Exception {
+        File f2 = tmpFolder.newFile("f2.ext");
+        File f1ext1 = tmpFolder.newFile("f1.ds.ext1");
+        File f1ext2 = tmpFolder.newFile("f1.ext2");
+        ImportFileScanner instance = new ImportFileScanner();
+        List<File> files = instance.findDigitalContent(tmpFolder.getRoot());
+        assertEquals(3, files.size());
+        List<FileSet> fileSets = ImportFileScanner.getFileSets(files);
+        assertNotNull(fileSets);
+        assertEquals(2, fileSets.size());
+
+        FileSet fs1 = fileSets.get(0);
+        assertEquals("f1", fs1.getName());
+        assertArrayEquals(new Object[] {f1ext1, f1ext2}, asFiles(fs1.getFiles()));
+
+        FileSet fs2 = fileSets.get(1);
+        assertEquals("f2", fs2.getName());
+        assertArrayEquals(new Object[] {f2}, asFiles(fs2.getFiles()));
+    }
+
+    private static File[] asFiles(List<FileEntry> entries) {
+        if (entries == null) {
+            return null;
+        }
+        File[] files = new File[entries.size()];
+        for (int i = 0; i < files.length; i++) {
+            files[i] = entries.get(i).getFile();
+        }
+        return files;
     }
 }

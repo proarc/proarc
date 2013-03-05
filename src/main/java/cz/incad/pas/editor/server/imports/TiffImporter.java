@@ -28,6 +28,7 @@ import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.StringEditor;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
+import cz.incad.pas.editor.server.imports.FileSet.FileEntry;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.imports.ImportProcess.ImportOptions;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
@@ -60,25 +61,27 @@ public final class TiffImporter {
 
     private static final Logger LOG = Logger.getLogger(TiffImporter.class.getName());
 
-    public boolean accept(File f, String mimetype) {
-        return isTiff(f, mimetype);
+    public boolean accept(FileSet fileSet) {
+        return isTiff(fileSet);
     }
-    
-    public ImportItem consume(File f, String mimetype, ImportOptions ctx) throws IOException {
+
+    public ImportItem consume(FileSet fileSet, ImportOptions ctx) throws IOException {
         try {
-            return consumeImpl(f, mimetype, ctx);
+            return consumeImpl(fileSet, ctx);
         } catch (DigitalObjectException ex) {
             throw new IOException(ex);
         }
     }
 
-    private ImportItem consumeImpl(File f, String mimetype, ImportOptions ctx) throws IOException, DigitalObjectException {
+    private ImportItem consumeImpl(FileSet fileSet, ImportOptions ctx) throws IOException, DigitalObjectException {
+        FileEntry tiffEntry = findTiff(fileSet);
         // check tiff file
-        if (!isTiff(f, mimetype)) {
+        if (tiffEntry == null) {
             return null;
         }
 
-        String originalFilename = getName(f);
+        File f = tiffEntry.getFile();
+        String originalFilename = fileSet.getName();
         String fedoraModel = ctx.getModel();
         File tempBatchFolder = ctx.getTargetFolder();
 
@@ -125,8 +128,18 @@ public final class TiffImporter {
         return new ImportItem(foxml, originalFilename, pid);
     }
 
-    private boolean isTiff(File f, String mimetype) {
-        return ImageMimeType.TIFF.getMimeType().equals(mimetype);
+    private boolean isTiff(FileSet fileSet) {
+        return findTiff(fileSet) != null;
+    }
+
+    private FileEntry findTiff(FileSet fileSet) {
+        for (FileEntry entry : fileSet.getFiles()) {
+            String mimetype = entry.getMimetype();
+            if (ImageMimeType.TIFF.getMimeType().equals(mimetype)) {
+                return entry;
+            }
+        }
+        return null;
     }
 
     private void createImages(File tempBatchFolder, File original, String originalFilename, LocalObject foxml)
@@ -193,12 +206,6 @@ public final class TiffImporter {
         LOG.info(String.format("scaled [%s, %s] to [%s, %s], boundary [%s, %s] [w, h], time: %s ms",
                 width, height, targetWidth, targetHeight, maxWidth, maxHeight, (System.nanoTime() - start) / 1000000));
         return scaled;
-    }
-
-    private static String getName(File f) {
-        String fname = f.getName();
-        int index = fname.indexOf('.');
-        return index > 0 ? fname.substring(0, index) : fname;
     }
 
     private void copyFile(File src, File dst) throws IOException {

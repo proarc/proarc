@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.server.imports;
 
+import cz.incad.pas.editor.server.imports.FileSet.FileEntry;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
@@ -28,6 +29,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.TreeMap;
 
 /**
  *
@@ -48,6 +50,20 @@ public final class ImportFileScanner {
         }
     };
 
+    private static RuleBasedCollator createCzechCollator() {
+        RuleBasedCollator czechDefault = (RuleBasedCollator) Collator.getInstance(new Locale("cs"));
+        try {
+            return new RuleBasedCollator(
+                    // Space before 0 results to "on", "on board", "online"
+                    //   instead of "on", "online", "on board"
+                    // '&' to reset definition does not work for space
+                    "'\u0020' < 0"
+                    + czechDefault.getRules());
+        } catch (ParseException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
     /**
      * File name comparator. It delegates to extended Czech collator implementation.
      * @see <a href='http://www.docjar.com/html/api/sun/text/resources/CollationData_cs.java.html'>CollationData_cs.java</a>
@@ -55,24 +71,20 @@ public final class ImportFileScanner {
      */
     private static final Comparator<File> FILE_COMPARATOR = new Comparator<File>() {
         
-        private final Comparator<Object> czech;
-
-        {
-            RuleBasedCollator czechDefault = (RuleBasedCollator) Collator.getInstance(new Locale("cs"));
-            try {
-                czech = new RuleBasedCollator(
-                        // Space before 0 results to "on", "on board", "online"
-                        //   instead of "on", "online", "on board"
-                        // '&' to reset definition does not work for space
-                        "'\u0020' < 0"
-                        + czechDefault.getRules());
-            } catch (ParseException ex) {
-                throw new IllegalStateException(ex);
-            }
-        }
+        private final Comparator<Object> czech = createCzechCollator();
 
         @Override
         public int compare(File o1, File o2) {
+            return czech.compare(o1.getName(), o2.getName());
+        }
+    };
+
+    private static final Comparator<FileSet> FILESET_COMPARATOR = new Comparator<FileSet>() {
+
+        private final Comparator<Object> czech = createCzechCollator();
+
+        @Override
+        public int compare(FileSet o1, FileSet o2) {
             return czech.compare(o1.getName(), o2.getName());
         }
     };
@@ -94,7 +106,7 @@ public final class ImportFileScanner {
         }
         return content;
     }
-    
+
     public List<File> findDigitalContent(File folder) throws IllegalArgumentException, FileNotFoundException {
         validateImportFolder(folder);
 
@@ -109,6 +121,25 @@ public final class ImportFileScanner {
         return contents;
     }
 
+    public static List<FileSet> getFileSets(List<File> files) {
+        TreeMap<String, FileSet> items = new TreeMap<String, FileSet>(createCzechCollator());
+        for (File file : files) {
+            String filename = getName(file);
+            FileSet itemFiles = items.get(filename);
+            if (itemFiles == null) {
+                itemFiles = new FileSet(filename);
+                items.put(filename, itemFiles);
+            }
+            itemFiles.getFiles().add(new FileEntry(file));
+        }
+        return new ArrayList<FileSet>(items.values());
+    }
+
+    static String getName(File f) {
+        String fname = f.getName();
+        int index = fname.indexOf('.');
+        return index > 0 ? fname.substring(0, index) : fname;
+    }
 
     static void validateImportFolder(File folder) throws FileNotFoundException, IllegalArgumentException {
         if (!folder.exists()) {
@@ -123,8 +154,7 @@ public final class ImportFileScanner {
     }
 
     static State folderImportState(File folder) {
-        File stateFile = new File(folder, IMPORT_STATE_FILENAME);
-        State state = stateFile.exists() ? State.IMPORTED : State.NEW;
+        State state = isImported(folder) ? State.IMPORTED : State.NEW;
         // check file content for more details
         if (state == State.NEW) {
             state = isImportable(folder) ? State.NEW : State.EMPTY;
@@ -145,7 +175,8 @@ public final class ImportFileScanner {
             }
             File file = new File(folder, fileName);
             if (file.isFile() && file.canRead()) {
-                if (ImportProcess.canImport(file)) {
+                List<FileSet> fileSets = getFileSets(Arrays.asList(file));
+                if (ImportProcess.canImport(fileSets.get(0))) {
                     return true;
                 }
             }

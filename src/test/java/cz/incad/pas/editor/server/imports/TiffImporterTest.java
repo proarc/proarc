@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import javax.xml.XMLConstants;
 import javax.xml.transform.stream.StreamSource;
@@ -105,9 +106,9 @@ public class TiffImporterTest {
 
         ImportOptions ctx = new ImportOptions(tiff1.getParentFile(), "model:page", "scanner:scanner1", true, "junit");
         ctx.setTargetFolder(targetFolder);
+        FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1)).get(0);
         TiffImporter instance = new TiffImporter();
-//        FedoraImportItem expResult = null;
-        ImportItem result = instance.consume(tiff1, mimetype, ctx);
+        ImportItem result = instance.consume(fileSet, ctx);
         String pid = result.getPid();
         assertTrue(pid.startsWith("uuid"));
         

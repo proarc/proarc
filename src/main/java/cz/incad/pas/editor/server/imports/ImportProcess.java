@@ -118,7 +118,8 @@ public final class ImportProcess implements Runnable {
             }
             ImportFileScanner scanner = new ImportFileScanner();
             List<File> files = scanner.findDigitalContent(importFolder);
-            if (!canImport(files)) {
+            List<FileSet> fileSets = ImportFileScanner.getFileSets(files);
+            if (!canImport(fileSets)) {
                 // nothing to import
                 return;
             }
@@ -128,7 +129,7 @@ public final class ImportProcess implements Runnable {
             batch.setUser(user.getUserName());
             batch.setUserId(user.getId());
             batch.setState(ImportBatch.State.LOADING);
-            batch.setEstimateFileCount(files.size());
+            batch.setEstimateFileCount(fileSets.size());
             batch.setOptions(importConfig);
             batch = batchManager.add(batch);
             transactionFailed = false;
@@ -178,7 +179,8 @@ public final class ImportProcess implements Runnable {
             importConfig.setTargetFolder(targetFolder);
             ImportFileScanner scanner = new ImportFileScanner();
             List<File> files = scanner.findDigitalContent(importFolder);
-            consumeFiles(batchId, files, importConfig);
+            List<FileSet> fileSets = ImportFileScanner.getFileSets(files);
+            consumeFileSets(batchId, fileSets, importConfig);
             batch.setState(ImportBatch.State.LOADED);
             batch = batchManager.update(batch);
             return batch;
@@ -206,19 +208,18 @@ public final class ImportProcess implements Runnable {
         return batch;
     }
 
-    static boolean canImport(File file) {
+    static boolean canImport(FileSet fileSet) {
         for (TiffImporter consumer : consumerRegistery) {
-            String mimeType = findMimeType(file);
-            if (consumer.accept(file, mimeType)) {
+            if (consumer.accept(fileSet)) {
                 return true;
             }
         }
         return false;
     }
 
-    static boolean canImport(List<File> files) {
-        for (File file : files) {
-            if (canImport(file)) {
+    static boolean canImport(List<FileSet> fileSets) {
+        for (FileSet fileSet : fileSets) {
+            if (canImport(fileSet)) {
                 return true;
             }
         }
@@ -262,39 +263,39 @@ public final class ImportProcess implements Runnable {
         return this.failures;
     }
 
-    private void consumeFiles(int batchId, List<File> files, ImportOptions ctx) throws InterruptedException {
+    private void consumeFileSets(int batchId, List<FileSet> fileSets, ImportOptions ctx) throws InterruptedException {
         long start = System.currentTimeMillis();
-        for (File file : files) {
+        for (FileSet fileSet : fileSets) {
             if (Thread.interrupted()) {
                 throw new InterruptedException();
             }
+            String itemName = fileSet.getName();
             try {
-                ImportItem item = consumeFile(file, ctx);
+                ImportItem item = consumeFileSet(fileSet, ctx);
                 if (item != null) {
                     batchManager.addItem(batchId, item);
                 } else {
                     // XXX implement failed items in ImportBatchManager
                     // ImportItem importItem = new ImportItem((String) null, file.toString(), null);
-                    this.failures.add(new ImportItemFailure(file.getName(), "unsupported file"));
+                    this.failures.add(new ImportItemFailure(itemName, "unsupported file"));
                 }
             } catch (IOException ex) {
                 StringWriter sw = new StringWriter();
                 ex.printStackTrace(new PrintWriter(sw));
-                this.failures.add(new ImportItemFailure(file.getName(), sw.toString()));
-                LOG.log(Level.SEVERE, file.toString(), ex);
+                this.failures.add(new ImportItemFailure(itemName, sw.toString()));
+                LOG.log(Level.SEVERE, itemName, ex);
             }
         }
         LOG.log(Level.INFO, "Total time: {0} ms", System.currentTimeMillis() - start);
     }
 
-    private ImportItem consumeFile(File f, ImportOptions ctx) throws IOException {
+    private ImportItem consumeFileSet(FileSet fileSet, ImportOptions ctx) throws IOException {
         long start = System.currentTimeMillis();
-        String mimeType = findMimeType(f);
         List<TiffImporter> consumers = getConsumers();
         for (TiffImporter consumer : consumers) {
-            ImportItem item = consumer.consume(f, mimeType, ctx);
+            ImportItem item = consumer.consume(fileSet, ctx);
             if (item != null) {
-                LOG.log(Level.INFO, "time: {0} ms, {1}", new Object[] {System.currentTimeMillis() - start, f});
+                LOG.log(Level.INFO, "time: {0} ms, {1}", new Object[] {System.currentTimeMillis() - start, fileSet});
                 ++ctx.consumedFileCounter;
                 return item;
             }
