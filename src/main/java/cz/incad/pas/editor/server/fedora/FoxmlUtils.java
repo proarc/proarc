@@ -23,8 +23,11 @@ import com.yourmediashelf.fedora.generated.foxml.ObjectFactory;
 import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.StateType;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
@@ -34,6 +37,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ws.rs.core.MediaType;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -289,6 +293,68 @@ public final class FoxmlUtils {
                 LOG.log(Level.SEVERE, description, ex);
             }
         }
+    }
+
+    public static void copy(InputStream is, OutputStream os) throws IOException {
+        byte[] buffer = new byte[2048];
+        for (int length; (length = is.read(buffer)) != -1; ) {
+            os.write(buffer, 0, length);
+        }
+    }
+
+    private static DatastreamProfile createProfileTemplate(String dsId, String formatUri, String label, MediaType mimetype, ControlGroup control) {
+        DatastreamProfile df = new DatastreamProfile();
+        df.setDsMIME(mimetype.toString());
+        df.setDsID(dsId);
+        df.setDsControlGroup(control.toExternal());
+        df.setDsFormatURI(formatUri);
+        df.setDsLabel(label);
+        df.setDsVersionID(FoxmlUtils.versionDefaultId(dsId));
+        df.setDsVersionable(Boolean.FALSE.toString());
+        return df;
+    }
+
+    /**
+     * Use to embed XML content into FOXML. It expects you read and write
+     * well formed XML.
+     */
+    public static DatastreamProfile inlineProfile(String dsId, String formatUri, String label) {
+        if (dsId == null || dsId.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+        return createProfileTemplate(dsId, formatUri, label, MediaType.TEXT_XML_TYPE, ControlGroup.INLINE);
+    }
+
+    /**
+     * Use to store XML content outside FOXML. It expects you read and write
+     * well formed XML.
+     */
+    public static DatastreamProfile managedProfile(String dsId, String formatUri, String label) {
+        if (dsId == null || dsId.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+        return createProfileTemplate(dsId, formatUri, label, MediaType.TEXT_XML_TYPE, ControlGroup.MANAGED);
+    }
+
+    /**
+     * Use to store whatever content in repository. I
+     */
+    public static DatastreamProfile managedProfile(String dsId, MediaType mimetype, String label) {
+        if (dsId == null || dsId.isEmpty() || mimetype == null) {
+            throw new IllegalArgumentException();
+        }
+        return createProfileTemplate(dsId, null, label, mimetype, ControlGroup.MANAGED);
+    }
+
+    /**
+     * Use to store whatever external content.
+     * XXX Data should be URL?
+     */
+    public static DatastreamProfile externalProfile(String dsId, MediaType mimetype, String label) {
+        if (dsId == null || dsId.isEmpty() || mimetype == null) {
+            throw new IllegalArgumentException();
+        }
+        throw new UnsupportedOperationException();
     }
 
     public enum ControlGroup {

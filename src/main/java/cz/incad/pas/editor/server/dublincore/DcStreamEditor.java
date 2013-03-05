@@ -16,14 +16,12 @@
  */
 package cz.incad.pas.editor.server.dublincore;
 
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
-import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
-import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
-import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
-import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
+import cz.incad.pas.editor.server.fedora.FoxmlUtils;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import cz.incad.pas.editor.server.mods.ModsUtils;
@@ -54,31 +52,13 @@ public final class DcStreamEditor {
     private final XmlStreamEditor editor;
     private final FedoraObject object;
 
-    private static XmlStreamEditor createEditor(FedoraObject object) {
-        XmlStreamEditor editor;
-        if (object instanceof LocalObject) {
-            editor = new LocalXmlStreamEditor((LocalObject) object, DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL);
-        } else if (object instanceof RemoteObject) {
-            editor = new RemoteXmlStreamEditor(
-                    (RemoteObject) object,
-                    RemoteXmlStreamEditor.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL));
-        } else {
-            throw new IllegalArgumentException("Unsupported fedora object: " + object.getClass());
-        }
-        return editor;
+    public static DatastreamProfile dcProfile() {
+        return FoxmlUtils.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL);
     }
+
     public DcStreamEditor(FedoraObject object) {
-        this(createEditor(object), object);
+        this(object.getEditor(dcProfile()), object);
     }
-//
-//    public DcStreamEditor(RemoteObject object) {
-//        this(new RemoteXmlStreamEditor(object, DATASTREAM_ID), object);
-//    }
-//
-//    public DcStreamEditor(LocalObject object) {
-//        this(new LocalXmlStreamEditor(object, DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL),
-//                object);
-//    }
 
     DcStreamEditor(XmlStreamEditor editor, FedoraObject object) {
         this.editor = editor;

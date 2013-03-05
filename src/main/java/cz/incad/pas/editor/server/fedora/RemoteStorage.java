@@ -19,6 +19,8 @@ package cz.incad.pas.editor.server.fedora;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.FedoraCredentials;
+import com.yourmediashelf.fedora.client.request.AddDatastream;
+import com.yourmediashelf.fedora.client.request.ModifyDatastream;
 import com.yourmediashelf.fedora.client.response.AddDatastreamResponse;
 import com.yourmediashelf.fedora.client.response.DatastreamProfileResponse;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
@@ -32,14 +34,15 @@ import cz.incad.pas.editor.server.config.AppConfiguration;
 import cz.incad.pas.editor.server.fedora.FoxmlUtils.ControlGroup;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
@@ -144,6 +147,11 @@ public final class RemoteStorage {
         }
 
         @Override
+        public XmlStreamEditor getEditor(DatastreamProfile datastream) {
+            return new RemoteXmlStreamEditor(this, datastream);
+        }
+
+        @Override
         public void setLabel(String label) {
             this.label = label;
         }
@@ -181,51 +189,11 @@ public final class RemoteStorage {
         private final String dsId;
         private long lastModified;
         private DatastreamProfile profile;
-        private String data;
+        private DatastreamContent data;
         private boolean modified;
         private boolean missingDataStream;
         private final DatastreamProfile defaultProfile;
         private String logMessage;
-
-        /**
-         * Use to store whatever content in repository. I
-         */
-        public static DatastreamProfile managedProfile(
-                String dsId, MediaType mimetype, String label) {
-
-            if (dsId == null || dsId.isEmpty() || mimetype == null) {
-                throw new IllegalArgumentException();
-            }
-            return createProfileTemplate(dsId, null, label, mimetype, ControlGroup.MANAGED);
-        }
-
-        /**
-         * Use to embed XML content into FOXML. It expects you read and write
-         * well formed XML.
-         */
-        public static DatastreamProfile inlineProfile(
-                String dsId, String formatUri, String label) {
-
-            if (dsId == null || dsId.isEmpty()) {
-                throw new IllegalArgumentException();
-            }
-            return createProfileTemplate(dsId, formatUri, label,
-                    MediaType.TEXT_XML_TYPE, ControlGroup.INLINE);
-        }
-
-        /**
-         * Use to store whatever external content.
-         * XXX Data should be URL?
-         */
-        public static DatastreamProfile externalProfile(
-                String dsId, MediaType mimetype, String label) {
-
-            if (dsId == null || dsId.isEmpty() || mimetype == null) {
-                throw new IllegalArgumentException();
-            }
-            throw new UnsupportedOperationException();
-//            return createProfileTemplate(pid, dsId, null, label, mimetype, ControlGroup.EXTERNAL);
-        }
 
         /**
          * Constructor.
@@ -258,7 +226,19 @@ public final class RemoteStorage {
         public Source read() throws DigitalObjectException {
             try {
                 fetchData();
-                return missingDataStream ? null : new StreamSource(new StringReader(data));
+                return data == null ? null : data.asSource();
+            } catch (DigitalObjectException ex) {
+                throw ex;
+            } catch (Exception ex) {
+                throw new DigitalObjectException(object.getPid(), toLogString(), ex);
+            }
+        }
+
+        @Override
+        public InputStream readStream() throws DigitalObjectException {
+            try {
+                fetchData();
+                return data == null ? null : data.asInputStream();
             } catch (DigitalObjectException ex) {
                 throw ex;
             } catch (Exception ex) {
@@ -296,6 +276,34 @@ public final class RemoteStorage {
                 throw new IllegalArgumentException("Unsupported data: " + data);
             }
 
+            EditorStreamResult result = (EditorStreamResult) data;
+            write(new DatastreamContent(result.asBytes()), timestamp, message);
+        }
+
+        @Override
+        public void write(byte[] data, long timestamp, String message) throws DigitalObjectException {
+            write(new DatastreamContent(data), timestamp, message);
+        }
+
+        @Override
+        public void write(InputStream data, long timestamp, String message) throws DigitalObjectException {
+            ByteArrayOutputStream buf = new ByteArrayOutputStream();
+            try {
+                FoxmlUtils.copy(data, buf);
+            } catch (IOException ex) {
+                throw new DigitalObjectException(object.getPid(), toLogString(), ex);
+            } finally {
+                FoxmlUtils.closeQuietly(data, toLogString());
+            }
+            write(new DatastreamContent(buf.toByteArray()), timestamp, message);
+        }
+
+        @Override
+        public void write(URI data, long timestamp, String message) throws DigitalObjectException {
+            write(new DatastreamContent(data), timestamp, message);
+        }
+
+        private void write(DatastreamContent data, long timestamp, String message) throws DigitalObjectException {
             if (timestamp != getLastModified()) {
                 String msg = String.format(
                         "%s, timestamp: %s (%s)",
@@ -303,8 +311,7 @@ public final class RemoteStorage {
                         DateUtility.getXSDDateTime(new Date(timestamp)));
                 throw new DigitalObjectConcurrentModificationException(object.getPid(), msg);
             }
-            EditorStreamResult result = (EditorStreamResult) data;
-            this.data = result.asString();
+            this.data = data;
             this.logMessage = message;
             object.register(this);
             modified = true;
@@ -363,7 +370,16 @@ public final class RemoteStorage {
                         // ensure that it is content for given profile
                         .asOfDateTime(DateUtility.getXSDDateTime(new Date(lastModified)))
                         .execute(object.getClient());
-                data = response.getEntity(String.class);
+                InputStream is = response.getEntity(InputStream.class);
+                try {
+                   ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                   FoxmlUtils.copy(is, buffer);
+                   this.data = new DatastreamContent(buffer.toByteArray());
+                } catch (IOException ex) {
+                    throw new DigitalObjectException(object.getPid(), ex);
+                } finally {
+                    FoxmlUtils.closeQuietly(is, toLogString());
+                }
             } catch (FedoraClientException ex) {
                 if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 }
@@ -384,6 +400,8 @@ public final class RemoteStorage {
                 logMessage = null;
                 profile = response.getDatastreamProfile();
                 lastModified = response.getLastModifiedDate().getTime();
+            } catch (IOException ex) {
+                throw new DigitalObjectException(object.getPid(), toLogString(), ex);
             } catch (FedoraClientException ex) {
                 // HTTP 409 - conflict with the current state of the resource
                 if (ex.getStatus() == Status.CONFLICT.getStatusCode()) {
@@ -393,44 +411,46 @@ public final class RemoteStorage {
             }
         }
 
-        private DatastreamProfileResponse addDataStream() throws FedoraClientException {
-            AddDatastreamResponse response = FedoraClient.addDatastream(profile.getPid(), profile.getDsID())
-                    .content(data)
+        private DatastreamProfileResponse addDataStream() throws FedoraClientException, IOException {
+            AddDatastream request = FedoraClient.addDatastream(profile.getPid(), profile.getDsID())
                     .controlGroup(profile.getDsControlGroup())
                     .dsLabel(profile.getDsLabel())
                     .dsState("A")
                     .formatURI(profile.getDsFormatURI())
                     .logMessage(logMessage)
                     .mimeType(profile.getDsMIME())
-                    .versionable(Boolean.parseBoolean(profile.getDsVersionable()))
-                    .execute(object.getClient());
+                    .versionable(Boolean.parseBoolean(profile.getDsVersionable()));
+
+            ControlGroup control = ControlGroup.fromExternal(profile.getDsControlGroup());
+            if (control == ControlGroup.INLINE || control == ControlGroup.MANAGED) {
+                request.content(data.asInputStream());
+            } else if (control == ControlGroup.EXTERNAL) {
+                request.dsLocation(data.reference.toASCIIString());
+            } else {
+                throw new UnsupportedOperationException("DsControlGroup: " + control + "; " + toLogString());
+            }
+            AddDatastreamResponse response = request.execute(object.getClient());
             return response;
         }
 
-        private DatastreamProfileResponse modifyDataStream() throws FedoraClientException {
-            ModifyDatastreamResponse response = FedoraClient.modifyDatastream(object.getPid(), dsId)
-                    .content(data)
+        private DatastreamProfileResponse modifyDataStream() throws FedoraClientException, IOException {
+            ModifyDatastream request = FedoraClient.modifyDatastream(object.getPid(), dsId)
                     .dsLabel(profile.getDsLabel())
                     .formatURI(profile.getDsFormatURI())
                     .lastModifiedDate(new Date(lastModified))
                     .logMessage(logMessage)
-                    .mimeType(profile.getDsMIME())
-                    .execute(object.getClient());
+                    .mimeType(profile.getDsMIME());
+
+            ControlGroup control = ControlGroup.fromExternal(profile.getDsControlGroup());
+            if (control == ControlGroup.INLINE || control == ControlGroup.MANAGED) {
+                request.content(data.asInputStream());
+            } else if (control == ControlGroup.EXTERNAL) {
+                request.dsLocation(data.reference.toASCIIString());
+            } else {
+                throw new UnsupportedOperationException("DsControlGroup: " + control + "; " + toLogString());
+            }
+            ModifyDatastreamResponse response = request.execute(object.getClient());
             return response;
-        }
-
-        private static DatastreamProfile createProfileTemplate(String dsId, String formatUri,
-                String label, MediaType mimetype, ControlGroup control) {
-
-            DatastreamProfile df = new DatastreamProfile();
-            df.setDsMIME(mimetype.toString());
-            df.setDsID(dsId);
-            df.setDsControlGroup(control.toExternal());
-            df.setDsFormatURI(formatUri);
-            df.setDsLabel(label);
-            df.setDsVersionID(FoxmlUtils.versionDefaultId(dsId));
-            df.setDsVersionable(Boolean.FALSE.toString());
-            return df;
         }
 
         private String toLogString() {
@@ -438,16 +458,51 @@ public final class RemoteStorage {
                     DateUtility.getXSDDateTime(new Date(lastModified)));
         }
 
-    }
+        private static final class DatastreamContent {
 
-    private static final class EditorStreamResult extends StreamResult implements EditorResult {
+            private byte[] bytes;
+            private URI reference;
 
-        public EditorStreamResult() {
-            super(new StringWriter());
+            public DatastreamContent(byte[] bytes) {
+                this.bytes = bytes;
+            }
+
+            public DatastreamContent(URI reference) {
+                this.reference = reference;
+            }
+
+            public Source asSource() {
+                if (bytes != null) {
+                    return new StreamSource(new ByteArrayInputStream(bytes));
+                } else if (reference != null) {
+                    return new StreamSource(reference.toASCIIString());
+                } else {
+                    return null;
+                }
+            }
+
+            public InputStream asInputStream() throws IOException {
+                if (bytes != null) {
+                    return new ByteArrayInputStream(bytes);
+                } else if (reference != null) {
+                    return reference.toURL().openStream();
+                } else {
+                    return null;
+                }
+            }
+
         }
 
-        public String asString() {
-            return ((StringWriter) getWriter()).toString();
+        private static final class EditorStreamResult extends StreamResult implements EditorResult {
+
+            public EditorStreamResult() {
+                super(new ByteArrayOutputStream());
+            }
+
+            public byte[] asBytes() {
+                return ((ByteArrayOutputStream) getOutputStream()).toByteArray();
+            }
+
         }
 
     }

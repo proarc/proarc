@@ -20,9 +20,7 @@ import cz.fi.muni.xkremser.editor.server.mods.IdentifierType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
-import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
-import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
-import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
+import cz.incad.pas.editor.server.fedora.FoxmlUtils;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
@@ -53,16 +51,8 @@ public final class ModsStreamEditor {
     private final FedoraObject object;
 
     private static XmlStreamEditor createEditor(FedoraObject object) {
-        XmlStreamEditor editor;
-        if (object instanceof LocalObject) {
-            editor = new LocalXmlStreamEditor((LocalObject) object, DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL);
-        } else if (object instanceof RemoteObject) {
-            editor = new RemoteXmlStreamEditor(
-                    (RemoteObject) object,
-                    RemoteXmlStreamEditor.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL));
-        } else {
-            throw new IllegalArgumentException("Unsupported fedora object: " + object.getClass());
-        }
+        XmlStreamEditor editor = object.getEditor(
+                FoxmlUtils.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL));
         return editor;
     }
 

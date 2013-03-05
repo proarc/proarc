@@ -16,6 +16,8 @@
  */
 package cz.incad.pas.editor.server.fedora;
 
+import java.io.InputStream;
+import java.net.URI;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 
@@ -46,7 +48,16 @@ public interface XmlStreamEditor {
     Source read() throws DigitalObjectException;
 
     /**
-     * Writes content to stream.
+     * Provides content of the data stream as InputStream.
+     *
+     * @return stream or {@code null} if stream not exist yet
+     * @throws DigitalObjectNotFoundException object that should contain the stream not found
+     * @throws DigitalObjectException general failure
+     */
+    InputStream readStream() throws DigitalObjectException;
+
+    /**
+     * Writes XML content to stream.
      *
      * @param data content {@link #createResult() holder}
      * @param timestamp time stamp
@@ -59,6 +70,24 @@ public interface XmlStreamEditor {
      * @see #createResult() to
      */
     void write(EditorResult data, long timestamp, String message) throws DigitalObjectException;
+
+    /**
+     * Writes binary contents to stream.
+     * @see #write(cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult, long, java.lang.String)
+     */
+    void write(byte[] data, long timestamp, String message) throws DigitalObjectException;
+
+    /**
+     * Writes reference to contents to stream.
+     * @see #write(cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult, long, java.lang.String)
+     */
+    void write(URI data, long timestamp, String message) throws DigitalObjectException;
+
+    /**
+     * Writes binary contents to stream.
+     * @see #write(cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult, long, java.lang.String)
+     */
+    void write(InputStream data, long timestamp, String message) throws DigitalObjectException;
 
     /**
      * Makes modifications persistent. Use {@link FedoraObject#flush() }

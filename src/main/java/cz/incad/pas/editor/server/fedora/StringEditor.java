@@ -16,30 +16,17 @@
  */
 package cz.incad.pas.editor.server.fedora;
 
-import cz.incad.pas.editor.server.fedora.FoxmlUtils.ControlGroup;
-import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
-import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
-import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
-import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
-import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.Writer;
-import java.net.URL;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 
 /**
  * Supports plaint text as Fedora data stream binary content.
@@ -59,34 +46,28 @@ public final class StringEditor {
     private final FedoraObject object;
 
     public static StringEditor ocr(FedoraObject object) {
-//        return new StringEditor(object, OCR_ID, MediaType.TEXT_PLAIN_TYPE, OCR_LABEL, ControlGroup.INLINE);
+        return ocr(object, false);
+    }
+
+    public static StringEditor ocr(FedoraObject object, boolean storeExternally) {
         // inlined binary content ingest fails!
-        return new StringEditor(object, OCR_ID, MediaType.TEXT_PLAIN_TYPE, OCR_LABEL, ControlGroup.MANAGED);
+        return new StringEditor(object, ocrProfile());
+    }
+
+    public static DatastreamProfile ocrProfile() {
+        return FoxmlUtils.managedProfile(OCR_ID, MediaType.TEXT_PLAIN_TYPE, OCR_LABEL);
     }
 
     public static StringEditor privateNote(FedoraObject object) {
-        return new StringEditor(object, PRIVATE_NOTE_ID, MediaType.TEXT_PLAIN_TYPE, PRIVATE_NOTE_LABEL, ControlGroup.MANAGED);
+        return new StringEditor(object, privateNoteProfile());
     }
 
-    private static XmlStreamEditor createEditor(FedoraObject object, String dsId,
-                MediaType mimetype, String label, ControlGroup control) {
-
-        XmlStreamEditor editor;
-        if (object instanceof LocalStorage.LocalObject) {
-            editor = new LocalXmlStreamEditor((LocalObject) object, dsId, mimetype, label, control);
-        } else if (object instanceof RemoteObject) {
-            editor = new RemoteXmlStreamEditor(
-                    (RemoteObject) object,
-                    RemoteXmlStreamEditor.managedProfile(dsId, mimetype, label));
-        } else {
-            throw new IllegalArgumentException("Unsupported fedora object: " + object.getClass());
-        }
-        return editor;
+    public static DatastreamProfile privateNoteProfile() {
+        return FoxmlUtils.managedProfile(PRIVATE_NOTE_ID, MediaType.TEXT_PLAIN_TYPE, PRIVATE_NOTE_LABEL);
     }
-    
-    public StringEditor(FedoraObject object, String dsId,
-                MediaType mimetype, String label, ControlGroup control) {
-        this(createEditor(object, dsId, mimetype, label, control), object);
+
+    StringEditor(FedoraObject object, DatastreamProfile profile) {
+        this(object.getEditor(profile), object);
     }
 
     StringEditor(XmlStreamEditor editor, FedoraObject object) {
@@ -100,15 +81,11 @@ public final class StringEditor {
     }
 
     public StringRecord readRecord() throws DigitalObjectException {
-        Source source = editor.read();
-        if (source != null && !(source instanceof StreamSource)) {
-            throw new IllegalStateException("Unsupported: " + source.getClass());
-        }
+        InputStream source = editor.readStream();
         StringRecord result;
         if (source != null) {
             try {
-                StreamSource stream = (StreamSource) source;
-                String content = read(stream);
+                String content = read(source);
                 result = new StringRecord(content, getLastModified(), object.getPid());
             } catch (IOException ex) {
                 throw new DigitalObjectException(object.getPid(), ex);
@@ -120,59 +97,15 @@ public final class StringEditor {
     }
 
     public void write(String data, long timestamp, String message) throws DigitalObjectException {
-        EditorResult result = editor.createResult();
-        if (!(result instanceof StreamResult)) {
-            throw new DigitalObjectException(object.getPid(), "Unsupported: " + result.getClass());
-        }
         try {
-            write((StreamResult) result, data);
-            editor.write(result, timestamp, message);
+            editor.write(data.getBytes("UTF-8"), timestamp, message);
         } catch (IOException ex) {
-            throw new DigitalObjectException(object.getPid());
+            throw new DigitalObjectException(object.getPid(), ex);
         }
     }
 
     public long getLastModified() throws DigitalObjectException {
         return editor.getLastModified();
-    }
-
-    private void write(StreamResult result, String data) throws IOException, DigitalObjectException {
-        if (!write(result.getOutputStream(), data)) {
-            if (!write(result.getWriter(), data)) {
-                throw new DigitalObjectException(object.getPid(), "Data not written: " + this.object.getPid());
-            }
-        }
-    }
-
-    private static boolean write(OutputStream stream, String data) throws IOException {
-        if (stream != null) {
-            return write(new OutputStreamWriter(stream, "UTF-8"), data);
-        }
-        return false;
-    }
-
-    private static boolean write(Writer writer, String data) throws IOException {
-        if (writer != null) {
-            try {
-                writer.write(data);
-                return true;
-            } finally {
-                writer.close();
-            }
-        }
-        return false;
-    }
-
-    static String read(StreamSource source) throws IOException {
-        String result;
-        result = read(source.getInputStream());
-        if (result == null) {
-            result = read(source.getReader());
-        }
-        if (result == null) {
-            result = read(source.getSystemId());
-        }
-        return result;
     }
 
     private static String read(Reader reader) throws IOException {
@@ -181,7 +114,7 @@ public final class StringEditor {
         }
         StringBuilder sb = new StringBuilder(2048);
         try {
-            for (int c = 0; (c = reader.read()) != -1;) {
+            for (int c; (c = reader.read()) != -1;) {
                 sb.append((char) c);
             }
         } finally {
@@ -190,20 +123,11 @@ public final class StringEditor {
         return sb.toString();
     }
 
-    private static String read(InputStream stream) throws IOException {
+    static String read(InputStream stream) throws IOException {
         if (stream == null) {
             return null;
         }
         return read(new InputStreamReader(stream, "UTF-8"));
-    }
-
-    private static String read(String systemId) throws IOException {
-        if (systemId == null) {
-            return null;
-        }
-        URL url = new URL(systemId);
-        InputStream is = url.openStream();
-        return read(new BufferedInputStream(is));
     }
 
     @XmlRootElement(name = DigitalObjectResourceApi.STRINGRECORD_ELEMENT)

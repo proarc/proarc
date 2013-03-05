@@ -19,17 +19,21 @@ package cz.incad.pas.editor.server.fedora;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
-import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXB;
@@ -37,8 +41,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -150,7 +152,7 @@ public class RemoteStorageTest {
         String dsId = "testId";
         LocalObject local = new LocalStorage().create();
         local.setLabel(test.getMethodName());
-        LocalXmlStreamEditor leditor = new LocalXmlStreamEditor(local, dsId, "testns", "label");
+        XmlStreamEditor leditor = local.getEditor(FoxmlUtils.inlineProfile(dsId, "testns", "label"));
         EditorResult editorResult = leditor.createResult();
         TestXml content = new TestXml("test content");
         JAXB.marshal(content, editorResult);
@@ -177,7 +179,7 @@ public class RemoteStorageTest {
         // no ingest!
         RemoteObject remote = fedora.find(local.getPid());
         RemoteXmlStreamEditor editor = new RemoteXmlStreamEditor(remote,
-                RemoteXmlStreamEditor.managedProfile("managedDatastream",
+                FoxmlUtils.managedProfile("managedDatastream",
                         MediaType.TEXT_PLAIN_TYPE, "managedDatastreamLabel"));
         editor.read();
     }
@@ -205,35 +207,33 @@ public class RemoteStorageTest {
         fedora.ingest(local, "junit");
         RemoteObject remote = fedora.find(local.getPid());
         RemoteXmlStreamEditor editor = new RemoteXmlStreamEditor(remote,
-                RemoteXmlStreamEditor.managedProfile("managedDatastream",
+                FoxmlUtils.managedProfile("managedDatastream",
                         MediaType.TEXT_PLAIN_TYPE, "managedDatastreamLabel"));
-        Source src = editor.read();
+        InputStream src = editor.readStream();
         assertNull(src);
         long lastModified = editor.getLastModified();
         assertEquals(-1, lastModified);
         assertEquals(MediaType.TEXT_PLAIN, editor.getMimetype());
-        EditorResult edResult = editor.createResult();
-        ((StreamResult) edResult).getWriter().write("plain text");
-        editor.write(edResult, lastModified, null);
+        editor.write("plain text".getBytes("UTF-8"), lastModified, null);
         remote.flush();
         
         // first test current editor
-        src = editor.read();
+        src = editor.readStream();
         assertNotNull(src);
         assertEquals(MediaType.TEXT_PLAIN, editor.getMimetype());
         assertTrue(lastModified < editor.getLastModified());
-        String content = StringEditor.read((StreamSource) src);
+        String content = StringEditor.read(src);
         assertEquals("plain text", content);
 
         // test new editor
         editor = new RemoteXmlStreamEditor(remote,
-            RemoteXmlStreamEditor.managedProfile("managedDatastream",
+            FoxmlUtils.managedProfile("managedDatastream",
                     MediaType.TEXT_PLAIN_TYPE, "managedDatastreamLabel"));
-        src = editor.read();
+        src = editor.readStream();
         assertNotNull(src);
         assertEquals(MediaType.TEXT_PLAIN, editor.getMimetype());
         assertTrue(lastModified < editor.getLastModified());
-        content = StringEditor.read((StreamSource) src);
+        content = StringEditor.read(src);
         assertEquals("plain text", content);
 }
 
@@ -242,7 +242,7 @@ public class RemoteStorageTest {
         String dsId = "testId";
         LocalObject local = new LocalStorage().create();
         local.setLabel(test.getMethodName());
-        LocalXmlStreamEditor leditor = new LocalXmlStreamEditor(local, dsId, "testns", "label");
+        XmlStreamEditor leditor = local.getEditor(FoxmlUtils.inlineProfile(dsId, "testns", "label"));
         EditorResult editorResult = leditor.createResult();
         TestXml content = new TestXml("test content");
         JAXB.marshal(content, editorResult);
@@ -288,7 +288,7 @@ public class RemoteStorageTest {
         String dsId = "testId";
         LocalObject local = new LocalStorage().create();
         local.setLabel(test.getMethodName());
-        LocalXmlStreamEditor leditor = new LocalXmlStreamEditor(local, dsId, "testns", "label");
+        XmlStreamEditor leditor = local.getEditor(FoxmlUtils.inlineProfile(dsId, "testns", "label"));
         EditorResult editorResult = leditor.createResult();
         TestXml content = new TestXml("test content");
         JAXB.marshal(content, editorResult);
@@ -322,6 +322,90 @@ public class RemoteStorageTest {
         editor.write(editorResult, lastModified, null);
 
         remote.flush();
+    }
+
+    @Test
+    public void testDatastreamEditorWriteStream_Managed() throws Exception {
+        LocalStorage storage = new LocalStorage();
+        LocalObject local = storage.create();
+        local.setLabel(test.getMethodName());
+        String dsID = "dsID";
+        MediaType mime = MediaType.TEXT_PLAIN_TYPE;
+        String label = "label";
+        DatastreamProfile dsProfile = FoxmlUtils.managedProfile(dsID, mime, label);
+
+        RemoteStorage fedora = new RemoteStorage(client);
+        fedora.ingest(local, "junit");
+
+        byte[] data = "data".getBytes("UTF-8");
+        RemoteObject remote = fedora.find(local.getPid());
+        XmlStreamEditor reditor = remote.getEditor(dsProfile);
+        assertNotNull(reditor);
+        reditor.write(new ByteArrayInputStream(data), reditor.getLastModified(), null);
+
+        // test read cached
+        InputStream is = reditor.readStream();
+        assertNotNull(is);
+        ByteArrayOutputStream resultData = new ByteArrayOutputStream();
+        FoxmlUtils.copy(is, resultData);
+        is.close();
+        assertArrayEquals(data, resultData.toByteArray());
+        remote.flush();
+
+        // test remote read
+        remote = fedora.find(local.getPid());
+        reditor = remote.getEditor(dsProfile);
+        is = reditor.readStream();
+        assertNotNull(is);
+        resultData = new ByteArrayOutputStream();
+        FoxmlUtils.copy(is, resultData);
+        is.close();
+        assertArrayEquals(data, resultData.toByteArray());
+    }
+
+    @Test
+    public void testDatastreamEditorWriteReference_Managed() throws Exception {
+        LocalStorage storage = new LocalStorage();
+        LocalObject local = storage.create();
+        local.setLabel(test.getMethodName());
+        String dsID = "dsID";
+        MediaType mime = MediaType.TEXT_PLAIN_TYPE;
+        String label = "label";
+        DatastreamProfile dsProfile = FoxmlUtils.managedProfile(dsID, mime, label);
+
+        RemoteStorage fedora = new RemoteStorage(client);
+        fedora.ingest(local, "junit");
+
+        // prepare referenced contents
+        byte[] data = "data".getBytes("UTF-8");
+        File file = tmp.newFile();
+        FileOutputStream fos = new FileOutputStream(file);
+        fos.write(data);
+        fos.close();
+
+        RemoteObject remote = fedora.find(local.getPid());
+        XmlStreamEditor reditor = remote.getEditor(dsProfile);
+        assertNotNull(reditor);
+        reditor.write(file.toURI(), reditor.getLastModified(), null);
+
+        // test read cached
+        InputStream is = reditor.readStream();
+        assertNotNull(is);
+        ByteArrayOutputStream resultData = new ByteArrayOutputStream();
+        FoxmlUtils.copy(is, resultData);
+        is.close();
+        assertArrayEquals(data, resultData.toByteArray());
+        remote.flush();
+
+        // test remote read
+        remote = fedora.find(local.getPid());
+        reditor = remote.getEditor(dsProfile);
+        is = reditor.readStream();
+        assertNotNull(is);
+        resultData = new ByteArrayOutputStream();
+        FoxmlUtils.copy(is, resultData);
+        is.close();
+        assertArrayEquals(data, resultData.toByteArray());
     }
 
     @XmlRootElement(namespace="testns")

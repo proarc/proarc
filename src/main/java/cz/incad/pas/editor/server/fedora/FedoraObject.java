@@ -16,6 +16,8 @@
  */
 package cz.incad.pas.editor.server.fedora;
 
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+
 /**
  *
  * @author Jan Pokorsky
@@ -24,7 +26,7 @@ public interface FedoraObject {
 
     String getPid();
 
-//    <T extends XmlStreamEditor> T getEditor(Class<T> type);
+    XmlStreamEditor getEditor(DatastreamProfile datastream);
     
     void register(XmlStreamEditor editor);
     

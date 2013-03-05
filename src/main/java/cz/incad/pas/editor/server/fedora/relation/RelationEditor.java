@@ -18,10 +18,8 @@ package cz.incad.pas.editor.server.fedora.relation;
 
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
-import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
-import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
+import cz.incad.pas.editor.server.fedora.FoxmlUtils;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
-import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteXmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import java.util.ArrayList;
@@ -50,7 +48,8 @@ public final class RelationEditor {
 
     public RelationEditor(FedoraObject fobject) {
         this.fobject = fobject;
-        this.editor = createEditor(fobject);
+        this.editor = fobject.getEditor(
+                FoxmlUtils.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL));
     }
 
     public long getLastModified() throws DigitalObjectException {
@@ -188,17 +187,4 @@ public final class RelationEditor {
         return relsExt;
     }
 
-    private static XmlStreamEditor createEditor(FedoraObject object) {
-        XmlStreamEditor editor;
-        if (object instanceof LocalObject) {
-            editor = new LocalXmlStreamEditor((LocalObject) object, DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL);
-        } else if (object instanceof RemoteObject) {
-            editor = new RemoteXmlStreamEditor(
-                    (RemoteObject) object,
-                    RemoteXmlStreamEditor.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL));
-        } else {
-            throw new IllegalArgumentException("Unsupported fedora object: " + object.getClass());
-        }
-        return editor;
-    }
 }

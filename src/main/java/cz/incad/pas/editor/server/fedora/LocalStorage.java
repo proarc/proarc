@@ -22,18 +22,19 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.StateType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.incad.pas.editor.server.fedora.FoxmlUtils.ControlGroup;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.net.URI;
-import java.util.EnumSet;
-import java.util.Set;
-import java.util.logging.Level;
+import java.net.URISyntaxException;
 import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
 import javax.xml.transform.Source;
@@ -130,92 +131,40 @@ public final class LocalStorage {
             return foxml;
         }
 
+        @Override
+        public XmlStreamEditor getEditor(DatastreamProfile datastream) {
+            return new LocalXmlStreamEditor(this, datastream);
+        }
+
         public DigitalObject getDigitalObject() {
             return dobj;
         }
 
         @Override
         public String asText() {
-            InputStreamReader reader = null;
-            try {
-                StringBuilder sb = new StringBuilder((int) foxml.length());
-                reader = new InputStreamReader(
-                        new FileInputStream(foxml), "UTF-8");
-                char[] buffer = new char[8192];
-                int length;
-                while ((length = reader.read(buffer)) > 0) {
-                    sb.append(buffer, 0, length);
-                }
-                return sb.toString();
-            } catch (Exception ex) {
-                throw new IllegalStateException(foxml.toString(), ex);
-            } finally {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException ex) {
-                        LOG.log(Level.SEVERE, foxml.toString(), ex);
-                    }
-                }
-            }
+            return FoxmlUtils.toXml(dobj, true);
         }
 
     }
 
     public static final class LocalXmlStreamEditor implements XmlStreamEditor {
 
-        private static final Set<ControlGroup> SUPPORTED_CONTROL_GROUPS =
-                EnumSet.of(ControlGroup.INLINE, ControlGroup.MANAGED);
-
         private final LocalObject object;
-        private final String dsId;
-        private final String formatUri;
-        private final String defaultLabel;
+        private final DatastreamProfile defaultProfile;
         private final boolean isXml;
-        private final MediaType defaultMimetype;
         private String realMimetype;
-        private final ControlGroup control;
-        private boolean storeExternally;
 
-        /** Use for binary content */
-        public LocalXmlStreamEditor(LocalObject object, String dsId,
-                MediaType mimetype, String label, ControlGroup control) {
-
-            this(object, dsId, null, label, mimetype, control, false);
-        }
-        /** Use for binary content referenced externally for ingest purposes */
-        public LocalXmlStreamEditor(LocalObject object, String dsId,
-                MediaType mimetype, String label, ControlGroup control, boolean storeExternally) {
-
-            this(object, dsId, null, label, mimetype, control, storeExternally);
-        }
-        
-        /** Use for XML content */
-        public LocalXmlStreamEditor(LocalObject object, String dsId, String formatUri, String label) {
-            this(object, dsId, formatUri, label, MediaType.TEXT_XML_TYPE, ControlGroup.INLINE, false);
-        }
-
-        private LocalXmlStreamEditor(
-                LocalObject object, String dsId, String formatUri, String label,
-                MediaType mimetype, ControlGroup control, boolean storeExternally) {
-
+        private LocalXmlStreamEditor(LocalObject object, DatastreamProfile defaultProfile) {
             this.object = object;
-            this.dsId = dsId;
-            this.formatUri = formatUri;
-            this.defaultLabel = label;
-            this.isXml = mimetype == MediaType.TEXT_XML_TYPE;
-            this.defaultMimetype = mimetype;
-            this.control = control;
-            if (!SUPPORTED_CONTROL_GROUPS.contains(control)) {
-                throw new IllegalArgumentException("Unsupported control group: " + control);
-            }
-            this.storeExternally = storeExternally;
+            this.defaultProfile = defaultProfile;
+            String mime = defaultProfile.getDsMIME();
+            this.isXml = MediaType.TEXT_XML.equals(mime) || MediaType.APPLICATION_XML.equals(mime);
         }
 
         @Override
         public Source read() {
             // find version
-            DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
+            DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), defaultProfile.getDsID());
             if (version != null) {
                 realMimetype = version.getMIMETYPE();
             }
@@ -226,12 +175,10 @@ public final class LocalStorage {
             if (version == null) {
                 return null;
             }
-            if (isXml) {
-                XmlContentType xmlContent = version.getXmlContent();
-                if (xmlContent != null) {
-                    Element elm = xmlContent.getAny().get(0);
-                    return new DOMSource(elm);
-                }
+            XmlContentType xmlContent = version.getXmlContent();
+            if (xmlContent != null) {
+                Element elm = xmlContent.getAny().get(0);
+                return new DOMSource(elm);
             } else {
                 byte[] binaryContent = version.getBinaryContent();
                 ContentLocationType contentLocation = version.getContentLocation();
@@ -249,8 +196,36 @@ public final class LocalStorage {
         }
 
         @Override
+        public InputStream readStream() throws DigitalObjectException {
+            DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), defaultProfile.getDsID());
+            if (version != null) {
+                byte[] binaryContent = version.getBinaryContent();
+                ContentLocationType contentLocation = version.getContentLocation();
+                if (binaryContent != null) {
+                    return new ByteArrayInputStream(binaryContent);
+                } else if (contentLocation != null) {
+                    String ref = contentLocation.getREF();
+                    if (ref != null) {
+                        try {
+                            URI refUri = new URI(ref);
+                            return new FileInputStream(new File(refUri));
+                        } catch (URISyntaxException ex) {
+                            throw new DigitalObjectException(object.getPid(), ex);
+                        } catch (FileNotFoundException ex) {
+                            throw new DigitalObjectException(object.getPid(), ex);
+                        }
+                    }
+                } else if (version.getXmlContent() != null) {
+                    throw new DigitalObjectException(object.getPid(),
+                            "XML inlined! Use read() method.");
+                }
+            }
+            return null;
+        }
+
+        @Override
         public long getLastModified() {
-            DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
+            DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), defaultProfile.getDsID());
             long lastModified = getLastModified(version);
             return lastModified;
         }
@@ -266,29 +241,21 @@ public final class LocalStorage {
         @Override
         public String getMimetype() {
             if (realMimetype == null) {
-                DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
-                realMimetype = version.getMIMETYPE();
+                DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), defaultProfile.getDsID());
+                realMimetype = version != null ? version.getMIMETYPE() : null;
             }
             if (realMimetype == null) {
-                realMimetype = defaultMimetype.toString();
+                realMimetype = defaultProfile.getDsMIME();
             }
             return realMimetype;
         }
 
         @Override
         public void write(EditorResult data, long timestamp, String message) throws DigitalObjectException {
-            DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
-            if (version == null) {
-                version = FoxmlUtils.createDataStreamVersion(
-                        object.getDigitalObject(), dsId, control, false, StateType.A);
-                version.setMIMETYPE(getMimetype());
-                version.setLABEL(defaultLabel);
-            } else if (timestamp != getLastModified(version)) {
-                throw new DigitalObjectConcurrentModificationException(object.getPid(), dsId);
-            }
-
+            DatastreamVersionType version = getDatastreamVersionType(timestamp);
             if (data instanceof EditorBinaryResult) {
-                writeBinaryData(version, (EditorBinaryResult) data);
+                version.setBinaryContent(null);
+                version.setXmlContent(null);
             } else if (data instanceof EditorDomResult) {
                 writeXmlContent(version, (EditorDomResult) data);
             } else {
@@ -298,10 +265,44 @@ public final class LocalStorage {
             version.setCREATED(FoxmlUtils.createXmlDate());
             object.register(this);
         }
+
+        @Override
+        public void write(byte[] data, long timestamp, String message) throws DigitalObjectException {
+            writeBytesOrStream(data, null, timestamp);
+        }
+
+        @Override
+        public void write(InputStream data, long timestamp, String message) throws DigitalObjectException {
+            try {
+                writeBytesOrStream(null, data, timestamp);
+            } finally {
+                FoxmlUtils.closeQuietly(data, object.getPid());
+            }
+        }
+
+        @Override
+        public void write(URI data, long timestamp, String message) throws DigitalObjectException {
+            ControlGroup control = ControlGroup.fromExternal(defaultProfile.getDsControlGroup());
+            if (control != ControlGroup.MANAGED) {
+                throw new UnsupportedOperationException("Not supported yet: " + control);
+            }
+            DatastreamVersionType version = getDatastreamVersionType(timestamp);
+            ContentLocationType contentLocation = new ContentLocationType();
+            contentLocation.setTYPE("URL");
+            contentLocation.setREF(data.toASCIIString());
+            version.setContentLocation(contentLocation);
+            version.setBinaryContent(null);
+            version.setCREATED(FoxmlUtils.createXmlDate());
+            object.register(this);
+        }
         
         @Override
         public EditorResult createResult() {
-            return isXml ? new EditorDomResult() : new EditorBinaryResult();
+            if (!isXml) {
+                throw new UnsupportedOperationException("requires */xml mime type");
+            }
+            String reference = getReference();
+            return reference == null ? new EditorDomResult() : new EditorBinaryResult(reference);
         }
 
         @Override
@@ -309,20 +310,29 @@ public final class LocalStorage {
             // no op
         }
 
-        private void writeBinaryData(DatastreamVersionType version, EditorBinaryResult data) throws DigitalObjectException {
-            storeExternally |= version.getContentLocation() != null;
-            if (storeExternally) {
-                String systemId = data.getSystemId();
-                if (systemId == null) {
-                    throw new DigitalObjectException(object.getPid(), "Missing systemId of external resource. " + toString());
-                }
-                ContentLocationType contentLocation = new ContentLocationType();
-                contentLocation.setREF(systemId);
-                contentLocation.setTYPE("URL");
-                version.setContentLocation(contentLocation);
-            } else {
-                version.setBinaryContent(data.asBytes());
+        private String getReference() {
+            String dsId = defaultProfile.getDsID();
+            DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
+            if (version != null && version.getContentLocation() != null) {
+                return version.getContentLocation().getREF();
             }
+            return null;
+        }
+
+        private DatastreamVersionType getDatastreamVersionType(long timestamp) throws DigitalObjectConcurrentModificationException {
+            String dsId = defaultProfile.getDsID();
+            DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
+            if (version == null) {
+                ControlGroup cgroup = ControlGroup.fromExternal(defaultProfile.getDsControlGroup());
+                version = FoxmlUtils.createDataStreamVersion(
+                        object.getDigitalObject(), dsId, cgroup, false, StateType.A);
+                version.setMIMETYPE(defaultProfile.getDsMIME());
+                version.setLABEL(defaultProfile.getDsLabel());
+                version.setFORMATURI(defaultProfile.getDsFormatURI());
+            } else if (timestamp != getLastModified(version)) {
+                throw new DigitalObjectConcurrentModificationException(object.getPid(), dsId);
+            }
+            return version;
         }
 
         private void writeXmlContent(DatastreamVersionType version, EditorDomResult data) {
@@ -331,13 +341,69 @@ public final class LocalStorage {
             Document doc = root.getOwnerDocument() == null ? (Document) root : root.getOwnerDocument();
             xmlContent.getAny().add(doc.getDocumentElement());
             version.setXmlContent(xmlContent);
-            version.setFORMATURI(formatUri);
+        }
+
+        private void writeBytesOrStream(byte[] bytes, InputStream stream, long timestamp) throws DigitalObjectException {
+            ControlGroup control = ControlGroup.fromExternal(defaultProfile.getDsControlGroup());
+            if (control != ControlGroup.MANAGED) {
+                throw new UnsupportedOperationException("Not supported yet: " + control);
+            }
+            DatastreamVersionType version = getDatastreamVersionType(timestamp);
+            String reference = getReference();
+            boolean storeExternally = reference != null;
+            if (storeExternally) {
+                writeBytesOrStreamExternally(version, bytes, stream, reference);
+            } else {
+                if (bytes != null) {
+                    version.setBinaryContent(bytes);
+                } else {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream(2048);
+                    try {
+                        FoxmlUtils.copy(stream, baos);
+                        version.setBinaryContent(baos.toByteArray());
+                    } catch (IOException ex) {
+                        throw new DigitalObjectException(object.getPid(), ex);
+                    }
+                }
+                version.setContentLocation(null);
+            }
+            version.setCREATED(FoxmlUtils.createXmlDate());
+            object.register(this);
+        }
+
+        private void writeBytesOrStreamExternally(DatastreamVersionType version,
+                byte[] bytes, InputStream stream, String reference
+                ) throws DigitalObjectException {
+
+            FileOutputStream fos = null;
+            try {
+                URI ref = new URI(reference);
+                File file = new File(ref);
+                fos = new FileOutputStream(file);
+                if (bytes != null) {
+                    fos.write(bytes);
+                } else {
+                    FoxmlUtils.copy(stream, fos);
+                }
+                version.setBinaryContent(null);
+            } catch (URISyntaxException ex) {
+                throw new DigitalObjectException(object.getPid(), ex);
+            } catch (IOException ex) {
+                throw new DigitalObjectException(object.getPid(), ex);
+            } finally {
+                FoxmlUtils.closeQuietly(fos, object.getPid());
+            }
         }
 
         @Override
         public String toString() {
             return String.format("%s{pid=%s, dsId=%s, mimetype=%s, controlGroup=%s,\nfoxml=%s}",
-                    getClass().getSimpleName(), object.getPid(), dsId, getMimetype(), control, object.getFoxml());
+                    getClass().getSimpleName(),
+                    object.getPid(),
+                    defaultProfile.getDsID(),
+                    getMimetype(),
+                    defaultProfile.getDsControlGroup(),
+                    object.getFoxml());
         }
     }
 
@@ -346,12 +412,8 @@ public final class LocalStorage {
 
     private static final class EditorBinaryResult extends StreamResult implements EditorResult {
 
-        public EditorBinaryResult() {
-            super(new ByteArrayOutputStream());
-        }
-
-        public byte[] asBytes() {
-            return ((ByteArrayOutputStream) getOutputStream()).toByteArray();
+        public EditorBinaryResult(String reference) {
+            super(reference);
         }
 
     }

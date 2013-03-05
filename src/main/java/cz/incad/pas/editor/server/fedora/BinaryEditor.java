@@ -16,18 +16,12 @@
  */
 package cz.incad.pas.editor.server.fedora;
 
-import cz.incad.pas.editor.server.fedora.FoxmlUtils.ControlGroup;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
-import cz.incad.pas.editor.server.fedora.LocalStorage.LocalXmlStreamEditor;
-import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import javax.ws.rs.core.MediaType;
 import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 /**
@@ -54,7 +48,8 @@ public final class BinaryEditor {
     private final FedoraObject object;
 
     public static BinaryEditor preview(FedoraObject object) {
-        return new BinaryEditor(object, PREVIEW_ID, IMAGE_JPEG, PREVIEW_LABEL, ControlGroup.MANAGED);
+        DatastreamProfile dp = FoxmlUtils.managedProfile(PREVIEW_ID, IMAGE_JPEG, PREVIEW_LABEL);
+        return new BinaryEditor(object, dp);
     }
 
     public static BinaryEditor dissemination(FedoraObject object, String dsId) {
@@ -62,41 +57,26 @@ public final class BinaryEditor {
     }
 
     public static BinaryEditor dissemination(FedoraObject object, String dsId, MediaType mime) {
+        DatastreamProfile dp;
         if (THUMB_ID.equals(dsId)) {
-            return new BinaryEditor(object, dsId, mime, THUMB_LABEL, ControlGroup.MANAGED);
+            dp = FoxmlUtils.managedProfile(dsId, mime, THUMB_LABEL);
         } else if (PREVIEW_ID.equals(dsId)) {
-            return new BinaryEditor(object, dsId, mime, PREVIEW_LABEL, ControlGroup.MANAGED);
+            dp = FoxmlUtils.managedProfile(dsId, mime, PREVIEW_LABEL);
         } else if (FULL_ID.equals(dsId)) {
-            return new BinaryEditor(object, dsId, mime, FULL_LABEL, ControlGroup.MANAGED);
+            dp = FoxmlUtils.managedProfile(dsId, mime, FULL_LABEL);
         } else if (RAW_ID.equals(dsId)) {
-            return new BinaryEditor(object, dsId, mime, RAW_LABEL, ControlGroup.MANAGED);
-        }
-        return null;
-    }
-
-    public static BinaryEditor image(FedoraObject object, String dsId, String label) {
-        return new BinaryEditor(object, dsId, IMAGE_JPEG, label, ControlGroup.MANAGED);
-    }
-    
-    private static XmlStreamEditor createEditor(FedoraObject object, String dsId,
-                MediaType mimetype, String label, ControlGroup control) {
-
-        XmlStreamEditor editor;
-        if (object instanceof LocalObject) {
-            editor = new LocalXmlStreamEditor((LocalObject) object, dsId, mimetype, label, control, true);
+            dp = FoxmlUtils.managedProfile(dsId, mime, RAW_LABEL);
         } else {
+            return null;
+        }
+        return new BinaryEditor(object, dp);
+    }
+
+    public BinaryEditor(FedoraObject object, DatastreamProfile profile) {
+        if (!(object instanceof LocalObject)) {
             throw new IllegalArgumentException("Unsupported fedora object: " + object.getClass());
         }
-        return editor;
-    }
-
-    public BinaryEditor(FedoraObject object, String dsId,
-                MediaType mimetype, String label, ControlGroup control) {
-        this(createEditor(object, dsId, mimetype, label, control), object);
-    }
-
-    private BinaryEditor(XmlStreamEditor editor, FedoraObject object) {
-        this.editor = editor;
+        this.editor = object.getEditor(profile);
         this.object = object;
     }
 
@@ -126,23 +106,7 @@ public final class BinaryEditor {
     }
 
     public void write(File data, long timestamp, String message) throws DigitalObjectException {
-        EditorResult result = editor.createResult();
-        if (!(result instanceof StreamResult)) {
-            throw new DigitalObjectException(object.getPid(), "Unsupported: " + result.getClass());
-        }
-        try {
-            write((StreamResult) result, data);
-            editor.write(result, timestamp, message);
-        } catch (IOException ex) {
-            throw new DigitalObjectException(object.getPid(), ex);
-        }
-    }
-    private void write(StreamResult result, File data) throws IOException {
-        result.setSystemId(data);
-    }
-
-    private static boolean write(OutputStream stream, InputStream data) throws IOException {
-        throw new UnsupportedOperationException();
+        editor.write(data.toURI(), timestamp, message);
     }
 
 }
