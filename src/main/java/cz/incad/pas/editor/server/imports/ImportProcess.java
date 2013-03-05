@@ -330,6 +330,8 @@ public final class ImportProcess implements Runnable {
         private int consumedFileCounter;
         private final String username;
         private String model;
+        private String ocrFilePattern = ".+\\.ocr\\.txt";
+        private String ocrCharset = "UTF-8";
 
         ImportOptions(File importFolder, String model, String device,
                 boolean generateIndices, String username
@@ -371,6 +373,14 @@ public final class ImportProcess implements Runnable {
 
         public String getUsername() {
             return username;
+        }
+
+        public String getOcrFilePattern() {
+            return ocrFilePattern;
+        }
+
+        public String getOcrCharset() {
+            return ocrCharset;
         }
 
         public String asString() {

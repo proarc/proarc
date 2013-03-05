@@ -24,9 +24,11 @@ import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
+import cz.incad.pas.editor.server.fedora.FedoraObject;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.StringEditor;
+import cz.incad.pas.editor.server.fedora.XmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.imports.FileSet.FileEntry;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
@@ -41,6 +43,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.imageio.stream.FileImageOutputStream;
 import javax.ws.rs.core.MediaType;
 
@@ -118,8 +121,7 @@ public final class TiffImporter {
         createImages(tempBatchFolder, f, originalFilename, localObj);
 
         // OCR
-        StringEditor ocrEditor = StringEditor.ocr(localObj);
-        ocrEditor.write("", 0, null);
+        importOcr(fileSet, localObj, ctx);
         
         // XXX generate ATM
         // writes FOXML
@@ -136,6 +138,31 @@ public final class TiffImporter {
         for (FileEntry entry : fileSet.getFiles()) {
             String mimetype = entry.getMimetype();
             if (ImageMimeType.TIFF.getMimeType().equals(mimetype)) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    private void importOcr(FileSet fileSet, FedoraObject fo, ImportOptions options)
+            throws IOException, DigitalObjectException {
+
+        // XXX find filename.ocr.txt or generate OCR or nothing
+        File tempBatchFolder = options.getTargetFolder();
+        String originalFilename = fileSet.getName();
+        FileEntry ocrEntry = findOcr(fileSet, options.getOcrFilePattern());
+        if (ocrEntry != null) {
+            File ocrFile = new File(tempBatchFolder, originalFilename + '.' + StringEditor.OCR_ID + ".txt");
+            StringEditor.copy(ocrEntry.getFile(), options.getOcrCharset(), ocrFile, "UTF-8");
+            XmlStreamEditor ocrEditor = fo.getEditor(StringEditor.ocrProfile());
+            ocrEditor.write(ocrFile.toURI(), 0, null);
+        }
+    }
+
+    private FileEntry findOcr(FileSet fileSet, String filePattern) {
+        Pattern ocrPattern = Pattern.compile(filePattern);
+        for (FileEntry entry : fileSet.getFiles()) {
+            if (ocrPattern.matcher(entry.getFile().getName()).matches()) {
                 return entry;
             }
         }

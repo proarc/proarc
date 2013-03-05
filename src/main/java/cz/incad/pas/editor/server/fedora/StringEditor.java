@@ -18,9 +18,15 @@ package cz.incad.pas.editor.server.fedora;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -101,6 +107,25 @@ public final class StringEditor {
             editor.write(data.getBytes("UTF-8"), timestamp, message);
         } catch (IOException ex) {
             throw new DigitalObjectException(object.getPid(), ex);
+        }
+    }
+
+    /**
+     * Copies file and normalizes line endings.
+     */
+    public static void copy(File source, String sourceCharset, File target, String targetCharset) throws IOException {
+        BufferedReader reader = null;
+        BufferedWriter writer = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(source), sourceCharset));
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(target), targetCharset));
+            for (String line; (line = reader.readLine()) != null; ) {
+                writer.write(line);
+                writer.write('\n');
+            }
+        } finally {
+            FoxmlUtils.closeQuietly(reader, source.toString());
+            writer.close();
         }
     }
 

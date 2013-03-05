@@ -57,6 +57,7 @@ public class TiffImporterTest {
     public CustomTemporaryFolder temp = new CustomTemporaryFolder();
     
     private File tiff1;
+    private File ocr1;
 
     public TiffImporterTest() {
     }
@@ -89,6 +90,11 @@ public class TiffImporterTest {
             is.close();
         }
         assertTrue(tiff1.length() > 0);
+
+        ocr1 = new File(root, "img1.ocr.txt");
+        FileOutputStream fosOcr = new FileOutputStream(ocr1);
+        fosOcr.write("test".getBytes());
+        fosOcr.close();
     }
 
     @After
@@ -106,7 +112,7 @@ public class TiffImporterTest {
 
         ImportOptions ctx = new ImportOptions(tiff1.getParentFile(), "model:page", "scanner:scanner1", true, "junit");
         ctx.setTargetFolder(targetFolder);
-        FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1)).get(0);
+        FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1, ocr1)).get(0);
         TiffImporter instance = new TiffImporter();
         ImportItem result = instance.consume(fileSet, ctx);
         String pid = result.getPid();
