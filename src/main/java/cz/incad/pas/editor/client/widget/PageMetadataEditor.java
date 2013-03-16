@@ -406,16 +406,25 @@ public final class PageMetadataEditor {
 
     public String getPrefix() {
         String prefixValue = prefix.getValueAsString();
-        return getNormalizedString(prefixValue);
+        return getNormalizedPrefix(prefixValue);
     }
 
     public String getSuffix() {
         String suffixValue = suffix.getValueAsString();
-        return getNormalizedString(suffixValue);
+        return getNormalizedPrefix(suffixValue);
     }
 
     public String getPageType() {
         return pageType.getValueAsString();
+    }
+
+    private static String getNormalizedPrefix(String s) {
+        if (s != null) {
+            if (s.trim().isEmpty()) {
+                s = null;
+            }
+        }
+        return s;
     }
 
     private static String getNormalizedString(String s) {
