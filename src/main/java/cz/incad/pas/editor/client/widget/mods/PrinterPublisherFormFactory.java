@@ -16,9 +16,7 @@
  */
 package cz.incad.pas.editor.client.widget.mods;
 
-import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.fields.DateItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
@@ -53,10 +51,9 @@ final class PrinterPublisherFormFactory implements CustomFormFactory {
                 ? i18n.PeriodicalForm_PublisherName_Hint()
                 : i18n.PeriodicalForm_PrinterName_Hint());
         name.setValidators(new StringTrimValidator());
-        DateItem date = new DateItem(ModsCustomDataSource.FIELD_PRINTER_PUBLISHER_DATE,
+        TextItem date = new TextItem(ModsCustomDataSource.FIELD_PRINTER_PUBLISHER_DATE,
                 i18n.PeriodicalForm_PrinterPublisherDate_Title());
-        date.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATE);
-        date.setUseTextField(true);
+        date.setValidators(new StringTrimValidator());
         form.setFields(name, place, date);
         return form;
     }
