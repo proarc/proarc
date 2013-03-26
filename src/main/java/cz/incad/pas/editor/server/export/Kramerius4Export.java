@@ -22,6 +22,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
@@ -143,6 +144,7 @@ public final class Kramerius4Export {
             }
             excludeVersions(datastream);
             renameDatastream(datastream);
+            processDublinCore(datastream);
             processRelsExt(dobj.getPID(), datastream, editor);
         }
     }
@@ -168,6 +170,17 @@ public final class Kramerius4Export {
                 version.setID(newVersionId);
             }
         }
+    }
+
+    private void processDublinCore(DatastreamType datastream) {
+        if (!DcStreamEditor.DATASTREAM_ID.equals(datastream.getID())) {
+            return ;
+        }
+        DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
+        XmlContentType xmlContent = version.getXmlContent();
+        Element get = xmlContent.getAny().get(0);
+        // remove xsi:schemaLocation attribute to make FOXML valid for Fedora ingest
+        get.removeAttributeNS(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "schemaLocation");
     }
 
     private void processRelsExt(String pid, DatastreamType datastream, RelationEditor editor) {
