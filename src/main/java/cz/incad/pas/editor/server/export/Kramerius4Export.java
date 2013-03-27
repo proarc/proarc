@@ -48,6 +48,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Exports digital object and transforms its data streams to Kramerius4 format.
@@ -191,7 +193,31 @@ public final class Kramerius4Export {
         }
         DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
         XmlContentType xmlContent = version.getXmlContent();
+        Element mods = xmlContent.getAny().get(0);
+        removeNils(mods);
         wrapModsInCollection(xmlContent);
+    }
+
+    /**
+     * Removes all subelements with xsi:nil attribute as they are worthless.
+     *
+     * JAXB optimizes namespace declarations and moves them to common parent elements
+     * but Fedora ingest ignores it. Then some ingested datastreams may be broken
+     * as they miss optimized namespace declarations (xsi in this case).
+     */
+    private static void removeNils(Element elm) {
+        NodeList children = elm.getChildNodes();
+        for (int i = children.getLength() - 1; i >= 0; i--) {
+            Node item = children.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element itemElm = (Element) item;
+                if (itemElm.hasAttributeNS(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "nil")) {
+                    itemElm.getParentNode().removeChild(item);
+                } else {
+                    removeNils(itemElm);
+                }
+            }
+        }
     }
 
     /**
