@@ -103,7 +103,8 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
-        Kramerius4Export export = new Kramerius4Export(RemoteStorage.getInstance(appConfig));
+        Kramerius4Export export = new Kramerius4Export(
+                RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export());
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids.toArray(new String[pids.size()]));

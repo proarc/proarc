@@ -37,7 +37,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -74,23 +73,11 @@ public final class Kramerius4Export {
     /** PIDs scheduled for export */
     private Queue<String> toExport = new LinkedList<String>();
     
-    // config options; it should go to proarc.properties
-    private final HashSet<String> excludeDatastreams = new HashSet<String>(Arrays.asList("AUDIT", "RAW", "PRIVATE_NOTE"));
-    private final HashMap<String, String> dsIdMap = new HashMap<String, String>() {{
-        put("FULL", "IMG_FULL");
-        put("PREVIEW", "IMG_PREVIEW");
-        put("THUMBNAIL", "IMG_THUMB");
-    }};
-    private final HashMap<String, String> relationMap = new HashMap<String, String>() {{
-        put("model:page", "hasPage");
-        put("model:monographunit", "hasUnit");
-        put("model:periodicalvolume", "hasVolume");
-        put("model:periodicalitem", "hasItem");
-    }};
+    private final Kramerius4ExportOptions options;
 
-    public Kramerius4Export(RemoteStorage rstorage) {
+    public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options) {
         this.rstorage = rstorage;
-
+        this.options = options;
     }
 
     public File export(File output, boolean hierarchy, String... pids) {
@@ -141,7 +128,7 @@ public final class Kramerius4Export {
         DigitalObject dobj = local.getDigitalObject();
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
             DatastreamType datastream = it.next();
-            if (excludeDatastreams.contains(datastream.getID())) {
+            if (options.getExcludeDatastreams().contains(datastream.getID())) {
                 it.remove();
                 continue;
             }
@@ -165,7 +152,7 @@ public final class Kramerius4Export {
 
     private void renameDatastream(DatastreamType datastream) {
         String id = datastream.getID();
-        String newId = dsIdMap.get(id);
+        String newId = options.getDsIdMap().get(id);
         if (newId != null) {
             datastream.setID(newId);
             for (DatastreamVersionType version : datastream.getDatastreamVersion()) {
@@ -281,7 +268,7 @@ public final class Kramerius4Export {
                 if (desc == null) {
                     throw new IllegalStateException("Child " + childPid + " of " + pid + " not found in resource index!");
                 }
-                String krelation = relationMap.get(desc.getModel());
+                String krelation = options.getRelationMap().get(desc.getModel());
                 if (krelation == null) {
                     throw new IllegalStateException(String.format(
                             "Cannot map to Kramerius relation! Child: %s, model: %s, parent: %s ",

@@ -17,6 +17,8 @@
 package cz.incad.pas.editor.server.export;
 
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
+import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.FedoraTestSupport;
@@ -55,9 +57,13 @@ public class Kramerius4ExportTest {
     @AfterClass
     public static void tearDownClass() {
     }
+    private AppConfiguration config;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
+        config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
+            put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
+        }});
     }
 
     @After
@@ -77,7 +83,7 @@ public class Kramerius4ExportTest {
         boolean hierarchy = true;
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
         RemoteStorage storage = fedora.getRemoteStorage();
-        Kramerius4Export instance = new Kramerius4Export(storage);
+        Kramerius4Export instance = new Kramerius4Export(storage, config.getKramerius4Export());
         File target = instance.export(output, hierarchy, pids);
         assertNotNull(target);
 

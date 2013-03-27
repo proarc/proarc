@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.server.config;
 
+import cz.incad.pas.editor.server.export.Kramerius4ExportOptions;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -97,6 +98,10 @@ public final class AppConfiguration {
 
     public File getConfigHome() {
         return configHome;
+    }
+
+    public Kramerius4ExportOptions getKramerius4Export() {
+        return Kramerius4ExportOptions.from(config);
     }
 
     Configuration getConfiguration() {
