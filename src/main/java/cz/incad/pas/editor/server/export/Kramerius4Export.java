@@ -76,7 +76,7 @@ public final class Kramerius4Export {
     private final HashMap<String, String> dsIdMap = new HashMap<String, String>() {{
         put("FULL", "IMG_FULL");
         put("PREVIEW", "IMG_PREVIEW");
-        put("THUMBNAIL", "IMG_THUMBNAIL");
+        put("THUMBNAIL", "IMG_THUMB");
     }};
     private final HashMap<String, String> relationMap = new HashMap<String, String>() {{
         put("model:page", "hasPage");
