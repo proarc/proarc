@@ -28,7 +28,9 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlNs;
 import javax.xml.bind.annotation.XmlSchema;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -45,11 +47,26 @@ import javax.xml.transform.stream.StreamSource;
  */
 public final class DcUtils {
 
+    public static final String DC_NAMESPACE;
+    public static final String DC_PREFIX;
     public static final String OAI_DC_NAMESPACE;
     static {
         XmlSchema schema = ObjectFactory.class.getPackage().getAnnotation(XmlSchema.class);
         OAI_DC_NAMESPACE = schema.namespace();
         assert OAI_DC_NAMESPACE != null;
+        XmlType elmType = ElementType.class.getAnnotation(XmlType.class);
+        DC_NAMESPACE = elmType.namespace();
+        XmlNs[] xmlns = schema.xmlns();
+        DC_PREFIX = findPrefix(DC_NAMESPACE, xmlns);
+    }
+
+    private static String findPrefix(String ns, XmlNs[] xmlns) {
+        for (XmlNs xns : xmlns) {
+            if (ns.equals(xns.namespaceURI())) {
+                return xns.prefix();
+            }
+        }
+        throw new IllegalStateException(ns);
     }
 
     private static JAXBContext defaultJaxbContext;

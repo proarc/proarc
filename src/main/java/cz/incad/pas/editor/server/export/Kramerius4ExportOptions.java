@@ -33,6 +33,7 @@ import org.apache.commons.configuration.Configuration;
 public final class Kramerius4ExportOptions {
     
     static final String PROP_EXCLUDE_DATASTREAM_ID = "export.kramerius4.excludeDatastreamId";
+    static final String PROP_POLICY = "export.kramerius4.policy";
     static final String PROP_RENAME_PREFIX = "export.kramerius4.rename";
 
     public static Kramerius4ExportOptions from(Configuration config) {
@@ -49,11 +50,17 @@ public final class Kramerius4ExportOptions {
             dsIdMap.put(dsId, newDsId);
         }
         options.setDsIdMap(dsIdMap);
+
+        String policy = config.getString(PROP_POLICY);
+        if (policy != null && !policy.isEmpty()) {
+            options.setPolicy(policy);
+        }
         return options;
     }
 
     private Set<String> excludeDatastreams = Collections.emptySet();
     private Map<String, String> dsIdMap = Collections.emptyMap();
+    private String policy;
     // config options; it should go to proarc.properties
     private Map<String, String> relationMap = new HashMap<String, String>() {
         {
@@ -78,6 +85,14 @@ public final class Kramerius4ExportOptions {
 
     public void setDsIdMap(Map<String, String> dsIdMap) {
         this.dsIdMap = dsIdMap;
+    }
+
+    public String getPolicy() {
+        return policy;
+    }
+
+    public void setPolicy(String policy) {
+        this.policy = policy;
     }
 
     public Map<String, String> getRelationMap() {

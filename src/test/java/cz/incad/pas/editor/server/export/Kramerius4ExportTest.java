@@ -20,6 +20,7 @@ import cz.incad.pas.editor.server.CustomTemporaryFolder;
 import cz.incad.pas.editor.server.config.AppConfiguration;
 import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
+import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.FedoraTestSupport;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
@@ -89,11 +90,12 @@ public class Kramerius4ExportTest {
 
         // check datastreams with xpath
         HashMap<String, String> namespaces = new HashMap<String, String>();
+        namespaces.put("dc", DcUtils.DC_NAMESPACE);
         namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
         namespaces.put("kramerius", Kramerius4Export.KRAMERIUS_RELATION_NS);
+        namespaces.put("mods", ModsStreamEditor.DATASTREAM_FORMAT_URI);
         namespaces.put("oai", Kramerius4Export.OAI_NS);
         namespaces.put("proarc-rels", Relations.PROARC_RELS_NS);
-        namespaces.put("mods", ModsStreamEditor.DATASTREAM_FORMAT_URI);
         XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
         File foxml = Kramerius4Export.pidAsFile(target, pids[0]);
         String foxmlSystemId = foxml.toURI().toASCIIString();
@@ -114,6 +116,9 @@ public class Kramerius4ExportTest {
         XMLAssert.assertXpathNotExists("//proarc-rels:hasDevice", new InputSource(foxmlSystemId));
         // check MODS starts with modsCollection
         XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID) + "//f:xmlContent/mods:modsCollection/mods:mods", new InputSource(foxmlSystemId));
+        // check policy
+        XMLAssert.assertXpathEvaluatesTo("policy:private", streamXPath(DcStreamEditor.DATASTREAM_ID) + "//dc:rights", new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathEvaluatesTo("policy:private", streamXPath(RelationEditor.DATASTREAM_ID) + "//kramerius:policy", new InputSource(foxmlSystemId));
 
         // test ingest of exported object
         fedora.cleanUp();

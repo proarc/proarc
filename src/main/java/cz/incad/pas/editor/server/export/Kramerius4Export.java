@@ -23,6 +23,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
+import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
@@ -169,9 +170,18 @@ public final class Kramerius4Export {
         }
         DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
         XmlContentType xmlContent = version.getXmlContent();
-        Element get = xmlContent.getAny().get(0);
+        Element dcElm = xmlContent.getAny().get(0);
         // remove xsi:schemaLocation attribute to make FOXML valid for Fedora ingest
-        get.removeAttributeNS(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "schemaLocation");
+        dcElm.removeAttributeNS(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "schemaLocation");
+        // add policy
+        String policy = options.getPolicy();
+        if (policy != null) {
+            Element elmRights = dcElm.getOwnerDocument().createElementNS(
+                    DcUtils.DC_NAMESPACE, DcUtils.DC_PREFIX + ":rights");
+            elmRights.setTextContent(policy);
+            dcElm.appendChild(elmRights);
+
+        }
     }
 
     private void processMods(DatastreamType datastream) {
@@ -260,6 +270,8 @@ public final class Kramerius4Export {
             
             setImportFile(editor, relations, doc);
 
+            setPolicy(options.getPolicy(), relations, doc);
+
             editor.setDevice(null);
 
             editor.setMembers(Collections.<String>emptyList());
@@ -313,6 +325,20 @@ public final class Kramerius4Export {
         Element elm = doc.createElementNS(OAI_NS, "oai:itemID");
         elm.setTextContent(pid);
         relations.add(elm);
+    }
+
+    /**
+     * Sets kramerius:policy as relation if necessary.
+     * @param policy access policy
+     * @param relations list of existing relations
+     * @param doc DOM
+     */
+    private static void setPolicy(String policy, List<Element> relations, Document doc) {
+        if (policy != null) {
+            Element elmPolicy = doc.createElementNS(KRAMERIUS_RELATION_NS, KRAMERIUS_RELATION_PREFIX + ":policy");
+            elmPolicy.setTextContent(policy);
+            relations.add(elmPolicy);
+        }
     }
 
     /**

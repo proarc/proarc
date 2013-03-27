@@ -34,7 +34,6 @@ public class Kramerius4ExportOptionsTest {
 
     @Test
     public void testFrom() {
-        System.out.println("from");
         Configuration config = new BaseConfiguration();
         String[] excludes = {"ID1", "ID2", "ID3"};
         config.addProperty(Kramerius4ExportOptions.PROP_EXCLUDE_DATASTREAM_ID, excludes);
@@ -42,10 +41,22 @@ public class Kramerius4ExportOptionsTest {
         config.addProperty(Kramerius4ExportOptions.PROP_RENAME_PREFIX + ".ID1", "NEWID1");
         config.addProperty(Kramerius4ExportOptions.PROP_RENAME_PREFIX + ".ID2", "NEWID2");
 
+        String policy = "policy:public";
+        config.addProperty(Kramerius4ExportOptions.PROP_POLICY, policy);
+
         Kramerius4ExportOptions result = Kramerius4ExportOptions.from(config);
         assertEquals(new HashSet<String>(Arrays.asList(excludes)), result.getExcludeDatastreams());
         assertEquals("NEWID1", result.getDsIdMap().get("ID1"));
         assertEquals("NEWID2", result.getDsIdMap().get("ID2"));
+        assertEquals(policy, result.getPolicy());
     }
 
+    @Test
+    public void testFromEmpyConfig() {
+        Configuration config = new BaseConfiguration();
+        Kramerius4ExportOptions result = Kramerius4ExportOptions.from(config);
+        assertTrue(result.getExcludeDatastreams().isEmpty());
+        assertTrue(result.getDsIdMap().isEmpty());
+        assertNull(result.getPolicy());
+    }
 }
