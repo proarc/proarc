@@ -87,6 +87,7 @@ public class Kramerius4ExportTest {
         namespaces.put("kramerius", Kramerius4Export.KRAMERIUS_RELATION_NS);
         namespaces.put("oai", Kramerius4Export.OAI_NS);
         namespaces.put("proarc-rels", Relations.PROARC_RELS_NS);
+        namespaces.put("mods", ModsStreamEditor.DATASTREAM_FORMAT_URI);
         XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
         File foxml = Kramerius4Export.pidAsFile(target, pids[0]);
         String foxmlSystemId = foxml.toURI().toASCIIString();
@@ -105,6 +106,8 @@ public class Kramerius4ExportTest {
         XMLAssert.assertXpathExists("//kramerius:file", new InputSource(foxmlSystemId));
         // check exclusion of proarc-rels:hasDevice
         XMLAssert.assertXpathNotExists("//proarc-rels:hasDevice", new InputSource(foxmlSystemId));
+        // check MODS starts with modsCollection
+        XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID) + "//f:xmlContent/mods:modsCollection/mods:mods", new InputSource(foxmlSystemId));
 
         // test ingest of exported object
         fedora.cleanUp();

@@ -32,6 +32,7 @@ import cz.incad.pas.editor.server.fedora.SearchView.Item;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.fedora.relation.RelationResource;
 import cz.incad.pas.editor.server.fedora.relation.Relations;
+import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -145,6 +146,7 @@ public final class Kramerius4Export {
             excludeVersions(datastream);
             renameDatastream(datastream);
             processDublinCore(datastream);
+            processMods(datastream);
             processRelsExt(dobj.getPID(), datastream, editor);
         }
     }
@@ -181,6 +183,30 @@ public final class Kramerius4Export {
         Element get = xmlContent.getAny().get(0);
         // remove xsi:schemaLocation attribute to make FOXML valid for Fedora ingest
         get.removeAttributeNS(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "schemaLocation");
+    }
+
+    private void processMods(DatastreamType datastream) {
+        if (!ModsStreamEditor.DATASTREAM_ID.equals(datastream.getID())) {
+            return ;
+        }
+        DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
+        XmlContentType xmlContent = version.getXmlContent();
+        wrapModsInCollection(xmlContent);
+    }
+
+    /**
+     * Wraps mods root element in modsCollection element like Kramerius expects it.
+     */
+    private static void wrapModsInCollection(XmlContentType xmlContent) {
+        Element mods = xmlContent.getAny().get(0);
+        if ("modsCollection".equals(mods.getLocalName())) {
+            return ;
+        }
+        Element modsCollection = mods.getOwnerDocument().createElementNS(
+                ModsStreamEditor.DATASTREAM_FORMAT_URI, "mods:modsCollection");
+        modsCollection.appendChild(mods);
+        xmlContent.getAny().clear();
+        xmlContent.getAny().add(modsCollection);
     }
 
     private void processRelsExt(String pid, DatastreamType datastream, RelationEditor editor) {
