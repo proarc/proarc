@@ -155,7 +155,9 @@ public final class NewDigObject extends VLayout {
         SelectItem selectModel = new SelectItem(DigitalObjectDataSource.FIELD_MODEL,
                 i18n.NewDigObject_OptionModel_Title());
         selectModel.setRequired(true);
-        selectModel.setDefaultToFirstOption(true);
+        // issue 46: always start with empty model
+        selectModel.setAllowEmptyValue(true);
+        selectModel.setEmptyDisplayValue(ClientUtils.format("<i>&lt;%s&gt;</i>", i18n.NewDigObject_OptionModel_EmptyValue_Title()));
         selectModel.setOptionDataSource(MetaModelDataSource.getInstance());
 //        selectModel.setShowOptionsFromDataSource(true);
         selectModel.setValueField(MetaModelDataSource.FIELD_PID);
