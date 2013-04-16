@@ -71,10 +71,13 @@ public class RelationDataSource extends RestDataSource {
         DataSourceField recorId = new DataSourceField(FIELD_ID, FieldType.TEXT);
         recorId.setPrimaryKey(true);
         recorId.setHidden(true);
+        // canView:false excludes column from grid picker menu
+        recorId.setCanView(false);
         DataSourceField parentId = new DataSourceField(FIELD_PARENTID, FieldType.TEXT);
         parentId.setForeignKey(ID + '.' + FIELD_ID);
         parentId.setRequired(true);
         parentId.setHidden(true);
+        parentId.setCanView(false);
 
         DataSourceField pid = new DataSourceField(FIELD_PID, FieldType.TEXT);
         pid.setRequired(true);
