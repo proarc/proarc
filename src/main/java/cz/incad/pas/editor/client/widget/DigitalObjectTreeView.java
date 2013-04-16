@@ -21,6 +21,7 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.grid.ListGridField;
@@ -77,27 +78,27 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         TreeGrid treeGrid = new TreeGrid();
         treeGrid.setCanSort(false);
         treeGrid.setDataSource(RelationDataSource.getInstance());
-        TreeGridField model = new TreeGridField(RelationDataSource.FIELD_MODEL,
-                i18n.DigitalObjectSearchView_ListHeaderModel_Title());
         TreeGridField id = new TreeGridField(RelationDataSource.FIELD_ID);
         id.setHidden(true);
         TreeGridField parentId = new TreeGridField(RelationDataSource.FIELD_PARENTID);
         parentId.setHidden(true);
-        treeGrid.setFields(
-                id,
-                parentId,
-                new TreeGridField(RelationDataSource.FIELD_LABEL,
-                        i18n.DigitalObjectSearchView_ListHeaderLabel_Title()),
-                model,
-                new TreeGridField(RelationDataSource.FIELD_PID,
-                        i18n.DigitalObjectSearchView_ListHeaderPid_Title()),
-                new TreeGridField(RelationDataSource.FIELD_CREATED,
-                        i18n.DigitalObjectSearchView_ListHeaderCreated_Title()),
-                new TreeGridField(RelationDataSource.FIELD_MODIFIED,
-                        i18n.DigitalObjectSearchView_ListHeaderModified_Title()),
-                new TreeGridField(RelationDataSource.FIELD_OWNER,
-                        i18n.DigitalObjectSearchView_ListHeaderOwner_Title())
-                );
+        TreeGridField label = new TreeGridField(RelationDataSource.FIELD_LABEL,
+                i18n.DigitalObjectSearchView_ListHeaderLabel_Title());
+        TreeGridField model = new TreeGridField(RelationDataSource.FIELD_MODEL,
+                i18n.DigitalObjectSearchView_ListHeaderModel_Title(), 150);
+        model.setAlign(Alignment.CENTER);
+        TreeGridField pid = new TreeGridField(RelationDataSource.FIELD_PID,
+                i18n.DigitalObjectSearchView_ListHeaderPid_Title(), 100);
+        pid.setAlign(Alignment.CENTER);
+        TreeGridField created = new TreeGridField(RelationDataSource.FIELD_CREATED,
+                i18n.DigitalObjectSearchView_ListHeaderCreated_Title(), 100);
+        created.setAlign(Alignment.CENTER);
+        TreeGridField modified = new TreeGridField(RelationDataSource.FIELD_MODIFIED,
+                i18n.DigitalObjectSearchView_ListHeaderModified_Title(), 100);
+        modified.setAlign(Alignment.CENTER);
+        TreeGridField owner = new TreeGridField(RelationDataSource.FIELD_OWNER,
+                i18n.DigitalObjectSearchView_ListHeaderOwner_Title(), 100);
+        treeGrid.setFields(id, parentId, label, model, pid, created, modified, owner);
         treeGrid.setTitleField(RelationDataSource.FIELD_LABEL);
         treeGrid.setShowConnectors(true);
         treeGrid.setEmptyMessage(i18n.DigitalObjectTreeView_EmptySelection_Msg());

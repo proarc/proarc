@@ -20,6 +20,7 @@ import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.i18n.SmartGwtMessages;
+import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SelectionType;
 import com.smartgwt.client.widgets.Canvas;
@@ -115,17 +116,21 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         ListGridField label = new ListGridField(SearchDataSource.FIELD_LABEL,
                 i18n.DigitalObjectSearchView_ListHeaderLabel_Title());
         ListGridField model = new ListGridField(SearchDataSource.FIELD_MODEL,
-                i18n.DigitalObjectSearchView_ListHeaderModel_Title());
+                i18n.DigitalObjectSearchView_ListHeaderModel_Title(), 150);
+        model.setAlign(Alignment.CENTER);
         ListGridField pid = new ListGridField(SearchDataSource.FIELD_PID,
-                i18n.DigitalObjectSearchView_ListHeaderPid_Title());
+                i18n.DigitalObjectSearchView_ListHeaderPid_Title(), 100);
+        pid.setAlign(Alignment.CENTER);
         ListGridField created = new ListGridField(SearchDataSource.FIELD_CREATED,
-                i18n.DigitalObjectSearchView_ListHeaderCreated_Title());
+                i18n.DigitalObjectSearchView_ListHeaderCreated_Title(), 100);
+        created.setAlign(Alignment.CENTER);
         ListGridField modified = new ListGridField(SearchDataSource.FIELD_MODIFIED,
-                i18n.DigitalObjectSearchView_ListHeaderModified_Title());
+                i18n.DigitalObjectSearchView_ListHeaderModified_Title(), 100);
+        modified.setAlign(Alignment.CENTER);
         ListGridField owner = new ListGridField(SearchDataSource.FIELD_OWNER,
-                i18n.DigitalObjectSearchView_ListHeaderOwner_Title());
+                i18n.DigitalObjectSearchView_ListHeaderOwner_Title(), 100);
         ListGridField state = new ListGridField(SearchDataSource.FIELD_STATE,
-                i18n.DigitalObjectSearchView_ListHeaderState_Title());
+                i18n.DigitalObjectSearchView_ListHeaderState_Title(), 100);
         grid.setFields(label, model, pid, created, modified, owner, state);
         grid.setContextMenu(Actions.createMenu());
         return grid;
