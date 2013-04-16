@@ -79,6 +79,9 @@ public final class ImportSourceChooser extends VLayout {
             @Override
             public void onFolderClick(FolderClickEvent event) {
                 updateOnSelection();
+                // issue 41: open node on single click
+                TreeNode folder = event.getFolder();
+                event.getViewer().getTree().openFolder(folder);
             }
         });
 
