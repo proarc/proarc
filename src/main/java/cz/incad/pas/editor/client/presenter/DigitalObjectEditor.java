@@ -196,7 +196,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 DatastreamEditorType.OCR, places);
         DigitalObjectEditAction noteEditAction = new DigitalObjectEditAction(
                 i18n.ImportBatchItemEditor_TabNote_Title(),
-                i18n.DigitalObjectEditAction_Hint(),
+                i18n.ImportBatchItemEditor_TabNote_Hint(),
                 null,
                 DatastreamEditorType.NOTE, places);
         DigitalObjectEditAction parentEditAction = new DigitalObjectEditAction(

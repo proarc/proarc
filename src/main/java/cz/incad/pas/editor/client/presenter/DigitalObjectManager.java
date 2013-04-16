@@ -171,7 +171,10 @@ public final class DigitalObjectManager {
         ocrEditAction = new DigitalObjectEditAction(
                 i18n.ImportBatchItemEditor_TabOcr_Title(), DatastreamEditorType.OCR, i18n);
         noteEditAction = new DigitalObjectEditAction(
-                i18n.ImportBatchItemEditor_TabNote_Title(), DatastreamEditorType.NOTE, i18n);
+                i18n.ImportBatchItemEditor_TabNote_Title(),
+                i18n.ImportBatchItemEditor_TabNote_Hint(),
+                null,
+                DatastreamEditorType.NOTE, places);
         modsEditAction = new DigitalObjectEditAction(
                 i18n.ImportBatchItemEditor_TabMods_Title(), DatastreamEditorType.MODS, i18n);
         parentEditAction = new DigitalObjectEditAction(
