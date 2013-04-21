@@ -19,10 +19,13 @@ package cz.incad.pas.editor.server.mods;
 import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
+import cz.incad.pas.editor.server.xml.Transformers;
+import cz.incad.pas.editor.server.xml.Transformers.Format;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,8 +41,10 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.util.JAXBSource;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
@@ -194,6 +199,25 @@ public final class ModsUtils {
             }
         }
         return params;
+    }
+
+    public static String getLabel(ModsType mods, String model) {
+        try {
+            JAXBSource src = new JAXBSource(
+                    defaultMarshaller(false), new ObjectFactory().createMods(mods));
+            Transformers t = new Transformers();
+            byte[] contents = t.transformAsBytes(src, Format.ModsAsFedoraLabel, Collections.<String, Object>singletonMap("MODEL", model));
+            int threshold = Math.min(contents.length, 2000);
+            String label = contents.length == 0 ? "?" : new String(contents, 0, threshold, "UTF-8");
+            return label;
+        } catch (JAXBException ex) {
+            throw new IllegalStateException(model, ex);
+        } catch (TransformerException ex) {
+            throw new IllegalStateException(model, ex);
+        } catch (UnsupportedEncodingException ex) {
+            throw new IllegalStateException(model, ex);
+        }
+
     }
 
 }

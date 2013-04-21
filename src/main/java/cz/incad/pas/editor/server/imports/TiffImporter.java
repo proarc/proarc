@@ -20,8 +20,6 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
-import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
-import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
@@ -34,6 +32,7 @@ import cz.incad.pas.editor.server.imports.FileSet.FileEntry;
 import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
 import cz.incad.pas.editor.server.imports.ImportProcess.ImportOptions;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
+import cz.incad.pas.editor.server.mods.ModsUtils;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.File;
@@ -104,8 +103,8 @@ public final class TiffImporter {
         // DC
         DcStreamEditor dcEditor = new DcStreamEditor(localObj);
         dcEditor.write(mods, fedoraModel, 0, null);
-        DublinCoreRecord dcr = dcEditor.read();
-        localObj.setLabel(DcUtils.getLabel(dcr.getDc()));
+
+        localObj.setLabel(ModsUtils.getLabel(mods, fedoraModel));
 
         // RELS-EXT
         RelationEditor relEditor = new RelationEditor(localObj);

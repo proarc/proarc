@@ -57,6 +57,7 @@ public final class Transformers {
     private static final String MARC21slim2HTML_XSL_PATH = "http://www.loc.gov/standards/marcxml/xslt/MARC21slim2HTML.xsl";
     private static final String MODS2HTML_XSL_PATH = "http://www.loc.gov/standards/mods/mods.xsl";
     private static final String MODS2TITLE_XSL_PATH = "/xml/mods2Title.xsl";
+    private static final String MODS2FEDORA_LABEL_XSL_PATH = "/xml/mods2FedoraLabel.xsl";
     private static final String ALEPHXSERVERFIX_XSL_PATH = "/xml/alephOaiMarcFix.xsl";
 
     static {
@@ -69,6 +70,7 @@ public final class Transformers {
         FORMAT2XSL.put(Format.MarcxmlAsHtml, MARC21slim2HTML_XSL_PATH);
         FORMAT2XSL.put(Format.ModsAsHtml, MODS2HTML_XSL_PATH);
         FORMAT2XSL.put(Format.ModsAsTitle, MODS2TITLE_XSL_PATH);
+        FORMAT2XSL.put(Format.ModsAsFedoraLabel, MODS2FEDORA_LABEL_XSL_PATH);
         FORMAT2XSL.put(Format.AlephOaiMarcFix, ALEPHXSERVERFIX_XSL_PATH);
         initTemplates();
     }
@@ -182,6 +184,7 @@ public final class Transformers {
             CATALOG.put("http://www.loc.gov/standards/mods/modsDictionary.xml", "/xml/modsDictionary.xml");
             CATALOG.put("http://www.loc.gov/standards/marcxml/xslt/MARC21slimUtils.xsl", "/xml/MARC21slimUtils.xsl");
             CATALOG.put(MODS2TITLE_XSL_PATH, MODS2TITLE_XSL_PATH);
+            CATALOG.put(MODS2FEDORA_LABEL_XSL_PATH, MODS2FEDORA_LABEL_XSL_PATH);
             CATALOG.put(ALEPHXSERVERFIX_XSL_PATH, ALEPHXSERVERFIX_XSL_PATH);
         }
 
@@ -207,7 +210,7 @@ public final class Transformers {
 
         /*MarcxmlAsMods33,*/ MarcxmlAsMods34, /*MarcxmlAsDcRdf,*/
         OaimarcAsMarc21slim, MarcxmlAsHtml, ModsAsHtml, ModsAsTitle,
-        AlephOaiMarcFix;
+        ModsAsFedoraLabel, AlephOaiMarcFix;
     }
 
 }

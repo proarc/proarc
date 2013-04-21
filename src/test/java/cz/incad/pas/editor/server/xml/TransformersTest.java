@@ -16,7 +16,9 @@
  */
 package cz.incad.pas.editor.server.xml;
 
+import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.server.mods.ModsUtils;
+import cz.incad.pas.editor.server.mods.custom.PageMapperTest;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +27,7 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -170,6 +173,53 @@ public class TransformersTest {
         } finally {
             close(xmlIS);
 //            close(goldenIS);
+        }
+    }
+
+    @Test
+    public void testModsAsFedoraLabel_Page() throws Exception {
+        assertEquals("[1], Blank",
+                modsAsFedoraLabel(PageMapperTest.class.getResourceAsStream("page_mods.xml"), "model:page"));
+    }
+
+    @Test
+    public void testModsAsFedoraLabel_Issue() throws Exception {
+        assertEquals("1",
+                modsAsFedoraLabel(PageMapperTest.class.getResourceAsStream("issue_mods.xml"), "model:periodicalitem"));
+    }
+
+    @Test
+    public void testModsAsFedoraLabel_Volume() throws Exception {
+        assertEquals("1893, 1",
+                modsAsFedoraLabel(PageMapperTest.class.getResourceAsStream("volume_mods.xml"), "model:periodicalvolume"));
+    }
+
+    @Test
+    public void testModsAsFedoraLabel_Periodical() throws Exception {
+        assertEquals("MTITLE[0]: STITLE[0]",
+                modsAsFedoraLabel(PageMapperTest.class.getResourceAsStream("periodical_mods.xml"), "model:periodical"));
+    }
+
+    @Test
+    public void testModsAsFedoraLabel_Empty() throws Exception {
+        String label = ModsUtils.getLabel(new ModsType(), "model:page");
+        assertEquals("?", label);
+    }
+
+    private String modsAsFedoraLabel(InputStream xmlIS, String model) throws Exception {
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("MODEL", model);
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.ModsAsFedoraLabel, params);
+            assertNotNull(contents);
+            String label = new String(contents, "UTF-8");
+            System.out.println(label);
+            return label;
+        } finally {
+            close(xmlIS);
         }
     }
 

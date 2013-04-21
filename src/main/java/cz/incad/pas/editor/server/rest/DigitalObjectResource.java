@@ -25,7 +25,6 @@ import cz.incad.pas.editor.server.config.AppConfigurationException;
 import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
-import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.DigitalObjectNotFoundException;
@@ -210,8 +209,8 @@ public class DigitalObjectResource {
         // DC
         DcStreamEditor dcEditor = new DcStreamEditor(localObject);
         dcEditor.write(modsType, modelId, 0, session.asFedoraLog());
-        DublinCoreRecord dcRecord = dcEditor.read();
-        String label = DcUtils.getLabel(dcRecord.getDc());
+
+        String label = ModsUtils.getLabel(modsType, modelId);
         localObject.setLabel(label);
         localObject.setOwner(user.getUserName());
 
@@ -510,8 +509,6 @@ public class DigitalObjectResource {
         FedoraObject fobject = findFedoraObject(update.getPid(), update.getBatchId(), false);
         DcStreamEditor dcEditor = new DcStreamEditor(fobject);
         dcEditor.write(update, session.asFedoraLog());
-        String label = DcUtils.getLabel(update.getDc());
-        fobject.setLabel(label);
 
         fobject.flush();
         DublinCoreRecord result = dcEditor.read();
@@ -590,8 +587,8 @@ public class DigitalObjectResource {
             String model = new RelationEditor(remote).getModel();
             DcStreamEditor dcEditor = new DcStreamEditor(remote);
             dcEditor.write(mods, model, dcEditor.getLastModified(), session.asFedoraLog());
-            DublinCoreRecord dcRecord = dcEditor.read();
-            String label = DcUtils.getLabel(dcRecord.getDc());
+
+            String label = ModsUtils.getLabel(mods, model);
             remote.setLabel(label);
 
             remote.flush();

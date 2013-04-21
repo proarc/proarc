@@ -27,8 +27,6 @@ import cz.incad.pas.editor.server.config.AppConfiguration;
 import cz.incad.pas.editor.server.config.AppConfigurationException;
 import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
-import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
-import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
@@ -124,8 +122,7 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
             String model = new RelationEditor(remote).getModel();
             DcStreamEditor dcEditor = new DcStreamEditor(remote);
             dcEditor.write(modsType, model, dcEditor.getLastModified(), session.asFedoraLog());
-            DublinCoreRecord dcr = dcEditor.read();
-            remote.setLabel(DcUtils.getLabel(dcr.getDc()));
+            remote.setLabel(ModsUtils.getLabel(modsType, model));
             remote.flush();
         } catch (DigitalObjectException ex) {
             throw new IllegalStateException(ex);
