@@ -281,7 +281,8 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow
             ) throws FedoraClientException, IOException {
 
-        SearchView search = RemoteStorage.getInstance(appConfig).getSearch();
+        Locale locale = session.getLocale(httpHeaders);
+        SearchView search = RemoteStorage.getInstance(appConfig).getSearch(locale);
         List<Item> items;
         int page = 20;
         switch (type) {
@@ -340,7 +341,7 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ROOT_PARAM) String root
             ) throws FedoraClientException, IOException, DigitalObjectException {
 
-        SearchView search = RemoteStorage.getInstance(appConfig).getSearch();
+        SearchView search = RemoteStorage.getInstance(appConfig).getSearch(session.getLocale(httpHeaders));
         List<Item> items;
         String parentPid;
         if (parent == null || "null".equals(parent)) {
@@ -381,6 +382,7 @@ public class DigitalObjectResource {
             throw RestException.plainText(Status.BAD_REQUEST, "parent and pid are same!");
         }
 
+        Locale locale = session.getLocale(httpHeaders);
         HashSet<String> toAddPidSet = new HashSet<String>(toAddPids);
         if (toAddPidSet.isEmpty()) {
             return new SmartGwtResponse<Item>(Collections.<Item>emptyList());
@@ -388,7 +390,7 @@ public class DigitalObjectResource {
 
         RemoteStorage storage = RemoteStorage.getInstance(appConfig);
         // fetch PID[] -> Item[]
-        List<Item> memberSearch = storage.getSearch().find(toAddPids);
+        List<Item> memberSearch = storage.getSearch(locale).find(toAddPids);
         HashMap<String, Item> memberSearchMap = new HashMap<String, Item>(memberSearch.size());
         for (Item item : memberSearch) {
             memberSearchMap.put(item.getPid(), item);

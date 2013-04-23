@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Date;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.core.Response.Status;
@@ -77,8 +78,16 @@ public final class RemoteStorage {
         return new RemoteObject(pid, client);
     }
 
+    public SearchView getSearch(Locale locale) {
+        SearchView sv = new SearchView(this);
+        if (locale != null) {
+            sv.setLocale(locale);
+        }
+        return sv;
+    }
+
     public SearchView getSearch() {
-        return new SearchView(this);
+        return getSearch(null);
     }
 
     public void ingest(File foxml, String pid, String ingestUser, String log) throws FedoraClientException {

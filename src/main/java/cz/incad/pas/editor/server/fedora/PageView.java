@@ -26,10 +26,14 @@ import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.server.mods.custom.PageMapper;
 import cz.incad.pas.editor.server.mods.custom.PageMapper.Page;
 import cz.incad.pas.editor.shared.rest.ImportResourceApi;
+import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -87,6 +91,39 @@ public final class PageView {
                 pageIndex, pageNumber, pageType,
                 editor.getLastModified(), local.getOwner());
         return update;
+    }
+
+    private static ResourceBundle getPageTypeTitles(Locale locale) {
+        ResourceBundle rb = ResourceBundle.getBundle(
+                LocalizationResourceApi.BundleName.MODS_PAGE_TYPES.toString(), locale);
+        return rb;
+    }
+
+    /**
+     * Gets localized label of fedora object containing page.
+     * It relies on page label syntax: {@code <pageLabel>, <pageType>}
+     *
+     * @param label label of fedora object
+     * @param locale target locale
+     * @return localized label
+     *
+     * @see ModsUtils#getLabel
+     */
+    public static String resolveFedoraObjectLabel(String label, Locale locale) {
+        ResourceBundle pageTypeTitles = getPageTypeTitles(locale);
+        int typeIndex = label.lastIndexOf(", ") + 2;
+        if (typeIndex - 2 >= 0 && typeIndex < label.length()) {
+            String typeCode = label.substring(typeIndex);
+            try {
+                if (!typeCode.isEmpty()) {
+                    String typeName = pageTypeTitles.getString(typeCode);
+                    label = label.substring(0, typeIndex) + typeName;
+                }
+            } catch (MissingResourceException e) {
+                // ignore
+            }
+        }
+        return label;
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)

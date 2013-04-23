@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,6 +59,7 @@ public final class SearchView {
     private final FedoraClient fedora;
     private final int maxLimit;
     private final RemoteStorage storage;
+    private Locale locale = Locale.ENGLISH;
 
     SearchView(RemoteStorage storage) {
         this(storage, 100);
@@ -67,6 +69,13 @@ public final class SearchView {
         this.storage = storage;
         this.fedora = storage.getClient();
         this.maxLimit = maxLimit;
+    }
+
+    public void setLocale(Locale locale) {
+        if (locale == null) {
+            throw new NullPointerException("locale");
+        }
+        this.locale = locale;
     }
 
     /**
@@ -289,20 +298,38 @@ public final class SearchView {
         String json = response.getEntity(String.class);
         ObjectMapper om = JsonUtils.defaultObjectMapper();
         Result result = om.readValue(json, Result.class);
-        return replaceUriWithPid(result.results);
+        return consumeSearch(result.results);
+    }
+
+    private List<Item> consumeSearch(List<Item> items) {
+        for (Item item : items) {
+            replaceUriWithPid(item);
+            resolveObjectLabel(item);
+        }
+        return items;
     }
     
     private static String replaceUriWithPid(String uri) {
         return uri == null ? uri : RelationResource.toPid(uri);
     }
 
-    private static List<Item> replaceUriWithPid(List<Item> items) {
-        for (Item item : items) {
-            item.pid = replaceUriWithPid(item.pid);
-            item.model = replaceUriWithPid(item.model);
-            item.state = replaceUriWithPid(item.state);
+    private static Item replaceUriWithPid(Item item) {
+        item.pid = replaceUriWithPid(item.pid);
+        item.model = replaceUriWithPid(item.model);
+        item.state = replaceUriWithPid(item.state);
+        return item;
+    }
+
+    void resolveObjectLabel(Item item) {
+        String label = resolveObjectLabel(item.getLabel(), item.getModel(), locale);
+        item.setLabel(label);
+    }
+
+    private static String resolveObjectLabel(String label, String model, Locale locale) {
+        if ("model:page".equals(model)) {
+            label = PageView.resolveFedoraObjectLabel(label, locale);
         }
-        return items;
+        return label;
     }
 
     private static RiSearch buildSearch(String query) {

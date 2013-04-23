@@ -19,6 +19,7 @@ package cz.incad.pas.editor.server.fedora;
 import static cz.incad.pas.editor.server.fedora.FedoraTestSupport.assertItem;
 import cz.incad.pas.editor.server.fedora.SearchView.Item;
 import java.util.List;
+import java.util.Locale;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -44,6 +45,41 @@ public class SearchViewTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testResolveObjectLabel() {
+        SearchView instance = new SearchView(storage);
+        // model:page
+        Item item = new Item("pid");
+        item.setModel("model:page");
+        item.setLabel("1");
+        instance.resolveObjectLabel(item);
+        assertEquals("1", item.getLabel());
+
+        item.setLabel("1, ");
+        instance.resolveObjectLabel(item);
+        assertEquals("1, ", item.getLabel());
+
+        item.setLabel("1, TitlePage");
+        instance.resolveObjectLabel(item);
+        assertEquals("1, Title Page", item.getLabel());
+
+        item.setLabel("1, UnknownPageType");
+        instance.resolveObjectLabel(item);
+        assertEquals("1, UnknownPageType", item.getLabel());
+
+        instance.setLocale(new Locale("cs"));
+
+        item.setLabel("[1], 1, TitlePage");
+        instance.resolveObjectLabel(item);
+        assertEquals("[1], 1, Titulní strana", item.getLabel());
+
+        // model:periodical
+        item.setModel("model:periodical");
+        item.setLabel("[1], 1, TitlePage");
+        instance.resolveObjectLabel(item);
+        assertEquals("[1], 1, TitlePage", item.getLabel());
     }
 
     @Test
