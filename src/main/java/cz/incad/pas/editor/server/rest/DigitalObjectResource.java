@@ -609,8 +609,7 @@ public class DigitalObjectResource {
     @Path(DigitalObjectResourceApi.METAMODEL_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<MetaModel> listModels() {
-        List<Locale> acceptableLanguages = httpHeaders.getAcceptableLanguages();
-        Locale locale = acceptableLanguages.isEmpty() ? Locale.ENGLISH : acceptableLanguages.get(0);
+        Locale locale = session.getLocale(httpHeaders);
 
         Collection<MetaModel> models = metamodels.find(locale);
         return new SmartGwtResponse<MetaModel>(new ArrayList<MetaModel>(models));

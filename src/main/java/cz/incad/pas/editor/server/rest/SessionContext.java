@@ -18,7 +18,10 @@ package cz.incad.pas.editor.server.rest;
 
 import cz.incad.pas.editor.server.user.UserProfile;
 import java.security.Principal;
+import java.util.List;
+import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.HttpHeaders;
 
 /**
  * Information about current request session.
@@ -53,5 +56,11 @@ public final class SessionContext {
     public String asFedoraLog() {
         // use Jackson for complex JSON; String.format is enough for now
         return String.format("{\"proarc\":{\"user\":\"%s\",\"ip\":\"%s\"}}", user, ip);
+    }
+
+    public Locale getLocale(HttpHeaders httpHeaders) {
+        List<Locale> acceptableLanguages = httpHeaders.getAcceptableLanguages();
+        Locale locale = acceptableLanguages.isEmpty() ? Locale.ENGLISH : acceptableLanguages.get(0);
+        return locale;
     }
 }
