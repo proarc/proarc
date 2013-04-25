@@ -29,6 +29,7 @@ import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
+import cz.incad.pas.editor.server.fedora.SearchView;
 import cz.incad.pas.editor.server.fedora.SearchView.Item;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.fedora.relation.RelationResource;
@@ -37,12 +38,17 @@ import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
+import java.util.Set;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -69,6 +75,7 @@ public final class Kramerius4Export {
 
     private RemoteStorage rstorage;
     private LocalStorage lstorage = new LocalStorage();
+    private final SearchView search;
     /** already exported PIDs to prevent loops */
     private HashSet<String> exportedPids = new HashSet<String>();
     /** PIDs scheduled for export */
@@ -79,6 +86,7 @@ public final class Kramerius4Export {
     public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options) {
         this.rstorage = rstorage;
         this.options = options;
+        this.search = rstorage.getSearch();
     }
 
     public File export(File output, boolean hierarchy, String... pids) {
@@ -90,10 +98,12 @@ public final class Kramerius4Export {
         }
 
         File target = ExportUtils.createFolder(output, pids[0]);
-        toExport.addAll(Arrays.asList(pids));
+        HashSet<String> selectedPids = new HashSet<String>(Arrays.asList(pids));
+        toExport.addAll(selectedPids);
         for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
             exportPid(target, hierarchy, pid);
         }
+        exportParents(target, selectedPids);
         return target;
     }
 
@@ -124,6 +134,83 @@ public final class Kramerius4Export {
             throw new IllegalStateException(pid, ex);
         }
     }
+
+    /**
+     * Exports hierarchy of parent objects. Leafs of the hierarchy are PIDs
+     * that were selected for export.
+     * <p/>RELS-EXT of exported parent objects contains only PIDs that are subject to export.
+     * Other relations are excluded.
+     *
+     * @param output output folder
+     * @param pids PIDs selected for export
+     */
+    private void exportParents(File output, Collection<String> pids) {
+        Map<String, Set<String>> buildPidTree = buildPidTree(pids, exportedPids);
+        for (Entry<String, Set<String>> node : buildPidTree.entrySet()) {
+            String pid = node.getKey();
+            Set<String> children = node.getValue();
+            exportParentPid(output, pid, children);
+        }
+    }
+
+    void exportParentPid(File output, String pid, Collection<String> includeChildPids) {
+        try {
+            RemoteObject robject = rstorage.find(pid);
+            FedoraClient client = robject.getClient();
+            DigitalObject dobj = FedoraClient.export(pid).context("archive")
+                    .format("info:fedora/fedora-system:FOXML-1.1")
+                    .execute(client).getEntity(DigitalObject.class);
+            File foxml = pidAsFile(output, pid);
+            LocalObject local = lstorage.create(foxml, dobj);
+            exportParentDatastreams(local, includeChildPids);
+            local.flush();
+        } catch (DigitalObjectException ex) {
+            throw new IllegalStateException(pid, ex);
+        } catch (FedoraClientException ex) {
+            // replace with ExportException
+            throw new IllegalStateException(pid, ex);
+        }
+    }
+
+    /**
+     * Builds tree of digital objects as map of parent nodes and their children.
+     *
+     * @param pids PIDs that will be leafs of the tree
+     * @param exportedPids collection of already exported PIDs
+     * @return {@code Map<parent-PID, Set<child-PID>>}
+     */
+    private Map<String, Set<String>> buildPidTree(Collection<String> pids, Collection<String> exportedPids) {
+        // P1/R1/C1
+        // P1/R1/C2
+        // P1/R3/C3
+        // pids={C1, C2, C3}
+        // Map<PID, Set<PID>> tree  P1={R1, R3}, R1={C1, C2}, R3={C3}
+        Map<String, Set<String>> pidTree = new HashMap<String, Set<String>>();
+        for (String pid : pids) {
+            String parentPid = getParent(pid);
+            if (parentPid != null) {
+                if (exportedPids.contains(parentPid)) {
+                    continue;
+                }
+                Set<String> children = pidTree.get(parentPid);
+                if (children == null) {
+                    children = new HashSet<String>();
+                    pidTree.put(parentPid, children);
+                }
+                children.add(pid);
+            }
+        }
+        return pidTree;
+    }
+
+    private String getParent(String pid) {
+        try {
+            List<Item> referrers = search.findReferrers(pid);
+            return referrers.isEmpty() ? null : referrers.get(0).getPid();
+        } catch (Exception ex) {
+            throw new IllegalStateException(pid, ex);
+        }
+    }
     
     private void exportDatastreams(LocalObject local, RelationEditor editor) {
         DigitalObject dobj = local.getDigitalObject();
@@ -137,7 +224,24 @@ public final class Kramerius4Export {
             renameDatastream(datastream);
             processDublinCore(datastream);
             processMods(datastream);
-            processRelsExt(dobj.getPID(), datastream, editor);
+            processRelsExt(dobj.getPID(), datastream, editor, null);
+        }
+    }
+
+    private void exportParentDatastreams(LocalObject local, Collection<String> includeChildPids) {
+        DigitalObject dobj = local.getDigitalObject();
+        RelationEditor editor = new RelationEditor(local);
+        for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
+            DatastreamType datastream = it.next();
+            if (options.getExcludeDatastreams().contains(datastream.getID())) {
+                it.remove();
+                continue;
+            }
+            excludeVersions(datastream);
+            renameDatastream(datastream);
+            processDublinCore(datastream);
+            processMods(datastream);
+            processRelsExt(dobj.getPID(), datastream, editor, includeChildPids);
         }
     }
 
@@ -232,13 +336,16 @@ public final class Kramerius4Export {
         xmlContent.getAny().add(modsCollection);
     }
 
-    private void processRelsExt(String pid, DatastreamType datastream, RelationEditor editor) {
+    private void processRelsExt(String pid, DatastreamType datastream,
+            RelationEditor editor, Collection<String> includePids
+            ) {
+
         if (!RelationEditor.DATASTREAM_ID.equals(datastream.getID())) {
             return ;
         }
         try {
-            List<Item> childDescriptors = rstorage.getSearch().findChildren(pid);
-            transformRelation2Kramerius(pid, editor, childDescriptors);
+            List<Item> childDescriptors = search.findChildren(pid);
+            transformRelation2Kramerius(pid, editor, childDescriptors, includePids);
         } catch (DigitalObjectException ex) {
             throw new IllegalStateException(ex);
         } catch (FedoraClientException ex) {
@@ -256,7 +363,8 @@ public final class Kramerius4Export {
     }
 
     private void transformRelation2Kramerius(
-            String pid, RelationEditor editor, List<Item> childDescriptors
+            String pid, RelationEditor editor, List<Item> childDescriptors,
+            Collection<String> includePids
             ) throws DigitalObjectException {
 
         List<String> children = editor.getMembers();
@@ -279,6 +387,9 @@ public final class Kramerius4Export {
                 Item desc = remove(childPid, childDescriptors);
                 if (desc == null) {
                     throw new IllegalStateException("Child " + childPid + " of " + pid + " not found in resource index!");
+                }
+                if (includePids != null && !includePids.contains(childPid)) {
+                    continue;
                 }
                 String krelation = options.getRelationMap().get(desc.getModel());
                 if (krelation == null) {
