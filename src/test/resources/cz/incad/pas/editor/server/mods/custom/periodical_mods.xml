@@ -51,6 +51,12 @@
     <mods:subject>
         <mods:topic>TOPIC</mods:topic>
     </mods:subject>
+    <mods:relatedItem type="series">
+        <mods:titleInfo>
+            <!-- issue 56: do not include relatedItem/titleInfo/* in Fedora label -->
+            <mods:title>RELATEDITEM_TITLE</mods:title>
+        </mods:titleInfo>
+    </mods:relatedItem>
     <mods:classification authority="ddc">DDC</mods:classification>
     <mods:classification authority="udc">UDC</mods:classification>
     <mods:identifier type="type">IDENTIFIER</mods:identifier>

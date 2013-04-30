@@ -18,8 +18,6 @@
     <xsl:template match="/">
         <xsl:choose>
             <xsl:when test="$MODEL = 'model:page' or $MODEL = 'model:periodicalitem' or $MODEL = 'model:periodicalvolume'">
-                <xsl:variable name="pagePart" select="//mods:mods[1]/mods:part[1]" />
-                <!--<xsl:apply-templates select="//mods:mods[1]/mods:part[1]" mode="page" />-->
                 <xsl:apply-templates select="//mods:mods[1]/mods:part[1]" />
             </xsl:when>
             <xsl:otherwise>
@@ -28,7 +26,7 @@
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="mods:titleInfo[1]">
+    <xsl:template match="mods:mods/mods:titleInfo[1]">
         <xsl:variable name="title">
             <xsl:value-of select="mods:nonSort"/>
             <xsl:if test="string(mods:nonSort)">

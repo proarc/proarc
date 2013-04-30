@@ -162,6 +162,12 @@ public final class RemoteStorage {
 
         @Override
         public void setLabel(String label) {
+            if (label == null) {
+                throw new NullPointerException();
+            } else if (label.length() > 255) {
+                // length 255 is Fedora limit
+                label = label.substring(0, 256);
+            }
             this.label = label;
         }
 
