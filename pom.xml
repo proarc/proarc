@@ -24,7 +24,7 @@
              Redefine property with -Dcz.cas.lib.proarc.z3950.junit.properties.file=local_path_to_junit.properties
              or in settings.xml.
         -->
-        <cz.cas.lib.proarc.z3950.junit.properties.file>${project.basedir}/src/test/junit.properties</cz.cas.lib.proarc.z3950.junit.properties.file>
+        <cz.cas.lib.proarc.z3950.junit.properties.file>${project.basedir}/src/test/resources/junit.properties</cz.cas.lib.proarc.z3950.junit.properties.file>
     </properties>
 
     <dependencies>
