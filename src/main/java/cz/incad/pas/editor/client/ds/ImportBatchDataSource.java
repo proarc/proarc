@@ -152,7 +152,7 @@ public final class ImportBatchDataSource extends RestDataSource {
 
         public static State fromString(String value) {
             try {
-                return valueOf(value);
+                return value == null ? null : valueOf(value);
             } catch (IllegalArgumentException e) {
                 return null;
             }

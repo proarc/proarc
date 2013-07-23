@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset>
+    <proarc_batch_item id="1" batch_id="1" pid="uuid:4a7c2e50-af36-11dd-9643-000d606f5dc6"
+                       file="file1.xml" state="LOADED" type="OBJECT" log="log"
+                       timestamp="{$now}"
+    />
+</dataset>

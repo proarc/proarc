@@ -16,11 +16,13 @@
  */
 package cz.incad.pas.editor.server.rest;
 
+import cz.cas.lib.proarc.common.dao.BatchView;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
 /**
@@ -41,6 +43,10 @@ public final class JacksonProvider extends JacksonJaxbJsonProvider {
         configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
         configure(SerializationConfig.Feature.WRITE_NULL_PROPERTIES, false);
         configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
+        ObjectMapper mapper = _mapperConfig.getConfiguredMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(BatchView.class, BatchViewAnnotations.class);
+        mapper.getDeserializationConfig().addMixInAnnotations(BatchView.class, BatchViewAnnotations.class);
+
     }
 
 }

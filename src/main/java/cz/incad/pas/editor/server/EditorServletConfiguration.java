@@ -16,18 +16,20 @@
  */
 package cz.incad.pas.editor.server;
 
+import cz.cas.lib.proarc.common.dao.DaoFactory;
+import cz.cas.lib.proarc.common.dao.empiredb.EmpireConfiguration;
+import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.incad.pas.editor.server.config.AppConfiguration;
 import cz.incad.pas.editor.server.config.AppConfigurationException;
 import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
+import cz.incad.pas.editor.server.imports.ImportBatchManagerXmlConversion;
 import cz.incad.pas.editor.server.imports.ImportDispatcher;
 import cz.incad.pas.editor.server.imports.ImportProcess;
 import cz.incad.pas.editor.server.sql.DbUtils;
 import cz.incad.pas.editor.server.user.UserManager;
 import cz.incad.pas.editor.server.user.UserUtil;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.logging.Logger;
 import javax.naming.NamingException;
 import javax.servlet.ServletContext;
@@ -43,6 +45,8 @@ import javax.sql.DataSource;
 public final class EditorServletConfiguration implements ServletContextListener {
 
     private static final Logger LOG = Logger.getLogger(EditorServletConfiguration.class.getName());
+
+    private DaoFactory daoFactory;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -76,16 +80,9 @@ public final class EditorServletConfiguration implements ServletContextListener 
     private DataSource initProarcDb() {
         try {
             DataSource proarcSource = DbUtils.getProarcSource();
-            Connection c = proarcSource.getConnection();
-            try {
-                c.setAutoCommit(true);
-                DbUtils.getProarcSchemaVersion(c);
-            } finally {
-                c.close();
-            }
+            daoFactory = new EmpireDaoFactory(EmpireConfiguration.postgres(proarcSource));
+            daoFactory.init();
             return proarcSource;
-        } catch (SQLException ex) {
-            throw new IllegalStateException(ex);
         } catch (NamingException ex) {
             throw new IllegalStateException(ex);
         }
@@ -102,7 +99,11 @@ public final class EditorServletConfiguration implements ServletContextListener 
     }
 
     private void initImport(AppConfiguration config) {
-        ImportBatchManager ibm = ImportBatchManager.getInstance(config);
+        ImportBatchManagerXmlConversion conversion = new ImportBatchManagerXmlConversion(
+                daoFactory, config, UserUtil.getDefaultManger());
+        conversion.convertXml2Db();
+        ImportBatchManager.setInstance(config, daoFactory);
+        ImportBatchManager ibm = ImportBatchManager.getInstance();
         ImportDispatcher importDispatcher = new ImportDispatcher();
         ImportDispatcher.setDefault(importDispatcher);
         importDispatcher.init();

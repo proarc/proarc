@@ -17,15 +17,14 @@
 package cz.incad.pas.editor.server.imports;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.BatchItemObject;
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -48,55 +47,76 @@ public final class FedoraImport {
         this.ibm = ibm;
     }
 
-    public ImportBatch importBatch(ImportBatch batch, String importer, String message) throws FedoraClientException, DigitalObjectException {
-        batch.setState(ImportBatch.State.INGESTING);
+    public Batch importBatch(Batch batch, String importer, String message) throws DigitalObjectException {
+        if (batch.getState() != Batch.State.LOADED) {
+            throw new IllegalStateException("Invalid batch state: " + batch);
+        }
+        batch.setState(Batch.State.INGESTING);
         batch = ibm.update(batch);
         String parentPid = batch.getParentPid();
-        ArrayList<String> ingests = new ArrayList<String>();
-        ArrayList<String> failures = new ArrayList<String>();
-        boolean done = false;
         try {
-            for (ImportItem item : ibm.findItems(batch.getId(), null)) {
-                try {
-                    importItem(item, importer);
-                    ingests.add(item.getPid());
-                } catch (Throwable t) {
-                    item.setFailure("Fedora ingest failed. " + t.getMessage());
-                    StringWriter dump = new StringWriter();
-                    t.printStackTrace(new PrintWriter(dump));
-                    item.setFailureDescription(dump.toString());
-                    failures.add(item.getPid());
-                    LOG.log(Level.SEVERE, "batch: {0}, PID: {1}, file: {2}",
-                            new Object[]{batch.getId(), item.getPid(), item.getFoxml()});
-                    ibm.update(item);
-                }
-            }
-
-            addParentMembers(parentPid, ingests, message);
-            done = true;
+            ArrayList<String> ingestedPids = new ArrayList<String>();
+            boolean itemFailed = importItems(batch, importer, ingestedPids);
+            addParentMembers(parentPid, ingestedPids, message);
+            batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, String.valueOf(batch), t);
+            batch.setState(Batch.State.INGESTING_FAILED);
+            batch.setLog(ImportBatchManager.toString(t));
         } finally {
-            if (done && failures.isEmpty()) {
-                batch.setState(ImportBatch.State.INGESTED);
-            } else {
-                batch.setState(ImportBatch.State.INGESTING_FAILED);
-            }
             batch = ibm.update(batch);
         }
         return batch;
     }
 
-    private void importItem(ImportItem item, String importer) throws FedoraClientException {
-        File foxml = item.getFoxmlAsFile();
+    private boolean importItems(Batch batch, String importer, List<String> ingests) {
+        boolean itemFailed = false;
+        for (BatchItemObject item : ibm.findLoadedObjects(batch)) {
+            item = importItem(item, importer);
+            if (item != null) {
+                if (ObjectState.INGESTING_FAILED == item.getState()) {
+                    itemFailed = true;
+                } else {
+                    ingests.add(item.getPid());
+                }
+            }
+        }
+        return itemFailed;
+    }
+
+    private BatchItemObject importItem(BatchItemObject item, String importer) {
+        try {
+            return importItemImpl(item, importer);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, item + "\n" + ImportBatchManager.toString(t), t);
+            item.setState(ObjectState.INGESTING_FAILED);
+            item.setLog(ImportBatchManager.toString(t));
+            ibm.update(item);
+            return item;
+        }
+    }
+
+    private BatchItemObject importItemImpl(BatchItemObject item, String importer) throws FedoraClientException {
+        ObjectState state = item.getState();
+        if (state != ObjectState.LOADED) {
+            return null;
+        }
+        File foxml = item.getFile();
         if (foxml == null || !foxml.exists() || !foxml.canRead()) {
             throw new IllegalStateException("Cannot read foxml: " + foxml);
         }
-//        LocalObject local = istorage.load(item.getPid(), foxml);
         fedora.ingest(foxml, item.getPid(), importer,
                 "Ingested with ProArc by " + importer
                 + " from local file " + foxml);
+        item.setState(ObjectState.INGESTED);
+        ibm.update(item);
+        return item;
     }
 
     private void addParentMembers(String parent, List<String> pids, String message) throws DigitalObjectException {
+        if (parent == null || pids.isEmpty()) {
+            return ;
+        }
         RemoteObject remote = fedora.find(parent);
         RelationEditor editor = new RelationEditor(remote);
         List<String> members = editor.getMembers();

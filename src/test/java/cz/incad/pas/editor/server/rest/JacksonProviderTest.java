@@ -16,8 +16,11 @@
  */
 package cz.incad.pas.editor.server.rest;
 
+import cz.cas.lib.proarc.common.dao.Batch.State;
+import cz.cas.lib.proarc.common.dao.BatchView;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -105,6 +108,23 @@ public class JacksonProviderTest {
                 ));
         String json = toJson(obj);
         assertTrue(json, json.startsWith("{\"ArrayHolder\":{\"records\":[{\"field\":\"value[0]\""));
+    }
+
+    @Test
+    public void testMixedInAnnotations() throws Exception {
+        BatchView b = new BatchView();
+        b.setCreate(Timestamp.valueOf("1991-01-19 00:00:01"));
+        b.setFolder("folder/");
+        b.setId(1);
+        b.setParentPid("parenPid");
+        b.setState(State.LOADED.name());
+        b.setTimestamp(new Timestamp(System.currentTimeMillis()));
+        b.setTitle("title");
+        b.setUserId(10);
+        b.setUsername("username");
+        String json = toJson(b);
+        assertTrue(json, json.contains("\"description\":\"title\""));
+        assertTrue(json, json.contains("\"timeStamp\":\"1991-01"));
     }
 
     private static String toJson(Object obj) throws IOException {

@@ -17,18 +17,27 @@
 package cz.incad.pas.editor.server.imports;
 
 import com.yourmediashelf.fedora.generated.foxml.ObjectFactory;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchItem;
+import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
+import cz.cas.lib.proarc.common.dao.BatchItemDao;
+import cz.cas.lib.proarc.common.dao.DaoFactory;
+import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
+import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.StringEditor;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.BatchItemObject;
 import cz.incad.pas.editor.server.imports.ImportProcess.ImportOptions;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import javax.xml.XMLConstants;
@@ -38,6 +47,8 @@ import javax.xml.validation.SchemaFactory;
 import org.custommonkey.xmlunit.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -58,6 +69,8 @@ public class TiffImporterTest {
     
     private File tiff1;
     private File ocr1;
+    private AppConfiguration config;
+    private ArrayList<Object> toVerify = new ArrayList<Object>();;
 
     public TiffImporterTest() {
     }
@@ -95,6 +108,10 @@ public class TiffImporterTest {
         FileOutputStream fosOcr = new FileOutputStream(ocr1);
         fosOcr.write("test".getBytes());
         fosOcr.close();
+
+        config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
+            put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
+        }});
     }
 
     @After
@@ -104,22 +121,35 @@ public class TiffImporterTest {
     @Test
     public void testConsume() throws Exception {
         temp.setDeleteOnExit(true);
-        File targetFolder = temp.newFolder();
+        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot());
         assertTrue(targetFolder.exists());
+
+        DaoFactory daos = createMockDaoFactory();
+        ImportBatchManager ibm = new ImportBatchManager(config, daos);
 
         String mimetype = ImportProcess.findMimeType(tiff1);
         assertNotNull(mimetype);
 
         ImportOptions ctx = new ImportOptions(tiff1.getParentFile(), "model:page", "scanner:scanner1", true, "junit");
         ctx.setTargetFolder(targetFolder);
+        Batch batch = new Batch();
+        batch.setId(1);
+        batch.setFolder(ibm.relativizeBatchFile(tiff1.getParentFile()));
+        ctx.setBatch(batch);
         FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1, ocr1)).get(0);
-        TiffImporter instance = new TiffImporter();
-        ImportItem result = instance.consume(fileSet, ctx);
+
+        TiffImporter instance = new TiffImporter(ibm);
+        BatchItemObject result = instance.consume(fileSet, ctx);
         String pid = result.getPid();
         assertTrue(pid.startsWith("uuid"));
+
+        assertEquals(ObjectState.LOADED, result.getState());
         
-        File foxml = result.getFoxmlAsFile();
-        assertTrue(foxml.exists());
+        File foxml = result.getFile();
+        assertTrue(foxml.toString(), foxml.exists());
+
+        File rootFoxml = new File(foxml.getParent(), ImportBatchManager.ROOT_ITEM_FILENAME);
+        assertTrue(rootFoxml.toString(), rootFoxml.exists());
 
         File raw1 = new File(targetFolder, "img1.full.jpg");
         assertTrue(raw1.exists() && raw1.length() > 0);
@@ -150,9 +180,58 @@ public class TiffImporterTest {
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.PREVIEW_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.THUMB_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.RAW_ID), new InputSource(foxmlSystemId));
+
+        String rootSystemId = rootFoxml.toURI().toASCIIString();
+        XMLAssert.assertXpathExists(streamXPath(RelationEditor.DATASTREAM_ID), new InputSource(rootSystemId));
+        EasyMock.verify(toVerify.toArray());
     }
 
     private static String streamXPath(String dsId) {
         return "f:digitalObject/f:datastream[@ID='" + dsId + "']";
     }
+
+    private DaoFactory createMockDaoFactory() {
+        DaoFactory daos = EasyMock.createMock(DaoFactory.class);
+        EasyMock.expect(daos.createTransaction()).andAnswer(new IAnswer<Transaction>() {
+
+            @Override
+            public Transaction answer() throws Throwable {
+                return createMockTransaction();
+            }
+        }).anyTimes();
+        EasyMock.expect(daos.createBatchItem()).andAnswer(new IAnswer<BatchItemDao>() {
+
+            @Override
+            public BatchItemDao answer() throws Throwable {
+                return createMockBatchItemDao();
+            }
+        }).anyTimes();
+        EasyMock.replay(daos);
+        toVerify.add(daos);
+        return daos;
+    }
+
+    private Transaction createMockTransaction() {
+        Transaction tx = EasyMock.createMock(Transaction.class);
+        tx.commit();
+        EasyMock.expectLastCall().atLeastOnce();
+        tx.rollback();
+        EasyMock.expectLastCall().anyTimes();
+        tx.close();
+        EasyMock.replay(tx);
+        toVerify.add(tx);
+        return tx;
+    }
+
+    private BatchItemDao createMockBatchItemDao() {
+        BatchItemDao dao = EasyMock.createMock(BatchItemDao.class);
+        dao.update(EasyMock.<BatchItem>anyObject());
+        EasyMock.expectLastCall().anyTimes();
+        EasyMock.expect(dao.create()).andReturn(new BatchItem()).anyTimes();
+        dao.setTransaction(EasyMock.<Transaction>anyObject());
+        EasyMock.replay(dao);
+        toVerify.add(dao);
+        return dao;
+    }
+
 }

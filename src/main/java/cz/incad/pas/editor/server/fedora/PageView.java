@@ -20,7 +20,7 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.BatchItemObject;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.server.mods.custom.PageMapper;
@@ -44,32 +44,34 @@ import javax.xml.bind.annotation.XmlElement;
  */
 public final class PageView {
 
-    public List<Item> list(int batchId, Collection<ImportItem> imports) throws DigitalObjectException {
+    public List<Item> list(int batchId, Collection<BatchItemObject> imports) throws DigitalObjectException {
         ArrayList<Item> result = new ArrayList<Item>(imports.size());
         LocalStorage storage = new LocalStorage();
 //        Mapping mapping = new Mapping();
         PageMapper mapper = new PageMapper();
-        for (ImportItem imp : imports) {
-            File foxml = imp.getFoxmlAsFile();
+        for (BatchItemObject imp : imports) {
+            File foxml = imp.getFile();
             LocalObject local = storage.load(imp.getPid(), foxml);
             ModsStreamEditor editor = new ModsStreamEditor(local);
             Page page = mapper.map(editor.read());
 //            Object custom = mapping.read(record.getMods(), MetaModelDataSource.EDITOR_PAGE);
-            String model = new RelationEditor(local).getModel();
-            result.add(new Item(batchId, imp.getFilename(), imp.getPid(),
+            RelationEditor relsExt = new RelationEditor(local);
+            String model = relsExt.getModel();
+            String filename = relsExt.getImportFile();
+            result.add(new Item(batchId, filename, imp.getPid(),
                     model, page.getIndex(), page.getNumber(), page.getType(),
                     editor.getLastModified(), local.getOwner()));
         }
         return result;
     }
 
-    public Item updateItem(int batchId, ImportItem item, long timestamp, String message,
+    public Item updateItem(int batchId, BatchItemObject item, long timestamp, String message,
             String pageIndex, String pageNumber, String pageType)
             throws DigitalObjectException {
         
         LocalStorage storage = new LocalStorage();
 //        PageMapper mapper = new PageMapper();
-        LocalObject local = storage.load(item.getPid(), item.getFoxmlAsFile());
+        LocalObject local = storage.load(item.getPid(), item.getFile());
 
         // MODS
         ModsStreamEditor editor = new ModsStreamEditor(local);
@@ -77,8 +79,9 @@ public final class PageView {
         editor.updatePage(mods, pageIndex, pageNumber, pageType);
         editor.write(mods, timestamp, message);
 
-        // performance: store model inside batch item
-        String model = new RelationEditor(local).getModel();
+        RelationEditor relsExt = new RelationEditor(local);
+        String model = relsExt.getModel();
+        String filename = relsExt.getImportFile();
 
         // DC
         DcStreamEditor dcEditor = new DcStreamEditor(local);
@@ -87,7 +90,7 @@ public final class PageView {
         local.setLabel(ModsUtils.getLabel(mods, model));
 
         local.flush();
-        Item update = new Item(batchId, item.getFilename(), item.getPid(), model,
+        Item update = new Item(batchId, filename, item.getPid(), model,
                 pageIndex, pageNumber, pageType,
                 editor.getLastModified(), local.getOwner());
         return update;

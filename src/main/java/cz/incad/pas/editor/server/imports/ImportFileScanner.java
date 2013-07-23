@@ -27,8 +27,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -42,6 +44,11 @@ public final class ImportFileScanner {
     }
 
     public static final String IMPORT_STATE_FILENAME = "proarc_import_status.log";
+    /** system filenames to exclude from digital content list */
+    private static final Set<String> EXCLUDE_FILENAMES = new HashSet<String>(Arrays.asList(
+            IMPORT_STATE_FILENAME,
+            ImportProcess.TMP_DIR_NAME
+            ));
 
     private static final FileFilter FOLDER_FILTER = new FileFilter() {
         @Override
@@ -113,7 +120,7 @@ public final class ImportFileScanner {
         File[] files = folder.listFiles();
         List<File> contents = new ArrayList<File>(files.length);
         for (File file : files) {
-            if (!file.isDirectory() || file.canRead()) {
+            if (file.isFile()&& file.canRead() && !EXCLUDE_FILENAMES.contains(file.getName())) {
                 contents.add(file);
             }
         }

@@ -20,6 +20,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.common.dao.Batch;
 import cz.incad.pas.editor.server.config.AppConfiguration;
 import cz.incad.pas.editor.server.config.AppConfigurationException;
 import cz.incad.pas.editor.server.config.AppConfigurationFactory;
@@ -41,8 +42,7 @@ import cz.incad.pas.editor.server.fedora.StringEditor;
 import cz.incad.pas.editor.server.fedora.StringEditor.StringRecord;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.BatchItemObject;
 import cz.incad.pas.editor.server.json.JsonUtils;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.ModsUtils;
@@ -318,11 +318,11 @@ public class DigitalObjectResource {
             throws IOException, FedoraClientException {
         
         if (batchId != null) {
-            List<ImportBatch> batches = importManager.find(null, batchId, null);
-            if (batches.isEmpty()) {
+            Batch batch = importManager.get(batchId);
+            String parentPid = batch == null ? null : batch.getParentPid();
+            if (parentPid == null) {
                 return Collections.emptyList();
             } else {
-                String parentPid = batches.get(0).getParentPid();
                 return search.find(parentPid);
             }
         } else {
@@ -853,15 +853,15 @@ public class DigitalObjectResource {
     private FedoraObject findFedoraObject(String pid, Integer batchId, boolean readonly) throws IOException {
         FedoraObject fobject;
         if (batchId != null) {
-            ImportItem item = importManager.findItem(pid);
+            BatchItemObject item = importManager.findBatchObject(batchId, pid);
             if (item == null) {
                 throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
             }
             if (!readonly) {
-                List<ImportBatch> batches = importManager.find(null, batchId, null);
-                ImportResource.checkBatchState(batches.get(0));
+                Batch batch = importManager.get(batchId);
+                ImportResource.checkBatchState(batch);
             }
-            fobject = new LocalStorage().load(pid, item.getFoxmlAsFile());
+            fobject = new LocalStorage().load(pid, item.getFile());
         } else {
             fobject = RemoteStorage.getInstance(appConfig).find(pid);
         }

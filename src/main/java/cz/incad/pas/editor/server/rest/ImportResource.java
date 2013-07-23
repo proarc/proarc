@@ -17,6 +17,8 @@
 package cz.incad.pas.editor.server.rest;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.incad.pas.editor.server.config.AppConfiguration;
 import cz.incad.pas.editor.server.config.AppConfigurationException;
 import cz.incad.pas.editor.server.config.AppConfigurationFactory;
@@ -26,9 +28,7 @@ import cz.incad.pas.editor.server.fedora.PageView.Item;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.imports.FedoraImport;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch.State;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.BatchItemObject;
 import cz.incad.pas.editor.server.imports.ImportDispatcher;
 import cz.incad.pas.editor.server.imports.ImportFileScanner;
 import cz.incad.pas.editor.server.imports.ImportFileScanner.Folder;
@@ -44,7 +44,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -168,7 +167,7 @@ public class ImportResource {
     @POST
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ImportBatch> newBatch(
+    public SmartGwtResponse<BatchView> newBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.NEWBATCH_MODEL_PARAM) @DefaultValue("model:page") String model,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
@@ -186,42 +185,35 @@ public class ImportResource {
         File folder = new File(folderUri);
         ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
                 importManager, model, device, indices);
-        ImportBatch batch = process.getBatch();
-        if (batch == null) {
-            return new SmartGwtResponse<ImportBatch>(Collections.<ImportBatch>emptyList());
-        }
         ImportDispatcher.getDefault().addImport(process);
-        return new SmartGwtResponse<ImportBatch>(batch);
+        Batch batch = process.getBatch();
+        return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
     }
 
+    // XXX implement filter for batches
     @GET
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<ImportBatch> listBatches(
+    public SmartGwtResponse<BatchView> listBatches(
             @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
             @QueryParam("_startRow") int startRow
             ) {
 
-        List<ImportBatch> batches;
-        if (batchId != null) {
-            batches = importManager.find(user, batchId, null);
-        } else {
-            batches = importManager.findAll(user);
-        }
-        return new SmartGwtResponse<ImportBatch>(batches);
+        List<BatchView> batches = importManager.viewBatch(user.getId(), batchId, null, startRow);
+        return new SmartGwtResponse<BatchView>(batches);
     }
 
     @PUT
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<ImportBatch> updateBatch(
+    public SmartGwtResponse<BatchView> updateBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
             // empty string stands for remove
             @FormParam(ImportResourceApi.IMPORT_BATCH_PARENTPID) String parentPid,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_STATE) ImportBatch.State state
+            @FormParam(ImportResourceApi.IMPORT_BATCH_STATE) Batch.State state
             ) throws IOException, FedoraClientException, DigitalObjectException {
 
-        ImportBatch batch = importManager.get(batchId);
+        Batch batch = importManager.get(batchId);
         if (batch == null) {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
@@ -233,12 +225,13 @@ public class ImportResource {
             batch.setParentPid(parentPid);
             batch = importManager.update(batch);
         }
-        if (state == ImportBatch.State.INGESTING) {
+        if (state == Batch.State.INGESTING) {
             // ingest
             batch = new FedoraImport(RemoteStorage.getInstance(appConfig), importManager)
                     .importBatch(batch, user.getUserName(), session.asFedoraLog());
         }
-        return new SmartGwtResponse<ImportBatch>(batch);
+        BatchView batchView = importManager.viewBatch(batch.getId());
+        return new SmartGwtResponse<BatchView>(batchView);
     }
 
     @GET
@@ -251,21 +244,24 @@ public class ImportResource {
             ) throws DigitalObjectException {
 
         startRow = Math.max(0, startRow);
-        List<ImportItem> imports = null;
+        List<BatchItemObject> imports = null;
 
+        Batch batch = null;
         if (batchId != null) {
-            imports = importManager.findItems(batchId, pid);
+            batch = importManager.get(batchId);
+            if (batch.getState() == Batch.State.LOADING_FAILED) {
+                throw RestException.plainText(Status.FORBIDDEN, "Batch not loaded.");
+            }
+            imports = pid != null && !pid.isEmpty()
+                    ? importManager.findBatchObjects(batchId, pid)
+                    : importManager.findLoadedObjects(batch);
         }
         if (imports == null) {
             throw RestException.plainText(Status.NOT_FOUND, String.format("Not found! batchId: %s, pid: %s", batchId, pid));
         }
 
-        ImportBatch batch = importManager.get(batchId);
-        if (batch.getState() == State.LOADING_FAILED) {
-            throw RestException.plainText(Status.FORBIDDEN, "Batch not loaded.");
-        }
         int totalImports = imports.size();
-        int totalRows = (batch.getState() == State.LOADING) ? batch.getEstimateFileCount() : totalImports;
+        int totalRows = (batch.getState() == Batch.State.LOADING) ? batch.getEstimateItemNumber(): totalImports;
         if (totalImports == 0) {
             return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, totalRows, null);
         }
@@ -296,16 +292,16 @@ public class ImportResource {
             @FormParam(ImportResourceApi.BATCHITEM_FILENAME) String filename
             ) throws IOException, DigitalObjectException {
 
-        ImportItem item = null;
+        BatchItemObject item = null;
         if (batchId != null && pid != null && !pid.isEmpty()) {
-            item = importManager.findItem(pid);
+            item = importManager.findBatchObject(batchId, pid);
         }
         if (item == null) {
             throw RestException.plainText(Status.NOT_FOUND, "Item not found!");
         }
 
-        List<ImportBatch> batches = importManager.find(null, batchId, null);
-        checkBatchState(batches.get(0));
+        Batch batch = importManager.get(batchId);
+        checkBatchState(batch);
         Item updatedItem = new PageView().updateItem(
                 batchId, item, timestamp, session.asFedoraLog(), pageIndex, pageNumber, pageType);
         return new SmartGwtResponse<Item>(updatedItem);
@@ -319,18 +315,20 @@ public class ImportResource {
             @QueryParam(ImportResourceApi.BATCHITEM_PID) String pid
             ) {
 
-        ImportItem item = null;
+        boolean changed = false;
         if (batchId != null && pid != null && !pid.isEmpty()) {
-            item = importManager.findItem(pid);
+            Batch batch = importManager.get(batchId);
+            if (batch != null) {
+                checkBatchState(batch);
+                changed = importManager.excludeBatchObject(batch, pid);
+            }
         }
-        if (item == null) {
+        if (changed) {
+            Item deletedItem = new PageView.Item(batchId, null, pid, null, null, null, null, 0, null);
+            return new SmartGwtResponse<Item>(deletedItem);
+        } else {
             throw RestException.plainText(Status.NOT_FOUND, "Batch item not found!");
         }
-        List<ImportBatch> batches = importManager.find(null, batchId, null);
-        checkBatchState(batches.get(0));
-        importManager.removeItem(batchId, pid);
-        Item deletedItem = new PageView.Item(batchId, null, pid, null, null, null, null, 0, null);
-        return new SmartGwtResponse<Item>(deletedItem);
     }
 
     private static String validateParentPath(String parent) {
@@ -355,8 +353,8 @@ public class ImportResource {
 
     }
 
-    public static void checkBatchState(ImportBatch batch) throws RestException {
-        if (batch.getState() != State.LOADED) {
+    public static void checkBatchState(Batch batch) throws RestException {
+        if (batch.getState() != Batch.State.LOADED) {
             throw RestException.plainText(Status.FORBIDDEN, String.format(
                     "Batch %s is not editable! Unexpected state: %s", batch.getId(), batch.getState()));
         }

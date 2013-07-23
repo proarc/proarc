@@ -16,20 +16,19 @@
  */
 package cz.incad.pas.editor.server.imports;
 
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
+import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.BatchItemObject;
+import cz.incad.pas.editor.server.user.UserManager;
 import cz.incad.pas.editor.server.user.UserProfile;
+import cz.incad.pas.editor.server.user.UserUtil;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.net.FileNameMap;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,16 +46,16 @@ public final class ImportProcess implements Runnable {
     private static final Logger LOG = Logger.getLogger(ImportProcess.class.getName());
     static final String TMP_DIR_NAME = "proarc_import";
     private ImportBatchManager batchManager;
-    private static final List<TiffImporter> consumerRegistery = Collections.singletonList(new TiffImporter());
-    private List<ImportItemFailure> failures = new ArrayList<ImportItemFailure>();
+    private static List<TiffImporter> consumerRegistery;
     private final ImportOptions importConfig;
-    private ImportBatch batch;
+    /** can be null before calling {@link #prepare} */
+    private Batch batch;
 
     ImportProcess(ImportOptions importConfig, ImportBatchManager batchManager) {
         this(null, importConfig, batchManager);
     }
 
-    ImportProcess(ImportBatch batch, ImportOptions importConfig, ImportBatchManager batchManager) {
+    ImportProcess(Batch batch, ImportOptions importConfig, ImportBatchManager batchManager) {
         this.batch = batch;
         this.importConfig = importConfig;
         this.batchManager = batchManager;
@@ -83,12 +82,16 @@ public final class ImportProcess implements Runnable {
      * @see #prepare
      * @see ImportDispatcher
      */
-    public static ImportProcess resume(ImportBatch batch, ImportBatchManager ibm) {
-        ImportOptions config = batch.getOptions();
+    public static ImportProcess resume(Batch batch, ImportBatchManager ibm) {
+        UserManager users = UserUtil.getDefaultManger();
+        UserProfile user = users.find(batch.getUserId());
+        File importFolder = ibm.resolveBatchFile(batch.getFolder());
+        ImportOptions config = ImportOptions.fromBatch(
+                batch, importFolder, user.getUserName());
         // if necessary reset old computed batch items
         ImportProcess process = new ImportProcess(batch, config, ibm);
         process.removeCaches(config.getImportFolder());
-        process.removeBatchItems(batch.getId());
+        process.removeBatchItems(batch);
         return process;
     }
 
@@ -97,8 +100,8 @@ public final class ImportProcess implements Runnable {
      * This should be run when application starts.
      */
     public static void resumeAll(ImportBatchManager ibm, ImportDispatcher dispatcher) {
-        List<ImportBatch> batches2schedule = ibm.find(null, null, ImportBatchManager.ImportBatch.State.LOADING);
-        for (ImportBatch batch : batches2schedule) {
+        List<Batch> batches2schedule = ibm.findLoadingBatches();
+        for (Batch batch : batches2schedule) {
             ImportProcess resume = ImportProcess.resume(batch, ibm);
             dispatcher.addImport(resume);
         }
@@ -123,15 +126,13 @@ public final class ImportProcess implements Runnable {
                 // nothing to import
                 return;
             }
-            batch = new ImportBatch();
-            batch.setFolderPath(importFolder);
-            batch.setDescription(description);
-            batch.setUser(user.getUserName());
-            batch.setUserId(user.getId());
-            batch.setState(ImportBatch.State.LOADING);
-            batch.setEstimateFileCount(fileSets.size());
-            batch.setOptions(importConfig);
-            batch = batchManager.add(batch);
+            batch = batchManager.add(
+                    importFolder,
+                    description,
+                    user,
+                    fileSets.size(),
+                    importConfig);
+            importConfig.setBatch(batch);
             transactionFailed = false;
         } finally {
             if (transactionFailed) {
@@ -140,14 +141,10 @@ public final class ImportProcess implements Runnable {
         }
     }
 
-    private ImportBatch logBatchFailure(ImportBatch batch, Throwable t) {
-        LOG.log(Level.SEVERE, "batch: " + batch.getId(), t);
-        StringWriter dump = new StringWriter();
-        PrintWriter pw = new PrintWriter(dump);
-        t.printStackTrace(pw);
-        pw.close();
-        batch.setState(ImportBatch.State.LOADING_FAILED);
-        batch.setFailure(dump.toString());
+    private Batch logBatchFailure(Batch batch, Throwable t) {
+        LOG.log(Level.SEVERE, batch.toString(), t);
+        batch.setState(Batch.State.LOADING_FAILED);
+        batch.setLog(ImportBatchManager.toString(t));
         return batchManager.update(batch);
     }
 
@@ -160,28 +157,20 @@ public final class ImportProcess implements Runnable {
      * Starts the process.
      * @return the import batch
      */
-    public ImportBatch start() {
+    public Batch start() {
         if (batch == null) {
-            throw new IllegalStateException("Batch not found: ");
+            throw new IllegalStateException("run prepare first!");
         }
-        int batchId = batch.getId();
-
-        // validate import folder
         File importFolder = importConfig.getImportFolder();
         try {
             ImportFileScanner.validateImportFolder(importFolder);
-        } catch (Throwable t) {
-            return logBatchFailure(batch, t);
-        }
 
-        try {
             File targetFolder = createTargetFolder(importFolder);
             importConfig.setTargetFolder(targetFolder);
             ImportFileScanner scanner = new ImportFileScanner();
             List<File> files = scanner.findDigitalContent(importFolder);
             List<FileSet> fileSets = ImportFileScanner.getFileSets(files);
-            consumeFileSets(batchId, fileSets, importConfig);
-            batch.setState(ImportBatch.State.LOADED);
+            consumeFileSets(batch, fileSets, importConfig);
             batch = batchManager.update(batch);
             return batch;
         } catch (InterruptedException ex) {
@@ -196,20 +185,20 @@ public final class ImportProcess implements Runnable {
         deleteFolder(getTargetFolder(importFoder));
     }
 
-    private void removeBatchItems(int batchId) {
-        batchManager.removeItems(batchId);
+    private void removeBatchItems(Batch batch) {
+        batchManager.resetBatch(batch);
     }
 
     public ImportOptions getImportConfig() {
         return importConfig;
     }
 
-    public ImportBatch getBatch() {
+    public Batch getBatch() {
         return batch;
     }
 
     static boolean canImport(FileSet fileSet) {
-        for (TiffImporter consumer : consumerRegistery) {
+        for (TiffImporter consumer : getConsumers()) {
             if (consumer.accept(fileSet)) {
                 return true;
             }
@@ -226,7 +215,7 @@ public final class ImportProcess implements Runnable {
         return false;
     }
 
-    private static File createTargetFolder(File importFolder) throws IOException {
+    static File createTargetFolder(File importFolder) throws IOException {
         File folder = getTargetFolder(importFolder);
         if (!folder.mkdir()) {
             throw new IOException("Import folder already exists: " + folder);
@@ -234,7 +223,7 @@ public final class ImportProcess implements Runnable {
         return folder;
     }
 
-    private static File getTargetFolder(File importFolder) {
+    static File getTargetFolder(File importFolder) {
         File folder = new File(importFolder, TMP_DIR_NAME);
         return folder;
     }
@@ -259,41 +248,33 @@ public final class ImportProcess implements Runnable {
         }
     }
 
-    public List<ImportItemFailure> getFailures() {
-        return this.failures;
-    }
-
-    private void consumeFileSets(int batchId, List<FileSet> fileSets, ImportOptions ctx) throws InterruptedException {
+    private void consumeFileSets(Batch batch, List<FileSet> fileSets, ImportOptions ctx) throws InterruptedException {
         long start = System.currentTimeMillis();
         for (FileSet fileSet : fileSets) {
             if (Thread.interrupted()) {
                 throw new InterruptedException();
             }
-            String itemName = fileSet.getName();
-            try {
-                ImportItem item = consumeFileSet(fileSet, ctx);
-                if (item != null) {
-                    batchManager.addItem(batchId, item);
-                } else {
-                    // XXX implement failed items in ImportBatchManager
-                    // ImportItem importItem = new ImportItem((String) null, file.toString(), null);
-                    this.failures.add(new ImportItemFailure(itemName, "unsupported file"));
+            BatchItemObject item = consumeFileSet(fileSet, ctx);
+            String pid = item == null ? null : item.getPid();
+            FileState state = item == null ? FileState.SKIPPED : FileState.OK;
+            batchManager.addFileItem(batch.getId(), pid, state, fileSet.getFiles());
+            if (item != null) {
+                if (ObjectState.LOADING_FAILED == item.getState()) {
+                    batch.setState(Batch.State.LOADING_FAILED);
+                    batch.setLog(item.getLog());
+                    return ;
                 }
-            } catch (IOException ex) {
-                StringWriter sw = new StringWriter();
-                ex.printStackTrace(new PrintWriter(sw));
-                this.failures.add(new ImportItemFailure(itemName, sw.toString()));
-                LOG.log(Level.SEVERE, itemName, ex);
             }
         }
         LOG.log(Level.INFO, "Total time: {0} ms", System.currentTimeMillis() - start);
+        batch.setState(Batch.State.LOADED);
     }
 
-    private ImportItem consumeFileSet(FileSet fileSet, ImportOptions ctx) throws IOException {
+    private BatchItemObject consumeFileSet(FileSet fileSet, ImportOptions ctx) {
         long start = System.currentTimeMillis();
         List<TiffImporter> consumers = getConsumers();
         for (TiffImporter consumer : consumers) {
-            ImportItem item = consumer.consume(fileSet, ctx);
+            BatchItemObject item = consumer.consume(fileSet, ctx);
             if (item != null) {
                 LOG.log(Level.INFO, "time: {0} ms, {1}", new Object[] {System.currentTimeMillis() - start, fileSet});
                 ++ctx.consumedFileCounter;
@@ -304,7 +285,11 @@ public final class ImportProcess implements Runnable {
         return null;
     }
 
-    private List<TiffImporter> getConsumers() {
+    private static List<TiffImporter> getConsumers() {
+        if (consumerRegistery == null) {
+            consumerRegistery = Collections.singletonList(
+                    new TiffImporter(ImportBatchManager.getInstance()));
+        }
         return consumerRegistery;
     }
 
@@ -332,6 +317,7 @@ public final class ImportProcess implements Runnable {
         private String model;
         private String ocrFilePattern = ".+\\.ocr\\.txt";
         private String ocrCharset = "UTF-8";
+        private Batch batch;
 
         ImportOptions(File importFolder, String model, String device,
                 boolean generateIndices, String username
@@ -383,63 +369,21 @@ public final class ImportProcess implements Runnable {
             return ocrCharset;
         }
 
-        public String asString() {
-            Properties properties = new Properties();
-            properties.setProperty("indicies", String.valueOf(isGenerateIndices()));
-            properties.setProperty("device", getDevice());
-            properties.setProperty("model", getModel());
-            try {
-                StringWriter dump = new StringWriter();
-                properties.store(dump, null);
-                String options = dump.toString();
-                // remove comments
-                return options.replaceAll("#.*\\n", "");
-            } catch (IOException ex) {
-                throw new IllegalStateException(ex);
-            }
+        public Batch getBatch() {
+            return batch;
         }
 
-        public static ImportOptions fromString(File importFolder, String username, String options) {
-            ImportOptions config = new ImportOptions(importFolder, null, null, true, username);
-            if (options != null && !options.isEmpty()) {
-                Properties p = new Properties();
-                try {
-                    p.load(new StringReader(options));
-                    String indicies = p.getProperty("indicies", "true");
-                    config.generateIndices = Boolean.parseBoolean(indicies);
-                    String device = p.getProperty("device");
-                    config.device = device;
-                    String model = p.getProperty("model");
-                    config.model = model;
-                } catch (IOException ex) {
-                    throw new IllegalStateException(ex);
-                }
-            }
+        public void setBatch(Batch batch) {
+            this.batch = batch;
+        }
+
+        public static ImportOptions fromBatch(Batch batch, File importFolder, String username) {
+            ImportOptions config = new ImportOptions(
+                    importFolder, "model:page", batch.getDevice(), batch.isGenerateIndices(), username);
+            config.setBatch(batch);
             return config;
         }
 
-    }
-    
-    public static class ImportItemFailure {
-        private String filename;
-        private String reason;
-
-        private ImportItemFailure() {
-        }
-
-        public ImportItemFailure(String filename, String reason) {
-            this.filename = filename;
-            this.reason = reason;
-        }
-
-        public String getFilename() {
-            return filename;
-        }
-
-        public String getReason() {
-            return reason;
-        }
-        
     }
 
 }

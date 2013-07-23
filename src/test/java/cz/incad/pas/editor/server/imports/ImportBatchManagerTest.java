@@ -19,11 +19,6 @@ package cz.incad.pas.editor.server.imports;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
 import cz.incad.pas.editor.server.config.AppConfiguration;
 import cz.incad.pas.editor.server.config.AppConfigurationFactory;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
-import cz.incad.pas.editor.server.user.UserManager;
-import cz.incad.pas.editor.server.user.UserProfile;
-import cz.incad.pas.editor.server.user.UserUtil;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -73,59 +68,6 @@ public class ImportBatchManagerTest {
     public void tearDown() {
 //        System.clearProperty(AppConfiguration.ENV_APP_HOME);
 //        appConf.reload();
-    }
-
-    @Test
-    public void testSaveEmpty() {
-//        File configHome = temp.getRoot();
-//        assertNotNull(configHome);
-        ImportBatchManager ibm = new ImportBatchManager(appConf);
-        assertEquals(0, ibm.getMap().size());
-        ImportBatchManager.save(appConf.getConfigHome(), ibm);
-        assertEquals(0, ibm.getMap().size());
-    }
-
-    @Test
-    public void testSave() {
-//        File configHome = temp.getRoot();
-//        assertNotNull(configHome);
-        ImportBatchManager ibm = new ImportBatchManager(appConf);
-
-        UserManager users = UserUtil.createUserManagerMemoryImpl(appConf);
-        UserProfile admin = users.find("admin");
-        ImportBatch batch = new ImportBatch();
-        batch.setDescription("description");
-        batch.setFolderPath("path/to/first_import");
-        batch.setUser(admin.getUserName());
-        batch.setUserId(admin.getId());
-        batch.setState(ImportBatch.State.LOADING);
-        batch = ibm.add(batch);
-        ibm.addItem(batch.getId(), new ImportItem("url/to/foxml1", "tiff1", "uuid:1"));
-        ibm.addItem(batch.getId(), new ImportItem("url/to/foxml2", "tiff2", "uuid:2"));
-        ibm.addItem(batch.getId(), new ImportItem("url/to/foxml3", "tiff3", "uuid:3"));
-
-        assertEquals(1, ibm.getMap().size());
-//        ImportBatchManager.save(appConf.getConfigHome(), ibm);
-//        assertEquals(1, ibm.getMap().size());
-
-        // XXX check XML with XMLAssert
-
-        // test rewrite
-        ImportBatchManager.save(appConf.getConfigHome(), ibm);
-        assertEquals(1, ibm.getMap().size());
-
-        // test reload
-        ImportBatchManager.load(appConf.getConfigHome(), ibm, users);
-        assertEquals(1, ibm.getMap().size());
-    }
-
-    @Test
-    public void testLoadEmpty() {
-        ImportBatchManager ibm = new ImportBatchManager(appConf);
-        assertEquals(0, ibm.getMap().size());
-        UserManager users = UserUtil.createUserManagerMemoryImpl(appConf);
-        ImportBatchManager.load(appConf.getConfigHome(), ibm, users);
-        assertEquals(0, ibm.getMap().size());
     }
 
 //    @Test

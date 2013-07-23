@@ -19,6 +19,7 @@ package cz.incad.pas.editor.server.imports;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
+import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
@@ -29,7 +30,7 @@ import cz.incad.pas.editor.server.fedora.StringEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
 import cz.incad.pas.editor.server.imports.FileSet.FileEntry;
-import cz.incad.pas.editor.server.imports.ImportBatchManager.ImportItem;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.BatchItemObject;
 import cz.incad.pas.editor.server.imports.ImportProcess.ImportOptions;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.ModsUtils;
@@ -62,20 +63,17 @@ import javax.ws.rs.core.MediaType;
 public final class TiffImporter {
 
     private static final Logger LOG = Logger.getLogger(TiffImporter.class.getName());
+    private final ImportBatchManager ibm;
+
+    public TiffImporter(ImportBatchManager ibm) {
+        this.ibm = ibm;
+    }
 
     public boolean accept(FileSet fileSet) {
         return isTiff(fileSet);
     }
 
-    public ImportItem consume(FileSet fileSet, ImportOptions ctx) throws IOException {
-        try {
-            return consumeImpl(fileSet, ctx);
-        } catch (DigitalObjectException ex) {
-            throw new IOException(ex);
-        }
-    }
-
-    private ImportItem consumeImpl(FileSet fileSet, ImportOptions ctx) throws IOException, DigitalObjectException {
+    public BatchItemObject consume(FileSet fileSet, ImportOptions ctx) {
         FileEntry tiffEntry = findTiff(fileSet);
         // check tiff file
         if (tiffEntry == null) {
@@ -84,20 +82,45 @@ public final class TiffImporter {
 
         File f = tiffEntry.getFile();
         String originalFilename = fileSet.getName();
-        String fedoraModel = ctx.getModel();
-        File tempBatchFolder = ctx.getTargetFolder();
 
         // creates FOXML and metadata
+        LocalObject localObj = createObject(originalFilename, ctx);
+        BatchItemObject batchLocalObject = ibm.addLocalObject(ctx.getBatch(), localObj);
+        try {
+            createMetadata(localObj, ctx);
+            createRelsExt(localObj, f, ctx);
+            createImages(ctx.getTargetFolder(), f, originalFilename, localObj);
+            importOcr(fileSet, localObj, ctx);
+            // XXX generate ATM
+            // writes FOXML
+            localObj.flush();
+            ibm.addChildRelation(ctx.getBatch(), null, localObj.getPid());
+            batchLocalObject.setState(ObjectState.LOADED);
+        } catch (Throwable ex) {
+            LOG.log(Level.SEVERE, f.toString(), ex);
+            batchLocalObject.setState(ObjectState.LOADING_FAILED);
+            batchLocalObject.setLog(ImportBatchManager.toString(ex));
+        }
+        ibm.update(batchLocalObject);
+
+        return batchLocalObject;
+    }
+
+    private LocalObject createObject(String originalFilename, ImportOptions ctx) {
+        File tempBatchFolder = ctx.getTargetFolder();
         LocalStorage storage = new LocalStorage();
         File foxml = new File(tempBatchFolder, originalFilename + ".foxml");
         LocalObject localObj = storage.create(foxml);
         localObj.setOwner(ctx.getUsername());
-        String pid = localObj.getPid();
+        return localObj;
+    }
 
+    private void createMetadata(LocalObject localObj, ImportOptions ctx) throws DigitalObjectException {
+        String fedoraModel = ctx.getModel();
         // MODS
         ModsStreamEditor modsEditor = new ModsStreamEditor(localObj);
         String pageIndex = ctx.isGenerateIndices() ? String.valueOf(ctx.getConsumedFileCounter() + 1) : null;
-        ModsType mods = modsEditor.createPage(pid, pageIndex, null, null);
+        ModsType mods = modsEditor.createPage(localObj.getPid(), pageIndex, null, null);
         modsEditor.write(mods, 0, null);
 
         // DC
@@ -105,28 +128,16 @@ public final class TiffImporter {
         dcEditor.write(mods, fedoraModel, 0, null);
 
         localObj.setLabel(ModsUtils.getLabel(mods, fedoraModel));
+    }
 
-        // RELS-EXT
+    private void createRelsExt(LocalObject localObj, File f, ImportOptions ctx) throws DigitalObjectException {
+        String fedoraModel = ctx.getModel();
         RelationEditor relEditor = new RelationEditor(localObj);
         relEditor.setModel(fedoraModel);
         relEditor.setDevice(ctx.getDevice());
         relEditor.setImportFile(f.getName());
         relEditor.write(0, null);
         // XXX use fedora-model:downloadFilename in RELS-INT or label of datastream to specify filename
-
-        // Images
-        BinaryEditor.dissemination(localObj, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF)
-                .write(f, 0, null);
-        createImages(tempBatchFolder, f, originalFilename, localObj);
-
-        // OCR
-        importOcr(fileSet, localObj, ctx);
-        
-        // XXX generate ATM
-        // writes FOXML
-        localObj.flush();
-
-        return new ImportItem(foxml, originalFilename, pid);
     }
 
     private boolean isTiff(FileSet fileSet) {
@@ -171,6 +182,9 @@ public final class TiffImporter {
     private void createImages(File tempBatchFolder, File original, String originalFilename, LocalObject foxml)
             throws IOException, DigitalObjectException {
         
+        BinaryEditor.dissemination(foxml, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF)
+                .write(original, 0, null);
+
         long start = System.nanoTime();
         BufferedImage tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
         long endRead = System.nanoTime() - start;

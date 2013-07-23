@@ -16,13 +16,18 @@
  */
 package cz.incad.pas.editor.server.imports;
 
+import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
+import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.imports.FileSet.FileEntry;
 import cz.incad.pas.editor.server.imports.ImportFileScanner.Folder;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -53,6 +58,10 @@ public class ImportFileScannerTest {
 
     @Before
     public void setUp() throws Exception {
+        AppConfiguration config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
+            put(AppConfiguration.PROPERTY_APP_HOME, tmpFolder.getRoot().getPath());
+        }});
+        ImportBatchManager.setInstance(config, EasyMock.createMock(DaoFactory.class));
     }
 
     @After
@@ -83,28 +92,18 @@ public class ImportFileScannerTest {
         assertEquals(ImportFileScanner.State.NEW, result.get(2).getStatus());
     }
 
-    @Test
+    @Test(expected = FileNotFoundException.class)
     public void testScanFileNotFound() throws Exception {
         File folder = new File(tmpFolder.getRoot(), "A");
         ImportFileScanner instance = new ImportFileScanner();
-        try {
-            List<Folder> result = instance.findSubfolders(folder);
-            fail("exception expected");
-        } catch (FileNotFoundException ex) {
-            // expected
-        }
+        List<Folder> result = instance.findSubfolders(folder);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testScanFileAsParameter() throws Exception {
         File file = tmpFolder.newFile("illegal.param");
         ImportFileScanner instance = new ImportFileScanner();
-        try {
-            List<Folder> result = instance.findSubfolders(file);
-            fail("exception expected");
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
+        List<Folder> result = instance.findSubfolders(file);
     }
 
     @Test
@@ -146,6 +145,8 @@ public class ImportFileScannerTest {
     public void testFindDigitalContent() throws Exception {
         File f1 = tmpFolder.newFile("f1.ext");
         File f2 = tmpFolder.newFile("f2.ext");
+        tmpFolder.newFile(ImportFileScanner.IMPORT_STATE_FILENAME);
+        tmpFolder.newFolder(ImportProcess.TMP_DIR_NAME);
         ImportFileScanner instance = new ImportFileScanner();
         List<File> result = instance.findDigitalContent(tmpFolder.getRoot());
         assertNotNull(result);

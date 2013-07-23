@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset>
+    <proarc_users userid="1" username="test" surname="TestSurname" home="{$user.home}" created="2013-01-12" />
+</dataset>
