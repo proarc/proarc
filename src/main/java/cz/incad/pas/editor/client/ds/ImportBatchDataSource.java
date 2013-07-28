@@ -29,6 +29,7 @@ import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.OperatorId;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.shared.rest.ImportResourceApi;
@@ -99,11 +100,13 @@ public final class ImportBatchDataSource extends RestDataSource {
 
     @Override
     protected Object transformRequest(DSRequest dsRequest) {
-        Criteria criteria = dsRequest.getCriteria();
-        if (criteria.isAdvanced()) {
-            HashMap<String, Object> record = new HashMap<String, Object>();
-            advanceCriteriaAsParams(criteria.asAdvancedCriteria(), record);
-            dsRequest.setData(record);
+        if (dsRequest.getOperationType() == DSOperationType.FETCH) {
+            Criteria criteria = dsRequest.getCriteria();
+            if (criteria.isAdvanced()) {
+                HashMap<String, Object> record = new HashMap<String, Object>();
+                advanceCriteriaAsParams(criteria.asAdvancedCriteria(), record);
+                dsRequest.setData(record);
+            }
         }
         return super.transformRequest(dsRequest);
     }
