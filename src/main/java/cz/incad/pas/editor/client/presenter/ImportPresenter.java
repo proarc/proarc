@@ -313,6 +313,9 @@ public class ImportPresenter {
         }
 
         private void handleImportSource() {
+            if (!importSourceChooser.validateOptions()) {
+                return ;
+            }
             Record record = importSourceChooser.getImportSource();
             ImportRecord importRecord = record == null ? null : new ImportRecord(record);
 

@@ -35,6 +35,7 @@ import com.smartgwt.client.widgets.tree.TreeNode;
 import com.smartgwt.client.widgets.tree.events.FolderClickEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClickHandler;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 import cz.incad.pas.editor.client.ds.ImportTreeDataSource;
 import java.util.LinkedHashMap;
@@ -102,7 +103,10 @@ public final class ImportSourceChooser extends VLayout {
         scannerMap.put("device:scanrobot_sr301", "ScanRobot SR301");
         scannerMap.put("device:zeutschel_7000", "Zeutschel OS 7000");
         selectScanner.setValueMap(scannerMap);
-        selectScanner.setDefaultToFirstOption(true);
+        selectScanner.setAllowEmptyValue(true);
+        selectScanner.setEmptyDisplayValue(
+                ClientUtils.format("<i>&lt;%s&gt;</i>", i18n.NewDigObject_OptionModel_EmptyValue_Title()));
+        selectScanner.setRequired(true);
         
         optionsForm.setFields(cbiPageIndexes, selectScanner);
         layout.addMember(optionsForm);
@@ -142,6 +146,10 @@ public final class ImportSourceChooser extends VLayout {
 
     public String getDevice() {
         return optionsForm.getValueAsString(ImportBatchDataSource.FIELD_DEVICE);
+    }
+
+    public boolean validateOptions() {
+        return optionsForm.validate();
     }
 
     /**
