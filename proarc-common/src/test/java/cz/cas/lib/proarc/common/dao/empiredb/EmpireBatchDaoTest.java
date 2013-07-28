@@ -300,6 +300,24 @@ public class EmpireBatchDaoTest {
     }
 
     @Test
+    public void testViewDateFilter() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "batch_with_items.xml")
+                );
+        DatabaseOperation.CLEAN_INSERT.execute(support.getConnection(tx), db);
+        tx.commit();
+
+        List<BatchView> view = dao.view(null, null, null, Timestamp.valueOf("2013-01-18 01:00:00.000"), null, 0, 100, null);
+        assertEquals(1, view.size());
+        assertEquals((Integer) 2, view.get(0).getId());
+
+        view = dao.view(null, null, null, null, Timestamp.valueOf("2013-01-18 01:00:00.000"), 0, 100, null);
+        assertEquals(1, view.size());
+        assertEquals((Integer) 1, view.get(0).getId());
+    }
+
+    @Test
     public void testViewSort() throws Exception {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),

@@ -43,6 +43,7 @@ import org.apache.empire.db.DBRecordData;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
 import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
+import org.apache.empire.db.expr.compare.DBCompareExpr;
 
 /**
  *
@@ -162,10 +163,10 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
             cmd.where(table.state.in(state));
         }
         if (from != null) {
-            cmd.where(table.create.isMoreOrEqual(from));
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(table.create.isMoreOrEqual(from)));
         }
         if (to != null) {
-            cmd.where(table.create.isMoreOrEqual(to));
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(table.create.isLessOrEqual(to)));
         }
         DBColumn sortByCol = getSortColumn(table, sortBy);
         boolean descending;
