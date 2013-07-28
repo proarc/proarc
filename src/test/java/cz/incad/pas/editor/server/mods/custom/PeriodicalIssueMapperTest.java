@@ -83,7 +83,8 @@ public class PeriodicalIssueMapperTest {
 
         PeriodicalIssue result = instance.map(ModsUtils.unmarshal(dump, ModsType.class));
         assertNotNull(result);
-        assertEquals(value.getIssueNumber(), result.getIssueNumber());
+        // XXX issue 43: sotingNumber == number
+        assertEquals(value.getIssueSortingNumber(), result.getIssueNumber());
         assertEquals(value.getIssueSortingNumber(), result.getIssueSortingNumber());
         assertEquals(value.getIssueDate(), result.getIssueDate());
         assertEquals(value.getNote(), result.getNote());

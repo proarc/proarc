@@ -18,9 +18,10 @@ package cz.incad.pas.editor.client.widget.mods;
 
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
-import com.smartgwt.client.widgets.form.validator.IsIntegerValidator;
+import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
@@ -40,19 +41,21 @@ public final class PeriodicalIssueForm extends AbstractModelForm {
         setTitleOrientation(TitleOrientation.TOP);
         setNumCols(1);
 
-        TextItem issueNumber = new TextItem(ModsCustomDataSource.FIELD_PER_ISSUE_NUMBER,
-                i18n.PeriodicalIssueForm_Number_Title());
-        issueNumber.setRequired(true);
-        issueNumber.setValidators(new StringTrimValidator());
-
-        TextItem issueSequenceNumber = new TextItem(ModsCustomDataSource.FIELD_PER_ISSUE_NUMBER_SORTING,
+        ComboBoxItem issueSequenceNumber = new ComboBoxItem(ModsCustomDataSource.FIELD_PER_ISSUE_NUMBER_SORTING,
                 i18n.PeriodicalIssueForm_NumberSorting_Title());
         issueSequenceNumber.setRequired(true);
-        issueSequenceNumber.setValidators(new IsIntegerValidator());
+        issueSequenceNumber.setValidators(new StringTrimValidator(), new RegExpValidator(
+                "^([1-9]\\d{0,4}(-[1-9]\\d{0,4})?|mimořádné|zvláštní|na ukázku)$"));
+        issueSequenceNumber.setValueMap("mimořádné", "na ukázku", "zvláštní");
+        issueSequenceNumber.setHideEmptyPickList(true);
 
         TextItem date = new TextItem(ModsCustomDataSource.FIELD_PER_ISSUE_DATE, i18n.PeriodicalIssueForm_Date_Title());
         date.setRequired(true);
-        date.setValidators(new StringTrimValidator());
+        // issue 43, see https://docs.google.com/document/d/1zSriHPdnUY5d_tKv0M8a6nEym560DKh2H6XZ24tGAEw/edit?pli=1
+        // YYYY|YYYY-YYYY|MM.YYYY|MM.-MM.YYYY|DD.MM.YYYY|DD.-DD.MM.YYYY
+        // javascript regex ^([1-9]\d{3}(-[1-9]\d{3})?|(1\d|[1-9])\.(-(1\d|[1-9])\.)?[1-9]\d{3}|([123]\d|[1-9])\.(1\d|[1-9])\.(-([123]\d|[1-9])\.(1\d|[1-9])\.)?[1-9]\d{3})$
+        date.setValidators(new StringTrimValidator(), new RegExpValidator(
+                "^([1-9]\\d{3}(-[1-9]\\d{3})?|(1\\d|[1-9])\\.(-(1\\d|[1-9])\\.)?[1-9]\\d{3}|([123]\\d|[1-9])\\.(1\\d|[1-9])\\.(-([123]\\d|[1-9])\\.(1\\d|[1-9])\\.)?[1-9]\\d{3})$"));
 
         // identifiers
         final RepeatableFormItem identifiers = new RepeatableFormItem(ModsCustomDataSource.FIELD_IDENTIFIERS,
@@ -72,7 +75,7 @@ public final class PeriodicalIssueForm extends AbstractModelForm {
         note.setHeight("*");
         note.setColSpan("*");
 
-        setFields(issueNumber, issueSequenceNumber, date, identifiers, note);
+        setFields(issueSequenceNumber, date, identifiers, note);
     }
 
 }

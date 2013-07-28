@@ -75,8 +75,11 @@ final class PeriodicalIssueMapper implements Mapper<PeriodicalIssue> {
     }
 
     private static void updateNumber(PeriodicalIssue issue, NodeLookup nlookup) {
-        if (issue.getIssueNumber() != null) {
-            nlookup.getNumber(true).setValue(issue.getIssueNumber());
+        // XXX issue 43: partial fix; number element will be removed!
+        if (issue.getIssueSortingNumber() != null) {
+            nlookup.getNumber(true).setValue(issue.getIssueSortingNumber());
+//        if (issue.getIssueNumber() != null) {
+//            nlookup.getNumber(true).setValue(issue.getIssueNumber());
         } else {
             JAXBElement<String> number = nlookup.getNumber(false);
             if (number != null) {

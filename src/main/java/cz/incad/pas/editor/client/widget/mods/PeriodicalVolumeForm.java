@@ -20,7 +20,7 @@ import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
-import com.smartgwt.client.widgets.form.validator.IsIntegerValidator;
+import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
@@ -43,18 +43,14 @@ public final class PeriodicalVolumeForm extends AbstractModelForm {
         TextItem volumeNumber = new TextItem(ModsCustomDataSource.FIELD_PER_VOLUME_NUMBER,
                 i18n.PeriodicalVolumeForm_Number_Title());
         volumeNumber.setRequired(true);
-        volumeNumber.setValidators(new IsIntegerValidator());
+        // javascript regexp ^([1-9]\d{0,4}(-[1-9]\d{0,4})?)$
+        volumeNumber.setValidators(new StringTrimValidator(), new RegExpValidator("^([1-9]\\d{0,4}(-[1-9]\\d{0,4})?)$"));
         TextItem date = new TextItem(ModsCustomDataSource.FIELD_PER_VOLUME_YEAR,
                 i18n.PeriodicalVolumeForm_Date_Title());
         date.setRequired(true);
-        date.setValidators(new StringTrimValidator());
-//        DateItem date = new DateItem(ModsCustomDataSource.FIELD_PER_VOLUME_YEAR, "Date of Issue");
-        // work arounds missing DateItemSelectorFormat.YEAR
-//        date.setAttribute("selectorFormat", "Y");
-//        date.setShowPickerIcon(false);
-//        date.setUseTextField(true);
-//        date.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATE);
-//        date.setEnforceDate(false);
+        // issue 43; see https://docs.google.com/document/d/1zSriHPdnUY5d_tKv0M8a6nEym560DKh2H6XZ24tGAEw/edit?pli=1
+        // javascript regexp ^([1-9]\d{3}(-[1-9]\d{3})?)$
+        date.setValidators(new StringTrimValidator(), new RegExpValidator("^([1-9]\\d{3}(-[1-9]\\d{3})?)$"));
         date.setEndRow(true);
 
         // identifiers
