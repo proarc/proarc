@@ -17,6 +17,10 @@
 package cz.incad.pas.editor.client.ds;
 
 import com.google.gwt.core.client.GWT;
+import com.smartgwt.client.data.AdvancedCriteria;
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.Criterion;
+import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
@@ -25,9 +29,10 @@ import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
-import com.smartgwt.client.types.DateDisplayFormat;
+import com.smartgwt.client.types.OperatorId;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.shared.rest.ImportResourceApi;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 /**
@@ -41,6 +46,7 @@ public final class ImportBatchDataSource extends RestDataSource {
     public static final String FIELD_PATH = ImportResourceApi.IMPORT_BATCH_FOLDER;
     public static final String FIELD_DESCRIPTION = ImportResourceApi.IMPORT_BATCH_DESCRIPTION;
     public static final String FIELD_TIMESTAMP = ImportResourceApi.IMPORT_BATCH_TIMESTAMP;
+    public static final String FIELD_CREATE = ImportResourceApi.IMPORT_BATCH_CREATE;
     public static final String FIELD_STATE = ImportResourceApi.IMPORT_BATCH_STATE;
     public static final String FIELD_USER_ID = ImportResourceApi.IMPORT_BATCH_USERID;
     public static final String FIELD_USER_DISPLAYNAME = ImportResourceApi.IMPORT_BATCH_USER;
@@ -69,8 +75,7 @@ public final class ImportBatchDataSource extends RestDataSource {
         DataSourceIntegerField userId = new DataSourceIntegerField(FIELD_USER_ID);
         userId.setForeignKey(UserDataSource.ID + '.' + UserDataSource.FIELD_ID);
 
-        DataSourceDateTimeField timestamp = new DataSourceDateTimeField(FIELD_TIMESTAMP);
-        timestamp.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
+        DataSourceDateTimeField create = new DataSourceDateTimeField(FIELD_CREATE);
 
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
         LinkedHashMap<String, String> states = new LinkedHashMap<String, String>();
@@ -85,11 +90,50 @@ public final class ImportBatchDataSource extends RestDataSource {
         DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);
         parent.setHidden(true);
 
-        setFields(id, description, userId, user, timestamp, state, parent);
+        setFields(id, description, userId, user, create, state, parent);
         
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
+    }
+
+    @Override
+    protected Object transformRequest(DSRequest dsRequest) {
+        Criteria criteria = dsRequest.getCriteria();
+        if (criteria.isAdvanced()) {
+            HashMap<String, Object> record = new HashMap<String, Object>();
+            advanceCriteriaAsParams(criteria.asAdvancedCriteria(), record);
+            dsRequest.setData(record);
+        }
+        return super.transformRequest(dsRequest);
+    }
+
+    /**
+     * Gets advanced criteria as HTTP GET params.
+     * @param ac advanced criteria
+     * @param map map of params
+     */
+    private void advanceCriteriaAsParams(AdvancedCriteria ac, HashMap<String, Object> map) {
+        Criterion[] criteria = ac.getCriteria();
+        if (criteria == null) {
+            return ;
+        }
+        for (Criterion criterion : criteria) {
+            String fieldName = criterion.getFieldName();
+            if (criterion.isAdvanced() && fieldName == null) {
+                advanceCriteriaAsParams(criterion.asAdvancedCriteria(), map);
+            } else {
+                if (FIELD_CREATE.equals(fieldName)) {
+                    if (criterion.getOperator() == OperatorId.LESS_OR_EQUAL) {
+                        map.put(ImportResourceApi.IMPORT_BATCH_CREATE_TO, criterion.getValueAsDate());
+                    } else {
+                        map.put(ImportResourceApi.IMPORT_BATCH_CREATE_FROM, criterion.getValueAsDate());
+                    }
+                } else {
+                    map.put(fieldName, criterion.getValueAsString());
+                }
+            }
+        }
     }
 
     public Record newBatch(String folderPath, String model, String device, Boolean indices) {

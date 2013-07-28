@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.Transaction;
 import java.sql.Timestamp;
+import java.util.EnumSet;
 import java.util.List;
 import org.dbunit.Assertion;
 import org.dbunit.dataset.CompositeDataSet;
@@ -288,14 +289,38 @@ public class EmpireBatchDaoTest {
         assertEquals(0, view.size());
 
         // test paging
-        ((EmpireBatchDao) dao).pageSize = 1;
-        view = dao.view(1, null, null, 0);
+        view = dao.view(1, null, null, null, null, 0, 1, null);
         assertEquals(1, view.size());
         assertEquals((Integer) 2, view.get(0).getId());
-        view = dao.view(1, null, null, 1);
+        view = dao.view(1, null, null, null, null, 1, 1, null);
         assertEquals(1, view.size());
         assertEquals((Integer) 1, view.get(0).getId());
-        view = dao.view(1, null, null, 2);
+        view = dao.view(1, null, null, null, null, 2, 1, null);
         assertEquals(0, view.size());
+    }
+
+    @Test
+    public void testViewSort() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "batch_with_items.xml")
+                );
+        DatabaseOperation.CLEAN_INSERT.execute(support.getConnection(tx), db);
+        tx.commit();
+
+        List<BatchView> view = dao.view(null, null, null, null, null, 0, 100, "-create");
+        assertEquals(2, view.size());
+        assertEquals((Integer) 2, view.get(0).getId());
+        assertEquals((Integer) 1, view.get(1).getId());
+
+        view = dao.view(null, null, null, null, null, 0, 100, "create");
+        assertEquals(2, view.size());
+        assertEquals((Integer) 1, view.get(0).getId());
+        assertEquals((Integer) 2, view.get(1).getId());
+
+        view = dao.view(null, null, EnumSet.of(State.LOADING, State.LOADED), null, null, 0, 100, "-estimateItemNumber");
+        assertEquals(2, view.size());
+        assertEquals((Integer) 2, view.get(0).getId());
+        assertEquals((Integer) 1, view.get(1).getId());
     }
 }

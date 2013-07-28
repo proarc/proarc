@@ -50,7 +50,7 @@ public abstract class BatchViewAnnotations extends BatchView {
     public abstract String getTitle();
 
     @XmlSchemaType(name = "dateTime")
-    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_TIMESTAMP)
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_CREATE)
     @Override
     public abstract Timestamp getCreate();
 
@@ -69,5 +69,10 @@ public abstract class BatchViewAnnotations extends BatchView {
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PARENTPID)
     @Override
     public abstract String getParentPid();
+
+    @XmlSchemaType(name = "dateTime")
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_TIMESTAMP)
+    @Override
+    public abstract Timestamp getTimestamp();
 
 }

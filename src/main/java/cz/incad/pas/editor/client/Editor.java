@@ -30,6 +30,8 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.Autofit;
+import com.smartgwt.client.types.DateDisplayFormat;
+import com.smartgwt.client.util.DateUtil;
 import com.smartgwt.client.util.Page;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
@@ -124,6 +126,10 @@ public class Editor implements EntryPoint {
                 GWT.getModuleName(), GWT.getPermutationStrongName(), GWT.getVersion(),
                 Page.getAppDir(), LanguagesDataSource.activeLocale()
                 );
+
+        // replace default DateDisplayFormat.TOUSSHORTDATE
+        DateUtil.setShortDateDisplayFormat(DateDisplayFormat.TOEUROPEANSHORTDATE);
+        DateUtil.setShortDatetimeDisplayFormat(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
         i18n = GWT.create(ClientMessages.class);
 

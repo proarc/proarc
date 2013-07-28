@@ -26,16 +26,21 @@ import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.BatchItemTable;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.BatchTable;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.UserTable;
 import java.sql.Connection;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.apache.empire.data.bean.BeanResult;
+import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
+import org.apache.empire.db.DBTable;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
 import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 
@@ -47,7 +52,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
 
     private static final Logger LOG = Logger.getLogger(EmpireBatchDao.class.getName());
     private final BatchTable table;
-    int pageSize = 100;
+    private int pageSize = 100;
 
     public EmpireBatchDao(ProarcDatabase db) {
         super(db);
@@ -77,6 +82,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         getBeanProperties(record, batch);
     }
 
+    @Override
     public Batch find(int batchId) {
         DBRecord record = new DBRecord();
         try {
@@ -131,6 +137,15 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
 
     @Override
     public List<BatchView> view(Integer userId, Integer batchId, State state, int offset) {
+        return view(userId, batchId,
+                state == null ? null : EnumSet.of(state),
+                null, null, offset, pageSize, table.create.getName());
+    }
+
+    @Override
+    public List<BatchView> view(Integer userId, Integer batchId, Set<State> state,
+            Timestamp from, Timestamp to, int offset, int maxCount, String sortBy) {
+
         UserTable ut = db.tableUser;
         DBCommand cmd = db.createCommand();
         cmd.select(table.id, table.state, table.userId, table.folder, table.title,
@@ -143,18 +158,32 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         if (batchId != null) {
             cmd.where(table.id.is(batchId));
         }
-        if (state != null) {
-            cmd.where(table.state.is(state));
+        if (state != null && !state.isEmpty()) {
+            cmd.where(table.state.in(state));
         }
-        cmd.orderBy(table.create, true);
+        if (from != null) {
+            cmd.where(table.create.isMoreOrEqual(from));
+        }
+        if (to != null) {
+            cmd.where(table.create.isMoreOrEqual(to));
+        }
+        DBColumn sortByCol = getSortColumn(table, sortBy);
+        boolean descending;
+        if (sortByCol != null) {
+            descending = isDescendingSort(sortBy);
+        } else {
+            sortByCol = table.create;
+            descending = true;
+        }
+        cmd.orderBy(sortByCol, descending);
         DBReader reader = new DBReader();
         try {
             reader.open(cmd, getConnection());
             if (!reader.skipRows(offset)) {
                 return Collections.emptyList();
             }
-            ArrayList<BatchView> viewItems = new ArrayList<BatchView>(pageSize);
-            for (Iterator<DBRecordData> it = reader.iterator(pageSize); it.hasNext();) {
+            ArrayList<BatchView> viewItems = new ArrayList<BatchView>(maxCount);
+            for (Iterator<DBRecordData> it = reader.iterator(maxCount); it.hasNext();) {
                 DBRecordData rec = it.next();
                 BatchView view = new BatchView();
                 rec.getBeanProperties(view);
@@ -164,6 +193,26 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         } finally {
             reader.close();
         }
+    }
+
+    private static boolean isDescendingSort(String beanPropertyName) {
+        return beanPropertyName.charAt(0) == '-';
+    }
+
+    private static DBColumn getSortColumn(DBTable table, String beanPropertyName) {
+        if (beanPropertyName == null) {
+            return null;
+        }
+        return findColumn(table, beanPropertyName.charAt(0) == '-' ? beanPropertyName.substring(1) : beanPropertyName);
+    }
+
+    private static DBColumn findColumn(DBTable table, String beanPropertyName) {
+        for (DBColumn col : table.getColumns()) {
+            if (beanPropertyName.equals(col.getBeanPropertyName())) {
+                return col;
+            }
+        }
+        return null;
     }
 
 }

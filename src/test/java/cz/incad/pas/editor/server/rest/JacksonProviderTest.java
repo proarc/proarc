@@ -124,7 +124,8 @@ public class JacksonProviderTest {
         b.setUsername("username");
         String json = toJson(b);
         assertTrue(json, json.contains("\"description\":\"title\""));
-        assertTrue(json, json.contains("\"timeStamp\":\"1991-01"));
+        assertTrue(json, json.contains("\"create\":\"1991-01"));
+        assertFalse(json, json.contains("\"folder\":"));
     }
 
     private static String toJson(Object obj) throws IOException {

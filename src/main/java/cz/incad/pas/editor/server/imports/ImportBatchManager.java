@@ -41,6 +41,7 @@ import java.net.URI;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -165,16 +166,18 @@ public class ImportBatchManager {
     }
 
     public BatchView viewBatch(int batchId) {
-        List<BatchView> view = viewBatch(null, batchId, null, 0);
+        List<BatchView> view = viewBatch(null, batchId, null, null, null, 0, 1, null);
         return view.get(0);
     }
     
-    public List<BatchView> viewBatch(Integer userId, Integer batchId, Batch.State state, int offset) {
+    public List<BatchView> viewBatch(Integer userId, Integer batchId, Set<Batch.State> state,
+            Timestamp from, Timestamp to, int offset, int maxCount, String sortBy) {
+
         BatchDao dao = daos.createBatch();
         Transaction tx = daos.createTransaction();
         dao.setTransaction(tx);
         try {
-            return dao.view(userId, batchId, state, offset);
+            return dao.view(userId, batchId, state, from, to, offset, maxCount, sortBy);
         } finally {
             tx.close();
         }

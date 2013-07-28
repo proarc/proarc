@@ -43,8 +43,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -190,17 +192,39 @@ public class ImportResource {
         return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
     }
 
-    // XXX implement filter for batches
+    /**
+     * Gets list of import batches.
+     * 
+     * @param batchId optional batch ID to find
+     * @param batchState optional states to find
+     * @param createFrom optional create date as lower bound of query
+     * @param createTo  optional create date as upper bound of query
+     * @param startRow optional offset of the result
+     * @param sortBy optional {@link BatchView} property name to sort the result. Value syntax: {@code [-]propertyName} where
+     *              {@code '-'} stands for descending sort. Default is {@code sortBy=-create}.
+     * @return the sorted list of batches.
+     */
     @GET
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<BatchView> listBatches(
             @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
-            @QueryParam("_startRow") int startRow
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_FROM) DateTimeParam createFrom,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_TO) DateTimeParam createTo,
+            @QueryParam("_startRow") int startRow,
+            @QueryParam("_sortBy") String sortBy
             ) {
 
-        List<BatchView> batches = importManager.viewBatch(user.getId(), batchId, null, startRow);
-        return new SmartGwtResponse<BatchView>(batches);
+        int pageSize = 100;
+        Timestamp from = createFrom == null ? null : createFrom.toTimestamp();
+        Timestamp to = createTo == null ? null : createTo.toTimestamp();
+        List<BatchView> batches = importManager.viewBatch(user.getId(), batchId, batchState,
+                from, to, startRow, pageSize, sortBy);
+        int batchSize = batches.size();
+        int endRow = startRow + batchSize;
+        int total = (batchSize != pageSize) ? endRow: endRow + 1;
+        return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, batches);
     }
 
     @PUT

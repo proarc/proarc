@@ -16,12 +16,15 @@
  */
 package cz.incad.pas.editor.client.widget;
 
+import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.AutoFitWidthApproach;
 import com.smartgwt.client.types.SelectionStyle;
+import com.smartgwt.client.types.SortDirection;
+import com.smartgwt.client.widgets.form.fields.MiniDateRangeItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
@@ -61,23 +64,35 @@ public final class ImportBatchChooser extends VLayout {
         ListGrid lg = new ListGrid();
         lg.setSelectionType(SelectionStyle.SINGLE);
         lg.setCanReorderFields(false);
-        lg.setCanSort(false);
+        lg.setShowFilterEditor(true);
+        lg.setFilterOnKeypress(true);
         ListGridField lgfFolder = new ListGridField(ImportBatchDataSource.FIELD_DESCRIPTION,
                 i18n.ImportBatchDataSource_FolderFieldTitle());
 //        lgfFolder.setAutoFitWidth(false);
-        ListGridField lgfDate = new ListGridField(ImportBatchDataSource.FIELD_TIMESTAMP,
+        lgfFolder.setCanFilter(false);
+        lgfFolder.setCanSort(false);
+        ListGridField lgfDate = new ListGridField(ImportBatchDataSource.FIELD_CREATE,
                 i18n.ImportBatchDataSource_ImportDateFieldTitle());
         lgfDate.setAutoFitWidth(true);
+        lgfDate.setCanSort(true);
+        MiniDateRangeItem dateRangeItem = new MiniDateRangeItem();
+        dateRangeItem.setAttribute("allowRelativeDates", false);
+        lgfDate.setFilterEditorType(dateRangeItem);
+        lgfDate.setCanFilter(true);
         ListGridField lgfImported = new ListGridField(ImportBatchDataSource.FIELD_STATE,
                 i18n.ImportBatchDataSource_StateFieldTitle());
         lgfImported.setAutoFitWidth(true);
         lgfImported.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
         lgfImported.setPrompt(ClientUtils.format("<div style='width:250px;'>%s</div>",
                 i18n.ImportBatchDataSource_StateFieldHint()));
+        lgfImported.setCanFilter(true);
+        lgfImported.setCanSort(true);
         ListGridField lgfUser = new ListGridField(ImportBatchDataSource.FIELD_USER_DISPLAYNAME,
                 i18n.ImportBatchDataSource_UserFieldTitle());
         lgfUser.setAutoFitWidth(true);
         lgfUser.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
+        lgfUser.setCanFilter(false);
+        lgfUser.setCanSort(false);
         lg.setFields(lgfFolder, lgfDate, lgfImported, lgfUser);
 
         lg.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
@@ -87,12 +102,17 @@ public final class ImportBatchChooser extends VLayout {
                 updateOnSelection();
             }
         });
+        Criteria filter = new Criteria();
+        filter.addCriteria(lgfImported.getName(), ImportBatchDataSource.State.LOADED.toString());
+        lg.setInitialCriteria(filter);
+        lg.setSortField(lgfDate.getName());
+        lg.setSortDirection(SortDirection.DESCENDING);
         return lg;
     }
 
     public void bind() {
         lGridBatches.invalidateCache();
-        lGridBatches.fetchData(null, new DSCallback() {
+        lGridBatches.fetchData(lGridBatches.getCriteria(), new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
