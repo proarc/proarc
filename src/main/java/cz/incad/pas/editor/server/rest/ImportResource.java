@@ -219,7 +219,9 @@ public class ImportResource {
         int pageSize = 100;
         Timestamp from = createFrom == null ? null : createFrom.toTimestamp();
         Timestamp to = createTo == null ? null : createTo.toTimestamp();
-        List<BatchView> batches = importManager.viewBatch(user.getId(), batchId, batchState,
+        // admin may see all users; XXX use permissions for this!
+        Integer userFilter = user.getId() == 1 ? null : user.getId();
+        List<BatchView> batches = importManager.viewBatch(userFilter, batchId, batchState,
                 from, to, startRow, pageSize, sortBy);
         int batchSize = batches.size();
         int endRow = startRow + batchSize;
