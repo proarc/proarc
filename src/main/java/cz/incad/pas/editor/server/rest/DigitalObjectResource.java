@@ -333,6 +333,13 @@ public class DigitalObjectResource {
         }
     }
 
+    /**
+     * Gets members of a digital object.
+     * @param parent PID of digital object to query its members. {@code root} parameter is ignored.
+     * @param root PID of digital object to return itself as a member with {@link Item#parent} as {@code null}.
+     *          Useful to show root of the member hierarchy.
+     * @return ordered list of members
+     */
     @GET
     @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
@@ -346,7 +353,7 @@ public class DigitalObjectResource {
         String parentPid;
         if (parent == null || "null".equals(parent)) {
             items = search.find(root);
-            parentPid = root;
+            parentPid = null;
         } else {
             items = search.findSortedChildren(parent);
             parentPid = parent;

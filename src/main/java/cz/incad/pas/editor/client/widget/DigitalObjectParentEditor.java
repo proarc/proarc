@@ -113,13 +113,10 @@ public final class DigitalObjectParentEditor implements DatastreamEditor, Refres
     private void save() {
         if (chooser.isChanged()) {
             final Record newParent = chooser.getSelectedParent();
-            Record oldParent = chooser.getOldParent();
             String parentPid = chooser.getSelectedParentPid();
-            String parentId = parentPid == null ? null : newParent.getAttribute(RelationDataSource.FIELD_ID);
             String oldParentPid = chooser.getOldParentPid();
-            String oldParentId = oldParent == null ? null : oldParent.getAttribute(RelationDataSource.FIELD_ID);
             RelationDataSource ds = RelationDataSource.getInstance();
-            ds.moveChild(pid, oldParentId, oldParentPid, parentId, parentPid, new BooleanCallback() {
+            ds.moveChild(pid, oldParentPid, parentPid, new BooleanCallback() {
 
                 @Override
                 public void execute(Boolean value) {

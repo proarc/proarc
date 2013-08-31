@@ -36,7 +36,6 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
-import com.smartgwt.client.widgets.tree.TreeNode;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.AbstractAction;
@@ -160,17 +159,9 @@ public final class ImportParentChooser {
     }
 
     /**
-     * Gets origin parent selection. It tries to use record from TreeGrid
-     * to propagate add/remove of record to view properly.
+     * Gets origin parent selection.
      */
     public Record getOldParent() {
-        if (oldParent != null && oldParent.getAttribute(RelationDataSource.FIELD_ID) == null) {
-            TreeNode node = treeView.getTree().getTree().find(RelationDataSource.FIELD_PID, asPid(oldParent));
-            String id = node == null ? null : node.getAttribute(RelationDataSource.FIELD_ID);
-            if (id != null) {
-                oldParent.setAttribute(RelationDataSource.FIELD_ID, id);
-            }
-        }
         return oldParent;
     }
 

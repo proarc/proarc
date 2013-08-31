@@ -78,10 +78,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         TreeGrid treeGrid = new TreeGrid();
         treeGrid.setCanSort(false);
         treeGrid.setDataSource(RelationDataSource.getInstance());
-        TreeGridField id = new TreeGridField(RelationDataSource.FIELD_ID);
-        id.setHidden(true);
-        TreeGridField parentId = new TreeGridField(RelationDataSource.FIELD_PARENTID);
-        parentId.setHidden(true);
+        TreeGridField parentId = new TreeGridField(RelationDataSource.FIELD_PARENT);
         TreeGridField label = new TreeGridField(RelationDataSource.FIELD_LABEL,
                 i18n.DigitalObjectSearchView_ListHeaderLabel_Title());
         TreeGridField model = new TreeGridField(RelationDataSource.FIELD_MODEL,
@@ -98,7 +95,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         modified.setAlign(Alignment.CENTER);
         TreeGridField owner = new TreeGridField(RelationDataSource.FIELD_OWNER,
                 i18n.DigitalObjectSearchView_ListHeaderOwner_Title(), 100);
-        treeGrid.setFields(id, parentId, label, model, pid, created, modified, owner);
+        treeGrid.setFields(parentId, label, model, pid, created, modified, owner);
         treeGrid.setTitleField(RelationDataSource.FIELD_LABEL);
         treeGrid.setShowConnectors(true);
         treeGrid.setEmptyMessage(i18n.DigitalObjectTreeView_EmptySelection_Msg());
