@@ -50,6 +50,7 @@ import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
+import cz.incad.pas.editor.client.widget.DigitalObjectChildrenEditor;
 import cz.incad.pas.editor.client.widget.DigitalObjectParentEditor;
 import cz.incad.pas.editor.client.widget.MediaEditor;
 import cz.incad.pas.editor.client.widget.TextEditor;
@@ -209,6 +210,11 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 i18n.DigitalObjectEditor_MediaAction_Hint(),
                 null,
                 DatastreamEditorType.MEDIA, places);
+        DigitalObjectEditAction childrenEditAction = new DigitalObjectEditAction(
+                i18n.DigitalObjectEditor_ChildrenAction_Title(),
+                i18n.DigitalObjectEditor_ChildrenAction_Hint(),
+                null,
+                DatastreamEditorType.CHILDREN, places);
         ToolStrip t = Actions.createToolStrip();
         if (tiny) {
             IconMenuButton actionsMenu = Actions.asIconMenuButton(new AbstractAction(
@@ -235,6 +241,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             t.addMember(Actions.asIconButton(parentEditAction, source));
             t.addMember(Actions.asIconButton(mediaEditAction, source));
             t.addMember(Actions.asIconButton(ocrEditAction, source));
+            t.addMember(Actions.asIconButton(childrenEditAction, source));
         }
         customToolbarSeparator = new ToolStripSeparator();
         customToolbarSeparator.setVisible(false);
@@ -269,6 +276,10 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             case PARENT:
                 title = i18n.DigitalObjectEditor_ParentEditor_Title();
                 deditor = new DigitalObjectParentEditor(i18n);
+                break;
+            case CHILDREN:
+                title = i18n.DigitalObjectEditor_ChildrenEditor_Title();
+                deditor = new DigitalObjectChildrenEditor(i18n);
                 break;
         }
         title = ClientUtils.format("<b>%s</b>", title);

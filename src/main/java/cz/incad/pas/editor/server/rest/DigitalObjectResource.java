@@ -365,6 +365,83 @@ public class DigitalObjectResource {
     }
 
     /**
+     * Sets new member sequence of given parent digital object.
+     *
+     * @param parentPid parent PID
+     * @param toSetPids list of member PIDS
+     * @return ordered list of members
+     * @throws RestException
+     */
+    @PUT
+    @Path(DigitalObjectResourceApi.MEMBERS_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Item> setMembers(
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toSetPids
+            // XXX long timestamp
+            ) throws IOException, FedoraClientException, DigitalObjectException {
+
+        if (parentPid == null) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT, null);
+        }
+        if (toSetPids == null || toSetPids.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_PID, null);
+        }
+        if (toSetPids.contains(parentPid)) {
+            throw RestException.plainText(Status.BAD_REQUEST, "parent and pid are same!");
+        }
+
+        HashSet<String> toSetPidSet = new HashSet<String>(toSetPids);
+        if (toSetPidSet.size() != toSetPids.size()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "duplicates in PIDs to set!\n" + toSetPids.toString());
+        }
+
+        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
+        HashMap<String, Item> memberSearchMap = new HashMap<String, Item>();
+        if (!toSetPids.isEmpty()) {
+            // fetch PID[] -> Item[]
+            List<Item> memberSearch = storage.getSearch().find(toSetPids);
+            for (Item item : memberSearch) {
+                memberSearchMap.put(item.getPid(), item);
+            }
+
+            // check if queried member PIDs really exist in storage
+            if (memberSearch.size() != toSetPidSet.size()) {
+                ArrayList<String> memberSearchAsPids = new ArrayList<String>(memberSearch.size());
+                for (Item item : memberSearch) {
+                    memberSearchAsPids.add(item.getPid());
+                }
+                toSetPidSet.removeAll(memberSearchAsPids);
+                throw RestException.plainNotFound(
+                        DigitalObjectResourceApi.MEMBERS_ITEM_PID, toSetPidSet.toString());
+            }
+        }
+
+        // load current members
+        RemoteObject remote = storage.find(parentPid);
+        RelationEditor editor = new RelationEditor(remote);
+        List<String> members = editor.getMembers();
+        members.clear();
+        // add new members
+        ArrayList<Item> added = new ArrayList<Item>();
+        for (String addPid : toSetPids) {
+            if (!members.contains(addPid)) {
+                members.add(addPid);
+                Item item = memberSearchMap.get(addPid);
+                if (item == null) {
+                    throw RestException.plainNotFound("pid", toSetPidSet.toString());
+                }
+                item.setParentPid(parentPid);
+                added.add(item);
+            }
+        }
+        editor.setMembers(members);
+        editor.write(editor.getLastModified(), session.asFedoraLog());
+        remote.flush();
+        return new SmartGwtResponse<Item>(added);
+    }
+
+    /**
      * Adds new object members. Members that already exists remain untouched.
      * 
      * @param parentPid PID of parent object
@@ -898,37 +975,42 @@ public class DigitalObjectResource {
                     "model:periodical", true, null,
                     "cs".equals(lang) ? "Periodikum" : "Periodical",
                     MetaModelDataSource.EDITOR_PERIODICAL,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE)
+                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                            DatastreamEditorType.CHILDREN)
                     ));
             models.add(new MetaModel(
                     "model:periodicalvolume", null, null,
                     "cs".equals(lang) ? "Ročník" : "Periodical Volume",
                     MetaModelDataSource.EDITOR_PERIODICAL_VOLUME,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE, DatastreamEditorType.PARENT)
+                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN)
                     ));
             models.add(new MetaModel(
                     "model:periodicalitem", null, null,
                     "cs".equals(lang) ? "Výtisk" : "Periodical Item",
                     MetaModelDataSource.EDITOR_PERIODICAL_ISSUE,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE, DatastreamEditorType.PARENT)
+                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN)
                     ));
             models.add(new MetaModel(
                     "model:monograph", true, null,
                     "cs".equals(lang) ? "Monografie" : "Monograph",
                     MetaModelDataSource.EDITOR_MONOGRAPH,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE)
+                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                            DatastreamEditorType.CHILDREN)
                     ));
             models.add(new MetaModel(
                     "model:monographunit", null, null,
                     "cs".equals(lang) ? "Monografie - volná část" : "Monograph Unit",
                     MetaModelDataSource.EDITOR_MONOGRAPH_UNIT,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE, DatastreamEditorType.PARENT)
+                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN)
                     ));
             models.add(new MetaModel(
                     "model:page", null, true,
                     "cs".equals(lang) ? "Strana" : "Page",
                     MetaModelDataSource.EDITOR_PAGE,
-                    EnumSet.allOf(DatastreamEditorType.class)
+                    EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
                     ));
 
             return models;

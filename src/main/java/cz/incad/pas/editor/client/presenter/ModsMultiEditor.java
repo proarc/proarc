@@ -29,6 +29,7 @@ import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
 import cz.incad.pas.editor.client.widget.StatusView;
 import java.util.logging.Logger;
@@ -69,6 +70,7 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
     }
 
     public void save(BooleanCallback callback) {
+        callback = wrapSaveCallback(callback);
         if (activeEditor == modsCustomEditor) {
             saveCustomData(callback);
         } else if (activeEditor == modsFullEditor) {
@@ -76,6 +78,21 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
         } else {
             callback.execute(Boolean.TRUE);
         }
+    }
+
+    /**
+     * Notifies other data sources to update its caches with object label.
+     */
+    private BooleanCallback wrapSaveCallback(final BooleanCallback callback) {
+        BooleanCallback bc = new BooleanCallback() {
+
+            @Override
+            public void execute(Boolean value) {
+                RelationDataSource.getInstance().fireRelationChange(pid);
+                callback.execute(value);
+            }
+        };
+        return bc;
     }
 
     @Override

@@ -83,6 +83,7 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction modsEditAction;
     private DigitalObjectEditAction parentEditAction;
     private DigitalObjectEditAction mediaEditAction;
+    private DigitalObjectEditAction childrenEditAction;
     private boolean initialized;
 
     public DigitalObjectManager(ClientMessages i18n, PlaceController places) {
@@ -184,6 +185,11 @@ public final class DigitalObjectManager {
                 i18n.DigitalObjectEditor_MediaAction_Hint(),
                 null,
                 DatastreamEditorType.MEDIA, places);
+        childrenEditAction = new DigitalObjectEditAction(
+                i18n.DigitalObjectEditor_ChildrenAction_Title(),
+                i18n.DigitalObjectEditor_ChildrenAction_Hint(),
+                null,
+                DatastreamEditorType.CHILDREN, places);
     }
     
     /**
@@ -219,6 +225,7 @@ public final class DigitalObjectManager {
         toolbar.addMember(Actions.asIconButton(parentEditAction, actionSource));
         toolbar.addMember(Actions.asIconButton(mediaEditAction, actionSource));
         toolbar.addMember(Actions.asIconButton(ocrEditAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(childrenEditAction, actionSource));
         toolbar.addSeparator();
         toolbar.addMember(Actions.asIconButton(foxmlAction, actionSource));
         toolbar.addMember(btnExport);

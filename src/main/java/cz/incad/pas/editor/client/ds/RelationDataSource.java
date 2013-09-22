@@ -16,6 +16,10 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.google.gwt.event.shared.EventHandler;
+import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.event.shared.HandlerRegistration;
+import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
@@ -26,11 +30,15 @@ import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.docs.TreeDataBinding;
+import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.BooleanCallback;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import java.util.Arrays;
+import java.util.logging.Logger;
 
 /**
  * Data provider for member relations of digital objects.
@@ -45,6 +53,7 @@ import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
  */
 public class RelationDataSource extends RestDataSource {
 
+    private static final Logger LOG = Logger.getLogger(RelationDataSource.class.getName());
     public static final String ID = "RelationDataSource";
 
     public static final String FIELD_PID = DigitalObjectResourceApi.MEMBERS_ITEM_PID;
@@ -56,6 +65,12 @@ public class RelationDataSource extends RestDataSource {
     public static final String FIELD_STATE = DigitalObjectResourceApi.MEMBERS_ITEM_STATE;
     public static final String FIELD_CREATED = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED;
     public static final String FIELD_MODIFIED = DigitalObjectResourceApi.MEMBERS_ITEM_MODIFIED;
+
+    /**
+     * Attribute holding PIDs of the reorder update {@link #reorderChildren operation}.
+     * See also {@link #transformResponse }.
+     */
+    private static final String ATTR_REORDER = "reorder";
 
     public RelationDataSource() {
         setID(ID);
@@ -90,8 +105,32 @@ public class RelationDataSource extends RestDataSource {
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(
                 RestConfig.createAddOperation(),
-                RestConfig.createDeleteOperation());
-        
+                RestConfig.createDeleteOperation(),
+                RestConfig.createUpdateOperation()
+                );
+        setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
+    }
+
+    /**
+     * Checks sent and returned PID lists after reorder request. If they differ
+     * then invalidate cache to refresh widget records.
+     */
+    @Override
+    protected void transformResponse(DSResponse response, DSRequest request, Object data) {
+        super.transformResponse(response, request, data);
+//        LOG.info("RelationDataSource.transformResponse");
+        if (RestConfig.isStatusOk(response)) {
+            if (request.getOperationType() == DSOperationType.UPDATE) {
+                String[] oldPids = request.getAttributeAsStringArray(ATTR_REORDER);
+                if (oldPids == null) {
+                    return ;
+                }
+                String[] newPids = toFieldValues(response.getData(), FIELD_PID);
+                if (!Arrays.equals(oldPids, newPids)) {
+                    response.setInvalidateCache(Boolean.TRUE);
+                }
+            }
+        }
     }
 
     public static RelationDataSource getInstance() {
@@ -177,6 +216,137 @@ public class RelationDataSource extends RestDataSource {
             ds.removeChild(oldParentPid, pid, toAdd);
         } else {
             toAdd.execute(Boolean.TRUE);
+        }
+    }
+
+    /**
+     * Saves new children sequence for a given parent object.
+     * 
+     * @param parentPid parent object
+     * @param childPids children sequence
+     * @param call callback
+     */
+    public void reorderChildren(String parentPid, String[] childPids, final BooleanCallback call) {
+        if (childPids == null || childPids.length < 2) {
+            throw new IllegalArgumentException("Unexpected children: " + Arrays.toString(childPids));
+        }
+        if (parentPid == null || parentPid.isEmpty()) {
+            throw new IllegalArgumentException("Missing parent PID!");
+        }
+
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setAttribute(ATTR_REORDER, childPids);
+
+        Record update = new Record();
+        update.setAttribute(RelationDataSource.FIELD_PARENT, parentPid);
+        update.setAttribute(RelationDataSource.FIELD_PID, childPids);
+        updateData(update, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (!RestConfig.isStatusOk(response)) {
+                    call.execute(false);
+                    return;
+                }
+                call.execute(true);
+            }
+        }, dsRequest);
+    }
+
+    /**
+     * Compares arrays of PIDS as array of records.
+     */
+    public static boolean equals(Record[] rs1, Record[] rs2) {
+        if (rs1 == null && rs1 == rs2) {
+            return true;
+        }
+        if (rs1 == null || rs2 == null) {
+            return false;
+        }
+        if (rs1.length != rs2.length) {
+            return false;
+        }
+        for (int i = 0; i < rs1.length; i++) {
+            String pid1 = rs1[i].getAttribute(RelationDataSource.FIELD_PID);
+            String pid2 = rs2[i].getAttribute(RelationDataSource.FIELD_PID);
+            if (!pid1.equals(pid2)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static String[] toFieldValues(Record[] records, String fieldName) {
+        String[] items = new String[records.length];
+        for (int i = 0; i < records.length; i++) {
+            items[i] = records[i].getAttribute(fieldName);
+        }
+        return items;
+    }
+
+    /**
+     * Invoked by other digital object editors that can change object label.
+     * @param pid PID of modified object
+     */
+    public void fireRelationChange(String pid) {
+        fireEvent(new RelationChangeEvent(pid));
+    }
+
+    /**
+     * Fetches relations of parent object and update caches to notify widgets.
+     * @param parentPid PID of parent object
+     */
+    public final void updateCaches(String parentPid) {
+        Criteria criteria = new Criteria(RelationDataSource.FIELD_ROOT, parentPid);
+        criteria.addCriteria(RelationDataSource.FIELD_PARENT, parentPid);
+        fetchData(criteria, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                request.setOperationType(DSOperationType.UPDATE);
+                updateCaches(response, request);
+            }
+        });
+    }
+
+    public final HandlerRegistration addRelationChangeHandler(RelationChangeHandler handler) {
+        return doAddHandler(handler, RelationChangeEvent.TYPE);
+    }
+
+    /**
+     * Notifies changes of relation labels.
+     */
+    public static interface RelationChangeHandler extends EventHandler {
+
+        void onRelationChange(RelationChangeEvent event);
+
+    }
+
+    public static final class RelationChangeEvent extends GwtEvent<RelationChangeHandler> {
+
+        public static final Type<RelationChangeHandler> TYPE = new Type<RelationChangeHandler>();
+        private final String pid;
+
+        public RelationChangeEvent() {
+            this(null);
+        }
+
+        public RelationChangeEvent(String pid) {
+            this.pid = pid;
+        }
+
+        public String getPid() {
+            return pid;
+        }
+
+        @Override
+        public Type<RelationChangeHandler> getAssociatedType() {
+            return TYPE;
+        }
+
+        @Override
+        protected void dispatch(RelationChangeHandler handler) {
+            handler.onRelationChange(this);
         }
     }
 
