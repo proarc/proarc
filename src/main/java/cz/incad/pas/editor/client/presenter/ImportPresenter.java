@@ -534,6 +534,7 @@ public class ImportPresenter {
         public Canvas asWidget() {
             if (widget == null) {
                 widget = new ImportParentChooser(i18n);
+                widget.setParentOwnerCheck(true);
                 widget.getUI().setMargin(4);
             }
             return widget.getUI();

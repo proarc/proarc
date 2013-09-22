@@ -89,6 +89,7 @@ public class Editor implements EntryPoint {
     private Layout editorDisplay;
     private SweepTask sweepTask;
     private ErrorHandler errorHandler;
+    private Record user;
 
     public static Editor getInstance() {
         return INSTANCE;
@@ -104,6 +105,10 @@ public class Editor implements EntryPoint {
 
     public ErrorHandler getTransportErrorHandler() {
         return errorHandler;
+    }
+
+    public Record getUser() {
+        return user;
     }
 
     @Override
@@ -258,7 +263,8 @@ public class Editor implements EntryPoint {
                 if (response.getStatus() == DSResponse.STATUS_SUCCESS) {
                     Record[] data = response.getData();
                     if (data.length > 0) {
-                        title = data[0].getAttribute(UserDataSource.FIELD_USERNAME);
+                        user = data[0];
+                        title = user.getAttribute(UserDataSource.FIELD_USERNAME);
                     }
                 }
                 link.setValue(title);

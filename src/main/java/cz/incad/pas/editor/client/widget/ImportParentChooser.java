@@ -26,6 +26,8 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.types.SelectionStyle;
+import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
 import com.smartgwt.client.widgets.events.ClickEvent;
@@ -38,6 +40,7 @@ import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.Editor;
 import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
@@ -48,6 +51,7 @@ import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
+import cz.incad.pas.editor.client.ds.UserDataSource;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.util.LinkedHashMap;
@@ -69,6 +73,7 @@ public final class ImportParentChooser {
     private Record newParent;
     private Record oldParent;
     private boolean loadFailed;
+    private boolean parentOwnerCheck = false;
     
     public ImportParentChooser(ClientMessages i18n) {
         this.i18n = i18n;
@@ -129,6 +134,14 @@ public final class ImportParentChooser {
      */
     public void setImport(String batchId) {
         init(null, batchId);
+    }
+
+    /**
+     * Sets whether check owner of parent object and logged user are same.
+     * @param check
+     */
+    public void setParentOwnerCheck(boolean check) {
+        this.parentOwnerCheck = check;
     }
 
     private void init(String pid, String batchId) {
@@ -257,9 +270,7 @@ public final class ImportParentChooser {
 
             @Override
             public void onClick(ClickEvent event) {
-                newParent = null;
-                view.setSelection(null);
-                handler.onParentSelectionUpdated();
+                setParentSelection(null);
             }
         });
         return view;
@@ -275,10 +286,7 @@ public final class ImportParentChooser {
             public void performAction(ActionEvent event) {
                 Record[] selection = Actions.getSelection(event);
                 if (selection != null && selection.length == 1) {
-                    newParent = treeView.getTree().getTree().find(
-                            RelationDataSource.FIELD_PID, selection[0].getAttribute(RelationDataSource.FIELD_PID));
-                    selectionView.setSelection(selection[0]);
-                    handler.onParentSelectionUpdated();
+                    onParentSelection(selection[0]);
                 }
             }
         };
@@ -292,6 +300,36 @@ public final class ImportParentChooser {
 
     private void initContextMenu(Menu menu, Selectable<Record> source) {
         menu.addItem(Actions.asMenuItem(selectParentAction, source));
+    }
+
+    private void onParentSelection(final Record selection) {
+        String parentOwner = selection.getAttribute(SearchDataSource.FIELD_OWNER);
+        String username = Editor.getInstance().getUser().getAttribute(UserDataSource.FIELD_USERNAME);
+        if (parentOwnerCheck && !username.equals(parentOwner)) {
+            SC.ask(i18n.ImportParentChooser_SelectAction_ParentOwnerCheck_Msg(),
+                    new BooleanCallback() {
+
+                @Override
+                public void execute(Boolean value) {
+                    if (value != null && value) {
+                        setParentSelection(selection);
+                    }
+                }
+            });
+        } else {
+            setParentSelection(selection);
+        }
+    }
+
+    private void setParentSelection(Record selection) {
+        if (selection != null) {
+            newParent = treeView.getTree().getTree().find(
+                    RelationDataSource.FIELD_PID, selection.getAttribute(RelationDataSource.FIELD_PID));
+        } else {
+            newParent = null;
+        }
+        selectionView.setSelection(selection);
+        handler.onParentSelectionUpdated();
     }
 
     public interface ImportParentHandler {
