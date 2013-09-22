@@ -116,7 +116,7 @@ public final class LocalStorage {
                 throw new NullPointerException();
             } else if (label.length() > 255) {
                 // length 255 is Fedora limit
-                label = label.substring(0, 256);
+                label = label.substring(0, 255);
             }
             FoxmlUtils.setProperty(dobj, FoxmlUtils.PROPERTY_LABEL, label);
         }
