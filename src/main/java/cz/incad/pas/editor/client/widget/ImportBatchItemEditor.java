@@ -529,13 +529,17 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 i18n.PageForm_PageType_Title());
         pageType.setDefaultValue(ModsCustomDataSource.getDefaultPageType());
         pageType.setValueMap(ModsCustomDataSource.getPageTypes());
+        pageType.setRequired(true);
 
         IntegerItem pageIndex = new IntegerItem(ImportBatchItemDataSource.FIELD_PAGE_INDEX);
         pageIndex.setTitle(i18n.PageForm_PageIndex_Title());
+        pageIndex.setRequired(true);
 
         TextItem pageNumber = new TextItem(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
         pageNumber.setTitle(i18n.PageForm_PageNumber_Title());
         pageNumber.setLength(20);
+        pageNumber.setRequired(true);
+        pageNumber.setValidators(new StringTrimValidator());
 
         form.setFields(pageType, pageIndex, pageNumber);
         form.setDataSource(ImportBatchItemDataSource.getInstance());
@@ -800,6 +804,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         private void fetchSelection(String pid, String batch) {
             LOG.fine("fetch.dc: " + pid);
 
+            form.clearErrors(true);
             Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batch);
             criteria.addCriteria(new Criteria(ImportBatchItemDataSource.FIELD_PID, pid));
             form.fetchData(criteria, new DSCallback() {
