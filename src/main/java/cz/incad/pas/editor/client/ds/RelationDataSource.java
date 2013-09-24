@@ -36,6 +36,7 @@ import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.BooleanCallback;
+import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -125,7 +126,7 @@ public class RelationDataSource extends RestDataSource {
                 if (oldPids == null) {
                     return ;
                 }
-                String[] newPids = toFieldValues(response.getData(), FIELD_PID);
+                String[] newPids = ClientUtils.toFieldValues(response.getData(), FIELD_PID);
                 if (!Arrays.equals(oldPids, newPids)) {
                     response.setInvalidateCache(Boolean.TRUE);
                 }
@@ -141,6 +142,13 @@ public class RelationDataSource extends RestDataSource {
 
     public void addChild(String parentPid, String pid, final BooleanCallback call) {
         if (pid == null || pid.isEmpty()) {
+            throw new IllegalArgumentException("Missing PID!");
+        }
+        addChild(parentPid, new String[] {pid}, call);
+    }
+
+    public void addChild(String parentPid, String[] pid, final BooleanCallback call) {
+        if (pid == null || pid.length < 1) {
             throw new IllegalArgumentException("Missing PID!");
         }
         if (parentPid == null || parentPid.isEmpty()) {
@@ -167,6 +175,13 @@ public class RelationDataSource extends RestDataSource {
 
     public void removeChild(String parentPid, String pid, final BooleanCallback call) {
         if (pid == null || pid.isEmpty()) {
+            throw new IllegalArgumentException("Missing PID!");
+        }
+        removeChild(parentPid, new String[] {pid}, call);
+    }
+
+    public void removeChild(String parentPid, String[] pid, final BooleanCallback call) {
+        if (pid == null || pid.length < 1) {
             throw new IllegalArgumentException("Missing PID!");
         }
         if (parentPid == null || parentPid.isEmpty()) {
@@ -196,14 +211,21 @@ public class RelationDataSource extends RestDataSource {
             final String parentPid,
             final BooleanCallback call) {
 
+        moveChild(new String[] {pid}, oldParentPid, parentPid, call);
+    }
+    public void moveChild(final String[] pid,
+            final String parentPidFrom,
+            final String parentPidTo,
+            final BooleanCallback call) {
+
         final RelationDataSource ds = RelationDataSource.getInstance();
         BooleanCallback toAdd = new BooleanCallback() {
 
             @Override
             public void execute(Boolean value) {
                 if (value != null && value) {
-                    if (parentPid != null) {
-                        ds.addChild(parentPid, pid, call);
+                    if (parentPidTo != null) {
+                        ds.addChild(parentPidTo, pid, call);
                     } else {
                         call.execute(value);
                     }
@@ -212,8 +234,8 @@ public class RelationDataSource extends RestDataSource {
                 }
             }
         };
-        if (oldParentPid != null) {
-            ds.removeChild(oldParentPid, pid, toAdd);
+        if (parentPidFrom != null) {
+            ds.removeChild(parentPidFrom, pid, toAdd);
         } else {
             toAdd.execute(Boolean.TRUE);
         }
@@ -274,14 +296,6 @@ public class RelationDataSource extends RestDataSource {
             }
         }
         return true;
-    }
-
-    public static String[] toFieldValues(Record[] records, String fieldName) {
-        String[] items = new String[records.length];
-        for (int i = 0; i < records.length; i++) {
-            items[i] = records[i].getAttribute(fieldName);
-        }
-        return items;
     }
 
     /**

@@ -549,6 +549,15 @@ public class DigitalObjectResource {
         RemoteObject remote = storage.find(parentPid);
         RelationEditor editor = new RelationEditor(remote);
         List<String> members = editor.getMembers();
+        // check that PIDs being removed are members of parent object
+        HashSet<String> toRemovePidSetCopy = new HashSet<String>(toRemovePidSet);
+        toRemovePidSetCopy.removeAll(members);
+        if (!toRemovePidSetCopy.isEmpty()) {
+            String msg = String.format("Parent: %s does not contain members: %s",
+                    parentPid, toRemovePidSetCopy.toString());
+            throw RestException.plainText(Status.BAD_REQUEST, msg);
+        }
+        // remove
         if (members.removeAll(toRemovePidSet)) {
             editor.setMembers(members);
             editor.write(editor.getLastModified(), session.asFedoraLog());

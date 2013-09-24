@@ -24,8 +24,11 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.smartgwt.client.data.Record;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
+import java.util.Arrays;
 
 /**
  * Integrates digital object editor to application workflow.
@@ -55,7 +58,12 @@ public final class DigitalObjectEditing extends AbstractActivity {
     @Override
     public void start(AcceptsOneWidget panel, EventBus eventBus) {
         panel.setWidget(editor.getUI());
-        editor.edit(place.getEditorId(), place.getPid());
+        Record[] digitalObjects = place.getDigitalObjects();
+        if (digitalObjects != null) {
+            editor.edit(place.getEditorId(), digitalObjects);
+        } else {
+            editor.edit(place.getEditorId(), place.getPids());
+        }
     }
 
     @Override
@@ -67,13 +75,26 @@ public final class DigitalObjectEditing extends AbstractActivity {
 
         private DatastreamEditorType editor;
         private String pid;
+        private String[] pids;
+        private Record[] digitalObjects;
 
         public DigitalObjectEditorPlace() {
         }
 
         public DigitalObjectEditorPlace(DatastreamEditorType editor, String pid) {
+            this(editor, pid == null ? null : new String[] {pid});
+        }
+
+        public DigitalObjectEditorPlace(DatastreamEditorType editor, Record[] records) {
             this.editor = editor;
-            this.pid = pid;
+            this.pid = records == null || records.length == 0 ? null : records[0].getAttribute("pid");
+            this.digitalObjects = records;
+        }
+
+        public DigitalObjectEditorPlace(DatastreamEditorType editor, String[] pids) {
+            this.editor = editor;
+            this.pid = pids == null || pids.length == 0 ? null : pids[0];
+            this.pids = pids;
         }
 
         public DatastreamEditorType getEditorId() {
@@ -90,6 +111,23 @@ public final class DigitalObjectEditing extends AbstractActivity {
 
         public void setPid(String pid) {
             this.pid = pid;
+            this.pids = pid == null ? null : new String[] {pid};
+        }
+
+        public String[] getPids() {
+            return pids;
+        }
+
+        public void setPids(String[] pids) {
+            this.pids = pids;
+        }
+
+        public Record[] getDigitalObjects() {
+            return digitalObjects;
+        }
+
+        public void setDigitalObjects(Record[] digitalObjects) {
+            this.digitalObjects = digitalObjects;
         }
 
         @Override
@@ -107,8 +145,15 @@ public final class DigitalObjectEditing extends AbstractActivity {
             if ((this.pid == null) ? (other.pid != null) : !this.pid.equals(other.pid)) {
                 return false;
             }
+            if (!Arrays.equals(this.pids, other.pids)) {
+                return false;
+            }
+            if (!Arrays.equals(this.digitalObjects, other.digitalObjects)) {
+                return false;
+            }
             return true;
         }
+
 
         @Prefix("doEditor")
         public static final class Tokenizer implements PlaceTokenizer<DigitalObjectEditorPlace> {
@@ -133,6 +178,17 @@ public final class DigitalObjectEditing extends AbstractActivity {
 
             @Override
             public String getToken(DigitalObjectEditorPlace place) {
+                String[] digitalObjectPids = place.getPids();
+                if (digitalObjectPids != null && digitalObjectPids.length > 1) {
+                    // batch edits should not be bookmarked
+                    throw new UnsupportedOperationException(Arrays.toString(digitalObjectPids));
+                }
+                Record[] digitalObjects = place.getDigitalObjects();
+                if (digitalObjects != null && digitalObjects.length > 1) {
+                    // batch edits should not be bookmarked
+                    String[] pids = ClientUtils.toFieldValues(digitalObjects, "pid");
+                    throw new UnsupportedOperationException(Arrays.toString(pids));
+                }
                 JSONObject json = new JSONObject();
                 JsonTokenizer.putString(json, EDITOR, place.editor == null ? null : place.editor.name());
                 JsonTokenizer.putString(json, PID, place.getPid());

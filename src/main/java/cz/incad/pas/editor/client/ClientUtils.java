@@ -298,6 +298,17 @@ public final class ClientUtils {
         }
     };
 
+    /**
+     * Copies given attribute from each record to standalone array.
+     */
+    public static String[] toFieldValues(Record[] records, String attributeName) {
+        String[] items = new String[records.length];
+        for (int i = 0; i < records.length; i++) {
+            items[i] = records[i].getAttribute(attributeName);
+        }
+        return items;
+    }
+
     public static final class DataSourceFieldBuilder<T extends DataSourceField> {
 
         public static final OperatorId[] TEXT_OPERATIONS = {

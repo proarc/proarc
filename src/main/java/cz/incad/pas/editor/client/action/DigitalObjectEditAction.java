@@ -22,7 +22,6 @@ import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.Editor;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
-import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 
@@ -37,6 +36,7 @@ public final class DigitalObjectEditAction extends AbstractAction {
 
     private DatastreamEditorType editorType;
     private final PlaceController places;
+    private AcceptFilter filter;
 
     public DigitalObjectEditAction(
             String title,
@@ -46,7 +46,8 @@ public final class DigitalObjectEditAction extends AbstractAction {
         this(title, i18n.DigitalObjectEditAction_Hint(), null, editorType,
                 Editor.getInstance().getEditorWorkFlow().getPlaceController());
     }
-    
+
+    /** Action accepting single selection. */
     public DigitalObjectEditAction(
             String title,
             String tooltip,
@@ -54,36 +55,87 @@ public final class DigitalObjectEditAction extends AbstractAction {
             DatastreamEditorType editorType,
             PlaceController places) {
 
+        this(title, tooltip, icon, editorType, new AcceptFilter(false, false), places);
+    }
+
+    public DigitalObjectEditAction(
+            String title,
+            String tooltip,
+            String icon,
+            DatastreamEditorType editorType,
+            AcceptFilter filter,
+            PlaceController places) {
+
         super(title, icon == null ? "[SKIN]/actions/edit.png" : icon, tooltip);
         this.editorType = editorType;
         this.places = places;
+        this.filter = filter;
     }
 
     @Override
     public void performAction(ActionEvent event) {
         Record[] selection = Actions.getSelection(event);
-        if (selection == null || selection.length != 1) {
-            return ;
+        if (accept(selection)) {
+            DigitalObjectEditorPlace place =
+                    new DigitalObjectEditorPlace(editorType, selection);
+            places.goTo(place);
         }
 
-        DigitalObjectEditorPlace place = new DigitalObjectEditorPlace(editorType,
-                selection[0].getAttribute(SearchDataSource.FIELD_PID));
-        places.goTo(place);
     }
 
     @Override
     public boolean accept(ActionEvent event) {
         Record[] selection = Actions.getSelection(event);
-        if (selection == null || selection.length != 1) {
+        return accept(selection);
+    }
+
+    private boolean accept(Record[] selection) {
+        if (selection == null || (!filter.isMultiSelection() && selection.length != 1)) {
             return false;
         }
-        // check object model
-        MetaModelRecord model = (MetaModelRecord) selection[0].getAttributeAsObject(
-                MetaModelDataSource.FIELD_MODELOBJECT);
-        if (model != null) {
-            return model.isSupportedDatastream(editorType.name());
+        // check object models?
+        if (filter.isAnyModel()) {
+            return true;
         }
-        return false;
+        // check object model of each record
+        for (Record record : selection) {
+            MetaModelRecord model = (MetaModelRecord) record.getAttributeAsObject(
+                    MetaModelDataSource.FIELD_MODELOBJECT);
+            if (model != null && !model.isSupportedDatastream(editorType.name())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Helper to change acceptation rules.
+     */
+    public static class AcceptFilter {
+
+        private boolean anyModel;
+        private boolean multiSelection;
+
+        public AcceptFilter(boolean anyModel, boolean multiSelection) {
+            this.anyModel = anyModel;
+            this.multiSelection = multiSelection;
+        }
+
+        public boolean isAnyModel() {
+            return anyModel;
+        }
+
+        public void setAnyModel(boolean anyModel) {
+            this.anyModel = anyModel;
+        }
+
+        public boolean isMultiSelection() {
+            return multiSelection;
+        }
+
+        public void setMultiSelection(boolean multiSelection) {
+            this.multiSelection = multiSelection;
+        }
     }
 
 }

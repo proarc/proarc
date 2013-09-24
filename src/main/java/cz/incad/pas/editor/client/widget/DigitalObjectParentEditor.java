@@ -20,11 +20,13 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.widgets.Canvas;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.Action;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
+import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.widget.ImportParentChooser.ImportParentHandler;
@@ -34,10 +36,10 @@ import cz.incad.pas.editor.client.widget.ImportParentChooser.ImportParentHandler
  *
  * @author Jan Pokorsky
  */
-public final class DigitalObjectParentEditor implements DatastreamEditor, Refreshable {
+public final class DigitalObjectParentEditor implements BatchDatastreamEditor, Refreshable {
 
     private final ImportParentChooser chooser;
-    private String pid;
+    private Record[] digitalObjects;
     private String batchId;
     private boolean autosave = false;
     private SaveAction saveAction;
@@ -60,9 +62,26 @@ public final class DigitalObjectParentEditor implements DatastreamEditor, Refres
 
     @Override
     public void edit(String pid, String batchId, MetaModelRecord model) {
-        this.pid = pid;
+        Record record = new Record();
+        record.setAttribute(RelationDataSource.FIELD_PID, pid);
+        record.setAttribute(MetaModelDataSource.FIELD_MODELOBJECT, model);
+        edit(new Record[] {record}, batchId);
+    }
+
+    /**
+     * Starts editing of parent object of passed digital objects.
+     * For now objects <b>MUST HAVE</b> common parent objects!
+     *
+     * @param items record must contain at least PID.
+     * @param batchId not yet supported
+     */
+    @Override
+    public void edit(Record[] items, String batchId) {
+        this.digitalObjects = items;
         this.batchId = batchId;
-        if (pid != null) {
+        if (items != null && items.length > 0) {
+            // pass first object to the chooser to fetch current parent
+            String pid = items[0].getAttribute(RelationDataSource.FIELD_PID);
             chooser.setDigitalObject(pid);
         } else if (batchId != null) {
             chooser.setImport(batchId);
@@ -76,7 +95,7 @@ public final class DigitalObjectParentEditor implements DatastreamEditor, Refres
     public <T> T getCapability(Class<T> clazz) {
         // refresh
         T c = null;
-        if (Refreshable.class.equals(clazz)) {
+        if (Refreshable.class.equals(clazz) || BatchDatastreamEditor.class.equals(clazz)) {
             c = (T) this;
         }
         return c;
@@ -107,7 +126,7 @@ public final class DigitalObjectParentEditor implements DatastreamEditor, Refres
 
     @Override
     public void refresh() {
-        edit(pid, batchId, null);
+        edit(digitalObjects, batchId);
     }
 
     private void save() {
@@ -116,7 +135,8 @@ public final class DigitalObjectParentEditor implements DatastreamEditor, Refres
             String parentPid = chooser.getSelectedParentPid();
             String oldParentPid = chooser.getOldParentPid();
             RelationDataSource ds = RelationDataSource.getInstance();
-            ds.moveChild(pid, oldParentPid, parentPid, new BooleanCallback() {
+            String[] pids = ClientUtils.toFieldValues(digitalObjects, RelationDataSource.FIELD_PID);
+            ds.moveChild(pids, oldParentPid, parentPid, new BooleanCallback() {
 
                 @Override
                 public void execute(Boolean value) {

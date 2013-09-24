@@ -16,21 +16,22 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.google.gwt.core.client.Callback;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.RestDataSource;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.data.events.DataArrivedEvent;
+import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DateDisplayFormat;
+import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.FieldType;
-import com.smartgwt.client.util.BooleanCallback;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.util.HashMap;
@@ -85,28 +86,38 @@ public final class SearchDataSource extends RestDataSource {
         return ds;
     }
 
-    public RecordList find(String pid, final BooleanCallback callback) {
-        final RecordList rs = new RecordList();
+    /**
+     * Finds digital object records.
+     * @param pids PIDs to find
+     * @param callback result set of found records; no paging
+     */
+    public void find(final String[] pids, final Callback<ResultSet, Void> callback) {
+        final ResultSet resultSet = new ResultSet(this);
         Criteria criteria = new Criteria(
                 DigitalObjectResourceApi.SEARCH_TYPE_PARAM, SearchType.PIDS.toString());
-        if (pid != null && !pid.isEmpty()) {
-            criteria.addCriteria(DigitalObjectResourceApi.SEARCH_PID_PARAM, pid);
+        if (pids != null && pids.length > 0) {
+            criteria.addCriteria(DigitalObjectResourceApi.SEARCH_PID_PARAM, pids);
         } else {
-            throw new IllegalArgumentException("pid");
+            throw new IllegalArgumentException("pids");
         }
-        fetchData(criteria, new DSCallback() {
+        resultSet.setCriteria(criteria);
+//        resultSet.setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
+        // server resource returns full result in case of SearchType.PIDS query
+        resultSet.setFetchMode(FetchMode.BASIC);
+        if (resultSet.lengthIsKnown()) {
+            callback.onSuccess(resultSet);
+        } else {
+            final HandlerRegistration[] handler = new HandlerRegistration[1];
+            handler[0] = resultSet.addDataArrivedHandler(new DataArrivedHandler() {
 
-            @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (RestConfig.isStatusOk(response)) {
-                    rs.addList(response.getData());
-                    callback.execute(Boolean.TRUE);
-                } else {
-                    callback.execute(Boolean.FALSE);
+                @Override
+                public void onDataArrived(DataArrivedEvent event) {
+                    handler[0].removeHandler();
+                    callback.onSuccess(resultSet);
                 }
-            }
-        });
-        return rs;
+            });
+            resultSet.get(0);
+        }
     }
 
     public static boolean isDeleted(Record r) {

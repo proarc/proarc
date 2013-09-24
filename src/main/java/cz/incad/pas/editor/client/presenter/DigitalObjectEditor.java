@@ -19,14 +19,11 @@ package cz.incad.pas.editor.client.presenter;
 import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
-import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
-import com.smartgwt.client.data.events.DataChangedEvent;
-import com.smartgwt.client.data.events.DataChangedHandler;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
@@ -43,19 +40,23 @@ import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.Actions.ActionSource;
 import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
+import cz.incad.pas.editor.client.action.DigitalObjectEditAction.AcceptFilter;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
+import cz.incad.pas.editor.client.widget.BatchDatastreamEditor;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
 import cz.incad.pas.editor.client.widget.DigitalObjectChildrenEditor;
 import cz.incad.pas.editor.client.widget.DigitalObjectParentEditor;
 import cz.incad.pas.editor.client.widget.MediaEditor;
 import cz.incad.pas.editor.client.widget.TextEditor;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
+import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
 /**
@@ -74,7 +75,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private final VLayout editorContainer;
     private EditorDescriptor currentEditor;
     /** currently edited object {PID, MODEL_OBJECT}; should be replaced with some interface */
-    private Record selection;
+    private Record[] selection;
     private final EnumMap<DatastreamEditorType, EditorDescriptor> editorCache;
     private final ActionSource actionSource;
     private final PlaceController places;
@@ -107,19 +108,40 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         return widget;
     }
 
-    public void edit(DatastreamEditorType type, String pid) {
-        if (pid == null) {
+    public void edit(DatastreamEditorType type, Record[] pids) {
+        if (pids == null || pids.length == 0) {
             // this should occur just in case someone breakes URL in browser.
-            ClientUtils.severe(LOG, "invalid edit parameters: %s, %s", type, pid);
-            SC.warn("Invalid URL!");
-            places.goTo(Place.NOWHERE);
+            notifyMissingPid(type);
             return ;
         }
+
+        OpenEditorTask task = new OpenEditorTask(pids);
+        edit(type, task, pids.length > 1);
+    }
+
+    public void edit(DatastreamEditorType type, String... pids) {
+        if (pids.length == 0) {
+            // this should occur just in case someone breakes URL in browser.
+            notifyMissingPid(type);
+            return ;
+        }
+
+        OpenEditorTask task = new OpenEditorTask(pids);
+        edit(type, task, pids.length > 1);
+    }
+
+    private void notifyMissingPid(DatastreamEditorType type) {
+        ClientUtils.severe(LOG, "invalid edit parameters: %s, no pid", type);
+        SC.warn("Invalid URL!");
+        places.goTo(Place.NOWHERE);
+    }
+
+    private void edit(DatastreamEditorType type, OpenEditorTask task, boolean multiselection) {
         this.selection = null;
         if (type == null) {
-            ClientUtils.warning(LOG, "missing type, pid: %s", pid);
+            ClientUtils.warning(LOG, "missing type, objects: %s", task.toString());
             // reasonable default
-            type = DatastreamEditorType.MODS;
+            type = multiselection ? DatastreamEditorType.PARENT : DatastreamEditorType.MODS;
         }
 
         editorContainer.hide();
@@ -127,25 +149,31 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         EditorDescriptor previousEditor = currentEditor;
         currentEditor = getDatastreamEditor(type);
         updateToolbar(previousEditor, currentEditor);
-
-        OpenEditorTask task = new OpenEditorTask(pid);
         task.start();
     }
 
-    private void setSelection(final String pid, final MetaModelRecord mr) {
-        selection = new Record();
-        selection.setAttribute(SearchDataSource.FIELD_PID, pid);
-        selection.setAttribute(MetaModelDataSource.FIELD_MODELOBJECT, mr);
+    private void setSelection(Record[] records) {
+        this.selection = records;
         actionSource.fireEvent();
     }
 
-    private void openEditor(final String pid, final MetaModelRecord mr) {
+    private void openEditor() {
         final DatastreamEditor editor = currentEditor.getEditor();
+        final Record[] records = getSelection();
         Scheduler.get().scheduleDeferred(new ScheduledCommand() {
 
             @Override
             public void execute() {
-                editor.edit(pid, null, mr);
+                if (records.length > 1) {
+                    BatchDatastreamEditor beditor = editor.getCapability(BatchDatastreamEditor.class);
+                    if (beditor != null) {
+                        beditor.edit(records, null);
+                    }
+                } else {
+                    String pid = records[0].getAttribute(SearchDataSource.FIELD_PID);
+                    MetaModelRecord mr = (MetaModelRecord) records[0].getAttributeAsObject(MetaModelDataSource.FIELD_MODELOBJECT);
+                    editor.edit(pid, null, mr);
+                }
                 editorContainer.setMembers(editor.getUI());
                 editorContainer.show();
             }
@@ -165,10 +193,13 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
 
     @Override
     public Record[] getSelection() {
-        return selection == null ? null : new Record[] { selection };
+        return selection;
     }
 
     private void updateToolbar(EditorDescriptor oldEditor, EditorDescriptor newEditor) {
+        if (oldEditor == newEditor) {
+            return ;
+        }
         if (oldEditor != null) {
             toolbar.removeMembers(oldEditor.getToolbarItems());
         }
@@ -204,7 +235,10 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 i18n.DigitalObjectEditor_ParentAction_Title(),
                 i18n.DigitalObjectEditAction_Hint(),
                 null,
-                DatastreamEditorType.PARENT, places);
+                DatastreamEditorType.PARENT,
+                // support multiple selection just in case DigitalObjectEditor is embeded
+                tiny ? new AcceptFilter(true, true) : new AcceptFilter(false, false),
+                places);
         DigitalObjectEditAction mediaEditAction = new DigitalObjectEditAction(
                 i18n.DigitalObjectEditor_MediaAction_Title(),
                 i18n.DigitalObjectEditor_MediaAction_Hint(),
@@ -288,10 +322,16 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         return desc;
     }
 
-    private void setDesctiption(String editorTitle, String objectLabel, MetaModelRecord mr) {
-        // Editor Name - Model - Label
-        String model = mr.getDisplayName();
-        String content = ClientUtils.format("%s - %s: %s", editorTitle, model, objectLabel);
+    private void setDescription(String editorTitle, String objectLabel, MetaModelRecord mr) {
+        String content;
+        if (mr != null) {
+            // Editor Name - Model - Label
+            String model = mr.getDisplayName();
+            content = ClientUtils.format("%s - %s: %s", editorTitle, model, objectLabel);
+        } else {
+            // Editor Name - Label
+            content = ClientUtils.format("%s: %s", editorTitle, objectLabel);
+        }
         lblHeader.setContents(content);
     }
 
@@ -331,20 +371,37 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     /**
      * Opens editor when object description and model object are fetched.
      */
-    private final class OpenEditorTask extends SweepTask implements DataChangedHandler, Callback<ResultSet, Void> {
+    private final class OpenEditorTask extends SweepTask implements Callback<ResultSet, Void> {
 
         private RecordList searchList;
         private ResultSet modelResultSet;
-        private final String pid;
-        private HandlerRegistration searchChangedHandler;
+        private final String[] pids;
+        private final Record[] digitalObjects;
 
-        OpenEditorTask(String pid) {
-            this.pid = pid;
+        /**
+         * It will fetch model and other attributes for each PID.
+         */
+        public OpenEditorTask(String[] pids) {
+            this(null, pids);
+        }
+
+        /**
+         * No fetch. It will use records as digital objects.
+         */
+        public OpenEditorTask(Record[] digitalObjects) {
+            this(digitalObjects, null);
+        }
+
+        private OpenEditorTask(Record[] digitalObjects, String[] pids) {
+            this.pids = pids;
+            this.digitalObjects = digitalObjects;
         }
 
         public void start() {
             expect();
-            this.searchList = initSearchList(pid);
+            if (pids != null) {
+                initSearchList(pids);
+            }
             initModels();
             release();
         }
@@ -354,13 +411,22 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             MetaModelDataSource.getModels(false, this);
         }
 
-        private RecordList initSearchList(String pid) {
-            RecordList rl = SearchDataSource.getInstance().find(pid, ClientUtils.EMPTY_BOOLEAN_CALLBACK);
-            if (rl.isEmpty()) {
-                expect();
-                searchChangedHandler = rl.addDataChangedHandler(this);
-            }
-            return rl;
+        private void initSearchList(String[] pids) {
+            expect();
+            SearchDataSource.getInstance().find(pids, new Callback<ResultSet, Void>() {
+
+                @Override
+                public void onFailure(Void reason) {
+                    searchList = new RecordList();
+                    release();
+                }
+
+                @Override
+                public void onSuccess(ResultSet result) {
+                    searchList = result;
+                    release();
+                }
+            });
         }
 
         /**
@@ -368,35 +434,75 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
          */
         @Override
         protected void processing() {
-            Record searchRecord = getSearchRecord();
-            String error = null;
-            if (searchRecord == null) {
-                error = ClientUtils.format("PID %s not found!", pid);
-            } else if (SearchDataSource.isDeleted(searchRecord)) {
-                error = ClientUtils.format("PID %s is deleted!", pid);
-            }
-            if (error != null) {
-                SC.warn(error);
-                places.goTo(Place.NOWHERE);
+            Record[] records = processRecords();
+            if (records == null) {
                 return ;
             }
-            MetaModelRecord model = getModel(getModelId());
-            setDesctiption(currentEditor.getTitle(), getLabel(), model);
-            setSelection(pid, model);
-            if (!model.isSupportedDatastream(currentEditor.getType().name())) {
-                updateToolbar(currentEditor, null);
-                currentEditor = null;
-                return ;
+            setSelection(records);
+            if (records.length == 1) {
+                MetaModelRecord model = getModel(records[0]);
+                setDescription(currentEditor.getTitle(), getLabel(records[0]), model);
+                if (!model.isSupportedDatastream(currentEditor.getType().name())) {
+                    // XXX this should query current action, not model
+                    updateToolbar(currentEditor, null);
+                    currentEditor = null;
+                    return ;
+                }
+            } else {
+                setDescription(currentEditor.getTitle(),
+                        i18n.DigitalObjectEditor_MultiSelection_Title(String.valueOf(records.length)),
+                        null);
+                BatchDatastreamEditor beditor = currentEditor.getEditor().getCapability(BatchDatastreamEditor.class);
+                if (beditor == null) {
+                    // let the user choose proper batch editor
+                    updateToolbar(currentEditor, null);
+                    currentEditor = null;
+                    return ;
+                }
             }
-            openEditor(pid, model);
+            openEditor();
         }
 
-        @Override
-        public void onDataChanged(DataChangedEvent event) {
-            if (searchList == event.getSource() && searchChangedHandler != null) {
-                searchChangedHandler.removeHandler();
-                release();
+        private Record[] processRecords() {
+            Record[] records;
+            if (pids != null) {
+                records = searchListAsRecords();
+                String error = checkSearchedRecordsConsistency(records);
+                if (error != null) {
+                    SC.warn(error);
+                    places.goTo(Place.NOWHERE);
+                    return null;
+                }
+            } else {
+                records = digitalObjects;
+                MetaModelDataSource.addModelObjectField(SearchDataSource.FIELD_MODEL, records);
             }
+            return records;
+        }
+
+        private Record[] searchListAsRecords() {
+            Record[] records = searchList.toArray();
+            MetaModelDataSource.addModelObjectField(SearchDataSource.FIELD_MODEL, records);
+            return records;
+        }
+
+        private String checkSearchedRecordsConsistency(Record[] records) {
+            String error = null;
+            HashSet<String> pidSet = new HashSet<String>(Arrays.asList(pids));
+            for (Record record : records) {
+                String recordPid = record.getAttribute(SearchDataSource.FIELD_PID);
+                if (!pidSet.remove(recordPid)) {
+                    error = ClientUtils.format("PID %s not requested!", recordPid);
+                    break;
+                } else if (SearchDataSource.isDeleted(record)) {
+                    error = ClientUtils.format("PID %s is deleted!", recordPid);
+                    break;
+                }
+            }
+            if (error == null && !pidSet.isEmpty()) {
+                error = ClientUtils.format("PID %s not found!", pidSet.toString());
+            }
+            return error;
         }
 
         @Override
@@ -411,27 +517,24 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             release();
         }
 
-        private Record getSearchRecord() {
-            Record first = searchList.first();
-            return first;
-        }
-
-        private String getLabel() {
-            Record r = getSearchRecord();
+        private String getLabel(Record r) {
             return r == null ? "[ERROR]" : r.getAttribute(SearchDataSource.FIELD_LABEL);
         }
 
-        private String getModelId() {
-            Record r = getSearchRecord();
-            return r == null ? "[ERROR]" : r.getAttribute(SearchDataSource.FIELD_MODEL);
+        private MetaModelRecord getModel(Record record) {
+            return (MetaModelRecord) record.getAttributeAsObject(MetaModelDataSource.FIELD_MODELOBJECT);
         }
 
-        private MetaModelRecord getModel(String modelId) {
-            MetaModelRecord m = MetaModelRecord.get(modelResultSet.findByKey(modelId));
-            if (m == null) {
-                throw new IllegalStateException("Invalid model ID: " + modelId);
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            if (pids != null) {
+                sb.append("pids: ").append(Arrays.toString(pids));
+            } else {
+                String[] recordPids = ClientUtils.toFieldValues(digitalObjects, SearchDataSource.FIELD_PID);
+                sb.append("records: ").append(Arrays.toString(recordPids));
             }
-            return m;
+            return super.toString();
         }
     }
 

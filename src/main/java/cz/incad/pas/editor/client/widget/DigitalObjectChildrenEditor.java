@@ -50,6 +50,7 @@ import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.Action;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
@@ -204,7 +205,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor, Refr
             return ;
         }
         Record[] rs = childrenListGrid.getOriginalResultSet().toArray();
-        String[] childPids = RelationDataSource.toFieldValues(rs, RelationDataSource.FIELD_PID);
+        String[] childPids = ClientUtils.toFieldValues(rs, RelationDataSource.FIELD_PID);
         relationDataSource.reorderChildren(pid, childPids, new BooleanCallback() {
 
             @Override
@@ -216,6 +217,20 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor, Refr
                 }
             }
         });
+    }
+
+    /**
+     * Handles a new children selection.
+     */
+    private void onChildSelection(Record[] records) {
+        if (records == null || records.length == 0 || originChildren != null) {
+            childPlaces.goTo(Place.NOWHERE);
+        } else {
+            lastEditorType = lastEditorType != null
+                    ? lastEditorType
+                    : records.length > 1 ? DatastreamEditorType.PARENT : DatastreamEditorType.MODS;
+            childPlaces.goTo(new DigitalObjectEditorPlace(lastEditorType, records));
+        }
     }
 
     private ListGrid initChildrenListGrid() {
@@ -286,14 +301,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor, Refr
             @Override
             public void onSelectionUpdated(SelectionUpdatedEvent event) {
                 ListGridRecord[] records = childrenListGrid.getSelectedRecords();
-                if (records == null || records.length == 0) {
-                    childPlaces.goTo(Place.NOWHERE);
-                } else if (records.length == 1) {
-//                    LOG.severe(ClientUtils.dump(records[0], "onSelectionUpdated"));
-                    String childPid = records[0].getAttribute(RelationDataSource.FIELD_PID);
-                    lastEditorType = lastEditorType == null ? DatastreamEditorType.MODS : lastEditorType;
-                    childPlaces.goTo(new DigitalObjectEditorPlace(lastEditorType, childPid));
-                }
+                onChildSelection(records);
             }
         });
     }
