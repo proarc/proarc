@@ -16,9 +16,9 @@
  */
 package cz.incad.pas.editor.server.dublincore;
 
-import cz.incad.pas.oaidublincore.ElementType;
-import cz.incad.pas.oaidublincore.OaiDcType;
-import cz.incad.pas.oaidublincore.ObjectFactory;
+import cz.cas.lib.proarc.oaidublincore.ElementType;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import cz.cas.lib.proarc.oaidublincore.ObjectFactory;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;

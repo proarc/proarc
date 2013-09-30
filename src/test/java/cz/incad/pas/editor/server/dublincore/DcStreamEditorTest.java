@@ -16,13 +16,13 @@
  */
 package cz.incad.pas.editor.server.dublincore;
 
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.ModsUtils;
-import cz.incad.pas.oaidublincore.OaiDcType;
 import java.io.StringWriter;
 import java.util.HashMap;
 import javax.xml.bind.util.JAXBSource;

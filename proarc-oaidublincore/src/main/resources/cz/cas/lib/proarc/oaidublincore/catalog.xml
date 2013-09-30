@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    OASIS XML Catalog document.
+
+    See http://www.oasis-open.org/committees/entity/spec.html
+-->
+
+<!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN"
+         "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">                
+
+    <public publicId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="XMLSchema.dtd"/>
+    <public publicId="datatypes" uri="datatypes.dtd"/>
+    
+    <!-- For XML schemas the <uri> element is recommended 
+         to specify the resource, e.g: -->
+    <!--
+    <uri name="http://org.company/xml/schemas" uri="file:/path/schema.xsd"/>
+    -->
+    <uri name="http://dublincore.org/schemas/xmls/simpledc20021212.xsd" uri="simpledc20021212.xsd"/>
+    <uri name="http://www.w3.org/2001/03/xml.xsd" uri="xml.xsd"/>
+        
+    <!-- If xsi:schemaLocation is specified in XML document e.g.
+         xsi:schemaLocation="http://org.company/xml/schemas http://org.company/xml/schemas/schema.xsd"
+         the <system> element can be used to specify the local resource, e.g: -->
+    
+<!--    <system systemId="http://dublincore.org/schemas/xmls/simpledc20021212.xsd" uri="simpledc20021212.xsd"/>
+    <system systemId="http://www.w3.org/2001/03/xml.xsd" uri="xml.xsd"/>-->
+    
+</catalog>

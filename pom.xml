@@ -91,9 +91,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>oaidublincore</artifactId>
-            <version>${project.version}</version>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-oaidublincore</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yourmediashelf.fedora.client</groupId>

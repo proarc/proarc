@@ -1,0 +1,20 @@
+<bindings xmlns="http://java.sun.com/xml/ns/jaxb"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            xmlns:xs="http://www.w3.org/2001/XMLSchema"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.1" >
+
+    <globalBindings>
+<!--        <xjc:simple/>-->
+    </globalBindings>
+
+<!--    <bindings schemaLocation="http://www.w3.org/2001/03/xml.xsd" node="/xs:schema">
+
+        <bindings node="xs:attribute[@name='lang']">
+            <property name="xmlLang" />
+        </bindings>
+
+    </bindings>-->
+
+</bindings>

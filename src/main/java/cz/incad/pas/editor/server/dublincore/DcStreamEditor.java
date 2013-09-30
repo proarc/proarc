@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.server.dublincore;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
@@ -26,7 +27,6 @@ import cz.incad.pas.editor.server.fedora.XmlStreamEditor;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;
 import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
-import cz.incad.pas.oaidublincore.OaiDcType;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
