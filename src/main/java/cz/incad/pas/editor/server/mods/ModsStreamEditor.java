@@ -97,7 +97,8 @@ public final class ModsStreamEditor {
         mods.setVersion("3.4");
         IdentifierType identifierType = new IdentifierType();
         identifierType.setType("uuid");
-        identifierType.setValue(pid.substring("uuid:".length()));
+        String uuid = FoxmlUtils.pidAsUuid(pid);
+        identifierType.setValue(uuid);
         mods.getModsGroup().add(identifierType);
         return mods;
     }
@@ -105,7 +106,8 @@ public final class ModsStreamEditor {
     private static ModsType addPid(ModsType mods, String pid) {
         IdentifierMapper identMapper = new IdentifierMapper();
         List<IdentifierItem> identifierItems = identMapper.map(mods);
-        identifierItems.add(0, new IdentifierItem("uuid", pid.substring("uuid:".length())));
+        String uuid = FoxmlUtils.pidAsUuid(pid);
+        identifierItems.add(0, new IdentifierItem("uuid", uuid));
         identMapper.map(mods, identifierItems);
         return mods;
     }

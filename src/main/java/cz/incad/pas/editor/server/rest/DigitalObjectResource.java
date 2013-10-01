@@ -30,6 +30,7 @@ import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.DigitalObjectNotFoundException;
 import cz.incad.pas.editor.server.fedora.FedoraObject;
+import cz.incad.pas.editor.server.fedora.FoxmlUtils;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.PurgeFedoraObject;
@@ -181,8 +182,8 @@ public class DigitalObjectResource {
             boolean invalid = pid.length() < 5;
             try {
                 if (!invalid) {
-                    UUID uuid = UUID.fromString(pid.substring("uuid:".length()));
-                    pid = "uuid:" + uuid.toString();
+                    UUID uuid = UUID.fromString(FoxmlUtils.pidAsUuid(pid));
+                    pid = FoxmlUtils.pidFromUuid(uuid.toString());
                 }
             } catch (IllegalArgumentException e) {
                 invalid = true;

@@ -60,6 +60,7 @@ import javax.xml.transform.stream.StreamSource;
 public final class FoxmlUtils {
 
     public static final String FOXML_NAMESPACE;
+    public static final String PID_PREFIX = "uuid:";
     static {
         XmlSchema schema = ObjectFactory.class.getPackage().getAnnotation(XmlSchema.class);
         FOXML_NAMESPACE = schema.namespace();
@@ -261,9 +262,42 @@ public final class FoxmlUtils {
         }
     }
 
+    /**
+     * Creates new unique PID for digital object.
+     *
+     * @return PID
+     */
     public static String createPid() {
         UUID uuid = UUID.randomUUID();
-        return "uuid:" + uuid;
+        return pidFromUuid(uuid.toString());
+    }
+
+    /**
+     * Converts PID to UUID.
+     *
+     * @param pid PID of digital object
+     * @return UUID
+     */
+    public static String pidAsUuid(String pid) {
+        if (pid == null) {
+            throw new NullPointerException("pid");
+        } else if (!pid.startsWith(PID_PREFIX)) {
+            throw new IllegalArgumentException("Invalid PID format: '" + pid + "'!");
+        }
+        return pid.substring(PID_PREFIX.length());
+    }
+
+    /**
+     * Converts UUID to PID.
+     *
+     * @param uuid UUID
+     * @return PID of digital object
+     */
+    public static String pidFromUuid(String uuid) {
+        if (uuid == null) {
+            throw new NullPointerException("uuid");
+        }
+        return PID_PREFIX + uuid;
     }
 
     public static DigitalObject createFoxml(String pid) {
