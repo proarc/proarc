@@ -16,7 +16,6 @@
  */
 package cz.incad.pas.editor.client.widget.mods;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
@@ -274,7 +273,7 @@ public final class RepeatableFormItem extends CanvasItem {
      */
     private static final class DefaultValidator extends CustomValidator {
 
-        private final SmartGwtMessages i18SmartGwt = GWT.create(SmartGwtMessages.class);
+        private final SmartGwtMessages i18SmartGwt = ClientUtils.createSmartGwtMessages();
 
         @Override
         protected boolean condition(Object value) {

@@ -70,7 +70,7 @@ public final class IdentifierDataSource extends DataSource {
     public IdentifierDataSource() {
         setID(ID);
         ClientMessages i18n = GWT.create(ClientMessages.class);
-        SmartGwtMessages i18nSmartGwt = GWT.create(SmartGwtMessages.class);
+        SmartGwtMessages i18nSmartGwt = ClientUtils.createSmartGwtMessages();
 
         DataSourceField type = new DataSourceField(FIELD_TYPE, FieldType.TEXT,
                 i18n.PageForm_IdentifierType_Title());

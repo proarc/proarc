@@ -16,7 +16,6 @@
  */
 package cz.incad.pas.editor.client.widget;
 
-import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.i18n.SmartGwtMessages;
@@ -48,6 +47,7 @@ import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.Selectable;
@@ -82,7 +82,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     public DigitalObjectSearchView(ClientMessages i18n) {
         this.i18n = i18n;
-        this.i18nSmartGwt = GWT.create(SmartGwtMessages.class);
+        this.i18nSmartGwt = ClientUtils.createSmartGwtMessages();
 
         foundGrid = createList();
         

@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.client;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.dom.client.NodeList;
@@ -24,6 +25,7 @@ import com.google.gwt.regexp.shared.SplitResult;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.JSONEncoder;
@@ -43,6 +45,15 @@ import java.util.logging.Logger;
 public final class ClientUtils {
 
     private static final Logger LOG = Logger.getLogger(ClientUtils.class.getName());
+
+    /**
+     * Helper to get modified {@link SmartGwtMessages }.
+     * <p> It should be used instead of {@code GWT.create(SmartGwtMessages.class)}.
+     */
+    public static SmartGwtMessages createSmartGwtMessages() {
+        ModifiedSmartGwtMessages i18nSmartGwt = GWT.create(ModifiedSmartGwtMessages.class);
+        return i18nSmartGwt;
+    }
 
     /**
      * Simplified version of {@link String#format(java.lang.String, java.lang.Object[]) String.format}

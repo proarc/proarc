@@ -16,7 +16,6 @@
  */
 package cz.incad.pas.editor.client;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
@@ -130,7 +129,7 @@ public final class ErrorHandler {
      * @param debugInfo request details, URL, ...
      */
     private void warn(String msg, String detailMsg, String debugInfo) {
-        SmartGwtMessages sgi18n = GWT.create(SmartGwtMessages.class);
+        SmartGwtMessages sgi18n = ClientUtils.createSmartGwtMessages();
         boolean allowDetail = !msg.equals(detailMsg);
         final Dialog d = new Dialog();
         d.setTitle(sgi18n.dialog_WarnTitle());

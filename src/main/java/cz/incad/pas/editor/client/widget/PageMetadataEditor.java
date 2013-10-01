@@ -42,6 +42,7 @@ import com.smartgwt.client.widgets.form.validator.RequiredIfFunction;
 import com.smartgwt.client.widgets.form.validator.RequiredIfValidator;
 import com.smartgwt.client.widgets.layout.HStack;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.shared.series.Series;
 import java.util.Iterator;
@@ -255,7 +256,7 @@ public final class PageMetadataEditor {
     }
 
     private Canvas createButtons() {
-        SmartGwtMessages i18n = GWT.create(SmartGwtMessages.class);
+        SmartGwtMessages i18n = ClientUtils.createSmartGwtMessages();
         IButton btnOk = new IButton(i18n.dialog_OkButtonTitle(), new com.smartgwt.client.widgets.events.ClickHandler() {
 
             @Override
