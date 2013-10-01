@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.server.export;
 
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
+import cz.incad.pas.editor.server.fedora.FoxmlUtils;
 import java.io.File;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -57,7 +58,7 @@ public class ExportUtilsTest {
     @Test
     public void testCreateFolder() {
         File parent = temp.getRoot();
-        String name = "uuid:0bcf9933-84e5-460f-9e94-d798b724d394";
+        String name = FoxmlUtils.pidAsUuid("uuid:0bcf9933-84e5-460f-9e94-d798b724d394");
         File expResult = new File(parent, name);
         File result = ExportUtils.createFolder(parent, name);
         assertEquals(expResult, result);
@@ -65,5 +66,12 @@ public class ExportUtilsTest {
         expResult = new File(parent, name + "_1");
         result = ExportUtils.createFolder(parent, name);
         assertEquals(expResult, result);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreateFolderFailure() {
+        File parent = temp.getRoot();
+        String name = "uuid:0bcf9933-84e5-460f-9e94-d798b724d394";
+        ExportUtils.createFolder(parent, name);
     }
 }

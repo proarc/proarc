@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.server.export;
 
+import cz.incad.pas.editor.server.fedora.FoxmlUtils;
 import java.io.File;
 
 /**
@@ -31,11 +32,28 @@ final class ExportUtils {
      * @return the new folder
      */
     public static File createFolder(File parent, String name) {
+        if (name == null || name.contains(":")) {
+            throw new IllegalArgumentException(name);
+        }
         File folder = new File(parent, name);
         for (int i = 1; !folder.mkdir(); i++) {
             folder = new File(parent, name + '_' + i);
         }
         return folder;
+    }
+
+    /**
+     * Creates XML file instance for given PID.
+     * <p>It does not use special characters as ':' to avoid platform particularities.
+     *
+     * @param output target folder
+     * @param pid PID of digital object
+     * @return file
+     */
+    public static File pidAsXmlFile(File output, String pid) {
+        String uuid = FoxmlUtils.pidAsUuid(pid);
+        File foxml = new File(output, uuid + ".xml");
+        return foxml;
     }
 
 }

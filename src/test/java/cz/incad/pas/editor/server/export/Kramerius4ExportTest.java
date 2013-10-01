@@ -97,7 +97,7 @@ public class Kramerius4ExportTest {
         namespaces.put("oai", Kramerius4Export.OAI_NS);
         namespaces.put("proarc-rels", Relations.PROARC_RELS_NS);
         XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
-        File foxml = Kramerius4Export.pidAsFile(target, pids[0]);
+        File foxml = ExportUtils.pidAsXmlFile(target, pids[0]);
         String foxmlSystemId = foxml.toURI().toASCIIString();
         XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(DcStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));

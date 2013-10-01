@@ -25,6 +25,7 @@ import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcUtils;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
+import cz.incad.pas.editor.server.fedora.FoxmlUtils;
 import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
@@ -97,7 +98,7 @@ public final class Kramerius4Export {
             throw new IllegalArgumentException();
         }
 
-        File target = ExportUtils.createFolder(output, pids[0]);
+        File target = ExportUtils.createFolder(output, FoxmlUtils.pidAsUuid(pids[0]));
         HashSet<String> selectedPids = new HashSet<String>(Arrays.asList(pids));
         toExport.addAll(selectedPids);
         for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
@@ -118,7 +119,7 @@ public final class Kramerius4Export {
             DigitalObject dobj = FedoraClient.export(pid).context("archive")
                     .format("info:fedora/fedora-system:FOXML-1.1")
                     .execute(client).getEntity(DigitalObject.class);
-            File foxml = pidAsFile(output, pid);
+            File foxml = ExportUtils.pidAsXmlFile(output, pid);
             LocalObject local = lstorage.create(foxml, dobj);
             RelationEditor editor = new RelationEditor(local);
             if (hierarchy) {
@@ -160,7 +161,7 @@ public final class Kramerius4Export {
             DigitalObject dobj = FedoraClient.export(pid).context("archive")
                     .format("info:fedora/fedora-system:FOXML-1.1")
                     .execute(client).getEntity(DigitalObject.class);
-            File foxml = pidAsFile(output, pid);
+            File foxml = ExportUtils.pidAsXmlFile(output, pid);
             LocalObject local = lstorage.create(foxml, dobj);
             exportParentDatastreams(local, includeChildPids);
             local.flush();
@@ -463,11 +464,6 @@ public final class Kramerius4Export {
             elm.setTextContent(importFile);
             relations.add(0, elm);
         }
-    }
-
-    static File pidAsFile(File output, String pid) {
-        File foxml = new File(output, pid + ".foxml");
-        return foxml;
     }
 
 }
