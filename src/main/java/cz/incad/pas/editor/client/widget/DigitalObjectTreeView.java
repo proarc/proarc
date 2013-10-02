@@ -17,9 +17,6 @@
 package cz.incad.pas.editor.client.widget;
 
 import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.SelectionStyle;
@@ -27,15 +24,18 @@ import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import com.smartgwt.client.widgets.tree.Tree;
 import com.smartgwt.client.widgets.tree.TreeGrid;
 import com.smartgwt.client.widgets.tree.TreeGridField;
+import com.smartgwt.client.widgets.tree.TreeNode;
+import com.smartgwt.client.widgets.tree.events.DataArrivedEvent;
+import com.smartgwt.client.widgets.tree.events.DataArrivedHandler;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
-import cz.incad.pas.editor.client.ds.RestConfig;
 import java.util.Map;
 
 /**
@@ -102,6 +102,13 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         treeGrid.setAlternateRecordStyles(true);
         treeGrid.setSelectionType(SelectionStyle.SINGLE);
         treeGrid.setContextMenu(Actions.createMenu());
+        treeGrid.addDataArrivedHandler(new DataArrivedHandler() {
+
+            @Override
+            public void onDataArrived(DataArrivedEvent event) {
+                selectAndExpandRootNode(event);
+            }
+        });
         return treeGrid;
     }
 
@@ -119,15 +126,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
             treeSelector.setData((Record[]) null);
             return ;
         }
-        treeSelector.fetchData(new Criteria(RelationDataSource.FIELD_ROOT, pid), new DSCallback() {
-
-            @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (RestConfig.isStatusOk(response)) {
-                    treeSelector.selectRecord(0);
-                }
-            }
-        });
+        treeSelector.fetchData(new Criteria(RelationDataSource.FIELD_ROOT, pid));
     }
 
     public void setModels(Map<?, ?> valueMap) {
@@ -144,6 +143,20 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
     public Record[] getSelection() {
         return MetaModelDataSource.addModelObjectField(
                 RelationDataSource.FIELD_MODEL, treeSelector.getSelectedRecords(true));
+    }
+
+    private void selectAndExpandRootNode(DataArrivedEvent event) {
+        // first event contains parent node that is root node of TreeGrid
+        //  and it is a synthetic node without attributes
+        TreeNode parentNode = event.getParentNode();
+        Tree tree = treeSelector.getTree();
+        TreeNode[] children = tree.getChildren(parentNode);
+        if (children.length > 0 && children[0].getAttribute(RelationDataSource.FIELD_PARENT) == null) {
+            // select real root node and expand it
+            TreeNode realRootNode = children[0];
+            treeSelector.selectRecord(realRootNode);
+            tree.openFolder(realRootNode);
+        }
     }
 
 }
