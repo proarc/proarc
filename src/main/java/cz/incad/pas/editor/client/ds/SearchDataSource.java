@@ -92,7 +92,6 @@ public final class SearchDataSource extends RestDataSource {
      * @param callback result set of found records; no paging
      */
     public void find(final String[] pids, final Callback<ResultSet, Void> callback) {
-        final ResultSet resultSet = new ResultSet(this);
         Criteria criteria = new Criteria(
                 DigitalObjectResourceApi.SEARCH_TYPE_PARAM, SearchType.PIDS.toString());
         if (pids != null && pids.length > 0) {
@@ -100,10 +99,34 @@ public final class SearchDataSource extends RestDataSource {
         } else {
             throw new IllegalArgumentException("pids");
         }
+        basicFetch(criteria, callback);
+    }
+
+    /**
+     * Finds parent object for a PID or a Batch Import.
+     *
+     * @param pid PID of digital object; {@code null} if looking for batch import
+     * @param batchId ID of batch import; {@code null} if looking for PID
+     * @param callback result set of found records
+     */
+    public void findParent(String pid, String batchId, final Callback<ResultSet, Void> callback) {
+        Criteria criteria = new Criteria(
+                DigitalObjectResourceApi.SEARCH_TYPE_PARAM, SearchType.PARENT.toString());
+        if (pid != null && !pid.isEmpty()) {
+            criteria.addCriteria(DigitalObjectResourceApi.SEARCH_PID_PARAM, pid);
+        }
+        if (batchId != null && !batchId.isEmpty()) {
+            criteria.addCriteria(DigitalObjectResourceApi.SEARCH_BATCHID_PARAM, batchId);
+        }
+        basicFetch(criteria, callback);
+    }
+
+    private void basicFetch(Criteria criteria, final Callback<ResultSet, Void> callback) {
+        final ResultSet resultSet = new ResultSet(this);
         resultSet.setCriteria(criteria);
+        resultSet.setFetchMode(FetchMode.BASIC);
 //        resultSet.setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
         // server resource returns full result in case of SearchType.PIDS query
-        resultSet.setFetchMode(FetchMode.BASIC);
         if (resultSet.lengthIsKnown()) {
             callback.onSuccess(resultSet);
         } else {

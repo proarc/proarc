@@ -18,10 +18,6 @@ package cz.incad.pas.editor.client.widget;
 
 import com.google.gwt.core.client.Callback;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.Overflow;
@@ -49,11 +45,8 @@ import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
-import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.client.ds.UserDataSource;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.util.LinkedHashMap;
 
 /**
@@ -238,28 +231,22 @@ public final class ImportParentChooser {
             selectionView.setSelection(null);
             return ;
         }
-        Criteria criteria = new Criteria(
-                DigitalObjectResourceApi.SEARCH_TYPE_PARAM, SearchType.PARENT.toString());
-        if (pid != null && !pid.isEmpty()) {
-            criteria.addCriteria(DigitalObjectResourceApi.SEARCH_PID_PARAM, pid);
-        }
-        if (batchId != null && !batchId.isEmpty()) {
-            criteria.addCriteria(DigitalObjectResourceApi.SEARCH_BATCHID_PARAM, batchId);
-        }
-        SearchDataSource.getInstance().fetchData(criteria, new DSCallback() {
+
+        SearchDataSource.getInstance().findParent(pid, batchId, new Callback<ResultSet, Void>() {
 
             @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (RestConfig.isStatusOk(response)) {
-                    Record[] data = response.getData();
-                    if (data != null && data.length > 0) {
-                        newParent = oldParent = data[0];
-                        selectionView.setSelection(data[0]);
-                    } else {
-                        selectionView.setSelection(null);
-                    }
-                    loadFailed = false;
+            public void onFailure(Void reason) {
+            }
+
+            @Override
+            public void onSuccess(ResultSet result) {
+                if (result.isEmpty()) {
+                    selectionView.setSelection(null);
+                } else {
+                    newParent = oldParent = result.first();
+                    selectionView.setSelection(newParent);
                 }
+                loadFailed = false;
             }
         });
     }
