@@ -34,7 +34,6 @@ import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.Selectable;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import java.util.Map;
 
@@ -141,8 +140,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
 
     @Override
     public Record[] getSelection() {
-        return MetaModelDataSource.addModelObjectField(
-                RelationDataSource.FIELD_MODEL, treeSelector.getSelectedRecords(true));
+        return treeSelector.getSelectedRecords(true);
     }
 
     private void selectAndExpandRootNode(DataArrivedEvent event) {

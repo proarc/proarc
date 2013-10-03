@@ -171,7 +171,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                     }
                 } else {
                     String pid = records[0].getAttribute(SearchDataSource.FIELD_PID);
-                    MetaModelRecord mr = (MetaModelRecord) records[0].getAttributeAsObject(MetaModelDataSource.FIELD_MODELOBJECT);
+                    MetaModelRecord mr = MetaModelDataSource.getModel(records[0]);
                     editor.edit(pid, null, mr);
                 }
                 editorContainer.setMembers(editor.getUI());
@@ -440,7 +440,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             }
             setSelection(records);
             if (records.length == 1) {
-                MetaModelRecord model = getModel(records[0]);
+                MetaModelRecord model = MetaModelDataSource.getModel(records[0]);
                 setDescription(currentEditor.getTitle(), getLabel(records[0]), model);
                 if (!model.isSupportedDatastream(currentEditor.getType().name())) {
                     // XXX this should query current action, not model
@@ -466,7 +466,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         private Record[] processRecords() {
             Record[] records;
             if (pids != null) {
-                records = searchListAsRecords();
+                records = searchList.toArray();
                 String error = checkSearchedRecordsConsistency(records);
                 if (error != null) {
                     SC.warn(error);
@@ -475,14 +475,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 }
             } else {
                 records = digitalObjects;
-                MetaModelDataSource.addModelObjectField(SearchDataSource.FIELD_MODEL, records);
             }
-            return records;
-        }
-
-        private Record[] searchListAsRecords() {
-            Record[] records = searchList.toArray();
-            MetaModelDataSource.addModelObjectField(SearchDataSource.FIELD_MODEL, records);
             return records;
         }
 
@@ -519,10 +512,6 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
 
         private String getLabel(Record r) {
             return r == null ? "[ERROR]" : r.getAttribute(SearchDataSource.FIELD_LABEL);
-        }
-
-        private MetaModelRecord getModel(Record record) {
-            return (MetaModelRecord) record.getAttributeAsObject(MetaModelDataSource.FIELD_MODELOBJECT);
         }
 
         @Override

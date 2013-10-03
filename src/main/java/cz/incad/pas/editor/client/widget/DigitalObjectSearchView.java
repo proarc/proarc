@@ -51,7 +51,6 @@ import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.Selectable;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
@@ -276,8 +275,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     @Override
     public Record[] getSelection() {
         ListGridRecord[] selections = foundGrid.getSelectedRecords();
-        return MetaModelDataSource.addModelObjectField(
-                SearchDataSource.FIELD_MODEL, selections);
+        return selections;
     }
 
     @Override

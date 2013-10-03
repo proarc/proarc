@@ -99,8 +99,7 @@ public final class DigitalObjectEditAction extends AbstractAction {
         }
         // check object model of each record
         for (Record record : selection) {
-            MetaModelRecord model = (MetaModelRecord) record.getAttributeAsObject(
-                    MetaModelDataSource.FIELD_MODELOBJECT);
+            MetaModelRecord model = MetaModelDataSource.getModel(record);
             if (model != null && !model.isSupportedDatastream(editorType.name())) {
                 return false;
             }

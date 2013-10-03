@@ -30,7 +30,9 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.FieldType;
+import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import java.util.logging.Logger;
 
 /**
  * Lists Fedora models.
@@ -38,6 +40,8 @@ import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
  * @author Jan Pokorsky
  */
 public class MetaModelDataSource extends RestDataSource {
+
+    private static final Logger LOG = Logger.getLogger(MetaModelDataSource.class.getName());
 
     public static final String ID = "MetaModelDataSource";
     public static final String FIELD_PID = DigitalObjectResourceApi.METAMODEL_PID_PARAM;
@@ -126,18 +130,28 @@ public class MetaModelDataSource extends RestDataSource {
     }
 
     /**
-     * Adds {@link MetaModelRecord} instance to each {@code record} as
-     * an {@link #FIELD_MODELOBJECT attribute}.
-     * @param modelKey model ID attribute name in records
-     * @param records records
-     * @return records with synthetic attribute
+     * Gets model of a digital object. It searches for synthetic attribute
+     * {@link #FIELD_MODELOBJECT}. If not found it searches for {@link SearchDataSource#FIELD_MODEL}
+     * and sets FIELD_MODELOBJECT attribute.
+     *
+     * @param digitalObject record fetched by {@link SearchDataSource} or {@link RelationDataSource}
+     * @return model object or {@code null}
      */
-    public static Record[] addModelObjectField(String modelKey, Record[] records) {
-        for (Record r : records) {
-            Record model = resultSet.findByKey(r.getAttribute(modelKey));
-            r.setAttribute(FIELD_MODELOBJECT, MetaModelRecord.get(model));
+    public static MetaModelRecord getModel(Record digitalObject) {
+        MetaModelRecord mmr = (MetaModelRecord) digitalObject.getAttributeAsObject(FIELD_MODELOBJECT);
+        if (mmr == null) {
+            String model = digitalObject.getAttribute(SearchDataSource.FIELD_MODEL);
+            if (model != null) {
+                Record mr = resultSet.findByKey(model);
+                if (mr != null) {
+                    mmr = MetaModelRecord.get(mr);
+                    digitalObject.setAttribute(FIELD_MODELOBJECT, mmr);
+                } else {
+                    ClientUtils.severe(LOG, "unkown model ID '%s' of record %s", model, digitalObject.getAttribute(SearchDataSource.FIELD_PID));
+                }
+            }
         }
-        return records;
+        return mmr;
     }
 
     public static final class MetaModelRecord {
