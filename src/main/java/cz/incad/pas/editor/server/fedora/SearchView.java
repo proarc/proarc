@@ -192,7 +192,34 @@ public final class SearchView {
         return find(Arrays.asList(pids));
     }
 
+    /**
+     * Finds descriptors of passed PIDs.
+     *
+     * @param pids PIDs of digital objects
+     * @return list of descriptors
+     * @throws FedoraClientException
+     * @throws IOException
+     */
     public List<Item> find(List<String> pids) throws FedoraClientException, IOException {
+        // issue 85: reasonable count of PIDs per query to prevent StackOverflowError.
+        // Greater query page sizes (>1000, <2000) are acceptable but Mulgara responses are really slow.
+        // It does not make sence to add paging to API as load on demand of SmartGWT Tree
+        // does not support paging and it is not expected to have monograph or
+        // issue page counts grater than 10000.
+        final int queryPageSize = 100;
+        final int size = pids.size();
+        ArrayList<Item> result = new ArrayList<Item>(size);
+        for (int startOffset = 0; startOffset < size; ) {
+            int endOffset = Math.min(size, startOffset + queryPageSize);
+            List<String> subList = pids.subList(startOffset, endOffset);
+            List<Item> members = findImpl(subList);
+            startOffset = endOffset;
+            result.addAll(members);
+        }
+        return result;
+    }
+
+    List<Item> findImpl(List<String> pids) throws FedoraClientException, IOException {
         if (pids.isEmpty()) {
             return Collections.emptyList();
         }
