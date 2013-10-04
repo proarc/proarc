@@ -1,0 +1,118 @@
+/*
+ * Copyright (C) 2013 Jan Pokorsky
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package cz.incad.pas.editor.client.action;
+
+import com.google.gwt.core.client.Callback;
+import com.google.gwt.place.shared.Place;
+import com.google.gwt.place.shared.PlaceController;
+import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.util.SC;
+import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ds.RelationDataSource;
+import cz.incad.pas.editor.client.ds.SearchDataSource;
+import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
+
+/**
+ * Opens parent of selected digital object in the current editor.
+ *
+ * @author Jan Pokorsky
+ */
+public final class DigitalObjectOpenParentAction extends AbstractAction {
+
+    private final PlaceController places;
+    private final ClientMessages i18n;
+
+    public DigitalObjectOpenParentAction(ClientMessages i18n, PlaceController places) {
+        this(i18n,
+                i18n.DigitalObjectOpenParentAction_Title(),
+                "[SKIN]/FileBrowser/upOneLevel.png",
+                i18n.DigitalObjectOpenParentAction_Hint(),
+                places);
+    }
+
+    public DigitalObjectOpenParentAction(
+            ClientMessages i18n, String title, String icon, String tooltip,
+            PlaceController places) {
+
+        super(title, icon, tooltip);
+        this.places = places;
+        this.i18n = i18n;
+    }
+
+    @Override
+    public void performAction(ActionEvent event) {
+        Record[] selectedRecords = Actions.getSelection(event);
+        if (accept(selectedRecords)) {
+            openParent(selectedRecords[0].getAttribute(RelationDataSource.FIELD_PID));
+        }
+    }
+
+    @Override
+    public boolean accept(ActionEvent event) {
+        Record[] selectedRecords = Actions.getSelection(event);
+        return accept(selectedRecords);
+    }
+
+    private boolean accept(Record[] selectedRecords) {
+        if (selectedRecords != null && selectedRecords.length == 1) {
+            return isDigitalObject(selectedRecords[0]);
+        }
+        return false;
+    }
+
+    private static boolean isDigitalObject(Record r) {
+        String pid = r.getAttribute(RelationDataSource.FIELD_PID);
+        String model = r.getAttribute(RelationDataSource.FIELD_MODEL);
+        return pid != null && !pid.isEmpty() && model != null && !model.isEmpty();
+    }
+
+    private void openParent(String childPid) {
+        if (childPid != null) {
+            SearchDataSource.getInstance().findParent(childPid, null, new Callback<ResultSet, Void>() {
+
+                @Override
+                public void onFailure(Void reason) {
+                }
+
+                @Override
+                public void onSuccess(ResultSet result) {
+                    if (result.isEmpty()) {
+                        SC.warn(i18n.DigitalObjectOpenParentAction_NoParent_Msg());
+                    } else {
+                        Record parent = result.first();
+                        places.goTo(new DigitalObjectEditorPlace(
+                                getLastEditorId(),
+                                parent.getAttribute(SearchDataSource.FIELD_PID)));
+                    }
+                }
+            });
+        }
+    }
+
+    private DatastreamEditorType getLastEditorId() {
+        DatastreamEditorType editorId = null;
+        Place where = places.getWhere();
+        if (where instanceof DigitalObjectEditorPlace) {
+            DigitalObjectEditorPlace editorPlace = (DigitalObjectEditorPlace) where;
+            editorId = editorPlace.getEditorId();
+        }
+        return editorId == null ? DatastreamEditorType.CHILDREN : editorId;
+    }
+
+}

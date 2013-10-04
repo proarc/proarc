@@ -41,6 +41,7 @@ import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.Actions.ActionSource;
 import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
 import cz.incad.pas.editor.client.action.DigitalObjectEditAction.AcceptFilter;
+import cz.incad.pas.editor.client.action.DigitalObjectOpenParentAction;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.Selectable;
@@ -276,6 +277,8 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             t.addMember(Actions.asIconButton(mediaEditAction, source));
             t.addMember(Actions.asIconButton(ocrEditAction, source));
             t.addMember(Actions.asIconButton(childrenEditAction, source));
+            DigitalObjectOpenParentAction openParentAction = new DigitalObjectOpenParentAction(i18n, places);
+            t.addMember(Actions.asIconButton(openParentAction, source));
         }
         customToolbarSeparator = new ToolStripSeparator();
         customToolbarSeparator.setVisible(false);
