@@ -360,7 +360,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor, Refr
             if (place instanceof DigitalObjectEditorPlace) {
                 DigitalObjectEditorPlace editorPlace = (DigitalObjectEditorPlace) place;
                 lastEditorType = editorPlace.getEditorId();
-                return new DigitalObjectEditing(editorPlace, childPlaces, childEditor, i18n);
+                return new DigitalObjectEditing(editorPlace, childEditor);
             }
             return null;
         }

@@ -97,8 +97,8 @@ public final class EditorWorkFlow {
         public Activity getActivity(Place place) {
             Activity a = null;
             if (place instanceof DigitalObjectEditorPlace) {
-                a = new DigitalObjectEditing((DigitalObjectEditorPlace) place, placeController,
-                        presenterFactory.getDigitalObjectEditor(), i18n);
+                a = new DigitalObjectEditing((DigitalObjectEditorPlace) place,
+                        presenterFactory.getDigitalObjectEditor());
             } else if (place instanceof DigitalObjectCreatorPlace) {
                 a = new DigitalObjectCreating((DigitalObjectCreatorPlace) place,
                         presenterFactory);

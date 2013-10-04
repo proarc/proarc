@@ -20,12 +20,10 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.place.shared.Place;
-import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.smartgwt.client.data.Record;
-import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import java.util.Arrays;
@@ -38,21 +36,15 @@ import java.util.Arrays;
 public final class DigitalObjectEditing extends AbstractActivity {
 
     private final DigitalObjectEditorPlace place;
-    private final PlaceController places;
     private final DigitalObjectEditor editor;
-    private final ClientMessages i18n;
 
     public DigitalObjectEditing(
             DigitalObjectEditorPlace place,
-            PlaceController places,
-            DigitalObjectEditor editor,
-            ClientMessages i18n
+            DigitalObjectEditor editor
             ) {
         
         this.place = place;
-        this.places = places;
         this.editor = editor;
-        this.i18n = i18n;
     }
 
     @Override
