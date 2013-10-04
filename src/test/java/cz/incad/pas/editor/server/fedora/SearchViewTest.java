@@ -105,7 +105,7 @@ public class SearchViewTest {
     }
 
     @Test
-    public void tetFindQuery() throws Exception {
+    public void testFindQuery() throws Exception {
 //        client.debug(true);
         SearchView instance = new SearchView(storage);
         List<Item> result = instance.findQuery("p", "p", "u", "p", "model:periodical");
@@ -113,7 +113,7 @@ public class SearchViewTest {
     }
 
     @Test
-    public void tetFindModelQuery() throws Exception {
+    public void testFindModelQuery() throws Exception {
 //        client.debug(true);
         SearchView instance = new SearchView(storage);
         List<Item> result = instance.findQuery(null, null, null, null, "model:periodical");
@@ -121,7 +121,7 @@ public class SearchViewTest {
     }
 
     @Test
-    public void tetFindPid() throws Exception {
+    public void testFindPid() throws Exception {
 //        fedora.getClient().debug(true);
         fedora.cleanUp();
         fedora.ingest(
