@@ -54,8 +54,11 @@ import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.Action;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
+import cz.incad.pas.editor.client.action.Actions.ActionSource;
+import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
+import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
@@ -79,10 +82,13 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class DigitalObjectChildrenEditor implements DatastreamEditor, Refreshable {
+public final class DigitalObjectChildrenEditor
+        implements DatastreamEditor, Refreshable, Selectable<Record> {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectChildrenEditor.class.getName());
     private final ClientMessages i18n;
+    /** A controller of the enclosing editor. */
+    private final PlaceController places;
     private final ListGrid childrenListGrid;
     private final DigitalObjectEditor childEditor;
     private final HLayout widget;
@@ -94,9 +100,13 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor, Refr
     private IconButton saveActionButton;
     private HandlerRegistration childrenSelectionHandler;
     private RelationDataSource relationDataSource;
+    /** Notifies changes in list of children that should be reflected by actions. */
+    private final ActionSource actionSource;
 
-    public DigitalObjectChildrenEditor(ClientMessages i18n) {
+    public DigitalObjectChildrenEditor(ClientMessages i18n, PlaceController places) {
         this.i18n = i18n;
+        this.places = places;
+        this.actionSource = new ActionSource(this);
         relationDataSource = RelationDataSource.getInstance();
         childrenListGrid = initChildrenListGrid();
         VLayout childrenLayout = new VLayout();
@@ -185,6 +195,12 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor, Refr
             }
         };
         return new Canvas[] {
+            Actions.asIconButton(new DigitalObjectEditAction(
+                        i18n.DigitalObjectEditor_ChildrenEditor_ChildAction_Title(),
+                        i18n.DigitalObjectEditor_ChildrenEditor_ChildAction_Hint(),
+                        "[SKIN]/FileBrowser/folder.png",
+                        DatastreamEditorType.CHILDREN, places),
+                actionSource),
             saveActionButton = Actions.asIconButton(saveAction, this),
         };
     }
@@ -198,6 +214,11 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor, Refr
     public void refresh() {
         childrenListGrid.invalidateCache();
         edit(pid, null, null);
+    }
+
+    @Override
+    public Record[] getSelection() {
+        return originChildren != null ? null : childrenListGrid.getSelectedRecords();
     }
 
     private void save() {
@@ -223,6 +244,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor, Refr
      * Handles a new children selection.
      */
     private void onChildSelection(Record[] records) {
+        actionSource.fireEvent();
         if (records == null || records.length == 0 || originChildren != null) {
             childPlaces.goTo(Place.NOWHERE);
         } else {
@@ -346,6 +368,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor, Refr
     }
 
     private void updateReorderUi(boolean reordered) {
+        actionSource.fireEvent();
         saveActionButton.setVisible(reordered);
         if (reordered) {
             detachListFromEditor();

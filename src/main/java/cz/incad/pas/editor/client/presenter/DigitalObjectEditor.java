@@ -316,7 +316,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 break;
             case CHILDREN:
                 title = i18n.DigitalObjectEditor_ChildrenEditor_Title();
-                deditor = new DigitalObjectChildrenEditor(i18n);
+                deditor = new DigitalObjectChildrenEditor(i18n, places);
                 break;
         }
         title = ClientUtils.format("<b>%s</b>", title);
