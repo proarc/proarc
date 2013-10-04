@@ -287,6 +287,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor, Refr
                 public void execute() {
                     // defer the select as it is ignored after refresh in onDataArrived
                     childrenListGrid.selectSingleRecord(0);
+                    childrenListGrid.focus();
                 }
             });
         }
