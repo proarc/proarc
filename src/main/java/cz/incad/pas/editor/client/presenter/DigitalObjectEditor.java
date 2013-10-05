@@ -35,8 +35,7 @@ import com.smartgwt.client.widgets.toolbar.ToolStripSeparator;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.SweepTask;
-import cz.incad.pas.editor.client.action.AbstractAction;
-import cz.incad.pas.editor.client.action.ActionEvent;
+import cz.incad.pas.editor.client.action.Action;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.Actions.ActionSource;
 import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
@@ -252,14 +251,9 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 DatastreamEditorType.CHILDREN, places);
         ToolStrip t = Actions.createToolStrip();
         if (tiny) {
-            IconMenuButton actionsMenu = Actions.asIconMenuButton(new AbstractAction(
-                    i18n.ActionsMenu_Title(), null, null) {
-
-                @Override
-                public void performAction(ActionEvent event) {
-                    throw new UnsupportedOperationException("Not supported.");
-                }
-            }, source);
+            Action actionMore = Actions.emptyAction(i18n.ActionsMenu_Title(),
+                    null, null);
+            IconMenuButton actionsMenu = Actions.asIconMenuButton(actionMore, source);
             t.addMember(actionsMenu);
             Menu menu = Actions.createMenu();
             menu.addItem(Actions.asMenuItem(refreshAction, source, false));
@@ -271,12 +265,18 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             actionsMenu.setMenu(menu);
         } else {
             t.addMember(Actions.asIconButton(refreshAction, source));
-            t.addMember(Actions.asIconButton(modsEditAction, source));
-            t.addMember(Actions.asIconButton(noteEditAction, source));
-            t.addMember(Actions.asIconButton(parentEditAction, source));
-            t.addMember(Actions.asIconButton(mediaEditAction, source));
-            t.addMember(Actions.asIconButton(ocrEditAction, source));
-            t.addMember(Actions.asIconButton(childrenEditAction, source));
+            Action actionEditors = Actions.emptyAction(i18n.EditorsAction_Title(),
+                    "[SKIN]/actions/edit.png", i18n.EditorsAction_Hint());
+            IconMenuButton btnEditors = Actions.asIconMenuButton(actionEditors, source);
+            Menu menuEditors = Actions.createMenu();
+            menuEditors.addItem(Actions.asMenuItem(modsEditAction, source, false));
+            menuEditors.addItem(Actions.asMenuItem(noteEditAction, source, false));
+            menuEditors.addItem(Actions.asMenuItem(parentEditAction, source, false));
+            menuEditors.addItem(Actions.asMenuItem(mediaEditAction, source, false));
+            menuEditors.addItem(Actions.asMenuItem(ocrEditAction, source, false));
+            menuEditors.addItem(Actions.asMenuItem(childrenEditAction, source, false));
+            btnEditors.setMenu(menuEditors);
+            t.addMember(btnEditors);
             DigitalObjectOpenParentAction openParentAction = new DigitalObjectOpenParentAction(i18n, places);
             t.addMember(Actions.asIconButton(openParentAction, source));
         }

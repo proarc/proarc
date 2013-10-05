@@ -51,6 +51,19 @@ public final class Actions {
 
     private static final Logger LOG = Logger.getLogger(Actions.class.getName());
 
+    /**
+     * No-op action useful for menu buttons.
+     */
+    public static Action emptyAction(String title, String icon, String tooltip) {
+        return new AbstractAction(title, icon, tooltip) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+                throw new UnsupportedOperationException("Not supported");
+            }
+        };
+    }
+
     public static ToolStripButton asToolStripButton(final Action action, final Object source) {
         ToolStripButton tsb = new ToolStripButton();
         String title = action.getTitle();
