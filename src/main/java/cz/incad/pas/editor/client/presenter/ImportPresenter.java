@@ -355,6 +355,8 @@ public class ImportPresenter {
             final Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batch.getId());
             ImportBatchItemDataSource ds = ImportBatchItemDataSource.getInstance();
             ProgressTracker progress = new ProgressTracker(i18n);
+            progress.setCloseButton(i18n.ProgressTracker_Continue_Title(),
+                    i18n.ProgressTracker_Continue_Hint());
             progress.setDataSource(ds, criteria);
             progress.setInit();
             progress.setProgressPrefix(i18n.ImportWizard_SelectFolderStep_ImportProgress_Prefix_Title());

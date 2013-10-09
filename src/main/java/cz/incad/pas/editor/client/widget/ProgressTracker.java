@@ -71,6 +71,7 @@ public final class ProgressTracker {
     private Window window;
     private final ClientMessages i18n;
     private String progressPrefix;
+    private IButton closeBtn;
 
     public ProgressTracker(ClientMessages i18n) {
         this.i18n = i18n;
@@ -88,6 +89,17 @@ public final class ProgressTracker {
         widget.setWidth100();
         widget.setAutoHeight();
         progressPrefix = i18n.ProgressTracker_Progress_0();
+
+        closeBtn = new IButton(i18n.ProgressTracker_CloseBtn_Title(), new ClickHandler() {
+
+            @Override
+            public void onClick(ClickEvent event) {
+                stop();
+            }
+        });
+        closeBtn.setTooltip(i18n.ProgressTracker_CloseBtn_Hint());
+        closeBtn.setAutoFit(true);
+
     }
 
     public VLayout asPanel() {
@@ -100,43 +112,35 @@ public final class ProgressTracker {
 
     public void showInWindow(Runnable exitCallback, String title) {
         this.exitCallback = exitCallback;
-        window = new Window();
-        window.setWidth(400);
-        window.setAutoSize(true);
-        window.setAutoCenter(true);
-        window.setIsModal(true);
-        widget.setMargin(10);
-        window.setTitle(title);
-        window.setShowMinimizeButton(false);
-        window.setShowModalMask(true);
-        window.addCloseClickHandler(new CloseClickHandler() {
+        if (window == null) {
+            window = new Window();
+            window.setWidth(400);
+            window.setAutoSize(true);
+            window.setAutoCenter(true);
+            window.setIsModal(true);
+            widget.setMargin(10);
+            window.setTitle(title);
+            window.setShowMinimizeButton(false);
+            window.setShowModalMask(true);
+            window.addCloseClickHandler(new CloseClickHandler() {
 
-            @Override
-            public void onCloseClick(CloseClickEvent event) {
-                stop();
-            }
-        });
-        window.addItem(widget);
-        window.addItem(createControls());
+                @Override
+                public void onCloseClick(CloseClickEvent event) {
+                    stop();
+                }
+            });
+            window.addItem(widget);
+            window.addItem(createControls());
+        }
         window.show();
     }
 
     private Canvas createControls() {
-        IButton continueBtn = new IButton(i18n.ProgressTracker_Continue_Title(), new ClickHandler() {
-
-            @Override
-            public void onClick(ClickEvent event) {
-                stop();
-            }
-        });
-        continueBtn.setTooltip(i18n.ProgressTracker_Continue_Hint());
-        continueBtn.setAutoFit(true);
-
         HStack btnLayout = new HStack(5);
         btnLayout.setAutoHeight();
         btnLayout.setMargin(10);
         btnLayout.setLayoutAlign(Alignment.RIGHT);
-        btnLayout.setMembers(continueBtn);
+        btnLayout.setMembers(closeBtn);
         return btnLayout;
     }
 
@@ -176,6 +180,17 @@ public final class ProgressTracker {
         }
     }
 
+    /**
+     * Overrides default description of the close button.
+     *
+     * @see ClientMessages#ProgressTracker_CloseBtn_Title
+     * @see ClientMessages#ProgressTracker_CloseBtn_Hint
+     */
+    public void setCloseButton(String title, String hint) {
+        closeBtn.setTitle(title == null ? i18n.ProgressTracker_CloseBtn_Title(): title);
+        closeBtn.setTooltip(hint == null ? i18n.ProgressTracker_CloseBtn_Hint() : hint);
+    }
+
     public void stop() {
         if (progressHandler != null) {
             progressHandler.done();
@@ -183,8 +198,6 @@ public final class ProgressTracker {
         }
         if (window != null) {
             window.hide();
-            window.destroy();
-            window = null;
         }
         if (exitCallback != null) {
             exitCallback.run();
@@ -266,8 +279,8 @@ public final class ProgressTracker {
                 return ;
             }
             event.cancel();
-            Map errors = event.getResponse().getErrors();
-            Iterator iterator = errors.values().iterator();
+            Map<?, ?> errors = event.getResponse().getErrors();
+            Iterator<?> iterator = errors.values().iterator();
             StringBuilder sb = new StringBuilder();
             if (iterator.hasNext()) {
                 sb.append(iterator.next());
