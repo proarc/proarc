@@ -58,6 +58,7 @@ public final class ModsCustomDataSource extends DataSource {
 
     public static final String ID = "ModsCustomDataSource";
     public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
+    public static final String FIELD_BATCHID = DigitalObjectResourceApi.BATCHID_PARAM;
     public static final String FIELD_EDITOR = DigitalObjectResourceApi.MODS_CUSTOM_EDITORID;
     public static final String FIELD_TIMESTAMP = DigitalObjectResourceApi.TIMESTAMP_PARAM;
     public static final String FIELD_DATA = DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA;

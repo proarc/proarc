@@ -62,6 +62,7 @@ final class ModsCustomEditor implements DatastreamEditor, Refreshable {
     private DynamicForm activeEditor;
     private Record editedCustomRecord;
     private String pid;
+    private String batchId;
     private MetaModelRecord model;
     private final VLayout widget;
 
@@ -75,6 +76,7 @@ final class ModsCustomEditor implements DatastreamEditor, Refreshable {
     @Override
     public void edit(String pid, String batchId, MetaModelRecord model) {
         this.pid = pid;
+        this.batchId = batchId;
         this.model = model;
         editedCustomRecord = null;
         activeEditor = getCustomForm(model);
@@ -209,7 +211,10 @@ final class ModsCustomEditor implements DatastreamEditor, Refreshable {
         Criteria pidCriteria = new Criteria(ModsCustomDataSource.FIELD_PID, pid);
         Criteria criteria = new Criteria(MetaModelDataSource.FIELD_EDITOR, model.getEditorId());
         criteria.addCriteria(pidCriteria);
-        ClientUtils.fine(LOG, "loadCustom pid: %s, editor: %s", pid, model.getEditorId());
+        if (batchId != null) {
+            criteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, batchId);
+        }
+        ClientUtils.fine(LOG, "loadCustom pid: %s, batchId: %s, editor: %s", pid, batchId, model.getEditorId());
         ModsCustomDataSource.getInstance().fetchData(criteria, new DSCallback() {
 
             @Override

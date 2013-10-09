@@ -623,6 +623,7 @@ public class DigitalObjectResource {
     @Produces(MediaType.APPLICATION_JSON)
     public CustomMods<?> getCustomMods(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
             ) throws IOException, DigitalObjectException {
         
@@ -630,9 +631,8 @@ public class DigitalObjectResource {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
 
-        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
-        RemoteObject remote = storage.find(pid);
-        ModsStreamEditor modsEditor = new ModsStreamEditor(remote);
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        ModsStreamEditor modsEditor = new ModsStreamEditor(fobject);
 
         ModsType mods = modsEditor.read();
         Mapping mapping = new Mapping();
@@ -650,6 +650,7 @@ public class DigitalObjectResource {
     @Produces({MediaType.APPLICATION_JSON})
     public CustomMods<?> updateCustomMods(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String customJsonData
@@ -662,9 +663,8 @@ public class DigitalObjectResource {
         if (timestamp == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
         }
-        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
-        RemoteObject remote = storage.find(pid);
-        ModsStreamEditor modsEditor = new ModsStreamEditor(remote);
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        ModsStreamEditor modsEditor = new ModsStreamEditor(fobject);
 
         ModsType mods = modsEditor.read();
         Mapping mapping = new Mapping();
@@ -680,14 +680,14 @@ public class DigitalObjectResource {
             modsEditor.write(mods, timestamp, session.asFedoraLog());
 
             // DC
-            String model = new RelationEditor(remote).getModel();
-            DcStreamEditor dcEditor = new DcStreamEditor(remote);
+            String model = new RelationEditor(fobject).getModel();
+            DcStreamEditor dcEditor = new DcStreamEditor(fobject);
             dcEditor.write(mods, model, dcEditor.getLastModified(), session.asFedoraLog());
 
             String label = ModsUtils.getLabel(mods, model);
-            remote.setLabel(label);
+            fobject.setLabel(label);
 
-            remote.flush();
+            fobject.flush();
 
             CustomMods<Object> result = new CustomMods<Object>();
             result.setPid(pid);
