@@ -89,7 +89,6 @@ import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.TextDataSource;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -389,7 +388,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 //                    LOG.info("THUMB.onSelectionChanged.selection.state: " + event.getState() + ".attrs: " + Arrays.toString(selection[0].getAttributes()));
                     selectListInProgress = true;
                     int selectionIndex = batchItemGrid.getRecordIndex(selection[0]);
-                    LOG.warning("thumb selects list: " + selectionIndex);
+                    LOG.fine("thumb selects list: " + selectionIndex);
                     batchItemGrid.selectSingleRecord(selectionIndex);
                     batchItemGrid.scrollToRow(selectionIndex);
                     selectBatchItem(false, selection);
@@ -413,7 +412,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             @Override
             public void onRecordClick(com.smartgwt.client.widgets.tile.events.RecordClickEvent event) {
                 // always preview last clicked record
-                LOG.warning("TG.onRecordClick");
+                LOG.fine("TG.onRecordClick");
                 previewItem(event.getRecord());
             }
         });
@@ -754,14 +753,14 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             if (DynamicFormTab.this.form.valuesHaveChanged()) {
                 tabTitle += " *";
             }
-            LOG.info("updateTitle: " + tabTitle);
+//            LOG.info("updateTitle: " + tabTitle);
             tab.setTitle(tabTitle);
 
-            Map values = form.getValues();
-            Map oldValues = form.getOldValues();
-            Map changedValues = form.getChangedValues();
-            LOG.info(ClientUtils.format("### updateTitle.valuesHaveChanged(): %s\n old: %s\n\n val: %s\n\n new: %s\n",
-                    form.valuesHaveChanged(), oldValues, values, changedValues));
+//            Map values = form.getValues();
+//            Map oldValues = form.getOldValues();
+//            Map changedValues = form.getChangedValues();
+//            LOG.info(ClientUtils.format("### updateTitle.valuesHaveChanged(): %s\n old: %s\n\n val: %s\n\n new: %s\n",
+//                    form.valuesHaveChanged(), oldValues, values, changedValues));
         }
 
         public Tab getWidget() {
