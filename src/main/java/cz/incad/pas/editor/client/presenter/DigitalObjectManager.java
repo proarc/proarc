@@ -238,6 +238,7 @@ public final class DigitalObjectManager {
         menu.addItem(Actions.asMenuItem(parentEditAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(mediaEditAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(ocrEditAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(childrenEditAction, actionSource, false));
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(foxmlAction, actionSource, true));
         menu.addItem(new MenuItemSeparator());
