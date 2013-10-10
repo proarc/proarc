@@ -77,6 +77,8 @@ import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.DeleteAction;
 import cz.incad.pas.editor.client.action.DeleteAction.RecordDeletable;
+import cz.incad.pas.editor.client.action.DigitalObjectFormValidateAction;
+import cz.incad.pas.editor.client.action.DigitalObjectFormValidateAction.ValidatableList;
 import cz.incad.pas.editor.client.action.FoxmlViewAction;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.Selectable;
@@ -331,6 +333,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 if (RestConfig.isStatusOk(response)) {
                     batchItemGrid.selectSingleRecord(0);
                     batchItemGrid.focus();
+                    ValidatableList.clearRowErrors(batchItemGrid);
                 }
             }
         });
@@ -443,6 +446,8 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         toolbar.addMember(Actions.asIconButton(batchItemMultiEdit, this));
         toolbar.addMember(Actions.asIconButton(foxmlViewAction, this));
         toolbar.addMember(Actions.asIconButton(deleteAction, this));
+        toolbar.addMember(Actions.asIconButton(DigitalObjectFormValidateAction.getInstance(i18n),
+                new ValidatableList(batchItemGrid)));
         return toolbar;
     }
 
@@ -465,6 +470,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         menu.addItem(Actions.asMenuItem(batchItemMultiEdit, contextSource, true));
         menu.addItem(Actions.asMenuItem(foxmlViewAction, contextSource, true));
         menu.addItem(Actions.asMenuItem(deleteAction, contextSource, true));
+        menu.addItem(Actions.asMenuItem(DigitalObjectFormValidateAction.getInstance(i18n), new ValidatableList(batchItemGrid), false));
         menu.addItem(new MenuItemSeparator());
         menu.addItem(miRedraw);
         return menu;
@@ -628,6 +634,17 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         }, selections);
     }
 
+    /**
+     * Clears validation errors.
+     * @param records rows to clear
+     */
+    private void clearRowErrors(ListGridRecord[] records) {
+        for (ListGridRecord record : records) {
+            int recordIndex = batchItemGrid.getRecordIndex(record);
+            batchItemGrid.clearRowErrors(recordIndex);
+        }
+    }
+
     private void previewItem(Record r) {
         String pid = (r == null) ? null : r.getAttribute(ImportBatchItemDataSource.FIELD_PID);
         Canvas preview = digitalObjectPreview.getUI();
@@ -695,12 +712,14 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
                 @Override
                 public void onSubmitValues(SubmitValuesEvent event) {
+                    final ListGridRecord[] selectedRecords = batchItemGrid.getSelectedRecords();
                     final int nextSelection = getNextSelection();
                     form.saveData(new DSCallback() {
 
                         @Override
                         public void execute(DSResponse response, Object rawData, DSRequest request) {
                             if (response.getStatus() == DSResponse.STATUS_SUCCESS) {
+                                clearRowErrors(selectedRecords);
                                 if (nextSelection >= 0) {
                                     batchItemGrid.selectSingleRecord(nextSelection);
                                     batchItemGrid.scrollToRow(nextSelection);

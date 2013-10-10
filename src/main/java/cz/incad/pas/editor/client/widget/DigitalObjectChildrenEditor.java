@@ -56,6 +56,8 @@ import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.Actions.ActionSource;
 import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
+import cz.incad.pas.editor.client.action.DigitalObjectFormValidateAction;
+import cz.incad.pas.editor.client.action.DigitalObjectFormValidateAction.ValidatableList;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
 import cz.incad.pas.editor.client.action.Selectable;
@@ -201,6 +203,8 @@ public final class DigitalObjectChildrenEditor
                         "[SKIN]/FileBrowser/folder.png",
                         DatastreamEditorType.CHILDREN, places),
                 actionSource),
+            Actions.asIconButton(DigitalObjectFormValidateAction.getInstance(i18n),
+                    new ValidatableList(childrenListGrid)),
             saveActionButton = Actions.asIconButton(saveAction, this),
         };
     }
@@ -212,6 +216,7 @@ public final class DigitalObjectChildrenEditor
 
     @Override
     public void refresh() {
+        ValidatableList.clearRowErrors(childrenListGrid);
         childrenListGrid.invalidateCache();
         edit(pid, null, null);
     }

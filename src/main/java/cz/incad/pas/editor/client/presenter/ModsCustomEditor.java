@@ -53,7 +53,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-final class ModsCustomEditor implements DatastreamEditor, Refreshable {
+public final class ModsCustomEditor implements DatastreamEditor, Refreshable {
 
     private static final Logger LOG = Logger.getLogger(ModsCustomEditor.class.getName());
 
@@ -65,6 +65,7 @@ final class ModsCustomEditor implements DatastreamEditor, Refreshable {
     private String batchId;
     private MetaModelRecord model;
     private final VLayout widget;
+    private Boolean showFetchPrompt;
 
     public ModsCustomEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -73,8 +74,25 @@ final class ModsCustomEditor implements DatastreamEditor, Refreshable {
         this.widget.setOverflow(Overflow.AUTO);
     }
 
+    /**
+     * @see #edit(String, String, MetaModelDataSource.MetaModelRecord, BooleanCallback)
+     */
     @Override
     public void edit(String pid, String batchId, MetaModelRecord model) {
+        edit(pid, batchId, model, ClientUtils.EMPTY_BOOLEAN_CALLBACK);
+    }
+
+    /**
+     * Loads a digital object into the given MODS custom form.
+     *
+     * @param pid PID
+     * @param batchId optional batch import ID
+     * @param model model to choose proper form
+     * @param loadCallback listens to load status
+     */
+    public void edit(String pid, String batchId, MetaModelRecord model,
+            BooleanCallback loadCallback) {
+
         this.pid = pid;
         this.batchId = batchId;
         this.model = model;
@@ -82,13 +100,39 @@ final class ModsCustomEditor implements DatastreamEditor, Refreshable {
         activeEditor = getCustomForm(model);
         if (activeEditor != null) {
             widget.setMembers(activeEditor);
-            loadCustom(activeEditor, pid, model);
+            loadCustom(activeEditor, pid, batchId, model, loadCallback);
         }
+    }
+
+    /**
+     * Validates loaded digital object.
+     * @return values are valid
+     */
+    public boolean isValidDigitalObject() {
+        return activeEditor.valuesAreValid(false);
+    }
+
+    /**
+     * Overrides {@link DSRequest#setShowPrompt(java.lang.Boolean)}
+     * for the fetch operation.
+     * <p>Disable prompt in case of a batch processing. Otherwise it blocks
+     * the browser event queue and {@link cz.incad.pas.editor.client.widget.ProgressTracker}
+     * widgets might not respond.
+     */
+    public void setShowFetchPrompt(Boolean showFetchPrompt) {
+        this.showFetchPrompt = showFetchPrompt;
+    }
+
+    /**
+     * @see #setShowFetchPrompt(java.lang.Boolean)
+     */
+    public Boolean isShowFetchPrompt() {
+        return showFetchPrompt != null ? showFetchPrompt : new DSRequest().getShowPrompt();
     }
 
     @Override
     public void refresh() {
-        loadCustom(activeEditor, pid, model);
+        loadCustom(activeEditor, pid, batchId, model, ClientUtils.EMPTY_BOOLEAN_CALLBACK);
     }
 
     public void save(final BooleanCallback callback) {
@@ -206,7 +250,9 @@ final class ModsCustomEditor implements DatastreamEditor, Refreshable {
         return form;
     }
 
-    private void loadCustom(final DynamicForm editor, String pid, MetaModelRecord model) {
+    private void loadCustom(final DynamicForm editor, String pid, String batchId,
+            MetaModelRecord model, final BooleanCallback loadCallback) {
+
         editedCustomRecord = null;
         Criteria pidCriteria = new Criteria(ModsCustomDataSource.FIELD_PID, pid);
         Criteria criteria = new Criteria(MetaModelDataSource.FIELD_EDITOR, model.getEditorId());
@@ -215,16 +261,20 @@ final class ModsCustomEditor implements DatastreamEditor, Refreshable {
             criteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, batchId);
         }
         ClientUtils.fine(LOG, "loadCustom pid: %s, batchId: %s, editor: %s", pid, batchId, model.getEditorId());
+        DSRequest request = new DSRequest();
+        if (showFetchPrompt != null) {
+            request.setShowPrompt(showFetchPrompt);
+        }
         ModsCustomDataSource.getInstance().fetchData(criteria, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
-                handleFetch(response, editor);
+                handleFetch(response, editor, loadCallback);
             }
-        });
+        }, request);
     }
 
-    private void handleFetch(DSResponse response, DynamicForm editor) {
+    private void handleFetch(DSResponse response, DynamicForm editor, BooleanCallback loadCallback) {
         if (RestConfig.isStatusOk(response)) {
             Record[] data = response.getData();
             if (LOG.isLoggable(Level.FINE)) {
@@ -238,6 +288,7 @@ final class ModsCustomEditor implements DatastreamEditor, Refreshable {
                     editor.editRecord(customModsRecord);
                     editor.clearErrors(true);
                     widget.setMembers(editor);
+                    loadCallback.execute(Boolean.TRUE);
                     return ;
                 }
             } else {
@@ -248,6 +299,7 @@ final class ModsCustomEditor implements DatastreamEditor, Refreshable {
             }
         }
         widget.setMembers();
+        loadCallback.execute(Boolean.FALSE);
     }
 
 }
