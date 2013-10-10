@@ -53,6 +53,7 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
     private static final Logger LOG = Logger.getLogger(ModsXmlEditor.class.getName());
     private final Canvas sourceForm;
     private String pid;
+    private String batchId;
     private final CodeMirrorConfig config;
     private final TextArea textArea;
     private CodeMirrorWrapper wrapper;
@@ -103,6 +104,7 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
     @Override
     public void edit(String pid, String batchId, MetaModelRecord model) {
         this.pid = pid;
+        this.batchId = batchId;
         refresh();
     }
 
@@ -130,6 +132,9 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
     public void refresh() {
         if (pid != null) {
             Criteria pidCriteria = new Criteria(ModsCustomDataSource.FIELD_PID, pid);
+            if (batchId != null) {
+                pidCriteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, batchId);
+            }
             TextDataSource.getMods().fetchData(pidCriteria, new DSCallback() {
 
                 @Override

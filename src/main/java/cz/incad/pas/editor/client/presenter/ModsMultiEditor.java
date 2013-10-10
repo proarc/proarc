@@ -50,6 +50,7 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
     private DatastreamEditor activeEditor;
     private final ClientMessages i18n;
     private String pid;
+    private String batchId;
     private MetaModelRecord model;
     private Canvas customEditorButton;
 
@@ -65,8 +66,9 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
     public void edit(String pid, String batchId, MetaModelRecord model) {
         this.pid = pid;
         this.model = model;
-        ClientUtils.fine(LOG, "edit pid: %s", pid);
-        loadCustom(pid, model);
+        this.batchId = batchId;
+        ClientUtils.fine(LOG, "edit pid: %s, batchId: %s", pid, batchId);
+        loadCustom(pid, batchId, model);
     }
 
     public void save(BooleanCallback callback) {
@@ -159,41 +161,41 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
             if (refreshable != null) {
                 refreshable.refresh();
             } else {
-                loadTabData(activeEditor, pid);
+                loadTabData(activeEditor, pid, batchId);
             }
         }
     }
 
-    private void loadTabData(DatastreamEditor tab, String pid) {
+    private void loadTabData(DatastreamEditor tab, String pid, String batchId) {
         if (tab == modsFullEditor) {
-            loadFull(pid);
+            loadFull(pid, batchId);
         } else if (tab == modsSourceEditor) {
-            loadSource(pid);
+            loadSource(pid, batchId);
         } else {
-            loadCustom(pid, model);
+            loadCustom(pid, batchId, model);
         }
     }
 
-    private void loadCustom(String pid, MetaModelRecord model) {
-        modsCustomEditor.edit(pid, null, model);
+    private void loadCustom(String pid, String batchId, MetaModelRecord model) {
+        modsCustomEditor.edit(pid, batchId, model);
         if (modsCustomEditor.getCustomForm() != null) {
             setActiveEditor(modsCustomEditor);
             setEnabledCustom(true);
         } else {
             // unknown model, use full form
             setEnabledCustom(false);
-            loadFull(pid);
+            loadFull(pid, batchId);
         }
     }
 
-    private void loadFull(final String pid) {
+    private void loadFull(String pid, String batchId) {
         setActiveEditor(modsFullEditor);
-        modsFullEditor.edit(pid, null, model);
+        modsFullEditor.edit(pid, batchId, model);
     }
 
-    private void loadSource(String pid) {
+    private void loadSource(String pid, String batchId) {
         setActiveEditor(modsSourceEditor);
-        modsSourceEditor.edit(pid, null, model);
+        modsSourceEditor.edit(pid, batchId, model);
     }
 
     private void setActiveEditor(DatastreamEditor newEditor) {
@@ -228,7 +230,7 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
 
         @Override
         public void performAction(ActionEvent event) {
-            loadTabData(tab, pid);
+            loadTabData(tab, pid, batchId);
         }
 
     }
