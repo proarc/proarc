@@ -151,10 +151,12 @@ public final class ErrorHandler {
             errorPane.setWidth100();
             errorPane.setHeight100();
             errorPane.setContents(detailMsg);
+            errorPane.setCanSelectText(true);
             Canvas debugInfoPane = new Canvas();
             debugInfoPane.setWidth100();
             debugInfoPane.setAutoHeight();
             debugInfoPane.setContents(debugInfo);
+            debugInfoPane.setCanSelectText(true);
             final VLayout detailPane = new VLayout(4);
             detailPane.setLayoutMargin(4);
             detailPane.setGroupTitle("Details");
