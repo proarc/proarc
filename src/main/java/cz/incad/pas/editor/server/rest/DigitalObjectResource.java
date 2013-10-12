@@ -691,6 +691,7 @@ public class DigitalObjectResource {
 
             CustomMods<Object> result = new CustomMods<Object>();
             result.setPid(pid);
+            result.setBatchId(batchId);
             result.setEditor(editorId);
             result.setTimestamp(modsEditor.getLastModified());
             result.setData(customData);
@@ -1042,6 +1043,8 @@ public class DigitalObjectResource {
 
         @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_PID)
         private String pid;
+        @XmlElement(name = DigitalObjectResourceApi.BATCHID_PARAM)
+        private Integer batchId;
         @XmlElement(name = DigitalObjectResourceApi.TIMESTAMP_PARAM)
         private long timestamp;
         @XmlElement(name = DigitalObjectResourceApi.MODS_CUSTOM_EDITORID)
@@ -1050,6 +1053,14 @@ public class DigitalObjectResource {
         private T data;
 
         public CustomMods() {
+        }
+
+        public Integer getBatchId() {
+            return batchId;
+        }
+
+        public void setBatchId(Integer batchId) {
+            this.batchId = batchId;
         }
 
         public T getData() {
