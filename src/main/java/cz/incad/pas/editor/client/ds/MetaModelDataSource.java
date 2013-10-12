@@ -142,6 +142,9 @@ public class MetaModelDataSource extends RestDataSource {
         if (mmr == null) {
             String model = digitalObject.getAttribute(SearchDataSource.FIELD_MODEL);
             if (model != null) {
+                if (resultSet == null) {
+                    return null;
+                }
                 Record mr = resultSet.findByKey(model);
                 if (mr != null) {
                     mmr = MetaModelRecord.get(mr);
