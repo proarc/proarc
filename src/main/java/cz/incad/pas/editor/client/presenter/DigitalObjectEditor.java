@@ -220,7 +220,9 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 i18n.ImportBatchItemEditor_TabMods_Title(),
                 i18n.DigitalObjectEditAction_Hint(),
                 null,
-                DatastreamEditorType.MODS, places);
+                DatastreamEditorType.MODS,
+                tiny ? new AcceptFilter(true, true) : new AcceptFilter(false, false),
+                places);
         DigitalObjectEditAction ocrEditAction = new DigitalObjectEditAction(
                 i18n.ImportBatchItemEditor_TabOcr_Title(),
                 i18n.DigitalObjectEditAction_Hint(),

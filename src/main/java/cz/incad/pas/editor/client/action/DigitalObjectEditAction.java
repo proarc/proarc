@@ -20,7 +20,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.Record;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.Editor;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
@@ -93,14 +93,19 @@ public final class DigitalObjectEditAction extends AbstractAction {
         if (selection == null || (!filter.isMultiSelection() && selection.length != 1)) {
             return false;
         }
-        // check object models?
-        if (filter.isAnyModel()) {
-            return true;
-        }
+
         // check object model of each record
         for (Record record : selection) {
-            MetaModelRecord model = MetaModelDataSource.getModel(record);
-            if (model != null && !model.isSupportedDatastream(editorType.name())) {
+            DigitalObject dobj = DigitalObject.createOrNull(record);
+            // is digital object?
+            if (dobj == null) {
+                return false;
+            }
+            if (filter.isAnyModel()) {
+                continue;
+            }
+            MetaModelRecord model = dobj.getModel();
+            if (model == null || !model.isSupportedDatastream(editorType.name())) {
                 return false;
             }
         }
@@ -120,21 +125,21 @@ public final class DigitalObjectEditAction extends AbstractAction {
             this.multiSelection = multiSelection;
         }
 
+        /**
+         * Any model is acceptable.
+         */
         public boolean isAnyModel() {
             return anyModel;
         }
 
-        public void setAnyModel(boolean anyModel) {
-            this.anyModel = anyModel;
-        }
-
+        /**
+         * Multiple selection of digital objects is acceptable.
+         * @return
+         */
         public boolean isMultiSelection() {
             return multiSelection;
         }
 
-        public void setMultiSelection(boolean multiSelection) {
-            this.multiSelection = multiSelection;
-        }
     }
 
 }

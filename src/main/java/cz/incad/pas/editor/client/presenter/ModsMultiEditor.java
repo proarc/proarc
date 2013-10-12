@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.Page;
 import com.smartgwt.client.widgets.Canvas;
@@ -26,10 +27,14 @@ import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
+import cz.incad.pas.editor.client.action.Actions.ActionSource;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
+import cz.incad.pas.editor.client.action.Selectable;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
+import cz.incad.pas.editor.client.widget.BatchDatastreamEditor;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
 import cz.incad.pas.editor.client.widget.StatusView;
 import java.util.logging.Logger;
@@ -39,7 +44,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
+public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable, Selectable<DigitalObject> {
 
     private static final Logger LOG = Logger.getLogger(ModsMultiEditor.class.getName());
 
@@ -47,12 +52,15 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
     private final ModsCustomEditor modsCustomEditor;
     private final ModsFullEditor modsFullEditor;
     private final ModsXmlEditor modsSourceEditor;
+    private final ModsBatchEditor modsBatchEditor;
     private DatastreamEditor activeEditor;
     private final ClientMessages i18n;
+    private DigitalObject[] digitalObjects;
     private String pid;
     private String batchId;
     private MetaModelRecord model;
     private Canvas customEditorButton;
+    private final ActionSource actionSource;
 
     public ModsMultiEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -60,15 +68,54 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
         modsFullEditor = new ModsFullEditor(i18n);
         modsCustomEditor = new ModsCustomEditor(i18n);
         modsSourceEditor = new ModsXmlEditor();
+        modsBatchEditor = new ModsBatchEditor(i18n);
+        actionSource = new ActionSource(this);
     }
 
     @Override
     public void edit(String pid, String batchId, MetaModelRecord model) {
-        this.pid = pid;
-        this.model = model;
-        this.batchId = batchId;
         ClientUtils.fine(LOG, "edit pid: %s, batchId: %s", pid, batchId);
-        loadCustom(pid, batchId, model);
+        DigitalObject dobj = DigitalObject.create(pid, batchId, model);
+        edit(new DigitalObject[] { dobj }, batchId);
+    }
+
+    @Override
+    public void edit(Record[] items, String batchId) {
+        if (items != null) {
+            DigitalObject[] dobjs = new DigitalObject[items.length];
+            for (int i = 0; i < items.length; i++) {
+                dobjs[i] = DigitalObject.create(items[i]);
+            }
+            edit(dobjs, batchId);
+        }
+    }
+
+    public void edit(DigitalObject[] items, String batchId) {
+        this.digitalObjects = items;
+        this.batchId = batchId;
+        if (items == null || items.length == 0) {
+            // show nothing or throw exception!
+        } else if (items.length == 1) {
+            DigitalObject dobj = items[0];
+            this.pid = dobj.getPid();
+            this.model = dobj.getModel();
+            loadCustom(pid, batchId, model);
+        } else {
+            String modelId = "model:page";
+            boolean unsupportedBatch = false;
+            for (DigitalObject dobj : items) {
+                if (!modelId.equals(dobj.getModelId())) {
+                    unsupportedBatch = true;
+                    break;
+                }
+            }
+            if (unsupportedBatch) {
+                setActiveEditor(null);
+            } else {
+                loadBatch();
+            }
+        }
+        actionSource.fireEvent();
     }
 
     public void save(BooleanCallback callback) {
@@ -77,6 +124,8 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
             saveCustomData(callback);
         } else if (activeEditor == modsFullEditor) {
             saveFullData(callback);
+        } else if (activeEditor == modsBatchEditor) {
+            saveBatchData(callback);
         } else {
             callback.execute(Boolean.TRUE);
         }
@@ -101,7 +150,7 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
     @SuppressWarnings("unchecked")
     public <T> T getCapability(Class<T> clazz) {
         T c = null;
-        if (Refreshable.class.equals(clazz)) {
+        if (Refreshable.class.equals(clazz) || BatchDatastreamEditor.class.equals(clazz)) {
             c = (T) this;
         }
         return c;
@@ -123,28 +172,34 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
                     }
                 });
             }
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                return activeEditor != null;
+            }
         };
+
         return new Canvas[] {
             customEditorButton = Actions.asIconButton(
                 new SwitchAction(modsCustomEditor,
                         i18n.ModsMultiEditor_TabSimple_Title(),
                         Page.getAppDir() + "images/silk/16/application_form_edit.png",
                         i18n.ModsMultiEditor_TabSimple_Hint()
-                ), this),
+                ), actionSource),
             Actions.asIconButton(
                 new SwitchAction(modsFullEditor,
                         i18n.ModsMultiEditor_TabFull_Title(),
                         Page.getAppDir() + "images/silk/16/container.png",
                         i18n.ModsMultiEditor_TabFull_Hint()
-                ), this),
+                ), actionSource),
             Actions.asIconButton(
                 new SwitchAction(modsSourceEditor,
                         i18n.ModsMultiEditor_TabSource_Title(),
                         Page.getAppDir() + "images/oxygen/16/application_xml.png",
                         i18n.ModsMultiEditor_TabSource_Hint()
-                ), this),
+                ), actionSource),
             new ToolStripSeparator(),
-            Actions.asIconButton(saveAction, this)
+            Actions.asIconButton(saveAction, actionSource)
         };
 
     }
@@ -164,6 +219,11 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
                 loadTabData(activeEditor, pid, batchId);
             }
         }
+    }
+
+    @Override
+    public DigitalObject[] getSelection() {
+        return digitalObjects;
     }
 
     private void loadTabData(DatastreamEditor tab, String pid, String batchId) {
@@ -198,9 +258,21 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
         modsSourceEditor.edit(pid, batchId, model);
     }
 
+    private void loadBatch() {
+        if (activeEditor != modsBatchEditor) {
+            modsBatchEditor.refresh();
+        }
+        setActiveEditor(modsBatchEditor);
+        modsBatchEditor.edit(digitalObjects, batchId);
+    }
+
     private void setActiveEditor(DatastreamEditor newEditor) {
         if (newEditor != activeEditor) {
-            uiContainer.setMembers(newEditor.getUI());
+            if (newEditor != null) {
+                uiContainer.setMembers(newEditor.getUI());
+            } else {
+                uiContainer.setMembers(new Canvas[0]);
+            }
             activeEditor = newEditor;
         }
     }
@@ -219,6 +291,10 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
         modsCustomEditor.save(callback);
     }
 
+    private void saveBatchData(BooleanCallback callback) {
+        modsBatchEditor.save(callback);
+    }
+
     private final class SwitchAction extends AbstractAction {
 
         private final DatastreamEditor tab;
@@ -231,6 +307,12 @@ public final class ModsMultiEditor implements DatastreamEditor, Refreshable {
         @Override
         public void performAction(ActionEvent event) {
             loadTabData(tab, pid, batchId);
+        }
+
+        @Override
+        public boolean accept(ActionEvent event) {
+            DigitalObject[] selections = getSelection();
+            return selections != null && selections.length == 1;
         }
 
     }
