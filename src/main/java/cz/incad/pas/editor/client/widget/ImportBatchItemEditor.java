@@ -840,10 +840,13 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
     private final class BatchItemMultiEdit extends AbstractAction {
 
+        private final PageMetadataEditor editor;
+
         public BatchItemMultiEdit() {
             super(i18n.ImportBatchItemEditor_ActionEdit_Title(),
                     "[SKIN]/actions/edit.png",
                     i18n.ImportBatchItemEditor_ActionEdit_Hint());
+            editor = new PageMetadataEditor();
         }
 
         @Override
@@ -852,7 +855,6 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             if (selection == null || selection.length == 0) {
                 return ;
             }
-            final PageMetadataEditor editor = PageMetadataEditor.getInstance();
             editor.showInWindow(new BooleanCallback() {
 
                 @Override

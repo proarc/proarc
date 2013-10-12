@@ -28,7 +28,6 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.IntegerItem;
-import com.smartgwt.client.widgets.form.fields.RowSpacerItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.SpacerItem;
 import com.smartgwt.client.widgets.form.fields.StaticTextItem;
@@ -41,6 +40,7 @@ import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import com.smartgwt.client.widgets.form.validator.RequiredIfFunction;
 import com.smartgwt.client.widgets.form.validator.RequiredIfValidator;
 import com.smartgwt.client.widgets.layout.HStack;
+import com.smartgwt.client.widgets.layout.VLayout;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
@@ -80,21 +80,20 @@ public final class PageMetadataEditor {
     private RegExpValidator alphabetStartValidator;
     private RequiredIfValidator numberStartRequired;
     private Window window;
-    private DynamicForm form;
+    private VLayout formPanel;
+    private DynamicForm formPageNumber;
+    private DynamicForm formPageType;
+    private DynamicForm formPageIndex;
     private BooleanCallback windowCallback;
     private final ClientMessages i18n;
 
-    public static PageMetadataEditor getInstance() {
-        return INSTANCE;
-    }
-
-    private PageMetadataEditor() {
+    public PageMetadataEditor() {
         this.i18n = GWT.create(ClientMessages.class);
     }
 
     public Canvas getFormPanel() {
-        if (form != null) {
-            return form;
+        if (formPanel != null) {
+            return formPanel;
         }
 
         SpacerItem newRowSpacer = new SpacerItem();
@@ -104,25 +103,52 @@ public final class PageMetadataEditor {
         createPageNumberUi();
         createPageTypeUi();
 
-        form = new DynamicForm();
-        form.setNumCols(10);
-        form.setColWidths(20);
-//        formIndex.setTitleOrientation(TitleOrientation.TOP);
+        formPanel = new VLayout(10);
+        formPanel.setAutoHeight();
+        formPageIndex.setItems(allowPageIndexes, indexStart);
+        formPageNumber.setItems(allowPageNumbers, prefix, numberStart,
+                numberIncrement, suffix, seriesType, numberExample);
+        formPageType.setItems(allowPageTypes, pageType);
+        formPanel.setMembers(formPageIndex, formPageNumber, formPageType);
+
+        initAll();
+
+        return formPanel;
+    }
+
+    public boolean validate() {
+        if (formPanel != null) {
+            boolean valid = true;
+            boolean anyValue = false;
+            if (getAllowPageIndexes()) {
+                valid &= formPageIndex.validate();
+                anyValue = true;
+            }
+            if (getAllowPageNumbers()) {
+                valid &= formPageNumber.validate();
+                anyValue = true;
+            }
+            if (getAllowPageTypes()) {
+                valid &= formPageType.validate();
+                anyValue = true;
+            }
+            return anyValue && valid;
+        }
+        return false;
+    }
+
+    private static DynamicForm createForm() {
+        DynamicForm form = new DynamicForm();
         form.setWrapItemTitles(false);
-        form.setItems(
-                allowPageIndexes, newRowSpacer, indexStart, new RowSpacerItem(),
-                allowPageNumbers, newRowSpacer, prefix, newRowSpacer,
-                    numberStart, newRowSpacer, numberIncrement, newRowSpacer,
-                    suffix, newRowSpacer, seriesType, newRowSpacer, numberExample, new RowSpacerItem(),
-                allowPageTypes, newRowSpacer, pageType);
-        form.setAutoWidth();
+//        form.setAutoWidth();
         form.setAutoHeight();
         form.setBrowserSpellCheck(false);
-
         return form;
     }
 
     private void createPageIndexUi() {
+        formPageIndex = createForm();
+
         allowPageIndexes = new CheckboxItem("fillPageIndexes", i18n.PageMetadataEditor_CheckboxPageIndices_Title());
         allowPageIndexes.setStartRow(true);
         allowPageIndexes.setColSpan("*");
@@ -134,6 +160,7 @@ public final class PageMetadataEditor {
 
         indexStart = new IntegerItem("indexStart", i18n.PageMetadataEditor_IndexStartValue_Title());
         indexStart.setSelectOnFocus(true);
+        indexStart.setRequired(true);
         indexStart.setValidators(indexValidator);
         indexStart.setValidateOnChange(true);
 
@@ -141,6 +168,8 @@ public final class PageMetadataEditor {
     }
 
     private void createPageNumberUi() {
+        formPageNumber = createForm();
+
         allowPageNumbers = new CheckboxItem("fillPageNumbers", i18n.PageMetadataEditor_CheckboxPageNubers_Title());
         allowPageNumbers.setStartRow(true);
         allowPageNumbers.setColSpan("*");
@@ -159,12 +188,10 @@ public final class PageMetadataEditor {
 
             @Override
             public boolean execute(FormItem formItem, Object value) {
-                String prefixValue = getPrefix();
-                String suffixValue = getSuffix();
-                return allowPageNumbers.getValueAsBoolean() && (prefixValue != null || suffixValue != null);
+                return true;
             }
         });
-        numberStart = new IntegerItem("numberStart", i18n.PageMetadataEditor_NumberStartValue_Title());
+        numberStart = new TextItem("numberStart", i18n.PageMetadataEditor_NumberStartValue_Title());
         numberStart.setSelectOnFocus(true);
         numberStart.addChangedHandler(pageNumberChangeHandler);
         numberStart.setValidateOnChange(true);
@@ -184,13 +211,8 @@ public final class PageMetadataEditor {
         numberIncrement = new IntegerItem("numberIncrement", i18n.PageMetadataEditor_NumberIncrement_Title());
         numberIncrement.setSelectOnFocus(true);
         numberIncrement.addChangedHandler(pageNumberChangeHandler);
-        numberIncrement.setValidators(integerIncrementValidator, new RequiredIfValidator(new RequiredIfFunction() {
-
-            @Override
-            public boolean execute(FormItem formItem, Object value) {
-                return allowPageNumbers.getValueAsBoolean() && getNumberStart() != null;
-            }
-        }));
+        numberIncrement.setRequired(true);
+        numberIncrement.setValidators(integerIncrementValidator);
         numberIncrement.setValidateOnChange(true);
         numberIncrement.setStopOnError(true);
 
@@ -202,6 +224,7 @@ public final class PageMetadataEditor {
         seriesType.setValueMap(ARABIC_SERIES, ROMAN_UPPER_SERIES,
                 ROMAN_LOWER_SERIES, ALPHABET_UPPER_SERIES, ALPHABET_LOWER_SERIES);
         seriesType.setDefaultValue(ARABIC_SERIES);
+        seriesType.setValue(ARABIC_SERIES);
         seriesType.addChangedHandler(new ChangedHandler() {
 
             @Override
@@ -215,6 +238,8 @@ public final class PageMetadataEditor {
     }
 
     private void createPageTypeUi() {
+        formPageType = createForm();
+
         allowPageTypes = new CheckboxItem("fillPageTypes", i18n.PageMetadataEditor_CheckboxPageTypes_Title());
         allowPageTypes.setStartRow(true);
         allowPageTypes.setColSpan("*");
@@ -223,16 +248,20 @@ public final class PageMetadataEditor {
         pageType = new SelectItem(ModsCustomDataSource.FIELD_PAGE_TYPE, i18n.PageForm_PageType_Title());
         pageType.setValueMap(ModsCustomDataSource.getPageTypes());
         pageType.setDefaultValue(ModsCustomDataSource.getDefaultPageType());
+        pageType.setValue(ModsCustomDataSource.getDefaultPageType());
         
         allowPageTypes.addChangedHandler(new DisableStateHandler(pageType));
     }
 
     private void initPageIndex() {
+        formPageIndex.clearValues();
         allowPageIndexes.setValue(false);
         indexStart.setDisabled(!getAllowPageIndexes());
+
     }
 
     private void initPageNumber() {
+        formPageNumber.clearValues();
         allowPageNumbers.setValue(false);
         boolean disablePageNumbers = !getAllowPageNumbers();
         numberStart.setDisabled(disablePageNumbers);
@@ -241,18 +270,24 @@ public final class PageMetadataEditor {
         seriesType.setDisabled(disablePageNumbers);
         prefix.setDisabled(disablePageNumbers);
         suffix.setDisabled(disablePageNumbers);
-        updatePageNumberValidators(seriesType.getValueAsString());
     }
 
     private void initPageType() {
+        formPageType.clearValues();
         allowPageTypes.setValue(false);
         pageType.setDisabled(!getAllowPageTypes());
     }
 
-    private void initAll() {
-        initPageIndex();
-        initPageNumber();
-        initPageType();
+    /**
+     * Resets form.
+     */
+    public void initAll() {
+        if (formPanel != null) {
+            initPageIndex();
+            initPageNumber();
+            initPageType();
+            updatePageNumberValidators(seriesType.getValueAsString());
+        }
     }
 
     private Canvas createButtons() {
@@ -261,12 +296,11 @@ public final class PageMetadataEditor {
 
             @Override
             public void onClick(com.smartgwt.client.widgets.events.ClickEvent event) {
-                boolean valid = form.validate();
+                boolean valid = validate();
                 if (valid) {
                     window.hide();
                     if (windowCallback != null) {
-                        boolean commit = getAllowPageIndexes() || getAllowPageNumbers() || getAllowPageTypes();
-                        windowCallback.execute(commit);
+                        windowCallback.execute(true);
                     }
                 }
             }
@@ -307,13 +341,11 @@ public final class PageMetadataEditor {
             window.setTitle(i18n.PageMetadataEditor_Window_Title());
             window.setShowMinimizeButton(false);
             window.setShowModalMask(true);
-        } else {
-            form.clearValues();
         }
 
         initAll();
         window.show();
-        form.focusInItem(allowPageIndexes);
+        formPageIndex.focusInItem(allowPageIndexes);
     }
 
     public boolean getAllowPageIndexes() {
@@ -326,10 +358,6 @@ public final class PageMetadataEditor {
 
     public boolean getAllowPageTypes() {
         return allowPageTypes.getValueAsBoolean();
-    }
-
-    public DynamicForm getForm() {
-        return form;
     }
 
     public Integer getIndexStart() {
@@ -488,8 +516,6 @@ public final class PageMetadataEditor {
 
     private void setSequenceType(String seriesType) {
         updatePageNumberValidators(seriesType);
-        numberStart.validate();
-        numberIncrement.validate();
         setPreview();
     }
 
