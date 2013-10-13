@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.client.widget;
 
-import com.smartgwt.client.data.Record;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 
 /**
  * The data stream editor to edit a batch of digital objects.
@@ -30,8 +30,7 @@ public interface BatchDatastreamEditor extends DatastreamEditor {
     /**
      * Starts editing.
      *
-     * @param items record must contain at least PID and model
-     * @param batchId optional import batch containing items
+     * @param items digital objects
      */
-    void edit(Record[] items, String batchId);
+    void edit(DigitalObject[] items);
 }

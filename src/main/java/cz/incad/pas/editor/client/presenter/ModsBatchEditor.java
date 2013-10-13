@@ -49,7 +49,6 @@ public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable
 
     private final PageMetadataEditor editor;
     private DigitalObject[] digitalObjects;
-    private String batchId;
     private final ProgressTracker progress;
     private final ClientMessages i18n;
     private Canvas panel;
@@ -61,13 +60,8 @@ public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable
     }
 
     @Override
-    public void edit(Record[] items, String batchId) {
-        throw new UnsupportedOperationException();
-    }
-    
-    public void edit(DigitalObject[] items, String batchId) {
+    public void edit(DigitalObject[] items) {
         this.digitalObjects = items;
-        this.batchId = batchId;
     }
 
     @Override
@@ -182,9 +176,9 @@ public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable
             MetaModelRecord model = dobj.getModel();
             Criteria criteria = new Criteria(MetaModelDataSource.FIELD_EDITOR, model.getEditorId());
             criteria.addCriteria(ModsCustomDataSource.FIELD_PID, dobj.getPid());
-            String bi = dobj.getBatchId() == null ? batchId : dobj.getBatchId();
-            if (bi != null) {
-                criteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, bi);
+            String batchId = dobj.getBatchId();
+            if (batchId != null) {
+                criteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, batchId);
             }
             DSRequest request = new DSRequest();
             request.setShowPrompt(false);

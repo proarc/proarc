@@ -16,7 +16,6 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
-import com.smartgwt.client.data.Record;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.Page;
 import com.smartgwt.client.widgets.Canvas;
@@ -72,22 +71,11 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
     public void edit(DigitalObject digitalObject) {
         ClientUtils.fine(LOG, "edit %s", digitalObject);
         DigitalObject[] dobjs = digitalObject == null ? null : new DigitalObject[] { digitalObject };
-        String batchId = digitalObject == null ? null : digitalObject.getBatchId();
-        edit(dobjs, batchId);
+        edit(dobjs);
     }
 
     @Override
-    public void edit(Record[] items, String batchId) {
-        if (items != null) {
-            DigitalObject[] dobjs = new DigitalObject[items.length];
-            for (int i = 0; i < items.length; i++) {
-                dobjs[i] = DigitalObject.create(items[i]);
-            }
-            edit(dobjs, batchId);
-        }
-    }
-
-    public void edit(DigitalObject[] items, String batchId) {
+    public void edit(DigitalObject[] items) {
         this.digitalObjects = items;
         if (items == null || items.length == 0) {
             // show nothing or throw exception!
@@ -256,7 +244,7 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
             modsBatchEditor.refresh();
         }
         setActiveEditor(modsBatchEditor);
-        modsBatchEditor.edit(digitalObjects, digitalObjects[0].getBatchId());
+        modsBatchEditor.edit(digitalObjects);
     }
 
     private void setActiveEditor(DatastreamEditor newEditor) {

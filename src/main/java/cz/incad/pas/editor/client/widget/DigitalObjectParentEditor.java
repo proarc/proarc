@@ -20,7 +20,6 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.widgets.Canvas;
 import cz.incad.pas.editor.client.ClientMessages;
-import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.Action;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
@@ -38,8 +37,7 @@ import cz.incad.pas.editor.client.widget.ImportParentChooser.ImportParentHandler
 public final class DigitalObjectParentEditor implements BatchDatastreamEditor, Refreshable {
 
     private final ImportParentChooser chooser;
-    private Record[] digitalObjects;
-    private String batchId;
+    private DigitalObject[] digitalObjects;
     private boolean autosave = false;
     private SaveAction saveAction;
     private final ClientMessages i18n;
@@ -61,27 +59,22 @@ public final class DigitalObjectParentEditor implements BatchDatastreamEditor, R
 
     @Override
     public void edit(DigitalObject digitalObject) {
-        Record record = digitalObject.getRecord();
-        edit(new Record[] {record}, batchId);
+        DigitalObject[] dobjs = digitalObject == null
+                ? null : new DigitalObject[] { digitalObject };
+        edit(dobjs);
     }
 
     /**
      * Starts editing of parent object of passed digital objects.
      * For now objects <b>MUST HAVE</b> common parent objects!
-     *
-     * @param items record must contain at least PID.
-     * @param batchId not yet supported
      */
     @Override
-    public void edit(Record[] items, String batchId) {
+    public void edit(DigitalObject[] items) {
         this.digitalObjects = items;
-        this.batchId = batchId;
         if (items != null && items.length > 0) {
             // pass first object to the chooser to fetch current parent
-            String pid = items[0].getAttribute(RelationDataSource.FIELD_PID);
+            String pid = items[0].getPid();
             chooser.setDigitalObject(pid);
-        } else if (batchId != null) {
-            chooser.setImport(batchId);
         } else {
             throw new IllegalStateException("missing pid and batchId");
         }
@@ -123,7 +116,7 @@ public final class DigitalObjectParentEditor implements BatchDatastreamEditor, R
 
     @Override
     public void refresh() {
-        edit(digitalObjects, batchId);
+        edit(digitalObjects);
     }
 
     private void save() {
@@ -132,7 +125,7 @@ public final class DigitalObjectParentEditor implements BatchDatastreamEditor, R
             String parentPid = chooser.getSelectedParentPid();
             String oldParentPid = chooser.getOldParentPid();
             RelationDataSource ds = RelationDataSource.getInstance();
-            String[] pids = ClientUtils.toFieldValues(digitalObjects, RelationDataSource.FIELD_PID);
+            String[] pids = DigitalObject.toPidArray(digitalObjects);
             ds.moveChild(pids, oldParentPid, parentPid, new BooleanCallback() {
 
                 @Override

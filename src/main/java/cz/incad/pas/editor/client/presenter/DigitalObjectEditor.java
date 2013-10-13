@@ -166,10 +166,9 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             @Override
             public void execute() {
                 if (records.length > 1) {
-                    DigitalObject dobj = DigitalObject.create(records[0]);
                     BatchDatastreamEditor beditor = editor.getCapability(BatchDatastreamEditor.class);
                     if (beditor != null) {
-                        beditor.edit(records, dobj.getBatchId());
+                        beditor.edit(DigitalObject.toArray(records));
                     }
                 } else {
                     DigitalObject dobj = DigitalObject.create(records[0]);

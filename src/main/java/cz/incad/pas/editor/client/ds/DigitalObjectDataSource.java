@@ -84,6 +84,22 @@ public final class DigitalObjectDataSource extends RestDataSource {
             return create(r, false);
         }
 
+        public static DigitalObject[] toArray(Record[] records) {
+            DigitalObject[] dobjs = new DigitalObject[records.length];
+            for (int i = 0; i < records.length; i++) {
+                dobjs[i] = create(records[i]);
+            }
+            return dobjs;
+        }
+
+        public static String[] toPidArray(DigitalObject[] objects) {
+            String[] pids = new String[objects.length];
+            for (int i = 0; i < objects.length; i++) {
+                pids[i] = objects[i].getPid();
+            }
+            return pids;
+        }
+
         /**
          * Creates digital object instance from record.
          * @param r record
