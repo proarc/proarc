@@ -56,6 +56,7 @@ public class RelationDataSource extends RestDataSource {
 
     private static final Logger LOG = Logger.getLogger(RelationDataSource.class.getName());
     public static final String ID = "RelationDataSource";
+    private static RelationDataSource INSTANCE;
 
     public static final String FIELD_PID = DigitalObjectResourceApi.MEMBERS_ITEM_PID;
     public static final String FIELD_PARENT = DigitalObjectResourceApi.MEMBERS_ITEM_PARENT;
@@ -135,9 +136,12 @@ public class RelationDataSource extends RestDataSource {
     }
 
     public static RelationDataSource getInstance() {
-        RelationDataSource ds = (RelationDataSource) DataSource.get(ID);
-        ds = ds != null ? ds : new RelationDataSource();
-        return ds;
+        if (INSTANCE == null) {
+            INSTANCE = (RelationDataSource) DataSource.get(ID);
+            // DataSource.get does not work reliably
+            INSTANCE = INSTANCE != null ? INSTANCE : new RelationDataSource();
+        }
+        return INSTANCE;
     }
 
     public void addChild(String parentPid, String pid, final BooleanCallback call) {
