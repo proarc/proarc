@@ -21,6 +21,7 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
@@ -51,6 +52,7 @@ public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable
     private String batchId;
     private final ProgressTracker progress;
     private final ClientMessages i18n;
+    private Canvas panel;
 
     public ModsBatchEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -90,7 +92,13 @@ public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable
 
     @Override
     public Canvas getUI() {
-        return editor.getFormPanel();
+        if (panel == null) {
+            panel = editor.getFormPanel();
+            panel.setWidth100();
+            panel.setHeight100();
+            panel.setOverflow(Overflow.AUTO);
+        }
+        return panel;
     }
 
     @Override
