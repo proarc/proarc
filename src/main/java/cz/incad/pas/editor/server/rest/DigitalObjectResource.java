@@ -639,6 +639,7 @@ public class DigitalObjectResource {
         Object customData = mapping.read(mods, editorId);
         CustomMods<Object> result = new CustomMods<Object>();
         result.setPid(pid);
+        result.setBatchId(batchId);
         result.setEditor(editorId);
         result.setTimestamp(modsEditor.getLastModified());
         result.setData(customData);
