@@ -25,6 +25,7 @@ import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.server.mods.custom.PageMapper;
 import cz.incad.pas.editor.server.mods.custom.PageMapper.Page;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.ImportResourceApi;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
 import java.io.File;
@@ -60,7 +61,7 @@ public final class PageView {
             String filename = relsExt.getImportFile();
             result.add(new Item(batchId, filename, imp.getPid(),
                     model, page.getIndex(), page.getNumber(), page.getType(),
-                    editor.getLastModified(), local.getOwner()));
+                    editor.getLastModified(), local.getOwner(), local.getLabel()));
         }
         return result;
     }
@@ -92,7 +93,7 @@ public final class PageView {
         local.flush();
         Item update = new Item(batchId, filename, item.getPid(), model,
                 pageIndex, pageNumber, pageType,
-                editor.getLastModified(), local.getOwner());
+                editor.getLastModified(), local.getOwner(), local.getLabel());
         return update;
     }
 
@@ -150,10 +151,12 @@ public final class PageView {
         private long timestamp;
         @XmlElement(name = ImportResourceApi.BATCHITEM_USER)
         private String user;
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_LABEL)
+        private String label;
 
         public Item(Integer batchId, String filename, String pid, String model,
                 String pageIndex, String pageNumber, String pageType,
-                long timestamp, String user) {
+                long timestamp, String user, String label) {
             this.batchId = batchId;
             this.filename = filename;
             this.pid = pid;
@@ -163,6 +166,7 @@ public final class PageView {
             this.pageType = pageType;
             this.timestamp = timestamp;
             this.user = user;
+            this.label = label;
         }
 
         public Item() {

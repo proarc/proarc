@@ -110,6 +110,11 @@ public final class LocalStorage {
             return p == null ? null : p.getVALUE();
         }
 
+        public String getLabel() {
+            PropertyType p = FoxmlUtils.findProperty(dobj, FoxmlUtils.PROPERTY_LABEL);
+            return p == null ? null : p.getVALUE();
+        }
+
         @Override
         public void setLabel(String label) {
             if (label == null) {

@@ -350,7 +350,7 @@ public class ImportResource {
             }
         }
         if (changed) {
-            Item deletedItem = new PageView.Item(batchId, null, pid, null, null, null, null, 0, null);
+            Item deletedItem = new PageView.Item(batchId, null, pid, null, null, null, null, 0, null, null);
             return new SmartGwtResponse<Item>(deletedItem);
         } else {
             throw RestException.plainText(Status.NOT_FOUND, "Batch item not found!");
