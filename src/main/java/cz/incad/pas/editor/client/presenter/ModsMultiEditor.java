@@ -16,9 +16,12 @@
  */
 package cz.incad.pas.editor.client.presenter;
 
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.Page;
 import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
+import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStripSeparator;
 import cz.incad.pas.editor.client.ClientMessages;
@@ -56,6 +59,13 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
     private DigitalObject[] digitalObjects;
     private Canvas customEditorButton;
     private final ActionSource actionSource;
+    private HandlerRegistration submitCustomValuesRegistration;
+    private final SubmitValuesHandler submitCustomValuesHandler = new SubmitValuesHandler() {
+        @Override
+        public void onSubmitValues(SubmitValuesEvent event) {
+            save();
+        }
+    };
 
     public ModsMultiEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -112,6 +122,18 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
         }
     }
 
+    private void save() {
+        save(new BooleanCallback() {
+
+            @Override
+            public void execute(Boolean value) {
+                if (value != null && value) {
+                    StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
+                }
+            }
+        });
+    }
+
     /**
      * Notifies other data sources to update its caches with object label.
      */
@@ -143,15 +165,7 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
 
             @Override
             public void performAction(ActionEvent event) {
-                save(new BooleanCallback() {
-
-                    @Override
-                    public void execute(Boolean value) {
-                        if (value != null && value) {
-                            StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
-                        }
-                    }
-                });
+                save();
             }
 
             @Override
@@ -220,6 +234,11 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
     private void loadCustom(DigitalObject digitalObject) {
         modsCustomEditor.edit(digitalObject);
         if (modsCustomEditor.getCustomForm() != null) {
+            if (submitCustomValuesRegistration != null) {
+                submitCustomValuesRegistration.removeHandler();
+            }
+            submitCustomValuesRegistration = modsCustomEditor.getCustomForm()
+                    .addSubmitValuesHandler(submitCustomValuesHandler);
             setActiveEditor(modsCustomEditor);
             setEnabledCustom(true);
         } else {

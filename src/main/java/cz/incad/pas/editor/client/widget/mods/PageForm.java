@@ -51,6 +51,9 @@ public final class PageForm extends AbstractModelForm {
     private static final Logger LOG = Logger.getLogger(PageForm.class.getName());
 
     public PageForm(ClientMessages i18n) {
+        // save on Enter is supposed mainly for ImportBatchItemEditor
+        // see submit handler in ModsMultiEditor
+        setSaveOnEnter(true);
         setWidth100();
         setHeight100();
         setTitleOrientation(TitleOrientation.TOP);
