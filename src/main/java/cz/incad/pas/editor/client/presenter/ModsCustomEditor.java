@@ -33,6 +33,7 @@ import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
 import cz.incad.pas.editor.client.action.SaveAction.Savable;
 import cz.incad.pas.editor.client.action.SaveAction.SaveValidation;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
@@ -61,11 +62,9 @@ public final class ModsCustomEditor implements DatastreamEditor, Refreshable {
     private final HashMap<String, DynamicForm> editorCache;
     private DynamicForm activeEditor;
     private Record editedCustomRecord;
-    private String pid;
-    private String batchId;
-    private MetaModelRecord model;
     private final VLayout widget;
     private Boolean showFetchPrompt;
+    private DigitalObject digitalObject;
 
     public ModsCustomEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -75,32 +74,26 @@ public final class ModsCustomEditor implements DatastreamEditor, Refreshable {
     }
 
     /**
-     * @see #edit(String, String, MetaModelDataSource.MetaModelRecord, BooleanCallback)
+     * @see #edit(DigitalObject, BooleanCallback)
      */
     @Override
-    public void edit(String pid, String batchId, MetaModelRecord model) {
-        edit(pid, batchId, model, ClientUtils.EMPTY_BOOLEAN_CALLBACK);
+    public void edit(DigitalObject digitalObject) {
+        edit(digitalObject, ClientUtils.EMPTY_BOOLEAN_CALLBACK);
     }
 
     /**
-     * Loads a digital object into the given MODS custom form.
+     * Loads a digital object into the given MODS custom form according to object's model.
      *
-     * @param pid PID
-     * @param batchId optional batch import ID
-     * @param model model to choose proper form
+     * @param digitalObject digital object
      * @param loadCallback listens to load status
      */
-    public void edit(String pid, String batchId, MetaModelRecord model,
-            BooleanCallback loadCallback) {
-
-        this.pid = pid;
-        this.batchId = batchId;
-        this.model = model;
+    public void edit(DigitalObject digitalObject, BooleanCallback loadCallback) {
+        this.digitalObject = digitalObject;
         editedCustomRecord = null;
-        activeEditor = getCustomForm(model);
+        activeEditor = getCustomForm(digitalObject.getModel());
         if (activeEditor != null) {
             widget.setMembers(activeEditor);
-            loadCustom(activeEditor, pid, batchId, model, loadCallback);
+            loadCustom(activeEditor, digitalObject, loadCallback);
         }
     }
 
@@ -132,7 +125,7 @@ public final class ModsCustomEditor implements DatastreamEditor, Refreshable {
 
     @Override
     public void refresh() {
-        loadCustom(activeEditor, pid, batchId, model, ClientUtils.EMPTY_BOOLEAN_CALLBACK);
+        loadCustom(activeEditor, digitalObject, ClientUtils.EMPTY_BOOLEAN_CALLBACK);
     }
 
     public void save(final BooleanCallback callback) {
@@ -248,6 +241,10 @@ public final class ModsCustomEditor implements DatastreamEditor, Refreshable {
             ClientUtils.warning(LOG, "Uknown model editor: %s, editor: %s", model.getId(), model.getEditorId());
         }
         return form;
+    }
+
+    private void loadCustom(final DynamicForm editor, DigitalObject dobj, final BooleanCallback loadCallback) {
+        loadCustom(editor, dobj.getPid(), dobj.getBatchId(), dobj.getModel(), loadCallback);
     }
 
     private void loadCustom(final DynamicForm editor, String pid, String batchId,

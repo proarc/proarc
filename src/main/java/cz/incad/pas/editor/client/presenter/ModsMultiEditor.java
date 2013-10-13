@@ -32,7 +32,6 @@ import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
 import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.widget.BatchDatastreamEditor;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
@@ -56,9 +55,6 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
     private DatastreamEditor activeEditor;
     private final ClientMessages i18n;
     private DigitalObject[] digitalObjects;
-    private String pid;
-    private String batchId;
-    private MetaModelRecord model;
     private Canvas customEditorButton;
     private final ActionSource actionSource;
 
@@ -73,10 +69,11 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
     }
 
     @Override
-    public void edit(String pid, String batchId, MetaModelRecord model) {
-        ClientUtils.fine(LOG, "edit pid: %s, batchId: %s", pid, batchId);
-        DigitalObject dobj = DigitalObject.create(pid, batchId, model);
-        edit(new DigitalObject[] { dobj }, batchId);
+    public void edit(DigitalObject digitalObject) {
+        ClientUtils.fine(LOG, "edit %s", digitalObject);
+        DigitalObject[] dobjs = digitalObject == null ? null : new DigitalObject[] { digitalObject };
+        String batchId = digitalObject == null ? null : digitalObject.getBatchId();
+        edit(dobjs, batchId);
     }
 
     @Override
@@ -92,14 +89,10 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
 
     public void edit(DigitalObject[] items, String batchId) {
         this.digitalObjects = items;
-        this.batchId = batchId;
         if (items == null || items.length == 0) {
             // show nothing or throw exception!
         } else if (items.length == 1) {
-            DigitalObject dobj = items[0];
-            this.pid = dobj.getPid();
-            this.model = dobj.getModel();
-            loadCustom(pid, batchId, model);
+            loadCustom(items[0]);
         } else {
             String modelId = "model:page";
             boolean unsupportedBatch = false;
@@ -139,7 +132,7 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
 
             @Override
             public void execute(Boolean value) {
-                RelationDataSource.getInstance().fireRelationChange(pid);
+                RelationDataSource.getInstance().fireRelationChange(digitalObjects[0].getPid());
                 callback.execute(value);
             }
         };
@@ -216,7 +209,7 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
             if (refreshable != null) {
                 refreshable.refresh();
             } else {
-                loadTabData(activeEditor, pid, batchId);
+                loadTabData(activeEditor, digitalObjects[0]);
             }
         }
     }
@@ -226,36 +219,36 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
         return digitalObjects;
     }
 
-    private void loadTabData(DatastreamEditor tab, String pid, String batchId) {
+    private void loadTabData(DatastreamEditor tab, DigitalObject digitalObject) {
         if (tab == modsFullEditor) {
-            loadFull(pid, batchId);
+            loadFull(digitalObject);
         } else if (tab == modsSourceEditor) {
-            loadSource(pid, batchId);
+            loadSource(digitalObject);
         } else {
-            loadCustom(pid, batchId, model);
+            loadCustom(digitalObject);
         }
     }
 
-    private void loadCustom(String pid, String batchId, MetaModelRecord model) {
-        modsCustomEditor.edit(pid, batchId, model);
+    private void loadCustom(DigitalObject digitalObject) {
+        modsCustomEditor.edit(digitalObject);
         if (modsCustomEditor.getCustomForm() != null) {
             setActiveEditor(modsCustomEditor);
             setEnabledCustom(true);
         } else {
             // unknown model, use full form
             setEnabledCustom(false);
-            loadFull(pid, batchId);
+            loadFull(digitalObject);
         }
     }
 
-    private void loadFull(String pid, String batchId) {
+    private void loadFull(DigitalObject digitalObject) {
         setActiveEditor(modsFullEditor);
-        modsFullEditor.edit(pid, batchId, model);
+        modsFullEditor.edit(digitalObject);
     }
 
-    private void loadSource(String pid, String batchId) {
+    private void loadSource(DigitalObject digitalObject) {
         setActiveEditor(modsSourceEditor);
-        modsSourceEditor.edit(pid, batchId, model);
+        modsSourceEditor.edit(digitalObject);
     }
 
     private void loadBatch() {
@@ -263,7 +256,7 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
             modsBatchEditor.refresh();
         }
         setActiveEditor(modsBatchEditor);
-        modsBatchEditor.edit(digitalObjects, batchId);
+        modsBatchEditor.edit(digitalObjects, digitalObjects[0].getBatchId());
     }
 
     private void setActiveEditor(DatastreamEditor newEditor) {
@@ -306,7 +299,7 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
 
         @Override
         public void performAction(ActionEvent event) {
-            loadTabData(tab, pid, batchId);
+            loadTabData(tab, digitalObjects[0]);
         }
 
         @Override

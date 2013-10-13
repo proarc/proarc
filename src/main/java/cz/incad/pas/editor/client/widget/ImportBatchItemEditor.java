@@ -83,6 +83,7 @@ import cz.incad.pas.editor.client.action.FoxmlViewAction;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.DcRecordDataSource;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
@@ -646,10 +647,10 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     }
 
     private void previewItem(Record r) {
-        String pid = (r == null) ? null : r.getAttribute(ImportBatchItemDataSource.FIELD_PID);
+        DigitalObject dobj = r == null ? null : DigitalObject.createOrNull(r);
         Canvas preview = digitalObjectPreview.getUI();
-        if (pid != null) {
-            digitalObjectPreview.edit(pid, batchRecord.getId(), null);
+        if (dobj != null) {
+            digitalObjectPreview.edit(dobj);
             preview.show();
             preview.getParentElement().enable();
         } else {

@@ -33,7 +33,6 @@ import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
 import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.TextDataSource;
 
@@ -66,8 +65,8 @@ public final class TextEditor implements DatastreamEditor, Refreshable, Selectab
     }
 
     @Override
-    public void edit(String pid, String batchId, MetaModelRecord model) {
-        editObject = pid == null ? null : DigitalObject.create(pid, batchId, model);
+    public void edit(DigitalObject digitalObject) {
+        this.editObject = digitalObject;
         load(editObject);
     }
 

@@ -34,7 +34,7 @@ import com.smartgwt.client.widgets.events.DrawHandler;
 import com.smartgwt.client.widgets.events.ResizedEvent;
 import com.smartgwt.client.widgets.events.ResizedHandler;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.TextDataSource;
@@ -52,8 +52,7 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
 
     private static final Logger LOG = Logger.getLogger(ModsXmlEditor.class.getName());
     private final Canvas sourceForm;
-    private String pid;
-    private String batchId;
+    private DigitalObject digitalObject;
     private final CodeMirrorConfig config;
     private final TextArea textArea;
     private CodeMirrorWrapper wrapper;
@@ -102,9 +101,8 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
     }
 
     @Override
-    public void edit(String pid, String batchId, MetaModelRecord model) {
-        this.pid = pid;
-        this.batchId = batchId;
+    public void edit(DigitalObject digitalObject) {
+        this.digitalObject = digitalObject;
         refresh();
     }
 
@@ -130,10 +128,10 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
 
     @Override
     public void refresh() {
-        if (pid != null) {
-            Criteria pidCriteria = new Criteria(ModsCustomDataSource.FIELD_PID, pid);
-            if (batchId != null) {
-                pidCriteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, batchId);
+        if (digitalObject != null) {
+            Criteria pidCriteria = new Criteria(ModsCustomDataSource.FIELD_PID, digitalObject.getPid());
+            if (digitalObject.getBatchId() != null) {
+                pidCriteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, digitalObject.getBatchId());
             }
             TextDataSource.getMods().fetchData(pidCriteria, new DSCallback() {
 

@@ -44,6 +44,7 @@ import cz.incad.pas.editor.client.action.DigitalObjectOpenParentAction;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.Selectable;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
@@ -165,14 +166,14 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             @Override
             public void execute() {
                 if (records.length > 1) {
+                    DigitalObject dobj = DigitalObject.create(records[0]);
                     BatchDatastreamEditor beditor = editor.getCapability(BatchDatastreamEditor.class);
                     if (beditor != null) {
-                        beditor.edit(records, null);
+                        beditor.edit(records, dobj.getBatchId());
                     }
                 } else {
-                    String pid = records[0].getAttribute(SearchDataSource.FIELD_PID);
-                    MetaModelRecord mr = MetaModelDataSource.getModel(records[0]);
-                    editor.edit(pid, null, mr);
+                    DigitalObject dobj = DigitalObject.create(records[0]);
+                    editor.edit(dobj);
                 }
                 editorContainer.setMembers(editor.getUI());
                 editorContainer.show();

@@ -61,8 +61,8 @@ import cz.incad.pas.editor.client.action.DigitalObjectFormValidateAction.Validat
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
 import cz.incad.pas.editor.client.action.Selectable;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource.RelationChangeEvent;
 import cz.incad.pas.editor.client.ds.RelationDataSource.RelationChangeHandler;
@@ -94,7 +94,7 @@ public final class DigitalObjectChildrenEditor
     private final ListGrid childrenListGrid;
     private final DigitalObjectEditor childEditor;
     private final HLayout widget;
-    private String pid;
+    private DigitalObject digitalObject;
     private final PlaceController childPlaces;
     private DatastreamEditorType lastEditorType;
     private HandlerRegistration listDataChangedHandler;
@@ -134,21 +134,22 @@ public final class DigitalObjectChildrenEditor
 
             @Override
             public void onRelationChange(RelationChangeEvent event) {
-                if (pid != null && childrenListGrid.isVisible()) {
-                    relationDataSource.updateCaches(pid);
+                if (digitalObject != null && childrenListGrid.isVisible()) {
+                    relationDataSource.updateCaches(digitalObject.getPid());
                 }
             }
         });
     }
 
     @Override
-    public void edit(String pid, String batchId, MetaModelRecord model) {
-        this.pid = pid;
-        if (pid == null) {
+    public void edit(DigitalObject digitalObject) {
+        this.digitalObject = digitalObject;
+        if (digitalObject == null) {
             return ;
         }
         detachListFromEditor();
         detachListResultSet();
+        String pid = digitalObject.getPid();
         Criteria criteria = new Criteria(RelationDataSource.FIELD_ROOT, pid);
         criteria.addCriteria(RelationDataSource.FIELD_PARENT, pid);
         ResultSet resultSet = childrenListGrid.getResultSet();
@@ -218,7 +219,7 @@ public final class DigitalObjectChildrenEditor
     public void refresh() {
         ValidatableList.clearRowErrors(childrenListGrid);
         childrenListGrid.invalidateCache();
-        edit(pid, null, null);
+        edit(digitalObject);
     }
 
     @Override
@@ -232,7 +233,7 @@ public final class DigitalObjectChildrenEditor
         }
         Record[] rs = childrenListGrid.getOriginalResultSet().toArray();
         String[] childPids = ClientUtils.toFieldValues(rs, RelationDataSource.FIELD_PID);
-        relationDataSource.reorderChildren(pid, childPids, new BooleanCallback() {
+        relationDataSource.reorderChildren(digitalObject.getPid(), childPids, new BooleanCallback() {
 
             @Override
             public void execute(Boolean value) {

@@ -71,7 +71,7 @@ public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable
     }
 
     @Override
-    public void edit(String pid, String batchId, MetaModelRecord model) {
+    public void edit(DigitalObject digitalObject) {
         throw new UnsupportedOperationException();
     }
 

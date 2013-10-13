@@ -17,7 +17,7 @@
 package cz.incad.pas.editor.client.widget;
 
 import com.smartgwt.client.widgets.Canvas;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 
 /**
  * Digital object's data stream editor.
@@ -26,7 +26,7 @@ import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
  */
 public interface DatastreamEditor {
 
-    public void edit(String pid, String batchId, MetaModelRecord model);
+    public void edit(DigitalObject digitalObject);
 
     public <T> T getCapability(Class<T> clazz);
 

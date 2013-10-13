@@ -24,9 +24,8 @@ import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
-import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.presenter.ModsCustomEditor;
 import cz.incad.pas.editor.client.widget.ProgressTracker;
 
@@ -163,13 +162,9 @@ public final class DigitalObjectFormValidateAction extends AbstractAction {
         private void validateMods() {
             progress.setProgress(index, length);
             final Record record = digitalObjects[index];
-            String pid = record.getAttribute(ModsCustomDataSource.FIELD_PID);
-            String batchId = record.getAttribute(ModsCustomDataSource.FIELD_BATCHID);
-            MetaModelRecord model = MetaModelDataSource.getModel(record);
-            checkDigitalObject(pid, model);
-
+            DigitalObject dobj = DigitalObject.create(record);
             validator.setShowFetchPrompt(false);
-            validator.edit(pid, batchId, model, new BooleanCallback() {
+            validator.edit(dobj, new BooleanCallback() {
 
                 @Override
                 public void execute(Boolean value) {
@@ -192,16 +187,6 @@ public final class DigitalObjectFormValidateAction extends AbstractAction {
             } else {
                 ++invalidItemsCount;
                 validatable.setErrors(r, i18n.DigitalObjectFormValidateAction_ListRowError_Hint());
-            }
-        }
-
-        private void checkDigitalObject(String pid, MetaModelRecord model) throws IllegalStateException {
-            // check if digital object?
-            if (pid == null || pid.isEmpty()) {
-                throw new IllegalStateException("Missing PID");
-            }
-            if (model == null) {
-                throw new IllegalStateException("Missing model for PID: " + pid);
             }
         }
 

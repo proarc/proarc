@@ -27,7 +27,7 @@ import cz.incad.pas.editor.client.action.Action;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.util.ArrayList;
@@ -54,12 +54,14 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     }
 
     @Override
-    public void edit(String pid, String batchId, MetaModelRecord model) {
-        if (pid == null) {
+    public void edit(DigitalObject digitalObject) {
+        if (digitalObject == null) {
             throw new NullPointerException();
         }
         StringBuilder sb = new StringBuilder();
-        sb.append(DigitalObjectResourceApi.DIGITALOBJECT_PID).append('=').append(pid);
+        sb.append(DigitalObjectResourceApi.DIGITALOBJECT_PID).append('=')
+                .append(digitalObject.getPid());
+        String batchId = digitalObject.getBatchId();
         if (batchId != null) {
             sb.append('&').append(DigitalObjectResourceApi.BATCHID_PARAM).append('=').append(batchId);
         }

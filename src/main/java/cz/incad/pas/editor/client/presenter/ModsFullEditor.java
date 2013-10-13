@@ -31,7 +31,6 @@ import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
@@ -64,8 +63,8 @@ public final class ModsFullEditor implements DatastreamEditor, Refreshable {
     }
 
     @Override
-    public void edit(String pid, String batchId, MetaModelRecord model) {
-        this.digitalObject = pid == null ? null : DigitalObject.create(pid, batchId, model);
+    public void edit(DigitalObject digitalObject) {
+        this.digitalObject = digitalObject;
         load();
     }
 

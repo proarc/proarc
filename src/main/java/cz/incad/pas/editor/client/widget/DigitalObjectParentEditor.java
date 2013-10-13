@@ -26,8 +26,7 @@ import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.widget.ImportParentChooser.ImportParentHandler;
 
@@ -61,10 +60,8 @@ public final class DigitalObjectParentEditor implements BatchDatastreamEditor, R
     }
 
     @Override
-    public void edit(String pid, String batchId, MetaModelRecord model) {
-        Record record = new Record();
-        record.setAttribute(RelationDataSource.FIELD_PID, pid);
-        record.setAttribute(MetaModelDataSource.FIELD_MODELOBJECT, model);
+    public void edit(DigitalObject digitalObject) {
+        Record record = digitalObject.getRecord();
         edit(new Record[] {record}, batchId);
     }
 
