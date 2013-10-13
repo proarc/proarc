@@ -32,18 +32,20 @@ public interface ModsGwtService extends RemoteService {
      * Reads data from storage.
      *
      * @param pid an identifier to lookup MODS.
+     * @param batchId optional import ID
      * @return MODS
      */
-    ModsGwtRecord read(String pid);
+    ModsGwtRecord read(String pid, Integer batchId);
 
     /**
      * Writes data to storage.
      *
      * @param pid an identifier of passed MODS data or {@code null} in case of a new record.
+     * @param batchId optional import ID
      * @param mods MODS data
      * @return the identifier of persisted data
      */
-    String write(String pid, ModsGwtRecord mods);
+    String write(String pid, Integer batchId, ModsGwtRecord mods);
     
     String getXml(ModsCollectionClient modsCollection);
 

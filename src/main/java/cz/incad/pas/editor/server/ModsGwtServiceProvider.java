@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import cz.cas.lib.proarc.common.dao.Batch;
 import cz.fi.muni.xkremser.editor.client.mods.ModsCollectionClient;
 import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
@@ -28,12 +29,18 @@ import cz.incad.pas.editor.server.config.AppConfigurationException;
 import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
+import cz.incad.pas.editor.server.fedora.FedoraObject;
+import cz.incad.pas.editor.server.fedora.LocalStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
-import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
+import cz.incad.pas.editor.server.imports.ImportBatchManager;
+import cz.incad.pas.editor.server.imports.ImportBatchManager.BatchItemObject;
 import cz.incad.pas.editor.server.mods.ModsStreamEditor;
 import cz.incad.pas.editor.server.mods.ModsUtils;
+import cz.incad.pas.editor.server.rest.ImportResource;
+import cz.incad.pas.editor.server.rest.RestException;
 import cz.incad.pas.editor.server.rest.SessionContext;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -72,10 +79,10 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
     }
 
     @Override
-    public ModsGwtRecord read(String id) {
+    public ModsGwtRecord read(String id, Integer batchId) {
         try {
-            RemoteObject remote = repository.find(id);
-            ModsStreamEditor editor = new ModsStreamEditor(remote);
+            FedoraObject fbject = findFedoraObject(id, batchId, false);
+            ModsStreamEditor editor = new ModsStreamEditor(fbject);
             ModsType mods = editor.read();
             String xml = ModsUtils.toXml(mods, true);
             int xmlHash = xml.hashCode();
@@ -85,6 +92,8 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
             ModsCollectionClient modsClient = BiblioModsUtils.toModsClient(modsCollection);
             return new ModsGwtRecord(modsClient, editor.getLastModified(), xmlHash);
         } catch (DigitalObjectException ex) {
+            throw new IllegalStateException(ex);
+        } catch (IOException ex) {
             throw new IllegalStateException(ex);
         }
     }
@@ -101,7 +110,7 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
      * @return
      */
     @Override
-    public String write(String id, ModsGwtRecord record) {
+    public String write(String id, Integer batchId, ModsGwtRecord record) {
         SessionContext session = SessionContext.from(getThreadLocalRequest());
         String oldId = id;
         LOG.log(Level.INFO, "id: {0}, modsClient: {1}, hash: {2}", new Object[]{id, record.getMods(), record.getXmlHash()});
@@ -114,17 +123,19 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
             return id;
         }
 
-        RemoteObject remote = repository.find(id);
         try {
-            ModsStreamEditor editor = new ModsStreamEditor(remote);
+            FedoraObject fObject = findFedoraObject(id, batchId, false);
+            ModsStreamEditor editor = new ModsStreamEditor(fObject);
             editor.write(modsType, record.getTimestamp(), session.asFedoraLog());
             // DC
-            String model = new RelationEditor(remote).getModel();
-            DcStreamEditor dcEditor = new DcStreamEditor(remote);
+            String model = new RelationEditor(fObject).getModel();
+            DcStreamEditor dcEditor = new DcStreamEditor(fObject);
             dcEditor.write(modsType, model, dcEditor.getLastModified(), session.asFedoraLog());
-            remote.setLabel(ModsUtils.getLabel(modsType, model));
-            remote.flush();
+            fObject.setLabel(ModsUtils.getLabel(modsType, model));
+            fObject.flush();
         } catch (DigitalObjectException ex) {
+            throw new IllegalStateException(ex);
+        } catch (IOException ex) {
             throw new IllegalStateException(ex);
         }
 
@@ -155,5 +166,24 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
             LOG.log(Level.INFO, "wake up: {0} ms", (System.currentTimeMillis() - start));
     }
 
+    // XXX temorary; unify with DigitalObjectResource.findFedoraObject to DigitalObject API
+    private FedoraObject findFedoraObject(String pid, Integer batchId, boolean readonly) throws IOException {
+        FedoraObject fobject;
+        if (batchId != null) {
+            ImportBatchManager importManager = ImportBatchManager.getInstance();
+            BatchItemObject item = importManager.findBatchObject(batchId, pid);
+            if (item == null) {
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            }
+            if (!readonly) {
+                Batch batch = importManager.get(batchId);
+                ImportResource.checkBatchState(batch);
+            }
+            fobject = new LocalStorage().load(pid, item.getFile());
+        } else {
+            fobject = RemoteStorage.getInstance(appConfig).find(pid);
+        }
+        return fobject;
+    }
 
 }

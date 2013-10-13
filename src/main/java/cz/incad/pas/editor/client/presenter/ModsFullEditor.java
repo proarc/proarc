@@ -30,6 +30,7 @@ import cz.fi.muni.xkremser.editor.client.view.ModsTab;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtServiceAsync;
@@ -50,7 +51,7 @@ public final class ModsFullEditor implements DatastreamEditor, Refreshable {
     private ModsTab wrappedEditor;
     private ModsGwtRecord editedMods;
     private final VLayout modsContainer;
-    private String pid;
+    private DigitalObject digitalObject;
     private final ClientMessages i18n;
 
     public ModsFullEditor(ClientMessages i18n) {
@@ -64,8 +65,8 @@ public final class ModsFullEditor implements DatastreamEditor, Refreshable {
 
     @Override
     public void edit(String pid, String batchId, MetaModelRecord model) {
-        this.pid = pid;
-        load(pid);
+        this.digitalObject = pid == null ? null : DigitalObject.create(pid, batchId, model);
+        load();
     }
 
     @Override
@@ -85,25 +86,25 @@ public final class ModsFullEditor implements DatastreamEditor, Refreshable {
 
     @Override
     public void refresh() {
-        load(pid);
+        load();
     }
 
-    private void load(final String pid) {
-        if (pid == null) {
+    private void load() {
+        if (digitalObject == null) {
             setFailedView();
         }
         editedMods = null;
         wrappedEditor = null;
         modsContainer.setMembers(new Img("[SKIN]/loadingSmall.gif", 16, 16));
         ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
-        service.read(pid, new AsyncCallback<ModsGwtRecord>() {
+        service.read(digitalObject.getPid(), digitalObject.getBatchIdAsInt(), new AsyncCallback<ModsGwtRecord>() {
 
             @Override
             public void onFailure(Throwable caught) {
-                LOG.log(Level.SEVERE, "read.onFailure: " + pid, caught);
+                LOG.log(Level.SEVERE, "read.onFailure: " + digitalObject, caught);
                 setFailedView();
-                SC.warn(ClientUtils.format("Loading FAILED!<p>pid: %s<p>%s",
-                        pid, caught.getLocalizedMessage()));
+                SC.warn(ClientUtils.format("Loading FAILED!<p>%s<p>%s",
+                        digitalObject, caught.getLocalizedMessage()));
             }
 
             @Override
@@ -137,24 +138,23 @@ public final class ModsFullEditor implements DatastreamEditor, Refreshable {
         ModsCollectionClient mcc = new ModsCollectionClient();
         mcc.setMods(Arrays.asList(mc));
         editedMods.setMods(mcc);
-        saveFullData(pid, editedMods, callback);
+        saveFullData(editedMods, callback);
     }
 
-    private void saveFullData(final String pid, final ModsGwtRecord mods, final BooleanCallback callback) {
+    private void saveFullData(final ModsGwtRecord mods, final BooleanCallback callback) {
         ModsGwtServiceAsync service = ModsGwtServiceAsync.Util.getInstance();
-        service.write(pid, mods, new AsyncCallback<String>() {
+        service.write(digitalObject.getPid(), digitalObject.getBatchIdAsInt(), mods, new AsyncCallback<String>() {
 
             @Override
             public void onFailure(Throwable caught) {
-                LOG.log(Level.SEVERE, "write.onFailure: " + pid, caught);
+                LOG.log(Level.SEVERE, "write.onFailure: " + digitalObject, caught);
                 callback.execute(Boolean.FALSE);
-                SC.warn(ClientUtils.format("Saving FAILED!<p>pid: %s<p>%s",
-                        pid, caught.getLocalizedMessage()));
+                SC.warn(ClientUtils.format("Saving FAILED!<p>%s<p>%s",
+                        digitalObject, caught.getLocalizedMessage()));
             }
 
             @Override
             public void onSuccess(String newOrExistingId) {
-                ModsFullEditor.this.pid = newOrExistingId;
                 ClientUtils.fine(LOG, "full MODS write.onSuccess: %s", newOrExistingId);
                 callback.execute(Boolean.TRUE);
             }

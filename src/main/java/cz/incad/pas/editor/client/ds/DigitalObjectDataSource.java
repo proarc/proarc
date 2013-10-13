@@ -145,6 +145,10 @@ public final class DigitalObjectDataSource extends RestDataSource {
             return batchId;
         }
 
+        public Integer getBatchIdAsInt() {
+            return batchId == null ? null : Integer.valueOf(batchId);
+        }
+
         public String getModelId() {
             return modelId;
         }
