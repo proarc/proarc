@@ -32,6 +32,7 @@ import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
 import cz.incad.pas.editor.client.action.Selectable;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.TextDataSource;
@@ -48,6 +49,7 @@ public final class TextEditor implements DatastreamEditor, Refreshable, Selectab
     private final ClientMessages i18n;
     private final DynamicForm editor;
     private SaveAction saveAction;
+    private DigitalObject editObject;
 
     private TextEditor(ClientMessages i18n, TextDataSource dataSource) {
         this.i18n = i18n;
@@ -65,7 +67,8 @@ public final class TextEditor implements DatastreamEditor, Refreshable, Selectab
 
     @Override
     public void edit(String pid, String batchId, MetaModelRecord model) {
-        load(pid);
+        editObject = pid == null ? null : DigitalObject.create(pid, batchId, model);
+        load(editObject);
     }
 
     @Override
@@ -118,12 +121,15 @@ public final class TextEditor implements DatastreamEditor, Refreshable, Selectab
 
     @Override
     public void refresh() {
-        load(editor.getValueAsString(TextDataSource.FIELD_PID));
+        load(editObject);
     }
 
-    private void load(String pid) {
-        if (pid != null) {
-            Criteria criteria = new Criteria(TextDataSource.FIELD_PID, pid);
+    private void load(DigitalObject digitalObject) {
+        if (digitalObject != null) {
+            Criteria criteria = new Criteria(TextDataSource.FIELD_PID, digitalObject.getPid());
+            if (digitalObject.getBatchId() != null) {
+                criteria.addCriteria(TextDataSource.FIELD_BATCHID, digitalObject.getBatchId());
+            }
             editor.fetchData(criteria);
         }
     }
