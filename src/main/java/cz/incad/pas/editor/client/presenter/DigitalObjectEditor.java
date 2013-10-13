@@ -80,6 +80,8 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private final EnumMap<DatastreamEditorType, EditorDescriptor> editorCache;
     private final ActionSource actionSource;
     private final PlaceController places;
+    private boolean importView;
+    private boolean embeddedView;
 
     public DigitalObjectEditor(ClientMessages i18n, PlaceController places) {
         this(i18n, places, false);
@@ -95,7 +97,8 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         lblHeader.setPadding(4);
         lblHeader.setStyleName("pasWizardTitle");
         this.actionSource = new ActionSource(this);
-        this.toolbar = createToolbar(actionSource, embedded);
+        this.embeddedView = embedded;
+        this.toolbar = Actions.createToolStrip();
         this.editorContainer = new VLayout();
         editorContainer.setLayoutMargin(4);
         editorContainer.setWidth100();
@@ -197,6 +200,9 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     }
 
     private void updateToolbar(EditorDescriptor oldEditor, EditorDescriptor newEditor) {
+        if (customToolbarSeparator == null) {
+            initToolbar(toolbar, actionSource);
+        }
         if (oldEditor == newEditor) {
             return ;
         }
@@ -214,14 +220,14 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         }
     }
 
-    private ToolStrip createToolbar(ActionSource source, boolean tiny) {
+    private ToolStrip initToolbar(ToolStrip t, ActionSource source) {
         RefreshAction refreshAction = new RefreshAction(i18n);
         DigitalObjectEditAction modsEditAction = new DigitalObjectEditAction(
                 i18n.ImportBatchItemEditor_TabMods_Title(),
                 i18n.DigitalObjectEditAction_Hint(),
                 null,
                 DatastreamEditorType.MODS,
-                tiny ? new AcceptFilter(true, true) : new AcceptFilter(false, false),
+                embeddedView ? new AcceptFilter(true, true) : new AcceptFilter(false, false),
                 places);
         DigitalObjectEditAction ocrEditAction = new DigitalObjectEditAction(
                 i18n.ImportBatchItemEditor_TabOcr_Title(),
@@ -239,7 +245,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 null,
                 DatastreamEditorType.PARENT,
                 // support multiple selection just in case DigitalObjectEditor is embeded
-                tiny ? new AcceptFilter(true, true) : new AcceptFilter(false, false),
+                embeddedView ? new AcceptFilter(true, true) : new AcceptFilter(false, false),
                 places);
         DigitalObjectEditAction mediaEditAction = new DigitalObjectEditAction(
                 i18n.DigitalObjectEditor_MediaAction_Title(),
@@ -251,8 +257,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 i18n.DigitalObjectEditor_ChildrenAction_Hint(),
                 null,
                 DatastreamEditorType.CHILDREN, places);
-        ToolStrip t = Actions.createToolStrip();
-        if (tiny) {
+        if (embeddedView) {
             Action actionMore = Actions.emptyAction(i18n.ActionsMenu_Title(),
                     null, null);
             IconMenuButton actionsMenu = Actions.asIconMenuButton(actionMore, source);
@@ -261,8 +266,12 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             menu.addItem(Actions.asMenuItem(refreshAction, source, false));
             menu.addItem(Actions.asMenuItem(modsEditAction, source, false));
             menu.addItem(Actions.asMenuItem(noteEditAction, source, false));
-            menu.addItem(Actions.asMenuItem(parentEditAction, source, false));
-            menu.addItem(Actions.asMenuItem(mediaEditAction, source, false));
+            if (!importView) {
+                menu.addItem(Actions.asMenuItem(parentEditAction, source, false));
+            }
+            if (!importView) {
+                menu.addItem(Actions.asMenuItem(mediaEditAction, source, false));
+            }
             menu.addItem(Actions.asMenuItem(ocrEditAction, source, false));
             actionsMenu.setMenu(menu);
         } else {
@@ -286,6 +295,20 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         customToolbarSeparator.setVisible(false);
         t.addMember(customToolbarSeparator);
         return t;
+    }
+
+    /**
+     * Use to customize editor for batch import items.
+     */
+    public void setImportView(boolean importView) {
+        this.importView = importView;
+    }
+
+    /**
+     * Use to customize editor as an embedded view.
+     */
+    public void setEmbeddedView(boolean embeddedView) {
+        this.embeddedView = embeddedView;
     }
 
     private EditorDescriptor getDatastreamEditor(DatastreamEditorType type) {
