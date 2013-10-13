@@ -55,8 +55,6 @@ import java.util.Iterator;
  */
 public final class PageMetadataEditor {
 
-    private static final PageMetadataEditor INSTANCE = new PageMetadataEditor();
-    
     private static final String ALPHABET_LOWER_SERIES = "a - z, aa - az, ...";
     private static final String ALPHABET_UPPER_SERIES = "A - Z, AA - AZ, ...";
     private static final String ARABIC_SERIES = "1, 2, 3, 4, ...";
@@ -291,8 +289,8 @@ public final class PageMetadataEditor {
     }
 
     private Canvas createButtons() {
-        SmartGwtMessages i18n = ClientUtils.createSmartGwtMessages();
-        IButton btnOk = new IButton(i18n.dialog_OkButtonTitle(), new com.smartgwt.client.widgets.events.ClickHandler() {
+        SmartGwtMessages i18nSgwt = ClientUtils.createSmartGwtMessages();
+        IButton btnOk = new IButton(i18nSgwt.dialog_OkButtonTitle(), new com.smartgwt.client.widgets.events.ClickHandler() {
 
             @Override
             public void onClick(com.smartgwt.client.widgets.events.ClickEvent event) {
@@ -305,7 +303,7 @@ public final class PageMetadataEditor {
                 }
             }
         });
-        IButton btnCancel = new IButton(i18n.dialog_CancelButtonTitle(), new com.smartgwt.client.widgets.events.ClickHandler() {
+        IButton btnCancel = new IButton(i18nSgwt.dialog_CancelButtonTitle(), new com.smartgwt.client.widgets.events.ClickHandler() {
 
             @Override
             public void onClick(com.smartgwt.client.widgets.events.ClickEvent event) {
