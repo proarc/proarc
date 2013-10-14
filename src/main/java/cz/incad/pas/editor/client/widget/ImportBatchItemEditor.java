@@ -16,6 +16,11 @@
  */
 package cz.incad.pas.editor.client.widget;
 
+import com.google.gwt.activity.shared.ActivityManager;
+import com.google.gwt.core.client.Callback;
+import com.google.gwt.place.shared.Place;
+import com.google.gwt.place.shared.PlaceController;
+import com.google.web.bindery.event.shared.SimpleEventBus;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -23,29 +28,15 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
-import com.smartgwt.client.types.Alignment;
-import com.smartgwt.client.types.Overflow;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.SelectionStyle;
-import com.smartgwt.client.types.TextAreaWrap;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.EventHandler;
 import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.IButton;
 import com.smartgwt.client.widgets.events.BrowserEvent;
-import com.smartgwt.client.widgets.events.ClickEvent;
-import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.events.KeyPressEvent;
 import com.smartgwt.client.widgets.events.KeyPressHandler;
-import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
-import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
-import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
-import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
-import com.smartgwt.client.widgets.form.fields.IntegerItem;
-import com.smartgwt.client.widgets.form.fields.SelectItem;
-import com.smartgwt.client.widgets.form.fields.TextAreaItem;
-import com.smartgwt.client.widgets.form.fields.TextItem;
-import com.smartgwt.client.widgets.form.validator.IntegerRangeValidator;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
@@ -60,12 +51,6 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
 import com.smartgwt.client.widgets.menu.MenuItemSeparator;
-import com.smartgwt.client.widgets.tab.Tab;
-import com.smartgwt.client.widgets.tab.TabSet;
-import com.smartgwt.client.widgets.tab.events.TabDeselectedEvent;
-import com.smartgwt.client.widgets.tab.events.TabDeselectedHandler;
-import com.smartgwt.client.widgets.tab.events.TabSelectedEvent;
-import com.smartgwt.client.widgets.tab.events.TabSelectedHandler;
 import com.smartgwt.client.widgets.tile.TileGrid;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.viewer.DetailFormatter;
@@ -82,19 +67,25 @@ import cz.incad.pas.editor.client.action.DigitalObjectFormValidateAction.Validat
 import cz.incad.pas.editor.client.action.FoxmlViewAction;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.action.Selectable;
-import cz.incad.pas.editor.client.ds.DcRecordDataSource;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
+import cz.incad.pas.editor.client.ds.RelationDataSource;
+import cz.incad.pas.editor.client.ds.RelationDataSource.RelationChangeEvent;
+import cz.incad.pas.editor.client.ds.RelationDataSource.RelationChangeHandler;
 import cz.incad.pas.editor.client.ds.RestConfig;
-import cz.incad.pas.editor.client.ds.TextDataSource;
-import java.util.Iterator;
+import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
+import cz.incad.pas.editor.client.presenter.DigitalObjectEditor;
+import cz.incad.pas.editor.client.widget.DigitalObjectChildrenEditor.ChildActivities;
+import cz.incad.pas.editor.client.widget.DigitalObjectChildrenEditor.ChildEditorDisplay;
+import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
 /**
+ * Prepares items of a batch import. It involves meta data, item order, ...
  *
  * @author Jan Pokorsky
  */
@@ -106,18 +97,16 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
     private final ListGrid batchItemGrid;
     private ListGridField fieldItemModel;
-    private final TabSet tabSet;
-    private DynamicFormTab[] dfTabs;
     private final TileGrid thumbViewer;
     private final MediaEditor digitalObjectPreview;
     private boolean selectThumbInProgress = false;
     private boolean selectListInProgress = false;
-    private boolean selectTabInProgress = false;
     private BatchRecord batchRecord;
-    private BatchItemMultiEdit batchItemMultiEdit;
     private FoxmlViewAction foxmlViewAction;
     private DeleteAction deleteAction;
     private SelectAction selectAllAction;
+    private final PlaceController childPlaces;
+    private final DigitalObjectEditor childEditor;
 
     public ImportBatchItemEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -130,30 +119,13 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         
         batchItemGrid = createItemList();
         layout.addMember(batchItemGrid);
-        
-        tabSet = createTabSet();
-        tabSet.addTabDeselectedHandler(new TabDeselectedHandler() {
 
-            @Override
-            public void onTabDeselected(TabDeselectedEvent event) {
-                if (selectTabInProgress) {
-                    selectTabInProgress = false;
-                    return ;
-                }
-                event.cancel();
-                selectTab(event.getTab(), event.getNewTab());
-            }
-        });
+        // child editors
+        SimpleEventBus eventBus = new SimpleEventBus();
+        childPlaces = new PlaceController(eventBus);
+        childEditor = new DigitalObjectEditor(i18n, childPlaces, true);
+        layout.addMember(initDigitalObjectEditor(childEditor, eventBus));
 
-        tabSet.addTabSelectedHandler(new TabSelectedHandler() {
-
-            @Override
-            public void onTabSelected(TabSelectedEvent event) {
-                selectTab(event.getTab());
-            }
-        });
-
-        layout.addMember(tabSet);
         HLayout editorThumbLayout = new HLayout();
         editorThumbLayout.setHeight100();
         editorThumbLayout.addMember(layout);
@@ -193,7 +165,28 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     }
 
     public void onHide(BooleanCallback callback) {
-        dfTabs[tabSet.getSelectedTabNumber()].onHide(callback);
+        callback.execute(true);
+    }
+
+    private Canvas initDigitalObjectEditor(DigitalObjectEditor childEditor, SimpleEventBus eventBus) {
+        childEditor.setImportView(true);
+        RelationDataSource relationDataSource = RelationDataSource.getInstance();
+        relationDataSource.addRelationChangeHandler(new RelationChangeHandler() {
+
+            @Override
+            public void onRelationChange(RelationChangeEvent event) {
+                if (batchItemGrid.isVisible()) {
+                    updateCache();
+                }
+            }
+        });
+        ActivityManager activityManager = new ActivityManager(
+                new ChildActivities(childEditor), eventBus);
+
+        VLayout editorsLayout = new VLayout();
+        editorsLayout.addStyleName("defaultBorder");
+        activityManager.setDisplay(new ChildEditorDisplay(editorsLayout));
+        return editorsLayout;
     }
 
     private ListGrid createItemList() {
@@ -321,11 +314,25 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
     @Override
     public void refresh() {
+        // fetch models before digital objects
+        MetaModelDataSource.getModels(true, new Callback<ResultSet, Void>() {
+
+            @Override
+            public void onFailure(Void reason) {
+            }
+
+            @Override
+            public void onSuccess(ResultSet result) {
+                refreshData();
+            }
+        });
+    }
+
+    private void refreshData() {
         Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batchRecord.getId());
         batchItemGrid.invalidateCache();
         thumbViewer.invalidateCache();
         previewItem(null);
-        dfTabs[tabSet.getSelectedTabNumber()].onShow();
 
         batchItemGrid.fetchData(criteria, new DSCallback() {
 
@@ -339,6 +346,45 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             }
         });
         thumbViewer.fetchData(criteria);
+    }
+
+    /**
+     * Updates data source cache and attached data bounded components (ListGrid, TileGrid).
+     * It should be called when child editor changes affects import item descriptions
+     * or validation status.
+     */
+    private void updateCache() {
+        final Record[] selections = getSelection();
+        Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batchRecord.getId());
+        if (selections.length == 0) {
+            return ;
+        } else if (selections.length == 1) {
+            // on single selection update only the involved row
+            DigitalObject dobj = DigitalObject.create(selections[0]);
+            criteria.addCriteria(ImportBatchItemDataSource.FIELD_PID, dobj.getPid());
+        }
+        final DataSource ds = batchItemGrid.getDataSource();
+        ImportBatchItemDataSource.getInstance().fetchData(criteria, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (RestConfig.isStatusOk(response)) {
+                    if (selections.length == 1) {
+                        request.setOperationType(DSOperationType.UPDATE);
+                        ds.updateCaches(response, request);
+                        int nextSelection = getNextSelection(response.getData()[0]);
+                        if (nextSelection >= 0) {
+                            batchItemGrid.selectSingleRecord(nextSelection);
+                            batchItemGrid.scrollToRow(nextSelection);
+                        }
+                    } else {
+                        request.setOperationType(DSOperationType.UPDATE);
+                        ds.updateCaches(response, request);
+                    }
+                    ValidatableList.clearRowErrors(batchItemGrid);
+                }
+            }
+        });
     }
 
     private TileGrid createThumbViewer() {
@@ -405,7 +451,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                     batchItemGrid.deselectAllRecords();
                     selectListInProgress = true;
                     batchItemGrid.selectRecords(indexes);
-                    selectBatchItem(false);
+                    selectBatchItem(false, selection);
                 }
 //                LOG.info("THUMB.onSelectionChanged.selection: " + Arrays.toString(selection));
             }
@@ -433,7 +479,6 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     }
 
     private void createActions() {
-        batchItemMultiEdit = new BatchItemMultiEdit();
         foxmlViewAction = new FoxmlViewAction(i18n);
         deleteAction = new DeleteAction(
                 new RecordDeletable(batchItemGrid.getDataSource(), i18n), i18n);
@@ -444,7 +489,6 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         ToolStrip toolbar = Actions.createToolStrip();
         toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n), this));
         toolbar.addMember(Actions.asIconButton(selectAllAction, this));
-        toolbar.addMember(Actions.asIconButton(batchItemMultiEdit, this));
         toolbar.addMember(Actions.asIconButton(foxmlViewAction, this));
         toolbar.addMember(Actions.asIconButton(deleteAction, this));
         toolbar.addMember(Actions.asIconButton(DigitalObjectFormValidateAction.getInstance(i18n),
@@ -468,7 +512,6 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             }
         }, contextSource);
 
-        menu.addItem(Actions.asMenuItem(batchItemMultiEdit, contextSource, true));
         menu.addItem(Actions.asMenuItem(foxmlViewAction, contextSource, true));
         menu.addItem(Actions.asMenuItem(deleteAction, contextSource, true));
         menu.addItem(Actions.asMenuItem(DigitalObjectFormValidateAction.getInstance(i18n), new ValidatableList(batchItemGrid), false));
@@ -477,131 +520,17 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         return menu;
     }
 
-    private TabSet createTabSet() {
-        TabSet tabSet = new TabSet();
-        dfTabs = createTabs();
-
-        for (DynamicFormTab dfTab : dfTabs) {
-            tabSet.addTab(dfTab.getWidget());
-        }
-        Object[] tabControls = createTabControls();
-        if (tabControls != null) {
-            tabSet.setTabBarControls(tabControls);
-        }
-        return tabSet;
-    }
-
-    private DynamicFormTab[] createTabs() {
-        DynamicFormTab dcTab = new DynamicFormTab(
-                i18n.ImportBatchItemEditor_TabDublinCore_Title(),
-                null,
-                createDcForm(), i18n);
-        DynamicFormTab noteTab = new DynamicFormTab(
-                i18n.ImportBatchItemEditor_TabNote_Title(),
-                i18n.ImportBatchItemEditor_TabNote_Hint(),
-                createNoteForm(), i18n);
-        DynamicFormTab modsTab = new DynamicFormTab(
-                i18n.ImportBatchItemEditor_TabMods_Title(),
-                null,
-                createModsForm(), i18n);
-        DynamicFormTab ocrTab = new DynamicFormTab(
-                i18n.ImportBatchItemEditor_TabOcr_Title(),
-                null,
-                createOcrForm(), i18n);
-        return new DynamicFormTab[] {
-            modsTab,
-            noteTab,
-            ocrTab,
-            dcTab
-        };
-    }
-
-    private DynamicForm createDcForm() {
-        DcRecordDataSource dsDc = DcRecordDataSource.getInstance();
-        DCEditor dcEditor = new DCEditor(i18n);
-        dcEditor.setDataSource(dsDc);
-        dcEditor.setDataPath(DcRecordDataSource.FIELD_DC.getQualifiedName());
-        return dcEditor;
-    }
-    
-    private DynamicForm createModsForm() {
-        DynamicForm form = new DynamicForm();
-        form.setHeight100();
-        form.setWidth100();
-        form.setBrowserSpellCheck(false);
-        form.setSaveOnEnter(true);
-
-        SelectItem pageType = new SelectItem(ImportBatchItemDataSource.FIELD_PAGE_TYPE,
-                i18n.PageForm_PageType_Title());
-        pageType.setDefaultValue(ModsCustomDataSource.getDefaultPageType());
-        pageType.setValueMap(ModsCustomDataSource.getPageTypes());
-        pageType.setRequired(true);
-
-        IntegerItem pageIndex = new IntegerItem(ImportBatchItemDataSource.FIELD_PAGE_INDEX);
-        pageIndex.setTitle(i18n.PageForm_PageIndex_Title());
-        pageIndex.setRequired(true);
-
-        TextItem pageNumber = new TextItem(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
-        pageNumber.setTitle(i18n.PageForm_PageNumber_Title());
-        pageNumber.setLength(20);
-        pageNumber.setRequired(true);
-        pageNumber.setValidators(new StringTrimValidator());
-
-        form.setFields(pageType, pageIndex, pageNumber);
-        form.setDataSource(ImportBatchItemDataSource.getInstance());
-
-        IntegerRangeValidator integerRangeValidator = new IntegerRangeValidator();
-        integerRangeValidator.setMin(0);
-        integerRangeValidator.setMax(Integer.MAX_VALUE);
-
-        pageIndex.setValidators(integerRangeValidator);
-
-        return form;
-    }
-    
-    private DynamicForm createOcrForm() {
-        DynamicForm form = new DynamicForm();
-        TextDataSource dataSource = TextDataSource.getOcr();
-        form.setDataSource(dataSource);
-        form.setWidth100();
-        form.setHeight100();
-        TextAreaItem textAreaItem = new TextAreaItem(TextDataSource.FIELD_CONTENT, "OCR");
-        textAreaItem.setColSpan("*");
-        textAreaItem.setHeight("*");
-        textAreaItem.setWrap(TextAreaWrap.OFF);
-        textAreaItem.setShowTitle(false);
-        textAreaItem.setWidth("*");
-        form.setFields(textAreaItem);
-        return form;
-    }
-
-    private DynamicForm createNoteForm() {
-        DynamicForm form = new DynamicForm();
-        TextDataSource dataSource = TextDataSource.getNote();
-        form.setDataSource(dataSource);
-        form.setWidth100();
-        form.setHeight100();
-        TextAreaItem textAreaItem = new TextAreaItem(TextDataSource.FIELD_CONTENT, "Note");
-        textAreaItem.setColSpan("*");
-        textAreaItem.setHeight("*");
-        textAreaItem.setWrap(TextAreaWrap.OFF);
-        textAreaItem.setShowTitle(false);
-        textAreaItem.setWidth("*");
-        form.setFields(textAreaItem);
-        return form;
-    }
-
-    private Object[] createTabControls() {
-        return null;
-    }
-
     private int getNextSelection() {
+        ListGridRecord selectedRecord = batchItemGrid.getSelectedRecord();
+        return getNextSelection(selectedRecord);
+    }
+
+    private int getNextSelection(Record selectedRecord) {
         RecordList rl = batchItemGrid.getRecordList();
         int length = rl.getLength();
         if (length == 0) {
             return -1;
         }
-        ListGridRecord selectedRecord = batchItemGrid.getSelectedRecord();
         int nextSelectionIndex = 0;
         if (selectedRecord != null) {
             int recordIndex = batchItemGrid.getRecordIndex(selectedRecord);
@@ -616,23 +545,36 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     }
 
     private void selectBatchItem(final boolean preview, final Record... selections) {
-        DynamicFormTab dfTab = dfTabs[tabSet.getSelectedTabNumber()];
-        dfTab.onChange(new BooleanCallback() {
+        loadItemInChildEditor(selections);
+        if (!preview) {
+            return;
+        }
+        if (selections != null && selections.length == 1) {
+            previewItem(selections[0]);
+            return ;
+        }
+        previewItem(null);
+    }
 
-            @Override
-            public void execute(Boolean value) {
-                if (!preview) {
-                    return;
-                }
-                if (value != null && value) {
-                    if (selections != null && selections.length == 1) {
-                        previewItem(selections[0]);
-                        return ;
-                    }
-                }
-                previewItem(null);
+    /**
+     * Handles a new children selection.
+     */
+    private void loadItemInChildEditor(Record[] records) {
+//        actionSource.fireEvent();
+        if (records == null || records.length == 0 /*|| originChildren != null*/) {
+            childPlaces.goTo(Place.NOWHERE);
+        } else {
+            Place lastPlace = childPlaces.getWhere();
+            DatastreamEditorType lastEditorType = null;
+            if (lastPlace instanceof DigitalObjectEditorPlace) {
+                DigitalObjectEditorPlace lastDOEPlace = (DigitalObjectEditorPlace) lastPlace;
+                lastEditorType = lastDOEPlace.getEditorId();
             }
-        }, selections);
+            lastEditorType = lastEditorType != null
+                    ? lastEditorType
+                    : DatastreamEditorType.MODS;
+            childPlaces.goTo(new DigitalObjectEditorPlace(lastEditorType, records));
+        }
     }
 
     /**
@@ -657,262 +599,6 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             preview.hide();
             preview.getParentElement().disable();
         }
-    }
-
-    private void selectTab(Tab newTab) {
-//        LOG.info(ClientUtils.format("selectTab: newTab: %s", newTab));
-        DynamicFormTab dfTab = dfTabs[tabSet.getTabNumber(newTab.getID())];
-        Record[] selections = batchItemGrid.getSelectedRecords();
-        dfTab.onShow(selections);
-    }
-
-    private void selectTab(Tab oldTab, final Tab newTab) {
-        final DynamicFormTab dfTab = dfTabs[tabSet.getTabNumber(oldTab.getID())];
-//        LOG.info(ClientUtils.format("switchTabs: oldTab: %s, newTab: %s", oldTab.getTitle(), newTab.getTitle()));
-        selectTabInProgress = true;
-        dfTab.onHide(new BooleanCallback() {
-
-            @Override
-            public void execute(Boolean value) {
-//        LOG.info(ClientUtils.format("switchTabs.execute: value: %s, newTab: %s", value, newTab.getTitle()));
-                if (value != null && value) {
-                    if (newTab != null) {
-                        // this will trigger TabDeselectedHandler again
-                        tabSet.selectTab(newTab);
-                        return ;
-                    }
-                }
-                selectTabInProgress = false;
-                dfTab.updateTitle();
-            }
-        });
-    }
-
-    /**
-     * Wraps tab form to add submit button and submit handler.
-     */
-    private final class EditorForm extends VLayout {
-
-        private final DynamicForm form;
-
-        public EditorForm(final DynamicForm form) {
-            super(4);
-            IButton save = new IButton(i18n.ImportBatchItemEditor_Tab_Submit_Title(), new ClickHandler() {
-
-                @Override
-                public void onClick(ClickEvent event) {
-                    form.submit();
-                }
-            });
-            save.setLayoutAlign(Alignment.CENTER);
-            form.setOverflow(Overflow.AUTO);
-            setMembers(form, save);
-            this.form = form;
-
-            form.addSubmitValuesHandler(new SubmitValuesHandler() {
-
-                @Override
-                public void onSubmitValues(SubmitValuesEvent event) {
-                    final ListGridRecord[] selectedRecords = batchItemGrid.getSelectedRecords();
-                    final int nextSelection = getNextSelection();
-                    form.saveData(new DSCallback() {
-
-                        @Override
-                        public void execute(DSResponse response, Object rawData, DSRequest request) {
-                            if (response.getStatus() == DSResponse.STATUS_SUCCESS) {
-                                clearRowErrors(selectedRecords);
-                                if (nextSelection >= 0) {
-                                    batchItemGrid.selectSingleRecord(nextSelection);
-                                    batchItemGrid.scrollToRow(nextSelection);
-                                    form.focus();
-                                }
-                            } else {
-                                form.reset();
-                                dfTabs[tabSet.getSelectedTabNumber()].updateTitle();
-                            }
-                        }
-                    });
-                }
-            });
-        }
-
-        public DynamicForm getForm() {
-            return form;
-        }
-
-    }
-
-    private final class DynamicFormTab {
-        private final ClientMessages i18n;
-        private final Tab tab;
-        private final DynamicForm form;
-        private final EditorForm eform;
-        private String title;
-        private final Canvas emptyContent;
-
-        public DynamicFormTab(String title, String hint, DynamicForm form, ClientMessages i18n) {
-            this.i18n = i18n;
-            this.title = title;
-            this.tab = new Tab(title);
-            this.tab.setPrompt(hint);
-            this.emptyContent = new Canvas();
-            this.tab.setPane(emptyContent);
-            this.form = form;
-            this.eform = new EditorForm(form);
-            form.addItemChangedHandler(new ItemChangedHandler() {
-
-                @Override
-                public void onItemChanged(ItemChangedEvent event) {
-                    updateTitle();
-                }
-            });
-        }
-
-        private void updateTitle() {
-            String tabTitle = this.title;
-            if (DynamicFormTab.this.form.valuesHaveChanged()) {
-                tabTitle += " *";
-            }
-//            LOG.info("updateTitle: " + tabTitle);
-            tab.setTitle(tabTitle);
-
-//            Map values = form.getValues();
-//            Map oldValues = form.getOldValues();
-//            Map changedValues = form.getChangedValues();
-//            LOG.info(ClientUtils.format("### updateTitle.valuesHaveChanged(): %s\n old: %s\n\n val: %s\n\n new: %s\n",
-//                    form.valuesHaveChanged(), oldValues, values, changedValues));
-        }
-
-        public Tab getWidget() {
-            return tab;
-        }
-
-        public void onShow(Record... selections) {
-            // fetch data
-            fetchSelection(selections);
-        }
-
-        public void onHide(BooleanCallback hideCallback) {
-            hideCallback.execute(true);
-        }
-
-        public void onChange(final BooleanCallback changeCallback, final Record... selections) {
-            changeCallback.execute(true);
-            fetchSelection(selections);
-        }
-
-        private void fetchSelection(Record... selections) {
-            Canvas pane = tab.getPane();
-            Canvas newPane;
-            if (selections != null && selections.length == 1) {
-                fetchSelection(
-                        selections[0].getAttribute(ImportBatchItemDataSource.FIELD_PID),
-                        selections[0].getAttribute(ImportBatchItemDataSource.FIELD_BATCHID)
-                        );
-                newPane = eform;
-            } else {
-                newPane = emptyContent;
-            }
-
-            if (pane != newPane) {
-                TabSet ts = tab.getTabSet();
-                ts.updateTab(tab, newPane);
-            }
-        }
-
-        private void fetchSelection(String pid, String batch) {
-            LOG.fine("fetch.dc: " + pid);
-
-            form.clearErrors(true);
-            Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batch);
-            criteria.addCriteria(new Criteria(ImportBatchItemDataSource.FIELD_PID, pid));
-            form.fetchData(criteria, new DSCallback() {
-
-                @Override
-                public void execute(DSResponse response, Object rawData, DSRequest request) {
-                    form.rememberValues();
-                    updateTitle();
-                }
-            });
-
-        }
-
-    }
-
-    private final class BatchItemMultiEdit extends AbstractAction {
-
-        private final PageMetadataEditor editor;
-
-        public BatchItemMultiEdit() {
-            super(i18n.ImportBatchItemEditor_ActionEdit_Title(),
-                    "[SKIN]/actions/edit.png",
-                    i18n.ImportBatchItemEditor_ActionEdit_Hint());
-            editor = new PageMetadataEditor();
-        }
-
-        @Override
-        public void performAction(ActionEvent event) {
-            final Record[] selection = Actions.getSelection(event);
-            if (selection == null || selection.length == 0) {
-                return ;
-            }
-            editor.showInWindow(new BooleanCallback() {
-
-                @Override
-                public void execute(Boolean value) {
-                    if (value != null && value) {
-                        edit(editor, selection);
-                    }
-                }
-            });
-        }
-
-        public void edit(PageMetadataEditor editor, Record[] selection) {
-            DataSource ds = batchItemGrid.getDataSource();
-            Integer indexStart = null;
-            Iterator<String> sequence = null;
-            String numberFormat = "%s";
-            if (editor.getAllowPageIndexes()) {
-                indexStart = editor.getIndexStart();
-            }
-            if (editor.getAllowPageNumbers()) {
-                sequence = editor.getSequence();
-                String prefix = editor.getPrefix();
-                String suffix = editor.getSuffix();
-                if (prefix != null) {
-                    numberFormat = prefix + numberFormat;
-                }
-                if (suffix != null) {
-                    numberFormat += suffix;
-                }
-            }
-//            RPCManager.startQueue();
-            for (Record record : selection) {
-                if (editor.getAllowPageIndexes()) {
-                    String old = record.getAttributeAsString(ImportBatchItemDataSource.FIELD_PAGE_INDEX);
-                    String newVal = indexStart == null ? null : String.valueOf(indexStart++);
-                    newVal = (old != null && newVal == null) ? "" : newVal;
-                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_INDEX, newVal);
-                }
-                if (editor.getAllowPageNumbers()) {
-                    String old = record.getAttributeAsString(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
-                    String newVal = sequence != null
-                            ? ClientUtils.format(numberFormat, sequence.next())
-                            : ClientUtils.format(numberFormat, "");
-                    newVal = newVal.isEmpty() ? null : newVal;
-                    newVal = (old != null && newVal == null) ? "" : newVal;
-                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_NUMBER, newVal);
-                }
-                if (editor.getAllowPageTypes()) {
-                    String pageType = editor.getPageType();
-                    record.setAttribute(ImportBatchItemDataSource.FIELD_PAGE_TYPE, pageType);
-                }
-                record = ClientUtils.removeNulls(record);
-                ds.updateData(record);
-            }
-//            RPCManager.sendQueue();
-        }
-
     }
 
     private final class SelectAction extends AbstractAction {
