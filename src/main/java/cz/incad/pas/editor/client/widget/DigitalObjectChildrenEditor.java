@@ -96,7 +96,6 @@ public final class DigitalObjectChildrenEditor
     private final HLayout widget;
     private DigitalObject digitalObject;
     private final PlaceController childPlaces;
-    private DatastreamEditorType lastEditorType;
     private HandlerRegistration listDataChangedHandler;
     private Record[] originChildren;
     private IconButton saveActionButton;
@@ -117,11 +116,12 @@ public final class DigitalObjectChildrenEditor
 
         SimpleEventBus eventBus = new SimpleEventBus();
         childPlaces = new PlaceController(eventBus);
-        ActivityManager activityManager = new ActivityManager(new ChildActivities(), eventBus);
+        childEditor = new DigitalObjectEditor(i18n, childPlaces, true);
+        ActivityManager activityManager = new ActivityManager(
+                new ChildActivities(childEditor), eventBus);
 
         VLayout editorsLayout = new VLayout();
         VLayout editorsOuterLayout = new VLayout();
-        childEditor = new DigitalObjectEditor(i18n, childPlaces, true);
 //        editorsLayout.setBorder("1px solid grey");
         editorsLayout.addStyleName("defaultBorder");
         editorsOuterLayout.setLayoutLeftMargin(4);
@@ -254,6 +254,12 @@ public final class DigitalObjectChildrenEditor
         if (records == null || records.length == 0 || originChildren != null) {
             childPlaces.goTo(Place.NOWHERE);
         } else {
+            Place lastPlace = childPlaces.getWhere();
+            DatastreamEditorType lastEditorType = null;
+            if (lastPlace instanceof DigitalObjectEditorPlace) {
+                DigitalObjectEditorPlace lastDOEPlace = (DigitalObjectEditorPlace) lastPlace;
+                lastEditorType = lastDOEPlace.getEditorId();
+            }
             lastEditorType = lastEditorType != null
                     ? lastEditorType
                     : records.length > 1 ? DatastreamEditorType.PARENT : DatastreamEditorType.MODS;
@@ -383,13 +389,18 @@ public final class DigitalObjectChildrenEditor
         }
     }
 
-    private final class ChildActivities implements ActivityMapper {
+    public static final class ChildActivities implements ActivityMapper {
+
+        private final DigitalObjectEditor childEditor;
+
+        public ChildActivities(DigitalObjectEditor childEditor) {
+            this.childEditor = childEditor;
+        }
 
         @Override
         public Activity getActivity(Place place) {
             if (place instanceof DigitalObjectEditorPlace) {
                 DigitalObjectEditorPlace editorPlace = (DigitalObjectEditorPlace) place;
-                lastEditorType = editorPlace.getEditorId();
                 return new DigitalObjectEditing(editorPlace, childEditor);
             }
             return null;
@@ -397,7 +408,7 @@ public final class DigitalObjectChildrenEditor
 
     }
 
-    private static final class ChildEditorDisplay implements AcceptsOneWidget {
+    public static final class ChildEditorDisplay implements AcceptsOneWidget {
 
         private final Layout display;
 
