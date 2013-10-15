@@ -166,7 +166,7 @@ public final class RemoteStorage {
                 throw new NullPointerException();
             } else if (label.length() > 255) {
                 // length 255 is Fedora limit
-                label = label.substring(0, 256);
+                label = label.substring(0, 255);
             }
             this.label = label;
         }
