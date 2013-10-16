@@ -18,6 +18,8 @@ package cz.incad.pas.editor.server.rest;
 
 import cz.incad.pas.editor.server.rest.LocalizationResource.Item;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi.BundleName;
+import java.util.EnumSet;
+import java.util.Set;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -32,11 +34,11 @@ public class LocalizationResourceTest {
 
     @Test
     public void testGetBundle() {
-        BundleName bundle = BundleName.MODS_PAGE_TYPES;
+        Set<BundleName> bundles = EnumSet.of(BundleName.MODS_PAGE_TYPES);
         String locale = "cs";
         boolean sorted = true;
         LocalizationResource instance = new LocalizationResource(null);
-        SmartGwtResponse<Item> result = instance.getBundle(bundle, locale, sorted);
+        SmartGwtResponse<Item> result = instance.getBundle(bundles, locale, sorted);
         assertNotNull(result);
         assertFalse(result.getData().isEmpty());
         System.out.println(result.getData());

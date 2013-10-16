@@ -157,9 +157,8 @@ public final class ModsCustomDataSource extends DataSource {
     }
 
     public static void loadPageTypes(final BooleanCallback callback) {
-        Criteria criteria = new Criteria(
-                LocalizationResourceApi.GETBUNDLE_BUNDLENAME_PARAM,
-                LocalizationResourceApi.BundleName.MODS_PAGE_TYPES.toString());
+        Criteria criteria = LocalizationDataSource.asCriteria(
+                LocalizationResourceApi.BundleName.MODS_PAGE_TYPES);
         LocalizationDataSource.getInstance().fetchData(criteria, new DSCallback() {
 
             @Override

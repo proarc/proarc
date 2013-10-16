@@ -144,7 +144,8 @@ public final class RestConfig {
     public static boolean isStatusOk(DSResponse response) {
         int status = response.getStatus();
         Integer httpStatus = response.getHttpResponseCode();
-        return status == RPCResponse.STATUS_SUCCESS && httpStatus == 200;
+        // httpStatus == null returns locally cached data sources
+        return status == RPCResponse.STATUS_SUCCESS && (httpStatus == null || httpStatus == 200);
     }
 
     private static String path(String parent, String path) {

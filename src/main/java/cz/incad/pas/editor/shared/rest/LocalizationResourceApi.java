@@ -23,9 +23,9 @@ package cz.incad.pas.editor.shared.rest;
 public final class LocalizationResourceApi {
 
     public static final String PATH = "localization";
-    public static final String GETBUNDLE_BUNDLENAME_PARAM = "bundleName";
     public static final String GETBUNDLE_LOCALE_PARAM = "locale";
     public static final String GETBUNDLE_SORTED_PARAM = "sorted";
+    public static final String ITEM_BUNDLENAME = "bundleName";
     public static final String ITEM_KEY = "code";
     public static final String ITEM_VALUE = "value";
 

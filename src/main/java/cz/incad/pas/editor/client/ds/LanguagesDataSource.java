@@ -19,6 +19,7 @@ package cz.incad.pas.editor.client.ds;
 import com.google.gwt.i18n.client.LocaleInfo;
 import com.smartgwt.client.data.Criteria;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
+import cz.incad.pas.editor.shared.rest.LocalizationResourceApi.BundleName;
 
 /**
  * ISO 639-2 languages support.
@@ -42,8 +43,7 @@ public final class LanguagesDataSource {
     }
 
     public static Criteria languageCriteria() {
-        return new Criteria(LocalizationResourceApi.GETBUNDLE_BUNDLENAME_PARAM,
-                LocalizationResourceApi.BundleName.LANGUAGES_ISO639_2.toString());
+        return LocalizationDataSource.asCriteria(BundleName.LANGUAGES_ISO639_2);
     }
 
 }

@@ -22,11 +22,13 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.ResourceBundle.Control;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.DefaultValue;
@@ -61,22 +63,23 @@ public class LocalizationResource {
     /**
      * Gets localization bundle.
      * 
-     * @param bundleName name of bundle
+     * @param bundleNames name of bundle. If {@code null} all bundles are included.
      * @param locale optional locale. If {@code null} HTTP headers are queried for acceptable language
-     * @param sorted optional flag to sort result bundle item. Default is {@code true}
+     * @param sorted optional flag to partially sort result bundle items by value.
+     *              Default is {@code true}.
      * @return the bundle
      */
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Item> getBundle(
-            @QueryParam(LocalizationResourceApi.GETBUNDLE_BUNDLENAME_PARAM) BundleName bundleName,
+            @QueryParam(LocalizationResourceApi.ITEM_BUNDLENAME) Set<BundleName> bundleNames,
             @DefaultValue("")
             @QueryParam(LocalizationResourceApi.GETBUNDLE_LOCALE_PARAM) String locale,
             @DefaultValue("true")
             @QueryParam(LocalizationResourceApi.GETBUNDLE_SORTED_PARAM) boolean sorted) {
 
-        if (bundleName == null) {
-            throw RestException.plainNotFound(LocalizationResourceApi.GETBUNDLE_BUNDLENAME_PARAM, String.valueOf(bundleName));
+        if (bundleNames == null || bundleNames.isEmpty()) {
+            bundleNames = EnumSet.allOf(BundleName.class);
         }
         Locale localeObj;
         if (locale == null || locale.isEmpty()) {
@@ -87,21 +90,31 @@ public class LocalizationResource {
         }
 
         Control control = ResourceBundle.Control.getControl(ResourceBundle.Control.FORMAT_PROPERTIES);
-        try {
-            // to read properties file in UTF-8 use PropertyResourceBundle(Reader)
-            ResourceBundle rb = ResourceBundle.getBundle(bundleName.toString(), localeObj, control);
-            ArrayList<Item> result = new ArrayList<Item>();
-            for (String key : rb.keySet()) {
-                result.add(new Item(key, rb.getString(key)));
+        ArrayList<Item> result = new ArrayList<Item>();
+        for (BundleName bundleName : bundleNames) {
+            try {
+                result.addAll(readBundle(bundleName, localeObj, control, sorted));
+            } catch (MissingResourceException ex) {
+                LOG.log(Level.WARNING, bundleNames.toString(), ex);
+                throw RestException.plainNotFound(
+                        LocalizationResourceApi.ITEM_BUNDLENAME,
+                        bundleName.toString());
             }
-            if (sorted) {
-                Collections.sort(result, new LocalizedItemComparator(localeObj));
-            }
-            return new SmartGwtResponse<Item>(result);
-        } catch (MissingResourceException ex) {
-            LOG.log(Level.WARNING, bundleName.toString(), ex);
-            throw RestException.plainNotFound(LocalizationResourceApi.GETBUNDLE_BUNDLENAME_PARAM, bundleName.toString());
         }
+        return new SmartGwtResponse<Item>(result);
+    }
+
+    private ArrayList<Item> readBundle(BundleName bundleName, Locale localeObj, Control control, boolean sorted) {
+        // to read properties file in UTF-8 use PropertyResourceBundle(Reader)
+        ResourceBundle rb = ResourceBundle.getBundle(bundleName.toString(), localeObj, control);
+        ArrayList<Item> result = new ArrayList<Item>();
+        for (String key : rb.keySet()) {
+            result.add(new Item(key, rb.getString(key), bundleName.toString()));
+        }
+        if (sorted) {
+            Collections.sort(result, new LocalizedItemComparator(localeObj));
+        }
+        return result;
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -111,10 +124,13 @@ public class LocalizationResource {
         private String key;
         @XmlElement(name = LocalizationResourceApi.ITEM_VALUE)
         private String value;
+        @XmlElement(name = LocalizationResourceApi.ITEM_BUNDLENAME)
+        private String bundleName;
 
-        public Item(String key, String value) {
+        public Item(String key, String value, String bundleName) {
             this.key = key;
             this.value = value;
+            this.bundleName = bundleName;
         }
 
         public Item() {
@@ -134,6 +150,14 @@ public class LocalizationResource {
 
         public void setValue(String value) {
             this.value = value;
+        }
+
+        public String getBundleName() {
+            return bundleName;
+        }
+
+        public void setBundleName(String bundleName) {
+            this.bundleName = bundleName;
         }
 
         @Override
