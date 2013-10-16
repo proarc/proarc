@@ -54,7 +54,7 @@ final class IdentifiersValidator extends RepeatableItemValidator {
     protected boolean condition(RecordList recordList) {
         boolean valid = true;
         StringBuilder typesMsg = new StringBuilder();
-        LinkedHashMap<String, String> typeMap = IdentifierDataSource.TYPES;
+        LinkedHashMap<String, String> typeMap = IdentifierDataSource.getTypeValueMap(i18n);
         for (String type : requiredIdentifiers) {
             Record r = recordList.find(IdentifierDataSource.FIELD_TYPE, type);
             if (r == null) {

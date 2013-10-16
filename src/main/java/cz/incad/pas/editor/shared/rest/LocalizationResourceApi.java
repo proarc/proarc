@@ -36,6 +36,7 @@ public final class LocalizationResourceApi {
          * @see <a href='http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd'>PeriodicalPage[@Type]</a>
          */
         MODS_PAGE_TYPES("cz.incad.pas.editor.server.config.modsPageTypes"),
+        MODS_IDENTIFIER_TYPES("cz.incad.pas.editor.server.config.modsIdentifierTypes"),
         /**
          * <a href='http://www.loc.gov/standards/iso639-2/php/English_list.php'>ISO 639-2 Languages</a>
          */

@@ -32,6 +32,8 @@ import com.smartgwt.client.widgets.form.validator.CustomValidator;
 import cz.fi.muni.xkremser.editor.client.mods.IdentifierTypeClient;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.ds.LocalizationDataSource;
+import cz.incad.pas.editor.shared.rest.LocalizationResourceApi.BundleName;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,26 +53,22 @@ public final class IdentifierDataSource extends DataSource {
     public static final String FIELD_VALUE = "value";
     /** fetched object */
     public static final String FIELD_OBJECT = "IdentifierTypeClient";
-    public static final LinkedHashMap<String, String> TYPES;
     public static final String TYPE_CCNB = "ccnb";
     public static final String TYPE_DOI = "doi";
     public static final String TYPE_HANDLE = "hdl";
-    public static final String TYPE_ISSN = "issn";
     public static final String TYPE_ISBN = "isbn";
+    public static final String TYPE_ISSN = "issn";
     public static final String TYPE_SICI = "sici";
     public static final String TYPE_URNNBN = "urnnbn";
     public static final String TYPE_UUID = "uuid";
 
-    static {
-        TYPES = new LinkedHashMap<String, String>();
-        TYPES.put(TYPE_CCNB, "čČNB");
-        TYPES.put(TYPE_DOI, "DOI");
-        TYPES.put(TYPE_HANDLE, "HANDLE");
-        TYPES.put(TYPE_ISSN, "ISSN");
-        TYPES.put(TYPE_ISBN, "ISBN");
-        TYPES.put(TYPE_SICI, "SICI");
-        TYPES.put(TYPE_URNNBN, "URN:NBN");
-        TYPES.put(TYPE_UUID, "UUID");
+    /**
+     * Gets localized type value map.
+     * @return type map
+     */
+    @SuppressWarnings("unchecked")
+    public static LinkedHashMap<String, String> getTypeValueMap(ClientMessages i18n) {
+        return (LinkedHashMap<String, String>) getInstance().getField(FIELD_TYPE).getValueMap();
     }
 
     public IdentifierDataSource() {
@@ -83,7 +81,7 @@ public final class IdentifierDataSource extends DataSource {
         type.setRequired(Boolean.TRUE);
 
         ComboBoxItem typeEditor = new ComboBoxItem(IdentifierDataSource.FIELD_TYPE);
-        typeEditor.setValueMap(TYPES);
+        LocalizationDataSource.setOptionDataSource(typeEditor, BundleName.MODS_IDENTIFIER_TYPES);
         typeEditor.setType("comboBox");
         typeEditor.setCharacterCasing(CharacterCasing.LOWER);
         typeEditor.setBrowserSpellCheck(Boolean.FALSE);
