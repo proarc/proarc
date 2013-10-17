@@ -22,6 +22,7 @@ import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
+import cz.incad.pas.editor.server.fedora.FoxmlUtils;
 import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import cz.incad.pas.editor.server.fedora.RemoteStorage.RemoteObject;
 import cz.incad.pas.editor.server.fedora.relation.RelationEditor;
@@ -182,7 +183,7 @@ public final class DataStreamExport {
     }
 
     static String filename(String pid, String dsId) {
-        return pid + '.' + dsId;
+        return FoxmlUtils.pidAsUuid(pid) + '.' + dsId;
     }
 
 }
