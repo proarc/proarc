@@ -36,9 +36,9 @@ import com.smartgwt.client.widgets.tree.events.FolderClickEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClickHandler;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.ds.DeviceDataSource;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 import cz.incad.pas.editor.client.ds.ImportTreeDataSource;
-import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
 public final class ImportSourceChooser extends VLayout {
@@ -96,13 +96,7 @@ public final class ImportSourceChooser extends VLayout {
 
         SelectItem selectScanner = new SelectItem(ImportBatchDataSource.FIELD_DEVICE,
                 i18n.ImportSourceChooser_OptionScanner_Title());
-        LinkedHashMap<String, String> scannerMap = new LinkedHashMap<String, String>();
-        scannerMap.put("device:digibook_suprascan_10000rgb", "Digibook Suprascan 10000 RGB");
-        scannerMap.put("device:panasonic_kv_s1025c", "Panasonic KV-S1025C");
-        scannerMap.put("device:proserv_scanntech_600i", "ProServ ScannTech 600i");
-        scannerMap.put("device:scanrobot_sr301", "ScanRobot SR301");
-        scannerMap.put("device:zeutschel_7000", "Zeutschel OS 7000");
-        selectScanner.setValueMap(scannerMap);
+        DeviceDataSource.setOptionDataSource(selectScanner);
         selectScanner.setAllowEmptyValue(true);
         selectScanner.setEmptyDisplayValue(
                 ClientUtils.format("<i>&lt;%s&gt;</i>", i18n.NewDigObject_OptionModel_EmptyValue_Title()));

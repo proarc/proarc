@@ -26,6 +26,8 @@ import cz.incad.pas.editor.server.config.AppConfigurationException;
 import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
+import cz.incad.pas.editor.server.fedora.AtmEditor;
+import cz.incad.pas.editor.server.fedora.AtmEditor.AtmItem;
 import cz.incad.pas.editor.server.fedora.BinaryEditor;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.DigitalObjectNotFoundException;
@@ -942,6 +944,60 @@ public class DigitalObjectResource {
         return result;
     }
 
+    /**
+     * Gets digital object administration and technical data.
+     *
+     * @param pid PID (required)
+     * @param batchId import batch ID (optional)
+     * @return digital object dissemination
+     * @throws IOException
+     */
+    @GET
+    @Path(DigitalObjectResourceApi.ATM_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<AtmItem> getAtm(
+            @QueryParam(DigitalObjectResourceApi.ATM_ITEM_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.ATM_ITEM_BATCHID) Integer batchId
+            ) throws IOException, DigitalObjectException, FedoraClientException {
+
+        if (pid == null) {
+            return new SmartGwtResponse<AtmItem>();
+        }
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        Locale locale = session.getLocale(httpHeaders);
+        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
+        AtmEditor editor = new AtmEditor(fobject, storage.getSearch(locale));
+        AtmItem atm = editor.read();
+        atm.setBatchId(batchId);
+        return new SmartGwtResponse<AtmItem>(atm);
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.ATM_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<AtmItem> updateAtm(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) Set<String> pids,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_OWNER) String owner,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_DEVICE) String deviceId
+            ) throws IOException, DigitalObjectException {
+
+        ArrayList<AtmItem> result = new ArrayList<AtmItem>(pids.size());
+        Locale locale = session.getLocale(httpHeaders);
+        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
+        SearchView search = storage.getSearch(locale);
+        for (String pid : pids) {
+            FedoraObject fobject = findFedoraObject(pid, batchId);
+            AtmEditor editor = new AtmEditor(fobject, search);
+            editor.write(deviceId, session.asFedoraLog());
+            fobject.flush();
+            AtmItem atm = editor.read();
+            atm.setBatchId(batchId);
+            result.add(atm);
+        }
+        return new SmartGwtResponse<AtmItem>(result);
+    }
+
     private FedoraObject findFedoraObject(String pid, Integer batchId) throws IOException {
         return findFedoraObject(pid, batchId, true);
     }
@@ -988,35 +1044,38 @@ public class DigitalObjectResource {
                     "cs".equals(lang) ? "Periodikum" : "Periodical",
                     MetaModelDataSource.EDITOR_PERIODICAL,
                     EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.CHILDREN)
+                            DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                     ));
             models.add(new MetaModel(
                     "model:periodicalvolume", null, null,
                     "cs".equals(lang) ? "Ročník" : "Periodical Volume",
                     MetaModelDataSource.EDITOR_PERIODICAL_VOLUME,
                     EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN)
+                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                            DatastreamEditorType.ATM)
                     ));
             models.add(new MetaModel(
                     "model:periodicalitem", null, null,
                     "cs".equals(lang) ? "Výtisk" : "Periodical Item",
                     MetaModelDataSource.EDITOR_PERIODICAL_ISSUE,
                     EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN)
+                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                            DatastreamEditorType.ATM)
                     ));
             models.add(new MetaModel(
                     "model:monograph", true, null,
                     "cs".equals(lang) ? "Monografie" : "Monograph",
                     MetaModelDataSource.EDITOR_MONOGRAPH,
                     EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.CHILDREN)
+                            DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                     ));
             models.add(new MetaModel(
                     "model:monographunit", null, null,
                     "cs".equals(lang) ? "Monografie - volná část" : "Monograph Unit",
                     MetaModelDataSource.EDITOR_MONOGRAPH_UNIT,
                     EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN)
+                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                            DatastreamEditorType.ATM)
                     ));
             models.add(new MetaModel(
                     "model:page", null, true,

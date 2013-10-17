@@ -25,6 +25,7 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
 import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
+import cz.incad.pas.editor.shared.rest.DeviceResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.ExportResourceApi;
 import cz.incad.pas.editor.shared.rest.ImportResourceApi;
@@ -45,6 +46,7 @@ public final class RestConfig {
     public static final String URL_IMPORT_BATCH = path(URL_IMPORT, ImportResourceApi.BATCH_PATH);
     public static final String URL_IMPORT_BATCH_ITEM = path(URL_IMPORT_BATCH, ImportResourceApi.BATCHITEM_PATH);
     public static final String URL_DIGOBJECT =  path(URL_ROOT, DigitalObjectResourceApi.PATH);
+    public static final String URL_DIGOBJECT_ATM =  path(URL_DIGOBJECT, DigitalObjectResourceApi.ATM_PATH);
     public static final String URL_DIGOBJECT_CHILDREN =  path(URL_DIGOBJECT, DigitalObjectResourceApi.MEMBERS_PATH);
     public static final String URL_DIGOBJECT_DC = path(URL_DIGOBJECT, DigitalObjectResourceApi.DC_PATH);
     public static final String URL_DIGOBJECT_DISSEMINATION = path(
@@ -75,6 +77,7 @@ public final class RestConfig {
             URL_EXPORT, ExportResourceApi.DATASTREAM_PATH);
     public static final String URL_EXPORT_KRAMERIUS4 = path(
             URL_EXPORT, ExportResourceApi.KRAMERIUS4_PATH);
+    public static final String URL_DEVICE = path(URL_ROOT, DeviceResourceApi.PATH);
 
     public static DSRequest createRestRequest(DSDataFormat format) {
         DSRequest dsr = new DSRequest();

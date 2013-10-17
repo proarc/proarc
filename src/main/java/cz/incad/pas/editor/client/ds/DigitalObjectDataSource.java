@@ -16,6 +16,7 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
@@ -195,6 +196,14 @@ public final class DigitalObjectDataSource extends RestDataSource {
             }
             r.setAttribute(FIELD_INSTANCE, this);
             return r;
+        }
+
+        public Criteria toCriteria() {
+            Criteria criteria = new Criteria(FIELD_PID, pid);
+            if (batchId != null) {
+                criteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, batchId);
+            }
+            return criteria;
         }
 
         @Override

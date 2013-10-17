@@ -50,6 +50,7 @@ import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
 import cz.incad.pas.editor.client.widget.BatchDatastreamEditor;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
+import cz.incad.pas.editor.client.widget.DigitalObjectAdministrationEditor;
 import cz.incad.pas.editor.client.widget.DigitalObjectChildrenEditor;
 import cz.incad.pas.editor.client.widget.DigitalObjectParentEditor;
 import cz.incad.pas.editor.client.widget.MediaEditor;
@@ -257,6 +258,13 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 i18n.DigitalObjectEditor_ChildrenAction_Hint(),
                 null,
                 DatastreamEditorType.CHILDREN, places);
+        DigitalObjectEditAction atmEditAction = new DigitalObjectEditAction(
+                i18n.DigitalObjectEditor_AdministrationAction_Title(),
+                i18n.DigitalObjectEditor_AdministrationAction_Hint(),
+                null,
+                DatastreamEditorType.ATM,
+                new AcceptFilter(true, true),
+                places);
         if (embeddedView) {
             Action actionMore = Actions.emptyAction(i18n.ActionsMenu_Title(),
                     null, null);
@@ -273,6 +281,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 menu.addItem(Actions.asMenuItem(mediaEditAction, source, false));
             }
             menu.addItem(Actions.asMenuItem(ocrEditAction, source, false));
+            menu.addItem(Actions.asMenuItem(atmEditAction, source, false));
             actionsMenu.setMenu(menu);
         } else {
             t.addMember(Actions.asIconButton(refreshAction, source));
@@ -286,6 +295,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             menuEditors.addItem(Actions.asMenuItem(mediaEditAction, source, false));
             menuEditors.addItem(Actions.asMenuItem(ocrEditAction, source, false));
             menuEditors.addItem(Actions.asMenuItem(childrenEditAction, source, false));
+            menuEditors.addItem(Actions.asMenuItem(atmEditAction, source, false));
             btnEditors.setMenu(menuEditors);
             t.addMember(btnEditors);
             DigitalObjectOpenParentAction openParentAction = new DigitalObjectOpenParentAction(i18n, places);
@@ -342,6 +352,10 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             case CHILDREN:
                 title = i18n.DigitalObjectEditor_ChildrenEditor_Title();
                 deditor = new DigitalObjectChildrenEditor(i18n, places);
+                break;
+            case ATM:
+                title = i18n.DigitalObjectEditor_AdministrationEditor_Title();
+                deditor = new DigitalObjectAdministrationEditor(i18n);
                 break;
         }
         title = ClientUtils.format("<b>%s</b>", title);

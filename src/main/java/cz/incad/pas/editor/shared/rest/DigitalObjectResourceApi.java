@@ -130,6 +130,18 @@ public final class DigitalObjectResourceApi {
     /** Resource /object/thumb */
     public static final String THUMB_PATH = "thumb";
 
+    /** Resource /object/atm */
+    public static final String ATM_PATH = "atm";
+    public static final String ATM_ITEM_BATCHID = ImportResourceApi.BATCHITEM_BATCHID;
+    public static final String ATM_ITEM_CREATED = MEMBERS_ITEM_CREATED;
+    public static final String ATM_ITEM_DEVICE = "device";
+    public static final String ATM_ITEM_FILENAME = "filename";
+    public static final String ATM_ITEM_MODEL = DIGITALOBJECT_MODEL;
+    public static final String ATM_ITEM_MODIFIED = MEMBERS_ITEM_MODIFIED;
+    public static final String ATM_ITEM_OWNER = MEMBERS_ITEM_OWNER;
+    public static final String ATM_ITEM_PID = DIGITALOBJECT_PID;
+    public static final String ATM_ITEM_STATE = MEMBERS_ITEM_STATE;
+
     public enum SearchType {
         
         LAST_CREATED(SEARCH_TYPE_PARAM_DEFAULT),
@@ -167,7 +179,7 @@ public final class DigitalObjectResourceApi {
      * Supported datastream UI editors.
      */
     public enum DatastreamEditorType {
-        NOTE, OCR, MEDIA, MODS, PARENT, CHILDREN
+        NOTE, OCR, MEDIA, MODS, PARENT, CHILDREN, ATM
     }
 
 }
