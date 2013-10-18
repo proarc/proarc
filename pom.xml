@@ -19,7 +19,7 @@
     </licenses>
 
     <properties>
-        <gwtVersion>2.5.0</gwtVersion>
+        <gwtVersion>2.5.1</gwtVersion>
         <jerseyVersion>1.11.1</jerseyVersion>
         <smartGwtVersion>3.0</smartGwtVersion>
         <maven.compiler.source>1.6</maven.compiler.source>
