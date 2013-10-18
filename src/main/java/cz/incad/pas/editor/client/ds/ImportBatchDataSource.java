@@ -30,6 +30,7 @@ import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
+import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.OperatorId;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.shared.rest.ImportResourceApi;
@@ -77,6 +78,7 @@ public final class ImportBatchDataSource extends RestDataSource {
         userId.setForeignKey(UserDataSource.ID + '.' + UserDataSource.FIELD_ID);
 
         DataSourceDateTimeField create = new DataSourceDateTimeField(FIELD_CREATE);
+        create.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
         LinkedHashMap<String, String> states = new LinkedHashMap<String, String>();
