@@ -116,7 +116,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         VLayout layout = new VLayout();
         layout.setShowResizeBar(true);
         layout.setResizeBarTarget("next");
-        
+
         batchItemGrid = createItemList();
         layout.addMember(batchItemGrid);
 
@@ -276,7 +276,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 thumbViewer.deselectAllRecords();
                 if (selectedRecords != null && selectedRecords.length == 1) {
                     // select thumbnail just in case of the single selection
-                    int tileIndex = thumbViewer.getRecordIndex(selectedRecords[0]);
+                    int tileIndex = getThumbIndex(selectedRecords[0]);
 //                    selectThumbInProgress = true;
                     // use record index instead of ListGridRecord to work around a smartgwt bug
                     thumbViewer.selectRecord(tileIndex);
@@ -284,7 +284,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 } else if (selectedRecords != null && selectedRecords.length > 1) {
                     int[] indexes = new int[selectedRecords.length];
                     for (int i = 0; i < indexes.length; i++) {
-                        indexes[i] = thumbViewer.getRecordIndex(selectedRecords[i]);
+                        indexes[i] = getThumbIndex(selectedRecords[i]);
                     }
                     thumbViewer.selectRecords(indexes);
                 }
@@ -331,7 +331,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private void refreshData() {
         Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batchRecord.getId());
         batchItemGrid.invalidateCache();
-        thumbViewer.invalidateCache();
+        thumbViewer.setData(new Record[0]);
         previewItem(null);
 
         batchItemGrid.fetchData(criteria, new DSCallback() {
@@ -339,13 +339,16 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
+                    Record[] data = response.getData();
+                    Record[] copyRecords = batchItemGrid.getDataSource().copyRecords(data);
+                    thumbViewer.setData(copyRecords);
+
                     batchItemGrid.selectSingleRecord(0);
                     batchItemGrid.focus();
                     ValidatableList.clearRowErrors(batchItemGrid);
                 }
             }
         });
-        thumbViewer.fetchData(criteria);
     }
 
     /**
@@ -364,7 +367,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             criteria.addCriteria(ImportBatchItemDataSource.FIELD_PID, dobj.getPid());
         }
         final DataSource ds = batchItemGrid.getDataSource();
-        ImportBatchItemDataSource.getInstance().fetchData(criteria, new DSCallback() {
+        ds.fetchData(criteria, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
@@ -372,7 +375,13 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                     if (selections.length == 1) {
                         request.setOperationType(DSOperationType.UPDATE);
                         ds.updateCaches(response, request);
-                        int nextSelection = getNextSelection(response.getData()[0]);
+
+                        Record record = response.getData()[0];
+                        Record copyRecord = ds.copyRecord(record);
+                        int thumbIndex = getThumbIndex(copyRecord);
+                        thumbViewer.getRecordList().set(thumbIndex, copyRecord);
+
+                        int nextSelection = getNextSelection(record);
                         if (nextSelection >= 0) {
                             batchItemGrid.selectSingleRecord(nextSelection);
                             batchItemGrid.scrollToRow(nextSelection);
@@ -380,6 +389,9 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                     } else {
                         request.setOperationType(DSOperationType.UPDATE);
                         ds.updateCaches(response, request);
+                        
+                        Record[] copyRecords = ds.copyRecords(response.getData());
+                        thumbViewer.setData(copyRecords);
                     }
                     ValidatableList.clearRowErrors(batchItemGrid);
                 }
@@ -417,8 +429,9 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             }
         });
         final DetailViewerField dvfThumbnail = new DetailViewerField(ImportBatchItemDataSource.FIELD_THUMBNAIL);
+        dvfThumbnail.setImageURLPrefix(RestConfig.URL_DIGOBJECT_THUMBNAIL + "?");
+        dvfThumbnail.setType("image");
         thumbGrid.setFields(dvfThumbnail, dvfPageIndex);
-        thumbGrid.setDataSource(ImportBatchItemDataSource.getInstance());
         // TileLayoutPolicy.FLOW does not work as expected
         // thumbGrid.setLayoutPolicy(TileLayoutPolicy.FLOW);
         thumbGrid.setTileHeight(128 + 8 + 12 * 2);
@@ -476,6 +489,12 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         });
 
         return thumbGrid;
+    }
+
+    private int getThumbIndex(Record r) {
+        int index = thumbViewer.getRecordList().findIndex(ImportBatchItemDataSource.FIELD_PID,
+                r.getAttribute(ImportBatchItemDataSource.FIELD_PID));
+        return index;
     }
 
     private void createActions() {
