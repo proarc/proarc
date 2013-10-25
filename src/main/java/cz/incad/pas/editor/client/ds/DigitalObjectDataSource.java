@@ -22,6 +22,7 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.util.logging.Logger;
@@ -83,6 +84,15 @@ public final class DigitalObjectDataSource extends RestDataSource {
 
         public static DigitalObject createOrNull(Record r) {
             return create(r, false);
+        }
+
+        /**
+         * Creates synthetic root object of a batch import.
+         * @param r batch record
+         * @return digital object
+         */
+        public static DigitalObject create(BatchRecord r) {
+            return create("proarc:root_item", String.valueOf(r.getId()), "none");
         }
 
         public static DigitalObject[] toArray(Record[] records) {

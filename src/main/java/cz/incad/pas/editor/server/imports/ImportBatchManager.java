@@ -52,7 +52,7 @@ public class ImportBatchManager {
 
     private static final Logger LOG = Logger.getLogger(ImportBatchManager.class.getName());
     private static ImportBatchManager INSTANCE;
-    static final String ROOT_ITEM_PID = "proarc:root_item";
+    public static final String ROOT_ITEM_PID = "proarc:root_item";
     static final String ROOT_ITEM_FILENAME = ".proarc_root.foxml";
 
     private AppConfiguration appConfig;

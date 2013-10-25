@@ -399,6 +399,9 @@ public final class SearchView {
         /** Parent PID. Optional for some queries */
         @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PARENT)
         private String parent;
+        /** batch import ID. Optional for some queries */
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
+        private Integer batchId;
 
         public Item() {
         }
@@ -469,6 +472,14 @@ public final class SearchView {
 
         public void setParentPid(String parentPid) {
             this.parent = parentPid;
+        }
+
+        public Integer getBatchId() {
+            return batchId;
+        }
+
+        public void setBatchId(Integer batchId) {
+            this.batchId = batchId;
         }
 
     }

@@ -233,7 +233,7 @@ public final class DigitalObjectChildrenEditor
         }
         Record[] rs = childrenListGrid.getOriginalResultSet().toArray();
         String[] childPids = ClientUtils.toFieldValues(rs, RelationDataSource.FIELD_PID);
-        relationDataSource.reorderChildren(digitalObject.getPid(), childPids, new BooleanCallback() {
+        relationDataSource.reorderChildren(digitalObject, childPids, new BooleanCallback() {
 
             @Override
             public void execute(Boolean value) {

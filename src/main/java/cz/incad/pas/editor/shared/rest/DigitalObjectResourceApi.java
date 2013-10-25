@@ -68,6 +68,7 @@ public final class DigitalObjectResourceApi {
     // resource /object/member
     public static final String MEMBERS_PATH = "member";
     public static final String MEMBERS_ITEM_PID = "pid";
+    public static final String MEMBERS_ITEM_BATCHID = ImportResourceApi.BATCHITEM_BATCHID;
     public static final String MEMBERS_ITEM_MODEL = "model";
     public static final String MEMBERS_ITEM_OWNER = "owner";
     public static final String MEMBERS_ITEM_LABEL = "label";

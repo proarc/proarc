@@ -21,6 +21,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.incad.pas.editor.server.config.AppConfiguration;
 import cz.incad.pas.editor.server.config.AppConfigurationException;
 import cz.incad.pas.editor.server.config.AppConfigurationFactory;
@@ -70,6 +71,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -371,6 +373,7 @@ public class DigitalObjectResource {
      * Sets new member sequence of given parent digital object.
      *
      * @param parentPid parent PID
+     * @param batchId batch import ID
      * @param toSetPids list of member PIDS
      * @return ordered list of members
      * @throws RestException
@@ -380,17 +383,19 @@ public class DigitalObjectResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Item> setMembers(
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toSetPids
             // XXX long timestamp
             ) throws IOException, FedoraClientException, DigitalObjectException {
 
-        if (parentPid == null) {
+        if (batchId == null && parentPid == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT, null);
         }
+        boolean batchImportMembers = batchId != null;
         if (toSetPids == null || toSetPids.isEmpty()) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_PID, null);
         }
-        if (toSetPids.contains(parentPid)) {
+        if (!batchImportMembers && toSetPids.contains(parentPid)) {
             throw RestException.plainText(Status.BAD_REQUEST, "parent and pid are same!");
         }
 
@@ -399,30 +404,17 @@ public class DigitalObjectResource {
             throw RestException.plainText(Status.BAD_REQUEST, "duplicates in PIDs to set!\n" + toSetPids.toString());
         }
 
-        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
-        HashMap<String, Item> memberSearchMap = new HashMap<String, Item>();
-        if (!toSetPids.isEmpty()) {
-            // fetch PID[] -> Item[]
-            List<Item> memberSearch = storage.getSearch().find(toSetPids);
-            for (Item item : memberSearch) {
-                memberSearchMap.put(item.getPid(), item);
-            }
-
-            // check if queried member PIDs really exist in storage
-            if (memberSearch.size() != toSetPidSet.size()) {
-                ArrayList<String> memberSearchAsPids = new ArrayList<String>(memberSearch.size());
-                for (Item item : memberSearch) {
-                    memberSearchAsPids.add(item.getPid());
-                }
-                toSetPidSet.removeAll(memberSearchAsPids);
-                throw RestException.plainNotFound(
-                        DigitalObjectResourceApi.MEMBERS_ITEM_PID, toSetPidSet.toString());
-            }
+        // fetch PID[] -> Item[]
+        Map<String, Item> memberSearchMap;
+        if (batchImportMembers) {
+            memberSearchMap = loadLocalSearchItems(batchId);
+        } else {
+            memberSearchMap = loadSearchItems(toSetPidSet);
         }
-
+        checkSetMembers(toSetPidSet, memberSearchMap);
         // load current members
-        RemoteObject remote = storage.find(parentPid);
-        RelationEditor editor = new RelationEditor(remote);
+        FedoraObject fobject = findFedoraObject(parentPid, batchId, false);
+        RelationEditor editor = new RelationEditor(fobject);
         List<String> members = editor.getMembers();
         members.clear();
         // add new members
@@ -432,7 +424,8 @@ public class DigitalObjectResource {
                 members.add(addPid);
                 Item item = memberSearchMap.get(addPid);
                 if (item == null) {
-                    throw RestException.plainNotFound("pid", toSetPidSet.toString());
+                    throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_PID,
+                            toSetPids.toString());
                 }
                 item.setParentPid(parentPid);
                 added.add(item);
@@ -440,8 +433,48 @@ public class DigitalObjectResource {
         }
         editor.setMembers(members);
         editor.write(editor.getLastModified(), session.asFedoraLog());
-        remote.flush();
+        fobject.flush();
         return new SmartGwtResponse<Item>(added);
+    }
+
+    private Map<String, Item> loadSearchItems(Set<String> pids) throws IOException, FedoraClientException {
+        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
+        HashMap<String, Item> memberSearchMap = new HashMap<String, Item>();
+        List<Item> memberSearch = storage.getSearch().find(new ArrayList<String>(pids));
+        for (Item item : memberSearch) {
+            memberSearchMap.put(item.getPid(), item);
+        }
+        return memberSearchMap;
+    }
+
+    private Map<String, Item> loadLocalSearchItems(int batchId) throws IOException, DigitalObjectException {
+        HashMap<String, Item> memberSearchMap = new HashMap<String, Item>();
+        List<BatchItemObject> batchObjects = importManager.findBatchObjects(batchId, null);
+        for (BatchItemObject batchObject : batchObjects) {
+            if (batchObject.getState() != ObjectState.LOADED) {
+                continue;
+            }
+            LocalObject lfo = (LocalObject) findFedoraObject(batchObject.getPid(), batchId);
+            Item item = new Item(batchObject.getPid());
+            item.setBatchId(batchId);
+            item.setLabel(lfo.getLabel());
+            item.setOwner(lfo.getOwner());
+            RelationEditor relationEditor = new RelationEditor(lfo);
+            item.setModel(relationEditor.getModel());
+            memberSearchMap.put(batchObject.getPid(), item);
+        }
+        return memberSearchMap;
+    }
+
+    private void checkSetMembers(Set<String> pids, Map<String, Item> memberSearchMap) throws IllegalStateException {
+        if (!pids.equals(memberSearchMap.keySet())) {
+            HashSet<String> notMembers = new HashSet<String>(pids);
+            notMembers.removeAll(memberSearchMap.keySet());
+            HashSet<String> missingPids = new HashSet<String>(memberSearchMap.keySet());
+            missingPids.removeAll(pids);
+            throw new IllegalStateException("PIDs not members: " + notMembers.toString()
+                    + "\nMissing PIDs: " + missingPids.toString());
+        }
     }
 
     /**
@@ -1005,16 +1038,26 @@ public class DigitalObjectResource {
     private FedoraObject findFedoraObject(String pid, Integer batchId, boolean readonly) throws IOException {
         FedoraObject fobject;
         if (batchId != null) {
-            BatchItemObject item = importManager.findBatchObject(batchId, pid);
-            if (item == null) {
-                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            Batch batch = importManager.get(batchId);
+            if (batch == null) {
+                throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID, String.valueOf(batchId));
             }
             if (!readonly) {
-                Batch batch = importManager.get(batchId);
                 ImportResource.checkBatchState(batch);
             }
-            fobject = new LocalStorage().load(pid, item.getFile());
+            if (pid == null || ImportBatchManager.ROOT_ITEM_PID.equals(pid)) {
+                fobject = importManager.getRootObject(batch);
+            } else {
+                BatchItemObject item = importManager.findBatchObject(batchId, pid);
+                if (item == null) {
+                    throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+                }
+                fobject = new LocalStorage().load(pid, item.getFile());
+            }
         } else {
+            if (pid == null) {
+                throw new NullPointerException("pid");
+            }
             fobject = RemoteStorage.getInstance(appConfig).find(pid);
         }
         return fobject;

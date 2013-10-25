@@ -18,6 +18,8 @@ package cz.incad.pas.editor.client.widget;
 
 import com.google.gwt.activity.shared.ActivityManager;
 import com.google.gwt.core.client.Callback;
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.SimpleEventBus;
@@ -35,6 +37,8 @@ import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.EventHandler;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.events.BrowserEvent;
+import com.smartgwt.client.widgets.events.DropEvent;
+import com.smartgwt.client.widgets.events.DropHandler;
 import com.smartgwt.client.widgets.events.KeyPressEvent;
 import com.smartgwt.client.widgets.events.KeyPressHandler;
 import com.smartgwt.client.widgets.grid.ListGrid;
@@ -44,6 +48,8 @@ import com.smartgwt.client.widgets.grid.events.BodyKeyPressEvent;
 import com.smartgwt.client.widgets.grid.events.BodyKeyPressHandler;
 import com.smartgwt.client.widgets.grid.events.RecordClickEvent;
 import com.smartgwt.client.widgets.grid.events.RecordClickHandler;
+import com.smartgwt.client.widgets.grid.events.RecordDropEvent;
+import com.smartgwt.client.widgets.grid.events.RecordDropHandler;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
@@ -107,6 +113,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private SelectAction selectAllAction;
     private final PlaceController childPlaces;
     private final DigitalObjectEditor childEditor;
+    private ReorderTask reorderTask = new ReorderTask();
 
     public ImportBatchItemEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -194,6 +201,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         grid.setShowResizeBar(true);
         grid.setSelectionType(SelectionStyle.MULTIPLE);
         grid.setCanSort(false);
+        grid.setCanReorderRecords(true);
         // disable autofit as it has rendering problems
 //        batchItemGrid.setAutoFitFieldWidths(true);
 //        batchItemGrid.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
@@ -302,6 +310,14 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 previewItem(record);
             }
         });
+
+        grid.addRecordDropHandler(new RecordDropHandler() {
+
+            @Override
+            public void onRecordDrop(RecordDropEvent event) {
+                reorderTask.reorder(grid);
+            }
+        });
         return grid;
     }
 
@@ -346,6 +362,30 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                     batchItemGrid.selectSingleRecord(0);
                     batchItemGrid.focus();
                     ValidatableList.clearRowErrors(batchItemGrid);
+                }
+            }
+        });
+    }
+
+    /**
+     * As there is no API to reorder ListGrid records, it reloads data and
+     * tries to preserve selection of records.
+     */
+    private void syncListWithTilesOnReorder() {
+        Record[] selection = thumbViewer.getSelection();
+        final int[] selectionIndex = new int[selection.length];
+        for (int i = 0; i < selection.length; i++) {
+            selectionIndex[i] = thumbViewer.getRecordIndex(selection[i]);
+        }
+        Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batchRecord.getId());
+        batchItemGrid.invalidateCache();
+        batchItemGrid.fetchData(criteria, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (RestConfig.isStatusOk(response)) {
+                    selectListInProgress = true;
+                    batchItemGrid.selectRecords(selectionIndex);
                 }
             }
         });
@@ -485,6 +525,14 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             @Override
             public void onKeyPress(KeyPressEvent event) {
                 selectAllAction.processEvent(event);
+            }
+        });
+
+        thumbGrid.addDropHandler(new DropHandler() {
+
+            @Override
+            public void onDrop(DropEvent event) {
+                reorderTask.reorder(thumbGrid);
             }
         });
 
@@ -666,6 +714,86 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 }
             }
             return false;
+        }
+    }
+
+    /**
+     * Helper to reorder import items. Start with {@link #reorder(java.lang.Object) }.
+     */
+    private final class ReorderTask implements ScheduledCommand {
+
+        private Object sourceWidget;
+        private Record[] originChildren;
+
+        /**
+         * Schedules save of reordered records. It expects to be invoked by
+         * DropHandlers when widgets still returns origin list of records.
+         *
+         * @param sourceWidget thumbs or item list
+         */
+        public void reorder(Object sourceWidget) {
+            this.sourceWidget = sourceWidget;
+            originChildren = getRecords();
+            Scheduler.get().scheduleDeferred(this);
+        }
+
+        @Override
+        public void execute() {
+            save();
+        }
+
+        private Record[] getRecords() {
+            Record[] records;
+            if (sourceWidget == batchItemGrid) {
+                records = batchItemGrid.getOriginalResultSet().toArray();
+            } else if (sourceWidget == thumbViewer) {
+                records = thumbViewer.getData();
+            } else {
+                throw new IllegalStateException("Unsupported widget: " + sourceWidget);
+            }
+            return records;
+        }
+
+        private void updateWidgets(Object src) {
+            if (src == batchItemGrid) {
+                DataSource ds = batchItemGrid.getDataSource();
+                Record[] records = batchItemGrid.getOriginalResultSet().toArray();
+                Record[] copyRecords = ds.copyRecords(records);
+                thumbViewer.setData(copyRecords);
+            } else if (src == thumbViewer) {
+                syncListWithTilesOnReorder();
+            } else {
+                refreshData();
+            }
+        }
+
+        private void save() {
+            if (originChildren == null) {
+                return ;
+            }
+            Record[] rs = getRecords();
+            if (RelationDataSource.equals(originChildren, rs)) {
+                originChildren = null;
+                sourceWidget = null;
+                return ;
+            }
+            String[] childPids = ClientUtils.toFieldValues(rs, RelationDataSource.FIELD_PID);
+            RelationDataSource relationDataSource = RelationDataSource.getInstance();
+            DigitalObject root = DigitalObject.create(batchRecord);
+            relationDataSource.reorderChildren(root, childPids, new BooleanCallback() {
+
+                @Override
+                public void execute(Boolean value) {
+                    if (value != null && value) {
+                        updateWidgets(sourceWidget);
+                        originChildren = null;
+                        sourceWidget = null;
+                        StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
+                    } else {
+                        updateWidgets(null);
+                    }
+                }
+            });
         }
     }
 

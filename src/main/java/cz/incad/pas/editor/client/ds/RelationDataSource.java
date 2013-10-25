@@ -37,6 +37,7 @@ import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.BooleanCallback;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -248,24 +249,30 @@ public class RelationDataSource extends RestDataSource {
     /**
      * Saves new children sequence for a given parent object.
      * 
-     * @param parentPid parent object
+     * @param parent parent object
      * @param childPids children sequence
      * @param call callback
      */
-    public void reorderChildren(String parentPid, String[] childPids, final BooleanCallback call) {
+    public void reorderChildren(DigitalObject parent, String[] childPids, final BooleanCallback call) {
         if (childPids == null || childPids.length < 2) {
             throw new IllegalArgumentException("Unexpected children: " + Arrays.toString(childPids));
         }
-        if (parentPid == null || parentPid.isEmpty()) {
-            throw new IllegalArgumentException("Missing parent PID!");
+        if (parent == null) {
+            throw new NullPointerException("parent");
         }
 
         DSRequest dsRequest = new DSRequest();
         dsRequest.setAttribute(ATTR_REORDER, childPids);
 
         Record update = new Record();
-        update.setAttribute(RelationDataSource.FIELD_PARENT, parentPid);
         update.setAttribute(RelationDataSource.FIELD_PID, childPids);
+        String parentPid = parent.getPid();
+        String batchId = parent.getBatchId();
+        if (batchId != null) {
+            update.setAttribute(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID, batchId);
+        } else {
+            update.setAttribute(RelationDataSource.FIELD_PARENT, parentPid);
+        }
         updateData(update, new DSCallback() {
 
             @Override
