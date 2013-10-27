@@ -30,10 +30,14 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.events.DataChangedEvent;
 import com.smartgwt.client.data.events.DataChangedHandler;
+import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IconButton;
@@ -49,6 +53,10 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.menu.IconMenuButton;
+import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
+import com.smartgwt.client.widgets.menu.events.ItemClickHandler;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.Action;
@@ -61,11 +69,14 @@ import cz.incad.pas.editor.client.action.DigitalObjectFormValidateAction.Validat
 import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.action.SaveAction;
 import cz.incad.pas.editor.client.action.Selectable;
+import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource.RelationChangeEvent;
 import cz.incad.pas.editor.client.ds.RelationDataSource.RelationChangeHandler;
+import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditor;
@@ -78,9 +89,7 @@ import java.util.logging.Logger;
  * It allows to change order of children, to edit a selected child using
  * particular data stream editor.
  *
- * XXX add new child
  * XXX remove selected children
- * XXX batch edit of selected children (change device, change parent, MODS edit)
  *
  * @author Jan Pokorsky
  */
@@ -98,6 +107,7 @@ public final class DigitalObjectChildrenEditor
     private final PlaceController childPlaces;
     private HandlerRegistration listDataChangedHandler;
     private Record[] originChildren;
+    private IconMenuButton addActionButton;
     private IconButton saveActionButton;
     private HandlerRegistration childrenSelectionHandler;
     private RelationDataSource relationDataSource;
@@ -174,6 +184,7 @@ public final class DigitalObjectChildrenEditor
                 Map<?,?> valueMap = result.getValueMap(
                         MetaModelDataSource.FIELD_PID, MetaModelDataSource.FIELD_DISPLAY_NAME);
                 childrenListGrid.getField(RelationDataSource.FIELD_MODEL).setValueMap(valueMap);
+                createAddMenu(result);
             }
         });
     }
@@ -190,6 +201,9 @@ public final class DigitalObjectChildrenEditor
 
     @Override
     public Canvas[] getToolbarItems() {
+        Action addAction = Actions.emptyAction(i18n.DigitalObjectEditor_ChildrenEditor_AddAction_Title(),
+                "[SKIN]/actions/add.png",
+                i18n.DigitalObjectEditor_ChildrenEditor_AddAction_Hint());
         Action saveAction = new SaveAction(i18n) {
 
             @Override
@@ -197,7 +211,9 @@ public final class DigitalObjectChildrenEditor
                 save();
             }
         };
+        addActionButton = Actions.asIconMenuButton(addAction, this);
         return new Canvas[] {
+            addActionButton,
             Actions.asIconButton(new DigitalObjectEditAction(
                         i18n.DigitalObjectEditor_ChildrenEditor_ChildAction_Title(),
                         i18n.DigitalObjectEditor_ChildrenEditor_ChildAction_Hint(),
@@ -320,6 +336,7 @@ public final class DigitalObjectChildrenEditor
                 @Override
                 public void execute() {
                     // defer the select as it is ignored after refresh in onDataArrived
+                    childrenListGrid.scrollToRow(0);
                     childrenListGrid.selectSingleRecord(0);
                     childrenListGrid.focus();
                 }
@@ -382,11 +399,53 @@ public final class DigitalObjectChildrenEditor
     private void updateReorderUi(boolean reordered) {
         actionSource.fireEvent();
         saveActionButton.setVisible(reordered);
+        addActionButton.setVisible(!reordered);
         if (reordered) {
             detachListFromEditor();
         } else {
             attachListToEditor();
         }
+    }
+
+    private void createAddMenu(ResultSet models) {
+        Menu menuAdd = MetaModelDataSource.createMenu(models, false);
+        addActionButton.setMenu(menuAdd);
+        menuAdd.addItemClickHandler(new ItemClickHandler() {
+
+            @Override
+            public void onItemClick(ItemClickEvent event) {
+                MetaModelRecord mmr = MetaModelRecord.get(event.getItem());
+                addChild(mmr);
+            }
+        });
+    }
+
+    private void addChild(MetaModelRecord model) {
+        Record record = new Record();
+        record.setAttribute(DigitalObjectDataSource.FIELD_MODEL, model.getId());
+        record.setAttribute(RelationDataSource.FIELD_PARENT, digitalObject.getPid());
+        DigitalObjectDataSource.getInstance().addData(record, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (RestConfig.isStatusOk(response)) {
+                    Record[] data = response.getData();
+                    final Record r = data[0];
+                    DSRequest dsRequest = new DSRequest();
+                    dsRequest.setOperationType(DSOperationType.ADD);
+                    RelationDataSource.getInstance().updateCaches(response, dsRequest);
+                    Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+
+                        @Override
+                        public void execute() {
+                            childrenListGrid.selectSingleRecord(r);
+                            int recordIndex = childrenListGrid.getRecordIndex(r);
+                            childrenListGrid.scrollToRow(recordIndex);
+                        }
+                    });
+                }
+            }
+        });
     }
 
     public static final class ChildActivities implements ActivityMapper {

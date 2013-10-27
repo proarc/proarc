@@ -165,6 +165,7 @@ public class DigitalObjectResource {
      *
      * @param modelId model ID (model:page, ...) of the digital object; required
      * @param pid PID of the digital object from external Kramerius. PID must not be already assigned. Optional
+     * @param parentPid optional PID of parent object to link the newly created object
      * @param mods MODS XML used to create new object; optional
      * @return
      * @throws URISyntaxException
@@ -172,9 +173,10 @@ public class DigitalObjectResource {
      */
     @POST
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObject> newObject(
+    public SmartGwtResponse<Item> newObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
             @FormParam(DigitalObjectResourceApi.NEWOBJECT_MODS_PARAM) String mods
             ) throws URISyntaxException, IOException, FedoraClientException, DigitalObjectException {
 
@@ -193,7 +195,7 @@ public class DigitalObjectResource {
                 invalid = true;
             }
             if (invalid) {
-                return SmartGwtResponse.<DigitalObject>asError().error(
+                return SmartGwtResponse.<Item>asError().error(
                         DigitalObjectResourceApi.DIGITALOBJECT_PID, "Invalid PID!").build();
             }
         }
@@ -227,19 +229,39 @@ public class DigitalObjectResource {
         localObject.flush();
 
         RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
+
+        // attach to parent object
+        RemoteObject parentObject = null;
+        if (parentPid != null) {
+            parentObject = fedora.find(parentPid);
+            RelationEditor parentRelsExt = new RelationEditor(parentObject);
+            List<String> members = parentRelsExt.getMembers();
+            members.add(localObject.getPid());
+            parentRelsExt.setMembers(members);
+            parentRelsExt.write(parentRelsExt.getLastModified(), session.asFedoraLog());
+        }
+
         try {
             fedora.ingest(localObject, user.getUserName(), session.asFedoraLog());
+            if (parentObject != null) {
+                parentObject.flush();
+            }
         } catch (FedoraClientException ex) {
             // XXX hack: Fedora server does not notify existing object conflict with HTTP 409.
             // Workaround parses error message.
             // Check for existence before ingest would be insufficient as Fedora does not yet support transactions.
             String message = ex.getMessage();
             if (message != null && message.contains("org.fcrepo.server.errors.ObjectExistsException")) {
-                return SmartGwtResponse.<DigitalObject>asError().error("pid", "Object already exists!").build();
+                return SmartGwtResponse.<Item>asError().error("pid", "Object already exists!").build();
             }
             throw ex;
         }
-        return new SmartGwtResponse<DigitalObject>(new DigitalObject(localObject.getPid(), modelId));
+        Item item = new Item(localObject.getPid());
+        item.setLabel(localObject.getLabel());
+        item.setModel(modelId);
+        item.setOwner(localObject.getOwner());
+        item.setParentPid(parentPid);
+        return new SmartGwtResponse<Item>(item);
     }
 
     /**

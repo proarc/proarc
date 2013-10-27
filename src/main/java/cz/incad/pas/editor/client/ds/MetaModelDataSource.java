@@ -21,6 +21,7 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.events.DataArrivedEvent;
@@ -30,6 +31,8 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.FieldType;
+import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItem;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.util.logging.Logger;
@@ -155,6 +158,30 @@ public class MetaModelDataSource extends RestDataSource {
             }
         }
         return mmr;
+    }
+
+    public static Menu createMenu(RecordList modelRecords, boolean includeRoots) {
+        return createMenu(modelRecords.toArray(), includeRoots);
+    }
+
+    /**
+     * Helper to create menu listing object models.
+     * <p>{@link Menu#setDataSource} is broken (SmartGWT 3.0, 4.0).
+     * @param modelRecords fetched model records
+     * @param includeRoots include root models in menu?
+     * @return the menu
+     */
+    public static Menu createMenu(Record[] modelRecords, boolean includeRoots) {
+        Menu menu = new Menu();
+        for (int i = 0; i < modelRecords.length; i++) {
+            MetaModelRecord mmr = MetaModelRecord.get(modelRecords[i]);
+            if (includeRoots || !mmr.isRoot()) {
+                MenuItem menuItem = new MenuItem(mmr.getDisplayName());
+                menuItem.setAttribute(FIELD_PID, mmr.getId());
+                menu.addItem(menuItem);
+            }
+        }
+        return menu;
     }
 
     public static final class MetaModelRecord {
