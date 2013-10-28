@@ -31,6 +31,8 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.Autofit;
 import com.smartgwt.client.types.DateDisplayFormat;
+import com.smartgwt.client.types.SelectionStyle;
+import com.smartgwt.client.types.VerticalAlignment;
 import com.smartgwt.client.util.DateUtil;
 import com.smartgwt.client.util.I18nUtil;
 import com.smartgwt.client.util.Page;
@@ -44,6 +46,7 @@ import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.tree.Tree;
 import com.smartgwt.client.widgets.tree.TreeGrid;
@@ -53,6 +56,9 @@ import com.smartgwt.client.widgets.tree.events.FolderClosedHandler;
 import com.smartgwt.client.widgets.tree.events.LeafClickEvent;
 import com.smartgwt.client.widgets.tree.events.LeafClickHandler;
 import cz.incad.pas.editor.client.ClientUtils.SweepTask;
+import cz.incad.pas.editor.client.action.AbstractAction;
+import cz.incad.pas.editor.client.action.ActionEvent;
+import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.ds.LanguagesDataSource;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
@@ -114,14 +120,6 @@ public class Editor implements EntryPoint {
 
     @Override
     public void onModuleLoad() {
-//        if (true) {
-//            Canvas canvas = new Canvas();
-//            canvas.setContents("test");
-//            canvas.setWidth100();
-//            canvas.setHeight100();
-//            canvas.draw();
-//            return;
-//        }
         INSTANCE = this;
         initLogging();
         
@@ -167,9 +165,9 @@ public class Editor implements EntryPoint {
 //        mainLayout.setLayoutMargin(5);
         mainLayout.setWidth100();
         mainLayout.setHeight100();
-        mainLayout.setMembers(menu, getDisplay());
+        mainLayout.setMembers(getDisplay());
 
-        Canvas mainHeader = createMainHeader();
+        Canvas mainHeader = createMainHeader(menu);
 
         VLayout desktop = new VLayout(0);
         desktop.setWidth100();
@@ -209,10 +207,9 @@ public class Editor implements EntryPoint {
         return editorDisplay;
     }
 
-    private Canvas createMainHeader() {
+    private Canvas createMainHeader(final TreeGrid menu) {
         ToolStrip mainHeader = new ToolStrip();
         mainHeader.setWidth100();
-//        mainHeader.setHeight(33);
         mainHeader.setHeight(40);
 
         mainHeader.addSpacer(6);
@@ -226,11 +223,46 @@ public class Editor implements EntryPoint {
         mainHeader.addFill();
 
         DynamicForm langForm = new DynamicForm();
+        langForm.setLayoutAlign(VerticalAlignment.BOTTOM);
         langForm.setNumCols(3);
         langForm.setFields(createUserLink(), createLangLink("cs", "Česky"), createLangLink("en", "English"));
         langForm.setAutoWidth();
         langForm.setAutoHeight();
         mainHeader.addMember(langForm);
+
+        final com.smartgwt.client.widgets.Window menuWindow = new com.smartgwt.client.widgets.Window();
+        menuWindow.setCanDragReposition(false);
+        menuWindow.setAutoSize(true);
+        menuWindow.setDismissOnEscape(true);
+        menuWindow.setDismissOnOutsideClick(true);
+        menuWindow.setShowFooter(false);
+        menuWindow.setShowHeader(false);
+        menuWindow.setShowEdges(false);
+        menuWindow.setIsModal(true);
+        menuWindow.addItem(menu);
+        menuWindow.setDefaultWidth(200);
+        menuWindow.setShowShadow(true);
+        final IconMenuButton[] globalMenuButton = new IconMenuButton[1];
+        globalMenuButton[0] = Actions.asIconMenuButton(new AbstractAction(
+                i18n.MainMenu_Title(), null, null) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+                Canvas c = globalMenuButton[0];
+                int top = c.getBottom() + 2;
+                int left = c.getLeft() - 150;
+                menuWindow.setTop(top);
+                menuWindow.setLeft(left);
+                menuWindow.show();
+                // showNextTo draws window outside of page
+//                menuWindow.showNextTo(globalMenuButton[0], "bottom");
+                menu.focus();
+            }
+        }, new Object());
+        globalMenuButton[0].setAutoWidth();
+        mainHeader.addMember(globalMenuButton[0]);
+
+        mainHeader.addSpacer(6);
 
         return mainHeader;
     }
@@ -305,16 +337,14 @@ public class Editor implements EntryPoint {
 
     private TreeGrid createMenu() {
         final TreeGrid menu = new TreeGrid();
-        menu.setHeight100();
-        menu.setAutoFitData(Autofit.HORIZONTAL);
-        menu.setShowResizeBar(true);
+        menu.setAutoFitData(Autofit.VERTICAL);
         menu.setLeaveScrollbarGap(false);
-//        menu.setWidth(200);
 
         menu.setShowHeader(false);
         menu.setShowOpener(false);
         menu.setShowOpenIcons(false);
         menu.setCanCollapseGroup(false);
+        menu.setSelectionType(SelectionStyle.NONE);
         menu.addFolderClosedHandler(new FolderClosedHandler() {
 
             @Override
@@ -326,6 +356,12 @@ public class Editor implements EntryPoint {
 
             @Override
             public void onLeafClick(LeafClickEvent event) {
+                for (Canvas parent = menu.getParentElement(); parent != null; parent = parent.getParentElement()) {
+                    if (parent instanceof com.smartgwt.client.widgets.Window) {
+                        ((com.smartgwt.client.widgets.Window) parent).hide();
+                        break;
+                    }
+                }
                 ClientUtils.fine(LOG, "menu.getSelectedPaths: %s\nmenu.getSelectedRecord: %s",
                         menu.getSelectedPaths(), menu.getSelectedRecord());
                 String name = event.getLeaf().getName();
