@@ -16,15 +16,25 @@
  */
 package cz.incad.pas.editor.client.ds;
 
+import com.google.gwt.core.shared.GWT;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.PromptStyle;
+import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.action.DeleteAction.Deletable;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.incad.pas.editor.client.widget.StatusView;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 /**
@@ -60,6 +70,54 @@ public final class DigitalObjectDataSource extends RestDataSource {
     public static DigitalObjectDataSource getInstance() {
         DigitalObjectDataSource ds = (DigitalObjectDataSource) DataSource.get(ID);
         return  ds != null ? ds : new DigitalObjectDataSource();
+    }
+
+    /**
+     * @see cz.incad.pas.editor.client.action.DeleteAction
+     */
+    public static Deletable createDeletable() {
+        return new Deletable() {
+
+            @Override
+            public void delete(Object[] items) {
+                if (items != null && items.length > 0) {
+                    String[] pids = ClientUtils.toFieldValues((Record[]) items, DigitalObjectDataSource.FIELD_PID);
+                    DigitalObjectDataSource.getInstance().delete(pids);
+                }
+            }
+        };
+    }
+
+    /**
+     * Deletes list of digital objects.
+     * <p>For now it marks whole object hierarchy with state Deleted.
+     * @param pids digital object IDs
+     */
+    public void delete(String[] pids) {
+        final ClientMessages i18n = GWT.create(ClientMessages.class);
+        HashMap<String, String> deleteParams = new HashMap<String, String>();
+        deleteParams.put(DigitalObjectResourceApi.DELETE_PURGE_PARAM,
+                Boolean.FALSE.toString());
+        deleteParams.put(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM,
+                Boolean.TRUE.toString());
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setPromptStyle(PromptStyle.DIALOG);
+        dsRequest.setPrompt(i18n.DeleteAction_Deleting_Msg());
+        dsRequest.setParams(deleteParams);
+        Record query = new Record();
+        query.setAttribute(FIELD_PID, pids);
+        DigitalObjectDataSource.getInstance().removeData(query, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (RestConfig.isStatusOk(response)) {
+                    StatusView.getInstance().show(i18n.DeleteAction_Done_Msg());
+                    DigitalObjectDataSource.this.updateCaches(response, request);
+                    SearchDataSource.getInstance().updateCaches(response, request);
+                    RelationDataSource.getInstance().updateCaches(response, request);
+                }
+            }
+        }, dsRequest);
     }
 
     public static final class DigitalObject {

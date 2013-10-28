@@ -63,6 +63,7 @@ import cz.incad.pas.editor.client.action.Action;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.Actions.ActionSource;
+import cz.incad.pas.editor.client.action.DeleteAction;
 import cz.incad.pas.editor.client.action.DigitalObjectEditAction;
 import cz.incad.pas.editor.client.action.DigitalObjectFormValidateAction;
 import cz.incad.pas.editor.client.action.DigitalObjectFormValidateAction.ValidatableList;
@@ -88,8 +89,6 @@ import java.util.logging.Logger;
  * Edits children objects of the digital object.
  * It allows to change order of children, to edit a selected child using
  * particular data stream editor.
- *
- * XXX remove selected children
  *
  * @author Jan Pokorsky
  */
@@ -211,9 +210,11 @@ public final class DigitalObjectChildrenEditor
                 save();
             }
         };
+        DeleteAction deleteAction = new DeleteAction(DigitalObjectDataSource.createDeletable(), i18n);
         addActionButton = Actions.asIconMenuButton(addAction, this);
         return new Canvas[] {
             addActionButton,
+            Actions.asIconButton(deleteAction, actionSource),
             Actions.asIconButton(new DigitalObjectEditAction(
                         i18n.DigitalObjectEditor_ChildrenEditor_ChildAction_Title(),
                         i18n.DigitalObjectEditor_ChildrenEditor_ChildAction_Hint(),
