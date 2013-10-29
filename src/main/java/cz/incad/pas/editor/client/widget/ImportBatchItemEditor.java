@@ -55,8 +55,6 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.Menu;
-import com.smartgwt.client.widgets.menu.MenuItem;
-import com.smartgwt.client.widgets.menu.MenuItemSeparator;
 import com.smartgwt.client.widgets.tile.TileGrid;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.viewer.DetailFormatter;
@@ -564,26 +562,9 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     }
 
     private Menu createEditorContextMenu(Menu menu, Object contextSource) {
-        MenuItem miRedraw = Actions.asMenuItem(new AbstractAction("Reset", null, null) {
-
-            @Override
-            public void performAction(ActionEvent event) {
-                Object source = event.getSource();
-                if (source == batchItemGrid) {
-                    batchItemGrid.clear();
-                    batchItemGrid.draw();
-                } else if (source == thumbViewer) {
-                    thumbViewer.clear();
-                    thumbViewer.draw();
-                }
-            }
-        }, contextSource);
-
         menu.addItem(Actions.asMenuItem(foxmlViewAction, contextSource, true));
         menu.addItem(Actions.asMenuItem(deleteAction, contextSource, true));
         menu.addItem(Actions.asMenuItem(DigitalObjectFormValidateAction.getInstance(i18n), new ValidatableList(batchItemGrid), false));
-        menu.addItem(new MenuItemSeparator());
-        menu.addItem(miRedraw);
         return menu;
     }
 
