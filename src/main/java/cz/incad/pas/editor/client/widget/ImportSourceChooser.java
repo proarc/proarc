@@ -22,12 +22,14 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.SelectionStyle;
+import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.tree.Tree;
 import com.smartgwt.client.widgets.tree.TreeGrid;
 import com.smartgwt.client.widgets.tree.TreeGridField;
@@ -36,12 +38,24 @@ import com.smartgwt.client.widgets.tree.events.FolderClickEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClickHandler;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.action.AbstractAction;
+import cz.incad.pas.editor.client.action.Action;
+import cz.incad.pas.editor.client.action.ActionEvent;
+import cz.incad.pas.editor.client.action.Actions;
+import cz.incad.pas.editor.client.action.RefreshAction;
+import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.ds.DeviceDataSource;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 import cz.incad.pas.editor.client.ds.ImportTreeDataSource;
+import cz.incad.pas.editor.client.ds.ImportTreeDataSource.ImportRecord;
 import java.util.logging.Logger;
 
-public final class ImportSourceChooser extends VLayout {
+/**
+ * UI allowing to select file system folder with digitalized content.
+ *
+ * @author Jan Pokorsky
+ */
+public final class ImportSourceChooser extends VLayout implements Refreshable {
 
     private static final Logger LOG = Logger.getLogger(ImportSourceChooser.class.getName());
 
@@ -52,24 +66,32 @@ public final class ImportSourceChooser extends VLayout {
     private final Label lblCurrSelection;
     private ImportSourceChooserHandler viewHandler;
     private final ClientMessages i18n;
-    
+    private IconButton loadButton;
+
     public ImportSourceChooser(ClientMessages i18n) {
         this.i18n = i18n;
         VLayout layout = this;
         setWidth100();
         setHeight100();
-        
+        VLayout innerLayout = new VLayout();
+        innerLayout.setLayoutMargin(4);
+
         lblCurrSelection = new Label(i18n.ImportSourceChooser_NothingSelected_Title());
         lblCurrSelection.setWidth100();
         lblCurrSelection.setAutoFit(true);
-        layout.addMember(lblCurrSelection);
-        
+        lblCurrSelection.setMargin(4);
+        lblCurrSelection.setCanSelectText(true);
+
         treeGrid = new TreeGrid();
         treeGrid.setHeight100();
         treeGrid.setDataSource(dataSource);
+        TreeGridField stateField = new TreeGridField(
+                ImportTreeDataSource.FIELD_STATE,
+                i18n.ImportSourceChooser_TreeHeaderImportState_Title());
+        stateField.setWidth(100);
         treeGrid.setFields(
                 new TreeGridField(ImportTreeDataSource.FIELD_NAME, i18n.ImportSourceChooser_TreeHeaderFolderName_Title()),
-                new TreeGridField(ImportTreeDataSource.FIELD_STATE, i18n.ImportSourceChooser_TreeHeaderImportState_Title()));
+                stateField);
         treeGrid.setShowConnectors(true);
         treeGrid.setEmptyMessage(i18n.ImportSourceChooser_NoDataOnServer_Title());
         treeGrid.setAlternateRecordStyles(true);
@@ -86,9 +108,13 @@ public final class ImportSourceChooser extends VLayout {
             }
         });
 
-        layout.addMember(treeGrid);
+        ToolStrip toolbar = createToolbar();
 
         optionsForm = new DynamicForm();
+        optionsForm.setNumCols(10);
+        optionsForm.setGroupTitle(i18n.ImportSourceChooser_Options_Title());
+        optionsForm.setIsGroup(true);
+        optionsForm.setWrapItemTitles(false);
 //        SelectItem selectModel = new SelectItem("model", i18n.ImportSourceChooser_OptionImportModel_Title());
         CheckboxItem cbiPageIndexes = new CheckboxItem(ImportBatchDataSource.FIELD_INDICES,
                 i18n.ImportSourceChooser_OptionPageIndices_Title());
@@ -101,16 +127,20 @@ public final class ImportSourceChooser extends VLayout {
         selectScanner.setEmptyDisplayValue(
                 ClientUtils.format("<i>&lt;%s&gt;</i>", i18n.NewDigObject_OptionModel_EmptyValue_Title()));
         selectScanner.setRequired(true);
-        
-        optionsForm.setFields(cbiPageIndexes, selectScanner);
-        layout.addMember(optionsForm);
+        selectScanner.setWidth(300);
+
+        optionsForm.setFields(selectScanner, cbiPageIndexes);
+
+        innerLayout.setMembers(optionsForm, lblCurrSelection, treeGrid);
+        layout.setMembers(toolbar, innerLayout);
     }
 
     public void setViewHandler(ImportSourceChooserHandler handler) {
         this.viewHandler = handler;
     }
 
-    public void setFolderDataSource(DataSource ds) {
+    public void edit() {
+        optionsForm.resetValues();
         this.treeGrid.fetchData(null, new DSCallback() {
 
             @Override
@@ -120,10 +150,6 @@ public final class ImportSourceChooser extends VLayout {
                 updateOnSelection();
             }
         });
-    }
-
-    public void setDigitalObjectModelDataSource(DataSource ds) {
-        optionsForm.resetValues();
     }
 
     public Record getImportSource() {
@@ -149,6 +175,7 @@ public final class ImportSourceChooser extends VLayout {
     /**
      * Refreshes selected node or the whole tree.
      */
+    @Override
     public void refresh() {
         Tree tree = treeGrid.getTree();
         TreeNode node = (TreeNode) treeGrid.getSelectedRecord();
@@ -168,12 +195,31 @@ public final class ImportSourceChooser extends VLayout {
                 ? i18n.ImportSourceChooser_NothingSelected_Title()
                 : selectedRecord.getAttribute(ImportTreeDataSource.FIELD_PATH);
         lblCurrSelection.setContents(label);
-        viewHandler.sourceSelected();
+        ImportRecord importRecord = selectedRecord == null ? null : new ImportRecord(selectedRecord);
+        loadButton.setDisabled(importRecord == null || !importRecord.isNew());
+    }
+
+    private ToolStrip createToolbar() {
+        ToolStrip t = Actions.createToolStrip();
+        RefreshAction refreshAction = new RefreshAction(i18n);
+        t.addMember(Actions.asIconButton(refreshAction, this));
+
+        Action loadAction = new AbstractAction(i18n.ImportWizard_ButtonLoadFolder_Title(),
+                "[SKIN]/actions/save.png", null) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+                viewHandler.sourceSelected();
+            }
+        };
+        loadButton = Actions.asIconButton(loadAction, this);
+        t.addMember(loadButton);
+        return t;
     }
 
     public interface ImportSourceChooserHandler {
 
         void sourceSelected();
-        
+
     }
 }

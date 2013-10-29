@@ -97,10 +97,12 @@ public class ImportPresenter {
 
     public void importFolder() {
         wizard.moveAt(selectFolderStep);
+        wizard.setShowButtons(false);
     }
 
     public void updateImportedObjects() {
         wizard.moveAt(updateItemsStep);
+        wizard.setShowButtons(true);
     }
     
     public void updateImportedObjects(String batchId) {
@@ -108,10 +110,12 @@ public class ImportPresenter {
         batchRecord.setId(batchId);
         getImportContext().setBatch(batchRecord);
         wizard.moveAt(updateItemsStep);
+        wizard.setShowButtons(true);
     }
 
     public void selectParent() {
         wizard.moveAt(selectParentStep);
+        wizard.setShowButtons(true);
     }
 
     public void selectParent(String batchId) {
@@ -119,14 +123,17 @@ public class ImportPresenter {
         batchRecord.setId(batchId);
         getImportContext().setBatch(batchRecord);
         wizard.moveAt(selectParentStep);
+        wizard.setShowButtons(true);
     }
 
     public void selectBatchFromHistory() {
         wizard.moveAt(selectBatchStep);
+        wizard.setShowButtons(true);
     }
 
     public void finishImport() {
         wizard.moveAt(finishedStep);
+        wizard.setShowButtons(true);
     }
 
     private void loadBatch(final String batchId, final Runnable callback) {
@@ -267,16 +274,12 @@ public class ImportPresenter {
         @Override
         public void onShow(Wizard wizard) {
             this.wizard = wizard;
-            wizard.setBackButton(false, null);
-            wizard.setForwardButton(true, i18n.ImportWizard_ButtonLoadFolder_Title());
             wizard.setWizardLabel(i18n.ImportWizard_DescriptionPrefix_Title(),
                     i18n.ImportWizard_SelectFolderStep_Description_Title());
-            wizard.setCanStepForward(false);
 
             ImportPresenter.this.importContext = new ImportContext();
             importSourceChooser.setViewHandler(this);
-            importSourceChooser.setDigitalObjectModelDataSource(null);
-            importSourceChooser.setFolderDataSource(null);
+            importSourceChooser.edit();
         }
 
         @Override
@@ -286,10 +289,6 @@ public class ImportPresenter {
 
         @Override
         public boolean onStepAction(Wizard wizard, StepKind step) {
-            if (step == StepKind.FORWARD) {
-                handleImportSource();
-                return false;
-            }
             return true;
         }
 
@@ -303,13 +302,7 @@ public class ImportPresenter {
 
         @Override
         public void sourceSelected() {
-            Record record = importSourceChooser.getImportSource();
-            ImportRecord importRecord = record == null ? null : new ImportRecord(record);
-            if (importRecord != null && importRecord.isNew()) {
-                wizard.setCanStepForward(true);
-            } else {
-                wizard.setCanStepForward(false);
-            }
+            handleImportSource();
         }
 
         private void handleImportSource() {

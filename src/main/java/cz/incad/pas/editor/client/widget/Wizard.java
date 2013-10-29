@@ -39,6 +39,7 @@ import cz.incad.pas.editor.client.ClientUtils;
 public class Wizard extends VLayout {
     
     private final String WIZARD_LABEL_PREFIX = "<b>%s</b> - %s";
+    private final HLayout bottomLayout;
 
     public enum StepKind {BACK, FORWARD, CANCEL}
     private final ClientMessages i18n;
@@ -70,7 +71,7 @@ public class Wizard extends VLayout {
         
         addMember(stepContainer);
         
-        HLayout bottomLayout = new HLayout();
+        bottomLayout = new HLayout();
         bottomLayout.setAlign(Alignment.RIGHT);
         bottomLayout.setDefaultLayoutAlign(VerticalAlignment.CENTER);
         bottomLayout.setBorder("1px solid gray");
@@ -101,6 +102,14 @@ public class Wizard extends VLayout {
         btnCancel = new IButton("Cancel");
 //        bottomLayout.addMember(btnCancel);
         addMember(bottomLayout);
+    }
+
+    /**
+     * Helper to use the wizard just as a container.
+     * @param showSteps
+     */
+    public void setShowButtons(boolean showSteps) {
+        bottomLayout.setVisible(showSteps);
     }
 
     public void setWizardLabel(String title, String msg) {
