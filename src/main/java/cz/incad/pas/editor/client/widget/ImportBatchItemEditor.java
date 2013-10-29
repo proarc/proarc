@@ -62,6 +62,7 @@ import com.smartgwt.client.widgets.viewer.DetailViewerField;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.AbstractAction;
+import cz.incad.pas.editor.client.action.Action;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.DeleteAction;
@@ -112,6 +113,8 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private final PlaceController childPlaces;
     private final DigitalObjectEditor childEditor;
     private ReorderTask reorderTask = new ReorderTask();
+    private Action resumeAction;
+    private Handler handler;
 
     public ImportBatchItemEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -162,6 +165,10 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         addMember(previewLayout);
         createEditorContextMenu(batchItemGrid.getContextMenu(), this);
         createEditorContextMenu(thumbViewer.getContextMenu(), this);
+    }
+
+    public void setHandler(Handler handler) {
+        this.handler = handler;
     }
 
     public void onShow(BatchRecord batch) {
@@ -548,6 +555,18 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         deleteAction = new DeleteAction(
                 new RecordDeletable(batchItemGrid.getDataSource(), i18n), i18n);
         selectAllAction = new SelectAction();
+        resumeAction = new AbstractAction(
+                i18n.ImportBatchItemEditor_ActionResume_Title(),
+                "[SKIN]/actions/next.png",
+                i18n.ImportBatchItemEditor_ActionResume_Hint()) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+                if (handler != null) {
+                    handler.handleNextAction();
+                }
+            }
+        };
     }
 
     private ToolStrip createEditorToolBar() {
@@ -558,6 +577,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         toolbar.addMember(Actions.asIconButton(deleteAction, this));
         toolbar.addMember(Actions.asIconButton(DigitalObjectFormValidateAction.getInstance(i18n),
                 new ValidatableList(batchItemGrid)));
+        toolbar.addMember(Actions.asIconButton(resumeAction, this));
         return toolbar;
     }
 
@@ -776,6 +796,11 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 }
             });
         }
+    }
+
+    public interface Handler {
+
+        void handleNextAction();
     }
 
 }

@@ -110,7 +110,7 @@ public class ImportPresenter {
         batchRecord.setId(batchId);
         getImportContext().setBatch(batchRecord);
         wizard.moveAt(updateItemsStep);
-        wizard.setShowButtons(true);
+        wizard.setShowButtons(false);
     }
 
     public void selectParent() {
@@ -368,17 +368,16 @@ public class ImportPresenter {
 
     }
 
-    private final class UpdateItemsStep implements WizardStep {
+    private final class UpdateItemsStep implements WizardStep, ImportBatchItemEditor.Handler {
 
         private ImportBatchItemEditor widget;
 
         @Override
         public void onShow(Wizard wizard) {
-            wizard.setBackButton(true, i18n.ImportWizard_ButtonLoadNextFolder_Title());
-            wizard.setForwardButton(true, null);
             wizard.setWizardLabel(i18n.ImportWizard_DescriptionPrefix_Title(),
                     i18n.ImportWizard_UpdateItemsStep_Description_Title());
             BatchRecord batch = getImportContext().getBatch();
+            widget.setHandler(this);
             widget.onShow(batch);
         }
 
@@ -389,21 +388,7 @@ public class ImportPresenter {
 
         @Override
         public boolean onStepAction(final Wizard wizard, final StepKind step) {
-            widget.onHide(new BooleanCallback() {
-
-                @Override
-                public void execute(Boolean value) {
-                    ImportPlace place;
-                    if (step == StepKind.BACK) {
-                        place = new ImportPlace(Type.CONTENT);
-                    } else {
-                        BatchRecord batch = getImportContext().getBatch();
-                        place = new ImportPlace(Type.EDIT_PARENT, batch.getId());
-                    }
-                    placeController.goTo(place);
-                }
-            });
-            return false;
+            return true;
         }
 
         @Override
@@ -412,6 +397,13 @@ public class ImportPresenter {
                 widget = new ImportBatchItemEditor(i18n);
             }
             return widget;
+        }
+
+        @Override
+        public void handleNextAction() {
+            BatchRecord batch = getImportContext().getBatch();
+            ImportPlace place = new ImportPlace(Type.EDIT_PARENT, batch.getId());
+            placeController.goTo(place);
         }
 
     }
