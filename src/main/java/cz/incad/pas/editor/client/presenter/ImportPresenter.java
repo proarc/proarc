@@ -128,7 +128,7 @@ public class ImportPresenter {
 
     public void selectBatchFromHistory() {
         wizard.moveAt(selectBatchStep);
-        wizard.setShowButtons(true);
+        wizard.setShowButtons(false);
     }
 
     public void finishImport() {
@@ -219,11 +219,8 @@ public class ImportPresenter {
         @Override
         public void onShow(Wizard wizard) {
             this.wizard = wizard;
-            wizard.setBackButton(false, null); // XXX this could be "Import New Folder"
-            wizard.setForwardButton(true, i18n.ImportWizard_ButtonResume_Title());
             wizard.setWizardLabel(i18n.ImportWizard_DescriptionPrefix_Title(),
                     i18n.ImportWizard_SelectBatchStep_Description_Title());
-            wizard.setCanStepForward(false);
             widget.setHandler(this);
             widget.bind();
         }
@@ -236,14 +233,7 @@ public class ImportPresenter {
 
         @Override
         public boolean onStepAction(Wizard wizard, StepKind step) {
-            if (step == StepKind.FORWARD) {
-                Record record = widget.getSelectedBatch();
-                BatchRecord batch = new BatchRecord(record);
-                getImportContext().setBatch(batch);
-                placeController.goTo(new ImportPlace(Type.EDIT_ITEMS, batch.getId()));
-                return false;
-            }
-            return false;
+            return true;
         }
 
         @Override
@@ -257,12 +247,9 @@ public class ImportPresenter {
         @Override
         public void itemSelected() {
             Record record = widget.getSelectedBatch();
-            if (record != null) {
-                boolean canForward = new BatchRecord(record).getState() == ImportBatchDataSource.State.LOADED;
-                wizard.setCanStepForward(canForward);
-            } else {
-                wizard.setCanStepForward(false);
-            }
+            BatchRecord batch = new BatchRecord(record);
+            getImportContext().setBatch(batch);
+            placeController.goTo(new ImportPlace(Type.EDIT_ITEMS, batch.getId()));
         }
 
     }

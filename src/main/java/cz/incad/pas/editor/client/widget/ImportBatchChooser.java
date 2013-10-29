@@ -1,25 +1,22 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.incad.pas.editor.client.widget;
 
 import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.AutoFitWidthApproach;
 import com.smartgwt.client.types.SelectionStyle;
@@ -27,12 +24,25 @@ import com.smartgwt.client.types.SortDirection;
 import com.smartgwt.client.widgets.form.fields.MiniDateRangeItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
+import com.smartgwt.client.widgets.grid.events.CellDoubleClickEvent;
+import com.smartgwt.client.widgets.grid.events.CellDoubleClickHandler;
+import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
+import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.action.AbstractAction;
+import cz.incad.pas.editor.client.action.Action;
+import cz.incad.pas.editor.client.action.ActionEvent;
+import cz.incad.pas.editor.client.action.Actions;
+import cz.incad.pas.editor.client.action.Actions.ActionSource;
+import cz.incad.pas.editor.client.action.RefreshAction;
+import cz.incad.pas.editor.client.action.RefreshAction.Refreshable;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
+import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 
 /**
  * The widget to select a batch from import history. There should be 2 kinds of
@@ -41,22 +51,28 @@ import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
  *
  * @author Jan Pokorsky
  */
-public final class ImportBatchChooser extends VLayout {
+public final class ImportBatchChooser extends VLayout implements Refreshable {
 
     private ImportBatchChooserHandler handler;
     private final ListGrid lGridBatches;
     private final ClientMessages i18n;
+    private final ActionSource actionSource;
+    private Action resumeAction;
 
     public ImportBatchChooser(ClientMessages i18n) {
         this.i18n = i18n;
-        
+        this.actionSource = new ActionSource(this);
+
         setWidth100();
         setHeight100();
-//        setContents("Import Batch History");
 
         lGridBatches = initBatchesListGrid();
+        lGridBatches.setMargin(4);
         lGridBatches.setDataSource(ImportBatchDataSource.getInstance());
-        
+
+        ToolStrip toolbar = createToolbar();
+
+        addMember(toolbar);
         addMember(lGridBatches);
     }
 
@@ -66,6 +82,7 @@ public final class ImportBatchChooser extends VLayout {
         lg.setCanReorderFields(false);
         lg.setShowFilterEditor(true);
         lg.setFilterOnKeypress(true);
+        lg.setGenerateDoubleClickOnEnter(true);
         ListGridField lgfFolder = new ListGridField(ImportBatchDataSource.FIELD_DESCRIPTION,
                 i18n.ImportBatchDataSource_FolderFieldTitle());
 //        lgfFolder.setAutoFitWidth(false);
@@ -107,20 +124,38 @@ public final class ImportBatchChooser extends VLayout {
         lg.setInitialCriteria(filter);
         lg.setSortField(lgfDate.getName());
         lg.setSortDirection(SortDirection.DESCENDING);
+        lg.addDataArrivedHandler(new DataArrivedHandler() {
+
+            @Override
+            public void onDataArrived(DataArrivedEvent event) {
+                int startRow = event.getStartRow();
+                if (startRow == 0) {
+                    lGridBatches.selectSingleRecord(0);
+                    lGridBatches.focus();
+                }
+            }
+        });
+        lg.addCellDoubleClickHandler(new CellDoubleClickHandler() {
+
+            @Override
+            public void onCellDoubleClick(CellDoubleClickEvent event) {
+                ActionEvent evt = new ActionEvent(actionSource.getSource());
+                if (resumeAction.accept(evt)) {
+                    resumeAction.performAction(evt);
+                }
+            }
+        });
         return lg;
+    }
+
+    @Override
+    public void refresh() {
+        bind();
     }
 
     public void bind() {
         lGridBatches.invalidateCache();
-        lGridBatches.fetchData(lGridBatches.getCriteria(), new DSCallback() {
-
-            @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                lGridBatches.selectRecord(0);
-                updateOnSelection();
-                lGridBatches.focus();
-            }
-        });
+        lGridBatches.fetchData(lGridBatches.getCriteria());
     }
 
     public void setHandler(ImportBatchChooserHandler handler) {
@@ -132,9 +167,34 @@ public final class ImportBatchChooser extends VLayout {
     }
 
     private void updateOnSelection() {
-        if (handler != null) {
-            handler.itemSelected();
-        }
+        actionSource.fireEvent();
+    }
+
+    private ToolStrip createToolbar() {
+        ToolStrip t = Actions.createToolStrip();
+        RefreshAction refreshAction = new RefreshAction(i18n);
+        t.addMember(Actions.asIconButton(refreshAction, this));
+
+        resumeAction = new AbstractAction(i18n.ImportBatchChooser_ActionResume_Title(),
+                "[SKIN]/actions/next.png", i18n.ImportBatchChooser_ActionResume_Hint()) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+                handler.itemSelected();
+            }
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                Record record = getSelectedBatch();
+                if (record != null) {
+                    return new BatchRecord(record).getState() == ImportBatchDataSource.State.LOADED;
+                }
+                return false;
+            }
+        };
+        t.addMember(Actions.asIconButton(resumeAction, actionSource));
+
+        return t;
     }
 
     public interface ImportBatchChooserHandler {
