@@ -1,3 +1,7 @@
 /target
 /proarc-common/target/
 /proarc-oaidublincore/target/
+/.classpath
+/.gwt
+/.project
+/.settings
