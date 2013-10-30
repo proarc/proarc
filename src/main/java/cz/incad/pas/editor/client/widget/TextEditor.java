@@ -71,6 +71,11 @@ public final class TextEditor implements DatastreamEditor, Refreshable, Selectab
     }
 
     @Override
+    public void focus() {
+        editor.focus();
+    }
+
+    @Override
     public Canvas[] getToolbarItems() {
         return new Canvas[] {
             Actions.asIconButton(saveAction, this)

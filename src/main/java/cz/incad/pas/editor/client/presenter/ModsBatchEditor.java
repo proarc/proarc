@@ -70,6 +70,13 @@ public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable
     }
 
     @Override
+    public void focus() {
+        if (panel != null) {
+            panel.focus();
+        }
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T getCapability(Class<T> clazz) {
         T c = null;

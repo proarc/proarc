@@ -28,6 +28,8 @@ public interface DatastreamEditor {
 
     public void edit(DigitalObject digitalObject);
 
+    public void focus();
+
     public <T> T getCapability(Class<T> clazz);
 
     public Canvas[] getToolbarItems();

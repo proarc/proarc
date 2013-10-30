@@ -69,6 +69,13 @@ public final class ModsFullEditor implements DatastreamEditor, Refreshable {
     }
 
     @Override
+    public void focus() {
+        if (modsContainer != null) {
+            modsContainer.focus();
+        }
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T getCapability(Class<T> clazz) {
         T c = null;

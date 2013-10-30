@@ -137,6 +137,10 @@ public final class ImportParentChooser {
         this.parentOwnerCheck = check;
     }
 
+    public void focus() {
+        foundView.getGrid().focus();
+    }
+
     private void init(String pid, String batchId) {
         oldParent = null;
         newParent = null;

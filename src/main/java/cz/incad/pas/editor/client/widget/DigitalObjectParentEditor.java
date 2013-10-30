@@ -81,6 +81,11 @@ public final class DigitalObjectParentEditor implements BatchDatastreamEditor, R
     }
 
     @Override
+    public void focus() {
+        chooser.focus();
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T getCapability(Class<T> clazz) {
         // refresh

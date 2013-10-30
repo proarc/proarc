@@ -109,6 +109,13 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
         actionSource.fireEvent();
     }
 
+    @Override
+    public void focus() {
+        if (activeEditor != null) {
+            activeEditor.focus();
+        }
+    }
+
     public void save(BooleanCallback callback) {
         callback = wrapSaveCallback(callback);
         if (activeEditor == modsCustomEditor) {

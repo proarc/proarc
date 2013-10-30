@@ -99,6 +99,13 @@ public final class ModsCustomEditor implements DatastreamEditor, Refreshable {
         }
     }
 
+    @Override
+    public void focus() {
+        if (activeEditor != null) {
+            activeEditor.focus();
+        }
+    }
+
     /**
      * Validates loaded digital object.
      * @return values are valid
@@ -182,6 +189,7 @@ public final class ModsCustomEditor implements DatastreamEditor, Refreshable {
                     editedCustomRecord = response.getData()[0];
                 }
                 callback.execute(status);
+                activeEditor.focus();
             }
         });
     }

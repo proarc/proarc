@@ -80,6 +80,15 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
     }
 
     @Override
+    public void focus() {
+        if (activeEditor instanceof PlainEditor) {
+            plainEditor.getForm().focus();
+        } else if (activeEditor instanceof BatchEditor) {
+            batchEditor.getForm().focus();
+        }
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T getCapability(Class<T> clazz) {
         T c = null;

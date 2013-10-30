@@ -71,6 +71,11 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     }
 
     @Override
+    public void focus() {
+        // no-op
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T getCapability(Class<T> clazz) {
         T c = null;

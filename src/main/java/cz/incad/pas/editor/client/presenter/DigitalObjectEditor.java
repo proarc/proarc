@@ -157,6 +157,12 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         task.start();
     }
 
+    public void focus() {
+        if (currentEditor != null) {
+            currentEditor.getEditor().focus();
+        }
+    }
+
     private void setSelection(Record[] records) {
         this.selection = records;
         actionSource.fireEvent();

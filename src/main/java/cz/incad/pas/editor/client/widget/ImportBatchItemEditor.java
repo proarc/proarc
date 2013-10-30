@@ -430,6 +430,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                         if (nextSelection >= 0) {
                             batchItemGrid.selectSingleRecord(nextSelection);
                             batchItemGrid.scrollToRow(nextSelection);
+                            childEditor.focus();
                         }
                     } else {
                         request.setOperationType(DSOperationType.UPDATE);

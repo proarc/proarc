@@ -189,6 +189,11 @@ public final class DigitalObjectChildrenEditor
     }
 
     @Override
+    public void focus() {
+        childrenListGrid.focus();
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T getCapability(Class<T> clazz) {
         T c = null;

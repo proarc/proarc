@@ -107,6 +107,11 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
     }
 
     @Override
+    public void focus() {
+        sourceForm.focus();
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T getCapability(Class<T> clazz) {
         T c = null;
