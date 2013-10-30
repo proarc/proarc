@@ -26,7 +26,15 @@ import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.action.AbstractAction;
+import cz.incad.pas.editor.client.action.Action;
+import cz.incad.pas.editor.client.action.ActionEvent;
+import cz.incad.pas.editor.client.action.Actions;
+import cz.incad.pas.editor.client.action.Actions.ActionSource;
+import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
@@ -115,7 +123,7 @@ public class ImportPresenter {
 
     public void selectParent() {
         wizard.moveAt(selectParentStep);
-        wizard.setShowButtons(true);
+        wizard.setShowButtons(false);
     }
 
     public void selectParent(String batchId) {
@@ -123,7 +131,7 @@ public class ImportPresenter {
         batchRecord.setId(batchId);
         getImportContext().setBatch(batchRecord);
         wizard.moveAt(selectParentStep);
-        wizard.setShowButtons(true);
+        wizard.setShowButtons(false);
     }
 
     public void selectBatchFromHistory() {
@@ -412,11 +420,11 @@ public class ImportPresenter {
 
         private ImportParentChooser widget;
         private Wizard wizard;
+        private VLayout container;
+        private final ActionSource actionSource = new ActionSource(this);
 
         @Override
         public void onShow(Wizard wizard) {
-            wizard.setBackButton(true, null);
-            wizard.setForwardButton(true, i18n.ImportWizard_ButtonImport_Title());
             wizard.setWizardLabel(i18n.ImportWizard_DescriptionPrefix_Title(),
                     i18n.ImportWizard_SelectParentStep_Description_Title());
             this.wizard = wizard;
@@ -443,10 +451,7 @@ public class ImportPresenter {
 
         private void canStep() {
             BatchRecord batch = getImportContext().getBatch();
-            String batchId = batch != null ? batch.getId() : null;
-            String parentPid = batch != null ? batch.getParentPid() : null;
-            wizard.setCanStepBack(batchId != null);
-            wizard.setCanStepForward(batchId != null && parentPid != null);
+            actionSource.fireEvent();
             widget.getUI().setVisible(batch != null);
         }
 
@@ -510,8 +515,44 @@ public class ImportPresenter {
                 widget = new ImportParentChooser(i18n);
                 widget.setParentOwnerCheck(true);
                 widget.getUI().setMargin(4);
+
+                container = new VLayout();
+                container.setMembers(buildToolbar(), widget.getUI());
             }
-            return widget.getUI();
+            return container;
+        }
+
+        private Canvas buildToolbar() {
+            Action ingestAction = new AbstractAction(i18n.ImportWizard_ButtonImport_Title(),
+                    "[SKIN]/actions/save.png", i18n.ImportWizard_ButtonImport_Hint()) {
+
+                @Override
+                public void performAction(ActionEvent event) {
+                    onStepAction(wizard, StepKind.FORWARD);
+                }
+
+                @Override
+                public boolean accept(ActionEvent event) {
+                    BatchRecord batch = getImportContext().getBatch();
+                    String batchId = batch != null ? batch.getId() : null;
+                    String parentPid = batch != null ? batch.getParentPid() : null;
+                    return batchId != null && parentPid != null;
+                }
+            };
+
+            Action backAction = new AbstractAction(i18n.ImportWizard_UpdateItemsStepAction_Title(),
+                    "[SKIN]/actions/prev.png", i18n.ImportWizard_UpdateItemsStepAction_Hint()) {
+
+                @Override
+                public void performAction(ActionEvent event) {
+                    onStepAction(wizard, StepKind.BACK);
+                }
+            };
+            ToolStrip toolbar = Actions.createToolStrip();
+            toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n), this));
+            toolbar.addMember(Actions.asIconButton(backAction, this));
+            toolbar.addMember(Actions.asIconButton(ingestAction, actionSource));
+            return toolbar;
         }
 
         @Override
