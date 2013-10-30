@@ -29,7 +29,10 @@ import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.JSONEncoder;
+import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.tile.TileGrid;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -243,6 +246,16 @@ public final class ClientUtils {
         int tileColumn = tileIndex % tilesPerLine;
         int top = tileHMargin / 2 + (tileRow * (tileHeight + tileHMargin));
         grid.scrollTo(1, top);
+    }
+
+    /**
+     * Sets layout members just in case they differ from current members.
+     */
+    public static void setMembers(Layout l, Canvas... members) {
+        Canvas[] oldies = l.getMembers();
+        if (!Arrays.equals(oldies, members)) {
+            l.setMembers(members);
+        }
     }
 
     /**

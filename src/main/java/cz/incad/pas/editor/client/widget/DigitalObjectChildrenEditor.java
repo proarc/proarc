@@ -480,7 +480,7 @@ public final class DigitalObjectChildrenEditor
         public void setWidget(IsWidget w) {
             Widget asWidget = Widget.asWidgetOrNull(w);
             if (asWidget instanceof Canvas) {
-                display.setMembers((Canvas) asWidget);
+                ClientUtils.setMembers(display, (Canvas) asWidget);
             } else if (asWidget == null) {
                 display.removeMembers(display.getMembers());
             } else {

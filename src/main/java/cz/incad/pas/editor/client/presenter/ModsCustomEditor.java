@@ -92,8 +92,10 @@ public final class ModsCustomEditor implements DatastreamEditor, Refreshable {
         editedCustomRecord = null;
         activeEditor = getCustomForm(digitalObject.getModel());
         if (activeEditor != null) {
-            widget.setMembers(activeEditor);
+            ClientUtils.setMembers(widget, activeEditor);
             loadCustom(activeEditor, digitalObject, loadCallback);
+        } else {
+            widget.setMembers();
         }
     }
 

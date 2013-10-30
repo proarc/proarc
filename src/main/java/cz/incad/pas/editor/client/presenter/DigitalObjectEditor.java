@@ -149,7 +149,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             type = multiselection ? DatastreamEditorType.PARENT : DatastreamEditorType.MODS;
         }
 
-        editorContainer.hide();
+//        editorContainer.hide();
 
         EditorDescriptor previousEditor = currentEditor;
         currentEditor = getDatastreamEditor(type);
@@ -178,8 +178,8 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                     DigitalObject dobj = DigitalObject.create(records[0]);
                     editor.edit(dobj);
                 }
-                editorContainer.setMembers(editor.getUI());
-                editorContainer.show();
+                ClientUtils.setMembers(editorContainer, editor.getUI());
+//                editorContainer.show();
             }
         });
     }
