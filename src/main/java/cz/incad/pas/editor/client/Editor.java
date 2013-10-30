@@ -28,25 +28,24 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.Autofit;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.SelectionStyle;
-import com.smartgwt.client.types.VerticalAlignment;
 import com.smartgwt.client.util.DateUtil;
 import com.smartgwt.client.util.I18nUtil;
 import com.smartgwt.client.util.Page;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.Label;
-import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.fields.LinkItem;
-import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
-import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
+import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItem;
+import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
+import com.smartgwt.client.widgets.menu.events.ItemClickHandler;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.tree.Tree;
 import com.smartgwt.client.widgets.tree.TreeGrid;
@@ -87,6 +86,7 @@ public class Editor implements EntryPoint {
     
     /** {@link TreeNode } attribute to associate the node with {@link Place}. */
     private static final String PLACE_ATTRIBUTE = "GoToPlace";
+    private static final String LOCALE_ATTRIBUTE = "locale";
     private static Editor INSTANCE;
 
     private ClientMessages i18n;
@@ -207,7 +207,7 @@ public class Editor implements EntryPoint {
         return editorDisplay;
     }
 
-    private Canvas createMainHeader(final TreeGrid menu) {
+    private Canvas createMainHeader(TreeGrid menu) {
         ToolStrip mainHeader = new ToolStrip();
         mainHeader.setWidth100();
         mainHeader.setHeight(40);
@@ -221,15 +221,89 @@ public class Editor implements EntryPoint {
         mainHeader.addMember(headerItem);
 
         mainHeader.addFill();
+        createUserLink(mainHeader, mainHeader.getMembers().length);
+        mainHeader.addMember(createLangMenu());
+        mainHeader.addMember(createGlobalMenuButton(menu));
+        mainHeader.addSpacer(6);
 
-        DynamicForm langForm = new DynamicForm();
-        langForm.setLayoutAlign(VerticalAlignment.BOTTOM);
-        langForm.setNumCols(3);
-        langForm.setFields(createUserLink(), createLangLink("cs", "Česky"), createLangLink("en", "English"));
-        langForm.setAutoWidth();
-        langForm.setAutoHeight();
-        mainHeader.addMember(langForm);
+        return mainHeader;
+    }
 
+    private Canvas createLangMenu() {
+        String activeLocale = LanguagesDataSource.activeLocale();
+        IconMenuButton langMenuButton = Actions.asIconMenuButton(Actions.emptyAction(activeLocale, null, null), this);
+        langMenuButton.setCanFocus(Boolean.FALSE);
+        Menu m = new Menu();
+        // do not use shadow; it draws outside page!
+//        m.setShowShadow(Boolean.TRUE);
+        m.addItem(createLangItem("cs", "Česky", activeLocale));
+        m.addItem(createLangItem("en", "English", activeLocale));
+        langMenuButton.setMenu(m);
+        m.addItemClickHandler(new ItemClickHandler() {
+
+            @Override
+            public void onItemClick(ItemClickEvent event) {
+                MenuItem item = event.getItem();
+                if (!item.getChecked()) {
+                    switchLocale(item.getAttribute(LOCALE_ATTRIBUTE));
+                }
+            }
+        });
+
+        Record rec = m.getDataAsRecordList().find(LOCALE_ATTRIBUTE, activeLocale);
+        langMenuButton.setTitle(rec.getAttribute("title"));
+        return langMenuButton;
+    }
+
+    private MenuItem createLangItem(String locale, String title, String activeLocale) {
+        MenuItem mi = new MenuItem(title);
+        mi.setAttribute(LOCALE_ATTRIBUTE, locale);
+        if (locale.equals(activeLocale)) {
+            mi.setChecked(Boolean.TRUE);
+        }
+        return mi;
+    }
+
+    /**
+     * Switches the application locale.
+     * @param locale new locale
+     */
+    private void switchLocale(String locale) {
+        UrlBuilder urlBuilder = Window.Location.createUrlBuilder();
+        urlBuilder.setParameter(LOCALE_ATTRIBUTE, locale);
+        String url = urlBuilder.buildString();
+        Window.Location.assign(url);
+    }
+
+    private Canvas createUserLink(final ToolStrip mainHeader, final int index) {
+        final IconButton userButton = Actions.asIconButton(new AbstractAction(null, null, null) {
+            @Override
+            public void performAction(ActionEvent event) {
+                // XXX show profile, change password?, logout
+            }
+        }, this);
+        userButton.setCanFocus(Boolean.FALSE);
+
+        UserDataSource.getInstance().fetchData(new Criteria(UserDataSource.FIELD_WHOAMI, "true"), new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                String title = "Unknown user";
+                if (response.getStatus() == DSResponse.STATUS_SUCCESS) {
+                    Record[] data = response.getData();
+                    if (data.length > 0) {
+                        user = data[0];
+                        title = user.getAttribute(UserDataSource.FIELD_USERNAME);
+                    }
+                }
+                userButton.setTitle(title);
+                mainHeader.addMember(userButton, index);
+            }
+        });
+        return userButton;
+    }
+
+    private Canvas createGlobalMenuButton(final TreeGrid menu) {
         final com.smartgwt.client.widgets.Window menuWindow = new com.smartgwt.client.widgets.Window();
         menuWindow.setCanDragReposition(false);
         menuWindow.setAutoSize(true);
@@ -260,58 +334,8 @@ public class Editor implements EntryPoint {
             }
         }, new Object());
         globalMenuButton[0].setAutoWidth();
-        mainHeader.addMember(globalMenuButton[0]);
-
-        mainHeader.addSpacer(6);
-
-        return mainHeader;
-    }
-
-    private LinkItem createLangLink(final String locale, String title) {
-        final LinkItem lang = new LinkItem();
-        lang.setLinkTitle(title);
-        lang.setShowTitle(false);
-        lang.setWidth(45);
-        lang.addClickHandler(new ClickHandler() {
-
-            @Override
-            public void onClick(ClickEvent event) {
-                UrlBuilder urlBuilder = Window.Location.createUrlBuilder();
-                urlBuilder.setParameter("locale", locale);
-                String url = urlBuilder.buildString();
-                Window.Location.assign(url);
-            }
-        });
-        return lang;
-    }
-
-    private LinkItem createUserLink() {
-        final LinkItem link = new LinkItem();
-        link.setShowTitle(false);
-        link.setAlign(Alignment.RIGHT);
-        UserDataSource.getInstance().fetchData(new Criteria(UserDataSource.FIELD_WHOAMI, "true"), new DSCallback() {
-
-            @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                String title = "Unknown user";
-                if (response.getStatus() == DSResponse.STATUS_SUCCESS) {
-                    Record[] data = response.getData();
-                    if (data.length > 0) {
-                        user = data[0];
-                        title = user.getAttribute(UserDataSource.FIELD_USERNAME);
-                    }
-                }
-                link.setValue(title);
-            }
-        });
-        link.addClickHandler(new ClickHandler() {
-
-            @Override
-            public void onClick(ClickEvent event) {
-                // XXX show profile, change password?, logout
-            }
-        });
-        return link;
+        globalMenuButton[0].setCanFocus(Boolean.FALSE);
+        return globalMenuButton[0];
     }
 
     private TreeNode[] createMenuContent() {
