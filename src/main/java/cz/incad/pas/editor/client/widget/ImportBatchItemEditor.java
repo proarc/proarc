@@ -20,6 +20,7 @@ import com.google.gwt.activity.shared.ActivityManager;
 import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.SimpleEventBus;
@@ -81,6 +82,8 @@ import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.ds.RelationDataSource.RelationChangeEvent;
 import cz.incad.pas.editor.client.ds.RelationDataSource.RelationChangeHandler;
 import cz.incad.pas.editor.client.ds.RestConfig;
+import cz.incad.pas.editor.client.event.EditorLoadEvent;
+import cz.incad.pas.editor.client.event.EditorLoadHandler;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 import cz.incad.pas.editor.client.presenter.DigitalObjectEditor;
 import cz.incad.pas.editor.client.widget.DigitalObjectChildrenEditor.ChildActivities;
@@ -426,12 +429,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                         int thumbIndex = getThumbIndex(copyRecord);
                         thumbViewer.getRecordList().set(thumbIndex, copyRecord);
 
-                        int nextSelection = getNextSelection(record);
-                        if (nextSelection >= 0) {
-                            batchItemGrid.selectSingleRecord(nextSelection);
-                            batchItemGrid.scrollToRow(nextSelection);
-                            childEditor.focus();
-                        }
+                        selectNextChildAndFocus(record);
                     } else {
                         request.setOperationType(DSOperationType.UPDATE);
                         ds.updateCaches(response, request);
@@ -443,6 +441,30 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 }
             }
         });
+    }
+
+    private void selectNextChildAndFocus(Record record) {
+        int nextSelection = getNextSelection(record);
+        if (nextSelection < 0) {
+            return ;
+        }
+        final HandlerRegistration[] editorLoadHandler = new HandlerRegistration[1];
+        editorLoadHandler[0] = childEditor.addEditorLoadHandler(new EditorLoadHandler() {
+
+            @Override
+            public void onEditorLoad(EditorLoadEvent evt) {
+                editorLoadHandler[0].removeHandler();
+                Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+
+                    @Override
+                    public void execute() {
+                        childEditor.focus();
+                    }
+                });
+            }
+        });
+        batchItemGrid.selectSingleRecord(nextSelection);
+        batchItemGrid.scrollToRow(nextSelection);
     }
 
     private TileGrid createThumbViewer() {
