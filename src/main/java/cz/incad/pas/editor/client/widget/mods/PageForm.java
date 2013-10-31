@@ -16,29 +16,19 @@
  */
 package cz.incad.pas.editor.client.widget.mods;
 
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
-import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
-import com.smartgwt.client.widgets.form.fields.ButtonItem;
 import com.smartgwt.client.widgets.form.fields.IntegerItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
-import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
-import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.form.validator.IntegerRangeValidator;
 import com.smartgwt.client.widgets.form.validator.IsIntegerValidator;
 import cz.incad.pas.editor.client.ClientMessages;
-import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
 import cz.incad.pas.editor.client.widget.StringTrimValidator;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -94,43 +84,6 @@ public final class PageForm extends AbstractModelForm {
         note.setHeight("*");
         note.setColSpan("*");
 
-        ButtonItem btnTest = new ButtonItem("test");
-        btnTest.addClickHandler(new ClickHandler() {
-
-            @Override
-            public void onClick(ClickEvent event) {
-                Object idFieldVal = identifiers.getValue();
-                Map values = getValues();
-                Map changedValues = getChangedValues();
-                Map oldValues = getOldValues();
-                Boolean valuesHaveChanged = valuesHaveChanged();
-                LOG.info("ModsPage.valuesHaveChanged: " + valuesHaveChanged);
-                LOG.info("identifiers.getFieldValue: " + idFieldVal);
-                Object idVal = values.get(ModsCustomDataSource.FIELD_IDENTIFIERS);
-                Object idOldVal = oldValues.get(ModsCustomDataSource.FIELD_IDENTIFIERS);
-                LOG.info("identifiers.getValue: " + idVal);
-                LOG.info("identifiers.getOldValue: " + idOldVal);
-                LOG.info("identifiers.getChangedValues: " + changedValues.get(ModsCustomDataSource.FIELD_IDENTIFIERS));
-                LOG.info("identifiers.getChangedValues: " + ClientUtils.dump(changedValues, "", "  ", new StringBuilder()).toString());
-//                LOG.info("identifiers.getValue: " + ClientUtils.dump(values, "", "  ", new StringBuilder()).toString());
-            }
-        });
-        ButtonItem btnSave = new ButtonItem("save");
-        btnSave.addClickHandler(new ClickHandler() {
-
-            @Override
-            public void onClick(ClickEvent event) {
-                saveData(new DSCallback() {
-
-                    @Override
-                    public void execute(DSResponse response, Object rawData, DSRequest request) {
-                        // XXX reload data?
-                        // XXX notify errors
-                    }
-                });
-            }
-        });
-//        setFields(btnTest, btnSave, pageType, pageIndex, pageNumber, identifiers, note);
         setFields(pageType, pageIndex, pageNumber, identifiers, note);
 
         IntegerRangeValidator integerRangeValidator = new IntegerRangeValidator();
@@ -138,39 +91,6 @@ public final class PageForm extends AbstractModelForm {
         integerRangeValidator.setMax(Integer.MAX_VALUE);
 
         pageIndex.setValidators(integerRangeValidator);
-
-        addItemChangedHandler(new ItemChangedHandler() {
-
-            @Override
-            public void onItemChanged(ItemChangedEvent event) {
-                LOG.info("## ModsPage.onItemChanged.name: " + event.getItem().getName());
-                LOG.info("## ModsPage.onItemChanged.newValue: " + event.getNewValue());
-            }
-        });
-
-        LOG.info("ModsPage.valuesHaveChanged.beforFetch: " + valuesHaveChanged());
-
-//        fetchData(null, new DSCallback() {
-//
-//            @Override
-//            public void execute(DSResponse response, Object rawData, DSRequest request) {
-//                Record record = response.getData()[0];
-//                editRecord(record);
-//                rememberValues();
-//            }
-//        });
     }
 
-//    void dumpChangedValues(String point) {
-//        Boolean valuesHaveChanged = valuesHaveChanged();
-//        Map changedValues = getChangedValues();
-//        Object ref = changedValues.get("__ref");
-//        String refContent = null;
-//        if (ref instanceof Record) {
-//            Record rec = (Record) ref;
-//            refContent = "\n" + ClientUtils.dump(rec.getJsObj());
-//        }
-//        LOG.info(ClientUtils.format("PageForm.valuesHaveChanged.%s, changed: %s, values: %s, ref: %s, refContent: %s",
-//                point, valuesHaveChanged,Arrays.toString(changedValues.keySet().toArray()), ref, refContent));
-//    }
 }
