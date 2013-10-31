@@ -19,6 +19,9 @@ package cz.incad.pas.editor.client.presenter;
 import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
+import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.event.shared.HandlerManager;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.Record;
@@ -48,6 +51,9 @@ import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.SearchDataSource;
+import cz.incad.pas.editor.client.event.EditorLoadEvent;
+import cz.incad.pas.editor.client.event.EditorLoadHandler;
+import cz.incad.pas.editor.client.event.HasEditorLoadHandlers;
 import cz.incad.pas.editor.client.widget.BatchDatastreamEditor;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
 import cz.incad.pas.editor.client.widget.DigitalObjectAdministrationEditor;
@@ -66,7 +72,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class DigitalObjectEditor implements Refreshable, Selectable<Record> {
+public final class DigitalObjectEditor implements Refreshable, Selectable<Record>, HasEditorLoadHandlers {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectEditor.class.getName());
     private final ClientMessages i18n;
@@ -83,6 +89,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private final PlaceController places;
     private boolean importView;
     private boolean embeddedView;
+    private HandlerManager handlerManager;
 
     public DigitalObjectEditor(ClientMessages i18n, PlaceController places) {
         this(i18n, places, false);
@@ -367,7 +374,23 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         title = ClientUtils.format("<b>%s</b>", title);
         desc = new EditorDescriptor(deditor, title, type);
         editorCache.put(type, desc);
+        attachDatastreamEditor(deditor);
         return desc;
+    }
+
+    /**
+     * Forwards editor events.
+     */
+    private void attachDatastreamEditor(DatastreamEditor deditor) {
+        if (deditor instanceof HasEditorLoadHandlers) {
+            ((HasEditorLoadHandlers) deditor).addEditorLoadHandler(new EditorLoadHandler() {
+
+                @Override
+                public void onEditorLoad(EditorLoadEvent evt) {
+                    fireEvent(evt);
+                }
+            });
+        }
     }
 
     private void setDescription(String editorTitle, String objectLabel, MetaModelRecord mr) {
@@ -381,6 +404,27 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             content = ClientUtils.format("%s: %s", editorTitle, objectLabel);
         }
         lblHeader.setContents(content);
+    }
+
+    @Override
+    public HandlerRegistration addEditorLoadHandler(EditorLoadHandler handler) {
+        return ensureHandlers().addHandler(EditorLoadEvent.TYPE, handler);
+    }
+
+    @Override
+    public void fireEvent(GwtEvent<?> event) {
+        if (handlerManager != null) {
+            handlerManager.fireEvent(event);
+        }
+    }
+
+    private HandlerManager ensureHandlers() {
+        return handlerManager == null ? handlerManager = createHandlerManager()
+                : handlerManager;
+    }
+
+    private HandlerManager createHandlerManager() {
+        return new HandlerManager(this);
     }
 
     /** Holds already created editor and its toolbar */

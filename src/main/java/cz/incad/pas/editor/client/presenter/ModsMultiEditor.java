@@ -35,6 +35,10 @@ import cz.incad.pas.editor.client.action.SaveAction;
 import cz.incad.pas.editor.client.action.Selectable;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
+import cz.incad.pas.editor.client.event.EditorLoadEvent;
+import cz.incad.pas.editor.client.event.EditorLoadHandler;
+import cz.incad.pas.editor.client.event.HasEditorLoadHandlers;
+import cz.incad.pas.editor.client.widget.AbstractDatastreamEditor;
 import cz.incad.pas.editor.client.widget.BatchDatastreamEditor;
 import cz.incad.pas.editor.client.widget.DatastreamEditor;
 import cz.incad.pas.editor.client.widget.StatusView;
@@ -45,7 +49,8 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable, Selectable<DigitalObject> {
+public final class ModsMultiEditor extends AbstractDatastreamEditor implements
+        BatchDatastreamEditor, Refreshable, Selectable<DigitalObject> {
 
     private static final Logger LOG = Logger.getLogger(ModsMultiEditor.class.getName());
 
@@ -75,6 +80,23 @@ public final class ModsMultiEditor implements BatchDatastreamEditor, Refreshable
         modsSourceEditor = new ModsXmlEditor();
         modsBatchEditor = new ModsBatchEditor(i18n);
         actionSource = new ActionSource(this);
+        attachDatastreamEditor(modsCustomEditor);
+        attachDatastreamEditor(modsFullEditor);
+    }
+
+    /**
+     * Forwards editor events.
+     */
+    private void attachDatastreamEditor(DatastreamEditor deditor) {
+        if (deditor instanceof HasEditorLoadHandlers) {
+            ((HasEditorLoadHandlers) deditor).addEditorLoadHandler(new EditorLoadHandler() {
+
+                @Override
+                public void onEditorLoad(EditorLoadEvent evt) {
+                    fireEvent(evt);
+                }
+            });
+        }
     }
 
     @Override

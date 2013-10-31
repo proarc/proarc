@@ -38,7 +38,8 @@ import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
-import cz.incad.pas.editor.client.widget.DatastreamEditor;
+import cz.incad.pas.editor.client.event.EditorLoadEvent;
+import cz.incad.pas.editor.client.widget.AbstractDatastreamEditor;
 import cz.incad.pas.editor.client.widget.mods.MonographForm;
 import cz.incad.pas.editor.client.widget.mods.MonographUnitForm;
 import cz.incad.pas.editor.client.widget.mods.PageForm;
@@ -54,7 +55,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class ModsCustomEditor implements DatastreamEditor, Refreshable {
+public final class ModsCustomEditor extends AbstractDatastreamEditor implements Refreshable {
 
     private static final Logger LOG = Logger.getLogger(ModsCustomEditor.class.getName());
 
@@ -296,6 +297,7 @@ public final class ModsCustomEditor implements DatastreamEditor, Refreshable {
                     editor.clearErrors(true);
                     widget.setMembers(editor);
                     loadCallback.execute(Boolean.TRUE);
+                    fireEvent(new EditorLoadEvent(false));
                     return ;
                 }
             } else {
@@ -307,6 +309,7 @@ public final class ModsCustomEditor implements DatastreamEditor, Refreshable {
         }
         widget.setMembers();
         loadCallback.execute(Boolean.FALSE);
+        fireEvent(new EditorLoadEvent(true));
     }
 
 }
