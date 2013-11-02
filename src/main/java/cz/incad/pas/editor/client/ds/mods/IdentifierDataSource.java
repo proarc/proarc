@@ -62,13 +62,14 @@ public final class IdentifierDataSource extends DataSource {
     public static final String TYPE_URNNBN = "urnnbn";
     public static final String TYPE_UUID = "uuid";
 
+    private static IdentifierDataSource INSTANCE;
+
     /**
      * Gets localized type value map.
      * @return type map
      */
-    @SuppressWarnings("unchecked")
     public static LinkedHashMap<String, String> getTypeValueMap(ClientMessages i18n) {
-        return (LinkedHashMap<String, String>) getInstance().getField(FIELD_TYPE).getValueMap();
+        return LocalizationDataSource.getInstance().asValueMap(BundleName.MODS_IDENTIFIER_TYPES);
     }
 
     public IdentifierDataSource() {
@@ -122,7 +123,7 @@ public final class IdentifierDataSource extends DataSource {
     }
 
     public static List<IdentifierTypeClient> convert(Record[] records) {
-        ClientUtils.info(LOG, "convert.records: %s", records);
+//        ClientUtils.info(LOG, "convert.records: %s", records);
         if (records == null || records.length == 0) {
             return null;
         }
@@ -137,15 +138,16 @@ public final class IdentifierDataSource extends DataSource {
             identifier.setType(type);
             identifier.setValue(value);
             identifiers.add(identifier);
-            ClientUtils.info(LOG, "IdentifierDataSource.convert.records.identifier: type: %s, value: %s", type, value);
+//            ClientUtils.info(LOG, "IdentifierDataSource.convert.records.identifier: type: %s, value: %s", type, value);
         }
         return identifiers.isEmpty() ? null : identifiers;
     }
 
     public static IdentifierDataSource getInstance() {
-        IdentifierDataSource ds = (IdentifierDataSource) DataSource.get(ID);
-        ds = ds != null ? ds : new IdentifierDataSource();
-        return ds;
+        if (INSTANCE == null) {
+            INSTANCE = new IdentifierDataSource();
+        }
+        return INSTANCE;
     }
 
     /**

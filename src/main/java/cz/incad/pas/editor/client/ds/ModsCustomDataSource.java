@@ -16,19 +16,13 @@
  */
 package cz.incad.pas.editor.client.ds;
 
-import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
-import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
-import com.smartgwt.client.util.BooleanCallback;
 import cz.incad.pas.editor.client.ds.mods.IdentifierDataSource;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
-import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
+import cz.incad.pas.editor.shared.rest.LocalizationResourceApi.BundleName;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
@@ -153,29 +147,7 @@ public final class ModsCustomDataSource extends DataSource {
     }
 
     public static LinkedHashMap<String, String> getPageTypes() {
-        return PAGE_TYPES;
-    }
-
-    public static void loadPageTypes(final BooleanCallback callback) {
-        Criteria criteria = LocalizationDataSource.asCriteria(
-                LocalizationResourceApi.BundleName.MODS_PAGE_TYPES);
-        LocalizationDataSource.getInstance().fetchData(criteria, new DSCallback() {
-
-            @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (RestConfig.isStatusOk(response)) {
-                    Record[] data = response.getData();
-                    PAGE_TYPES = new LinkedHashMap<String, String>(data.length);
-                    for (Record record : data) {
-                        PAGE_TYPES.put(record.getAttribute(LocalizationResourceApi.ITEM_KEY),
-                                record.getAttribute(LocalizationResourceApi.ITEM_VALUE));
-                    }
-                    callback.execute(Boolean.TRUE);
-                } else {
-                    callback.execute(Boolean.FALSE);
-                }
-            }
-        });
+        return LocalizationDataSource.getInstance().asValueMap(BundleName.MODS_PAGE_TYPES);
     }
 
     public static String getDefaultPageType() {

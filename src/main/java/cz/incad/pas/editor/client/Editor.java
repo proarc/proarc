@@ -59,7 +59,7 @@ import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.ds.LanguagesDataSource;
-import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
+import cz.incad.pas.editor.client.ds.LocalizationDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
 import cz.incad.pas.editor.client.ds.UserDataSource;
 import cz.incad.pas.editor.client.ds.UserPermissionDataSource;
@@ -175,7 +175,7 @@ public class Editor implements EntryPoint {
         desktop.setMembers(mainHeader, mainLayout);
         desktop.draw();
 
-        ModsCustomDataSource.loadPageTypes(sweepTask.expect());
+        LocalizationDataSource.getInstance().initOnStart(sweepTask.expect());
         loadPermissions();
     }
 

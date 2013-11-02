@@ -17,13 +17,18 @@
 package cz.incad.pas.editor.client.ds;
 
 import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DataSource;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.data.events.DataArrivedEvent;
+import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi.BundleName;
+import java.util.LinkedHashMap;
 
 /**
  * Loads localized messages configurable by server configuration files.
@@ -34,6 +39,8 @@ import cz.incad.pas.editor.shared.rest.LocalizationResourceApi.BundleName;
 public final class LocalizationDataSource extends RestDataSource {
 
     public static final String ID = "LocalizationDataSource";
+    private static LocalizationDataSource INSTANCE;
+    private ResultSet cache;
 
     public LocalizationDataSource() {
         setID(ID);
@@ -56,14 +63,48 @@ public final class LocalizationDataSource extends RestDataSource {
     }
 
     public static LocalizationDataSource getInstance() {
-        LocalizationDataSource ds = (LocalizationDataSource) DataSource.get(ID);
-        return  ds != null ? ds : new LocalizationDataSource();
+        if (INSTANCE == null) {
+            INSTANCE = new LocalizationDataSource();
+        }
+        return  INSTANCE;
+    }
+
+    public void initOnStart(final BooleanCallback callback) {
+        if (cache == null) {
+            cache = new ResultSet(this);
+            cache.addDataArrivedHandler(new DataArrivedHandler() {
+
+                @Override
+                public void onDataArrived(DataArrivedEvent event) {
+                    if (cache.allRowsCached()) {
+                        callback.execute(Boolean.TRUE);
+                    }
+                }
+            });
+            cache.get(0);
+        } else {
+            cache.invalidateCache();
+            cache.get(0);
+        }
     }
 
     public static Criteria asCriteria(BundleName bundleName) {
         Criteria criteria = new Criteria(LocalizationResourceApi.ITEM_BUNDLENAME,
                 bundleName.toString());
         return criteria;
+    }
+
+    public LinkedHashMap<String, String> asValueMap(BundleName bundleName) {
+        LinkedHashMap<String, String> map = new LinkedHashMap<String, String>();
+        if (cache != null) {
+            Record[] findAll = cache.findAll(LocalizationResourceApi.ITEM_BUNDLENAME, bundleName.toString());
+            for (Record record : findAll) {
+                String key = record.getAttribute(LocalizationResourceApi.ITEM_KEY);
+                String value = record.getAttribute(LocalizationResourceApi.ITEM_VALUE);
+                map.put(key, value);
+            }
+        }
+        return map;
     }
 
     public static void setOptionDataSource(FormItem field, BundleName bundleName) {
