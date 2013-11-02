@@ -144,6 +144,15 @@ public final class DigitalObjectChildrenEditor
             @Override
             public void onRelationChange(RelationChangeEvent event) {
                 if (digitalObject != null && childrenListGrid.isVisible()) {
+                    String changedPid = event.getPid();
+                    if (changedPid != null) {
+                        Record changedRecord = childrenListGrid.getDataAsRecordList()
+                                .find(RelationDataSource.FIELD_PID, changedPid);
+                        if (changedRecord == null) {
+                            // not shown object
+                            return ;
+                        }
+                    }
                     relationDataSource.updateCaches(digitalObject.getPid());
                 }
             }
