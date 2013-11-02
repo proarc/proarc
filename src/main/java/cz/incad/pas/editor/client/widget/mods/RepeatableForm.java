@@ -169,9 +169,7 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
             itemForm = new ItemForm(form, listItem);
         } else {
             itemForm = pool.remove(0);
-            if (!itemForm.form.getErrors().isEmpty()) {
-                itemForm.form.clearErrors(true);
-            }
+            itemForm.form.clearValues();
         }
         return itemForm;
     }
