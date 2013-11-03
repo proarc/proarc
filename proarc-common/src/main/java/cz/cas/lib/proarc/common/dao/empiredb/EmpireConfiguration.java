@@ -130,7 +130,17 @@ public final class EmpireConfiguration {
 
     private static final class FixedDBDatabaseDriverPostgreSQL extends DBDatabaseDriverPostgreSQL {
 
+        private static final long serialVersionUID = 1L;
+
         private PostgreDDLGenerator ddlGenerator;
+
+        public FixedDBDatabaseDriverPostgreSQL() {
+            // e.g. for DATETIME:
+            //   addColumn("CREATED", DataType.DATETIME, 0, true, SYSDATE);
+            //   generate DEFAULT NOW()
+            // see DBDDLGenerator.appendColumnDesc
+            setDDLColumnDefaults(true);
+        }
 
         @Override
         public String getSQLPhrase(int phrase) {
