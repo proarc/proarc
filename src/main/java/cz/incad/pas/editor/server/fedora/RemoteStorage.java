@@ -70,6 +70,8 @@ public final class RemoteStorage {
         if (INSTANCE == null) {
             INSTANCE = new RemoteStorage(new FedoraClient(new FedoraCredentials(
                     conf.getFedoraUrl(), conf.getFedoraUsername(), conf.getFedoraPassword())));
+            FedoraStorageInitializer rsi = new FedoraStorageInitializer(INSTANCE);
+            rsi.init();
         }
         return INSTANCE;
     }

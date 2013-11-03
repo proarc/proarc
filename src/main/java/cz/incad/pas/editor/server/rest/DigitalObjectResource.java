@@ -1226,7 +1226,7 @@ public class DigitalObjectResource {
         
         @XmlElement(name = DigitalObjectResourceApi.METAMODEL_PID_PARAM,
                 type = String.class, required = true)
-        private Object pid;
+        private String pid;
         @XmlElement(name = DigitalObjectResourceApi.METAMODEL_ROOT_PARAM)
         private Boolean root;
         @XmlElement(name = DigitalObjectResourceApi.METAMODEL_LEAF_PARAM)
@@ -1241,11 +1241,11 @@ public class DigitalObjectResource {
         private MetaModel() {
         }
 
-        public MetaModel(Object pid, Boolean root, Boolean leaf, String displayName) {
+        public MetaModel(String pid, Boolean root, Boolean leaf, String displayName) {
             this(pid, root, leaf, displayName, null, null);
         }
 
-        public MetaModel(Object pid, Boolean root, Boolean leaf, String displayName,
+        public MetaModel(String pid, Boolean root, Boolean leaf, String displayName,
                 String modsCustomEditor, EnumSet<DatastreamEditorType> dataStreamEditors) {
 
             this.pid = pid;
@@ -1264,7 +1264,7 @@ public class DigitalObjectResource {
             return leaf;
         }
 
-        public Object getPid() {
+        public String getPid() {
             return pid;
         }
 
