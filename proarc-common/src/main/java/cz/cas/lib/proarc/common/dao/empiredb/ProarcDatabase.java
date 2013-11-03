@@ -52,6 +52,11 @@ public class ProarcDatabase extends DBDatabase {
     public final BatchTable tableBatch = new BatchTable(this);
     public final BatchItemTable tableBatchItem = new BatchItemTable(this);
     public final UserTable tableUser = new UserTable(this);
+    public final UserGroupTable tableUserGroup = new UserGroupTable(this);
+    public final GroupMemberTable tableGroupMember = new GroupMemberTable(this);
+    public final GroupPermissionTable tableGroupPermission = new GroupPermissionTable(this);
+    public final TomcatUserTable tableTomcatUser = new TomcatUserTable(this);
+    public final TomcatRoleTable tableTomcatRole = new TomcatRoleTable(this);
 
     public static class ProarcVersionTable extends DBTable {
 
@@ -176,9 +181,93 @@ public class ProarcDatabase extends DBDatabase {
 
     }
 
+    public static final class UserGroupTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+        private final DBTableColumn id;
+        private final DBTableColumn groupname;
+
+        public UserGroupTable(DBDatabase db) {
+            super("PROARC_GROUPS", db);
+            id = addSequenceColumn("GROUPID");
+            groupname = addColumn("NAME", DataType.TEXT, 255, true);
+            setPrimaryKey(id);
+            // unique group name
+            addIndex(String.format("%s_%s_IDX", getName(), groupname.getName()), true, new DBColumn[] { groupname });
+        }
+
+    }
+
+    public static final class GroupMemberTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+        private final DBTableColumn groupid;
+        private final DBTableColumn userid;
+
+        public GroupMemberTable(DBDatabase db) {
+            super("PROARC_GROUP_MEMBERS", db);
+            groupid = addColumn("GROUPID", DataType.INTEGER, 0, true);
+            userid = addColumn("USERID", DataType.INTEGER, 0, true);
+            setPrimaryKey(groupid, userid);
+        }
+
+    }
+
+    public static final class GroupPermissionTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+        private final DBTableColumn groupid;
+        private final DBTableColumn objectid;
+        private final DBTableColumn permissionid;
+
+        public GroupPermissionTable(DBDatabase db) {
+            super("PROARC_GROUP_PERMISSIONS", db);
+            groupid = addColumn("GROUPID", DataType.INTEGER, 0, true);
+            objectid = addColumn("OBJECTID", DataType.TEXT, 2000, false);
+            permissionid = addColumn("PERMISSIONID", DataType.TEXT, 2000, true);
+
+        }
+
+    }
+
+    public static final class TomcatUserTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+        private final DBTableColumn username;
+        private final DBTableColumn userpass;
+
+        public TomcatUserTable(DBDatabase db) {
+            super("TOMCAT_USERS", db);
+            username = addColumn("USERNAME", DataType.TEXT, 255, true);
+            userpass = addColumn("USERPASS", DataType.TEXT, 255, true);
+            setPrimaryKey(username);
+        }
+
+    }
+
+    public static final class TomcatRoleTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+        private final DBTableColumn username;
+        private final DBTableColumn rolename;
+
+        public TomcatRoleTable(DBDatabase db) {
+            super("TOMCAT_ROLES", db);
+            username = addColumn("USERNAME", DataType.TEXT, 255, true);
+            rolename = addColumn("ROLENAME", DataType.TEXT, 255, true);
+            setPrimaryKey(username, rolename);
+        }
+
+    }
+
     public ProarcDatabase() {
         addRelation(tableBatch.userId.referenceOn(tableUser.id));
         addRelation(tableBatchItem.batchId.referenceOn(tableBatch.id));
+        addRelation(tableUser.username.referenceOn(tableTomcatUser.username));
+        addRelation(tableGroupMember.groupid.referenceOn(tableUserGroup.id));
+        addRelation(tableGroupMember.userid.referenceOn(tableUser.id));
+        addRelation(tableGroupPermission.groupid.referenceOn(tableUserGroup.id));
+        addRelation(tableTomcatRole.username.referenceOn(tableTomcatUser.username));
     }
 
     void init(EmpireConfiguration conf) throws SQLException {
