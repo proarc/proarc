@@ -171,7 +171,9 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
 
             @Override
             public void execute(Boolean value) {
-                RelationDataSource.getInstance().fireRelationChange(digitalObjects[0].getPid());
+                if (value != null && value) {
+                    RelationDataSource.getInstance().fireRelationChange(digitalObjects[0].getPid());
+                }
                 callback.execute(value);
             }
         };
