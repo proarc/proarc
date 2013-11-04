@@ -43,6 +43,7 @@ import cz.incad.pas.editor.client.presenter.Importing;
 import cz.incad.pas.editor.client.presenter.Importing.ImportPlace;
 import cz.incad.pas.editor.client.presenter.UserManaging;
 import cz.incad.pas.editor.client.presenter.UserManaging.UsersPlace;
+import cz.incad.pas.editor.client.widget.AboutWindow;
 
 /**
  * Implements editor workflow using GWT Places, Activities and History support.
@@ -85,6 +86,10 @@ public final class EditorWorkFlow {
 
     public void init() {
         placeHistoryHandler.handleCurrentHistory();
+        Place where = placeController.getWhere();
+        if (where == Place.NOWHERE) {
+            AboutWindow.getInstance(i18n).show();
+        }
     }
 
     public PlaceController getPlaceController() {

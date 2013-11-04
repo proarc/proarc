@@ -72,6 +72,7 @@ import cz.incad.pas.editor.client.presenter.ImportPresenter;
 import cz.incad.pas.editor.client.presenter.Importing.ImportPlace;
 import cz.incad.pas.editor.client.presenter.Importing.ImportPlace.Type;
 import cz.incad.pas.editor.client.presenter.UserManaging.UsersPlace;
+import cz.incad.pas.editor.client.widget.AboutWindow;
 import cz.incad.pas.editor.client.widget.UsersView;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -350,6 +351,7 @@ public class Editor implements EntryPoint {
 //                createTreeNode("Statistics", i18n.MainMenu_Statistics_Title()),
                 createTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
                 createTreeNode("Console", i18n.MainMenu_Console_Title()),
+                createTreeNode("About", i18n.AboutWindow_Title()),
         };
         trees = reduce(trees);
         for (int i = 0; i < trees.length; i++) {
@@ -397,6 +399,8 @@ public class Editor implements EntryPoint {
                 }
                 if ("Console".equals(name)) {
                     SC.showConsole();
+                } else if ("About".equals(name)) {
+                    AboutWindow.getInstance(i18n).show();
                 } else {
                     Layout placesContainer = getDisplay();
                     placesContainer.removeMembers(placesContainer.getMembers());
