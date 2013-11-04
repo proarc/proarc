@@ -157,10 +157,8 @@ public final class PageMetadataEditor {
         indexValidator.setMax(1000000);
 
         indexStart = new IntegerItem("indexStart", i18n.PageMetadataEditor_IndexStartValue_Title());
-        indexStart.setSelectOnFocus(true);
         indexStart.setRequired(true);
         indexStart.setValidators(indexValidator);
-        indexStart.setValidateOnChange(true);
 
         allowPageIndexes.addChangedHandler(new DisableStateHandler(indexStart));
     }
@@ -190,10 +188,7 @@ public final class PageMetadataEditor {
             }
         });
         numberStart = new TextItem("numberStart", i18n.PageMetadataEditor_NumberStartValue_Title());
-        numberStart.setSelectOnFocus(true);
         numberStart.addChangedHandler(pageNumberChangeHandler);
-        numberStart.setValidateOnChange(true);
-        numberStart.setStopOnError(true);
 
         prefix = new TextItem("prefix", i18n.PageMetadataEditor_NumberPrefix_Title());
         prefix.setLength(20);
@@ -207,12 +202,9 @@ public final class PageMetadataEditor {
         integerIncrementValidator.setMin(-1000);
         integerIncrementValidator.setMax(1000);
         numberIncrement = new IntegerItem("numberIncrement", i18n.PageMetadataEditor_NumberIncrement_Title());
-        numberIncrement.setSelectOnFocus(true);
         numberIncrement.addChangedHandler(pageNumberChangeHandler);
         numberIncrement.setRequired(true);
         numberIncrement.setValidators(integerIncrementValidator);
-        numberIncrement.setValidateOnChange(true);
-        numberIncrement.setStopOnError(true);
 
         numberExample = new StaticTextItem("numberExample", i18n.PageMetadataEditor_NumberPreview_Title());
         numberExample.setClipValue(true);
