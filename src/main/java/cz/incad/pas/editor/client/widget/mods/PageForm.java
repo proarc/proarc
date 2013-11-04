@@ -47,16 +47,17 @@ public final class PageForm extends AbstractModelForm {
         setWidth100();
         setHeight100();
         setTitleOrientation(TitleOrientation.TOP);
-        setNumCols(4);
-        setColWidths(20, 20, 20);
         SelectItem pageType = new SelectItem(ModsCustomDataSource.FIELD_PAGE_TYPE, i18n.PageForm_PageType_Title());
         pageType.setValueMap(ModsCustomDataSource.getPageTypes());
         pageType.setDefaultValue(ModsCustomDataSource.getDefaultPageType());
+        pageType.setWidth(200);
+        pageType.setEndRow(true);
 
         IntegerItem pageIndex = new IntegerItem(ModsCustomDataSource.FIELD_PAGE_INDEX);
         pageIndex.setTitle(i18n.PageForm_PageIndex_Title());
         pageIndex.setValidators(new IsIntegerValidator());
         pageIndex.setRequired(true);
+        pageIndex.setEndRow(true);
 
         TextItem pageNumber = new TextItem(ModsCustomDataSource.FIELD_PAGE_NUMBER);
         pageNumber.setTitle(i18n.PageForm_PageNumber_Title());
