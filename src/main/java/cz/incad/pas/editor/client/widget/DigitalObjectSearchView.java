@@ -86,7 +86,6 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         foundGrid = createList();
         
         filters = createFilter();
-        filters.setVisible(false);
 
         VLayout vLayout = new VLayout();
         vLayout.addMember(filters);
@@ -155,6 +154,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
                 }
             }
         });
+        btnFilter.setSelected(filters.isVisible());
 
         toolbar.addMember(btnFilter);
         return toolbar;
