@@ -52,7 +52,7 @@ public final class DigitalObjectFormValidateAction extends AbstractAction {
     private final ClientMessages i18n;
     private final ProgressTracker progress;
 
-    public static Action getInstance(ClientMessages i18n) {
+    public static DigitalObjectFormValidateAction getInstance(ClientMessages i18n) {
         if (INSTANCE == null) {
             INSTANCE = new DigitalObjectFormValidateAction(i18n);
         }
@@ -81,6 +81,10 @@ public final class DigitalObjectFormValidateAction extends AbstractAction {
             }
         }
 
+    }
+
+    public void closeWindow() {
+        progress.stop();
     }
 
     private  void validate(final Validatable validable, final Record[] digitalObjects) {
@@ -157,6 +161,7 @@ public final class DigitalObjectFormValidateAction extends AbstractAction {
                 progress.setDone(i18n.DigitalObjectFormValidateAction_Errors_Msg(
                         String.valueOf(invalidItemsCount)));
             }
+            validatable.onFinish(index != length);
         }
 
         private void validateMods() {
@@ -203,6 +208,7 @@ public final class DigitalObjectFormValidateAction extends AbstractAction {
          * Called before validation start.
          */
         void init();
+        void onFinish(boolean canceled);
         void setErrors(Record r, String errors);
 
     }
@@ -266,6 +272,11 @@ public final class DigitalObjectFormValidateAction extends AbstractAction {
                 }
             }
             return records;
+        }
+
+        @Override
+        public void onFinish(boolean canceled) {
+            // no-op
         }
 
     }

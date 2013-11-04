@@ -34,6 +34,8 @@ import cz.incad.pas.editor.client.action.Action;
 import cz.incad.pas.editor.client.action.ActionEvent;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.Actions.ActionSource;
+import cz.incad.pas.editor.client.action.DigitalObjectFormValidateAction;
+import cz.incad.pas.editor.client.action.DigitalObjectFormValidateAction.Validatable;
 import cz.incad.pas.editor.client.action.RefreshAction;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource;
 import cz.incad.pas.editor.client.ds.ImportBatchDataSource.BatchRecord;
@@ -467,13 +469,65 @@ public class ImportPresenter {
             String batchId = importContext.getBatch().getId();
             if (step == StepKind.FORWARD) {
                 if (parentPid != null) {
-                    ingest(batchId, parentPid);
+                    fetchItems(batchId, parentPid);
                 }
                 return false;
             } else {
                 placeController.goTo(new ImportPlace(Type.EDIT_ITEMS, batchId));
                 return false;
             }
+        }
+
+        private void fetchItems(final String batchId, final String parentPid) {
+            final Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batchId);
+            ImportBatchItemDataSource ds = ImportBatchItemDataSource.getInstance();
+            ds.fetchData(criteria, new DSCallback() {
+
+                @Override
+                public void execute(DSResponse response, Object rawData, DSRequest request) {
+                    if (RestConfig.isStatusOk(response)) {
+                        validateItems(batchId, parentPid, response.getData());
+                    }
+                }
+            });
+        }
+
+        private void validateItems(final String batchId, final String parentPid, final Record[] items) {
+            final DigitalObjectFormValidateAction action = DigitalObjectFormValidateAction.getInstance(i18n);
+            action.validate(new Validatable() {
+
+                private boolean valid;
+
+                @Override
+                public void clearErrors(Record r) {
+                    // no-op
+                }
+
+                @Override
+                public void init() {
+                    valid = true;
+                }
+
+                @Override
+                public void setErrors(Record r, String errors) {
+                    valid = false;
+                }
+
+                @Override
+                public Record[] getSelection() {
+                    return items;
+                }
+
+                @Override
+                public void onFinish(boolean canceled) {
+                    if (!canceled) {
+                        if (valid) {
+                            action.closeWindow();
+                            ingest(batchId, parentPid);
+                        }
+                    }
+                }
+            });
         }
 
         private void ingest(String batchId, String parentPid) {
