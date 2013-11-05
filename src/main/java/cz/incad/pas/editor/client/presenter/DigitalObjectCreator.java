@@ -41,8 +41,6 @@ import java.util.logging.Logger;
 /**
  * Creates new digital object.
  *
- * <p>XXX replace wizard with toolbar
- *
  * @author Jan Pokorsky
  */
 public final class DigitalObjectCreator {
@@ -72,6 +70,7 @@ public final class DigitalObjectCreator {
         // bind object editor ui
         this.modelId = modelId;
         this.parentPid = parentPid;
+        wizard.setShowButtons(false);
         wizard.moveAt(newDigObjectStep);
     }
 
@@ -137,7 +136,7 @@ public final class DigitalObjectCreator {
 
     }
 
-    private final class NewDigObjectStep implements WizardStep {
+    private final class NewDigObjectStep implements WizardStep, NewDigObject.Handler {
 
         private NewDigObject newDigObject;
         private Wizard wizard;
@@ -146,15 +145,15 @@ public final class DigitalObjectCreator {
         public void onShow(Wizard wizard) {
             this.wizard = wizard;
             initContext();
-            wizard.setBackButton(false, null);
-            wizard.setForwardButton(true, i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title());
             wizard.setWizardLabel(i18n.DigitalObjectCreator_DescriptionPrefix_Title(),
                     i18n.DigitalObjectCreator_NewDigObjectStep_Description_Title());
+            newDigObject.setHandler(this);
             newDigObject.bind(modelId, null);
         }
 
         @Override
         public void onHide(Wizard wizard) {
+            newDigObject.setHandler(null);
             this.wizard = null;
         }
 
@@ -176,6 +175,11 @@ public final class DigitalObjectCreator {
 
             }
             return true;
+        }
+
+        @Override
+        public void onCreateObject() {
+            onStepAction(wizard, StepKind.FORWARD);
         }
 
         private void saveNewDigitalObject(String modelId, String pid, String mods) {

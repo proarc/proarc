@@ -52,9 +52,14 @@ import com.smartgwt.client.widgets.layout.HStack;
 import com.smartgwt.client.widgets.layout.SectionStack;
 import com.smartgwt.client.widgets.layout.SectionStackSection;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.DataSourceFieldBuilder;
+import cz.incad.pas.editor.client.action.AbstractAction;
+import cz.incad.pas.editor.client.action.Action;
+import cz.incad.pas.editor.client.action.ActionEvent;
+import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.ds.BibliographyDataSource;
 import cz.incad.pas.editor.client.ds.BibliographyQueryDataSource;
 import cz.incad.pas.editor.client.ds.DigitalObjectDataSource;
@@ -79,11 +84,14 @@ public final class NewDigObject extends VLayout {
     private DynamicForm formCatalog;
     private final ClientMessages i18n;
     private ListGrid lgResult;
+    private Handler handler;
 
     public NewDigObject(ClientMessages i18n) {
         this.i18n = i18n;
         setHeight100();
         setWidth100();
+
+        ToolStrip toolbar = createToolbar();
 
         optionsForm = createOptionsForm();
 
@@ -101,7 +109,7 @@ public final class NewDigObject extends VLayout {
         sections.setVisibilityMode(VisibilityMode.MULTIPLE);
         sections.setSections(sectionMain, sectionAdvanced);
 
-        setMembers(sections);
+        setMembers(toolbar, sections);
     }
 
     public void bind(String model, AdvancedCriteria criteria) {
@@ -121,6 +129,10 @@ public final class NewDigObject extends VLayout {
             filter.setCriteria(criteria);
         }
 
+    }
+
+    public void setHandler(Handler handler) {
+        this.handler = handler;
     }
 
     public MetaModelRecord getModel() {
@@ -149,6 +161,24 @@ public final class NewDigObject extends VLayout {
 
     public void setValidationErrors(Map<?,?> errors) {
         optionsForm.setErrors(errors, true);
+    }
+
+    private ToolStrip createToolbar() {
+        Action actionNewObject = new AbstractAction(
+                i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title(),
+                "[SKIN]/actions/save.png",
+                null) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+                if (handler != null) {
+                    handler.onCreateObject();
+                }
+            }
+        };
+        ToolStrip t = Actions.createToolStrip();
+        t.addMember(Actions.asIconButton(actionNewObject, this));
+        return t;
     }
 
     private DynamicForm createOptionsForm() {
@@ -340,6 +370,10 @@ public final class NewDigObject extends VLayout {
         if (selectedResult != null) {
             lgResult.collapseRecord(selectedResult);
         }
+    }
+
+    public interface Handler {
+        void onCreateObject();
     }
     
 }
