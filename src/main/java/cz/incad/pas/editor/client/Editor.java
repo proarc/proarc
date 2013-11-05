@@ -219,12 +219,12 @@ public class Editor implements EntryPoint {
         headerItem.setStyleName("pasMainTitle");
         headerItem.setWrap(false);
         headerItem.setIcon("24/cube_frame.png");
-        mainHeader.addMember(headerItem);
 
-        mainHeader.addFill();
-        createUserLink(mainHeader, mainHeader.getMembers().length);
-        mainHeader.addMember(createLangMenu());
         mainHeader.addMember(createGlobalMenuButton(menu));
+        mainHeader.addMember(createLangMenu());
+        createUserLink(mainHeader, mainHeader.getMembers().length);
+        mainHeader.addFill();
+        mainHeader.addMember(headerItem);
         mainHeader.addSpacer(6);
 
         return mainHeader;
@@ -235,8 +235,7 @@ public class Editor implements EntryPoint {
         IconMenuButton langMenuButton = Actions.asIconMenuButton(Actions.emptyAction(activeLocale, null, null), this);
         langMenuButton.setCanFocus(Boolean.FALSE);
         Menu m = new Menu();
-        // do not use shadow; it draws outside page!
-//        m.setShowShadow(Boolean.TRUE);
+        m.setShowShadow(Boolean.TRUE);
         m.addItem(createLangItem("cs", "Česky", activeLocale));
         m.addItem(createLangItem("en", "English", activeLocale));
         langMenuButton.setMenu(m);
@@ -323,14 +322,7 @@ public class Editor implements EntryPoint {
 
             @Override
             public void performAction(ActionEvent event) {
-                Canvas c = globalMenuButton[0];
-                int top = c.getBottom() + 2;
-                int left = c.getLeft() - 150;
-                menuWindow.setTop(top);
-                menuWindow.setLeft(left);
-                menuWindow.show();
-                // showNextTo draws window outside of page
-//                menuWindow.showNextTo(globalMenuButton[0], "bottom");
+                menuWindow.showNextTo(globalMenuButton[0], "bottom");
                 menu.focus();
             }
         }, new Object());
