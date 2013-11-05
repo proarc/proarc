@@ -344,6 +344,7 @@ public final class NewDigObject extends VLayout {
         selection.setDisplayField(BibliographicCatalogResourceApi.CATALOG_NAME);
         selection.setAutoFetchData(true);
         selection.setDefaultToFirstOption(true);
+        selection.setWidth(250);
 
         DynamicForm form = new DynamicForm();
         form.setFields(selection);
