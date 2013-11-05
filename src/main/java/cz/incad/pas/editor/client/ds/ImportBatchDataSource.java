@@ -53,6 +53,7 @@ public final class ImportBatchDataSource extends RestDataSource {
     public static final String FIELD_USER_ID = ImportResourceApi.IMPORT_BATCH_USERID;
     public static final String FIELD_USER_DISPLAYNAME = ImportResourceApi.IMPORT_BATCH_USER;
     public static final String FIELD_PARENT = ImportResourceApi.IMPORT_BATCH_PARENTPID;
+    public static final String FIELD_LOG = ImportResourceApi.IMPORT_BATCH_FAILURE;
 
     public static final String FIELD_MODEL = ImportResourceApi.NEWBATCH_MODEL_PARAM;
     public static final String FIELD_DEVICE = ImportResourceApi.NEWBATCH_DEVICE_PARAM;
@@ -93,7 +94,9 @@ public final class ImportBatchDataSource extends RestDataSource {
         DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);
         parent.setHidden(true);
 
-        setFields(id, description, userId, user, create, state, parent);
+        DataSourceTextField log = new DataSourceTextField(FIELD_LOG);
+
+        setFields(id, description, userId, user, create, state, parent, log);
         
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         
@@ -189,6 +192,10 @@ public final class ImportBatchDataSource extends RestDataSource {
         public State getState() {
             String attr = delegate.getAttribute(FIELD_STATE);
             return State.fromString(attr);
+        }
+
+        public String getLog() {
+            return delegate.getAttribute(FIELD_LOG);
         }
     }
 

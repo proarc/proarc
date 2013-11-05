@@ -21,7 +21,10 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SortDirection;
+import com.smartgwt.client.types.TextAreaWrap;
+import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.MiniDateRangeItem;
+import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.events.CellDoubleClickEvent;
@@ -55,6 +58,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
 
     private ImportBatchChooserHandler handler;
     private final ListGrid lGridBatches;
+    private final DynamicForm logForm;
     private final ClientMessages i18n;
     private final ActionSource actionSource;
     private Action resumeAction;
@@ -67,17 +71,25 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         setHeight100();
 
         lGridBatches = initBatchesListGrid();
-        lGridBatches.setMargin(4);
         lGridBatches.setDataSource(ImportBatchDataSource.getInstance());
+        lGridBatches.setShowResizeBar(true);
+        lGridBatches.setResizeBarTarget("next");
 
         ToolStrip toolbar = createToolbar();
 
-        addMember(toolbar);
-        addMember(lGridBatches);
+        logForm = createLogForm();
+
+        VLayout innerLayout = new VLayout();
+        innerLayout.setMargin(4);
+        innerLayout.addMember(lGridBatches);
+        innerLayout.addMember(logForm);
+
+        setMembers(toolbar, innerLayout);
     }
 
     private ListGrid initBatchesListGrid() {
         ListGrid lg = new ListGrid();
+        lg.setHeight100();
         lg.setSelectionType(SelectionStyle.SINGLE);
         lg.setCanReorderFields(false);
         lg.setShowFilterEditor(true);
@@ -165,8 +177,22 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         return lGridBatches.getSelectedRecord();
     }
 
+    private void showLog(Record r) {
+        if (r != null) {
+            logForm.editRecord(r);
+            BatchRecord batch = new BatchRecord(r);
+            String log = batch.getLog();
+            logForm.setVisible(log != null && !log.isEmpty());
+        } else {
+            logForm.clearValues();
+            logForm.hide();
+        }
+    }
+
     private void updateOnSelection() {
         actionSource.fireEvent();
+        Record r = getSelectedBatch();
+        showLog(r);
     }
 
     private ToolStrip createToolbar() {
@@ -194,6 +220,23 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         t.addMember(Actions.asIconButton(resumeAction, actionSource));
 
         return t;
+    }
+
+    private DynamicForm createLogForm() {
+        DynamicForm form = new DynamicForm();
+        form.setBrowserSpellCheck(false);
+        form.setCanEdit(false);
+        form.setWidth100();
+        form.setHeight("40%");
+        TextAreaItem textAreaItem = new TextAreaItem(ImportBatchDataSource.FIELD_LOG);
+        textAreaItem.setColSpan("*");
+        textAreaItem.setHeight("*");
+        textAreaItem.setWrap(TextAreaWrap.OFF);
+        textAreaItem.setShowTitle(false);
+        textAreaItem.setWidth("*");
+        textAreaItem.setCanEdit(false);
+        form.setItems(textAreaItem);
+        return form;
     }
 
     public interface ImportBatchChooserHandler {

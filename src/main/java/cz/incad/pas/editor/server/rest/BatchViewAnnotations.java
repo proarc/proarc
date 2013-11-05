@@ -54,6 +54,11 @@ public abstract class BatchViewAnnotations extends BatchView {
     @Override
     public abstract Timestamp getCreate();
 
+
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_FAILURE)
+    @Override
+    public abstract String getLog();
+
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_STATE)
     @Override
     public abstract String getState();

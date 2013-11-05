@@ -34,6 +34,7 @@ public class BatchView {
     private Integer userId;
     private String username;
     private String parentPid;
+    private String log;
 
     public Integer getId() {
         return id;
@@ -53,6 +54,14 @@ public class BatchView {
 
     public Timestamp getCreate() {
         return create;
+    }
+
+    public String getLog() {
+        return log;
+    }
+
+    public void setLog(String log) {
+        this.log = log;
     }
 
     public void setCreate(Timestamp create) {
