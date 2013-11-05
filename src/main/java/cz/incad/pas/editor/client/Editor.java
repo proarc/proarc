@@ -83,6 +83,8 @@ import java.util.logging.Logger;
 
 public class Editor implements EntryPoint {
 
+    public static final String CSS_PANEL_DESCRIPTION_TITLE = "proarcPanelDescriptionTitle";
+
     private static final Logger LOG = Logger.getLogger(Editor.class.getName());
     
     /** {@link TreeNode } attribute to associate the node with {@link Place}. */

@@ -38,6 +38,7 @@ import com.smartgwt.client.widgets.toolbar.ToolStripSeparator;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.ClientUtils.SweepTask;
+import cz.incad.pas.editor.client.Editor;
 import cz.incad.pas.editor.client.action.Action;
 import cz.incad.pas.editor.client.action.Actions;
 import cz.incad.pas.editor.client.action.Actions.ActionSource;
@@ -103,7 +104,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         this.lblHeader = new Label();
         lblHeader.setAutoHeight();
         lblHeader.setPadding(4);
-        lblHeader.setStyleName("pasWizardTitle");
+        lblHeader.setStyleName(Editor.CSS_PANEL_DESCRIPTION_TITLE);
         this.actionSource = new ActionSource(this);
         this.embeddedView = embedded;
         this.toolbar = Actions.createToolStrip();

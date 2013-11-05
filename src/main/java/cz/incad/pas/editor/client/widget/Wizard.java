@@ -29,6 +29,7 @@ import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
+import cz.incad.pas.editor.client.Editor;
 
 /**
  * The wizard allows to connect multiple layout widgets as steps
@@ -63,7 +64,7 @@ public class Wizard extends VLayout {
         lblHeader = new Label();
         lblHeader.setAutoHeight();
         lblHeader.setPadding(4);
-        lblHeader.setStyleName("pasWizardTitle");
+        lblHeader.setStyleName(Editor.CSS_PANEL_DESCRIPTION_TITLE);
         addMember(lblHeader);
         
         stepContainer = new Layout();
