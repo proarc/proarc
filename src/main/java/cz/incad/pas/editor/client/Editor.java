@@ -350,8 +350,8 @@ public class Editor implements EntryPoint {
                         createTreeNode("Search", i18n.MainMenu_Edit_Edit_Title(), new DigitalObjectManagerPlace())
                 ),
 //                createTreeNode("Statistics", i18n.MainMenu_Statistics_Title()),
-                createTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
-                createTreeNode("Console", i18n.MainMenu_Console_Title()),
+                createProtectedTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
+                createProtectedTreeNode("Console", i18n.MainMenu_Console_Title(), Arrays.asList("proarc.permission.admin")),
                 createTreeNode("About", i18n.AboutWindow_Title()),
         };
         trees = reduce(trees);
@@ -411,11 +411,27 @@ public class Editor implements EntryPoint {
         return menu;
     }
 
-    private TreeNode createTreeNode(String name, String displayName, Place place, List<String> requires) {
+    private boolean checkCredentials(List<String> requires) {
         if (requires != null && !permissions.containsAll(requires)) {
+            return true;
+        }
+        return false;
+    }
+
+    private TreeNode createProtectedTreeNode(String name, String displayName, Place place, List<String> requires) {
+        if (checkCredentials(requires)) {
             return null;
         }
         return createTreeNode(name, displayName, place, (TreeNode[]) null);
+    }
+
+    private TreeNode createProtectedTreeNode(String name, String displayName,
+            List<String> requires, TreeNode... children) {
+
+        if (checkCredentials(requires)) {
+            return null;
+        }
+        return createTreeNode(name, displayName, null, children);
     }
 
     private TreeNode createTreeNode(String name, String displayName, TreeNode... children) {
