@@ -18,7 +18,7 @@ package cz.incad.pas.editor.client.widget;
 
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.types.AutoFitWidthApproach;
+import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SortDirection;
 import com.smartgwt.client.widgets.form.fields.MiniDateRangeItem;
@@ -90,7 +90,8 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         lgfFolder.setCanSort(false);
         ListGridField lgfDate = new ListGridField(ImportBatchDataSource.FIELD_CREATE,
                 i18n.ImportBatchDataSource_ImportDateFieldTitle());
-        lgfDate.setAutoFitWidth(true);
+        lgfDate.setWidth(120);
+        lgfDate.setAlign(Alignment.CENTER);
         lgfDate.setCanSort(true);
         MiniDateRangeItem dateRangeItem = new MiniDateRangeItem();
         dateRangeItem.setAttribute("allowRelativeDates", false);
@@ -98,16 +99,14 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         lgfDate.setCanFilter(true);
         ListGridField lgfImported = new ListGridField(ImportBatchDataSource.FIELD_STATE,
                 i18n.ImportBatchDataSource_StateFieldTitle());
-        lgfImported.setAutoFitWidth(true);
-        lgfImported.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
+        lgfImported.setWidth(150);
         lgfImported.setPrompt(ClientUtils.format("<div style='width:250px;'>%s</div>",
                 i18n.ImportBatchDataSource_StateFieldHint()));
         lgfImported.setCanFilter(true);
         lgfImported.setCanSort(true);
         ListGridField lgfUser = new ListGridField(ImportBatchDataSource.FIELD_USER_DISPLAYNAME,
                 i18n.ImportBatchDataSource_UserFieldTitle());
-        lgfUser.setAutoFitWidth(true);
-        lgfUser.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
+        lgfUser.setWidth(150);
         lgfUser.setCanFilter(false);
         lgfUser.setCanSort(false);
         lg.setFields(lgfFolder, lgfDate, lgfImported, lgfUser);
