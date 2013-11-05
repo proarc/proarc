@@ -43,6 +43,7 @@ import cz.incad.pas.editor.client.ds.ImportBatchItemDataSource;
 import cz.incad.pas.editor.client.ds.ImportTreeDataSource.ImportRecord;
 import cz.incad.pas.editor.client.ds.RelationDataSource;
 import cz.incad.pas.editor.client.ds.RestConfig;
+import cz.incad.pas.editor.client.presenter.DigitalObjectManaging.DigitalObjectManagerPlace;
 import cz.incad.pas.editor.client.presenter.Importing.ImportPlace;
 import cz.incad.pas.editor.client.presenter.Importing.ImportPlace.Type;
 import cz.incad.pas.editor.client.widget.ImportBatchChooser;
@@ -539,7 +540,7 @@ public class ImportPresenter {
 
                         @Override
                         public void execute(Boolean value) {
-                            placeController.goTo(new ImportPlace(Type.HISTORY));
+                            placeController.goTo(new DigitalObjectManagerPlace());
                         }
                     };
                     // XXX implement status page listing items and their states
