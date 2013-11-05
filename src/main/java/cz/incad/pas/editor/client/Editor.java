@@ -215,10 +215,17 @@ public class Editor implements EntryPoint {
 
         mainHeader.addSpacer(6);
 
-        Label headerItem = new Label(i18n.Editor_Header_Title());
-        headerItem.setStyleName("pasMainTitle");
+        Label headerItem = new Label();
         headerItem.setWrap(false);
-        headerItem.setIcon("24/cube_frame.png");
+        headerItem.setIcon("16/logo.png");
+        headerItem.setIconHeight(16);
+        headerItem.setIconWidth(205);
+//        headerItem.setIcon("24/logo.png");
+//        headerItem.setIconHeight(24);
+//        headerItem.setIconWidth(307);
+//        headerItem.setIcon("20/logo.png");
+//        headerItem.setIconHeight(20);
+//        headerItem.setIconWidth(256);
 
         mainHeader.addMember(createGlobalMenuButton(menu));
         mainHeader.addMember(createLangMenu());
