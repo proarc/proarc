@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.catalog;
 
 import cz.cas.lib.proarc.common.catalog.AlephXServer.Criteria;
-import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Proxy;

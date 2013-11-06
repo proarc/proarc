@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.catalog;
 
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.incad.pas.editor.server.mods.ModsUtils;
-import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import cz.incad.pas.editor.server.xml.Transformers;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;

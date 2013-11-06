@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.catalog;
 
-import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;

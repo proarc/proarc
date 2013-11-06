@@ -17,10 +17,11 @@
 package cz.incad.pas.editor.server.rest;
 
 import cz.cas.lib.proarc.common.catalog.BibliographicCatalog;
-import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.catalog.MetadataItem;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -177,46 +178,5 @@ public class BibliographicCatalogResource {
 //        }
 //
 //    }
-
-    /**
-     * Describes metadata item fetched from catalog.
-     */
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class MetadataItem {
-
-        private int id;
-        /** MODS XML */
-        private String mods;
-        /** displayable mods; HTML is permitted */
-        private String preview;
-        /** short descriptor of the item; used in ListGrid */
-        private String title;
-
-        public MetadataItem() {
-        }
-
-        public MetadataItem(int id, String mods, String preview, String title) {
-            this.id = id;
-            this.mods = mods;
-            this.preview = preview;
-            this.title = title;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        public String getMods() {
-            return mods;
-        }
-
-        public String getPreview() {
-            return preview;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-    }
 
 }
