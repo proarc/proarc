@@ -163,8 +163,19 @@ public final class ImportProcess implements Runnable {
         }
         File importFolder = importConfig.getImportFolder();
         try {
-            ImportFileScanner.validateImportFolder(importFolder);
-
+            try {
+                ImportFileScanner.validateImportFolder(importFolder);
+                ImportFolderStatus folderStatus = batchManager.getFolderStatus(batch);
+                if (folderStatus == null) {
+                    batchManager.updateFolderStatus(batch);
+                } else if (!batch.getId().equals(folderStatus.getBatchId())) {
+                    throw new IllegalStateException(String.format(
+                        "The folder tracked by another batch import!\nfolder: %s\nfound ID: %s",
+                        importFolder, folderStatus.getBatchId()));
+                }
+            } catch (Throwable ex) {
+                return logBatchFailure(batch, ex);
+            }
             File targetFolder = createTargetFolder(importFolder);
             importConfig.setTargetFolder(targetFolder);
             ImportFileScanner scanner = new ImportFileScanner();

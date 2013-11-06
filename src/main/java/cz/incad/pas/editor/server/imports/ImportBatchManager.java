@@ -17,6 +17,7 @@
 package cz.incad.pas.editor.server.imports;
 
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
 import cz.cas.lib.proarc.common.dao.BatchItemDao;
@@ -34,6 +35,7 @@ import cz.incad.pas.editor.server.imports.FileSet.FileEntry;
 import cz.incad.pas.editor.server.imports.ImportProcess.ImportOptions;
 import cz.incad.pas.editor.server.user.UserProfile;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -43,6 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXB;
 
 /**
  *
@@ -194,7 +197,9 @@ public class ImportBatchManager {
         batch.setState(Batch.State.LOADING);
         batch.setTitle(title);
         batch.setUserId(user.getId());
-        return update(batch);
+        Batch updated = update(batch);
+        updateFolderStatus(updated);
+        return updated;
     }
 
     public Batch update(Batch update) {
@@ -214,6 +219,29 @@ public class ImportBatchManager {
         } finally {
             tx.close();
         }
+    }
+
+    public void updateFolderStatus(Batch batch) {
+        File importFolder = resolveBatchFile(batch.getFolder());
+        ImportFolderStatus ifs = new ImportFolderStatus(batch);
+        JAXB.marshal(ifs, new File(importFolder, ImportFileScanner.IMPORT_STATE_FILENAME));
+    }
+
+    /**
+     * Gets batch import folder status.
+     * @param batch
+     * @return status or {@code null} in case of empty file (backward compatibility)
+     * @throws FileNotFoundException missing batch import folder
+     */
+    public ImportFolderStatus getFolderStatus(Batch batch) throws FileNotFoundException {
+        File importFolder = resolveBatchFile(batch.getFolder());
+        ImportFileScanner.validateImportFolder(importFolder);
+        File f = new File(importFolder, ImportFileScanner.IMPORT_STATE_FILENAME);
+        ImportFolderStatus ifs = null;
+        if (f.exists() && f.length() > 0) {
+            ifs = JAXB.unmarshal(f, ImportFolderStatus.class);
+        }
+        return ifs;
     }
 
     public List<Batch> findLoadingBatches() {
@@ -433,21 +461,16 @@ public class ImportBatchManager {
         if (batch == null) {
             throw new NullPointerException("batch");
         }
+        batch.setState(State.LOADING);
+        batch.setLog(null);
+        BatchDao dao = daos.createBatch();
         BatchItemDao itemDao = daos.createBatchItem();
         Transaction tx = daos.createTransaction();
+        dao.setTransaction(tx);
         itemDao.setTransaction(tx);
         try {
+            dao.update(batch);
             itemDao.removeItems(batch.getId());
-
-            LocalObject rootObject = getRootObject(batch);
-            RelationEditor relationEditor = new RelationEditor(rootObject);
-            List<String> members = relationEditor.getMembers();
-            if (!members.isEmpty()) {
-                members.clear();
-                relationEditor.setMembers(members);
-                relationEditor.write(relationEditor.getLastModified(), null);
-                rootObject.flush();
-            }
             tx.commit();
         } catch (Throwable t) {
             tx.rollback();

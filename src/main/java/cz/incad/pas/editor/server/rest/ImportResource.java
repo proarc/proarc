@@ -244,17 +244,24 @@ public class ImportResource {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
-        if (parentPid != null) {
+        if (state == Batch.State.INGESTING) {
+            // ingest
+            batch = new FedoraImport(RemoteStorage.getInstance(appConfig), importManager)
+                    .importBatch(batch, user.getUserName(), session.asFedoraLog());
+        } else if (state == Batch.State.LOADING_FAILED) {
+            Batch.State realState = batch.getState();
+            // try to reset import
+            if (realState != Batch.State.LOADING_FAILED && realState != Batch.State.LOADED) {
+                throw new UnsupportedOperationException("Cannot reset: " + batch);
+            }
+            ImportProcess resume = ImportProcess.resume(batch, importManager);
+            ImportDispatcher.getDefault().addImport(resume);
+        } else if (parentPid != null) {
             checkBatchState(batch);
             // XXX check PID is valid and exists
             parentPid = parentPid.isEmpty() ? null : parentPid;
             batch.setParentPid(parentPid);
             batch = importManager.update(batch);
-        }
-        if (state == Batch.State.INGESTING) {
-            // ingest
-            batch = new FedoraImport(RemoteStorage.getInstance(appConfig), importManager)
-                    .importBatch(batch, user.getUserName(), session.asFedoraLog());
         }
         BatchView batchView = importManager.viewBatch(batch.getId());
         return new SmartGwtResponse<BatchView>(batchView);

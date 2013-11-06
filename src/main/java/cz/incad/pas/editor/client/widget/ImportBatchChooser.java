@@ -18,10 +18,13 @@ package cz.incad.pas.editor.client.widget;
 
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SortDirection;
 import com.smartgwt.client.types.TextAreaWrap;
+import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.MiniDateRangeItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
@@ -62,6 +65,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
     private final ClientMessages i18n;
     private final ActionSource actionSource;
     private Action resumeAction;
+    private BatchRecord lastSelection;
 
     public ImportBatchChooser(ClientMessages i18n) {
         this.i18n = i18n;
@@ -141,7 +145,14 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
             public void onDataArrived(DataArrivedEvent event) {
                 int startRow = event.getStartRow();
                 if (startRow == 0) {
-                    lGridBatches.selectSingleRecord(0);
+                    int select = 0;
+                    if (lastSelection != null) {
+                        RecordList rl = lGridBatches.getResultSet();
+                        int findIndex = rl.findIndex(ImportBatchDataSource.FIELD_ID, lastSelection.getId());
+                        select = findIndex < 0 ? select : findIndex;
+                    }
+                    lGridBatches.selectSingleRecord(select);
+                    lGridBatches.scrollToRow(select);
                     lGridBatches.focus();
                 }
             }
@@ -173,14 +184,18 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         this.handler = handler;
     }
 
-    public Record getSelectedBatch() {
+    public BatchRecord getSelectedBatch() {
+        Record r = getSelectedRecord();
+        return r == null ? null : new BatchRecord(r);
+    }
+
+    public Record getSelectedRecord() {
         return lGridBatches.getSelectedRecord();
     }
 
-    private void showLog(Record r) {
-        if (r != null) {
-            logForm.editRecord(r);
-            BatchRecord batch = new BatchRecord(r);
+    private void showLog(BatchRecord batch) {
+        if (batch != null) {
+            logForm.editRecord(batch.getDelegate());
             String log = batch.getLog();
             logForm.setVisible(log != null && !log.isEmpty());
         } else {
@@ -191,7 +206,8 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
 
     private void updateOnSelection() {
         actionSource.fireEvent();
-        Record r = getSelectedBatch();
+        BatchRecord r = getSelectedBatch();
+        lastSelection = r;
         showLog(r);
     }
 
@@ -210,16 +226,55 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
 
             @Override
             public boolean accept(ActionEvent event) {
-                Record record = getSelectedBatch();
+                BatchRecord record = getSelectedBatch();
                 if (record != null) {
-                    return new BatchRecord(record).getState() == ImportBatchDataSource.State.LOADED;
+                    return record.getState() == ImportBatchDataSource.State.LOADED;
                 }
                 return false;
             }
         };
+
+        Action resetAction = new AbstractAction(i18n.ImportBatchChooser_ActionReset_Title(),
+                "[SKIN]/actions/undo.png",
+                i18n.ImportBatchChooser_ActionReset_Hint()) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+                resetImportFolder();
+            }
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                BatchRecord record = getSelectedBatch();
+                if (record != null) {
+                    ImportBatchDataSource.State state = record.getState();
+                    return state == ImportBatchDataSource.State.LOADING_FAILED
+                            || state == ImportBatchDataSource.State.LOADED;
+                } else {
+                    return false;
+                }
+            }
+
+        };
+
+        t.addMember(Actions.asIconButton(resetAction, actionSource));
         t.addMember(Actions.asIconButton(resumeAction, actionSource));
 
         return t;
+    }
+
+    private void resetImportFolder() {
+        SC.ask(i18n.ImportBatchChooser_ActionReset_Title(),
+                i18n.ImportBatchChooser_ActionReset_Ask_MSg(),
+                new BooleanCallback() {
+
+            @Override
+            public void execute(Boolean value) {
+                if (value != null && value) {
+                    handler.itemReset();
+                }
+            }
+        });
     }
 
     private DynamicForm createLogForm() {
@@ -241,6 +296,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
 
     public interface ImportBatchChooserHandler {
         void itemSelected();
+        void itemReset();
     }
 
 }

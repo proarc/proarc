@@ -197,6 +197,10 @@ public final class ImportBatchDataSource extends RestDataSource {
         public String getLog() {
             return delegate.getAttribute(FIELD_LOG);
         }
+
+        public Record getDelegate() {
+            return delegate;
+        }
     }
 
     /**

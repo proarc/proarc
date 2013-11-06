@@ -29,6 +29,7 @@ import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.incad.pas.editor.client.ClientMessages;
+import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.AbstractAction;
 import cz.incad.pas.editor.client.action.Action;
 import cz.incad.pas.editor.client.action.ActionEvent;
@@ -194,6 +195,39 @@ public class ImportPresenter {
         }, dsRequest);
     }
 
+    /**
+     * Resets batch import.
+     * Supports {@code LOADING_FAILED, LOADED} for now.
+     */
+    private void reset(BatchRecord batch, final BooleanCallback call) {
+        ImportBatchDataSource.State state = batch.getState();
+        if (state != ImportBatchDataSource.State.LOADING_FAILED
+                && state != ImportBatchDataSource.State.LOADED) {
+
+            throw new IllegalStateException("Unsupported state: " + batch.getState());
+        }
+        ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
+        DSRequest dsRequest = new DSRequest();
+        Record update = new Record();
+        update.setAttribute(ImportBatchDataSource.FIELD_ID, batch.getId());
+        update.setAttribute(ImportBatchDataSource.FIELD_STATE, ImportBatchDataSource.State.LOADING_FAILED.name());
+        dsBatch.updateData(update, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (RestConfig.isStatusOk(response)) {
+                    Record[] records = response.getData();
+                    if (records != null && records.length > 0) {
+                        importContext.setBatch(new BatchRecord(records[0]));
+                        call.execute(true);
+                        return;
+                    }
+                }
+                call.execute(false);
+            }
+        }, dsRequest);
+    }
+
     private void updateBatchParent(String batchId, final String parentPid, final BooleanCallback call) {
         ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
         DSRequest dsRequest = new DSRequest();
@@ -257,10 +291,15 @@ public class ImportPresenter {
 
         @Override
         public void itemSelected() {
-            Record record = widget.getSelectedBatch();
-            BatchRecord batch = new BatchRecord(record);
+            BatchRecord batch = widget.getSelectedBatch();
             getImportContext().setBatch(batch);
             placeController.goTo(new ImportPlace(Type.EDIT_ITEMS, batch.getId()));
+        }
+
+        @Override
+        public void itemReset() {
+            BatchRecord batch = widget.getSelectedBatch();
+            reset(batch, ClientUtils.EMPTY_BOOLEAN_CALLBACK);
         }
 
     }

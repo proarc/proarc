@@ -16,12 +16,17 @@
  */
 package cz.incad.pas.editor.server.imports;
 
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.Batch.State;
+import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
 import cz.incad.pas.editor.server.config.AppConfiguration;
 import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import java.io.File;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -68,6 +73,48 @@ public class ImportBatchManagerTest {
     public void tearDown() {
 //        System.clearProperty(AppConfiguration.ENV_APP_HOME);
 //        appConf.reload();
+    }
+
+    @Test
+    public void testBatchFolderStatus() throws Exception {
+//        temp.setDeleteOnExit(false);
+        DaoFactory df = EasyMock.createMock(DaoFactory.class);
+        ImportBatchManager ibm = new ImportBatchManager(appConf, df);
+        File batchRoot = new File(ibm.getBatchRoot());
+        File batchFolder = new File(batchRoot, "importFolder");
+        batchFolder.mkdir();
+        Batch b = new Batch();
+        b.setId(1);
+        b.setCreate(new Timestamp(System.currentTimeMillis()));
+        b.setDevice("device");
+        b.setFolder(ibm.relativizeBatchFile(batchFolder));
+        b.setGenerateIndices(true);
+        b.setState(State.LOADING);
+
+        ibm.updateFolderStatus(b);
+
+        ImportFolderStatus result = ibm.getFolderStatus(b);
+        assertEquals(b.getId(), result.getBatchId());
+    }
+
+    @Test
+    public void testMissingBatchFolderStatus() throws Exception {
+//        temp.setDeleteOnExit(false);
+        DaoFactory df = EasyMock.createMock(DaoFactory.class);
+        ImportBatchManager ibm = new ImportBatchManager(appConf, df);
+        File batchRoot = new File(ibm.getBatchRoot());
+        File batchFolder = new File(batchRoot, "importFolder");
+        batchFolder.mkdir();
+        Batch b = new Batch();
+        b.setId(1);
+        b.setCreate(new Timestamp(System.currentTimeMillis()));
+        b.setDevice("device");
+        b.setFolder(ibm.relativizeBatchFile(batchFolder));
+        b.setGenerateIndices(true);
+        b.setState(State.LOADING);
+
+        ImportFolderStatus result = ibm.getFolderStatus(b);
+        assertNull(result);
     }
 
 //    @Test
