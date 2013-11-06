@@ -23,7 +23,9 @@ import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
-import com.smartgwt.client.widgets.toolbar.ToolStripSeparator;
+import com.smartgwt.client.widgets.menu.IconMenuButton;
+import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItem;
 import cz.incad.pas.editor.client.ClientMessages;
 import cz.incad.pas.editor.client.ClientUtils;
 import cz.incad.pas.editor.client.action.AbstractAction;
@@ -62,7 +64,7 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
     private DatastreamEditor activeEditor;
     private final ClientMessages i18n;
     private DigitalObject[] digitalObjects;
-    private Canvas customEditorButton;
+    private MenuItem customEditorButton;
     private final ActionSource actionSource;
     private HandlerRegistration submitCustomValuesRegistration;
     private final SubmitValuesHandler submitCustomValuesHandler = new SubmitValuesHandler() {
@@ -206,28 +208,50 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         };
 
         return new Canvas[] {
-            customEditorButton = Actions.asIconButton(
+            createModsMenu(),
+            Actions.asIconButton(saveAction, actionSource)
+        };
+
+    }
+
+    private IconMenuButton createModsMenu() {
+        IconMenuButton btnMods = Actions.asIconMenuButton(new AbstractAction(
+                i18n.ModsMultiEditor_ActionMods_Title(), "[SKIN]/actions/edit.png", null) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+            }
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                DigitalObject[] selections = getSelection();
+                return selections != null && selections.length == 1;
+            }
+        }, actionSource);
+
+        Menu menuMods = Actions.createMenu();
+        menuMods.addItem(Actions.asMenuItem(
                 new SwitchAction(modsCustomEditor,
                         i18n.ModsMultiEditor_TabSimple_Title(),
                         Page.getAppDir() + "images/silk/16/application_form_edit.png",
                         i18n.ModsMultiEditor_TabSimple_Hint()
-                ), actionSource),
-            Actions.asIconButton(
+                ), actionSource, false));
+        customEditorButton = menuMods.getItem(0);
+        menuMods.addItem(Actions.asMenuItem(
                 new SwitchAction(modsFullEditor,
                         i18n.ModsMultiEditor_TabFull_Title(),
                         Page.getAppDir() + "images/silk/16/container.png",
                         i18n.ModsMultiEditor_TabFull_Hint()
-                ), actionSource),
-            Actions.asIconButton(
+                ), actionSource, false));
+
+        menuMods.addItem(Actions.asMenuItem(
                 new SwitchAction(modsSourceEditor,
                         i18n.ModsMultiEditor_TabSource_Title(),
                         Page.getAppDir() + "images/oxygen/16/application_xml.png",
                         i18n.ModsMultiEditor_TabSource_Hint()
-                ), actionSource),
-            new ToolStripSeparator(),
-            Actions.asIconButton(saveAction, actionSource)
-        };
-
+                ), actionSource, false));
+        btnMods.setMenu(menuMods);
+        return btnMods;
     }
 
     @Override
@@ -310,7 +334,7 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
 
     private void setEnabledCustom(boolean enabled) {
         if (customEditorButton != null) {
-            customEditorButton.setVisible(enabled);
+            customEditorButton.setEnabled(enabled);
         }
     }
 
