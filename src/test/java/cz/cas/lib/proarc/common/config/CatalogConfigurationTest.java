@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.config;
 
-import cz.incad.pas.editor.server.catalog.BibliographicCatalog;
+import cz.cas.lib.proarc.common.catalog.BibliographicCatalog;
 import java.util.List;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.junit.After;

@@ -14,9 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.incad.pas.editor.server.catalog;
+package cz.cas.lib.proarc.common.catalog;
 
-import cz.incad.pas.editor.server.catalog.Z3950Catalog.Field;
+import cz.cas.lib.proarc.common.catalog.Z3950Catalog.Field;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import java.nio.charset.Charset;

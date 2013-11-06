@@ -14,9 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.incad.pas.editor.server.catalog;
+package cz.cas.lib.proarc.common.catalog;
 
-import cz.incad.pas.editor.server.catalog.AlephXServer.Criteria;
+import cz.cas.lib.proarc.common.catalog.AlephXServer.Criteria;
 import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import java.io.IOException;
 import java.io.InputStream;

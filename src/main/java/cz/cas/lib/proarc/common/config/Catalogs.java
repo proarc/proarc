@@ -16,10 +16,10 @@
  */
 package cz.cas.lib.proarc.common.config;
 
-import cz.incad.pas.editor.server.catalog.AlephXServer;
-import cz.incad.pas.editor.server.catalog.BibliographicCatalog;
-import cz.incad.pas.editor.server.catalog.DigitizationRegistryCatalog;
-import cz.incad.pas.editor.server.catalog.Z3950Catalog;
+import cz.cas.lib.proarc.common.catalog.AlephXServer;
+import cz.cas.lib.proarc.common.catalog.BibliographicCatalog;
+import cz.cas.lib.proarc.common.catalog.DigitizationRegistryCatalog;
+import cz.cas.lib.proarc.common.catalog.Z3950Catalog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
