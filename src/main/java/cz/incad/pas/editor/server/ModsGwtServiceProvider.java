@@ -17,6 +17,9 @@
 package cz.incad.pas.editor.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.fi.muni.xkremser.editor.client.mods.ModsCollectionClient;
 import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
@@ -24,9 +27,6 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.util.BiblioModsUtils;
 import cz.incad.pas.editor.client.rpc.ModsGwtRecord;
 import cz.incad.pas.editor.client.rpc.ModsGwtService;
-import cz.incad.pas.editor.server.config.AppConfiguration;
-import cz.incad.pas.editor.server.config.AppConfigurationException;
-import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.FedoraObject;

@@ -16,9 +16,9 @@
  */
 package cz.incad.pas.editor.server.rest;
 
-import cz.incad.pas.editor.server.config.AppConfiguration;
-import cz.incad.pas.editor.server.config.AppConfigurationException;
-import cz.incad.pas.editor.server.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.export.DataStreamExport;
 import cz.incad.pas.editor.server.export.ExportException;
 import cz.incad.pas.editor.server.export.Kramerius4Export;

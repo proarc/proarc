@@ -18,13 +18,13 @@ package cz.incad.pas.editor.server.rest;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.client.FedoraClientException;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
-import cz.incad.pas.editor.server.config.AppConfiguration;
-import cz.incad.pas.editor.server.config.AppConfigurationException;
-import cz.incad.pas.editor.server.config.AppConfigurationFactory;
+import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor;
 import cz.incad.pas.editor.server.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.incad.pas.editor.server.fedora.AtmEditor;

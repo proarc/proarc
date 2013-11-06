@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.server.user;
 
-import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;

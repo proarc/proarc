@@ -17,11 +17,11 @@
 package cz.incad.pas.editor.server.rest;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchView;
-import cz.incad.pas.editor.server.config.AppConfiguration;
-import cz.incad.pas.editor.server.config.AppConfigurationException;
-import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.fedora.DigitalObjectException;
 import cz.incad.pas.editor.server.fedora.PageView;
 import cz.incad.pas.editor.server.fedora.PageView.Item;

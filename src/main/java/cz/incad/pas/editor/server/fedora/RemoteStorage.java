@@ -30,7 +30,7 @@ import com.yourmediashelf.fedora.client.response.ModifyDatastreamResponse;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
-import cz.incad.pas.editor.server.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.incad.pas.editor.server.fedora.FoxmlUtils.ControlGroup;
 import cz.incad.pas.editor.server.fedora.LocalStorage.LocalObject;
 import cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult;

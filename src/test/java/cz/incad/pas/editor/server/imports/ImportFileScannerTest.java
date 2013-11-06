@@ -16,10 +16,10 @@
  */
 package cz.incad.pas.editor.server.imports;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
-import cz.incad.pas.editor.server.config.AppConfiguration;
-import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.imports.FileSet.FileEntry;
 import cz.incad.pas.editor.server.imports.ImportFileScanner.Folder;
 import java.io.File;

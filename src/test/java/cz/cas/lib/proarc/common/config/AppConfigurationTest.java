@@ -14,9 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.incad.pas.editor.server.config;
+package cz.cas.lib.proarc.common.config;
 
-import cz.incad.pas.editor.server.CustomTemporaryFolder;
+import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;

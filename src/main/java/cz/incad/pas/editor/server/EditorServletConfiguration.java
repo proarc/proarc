@@ -16,12 +16,12 @@
  */
 package cz.incad.pas.editor.server;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireConfiguration;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
-import cz.incad.pas.editor.server.config.AppConfiguration;
-import cz.incad.pas.editor.server.config.AppConfigurationException;
-import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import cz.incad.pas.editor.server.imports.ImportBatchManager;
 import cz.incad.pas.editor.server.imports.ImportBatchManagerXmlConversion;
 import cz.incad.pas.editor.server.imports.ImportDispatcher;

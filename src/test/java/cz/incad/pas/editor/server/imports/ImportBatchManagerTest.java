@@ -16,12 +16,12 @@
  */
 package cz.incad.pas.editor.server.imports;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
-import cz.incad.pas.editor.server.config.AppConfiguration;
-import cz.incad.pas.editor.server.config.AppConfigurationFactory;
 import java.io.File;
 import java.sql.Timestamp;
 import java.util.HashMap;

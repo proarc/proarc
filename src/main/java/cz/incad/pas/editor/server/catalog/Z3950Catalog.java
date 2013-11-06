@@ -16,9 +16,9 @@
  */
 package cz.incad.pas.editor.server.catalog;
 
+import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.z3950.Z3950Client;
 import cz.cas.lib.proarc.z3950.Z3950ClientException;
-import cz.incad.pas.editor.server.config.CatalogConfiguration;
 import cz.incad.pas.editor.server.mods.ModsUtils;
 import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import cz.incad.pas.editor.server.xml.Transformers;

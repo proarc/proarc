@@ -17,7 +17,7 @@
 package cz.incad.pas.editor.server.catalog;
 
 import cz.incad.pas.editor.server.catalog.Z3950Catalog.Field;
-import cz.incad.pas.editor.server.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.incad.pas.editor.server.rest.BibliographicCatalogResource.MetadataItem;
 import java.nio.charset.Charset;
 import java.util.HashMap;

@@ -17,8 +17,8 @@
 package cz.incad.pas.editor.server.user;
 
 import cz.incad.pas.editor.server.CustomTemporaryFolder;
-import cz.incad.pas.editor.server.config.AppConfiguration;
-import cz.incad.pas.editor.server.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
