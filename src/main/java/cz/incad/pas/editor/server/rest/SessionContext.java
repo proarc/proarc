@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.server.rest;
 
-import cz.incad.pas.editor.server.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import java.security.Principal;
 import java.util.List;
 import java.util.Locale;

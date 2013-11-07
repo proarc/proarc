@@ -16,7 +16,7 @@
  */
 package cz.incad.pas.editor.server.rest;
 
-import cz.incad.pas.editor.server.json.JsonUtils;
+import cz.cas.lib.proarc.common.json.JsonUtils;
 import java.io.IOException;
 import java.io.StringWriter;
 import javax.ws.rs.WebApplicationException;

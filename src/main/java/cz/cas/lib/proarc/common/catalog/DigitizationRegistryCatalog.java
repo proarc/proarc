@@ -17,8 +17,8 @@
 package cz.cas.lib.proarc.common.catalog;
 
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
-import cz.incad.pas.editor.server.mods.ModsUtils;
-import cz.incad.pas.editor.server.xml.Transformers;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.xml.Transformers;
 import cz.registrdigitalizace.soapclient.DigitizationRegistryClient;
 import cz.registrdigitalizace.soapservices.DigitizationRecord;
 import cz.registrdigitalizace.soapservices.DigitizationRegistry;

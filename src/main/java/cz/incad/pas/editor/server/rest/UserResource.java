@@ -16,11 +16,11 @@
  */
 package cz.incad.pas.editor.server.rest;
 
-import cz.incad.pas.editor.server.user.Permission;
-import cz.incad.pas.editor.server.user.Permissions;
-import cz.incad.pas.editor.server.user.UserManager;
-import cz.incad.pas.editor.server.user.UserProfile;
-import cz.incad.pas.editor.server.user.UserUtil;
+import cz.cas.lib.proarc.common.user.Permission;
+import cz.cas.lib.proarc.common.user.Permissions;
+import cz.cas.lib.proarc.common.user.UserManager;
+import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserUtil;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;

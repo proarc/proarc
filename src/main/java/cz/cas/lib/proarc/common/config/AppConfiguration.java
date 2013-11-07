@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.config;
 
-import cz.incad.pas.editor.server.export.Kramerius4ExportOptions;
+import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
