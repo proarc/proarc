@@ -49,13 +49,13 @@ import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.Mapping;
+import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.io.File;
 import java.io.IOException;
@@ -66,7 +66,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1085,83 +1084,6 @@ public class DigitalObjectResource {
         return fobject;
     }
 
-    public static final class MetaModelRepository {
-
-        private static final MetaModelRepository INSTANCE = new MetaModelRepository();
-
-//        private Collection<MetaModel> repository;
-
-        public static MetaModelRepository getInstance() {
-            return INSTANCE;
-        }
-
-
-        private MetaModelRepository() {
-//            repository = new ArrayList<MetaModel>();
-        }
-
-        public Collection<MetaModel> find(Locale locale) {
-            // for now it is read only repository
-            String lang = locale.getLanguage();
-            List<MetaModel> models = new ArrayList<MetaModel>();
-            models.add(new MetaModel(
-                    "model:periodical", true, null,
-                    "cs".equals(lang) ? "Periodikum" : "Periodical",
-                    MetaModelDataSource.EDITOR_PERIODICAL,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
-                    ));
-            models.add(new MetaModel(
-                    "model:periodicalvolume", null, null,
-                    "cs".equals(lang) ? "Ročník" : "Periodical Volume",
-                    MetaModelDataSource.EDITOR_PERIODICAL_VOLUME,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                            DatastreamEditorType.ATM)
-                    ));
-            models.add(new MetaModel(
-                    "model:periodicalitem", null, null,
-                    "cs".equals(lang) ? "Výtisk" : "Periodical Item",
-                    MetaModelDataSource.EDITOR_PERIODICAL_ISSUE,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                            DatastreamEditorType.ATM)
-                    ));
-            models.add(new MetaModel(
-                    "model:monograph", true, null,
-                    "cs".equals(lang) ? "Monografie" : "Monograph",
-                    MetaModelDataSource.EDITOR_MONOGRAPH,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
-                    ));
-            models.add(new MetaModel(
-                    "model:monographunit", null, null,
-                    "cs".equals(lang) ? "Monografie - volná část" : "Monograph Unit",
-                    MetaModelDataSource.EDITOR_MONOGRAPH_UNIT,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                            DatastreamEditorType.ATM)
-                    ));
-            models.add(new MetaModel(
-                    "model:page", null, true,
-                    "cs".equals(lang) ? "Strana" : "Page",
-                    MetaModelDataSource.EDITOR_PAGE,
-                    EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
-                    ));
-
-            return models;
-        }
-
-        public MetaModel find(String model) {
-            for (MetaModel metaModel : find(Locale.ENGLISH)) {
-                if (metaModel.getPid().equals(model)) {
-                    return metaModel;
-                }
-            }
-            return null;
-        }
-    }
-
     @XmlRootElement(name = DigitalObjectResourceApi.CUSTOMMODS_ELEMENT)
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class CustomMods<T> {
@@ -1219,67 +1141,6 @@ public class DigitalObjectResource {
         public void setTimestamp(long timestamp) {
             this.timestamp = timestamp;
         }
-    }
-
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class MetaModel {
-        
-        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_PID_PARAM,
-                type = String.class, required = true)
-        private String pid;
-        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_ROOT_PARAM)
-        private Boolean root;
-        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_LEAF_PARAM)
-        private Boolean leaf;
-        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_DISPLAYNAME_PARAM)
-        private String displayName;
-        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_MODSCUSTOMEDITORID_PARAM)
-        private String modsCustomEditor;
-        @XmlElement(name = DigitalObjectResourceApi.METAMODEL_DATASTREAMEDITOR_PARAM)
-        private EnumSet<DatastreamEditorType> dataStreamEditors;
-
-        private MetaModel() {
-        }
-
-        public MetaModel(String pid, Boolean root, Boolean leaf, String displayName) {
-            this(pid, root, leaf, displayName, null, null);
-        }
-
-        public MetaModel(String pid, Boolean root, Boolean leaf, String displayName,
-                String modsCustomEditor, EnumSet<DatastreamEditorType> dataStreamEditors) {
-
-            this.pid = pid;
-            this.root = root;
-            this.leaf = leaf;
-            this.displayName = displayName;
-            this.modsCustomEditor = modsCustomEditor;
-            this.dataStreamEditors = dataStreamEditors;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-
-        public Boolean isLeaf() {
-            return leaf;
-        }
-
-        public String getPid() {
-            return pid;
-        }
-
-        public Boolean isRoot() {
-            return root;
-        }
-
-        public String getModsCustomEditor() {
-            return modsCustomEditor;
-        }
-
-        public Set<DatastreamEditorType> getDataStreamEditors() {
-            return dataStreamEditors;
-        }
-
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
