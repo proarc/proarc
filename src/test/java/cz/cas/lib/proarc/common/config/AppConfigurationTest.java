@@ -38,8 +38,8 @@ import org.junit.Test;
 public class AppConfigurationTest {
 
     private static final String EXPECTED_DEFAULT_VALUE = "defaultValue";
-    private static final String TEST_PROPERTY_NAME = "cz.incad.pas.editor.server.config.testProperty";
-    private static final String TEST_DEFAULT_PROPERTY_NAME = "cz.incad.pas.editor.server.config.testDefaultProperty";
+    private static final String TEST_PROPERTY_NAME = "cz.cas.lib.proarc.common.config.testProperty";
+    private static final String TEST_DEFAULT_PROPERTY_NAME = "cz.cas.lib.proarc.common.config.testDefaultProperty";
 
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder();

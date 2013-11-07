@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.incad.pas.editor.server;
+package cz.cas.lib.proarc.webapp.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -37,9 +37,9 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.util.BiblioModsUtils;
 import cz.cas.lib.proarc.webapp.client.rpc.ModsGwtRecord;
 import cz.cas.lib.proarc.webapp.client.rpc.ModsGwtService;
-import cz.incad.pas.editor.server.rest.ImportResource;
-import cz.incad.pas.editor.server.rest.RestException;
-import cz.incad.pas.editor.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.ImportResource;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.io.IOException;
 import java.util.Arrays;

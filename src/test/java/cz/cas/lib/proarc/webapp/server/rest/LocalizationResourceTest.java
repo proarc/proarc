@@ -14,9 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.incad.pas.editor.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest;
 
-import cz.incad.pas.editor.server.rest.LocalizationResource.Item;
+import cz.cas.lib.proarc.webapp.server.rest.LocalizationResource.Item;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi.BundleName;
 import java.util.EnumSet;
 import java.util.Set;

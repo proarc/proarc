@@ -73,19 +73,19 @@ public interface XmlStreamEditor {
 
     /**
      * Writes binary contents to stream.
-     * @see #write(cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult, long, java.lang.String)
+     * @see #write(cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult, long, java.lang.String)
      */
     void write(byte[] data, long timestamp, String message) throws DigitalObjectException;
 
     /**
      * Writes reference to contents to stream.
-     * @see #write(cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult, long, java.lang.String)
+     * @see #write(cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult, long, java.lang.String)
      */
     void write(URI data, long timestamp, String message) throws DigitalObjectException;
 
     /**
      * Writes binary contents to stream.
-     * @see #write(cz.incad.pas.editor.server.fedora.XmlStreamEditor.EditorResult, long, java.lang.String)
+     * @see #write(cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult, long, java.lang.String)
      */
     void write(InputStream data, long timestamp, String message) throws DigitalObjectException;
 

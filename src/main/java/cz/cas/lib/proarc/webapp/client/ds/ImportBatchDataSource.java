@@ -204,7 +204,7 @@ public final class ImportBatchDataSource extends RestDataSource {
     }
 
     /**
-     * Copy of {@link cz.incad.pas.editor.server.imports.ImportBatchManager.ImportBatch.State State}.
+     * Copy of {@link cz.cas.lib.proarc.common.imports.ImportBatchManager.ImportBatch.State State}.
      * XXX make it GWT accessible and remove this.
      */
     public enum State {

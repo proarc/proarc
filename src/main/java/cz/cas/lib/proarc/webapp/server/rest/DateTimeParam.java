@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.incad.pas.editor.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest;
 
 import java.sql.Timestamp;
 import java.util.Date;

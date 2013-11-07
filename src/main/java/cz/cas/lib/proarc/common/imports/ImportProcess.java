@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 
 /**
  * Import process
- * {@link #prepare(java.io.File, java.lang.String, cz.incad.pas.editor.server.user.UserProfile, cz.incad.pas.editor.server.imports.ImportBatchManager, java.lang.String, java.lang.String, boolean) checks}
+ * {@link #prepare(java.io.File, java.lang.String, cz.cas.lib.proarc.common.user.UserProfile, cz.cas.lib.proarc.common.imports.ImportBatchManager, java.lang.String, java.lang.String, boolean) checks}
  * preconditions of the import,
  * {@link #start() runs} the import and if necessary {@link #resume resumes}
  * already prepared import.

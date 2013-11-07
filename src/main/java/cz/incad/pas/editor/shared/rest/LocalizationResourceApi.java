@@ -35,12 +35,12 @@ public final class LocalizationResourceApi {
          * @see <a href='https://docs.google.com/document/d/1zSriHPdnUY5d_tKv0M8a6nEym560DKh2H6XZ24tGAEw/edit?pli=1#'>Page Types</a>
          * @see <a href='http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd'>PeriodicalPage[@Type]</a>
          */
-        MODS_PAGE_TYPES("cz.incad.pas.editor.server.config.modsPageTypes"),
-        MODS_IDENTIFIER_TYPES("cz.incad.pas.editor.server.config.modsIdentifierTypes"),
+        MODS_PAGE_TYPES("cz.cas.lib.proarc.common.config.modsPageTypes"),
+        MODS_IDENTIFIER_TYPES("cz.cas.lib.proarc.common.config.modsIdentifierTypes"),
         /**
          * <a href='http://www.loc.gov/standards/iso639-2/php/English_list.php'>ISO 639-2 Languages</a>
          */
-        LANGUAGES_ISO639_2("cz.incad.pas.editor.server.config.languagesIso639-2");
+        LANGUAGES_ISO639_2("cz.cas.lib.proarc.common.config.languagesIso639-2");
 
         private String bundleName;
 
