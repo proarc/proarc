@@ -23,7 +23,7 @@ import cz.cas.lib.proarc.common.mods.custom.PeriodicalIssueMapper.PeriodicalIssu
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalMapper.Periodical;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalVolumeMapper.PeriodicalVolume;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.incad.pas.editor.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import java.util.HashMap;
 import java.util.Map;
 

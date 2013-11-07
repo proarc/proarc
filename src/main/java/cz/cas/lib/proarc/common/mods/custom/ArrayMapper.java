@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.mods.custom;
 
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
-import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;

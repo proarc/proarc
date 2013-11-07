@@ -286,7 +286,7 @@
                 <configuration>
                     <runTarget>${warName}/index.html</runTarget>
                     <hostedWebapp>${webappDirectory}</hostedWebapp>
-                    <i18nMessagesBundle>cz.incad.pas.editor.client.ClientMessages</i18nMessagesBundle>
+                    <i18nMessagesBundle>cz.cas.lib.proarc.webapp.client.ClientMessages</i18nMessagesBundle>
                     <enableAssertions>true</enableAssertions>
                     <compileSourcesArtifacts>
                         <artifact>cz.mzk:EditMods</artifact>

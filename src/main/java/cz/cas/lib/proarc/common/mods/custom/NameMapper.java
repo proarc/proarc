@@ -26,7 +26,7 @@ import cz.fi.muni.xkremser.editor.server.mods.NameTypeAttribute;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.fi.muni.xkremser.editor.server.mods.RoleType;
 import cz.fi.muni.xkremser.editor.server.mods.RoleType.RoleTerm;
-import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;

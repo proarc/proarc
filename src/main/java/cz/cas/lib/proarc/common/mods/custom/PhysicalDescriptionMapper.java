@@ -22,7 +22,7 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.NoteType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.fi.muni.xkremser.editor.server.mods.PhysicalDescriptionType;
-import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

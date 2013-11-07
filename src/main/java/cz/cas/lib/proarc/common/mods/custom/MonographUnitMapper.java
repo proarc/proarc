@@ -24,7 +24,7 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.fi.muni.xkremser.editor.server.mods.PartType;
 import cz.fi.muni.xkremser.editor.server.mods.UnstructuredText;
-import cz.incad.pas.editor.client.ds.ModsCustomDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
