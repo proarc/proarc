@@ -127,7 +127,7 @@ public final class AppConfiguration {
             try {
                 // bundled default configurations
                 Enumeration<URL> resources = AppConfiguration.class.getClassLoader()
-                        .getResources("cz/incad/pas/editor/server/config/proarc.properties");
+                        .getResources("cz/cas/lib/proarc/common/config/proarc.properties");
                 for (URL resource; resources.hasMoreElements(); ) {
                     resource = resources.nextElement();
                     LOG.log(Level.FINE, "classpath config: {0}", resource);
