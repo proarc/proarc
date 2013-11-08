@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.ServletContext;
 
 /**
  *
@@ -40,20 +39,6 @@ public final class AppConfigurationFactory {
 
     public AppConfiguration create() throws AppConfigurationException {
         return create(new HashMap<String, String>());
-    }
-
-    /**
-     * Creates configuration of the application. The lookup of default properties
-     * searches servlet init parameters, system properties and system environment.
-     *
-     * @param ctx servlet context
-     * @return the configuration
-     * @throws AppConfigurationException
-     */
-    public AppConfiguration create(ServletContext ctx) throws AppConfigurationException {
-        Map<String, String> env = new HashMap<String, String>();
-        readServletParameter(AppConfiguration.PROPERTY_APP_HOME, ctx, env);
-        return create(env);
     }
 
     /**
@@ -86,15 +71,6 @@ public final class AppConfigurationFactory {
 
     public void setDefaultInstance(AppConfiguration config) {
         this.defaultInstance = config;
-    }
-
-    private static String readServletParameter(String name, ServletContext ctx, Map<String, String> env) {
-        String val = ctx.getInitParameter(name);
-        if (val != null) {
-            LOG.log(Level.INFO, "Init parameter {0}: {1}", new Object[]{name, val});
-            env.put(name, val);
-        }
-        return val;
     }
 
     private static void readParameter(String name, String envName, Map<String, String> env) {

@@ -29,6 +29,9 @@ import cz.cas.lib.proarc.common.sql.DbUtils;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.naming.NamingException;
 import javax.servlet.ServletContext;
@@ -65,15 +68,33 @@ public final class EditorServletConfiguration implements ServletContextListener 
         LOG.fine("contextDestroyed");
     }
 
+    /**
+     * Creates configuration of the application. The lookup of default properties
+     * searches servlet init parameters, system properties and system environment.
+     *
+     * @param ctx servlet context
+     * @return the configuration
+     */
     private AppConfiguration initConfig(ServletContext ctx) {
         try {
             AppConfigurationFactory configFactory = AppConfigurationFactory.getInstance();
-            AppConfiguration config = configFactory.create(ctx);
+            Map<String, String> env = new HashMap<String, String>();
+            readServletParameter(AppConfiguration.PROPERTY_APP_HOME, ctx, env);
+            AppConfiguration config = configFactory.create(env);
             configFactory.setDefaultInstance(config);
             return configFactory.defaultInstance();
         } catch (AppConfigurationException ex) {
             throw new IllegalStateException(ex);
         }
+    }
+
+    private static String readServletParameter(String name, ServletContext ctx, Map<String, String> env) {
+        String val = ctx.getInitParameter(name);
+        if (val != null) {
+            LOG.log(Level.INFO, "Init parameter {0}: {1}", new Object[]{name, val});
+            env.put(name, val);
+        }
+        return val;
     }
     
     private DataSource initProarcDb() {
