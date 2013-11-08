@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module rename-to='proarc'>
+<module rename-to="proarc">
     <!-- Inherit the core Web Toolkit stuff.                        -->
-    <inherits name='com.google.gwt.user.User' />
+    <inherits name="com.google.gwt.user.User" />
     <!-- Application workflow                                       -->
     <inherits name="com.google.gwt.activity.Activity"/>
-    <inherits name='com.google.gwt.place.Place' />
+    <inherits name="com.google.gwt.place.Place" />
 
     <inherits name="cz.cas.lib.proarc.common.ProArcCommon" />
 
-    <inherits name='cz.fi.muni.xkremser.editor.ModsEditor' />
+    <inherits name="cz.fi.muni.xkremser.editor.ModsEditor" />
 
     <inherits name="com.google.gwt.i18n.I18N"/>
     <extend-property name="locale" values="cs"/>
 
     <!-- We need the JUnit module in the main module,               -->
     <!-- otherwise eclipse complains (Google plugin bug?)           -->
-<!--    <inherits name='com.google.gwt.junit.JUnit' />-->
+<!--    <inherits name="com.google.gwt.junit.JUnit" />-->
 
     <!-- Inherit the default GWT style sheet.  You can change       -->
     <!-- the theme of your GWT application by uncommenting          -->
     <!-- any one of the following lines.                            -->
-    <inherits name='com.google.gwt.user.theme.standard.Standard' />
-    <!-- <inherits name='com.google.gwt.user.theme.chrome.Chrome'/> -->
-    <!-- <inherits name='com.google.gwt.user.theme.dark.Dark'/>     -->
+    <inherits name="com.google.gwt.user.theme.standard.Standard" />
+    <!-- <inherits name="com.google.gwt.user.theme.chrome.Chrome"/> -->
+    <!-- <inherits name="com.google.gwt.user.theme.dark.Dark"/>     -->
 
     <!-- SmartGWT                                      -->
     <inherits name="com.smartgwt.SmartGwt"/>
@@ -45,11 +45,11 @@
     <!-- Other module inherits                                      -->
 
     <!-- Specify the app entry point class.                         -->
-    <entry-point class='cz.cas.lib.proarc.webapp.client.Editor' />
+    <entry-point class="cz.cas.lib.proarc.webapp.client.Editor" />
 
     <!-- Specify the paths for translatable code                    -->
-    <source path='client' />
-    <source path='shared' />
+    <source path="client" />
+    <source path="shared" />
 
     <!-- maven propery to set user.agent -->
     ${gwt.user.agent}
