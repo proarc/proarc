@@ -30,6 +30,7 @@ import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.validator.CustomValidator;
 import cz.cas.lib.proarc.common.i18n.BundleName;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ds.LocalizationDataSource;
@@ -49,8 +50,8 @@ public final class IdentifierDataSource extends DataSource {
     private static final Logger LOG = Logger.getLogger(IdentifierDataSource.class.getName());
 
     public static final String ID = "IdentifierDataSource";
-    public static final String FIELD_TYPE = "type";
-    public static final String FIELD_VALUE = "value";
+    public static final String FIELD_TYPE = ModsConstants.FIELD_IDENTIFIER_TYPE;
+    public static final String FIELD_VALUE = ModsConstants.FIELD_IDENTIFIER_VALUE;
     /** fetched object */
     public static final String FIELD_OBJECT = "IdentifierTypeClient";
     public static final String TYPE_CCNB = "ccnb";

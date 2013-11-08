@@ -22,6 +22,11 @@ package cz.cas.lib.proarc.common.mods.custom;
  * @author Jan Pokorsky
  */
 public interface ModsConstants {
+
+    // identifier
+    public static final String FIELD_IDENTIFIER_VALUE = "value";
+    public static final String FIELD_IDENTIFIER_TYPE = "type";
+    //page
     public static final String FIELD_STRING_VALUE = "value";
     public static final String FIELD_PAGE_TYPE = "pageType";
     public static final String FIELD_PAGE_INDEX = "pageIndex";

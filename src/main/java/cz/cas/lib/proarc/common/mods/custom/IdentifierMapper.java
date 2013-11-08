@@ -19,7 +19,6 @@ package cz.cas.lib.proarc.common.mods.custom;
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
 import cz.fi.muni.xkremser.editor.server.mods.IdentifierType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.cas.lib.proarc.webapp.client.ds.mods.IdentifierDataSource;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -70,9 +69,9 @@ public final class IdentifierMapper {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class IdentifierItem implements ArrayItem {
 
-        @XmlElement(name = IdentifierDataSource.FIELD_TYPE)
+        @XmlElement(name = ModsConstants.FIELD_IDENTIFIER_TYPE)
         private String type;
-        @XmlElement(name = IdentifierDataSource.FIELD_VALUE)
+        @XmlElement(name = ModsConstants.FIELD_IDENTIFIER_VALUE)
         private String value;
         private Integer index;
 
