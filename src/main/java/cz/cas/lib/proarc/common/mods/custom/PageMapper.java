@@ -23,7 +23,6 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.fi.muni.xkremser.editor.server.mods.PartType;
 import cz.fi.muni.xkremser.editor.server.mods.UnstructuredText;
-import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -212,13 +211,13 @@ public final class PageMapper implements Mapping.Mapper<Page> {
     public static class Page {
         
         private List<IdentifierItem> identifiers;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PAGE_NUMBER)
+        @XmlElement(name = ModsConstants.FIELD_PAGE_NUMBER)
         private String number;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PAGE_INDEX)
+        @XmlElement(name = ModsConstants.FIELD_PAGE_INDEX)
         private String index;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PAGE_TYPE)
+        @XmlElement(name = ModsConstants.FIELD_PAGE_TYPE)
         private String type;
-        @XmlElement(name = ModsCustomDataSource.FIELD_NOTE)
+        @XmlElement(name = ModsConstants.FIELD_NOTE)
         private String note;
 
         public Page() {

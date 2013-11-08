@@ -26,7 +26,6 @@ import cz.fi.muni.xkremser.editor.server.mods.NameTypeAttribute;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.fi.muni.xkremser.editor.server.mods.RoleType;
 import cz.fi.muni.xkremser.editor.server.mods.RoleType.RoleTerm;
-import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -218,9 +217,9 @@ final class NameMapper {
     public static class NameItem implements ArrayItem {
 
         private Integer index;
-        @XmlElement(name = ModsCustomDataSource.FIELD_NAME_FAMILY)
+        @XmlElement(name = ModsConstants.FIELD_NAME_FAMILY)
         private String family;
-        @XmlElement(name = ModsCustomDataSource.FIELD_NAME_GIVEN)
+        @XmlElement(name = ModsConstants.FIELD_NAME_GIVEN)
         private String given;
         private transient NameRole role;
 

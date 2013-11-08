@@ -22,7 +22,6 @@ import cz.fi.muni.xkremser.editor.server.mods.LanguageType;
 import cz.fi.muni.xkremser.editor.server.mods.LanguageType.LanguageTerm;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -126,7 +125,7 @@ final class LanguageMapper {
     public static class LanguageItem implements ArrayItem {
 
         private Integer index;
-        @XmlElement(name = ModsCustomDataSource.FIELD_LANGUAGE_CODE)
+        @XmlElement(name = ModsConstants.FIELD_LANGUAGE_CODE)
         private String value;
         private boolean ignore;
 

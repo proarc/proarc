@@ -26,7 +26,6 @@ import cz.fi.muni.xkremser.editor.server.mods.OriginInfoType;
 import cz.fi.muni.xkremser.editor.server.mods.PlaceTermType;
 import cz.fi.muni.xkremser.editor.server.mods.PlaceType;
 import cz.fi.muni.xkremser.editor.server.mods.StringPlusAuthority;
-import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -317,11 +316,11 @@ final class OriginInfoMapper {
     @javax.xml.bind.annotation.XmlAccessorType(XmlAccessType.FIELD)
     public static final class PublisherItem implements OriginInfoItem {
 
-        @XmlElement(name = ModsCustomDataSource.FIELD_PRINTER_PUBLISHER_NAME)
+        @XmlElement(name = ModsConstants.FIELD_PRINTER_PUBLISHER_NAME)
         private String name;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PRINTER_PUBLISHER_DATE)
+        @XmlElement(name = ModsConstants.FIELD_PRINTER_PUBLISHER_DATE)
         private String date;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PRINTER_PUBLISHER_PLACE)
+        @XmlElement(name = ModsConstants.FIELD_PRINTER_PUBLISHER_PLACE)
         private String place;
         private transient Role role;
         private Integer index;

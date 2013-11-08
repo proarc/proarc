@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.mods.custom;
 
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
-import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -105,7 +104,7 @@ final class ArrayMapper<S, T extends ArrayItem> {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static final class StringItem implements ArrayItem {
 
-        @XmlElement(name = ModsCustomDataSource.FIELD_STRING_VALUE)
+        @XmlElement(name = ModsConstants.FIELD_STRING_VALUE)
         private String value;
         private Integer index;
 

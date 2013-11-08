@@ -24,7 +24,6 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.fi.muni.xkremser.editor.server.mods.PartType;
 import cz.fi.muni.xkremser.editor.server.mods.UnstructuredText;
-import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -161,11 +160,11 @@ final class MonographUnitMapper implements Mapper<MonographUnit> {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static final class MonographUnit {
 
-        @XmlElement(name = ModsCustomDataSource.FIELD_IDENTIFIERS)
+        @XmlElement(name = ModsConstants.FIELD_IDENTIFIERS)
         private List<IdentifierItem> identifiers;
-        @XmlElement(name = ModsCustomDataSource.FIELD_MONOGRAPHUNIT_NUMBER)
+        @XmlElement(name = ModsConstants.FIELD_MONOGRAPHUNIT_NUMBER)
         private String number;
-        @XmlElement(name = ModsCustomDataSource.FIELD_NOTE)
+        @XmlElement(name = ModsConstants.FIELD_NOTE)
         private String note;
 
         public MonographUnit() {

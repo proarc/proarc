@@ -21,6 +21,7 @@ import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import cz.cas.lib.proarc.common.i18n.BundleName;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.ds.mods.IdentifierDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.LinkedHashMap;
@@ -46,7 +47,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class ModsCustomDataSource extends DataSource {
+public final class ModsCustomDataSource extends DataSource implements ModsConstants {
 
     private static final Logger LOG = Logger.getLogger(ModsCustomDataSource.class.getName());
 
@@ -58,53 +59,7 @@ public final class ModsCustomDataSource extends DataSource {
     public static final String FIELD_DATA = DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA;
     
     // follows custom field names
-    public static final String FIELD_STRING_VALUE = "value";
-    public static final String FIELD_PAGE_TYPE = "pageType";
-    public static final String FIELD_PAGE_INDEX = "pageIndex";
-    public static final String FIELD_PAGE_NUMBER = "pageNumber";
-    public static final String FIELD_IDENTIFIERS = "identifiers";
-    public static final String FIELD_NOTE = "note";
-    //periodical
-    public static final String FIELD_PERIODICITIES = "periodicities";
-    public static final String FIELD_SIGLA = "sigla";
-    public static final String FIELD_SHELF_LOCATORS = "shelfLocators";
-    public static final String FIELD_AUTHORS = "authors";
-    public static final String FIELD_CONTRIBUTORS = "contributors";
-    public static final String FIELD_NAME_FAMILY = "family";
-    public static final String FIELD_NAME_GIVEN = "given";
-    public static final String FIELD_PUBLISHERS = "publishers";
-    public static final String FIELD_PRINTER_PUBLISHER_NAME = "publisherName";
-    public static final String FIELD_PRINTER_PUBLISHER_DATE = "publisherDate";
-    public static final String FIELD_PRINTER_PUBLISHER_PLACE = "publisherPlace";
-    public static final String FIELD_PRINTERS = "printers";
-    public static final String FIELD_TITLES = "titles";
-    public static final String FIELD_SUBTITLES = "subtitles";
-    public static final String FIELD_ALTERNATIVE_TITLES = "alternativeTitles";
-    public static final String FIELD_KEY_TITLES = "keyTitles";
-    public static final String FIELD_KEYWORDS = "keywords";
-    public static final String FIELD_LANGUAGES = "languages";
-    public static final String FIELD_LANGUAGE_CODE = "languageCode";
-    public static final String FIELD_CLASSIFICATIONS = "classifications";
-    public static final String FIELD_CLASSIFICATION_UDC = "classificationsUDC";
-    public static final String FIELD_CLASSIFICATION_DDC = "classificationsDDC";
-    public static final String FIELD_PHYSICAL_DESCRIPTIONS = "physicalDescriptions";
-    public static final String FIELD_PHYSICAL_DESCRIPTIONS_EXTENT = "physicalDescriptionsExtent";
-    public static final String FIELD_PHYSICAL_DESCRIPTIONS_SIZE = "physicalDescriptionsSize";
-    public static final String FIELD_RECORD_ORIGIN = "recordOrigin";
-    // periodical volume
-    public static final String FIELD_PER_VOLUME_NUMBER = "periodicalVolumeNumber";
-    public static final String FIELD_PER_VOLUME_YEAR = "periodicalVolumeYear";
-    // periodical issue
-    public static final String FIELD_PER_ISSUE_NUMBER = "PeriodicalItemNumber";
-    public static final String FIELD_PER_ISSUE_NUMBER_SORTING = "PeriodicalItemNumberSorting";
-    public static final String FIELD_PER_ISSUE_DATE = "periodicalItemDate";
-    // monograph
-    public static final String FIELD_PRESERVATION_TREATMENT = "preservationTreatment";
-    public static final String FIELD_PRESERVATION_STATEOFART = "preservationStateOfArt";
-    // monograph unit
-    public static final String FIELD_MONOGRAPHUNIT_NUMBER = "monographUnitNumber";
-
-    private static LinkedHashMap<String, String> PAGE_TYPES = new LinkedHashMap<String, String>();
+    // custom field names are defined by ModsConstants for now
 
     public ModsCustomDataSource() {
         setID(ID);

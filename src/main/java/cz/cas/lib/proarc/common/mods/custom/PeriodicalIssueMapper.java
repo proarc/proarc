@@ -26,7 +26,6 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.fi.muni.xkremser.editor.server.mods.PartType;
 import cz.fi.muni.xkremser.editor.server.mods.UnstructuredText;
-import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -230,15 +229,15 @@ final class PeriodicalIssueMapper implements Mapper<PeriodicalIssue> {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class PeriodicalIssue {
 
-        @XmlElement(name = ModsCustomDataSource.FIELD_IDENTIFIERS)
+        @XmlElement(name = ModsConstants.FIELD_IDENTIFIERS)
         private List<IdentifierItem> identifiers;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PER_ISSUE_DATE)
+        @XmlElement(name = ModsConstants.FIELD_PER_ISSUE_DATE)
         private String issueDate;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PER_ISSUE_NUMBER)
+        @XmlElement(name = ModsConstants.FIELD_PER_ISSUE_NUMBER)
         private String issueNumber;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PER_ISSUE_NUMBER_SORTING)
+        @XmlElement(name = ModsConstants.FIELD_PER_ISSUE_NUMBER_SORTING)
         private String issueSortingNumber;
-        @XmlElement(name = ModsCustomDataSource.FIELD_NOTE)
+        @XmlElement(name = ModsConstants.FIELD_NOTE)
         private String note;
 
         public PeriodicalIssue() {

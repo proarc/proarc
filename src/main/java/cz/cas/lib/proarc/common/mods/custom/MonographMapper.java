@@ -32,7 +32,6 @@ import cz.fi.muni.xkremser.editor.server.mods.NoteType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.fi.muni.xkremser.editor.server.mods.PhysicalLocationType;
 import cz.fi.muni.xkremser.editor.server.mods.RecordInfoType;
-import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -259,43 +258,43 @@ final class MonographMapper implements Mapper<Monograph> {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class Monograph {
 
-        @XmlElement(name = ModsCustomDataSource.FIELD_IDENTIFIERS)
+        @XmlElement(name = ModsConstants.FIELD_IDENTIFIERS)
         private List<IdentifierMapper.IdentifierItem> identifiers;
-        @XmlElement(name = ModsCustomDataSource.FIELD_SIGLA)
+        @XmlElement(name = ModsConstants.FIELD_SIGLA)
         private String sigla;
-        @XmlElement(name = ModsCustomDataSource.FIELD_SHELF_LOCATORS)
+        @XmlElement(name = ModsConstants.FIELD_SHELF_LOCATORS)
         private List<StringItem> shelfLocators;
-        @XmlElement(name = ModsCustomDataSource.FIELD_TITLES)
+        @XmlElement(name = ModsConstants.FIELD_TITLES)
         private List<StringItem> titles;
-        @XmlElement(name = ModsCustomDataSource.FIELD_SUBTITLES)
+        @XmlElement(name = ModsConstants.FIELD_SUBTITLES)
         private List<StringItem> subtitles;
-        @XmlElement(name = ModsCustomDataSource.FIELD_KEY_TITLES)
+        @XmlElement(name = ModsConstants.FIELD_KEY_TITLES)
         private List<StringItem> keyTitles;
-        @XmlElement(name = ModsCustomDataSource.FIELD_ALTERNATIVE_TITLES)
+        @XmlElement(name = ModsConstants.FIELD_ALTERNATIVE_TITLES)
         private List<StringItem> alternativeTitles;
-        @XmlElement(name = ModsCustomDataSource.FIELD_AUTHORS)
+        @XmlElement(name = ModsConstants.FIELD_AUTHORS)
         private List<NameItem> authors;
-        @XmlElement(name = ModsCustomDataSource.FIELD_CONTRIBUTORS)
+        @XmlElement(name = ModsConstants.FIELD_CONTRIBUTORS)
         private List<NameItem> contributors;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PRINTERS)
+        @XmlElement(name = ModsConstants.FIELD_PRINTERS)
         private List<PublisherItem> printers;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PUBLISHERS)
+        @XmlElement(name = ModsConstants.FIELD_PUBLISHERS)
         private List<PublisherItem> publishers;
-        @XmlElement(name = ModsCustomDataSource.FIELD_LANGUAGES)
+        @XmlElement(name = ModsConstants.FIELD_LANGUAGES)
         private List<LanguageItem> languages;
-        @XmlElement(name = ModsCustomDataSource.FIELD_CLASSIFICATIONS)
+        @XmlElement(name = ModsConstants.FIELD_CLASSIFICATIONS)
         private List<ClassificationPair> classifications;
-        @XmlElement(name = ModsCustomDataSource.FIELD_KEYWORDS)
+        @XmlElement(name = ModsConstants.FIELD_KEYWORDS)
         private List<StringItem> keywords;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PHYSICAL_DESCRIPTIONS)
+        @XmlElement(name = ModsConstants.FIELD_PHYSICAL_DESCRIPTIONS)
         private List<ExtentPair> physicalDescriptions;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PRESERVATION_TREATMENT)
+        @XmlElement(name = ModsConstants.FIELD_PRESERVATION_TREATMENT)
         private String preservationTreatment;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PRESERVATION_STATEOFART)
+        @XmlElement(name = ModsConstants.FIELD_PRESERVATION_STATEOFART)
         private String preservationStateOfArt;
-        @XmlElement(name = ModsCustomDataSource.FIELD_RECORD_ORIGIN)
+        @XmlElement(name = ModsConstants.FIELD_RECORD_ORIGIN)
         private String recordOrigin;
-        @XmlElement(name = ModsCustomDataSource.FIELD_NOTE)
+        @XmlElement(name = ModsConstants.FIELD_NOTE)
         private String note;
 
         public Monograph() {

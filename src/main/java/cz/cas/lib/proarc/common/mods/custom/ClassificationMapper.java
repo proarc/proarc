@@ -21,7 +21,6 @@ import cz.cas.lib.proarc.common.mods.custom.ClassificationMapper.ClassificationI
 import cz.fi.muni.xkremser.editor.server.mods.ClassificationType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -143,9 +142,9 @@ final class ClassificationMapper {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class ClassificationPair {
         
-        @XmlElement(name = ModsCustomDataSource.FIELD_CLASSIFICATION_DDC)
+        @XmlElement(name = ModsConstants.FIELD_CLASSIFICATION_DDC)
         private String ddc;
-        @XmlElement(name = ModsCustomDataSource.FIELD_CLASSIFICATION_UDC)
+        @XmlElement(name = ModsConstants.FIELD_CLASSIFICATION_UDC)
         private String udc;
         private Integer ddcIndex;
         private Integer udcIndex;

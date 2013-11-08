@@ -8,6 +8,10 @@
         <include name="BundleName.java" />
     </source>
 
+    <source path="mods">
+        <include name="custom/ModsConstants.java" />
+    </source>
+
     <source path="object">
         <include name="model/DatastreamEditorType.java" />
     </source>

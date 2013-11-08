@@ -22,7 +22,6 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.NoteType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.fi.muni.xkremser.editor.server.mods.PhysicalDescriptionType;
-import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -165,10 +164,10 @@ final class PhysicalDescriptionMapper {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class ExtentPair {
         
-        @XmlElement(name = ModsCustomDataSource.FIELD_PHYSICAL_DESCRIPTIONS_EXTENT)
+        @XmlElement(name = ModsConstants.FIELD_PHYSICAL_DESCRIPTIONS_EXTENT)
         private String extent;
         private Integer extentIndex;
-        @XmlElement(name = ModsCustomDataSource.FIELD_PHYSICAL_DESCRIPTIONS_SIZE)
+        @XmlElement(name = ModsConstants.FIELD_PHYSICAL_DESCRIPTIONS_SIZE)
         private String size;
         private Integer sizeIndex;
 
