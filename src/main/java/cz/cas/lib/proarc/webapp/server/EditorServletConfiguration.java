@@ -23,7 +23,6 @@ import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireConfiguration;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
-import cz.cas.lib.proarc.common.imports.ImportBatchManagerXmlConversion;
 import cz.cas.lib.proarc.common.imports.ImportDispatcher;
 import cz.cas.lib.proarc.common.imports.ImportProcess;
 import cz.cas.lib.proarc.common.sql.DbUtils;
@@ -99,9 +98,6 @@ public final class EditorServletConfiguration implements ServletContextListener 
     }
 
     private void initImport(AppConfiguration config) {
-        ImportBatchManagerXmlConversion conversion = new ImportBatchManagerXmlConversion(
-                daoFactory, config, UserUtil.getDefaultManger());
-        conversion.convertXml2Db();
         ImportBatchManager.setInstance(config, daoFactory);
         ImportBatchManager ibm = ImportBatchManager.getInstance();
         ImportDispatcher importDispatcher = new ImportDispatcher();
