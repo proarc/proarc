@@ -27,6 +27,7 @@ import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.layout.VLayout;
+import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
@@ -236,17 +237,17 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
     private DynamicForm createCustomForm(MetaModelRecord model) {
         DynamicForm form = null;
         final String editorId = model.getEditorId();
-        if (MetaModelDataSource.EDITOR_PAGE.equals(editorId)) {
+        if (ModsCutomEditorType.EDITOR_PAGE.equals(editorId)) {
             form = new PageForm(i18n);
-        } else if (MetaModelDataSource.EDITOR_PERIODICAL.equals(editorId)) {
+        } else if (ModsCutomEditorType.EDITOR_PERIODICAL.equals(editorId)) {
             form = new PeriodicalForm(i18n);
-        } else if (MetaModelDataSource.EDITOR_MONOGRAPH.equals(editorId)) {
+        } else if (ModsCutomEditorType.EDITOR_MONOGRAPH.equals(editorId)) {
             form = new MonographForm(i18n);
-        } else if (MetaModelDataSource.EDITOR_PERIODICAL_VOLUME.equals(editorId)) {
+        } else if (ModsCutomEditorType.EDITOR_PERIODICAL_VOLUME.equals(editorId)) {
             form = new PeriodicalVolumeForm(i18n);
-        } else if (MetaModelDataSource.EDITOR_PERIODICAL_ISSUE.equals(editorId)) {
+        } else if (ModsCutomEditorType.EDITOR_PERIODICAL_ISSUE.equals(editorId)) {
             form = new PeriodicalIssueForm(i18n);
-        } else if (MetaModelDataSource.EDITOR_MONOGRAPH_UNIT.equals(editorId)) {
+        } else if (ModsCutomEditorType.EDITOR_MONOGRAPH_UNIT.equals(editorId)) {
             form = new MonographUnitForm(i18n);
         } else {
             ClientUtils.warning(LOG, "Uknown model editor: %s, editor: %s", model.getId(), model.getEditorId());

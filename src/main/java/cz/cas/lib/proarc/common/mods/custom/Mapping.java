@@ -23,7 +23,6 @@ import cz.cas.lib.proarc.common.mods.custom.PeriodicalIssueMapper.PeriodicalIssu
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalMapper.Periodical;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalVolumeMapper.PeriodicalVolume;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,12 +37,12 @@ public final class Mapping {
     private static final Map<String, MapperItem<?>> MAPPERS = new HashMap<String, MapperItem<?>>();
     
     static {
-        addModel(MetaModelDataSource.EDITOR_PAGE, new PageMapper(), Page.class);
-        addModel(MetaModelDataSource.EDITOR_PERIODICAL, new PeriodicalMapper(), Periodical.class);
-        addModel(MetaModelDataSource.EDITOR_PERIODICAL_VOLUME, new PeriodicalVolumeMapper(), PeriodicalVolume.class);
-        addModel(MetaModelDataSource.EDITOR_PERIODICAL_ISSUE, new PeriodicalIssueMapper(), PeriodicalIssue.class);
-        addModel(MetaModelDataSource.EDITOR_MONOGRAPH, new MonographMapper(), Monograph.class);
-        addModel(MetaModelDataSource.EDITOR_MONOGRAPH_UNIT, new MonographUnitMapper(), MonographUnit.class);
+        addModel(ModsCutomEditorType.EDITOR_PAGE, new PageMapper(), Page.class);
+        addModel(ModsCutomEditorType.EDITOR_PERIODICAL, new PeriodicalMapper(), Periodical.class);
+        addModel(ModsCutomEditorType.EDITOR_PERIODICAL_VOLUME, new PeriodicalVolumeMapper(), PeriodicalVolume.class);
+        addModel(ModsCutomEditorType.EDITOR_PERIODICAL_ISSUE, new PeriodicalIssueMapper(), PeriodicalIssue.class);
+        addModel(ModsCutomEditorType.EDITOR_MONOGRAPH, new MonographMapper(), Monograph.class);
+        addModel(ModsCutomEditorType.EDITOR_MONOGRAPH_UNIT, new MonographUnitMapper(), MonographUnit.class);
     }
 
     private static <T> void addModel(String mapperId, Mapper<T> mapper, Class<T> type) {

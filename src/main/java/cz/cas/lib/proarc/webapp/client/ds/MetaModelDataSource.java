@@ -57,13 +57,6 @@ public class MetaModelDataSource extends RestDataSource {
      * Synthetic field holding {@link MetaModelRecord} instance.
      */
     public static final String FIELD_MODELOBJECT = "MetaModelRecord";
-
-    public static final String EDITOR_PAGE = "cz.cas.lib.proarc.webapp.client.widget.mods.PageForm";
-    public static final String EDITOR_PERIODICAL = "cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalForm";
-    public static final String EDITOR_PERIODICAL_VOLUME = "cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalVolumeForm";
-    public static final String EDITOR_PERIODICAL_ISSUE = "cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalIssueForm";
-    public static final String EDITOR_MONOGRAPH = "cz.cas.lib.proarc.webapp.client.widget.mods.MonographForm";
-    public static final String EDITOR_MONOGRAPH_UNIT = "cz.cas.lib.proarc.webapp.client.widget.mods.MonographUnitForm";
     private static ResultSet resultSet;
 
     public MetaModelDataSource() {

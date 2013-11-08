@@ -10,6 +10,7 @@
 
     <source path="mods">
         <include name="custom/ModsConstants.java" />
+        <include name="custom/ModsCutomEditorType.java" />
     </source>
 
     <source path="object">

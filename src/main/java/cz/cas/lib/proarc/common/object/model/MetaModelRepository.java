@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object.model;
 
-import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -52,14 +52,14 @@ public final class MetaModelRepository {
         models.add(new MetaModel(
                 "model:periodical", true, null,
                 "cs".equals(lang) ? "Periodikum" : "Periodical",
-                MetaModelDataSource.EDITOR_PERIODICAL,
+                ModsCutomEditorType.EDITOR_PERIODICAL,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
                 "model:periodicalvolume", null, null,
                 "cs".equals(lang) ? "Ročník" : "Periodical Volume",
-                MetaModelDataSource.EDITOR_PERIODICAL_VOLUME,
+                ModsCutomEditorType.EDITOR_PERIODICAL_VOLUME,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
@@ -67,7 +67,7 @@ public final class MetaModelRepository {
         models.add(new MetaModel(
                 "model:periodicalitem", null, null,
                 "cs".equals(lang) ? "Výtisk" : "Periodical Item",
-                MetaModelDataSource.EDITOR_PERIODICAL_ISSUE,
+                ModsCutomEditorType.EDITOR_PERIODICAL_ISSUE,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
@@ -75,14 +75,14 @@ public final class MetaModelRepository {
         models.add(new MetaModel(
                 "model:monograph", true, null,
                 "cs".equals(lang) ? "Monografie" : "Monograph",
-                MetaModelDataSource.EDITOR_MONOGRAPH,
+                ModsCutomEditorType.EDITOR_MONOGRAPH,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
                 "model:monographunit", null, null,
                 "cs".equals(lang) ? "Monografie - volná část" : "Monograph Unit",
-                MetaModelDataSource.EDITOR_MONOGRAPH_UNIT,
+                ModsCutomEditorType.EDITOR_MONOGRAPH_UNIT,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
@@ -90,7 +90,7 @@ public final class MetaModelRepository {
         models.add(new MetaModel(
                 "model:page", null, true,
                 "cs".equals(lang) ? "Strana" : "Page",
-                MetaModelDataSource.EDITOR_PAGE,
+                ModsCutomEditorType.EDITOR_PAGE,
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
                 ));
 
