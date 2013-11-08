@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.object.model;
 
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;

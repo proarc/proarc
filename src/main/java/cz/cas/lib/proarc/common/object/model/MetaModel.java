@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object.model;
 
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import java.util.EnumSet;
 import java.util.Set;
 

@@ -24,6 +24,7 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
+import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
@@ -34,7 +35,6 @@ import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.client.widget.Wizard;
 import cz.cas.lib.proarc.webapp.client.widget.Wizard.StepKind;
 import cz.cas.lib.proarc.webapp.client.widget.Wizard.WizardStep;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import java.util.Map;
 import java.util.logging.Logger;
 

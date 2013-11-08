@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<module>
+
+    <!-- Export the paths for translatable code with API -->
+    <source path="object">
+        <include name="model/DatastreamEditorType.java" />
+    </source>
+
+</module>

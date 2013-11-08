@@ -176,11 +176,4 @@ public final class DigitalObjectResourceApi {
 
     }
 
-    /**
-     * Supported datastream UI editors.
-     */
-    public enum DatastreamEditorType {
-        NOTE, OCR, MEDIA, MODS, PARENT, CHILDREN, ATM
-    }
-
 }
