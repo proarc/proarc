@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.fedora;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,10 +28,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import javax.ws.rs.core.MediaType;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Supports plaint text as Fedora data stream binary content.
@@ -155,20 +150,11 @@ public final class StringEditor {
         return read(new InputStreamReader(stream, "UTF-8"));
     }
 
-    @XmlRootElement(name = DigitalObjectResourceApi.STRINGRECORD_ELEMENT)
-    @XmlAccessorType(XmlAccessType.FIELD)
     public static class StringRecord {
 
-        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_PID)
         private String pid;
-        
-        @XmlElement(name = DigitalObjectResourceApi.BATCHID_PARAM)
         private Integer batchId;
-
-        @XmlElement(name = DigitalObjectResourceApi.TIMESTAMP_PARAM)
         private long timestamp;
-
-        @XmlElement(name = DigitalObjectResourceApi.STRINGRECORD_CONTENT)
         private String content;
 
         public StringRecord() {

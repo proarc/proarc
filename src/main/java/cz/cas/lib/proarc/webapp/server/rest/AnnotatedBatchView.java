@@ -33,7 +33,7 @@ import javax.xml.bind.annotation.XmlTransient;
  */
 @javax.xml.bind.annotation.XmlRootElement(name = ImportResourceApi.IMPORT_BATCH_ELEMENT)
 @javax.xml.bind.annotation.XmlAccessorType(XmlAccessType.NONE)
-public abstract class BatchViewAnnotations extends BatchView {
+public abstract class AnnotatedBatchView extends BatchView {
 
     @XmlElement(required = true, name = ImportResourceApi.IMPORT_BATCH_ID)
     @Override

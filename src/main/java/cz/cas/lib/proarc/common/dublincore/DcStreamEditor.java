@@ -26,13 +26,7 @@ import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.util.JAXBSource;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -103,29 +97,12 @@ public final class DcStreamEditor {
         }
     }
 
-    @XmlRootElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_ELEMENT,
-            namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
-    @XmlAccessorType(XmlAccessType.FIELD)
-    @XmlType(namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
     public static class DublinCoreRecord {
 
-        @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_PID,
-                namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
         private String pid;
-
-        @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_BATCHID,
-                namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS,
-                nillable = true)
         private Integer batchId;
-
         /** last modification of the DC content*/
-        @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_TIMESTAMP,
-                namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
         private long timestamp;
-
-        @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_DC,
-                namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS_OAIDC,
-                required = true)
         private OaiDcType dc;
 
         public DublinCoreRecord() {

@@ -20,12 +20,8 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.io.IOException;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Handles administrative and technical metadata of digital objects.
@@ -97,26 +93,16 @@ public final class AtmEditor {
         return atm;
     }
 
-    @XmlAccessorType(XmlAccessType.FIELD)
     public static class AtmItem {
 
-        @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_PID)
         private String pid;
-        @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_BATCHID)
         private Integer batchId;
-        @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_OWNER)
         private String owner;
-        @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_MODEL)
         private String model;
-        @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_STATE)
         private String state;
-        @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_CREATED)
         private String created;
-        @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_MODIFIED)
         private String modified;
-        @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_DEVICE)
         private String deviceId;
-        @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_FILENAME)
         private String importFile;
 
         public AtmItem() {

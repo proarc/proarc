@@ -16,37 +16,25 @@
  */
 package cz.cas.lib.proarc.common.object.model;
 
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.DatastreamEditorType;
 import java.util.EnumSet;
 import java.util.Set;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  * The model of a digital object.
  *
  * @author Jan Pokorsky
  */
-@XmlAccessorType(XmlAccessType.FIELD)
 public class MetaModel {
 
-    @XmlElement(name = DigitalObjectResourceApi.METAMODEL_PID_PARAM,
-            type = String.class, required = true)
     private String pid;
-    @XmlElement(name = DigitalObjectResourceApi.METAMODEL_ROOT_PARAM)
     private Boolean root;
-    @XmlElement(name = DigitalObjectResourceApi.METAMODEL_LEAF_PARAM)
     private Boolean leaf;
-    @XmlElement(name = DigitalObjectResourceApi.METAMODEL_DISPLAYNAME_PARAM)
     private String displayName;
-    @XmlElement(name = DigitalObjectResourceApi.METAMODEL_MODSCUSTOMEDITORID_PARAM)
     private String modsCustomEditor;
-    @XmlElement(name = DigitalObjectResourceApi.METAMODEL_DATASTREAMEDITOR_PARAM)
     private EnumSet<DatastreamEditorType> dataStreamEditors;
 
-    private MetaModel() {
+    public MetaModel() {
     }
 
     public MetaModel(String pid, Boolean root, Boolean leaf, String displayName) {

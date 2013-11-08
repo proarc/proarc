@@ -25,8 +25,6 @@ import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper.Page;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
-import cz.incad.pas.editor.shared.rest.ImportResourceApi;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
 import java.io.File;
 import java.util.ArrayList;
@@ -35,9 +33,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
@@ -130,28 +125,17 @@ public final class PageView {
         return label;
     }
 
-    @XmlAccessorType(XmlAccessType.FIELD)
     public static class Item {
 
-        @XmlElement(name = ImportResourceApi.BATCHITEM_BATCHID)
         private Integer batchId;
-        @XmlElement(name = ImportResourceApi.BATCHITEM_FILENAME)
         private String filename;
-        @XmlElement(name = ImportResourceApi.BATCHITEM_PID)
         private String pid;
-        @XmlElement(name = ImportResourceApi.BATCHITEM_MODEL)
         private String model;
-        @XmlElement(name = ImportResourceApi.BATCHITEM_PAGEINDEX)
         private String pageIndex;
-        @XmlElement(name = ImportResourceApi.BATCHITEM_PAGENUMBER)
         private String pageNumber;
-        @XmlElement(name = ImportResourceApi.BATCHITEM_PAGETYPE)
         private String pageType;
-        @XmlElement(name = ImportResourceApi.BATCHITEM_TIMESTAMP)
         private long timestamp;
-        @XmlElement(name = ImportResourceApi.BATCHITEM_USER)
         private String user;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_LABEL)
         private String label;
 
         public Item(Integer batchId, String filename, String pid, String model,
@@ -170,6 +154,46 @@ public final class PageView {
         }
 
         public Item() {
+        }
+
+        public Integer getBatchId() {
+            return batchId;
+        }
+
+        public String getFilename() {
+            return filename;
+        }
+
+        public String getPid() {
+            return pid;
+        }
+
+        public String getModel() {
+            return model;
+        }
+
+        public String getPageIndex() {
+            return pageIndex;
+        }
+
+        public String getPageNumber() {
+            return pageNumber;
+        }
+
+        public String getPageType() {
+            return pageType;
+        }
+
+        public long getTimestamp() {
+            return timestamp;
+        }
+
+        public String getUser() {
+            return user;
+        }
+
+        public String getLabel() {
+            return label;
         }
 
     }

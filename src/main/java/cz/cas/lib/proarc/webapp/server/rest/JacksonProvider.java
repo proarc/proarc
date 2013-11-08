@@ -16,12 +16,12 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
-import cz.cas.lib.proarc.common.dao.BatchView;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
@@ -38,15 +38,34 @@ import org.codehaus.jackson.map.SerializationConfig;
 @Produces({MediaType.APPLICATION_JSON, "text/json"})
 public final class JacksonProvider extends JacksonJaxbJsonProvider {
 
+    private final SerializationConfig serializationConfig;
+    private final DeserializationConfig deserializationConfig;
+
     public JacksonProvider() {
         // reuses XmlRootElement.name to adhere to XML structure
         configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
         configure(SerializationConfig.Feature.WRITE_NULL_PROPERTIES, false);
         configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
         ObjectMapper mapper = _mapperConfig.getConfiguredMapper();
-        mapper.getSerializationConfig().addMixInAnnotations(BatchView.class, BatchViewAnnotations.class);
-        mapper.getDeserializationConfig().addMixInAnnotations(BatchView.class, BatchViewAnnotations.class);
+        serializationConfig = mapper.getSerializationConfig();
+        deserializationConfig = mapper.getDeserializationConfig();
 
+        registerAnnotatedSuperclass(AnnotatedAtmItem.class);
+        registerAnnotatedSuperclass(AnnotatedBatchView.class);
+        registerAnnotatedSuperclass(AnnotatedDublinCoreRecord.class);
+        registerAnnotatedSuperclass(AnnotatedMetaModel.class);
+        registerAnnotatedSuperclass(AnnotatedPageViewItem.class);
+        registerAnnotatedSuperclass(AnnotatedSearchViewItem.class);
+        registerAnnotatedSuperclass(AnnotatedStringRecord.class);
+    }
+
+    private void register(Class<?> target, Class<?> mixinSource) {
+        serializationConfig.addMixInAnnotations(target, mixinSource);
+        deserializationConfig.addMixInAnnotations(target, mixinSource);
+    }
+
+    private void registerAnnotatedSuperclass(Class<?> mixinSource) {
+        register(mixinSource.getSuperclass(), mixinSource);
     }
 
 }

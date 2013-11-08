@@ -25,7 +25,6 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.json.JsonUtils;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -39,7 +38,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -379,28 +377,18 @@ public final class SearchView {
         return content;
     }
 
-    @XmlAccessorType(XmlAccessType.FIELD)
     public static class Item {
 
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PID)
         private String pid;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_MODEL)
         private String model;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_OWNER)
         private String owner;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_LABEL)
         private String label;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_STATE)
         private String state;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED)
         private String created;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_MODIFIED)
         private String modified;
         /** Parent PID. Optional for some queries */
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PARENT)
         private String parent;
         /** batch import ID. Optional for some queries */
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
         private Integer batchId;
 
         public Item() {
