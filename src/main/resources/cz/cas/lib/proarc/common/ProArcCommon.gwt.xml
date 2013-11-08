@@ -3,6 +3,11 @@
 <module>
 
     <!-- Export the paths for translatable code with API -->
+
+    <source path="i18n">
+        <include name="BundleName.java" />
+    </source>
+
     <source path="object">
         <include name="model/DatastreamEditorType.java" />
     </source>

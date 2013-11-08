@@ -16,8 +16,8 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.webapp.server.rest.LocalizationResource.Item;
-import cz.incad.pas.editor.shared.rest.LocalizationResourceApi.BundleName;
 import java.util.EnumSet;
 import java.util.Set;
 import static org.junit.Assert.*;

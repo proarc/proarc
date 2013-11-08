@@ -18,8 +18,8 @@ package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.google.gwt.i18n.client.LocaleInfo;
 import com.smartgwt.client.data.Criteria;
+import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
-import cz.incad.pas.editor.shared.rest.LocalizationResourceApi.BundleName;
 
 /**
  * ISO 639-2 languages support.
