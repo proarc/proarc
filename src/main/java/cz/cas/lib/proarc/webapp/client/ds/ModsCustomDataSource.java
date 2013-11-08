@@ -22,7 +22,7 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.webapp.client.ds.mods.IdentifierDataSource;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 

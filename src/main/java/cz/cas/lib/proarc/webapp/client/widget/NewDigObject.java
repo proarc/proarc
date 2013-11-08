@@ -65,7 +65,7 @@ import cz.cas.lib.proarc.webapp.client.ds.BibliographyQueryDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
-import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
 import java.util.Map;
 import java.util.logging.Logger;
 

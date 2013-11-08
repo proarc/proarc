@@ -21,7 +21,7 @@ import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
-import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
 import java.util.logging.Logger;
 
 /**

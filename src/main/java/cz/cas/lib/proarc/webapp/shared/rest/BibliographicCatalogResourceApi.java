@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Jan Pokorsky
+ * Copyright (C) 2012 Jan Pokorsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,19 +14,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.incad.pas.editor.shared.rest;
+package cz.cas.lib.proarc.webapp.shared.rest;
 
 /**
- * API to share constants between client and server code.
  *
  * @author Jan Pokorsky
  */
-public final class DeviceResourceApi {
+public final class BibliographicCatalogResourceApi {
 
-    // resource /device
-    public static final String PATH = "device";
+    public static final String PATH = "bibliographies";
 
-    public static final String DEVICE_ITEM_ID = "id";
-    public static final String DEVICE_ITEM_LABEL = "label";
+    public static final String FIND_PATH = "query";
+    public static final String FIND_CATALOG_PARAM = "catalog";
+    public static final String FIND_FIELDNAME_PARAM = "fieldName";
+    public static final String FIND_VALUE_PARAM = "value";
+
+    public static final String CATALOG_ID = "id";
+    public static final String CATALOG_NAME = "name";
 
 }

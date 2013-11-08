@@ -20,7 +20,7 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
  * Data source for digital object's data streams as raw text.

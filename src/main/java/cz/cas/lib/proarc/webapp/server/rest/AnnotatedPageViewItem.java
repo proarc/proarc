@@ -17,8 +17,8 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.fedora.PageView.Item;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
-import cz.incad.pas.editor.shared.rest.ImportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;

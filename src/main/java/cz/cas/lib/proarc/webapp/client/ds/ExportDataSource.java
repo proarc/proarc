@@ -21,7 +21,7 @@ import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.PromptStyle;
-import cz.incad.pas.editor.shared.rest.ExportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 
 /**
  * The generic data source for export services.

@@ -33,7 +33,7 @@ import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.OperatorId;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.incad.pas.editor.shared.rest.ImportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 

@@ -32,8 +32,8 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.FieldType;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi.SearchType;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.util.HashMap;
 
 /**

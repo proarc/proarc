@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.i18n.BundleName;
-import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;

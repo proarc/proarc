@@ -26,7 +26,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
-import cz.incad.pas.editor.shared.rest.ExportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;

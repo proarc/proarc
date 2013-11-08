@@ -36,7 +36,7 @@ import cz.cas.lib.proarc.common.imports.ImportProcess;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
-import cz.incad.pas.editor.shared.rest.ImportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;

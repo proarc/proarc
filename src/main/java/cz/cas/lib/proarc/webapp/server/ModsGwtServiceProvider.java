@@ -40,7 +40,7 @@ import cz.cas.lib.proarc.webapp.client.rpc.ModsGwtService;
 import cz.cas.lib.proarc.webapp.server.rest.ImportResource;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;

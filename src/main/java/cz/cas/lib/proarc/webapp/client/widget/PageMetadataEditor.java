@@ -44,7 +44,7 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
-import cz.incad.pas.editor.shared.series.Series;
+import cz.cas.lib.proarc.webapp.shared.series.Series;
 import java.util.Iterator;
 
 /**

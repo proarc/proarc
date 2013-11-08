@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.dao.BatchView;
-import cz.incad.pas.editor.shared.rest.ImportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.sql.Timestamp;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlElement;

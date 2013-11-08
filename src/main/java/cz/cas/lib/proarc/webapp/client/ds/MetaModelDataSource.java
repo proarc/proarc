@@ -34,7 +34,7 @@ import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.logging.Logger;
 
 /**

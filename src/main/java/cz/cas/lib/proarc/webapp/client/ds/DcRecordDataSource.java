@@ -29,7 +29,7 @@ import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.JSOHelper;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;

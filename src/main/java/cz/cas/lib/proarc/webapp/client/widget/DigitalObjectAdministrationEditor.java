@@ -35,7 +35,7 @@ import cz.cas.lib.proarc.webapp.client.ds.DeviceDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectAdministrationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
  * Edits administration and technical meta data of digital object.

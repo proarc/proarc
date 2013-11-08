@@ -28,7 +28,7 @@ import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.incad.pas.editor.shared.rest.ImportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.util.HashMap;
 import java.util.Map;
 

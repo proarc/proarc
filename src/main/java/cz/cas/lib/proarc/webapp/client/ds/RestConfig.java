@@ -24,12 +24,12 @@ import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
-import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
-import cz.incad.pas.editor.shared.rest.DeviceResourceApi;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
-import cz.incad.pas.editor.shared.rest.ExportResourceApi;
-import cz.incad.pas.editor.shared.rest.ImportResourceApi;
-import cz.incad.pas.editor.shared.rest.LocalizationResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
 import java.util.HashMap;
 import java.util.Map;
 

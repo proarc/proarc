@@ -21,7 +21,7 @@ import com.smartgwt.client.data.Record;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchItemDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
  * Displays digital object in FOXML format. Uses {@link Selectable} on

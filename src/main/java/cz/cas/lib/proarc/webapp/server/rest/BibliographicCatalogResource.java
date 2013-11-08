@@ -22,7 +22,7 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
-import cz.incad.pas.editor.shared.rest.BibliographicCatalogResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;

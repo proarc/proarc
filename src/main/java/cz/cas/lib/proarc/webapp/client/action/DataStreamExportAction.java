@@ -27,7 +27,7 @@ import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.ExportDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
-import cz.incad.pas.editor.shared.rest.ExportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import java.util.ArrayList;
 import java.util.List;
 

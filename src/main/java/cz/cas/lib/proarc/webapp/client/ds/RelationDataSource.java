@@ -38,7 +38,7 @@ import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.BooleanCallback;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
-import cz.incad.pas.editor.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.Arrays;
 import java.util.logging.Logger;
 

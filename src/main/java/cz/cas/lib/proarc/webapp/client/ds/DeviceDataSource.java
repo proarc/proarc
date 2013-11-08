@@ -22,7 +22,7 @@ import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.widgets.form.fields.FormItem;
-import cz.incad.pas.editor.shared.rest.DeviceResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
 import java.util.logging.Logger;
 
 /**
