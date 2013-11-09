@@ -25,10 +25,70 @@
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-oaidublincore</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>z3950</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.incad</groupId>
+            <artifactId>img-support</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.registrdigitalizace</groupId>
+            <artifactId>soapclient</artifactId>
+            <version>1.1</version>
+            <exclusions>
+                <!-- JAX-WS 2.2 JDK 1.6 support-->
+                <!--excluded jaxb-api and jaxws-api that must be placed in ${catalina.base}/endorsed folder-->
+                <exclusion>
+                    <artifactId>jaxws-api</artifactId>
+                    <groupId>javax.xml.ws</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>1.8</version>
+            <type>jar</type>
+        </dependency>
         <dependency>
             <groupId>org.apache.empire-db</groupId>
             <artifactId>empire-db</artifactId>
             <version>2.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yourmediashelf.fedora.client</groupId>
+            <artifactId>fedora-client-core</artifactId>
+            <version>0.6</version>
+        </dependency>
+        <!-- MODS JAXB -->
+        <dependency>
+            <groupId>cz.mzk</groupId>
+            <artifactId>EditMods</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <!--javax.ws.rs.core.MediaType-->
+        <!--JsonUtils-->
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-json</artifactId>
+            <version>${jerseyVersion}</version>
+            <exclusions>
+                <!-- excluded not to downgrade soapclient/jaxws-rt/jaxb-impl.2.2.5-2-->
+                <exclusion>
+                    <artifactId>jaxb-impl</artifactId>
+                    <groupId>com.sun.xml.bind</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         
         <!-- tests -->
@@ -41,6 +101,16 @@
             <groupId>org.dbunit</groupId>
             <artifactId>dbunit</artifactId>
             <version>2.4.9</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>xmlunit</groupId>
+            <artifactId>xmlunit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -63,11 +133,48 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <!-- JAX-WS 2.2 JDK 1.6 support-->
+                    <argLine>-Djava.endorsed.dirs="${endorsed.dir}"</argLine>
                     <systemPropertyVariables>
                         <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>
                     </systemPropertyVariables>
                     <systemPropertiesFile>${proarc-common.junit.properties.file}</systemPropertiesFile>
                 </configuration>
+            </plugin>
+
+            <!--JAX-WS 2.2 JDK 1.6 support-->
+            <!--soapclient-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${endorsed.dir}</outputDirectory>
+                            <silent>true</silent>
+                            <!-- need JAXB API and JAX-WS API in an endorsed dir-->
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>javax.xml.bind</groupId>
+                                    <artifactId>jaxb-api</artifactId>
+                                    <version>2.2.6</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>javax.xml.ws</groupId>
+                                    <artifactId>jaxws-api</artifactId>
+                                    <version>2.2.8</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+
+                    </execution>
+                </executions>
             </plugin>
 
         </plugins>
