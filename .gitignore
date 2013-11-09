@@ -1,7 +1,13 @@
-/target
-/proarc-common/target/
-/proarc-oaidublincore/target/
-/.classpath
-/.gwt
-/.project
-/.settings
+target/
+
+# NetBeans
+nbactions.xml
+nb-configuration.xml
+
+# Eclipse
+*.launch
+.classpath
+.gwt
+.project
+.settings
+
