@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>cz.cas.lib.proarc</groupId>
+        <artifactId>proarc</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>proarc-webapp</artifactId>
+    <packaging>war</packaging>
+    <name>ProArc Web Application</name>
+
+    <properties>
+        <warName>proarc</warName>
+        <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
+        <!-- see profiles to change agents -->
+        <gwt.user.agent><![CDATA[<set-property name="user.agent" value="gecko1_8" />]]></gwt.user.agent>
+        <!-- contains filtered GWT modules (*.gwt.xml) -->
+        <gwt.filtered>${project.build.directory}/gwt-filtered</gwt.filtered>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-servlet</artifactId>
+            <version>${gwtVersion}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-user</artifactId>
+            <version>${gwtVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.smartgwt</groupId>
+            <artifactId>smartgwt</artifactId>
+            <version>${smartGwtVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.smartgwt</groupId>
+            <artifactId>smartgwt-skins</artifactId>
+            <version>${smartGwtVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.mzk</groupId>
+            <artifactId>EditMods</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <!-- CodeMirror Editor -->
+        <dependency>
+            <groupId>com.google.codemirror2gwt</groupId>
+            <artifactId>codemirror2gwt</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-servlet</artifactId>
+            <version>${jerseyVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-json</artifactId>
+            <version>${jerseyVersion}</version>
+            <exclusions>
+                <!-- excluded not to downgrade soapclient/jaxws-rt/jaxb-impl.2.2.5-2-->
+                <exclusion>
+                    <artifactId>jaxb-impl</artifactId>
+                    <groupId>com.sun.xml.bind</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-oaidublincore</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!--XXX replace FedoraClientException with proarc-common exception-->
+        <dependency>
+            <groupId>com.yourmediashelf.fedora.client</groupId>
+            <artifactId>fedora-client-core</artifactId>
+            <version>0.6</version>
+        </dependency>
+        <dependency>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+            <version>2.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- tests -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <!-- Generate compiled stuff in the folder used for developing mode -->
+        <outputDirectory>${webappDirectory}/WEB-INF/classes</outputDirectory>
+
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+                <excludes>
+                    <exclude>**/*.gwt.xml</exclude>
+                    <exclude>**/ClientMessages.properties</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>${gwt.filtered}</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+
+            <!--
+                 Workaround to enable filtering of GWT module files as
+                 gwt:compile ignores result of resource/filtering definition.
+                 It allows to customize the module with maven profiles.
+                 * maven-resources-plugin/gwt-filter-sources execution filters *.gwt.xml files
+                 * build-helper-maven-plugin/gwt-add-filtered-sources attaches filtered sources
+
+                 The plugin must be declared before gwt-maven-plugin to run before gwt:i18n!
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>gwt-filter-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${gwt.filtered}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/resources</directory>
+                                    <includes>
+                                        <include>**/*.gwt.xml</include>
+                                        <!-- fill build properties -->
+                                        <include>**/ClientMessages.properties</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+                 See maven-resources-plugin.
+                 The plugin must be declared before gwt-maven-plugin to run before gwt:i18n!
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>gwt-add-filtered-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${gwt.filtered}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- GWT Maven Plugin -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>gwt-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>i18n</goal>
+                            <goal>generateAsync</goal>
+                            <goal>compile</goal>
+<!--                            <goal>test</goal>-->
+                        </goals>
+                    </execution>
+                </executions>
+                <!-- Plugin configuration. There are many available options, see
+                  gwt-maven-plugin documentation at codehaus.org -->
+                <configuration>
+                    <runTarget>${warName}/index.html</runTarget>
+                    <hostedWebapp>${webappDirectory}</hostedWebapp>
+                    <i18nMessagesBundle>cz.cas.lib.proarc.webapp.client.ClientMessages</i18nMessagesBundle>
+                    <enableAssertions>true</enableAssertions>
+                    <compileSourcesArtifacts>
+                        <artifact>cz.cas.lib.proarc:proarc-common</artifact>
+                        <artifact>cz.mzk:EditMods</artifact>
+                    </compileSourcesArtifacts>
+                    <!-- noServer=true disables Jetty and allows to use Tomcat with declared JDBC resources and web security-->
+                    <noserver>true</noserver>
+                    <noServer>true</noServer>
+                    <port>8080</port>
+                </configuration>
+            </plugin>
+
+            <!-- Copy static web files before executing gwt:run -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>exploded</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <webappDirectory>${webappDirectory}</webappDirectory>
+                    <warName>${warName}</warName>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Implementation-Build>${timestamp}, revision ${buildNumber}</Implementation-Build>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+
+        </plugins>
+
+    </build>
+
+    <profiles>
+
+        <profile>
+            <id>proarc.production</id>
+            <properties>
+                <!-- clear user.agent property to compile all permutations -->
+                <gwt.user.agent />
+            </properties>
+
+            <build>
+                <plugins>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <finalName>proarc-${project.version}-${timestamp}</finalName>
+                            <descriptors>
+                                <descriptor>${basedir}/src/main/assemble/release.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                                <phase>package</phase> <!-- bind to the packaging phase -->
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- JAX-WS 2.2 JDK 1.6 support-->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                    </plugin>
+
+                </plugins>
+            </build>
+
+        </profile>
+
+    </profiles>
+</project>
