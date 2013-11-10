@@ -4,25 +4,18 @@
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>cz.cas.lib.proarc</groupId>
+
+    <parent>
+        <groupId>cz.cas.lib.proarc</groupId>
+        <artifactId>proarc</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>proarc-oaidublincore</artifactId>
-    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Proarc OAI Dublin Core JAXB Model</name>
-
-    <licenses>
-        <license>
-            <name>GNU General Public License</name>
-            <url>http://www.gnu.org/licenses/gpl.html</url>
-        </license>
-    </licenses>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.6</maven.compiler.source>
-        <maven.compiler.target>1.6</maven.compiler.target>
-    </properties>
 
     <dependencies>
     </dependencies>
@@ -32,17 +25,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.8.0</version>
                 <configuration>
                     <generatePackage>cz.cas.lib.proarc.oaidublincore</generatePackage>
                     <schemaLanguage>XMLSCHEMA</schemaLanguage>

@@ -26,6 +26,7 @@
 
     <modules>
         <module>proarc-common</module>
+        <module>proarc-oaidublincore</module>
         <module>proarc-webapp</module>
     </modules>
 
@@ -219,6 +220,12 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>buildnumber-maven-plugin</artifactId>
                     <version>1.2</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.jvnet.jaxb2.maven2</groupId>
+                    <artifactId>maven-jaxb2-plugin</artifactId>
+                    <version>0.8.0</version>
                 </plugin>
 
             </plugins>
