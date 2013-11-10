@@ -146,7 +146,7 @@ public final class SearchView {
         }
         List<Item> result = new ArrayList<Item>(maxLimit);
         while (!pids.isEmpty()) {
-            List<Item> items = find(pids.toArray(new String[pids.size()]));
+            List<Item> items = find(true, pids.toArray(new String[pids.size()]));
             result.addAll(items);
             String token = response.getToken();
             if (token == null || result.size() + objectsLimit > maxLimit) {
@@ -187,11 +187,15 @@ public final class SearchView {
     }
 
     public List<Item> find(String... pids) throws FedoraClientException, IOException {
-        return find(Arrays.asList(pids));
+        return find(Arrays.asList(pids), true);
+    }
+
+    public List<Item> find(boolean onlyActive, String... pids) throws FedoraClientException, IOException {
+        return find(Arrays.asList(pids), onlyActive);
     }
 
     /**
-     * Finds descriptors of passed PIDs.
+     * Finds active descriptors of passed PIDs.
      *
      * @param pids PIDs of digital objects
      * @return list of descriptors
@@ -199,6 +203,19 @@ public final class SearchView {
      * @throws IOException
      */
     public List<Item> find(List<String> pids) throws FedoraClientException, IOException {
+        return find(pids, true);
+    }
+
+    /**
+     * Finds descriptors of passed PIDs.
+     *
+     * @param pids PIDs of digital objects
+     * @param onlyActive {@code true} includes only active objects
+     * @return list of descriptors
+     * @throws FedoraClientException
+     * @throws IOException
+     */
+    public List<Item> find(List<String> pids, boolean onlyActive) throws FedoraClientException, IOException {
         // issue 85: reasonable count of PIDs per query to prevent StackOverflowError.
         // Greater query page sizes (>1000, <2000) are acceptable but Mulgara responses are really slow.
         // It does not make sence to add paging to API as load on demand of SmartGWT Tree
@@ -210,14 +227,14 @@ public final class SearchView {
         for (int startOffset = 0; startOffset < size; ) {
             int endOffset = Math.min(size, startOffset + queryPageSize);
             List<String> subList = pids.subList(startOffset, endOffset);
-            List<Item> members = findImpl(subList);
+            List<Item> members = findImpl(subList, onlyActive);
             startOffset = endOffset;
             result.addAll(members);
         }
         return result;
     }
 
-    List<Item> findImpl(List<String> pids) throws FedoraClientException, IOException {
+    List<Item> findImpl(List<String> pids, boolean onlyActive) throws FedoraClientException, IOException {
         if (pids.isEmpty()) {
             return Collections.emptyList();
         }
@@ -231,6 +248,13 @@ public final class SearchView {
                     pid));
         }
         String query = QUERY_FIND_PIDS.replace("${pids.expression}", expr);
+
+        String onlyActiveExpr = onlyActive
+                ? "and        $pid     <info:fedora/fedora-system:def/model#state>"
+                        + "           <info:fedora/fedora-system:def/model#Active>"
+                : "";
+        query = query.replace("${includeActive}", onlyActiveExpr);
+        
         LOG.fine(query);
         RiSearch search = buildSearch(query);
         return consumeSearch(search.execute(fedora));
@@ -250,7 +274,7 @@ public final class SearchView {
         
         RemoteObject parent = storage.find(parentPid);
         List<String> memberPids = new RelationEditor(parent).getMembers();
-        List<Item> items = find(memberPids);
+        List<Item> items = find(memberPids, true);
         ArrayList<Item> sortedItems = new ArrayList<Item>(memberPids.size());
         for (String memberPid : memberPids) {
             for (Iterator<Item> it = items.iterator(); it.hasNext();) {
