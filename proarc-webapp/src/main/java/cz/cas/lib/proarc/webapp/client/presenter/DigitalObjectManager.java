@@ -20,6 +20,7 @@ import com.google.gwt.core.client.Callback;
 import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.SelectionStyle;
+import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
@@ -31,6 +32,7 @@ import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
@@ -79,8 +81,15 @@ public final class DigitalObjectManager {
     public DigitalObjectManager(ClientMessages i18n, PlaceController places) {
         this.i18n = i18n;
         this.places = places;
+
+        Label lblHeader = new Label();
+        String title = ClientUtils.format("<b>%s</b>", i18n.DigitalObjectManager_Title());
+        lblHeader.setContents(title);
+        lblHeader.setAutoHeight();
+        lblHeader.setPadding(4);
+        lblHeader.setStyleName(Editor.CSS_PANEL_DESCRIPTION_TITLE);
+
         widget = new VLayout(4);
-        widget.setLayoutMargin(4);
         widget.setWidth100();
         widget.setHeight100();
 
@@ -111,6 +120,7 @@ public final class DigitalObjectManager {
             }
         });
 
+        widget.addMember(lblHeader);
         widget.addMember(foundView.asWidget());
         widget.addMember(treeView.asWidget());
         createActions();
