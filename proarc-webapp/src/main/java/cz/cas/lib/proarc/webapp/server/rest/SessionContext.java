@@ -16,12 +16,16 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserUtil;
 import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Information about current request session.
@@ -30,23 +34,30 @@ import javax.ws.rs.core.HttpHeaders;
  */
 public final class SessionContext {
 
-    private String user;
+    private UserProfile user;
     private String ip;
 
-    public SessionContext(String user, String ip) {
+    public SessionContext(UserProfile user, String ip) {
         this.user = user;
         this.ip = ip;
     }
 
-    public static SessionContext from(HttpServletRequest request) {
+    public static SessionContext from(HttpServletRequest request) throws WebApplicationException{
         Principal userPrincipal = request.getUserPrincipal();
-        String name = userPrincipal.getName();
         String remoteAddr = request.getRemoteAddr();
-        return new SessionContext(name, remoteAddr);
+        if (userPrincipal == null) {
+            throw new WebApplicationException(Status.FORBIDDEN);
+        }
+        UserManager userManager = UserUtil.getDefaultManger();
+        UserProfile user = userManager.find(userPrincipal.getName());
+        if (user == null) {
+            throw new WebApplicationException(Status.FORBIDDEN);
+        }
+        return new SessionContext(user, remoteAddr);
     }
 
     public static SessionContext from(UserProfile user, String clientIp) {
-        return new SessionContext(user.getUserName(), clientIp);
+        return new SessionContext(user, clientIp);
     }
 
     /**
@@ -63,4 +74,9 @@ public final class SessionContext {
         Locale locale = acceptableLanguages.isEmpty() ? Locale.ENGLISH : acceptableLanguages.get(0);
         return locale;
     }
+
+    public UserProfile getUser() {
+        return user;
+    }
+
 }
