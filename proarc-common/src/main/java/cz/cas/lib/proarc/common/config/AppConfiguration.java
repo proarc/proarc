@@ -17,9 +17,13 @@
 package cz.cas.lib.proarc.common.config;
 
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Map;
@@ -55,6 +59,7 @@ public final class AppConfiguration {
     private static final String PROPERTY_USERS_HOME = "proarc.users.home";
     
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
+    private static final String DEFAULT_PROPERTIES_RESOURCE = "cz/cas/lib/proarc/common/config/proarc.properties";
 
     private String homePath;
     private File configHome;
@@ -127,7 +132,7 @@ public final class AppConfiguration {
             try {
                 // bundled default configurations
                 Enumeration<URL> resources = AppConfiguration.class.getClassLoader()
-                        .getResources("cz/cas/lib/proarc/common/config/proarc.properties");
+                        .getResources(DEFAULT_PROPERTIES_RESOURCE);
                 for (URL resource; resources.hasMoreElements(); ) {
                     resource = resources.nextElement();
                     LOG.log(Level.FINE, "classpath config: {0}", resource);
@@ -138,6 +143,56 @@ public final class AppConfiguration {
             }
         } catch (ConfigurationException ex) {
             LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * Copies default properties as proarc.cfg.template.
+     *
+     * @param configHome where to copy
+     * @throws IOException
+     * @throws ConfigurationException
+     */
+    public void copyConfigTemplate(File configHome) throws AppConfigurationException {
+        try {
+            copyConfigTemplateImpl(configHome);
+        } catch (IOException ex) {
+            throw new AppConfigurationException(String.valueOf(configHome), ex);
+        }
+    }
+
+    private void copyConfigTemplateImpl(File configHome) throws IOException {
+        File cfgFile = new File(configHome, CONFIG_FILE_NAME + ".template");
+        if (!cfgFile.exists()) {
+            Enumeration<URL> resources = AppConfiguration.class.getClassLoader()
+                    .getResources(DEFAULT_PROPERTIES_RESOURCE);
+            URL lastResource = null;
+            while (resources.hasMoreElements()) {
+                URL url = resources.nextElement();
+                lastResource = url;
+                System.out.println(url.toExternalForm());
+            }
+
+            if (lastResource == null) {
+                throw new IllegalStateException(homePath);
+            }
+            InputStream resource = lastResource.openStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(resource, "ISO-8859-1"));
+            try {
+                // we need platform dependent line separator => PrintWriter
+                PrintWriter writer = new PrintWriter(cfgFile, "UTF-8");
+                try {
+                    for (String line; (line = reader.readLine()) != null;) {
+                        writer.println(line);
+                    }
+                    writer.println();
+                } finally {
+                    writer.close();
+                }
+            } finally {
+                reader.close();
+            }
+
         }
     }
 

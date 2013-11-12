@@ -82,6 +82,9 @@ public final class EditorServletConfiguration implements ServletContextListener 
             readServletParameter(AppConfiguration.PROPERTY_APP_HOME, ctx, env);
             AppConfiguration config = configFactory.create(env);
             configFactory.setDefaultInstance(config);
+
+            config.copyConfigTemplate(config.getConfigHome());
+
             return configFactory.defaultInstance();
         } catch (AppConfigurationException ex) {
             throw new IllegalStateException(ex);
