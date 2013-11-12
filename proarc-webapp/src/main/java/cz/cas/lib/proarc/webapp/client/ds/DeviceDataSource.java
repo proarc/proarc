@@ -16,12 +16,14 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
-import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.widgets.form.fields.FormItem;
+import com.smartgwt.client.widgets.form.fields.SelectItem;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
 import java.util.logging.Logger;
 
@@ -38,23 +40,35 @@ public final class DeviceDataSource extends RestDataSource {
     public static final String FIELD_ID = DeviceResourceApi.DEVICE_ITEM_ID;
     public static final String FIELD_LABEL = DeviceResourceApi.DEVICE_ITEM_LABEL;
 
+    private static DeviceDataSource INSTANCE;
+
     public static DeviceDataSource getInstance() {
-        DeviceDataSource ds = (DeviceDataSource) DataSource.get(ID);
-        return  ds != null ? ds : new DeviceDataSource();
+        if (INSTANCE == null) {
+            INSTANCE = new DeviceDataSource();
+        }
+        return INSTANCE;
     }
 
     public DeviceDataSource() {
+        ClientMessages i18n = GWT.create(ClientMessages.class);
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_DEVICE);
 
-        DataSourceTextField fieldId = new DataSourceTextField(id);
+        DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);
         fieldId.setPrimaryKey(Boolean.TRUE);
+        fieldId.setTitle(i18n.DeviceManager_Id_Title());
 
         DataSourceTextField label = new DataSourceTextField(FIELD_LABEL);
+        label.setTitle(i18n.DeviceManager_Label_Title());
+        label.setLength(255);
 
         setFields(fieldId, label);
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
+        setOperationBindings(
+                RestConfig.createAddOperation(),
+                RestConfig.createDeleteOperation(),
+                RestConfig.createUpdateOperation());
     }
 
     public DeviceDataSource(JavaScriptObject jsObj) {
@@ -65,6 +79,9 @@ public final class DeviceDataSource extends RestDataSource {
         field.setOptionDataSource(getInstance());
         field.setValueField(FIELD_ID);
         field.setDisplayField(FIELD_LABEL);
+        if (field instanceof SelectItem) {
+            ((SelectItem) field).setSortField(FIELD_LABEL);
+        }
     }
 
 }

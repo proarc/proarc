@@ -64,6 +64,8 @@ import cz.cas.lib.proarc.webapp.client.ds.LocalizationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.UserPermissionDataSource;
+import cz.cas.lib.proarc.webapp.client.presenter.DeviceManager;
+import cz.cas.lib.proarc.webapp.client.presenter.DeviceManaging.DeviceManagerPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreating.DigitalObjectCreatorPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreator;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditor;
@@ -350,6 +352,7 @@ public class Editor implements EntryPoint {
                         createTreeNode("New Object", i18n.MainMenu_Edit_NewObject_Title(), new DigitalObjectCreatorPlace()),
                         createTreeNode("Search", i18n.MainMenu_Edit_Edit_Title(), new DigitalObjectManagerPlace())
                 ),
+                createTreeNode("Devices", i18n.MainMenu_Devices_Title(), new DeviceManagerPlace()),
 //                createTreeNode("Statistics", i18n.MainMenu_Statistics_Title()),
                 createProtectedTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
                 createProtectedTreeNode("Console", i18n.MainMenu_Console_Title(), Arrays.asList("proarc.permission.admin")),
@@ -507,7 +510,9 @@ public class Editor implements EntryPoint {
     }
 
     public static final class PresenterFactory {
+
         private ImportPresenter importPresenter;
+        private DeviceManager deviceManager;
         private DigitalObjectCreator digitalObjectCreator;
         private DigitalObjectEditor digitalObjectEditor;
         private DigitalObjectManager digitalObjectManager;
@@ -528,6 +533,13 @@ public class Editor implements EntryPoint {
                 importPresenter = new ImportPresenter(i18n, placeController);
             }
             return importPresenter;
+        }
+
+        public DeviceManager getDeviceManager() {
+            if (deviceManager == null) {
+                deviceManager = new DeviceManager(i18n, placeController);
+            }
+            return deviceManager;
         }
 
         public DigitalObjectCreator getDigitalObjectCreator() {

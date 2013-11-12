@@ -16,8 +16,6 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import static cz.cas.lib.proarc.common.fedora.FedoraTestSupport.assertItem;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import java.util.List;
@@ -173,4 +171,17 @@ public class SearchViewTest {
         assertEquals(1, result.size());
         assertItem(result, "uuid:tree1-child1-child1");
     }
+
+    @Test
+    public void testIsDeviceInUse() throws Exception {
+        fedora.cleanUp();
+        SearchView instance = new SearchView(storage);
+        assertFalse(instance.isDeviceInUse("device:testDevice"));
+        fedora.ingest(
+                getClass().getResource("device.xml"),
+                getClass().getResource("tree1-child1-child1-child1.xml")
+                );
+        assertTrue(instance.isDeviceInUse("device:testDevice"));
+    }
+
 }

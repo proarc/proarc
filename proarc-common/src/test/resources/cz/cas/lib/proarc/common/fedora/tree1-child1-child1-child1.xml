@@ -8,9 +8,10 @@
     <datastream ID="RELS-EXT" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
         <datastreamVersion ID="RELS-EXT.0" LABEL="RDF Statements about this object" MIMETYPE="text/xml" FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0">
             <xmlContent>
-                <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:fedora-rels-ext="info:fedora/fedora-system:def/relations-external#">
+                <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:fedora-rels-ext="info:fedora/fedora-system:def/relations-external#" xmlns:proarc-rels="http://proarc.lib.cas.cz/relations#">
                     <rdf:Description rdf:about="info:fedora/uuid:tree1-child1-child1-child1">
                         <fedora-model:hasModel rdf:resource="info:fedora/model:page"/>
+                        <proarc-rels:hasDevice rdf:resource="info:fedora/device:testDevice"/>
                     </rdf:Description>
                 </rdf:RDF>
             </xmlContent>

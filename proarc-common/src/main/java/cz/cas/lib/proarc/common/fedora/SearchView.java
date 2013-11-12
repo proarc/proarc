@@ -49,10 +49,12 @@ public final class SearchView {
     private static final Logger LOG = Logger.getLogger(SearchView.class.getName());
 
     private static final String QUERY_LAST_CREATED = readQuery("lastCreated.itql");
+    private static final String QUERY_FIND_BY_MODEL = readQuery("findByModel.itql");
     private static final String QUERY_FIND_MEMBERS = readQuery("findMembers.itql");
     private static final String QUERY_FIND_MEMBER_HIERARCHY = readQuery("findMemberHierarchy.itql");
     private static final String QUERY_FIND_PIDS = readQuery("findPids.itql");
     private static final String QUERY_FIND_REFERRERS = readQuery("findReferrers.itql");
+    private static final String QUERY_FIND_DEVICE_REFERRERS = readQuery("findDeviceReferrers.itql");
 
     private final FedoraClient fedora;
     private final int maxLimit;
@@ -254,7 +256,7 @@ public final class SearchView {
                         + "           <info:fedora/fedora-system:def/model#Active>"
                 : "";
         query = query.replace("${includeActive}", onlyActiveExpr);
-        
+
         LOG.fine(query);
         RiSearch search = buildSearch(query);
         return consumeSearch(search.execute(fedora));
@@ -341,6 +343,36 @@ public final class SearchView {
         String query = QUERY_FIND_REFERRERS.replace("${PID}", pid);
         RiSearch search = buildSearch(query);
         return consumeSearch(search.execute(fedora));
+    }
+
+    /**
+     * Find objects that have the given model.
+     * @param modelId model PID to query
+     * @return list of objects
+     * @throws IOException
+     * @throws FedoraClientException
+     */
+    public List<Item> findByModel(String modelId) throws IOException, FedoraClientException {
+        String query = QUERY_FIND_BY_MODEL.replace("${metaModelPid}", modelId);
+        RiSearch search = buildSearch(query);
+        search.limit(1000);
+        return consumeSearch(search.execute(fedora));
+    }
+
+    /**
+     * Is the device referred with {@code hasDevice} relation by any digital object?
+     * @param deviceId device PID
+     * @return {@code true} if it is connected
+     * @throws IOException
+     * @throws FedoraClientException
+     */
+    public boolean isDeviceInUse(String deviceId) throws IOException, FedoraClientException {
+        String query = QUERY_FIND_DEVICE_REFERRERS.replace("${devicePid}", deviceId);
+        RiSearch search = buildSearch(query);
+        search.limit(1);
+        search.stream(true);
+        List<Item> result = consumeSearch(search.execute(fedora));
+        return !result.isEmpty();
     }
 
     private List<Item> consumeSearch(RiSearchResponse response) throws IOException {

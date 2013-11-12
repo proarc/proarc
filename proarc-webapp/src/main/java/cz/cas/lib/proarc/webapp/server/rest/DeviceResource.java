@@ -19,27 +19,34 @@ package cz.cas.lib.proarc.webapp.server.rest;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.device.DeviceException;
+import cz.cas.lib.proarc.common.device.Device;
+import cz.cas.lib.proarc.common.device.DeviceNotFoundException;
+import cz.cas.lib.proarc.common.device.DeviceRepository;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Resource to manage devices producing digital objects.
@@ -54,6 +61,7 @@ public class DeviceResource {
     private final Request httpRequest;
     private final HttpHeaders httpHeaders;
     private final SessionContext session;
+    private final DeviceRepository devRepo;
 
     public DeviceResource(
             @Context Request request,
@@ -61,12 +69,35 @@ public class DeviceResource {
             @Context HttpHeaders httpHeaders,
             @Context UriInfo uriInfo,
             @Context HttpServletRequest httpRequest
-            ) throws AppConfigurationException {
+            ) throws AppConfigurationException, IOException {
 
         this.httpRequest = request;
         this.httpHeaders = httpHeaders;
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
         this.session = SessionContext.from(httpRequest);
+        this.devRepo = new DeviceRepository(RemoteStorage.getInstance(appConfig));
+    }
+
+    @DELETE
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Device> deleteDevice(
+            @QueryParam(DeviceResourceApi.DEVICE_ITEM_ID) String id
+            ) throws DeviceException {
+
+        try {
+            boolean deleted = devRepo.deleteDevice(id, session.asFedoraLog());
+            if (!deleted) {
+                Locale locale = session.getLocale(httpHeaders);
+                throw RestException.plainText(Status.FORBIDDEN,
+                        ServerMessages.get(locale).DeviceResource_Delete_InUse_Msg());
+            }
+            Device device = new Device();
+            device.setId(id);
+            return new SmartGwtResponse<Device>(device);
+        } catch (DeviceNotFoundException ex) {
+//            LOG.log(Level.SEVERE, id, ex);
+            throw RestException.plainNotFound(DeviceResourceApi.DEVICE_ITEM_ID, id);
+        }
     }
 
     /**
@@ -77,64 +108,41 @@ public class DeviceResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DeviceItem> getDevices(
+    public SmartGwtResponse<Device> getDevices(
             @QueryParam(DeviceResourceApi.DEVICE_ITEM_ID) String id
+            ) throws DeviceException {
+
+        List<Device> result = devRepo.find(id);
+        return new SmartGwtResponse<Device>(result);
+    }
+
+    @POST
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Device> newDevice() {
+        try {
+            String owner = session.getUser().getUserName();
+            Device device = devRepo.addDevice(owner, "?", session.asFedoraLog());
+            return new SmartGwtResponse<Device>(device);
+        } catch (DeviceException ex) {
+            throw new WebApplicationException(ex);
+        }
+    }
+
+    @PUT
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Device> updateDevice(
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_ID) String id,
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_LABEL) String label
             ) {
 
-        DeviceRepository devRepo = DeviceRepository.getInstance();
-        return new SmartGwtResponse<DeviceItem>(devRepo.find(id));
-    }
-
-    // XXX temporary device repository
-    private static final class DeviceRepository {
-
-        private static DeviceRepository INSTANCE;
-
-        private final Map<String, DeviceItem> items = new LinkedHashMap<String, DeviceItem>();
-
-        public static DeviceRepository getInstance() {
-            if (INSTANCE == null) {
-                INSTANCE = new DeviceRepository();
-            }
-            return INSTANCE;
+        if (id == null || label == null || label.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing device!");
         }
-
-        private DeviceRepository() {
-            addDevice("device:digibook_suprascan_10000rgb", "Digibook Suprascan 10000 RGB");
-            addDevice("device:panasonic_kv_s1025c", "Panasonic KV-S1025C");
-            addDevice("device:proserv_scanntech_600i", "ProServ ScannTech 600i");
-            addDevice("device:scanrobot_sr301", "ScanRobot SR301");
-            addDevice("device:zeutschel_7000", "Zeutschel OS 7000");
-        }
-
-        public List<DeviceItem> find(String id) {
-            if (id != null) {
-                DeviceItem di = items.get(id);
-                return di == null ? Collections.<DeviceItem>emptyList() : Collections.singletonList(di);
-            } else {
-                return new ArrayList<DeviceItem>(items.values());
-            }
-        }
-
-        private DeviceItem addDevice(String id, String label) {
-            DeviceItem device = new DeviceItem();
-            device.id = id;
-            device.label = label;
-            items.put(id, device);
-            return device;
-        }
-
-    }
-
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class DeviceItem {
-
-        @XmlElement(name = DeviceResourceApi.DEVICE_ITEM_ID)
-        private String id;
-        @XmlElement(name = DeviceResourceApi.DEVICE_ITEM_LABEL)
-        private String label;
-
-        public DeviceItem() {
+        try {
+            Device updated = devRepo.update(id, label, session.asFedoraLog());
+            return new SmartGwtResponse<Device>(updated);
+        } catch (DeviceException ex) {
+            throw new WebApplicationException(ex);
         }
     }
 

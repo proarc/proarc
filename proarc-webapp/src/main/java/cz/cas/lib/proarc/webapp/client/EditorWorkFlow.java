@@ -32,8 +32,9 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.layout.Layout;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.Editor.PresenterFactory;
+import cz.cas.lib.proarc.webapp.client.presenter.DeviceManaging;
+import cz.cas.lib.proarc.webapp.client.presenter.DeviceManaging.DeviceManagerPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreating;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreating.DigitalObjectCreatorPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing;
@@ -114,6 +115,8 @@ public final class EditorWorkFlow {
                 a = new UserManaging((UsersPlace) place, presenterFactory);
             } else if (place instanceof DigitalObjectManagerPlace) {
                 a = new DigitalObjectManaging((DigitalObjectManagerPlace) place, presenterFactory);
+            } else if (place instanceof DeviceManagerPlace) {
+                a = new DeviceManaging((DeviceManagerPlace) place, presenterFactory);
             }
             return a;
         }
@@ -143,6 +146,7 @@ public final class EditorWorkFlow {
     }
 
     @WithTokenizers({
+        DeviceManagerPlace.Tokenizer.class,
         DigitalObjectEditorPlace.Tokenizer.class,
         DigitalObjectCreatorPlace.Tokenizer.class,
         DigitalObjectManagerPlace.Tokenizer.class,
