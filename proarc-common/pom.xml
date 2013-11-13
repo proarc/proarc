@@ -73,7 +73,7 @@
         <dependency>
             <groupId>cz.mzk</groupId>
             <artifactId>EditMods</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
         <!--javax.ws.rs.core.MediaType-->
         <!--JsonUtils-->
