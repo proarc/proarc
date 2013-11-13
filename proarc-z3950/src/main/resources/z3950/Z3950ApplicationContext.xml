@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+  <context:component-scan base-package="org.jzkit.search.provider">
+    <context:include-filter type="regex" expression=".*PluginMetadata.*"/>
+  </context:component-scan>
+
+  <bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="location"><value>/z3950/Z3950Context.properties</value></property>
+  </bean>
+
+  <!-- ========================= GENERAL DEFINITIONS ========================= -->
+
+  <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+    <property name="basename"><value>messages</value></property>
+  </bean>
+
+
+  <!-- ========================= PERSISTENCE DEFINITIONS ========================= -->
+
+  <!-- ========================= BUSINESS DEFINITIONS ========================= -->
+
+  <bean id="OIDRegister" class="org.jzkit.a2j.codec.util.OIDRegister">
+    <constructor-arg index="0"><value>/a2j.properties</value></constructor-arg>
+  </bean>
+
+  <!-- conversion rules -->
+  <bean id="RPNToInternalRules" class="org.jzkit.util.PropsHolder">
+    <constructor-arg index="0"><value>/z3950/InternalAttrTypes.properties</value></constructor-arg>
+  </bean>
+
+  <bean id="InternalToType1ConversionRules" class="org.jzkit.z3950.QueryModel.PropsBasedInternalToType1ConversionRules">
+    <constructor-arg index="0"><value>/z3950/InternalToType1Rules.properties</value></constructor-arg>
+  </bean>
+
+  <bean id="SearchableFactory" class="org.jzkit.search.provider.iface.SearchableFactory" init-method="init">
+  </bean>
+
+</beans>
