@@ -68,11 +68,14 @@ public final class ImportProcess implements Runnable {
     public static ImportProcess prepare(
             File importFolder, String description,
             UserProfile user, ImportBatchManager batchManager,
-            String importAs, String device, boolean generateIndices) throws IOException {
+            String importAs, String device, boolean generateIndices,
+            ImportProfile profile
+            ) throws IOException {
 
         importAs = "model:page"; // for now use default
-        ImportOptions config = new ImportOptions(importFolder, importAs, device, generateIndices, user.getUserName());
-        ImportProcess process = new ImportProcess(config, batchManager);
+        ImportOptions options = new ImportOptions(importFolder, importAs, device,
+                generateIndices, user.getUserName(), profile);
+        ImportProcess process = new ImportProcess(options, batchManager);
         process.prepare(description, user);
         return process;
     }
@@ -82,15 +85,15 @@ public final class ImportProcess implements Runnable {
      * @see #prepare
      * @see ImportDispatcher
      */
-    public static ImportProcess resume(Batch batch, ImportBatchManager ibm) {
+    public static ImportProcess resume(Batch batch, ImportBatchManager ibm, ImportProfile profile) {
         UserManager users = UserUtil.getDefaultManger();
         UserProfile user = users.find(batch.getUserId());
         File importFolder = ibm.resolveBatchFile(batch.getFolder());
-        ImportOptions config = ImportOptions.fromBatch(
-                batch, importFolder, user.getUserName());
+        ImportOptions options = ImportOptions.fromBatch(
+                batch, importFolder, user.getUserName(), profile);
         // if necessary reset old computed batch items
-        ImportProcess process = new ImportProcess(batch, config, ibm);
-        process.removeCaches(config.getImportFolder());
+        ImportProcess process = new ImportProcess(batch, options, ibm);
+        process.removeCaches(options.getImportFolder());
         process.removeBatchItems(batch);
         return process;
     }
@@ -99,10 +102,12 @@ public final class ImportProcess implements Runnable {
      * Read and submits scheduled processes from last session.
      * This should be run when application starts.
      */
-    public static void resumeAll(ImportBatchManager ibm, ImportDispatcher dispatcher) {
+    public static void resumeAll(ImportBatchManager ibm, ImportDispatcher dispatcher,
+            ImportProfile config) {
+
         List<Batch> batches2schedule = ibm.findLoadingBatches();
         for (Batch batch : batches2schedule) {
-            ImportProcess resume = ImportProcess.resume(batch, ibm);
+            ImportProcess resume = ImportProcess.resume(batch, ibm, config);
             dispatcher.addImport(resume);
         }
     }
@@ -326,18 +331,19 @@ public final class ImportProcess implements Runnable {
         private int consumedFileCounter;
         private final String username;
         private String model;
-        private String ocrFilePattern = ".+\\.ocr\\.txt";
-        private String ocrCharset = "UTF-8";
         private Batch batch;
+        private final ImportProfile profile;
 
         ImportOptions(File importFolder, String model, String device,
-                boolean generateIndices, String username
+                boolean generateIndices, String username,
+                ImportProfile profile
                 ) {
             this.device = device;
             this.generateIndices = generateIndices;
             this.username = username;
             this.importFolder = importFolder;
             this.model = model;
+            this.profile = profile;
         }
 
         private File getImportFolder() {
@@ -372,14 +378,6 @@ public final class ImportProcess implements Runnable {
             return username;
         }
 
-        public String getOcrFilePattern() {
-            return ocrFilePattern;
-        }
-
-        public String getOcrCharset() {
-            return ocrCharset;
-        }
-
         public Batch getBatch() {
             return batch;
         }
@@ -388,11 +386,18 @@ public final class ImportProcess implements Runnable {
             this.batch = batch;
         }
 
-        public static ImportOptions fromBatch(Batch batch, File importFolder, String username) {
-            ImportOptions config = new ImportOptions(
-                    importFolder, "model:page", batch.getDevice(), batch.isGenerateIndices(), username);
-            config.setBatch(batch);
-            return config;
+        public ImportProfile getConfig() {
+            return profile;
+        }
+
+        public static ImportOptions fromBatch(Batch batch, File importFolder,
+                String username, ImportProfile profile) {
+
+            ImportOptions options = new ImportOptions(
+                    importFolder, "model:page", batch.getDevice(),
+                    batch.isGenerateIndices(), username, profile);
+            options.setBatch(batch);
+            return options;
         }
 
     }

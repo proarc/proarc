@@ -127,7 +127,7 @@ public final class EditorServletConfiguration implements ServletContextListener 
         ImportDispatcher importDispatcher = new ImportDispatcher();
         ImportDispatcher.setDefault(importDispatcher);
         importDispatcher.init();
-        ImportProcess.resumeAll(ibm, importDispatcher);
+        ImportProcess.resumeAll(ibm, importDispatcher, config.getImportConfiguration());
     }
 
 }

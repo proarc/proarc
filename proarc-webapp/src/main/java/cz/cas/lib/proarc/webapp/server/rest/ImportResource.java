@@ -186,7 +186,7 @@ public class ImportResource {
                 : userRoot;
         File folder = new File(folderUri);
         ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                importManager, model, device, indices);
+                importManager, model, device, indices, appConfig.getImportConfiguration());
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
         return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -254,7 +254,7 @@ public class ImportResource {
             if (realState != Batch.State.LOADING_FAILED && realState != Batch.State.LOADED) {
                 throw new UnsupportedOperationException("Cannot reset: " + batch);
             }
-            ImportProcess resume = ImportProcess.resume(batch, importManager);
+            ImportProcess resume = ImportProcess.resume(batch, importManager, appConfig.getImportConfiguration());
             ImportDispatcher.getDefault().addImport(resume);
         } else if (parentPid != null) {
             checkBatchState(batch);

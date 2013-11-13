@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.imports;
 
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
@@ -43,7 +44,6 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import javax.imageio.stream.FileImageOutputStream;
 import javax.ws.rs.core.MediaType;
 
@@ -79,6 +79,7 @@ public final class TiffImporter {
         if (tiffEntry == null) {
             return null;
         }
+        ImportProfile config = ctx.getConfig();
 
         File f = tiffEntry.getFile();
         String originalFilename = fileSet.getName();
@@ -89,7 +90,7 @@ public final class TiffImporter {
         try {
             createMetadata(localObj, ctx);
             createRelsExt(localObj, f, ctx);
-            createImages(ctx.getTargetFolder(), f, originalFilename, localObj);
+            createImages(ctx.getTargetFolder(), f, originalFilename, localObj, config);
             importOcr(fileSet, localObj, ctx);
             // XXX generate ATM
             // writes FOXML
@@ -160,27 +161,29 @@ public final class TiffImporter {
         // XXX find filename.ocr.txt or generate OCR or nothing
         File tempBatchFolder = options.getTargetFolder();
         String originalFilename = fileSet.getName();
-        FileEntry ocrEntry = findOcr(fileSet, options.getOcrFilePattern());
+        ImportProfile config = options.getConfig();
+        FileEntry ocrEntry = findOcr(fileSet, config.getPlainOcrFileSuffix());
         if (ocrEntry != null) {
             File ocrFile = new File(tempBatchFolder, originalFilename + '.' + StringEditor.OCR_ID + ".txt");
-            StringEditor.copy(ocrEntry.getFile(), options.getOcrCharset(), ocrFile, "UTF-8");
+            StringEditor.copy(ocrEntry.getFile(), config.getPlainOcrCharset(), ocrFile, "UTF-8");
             XmlStreamEditor ocrEditor = fo.getEditor(StringEditor.ocrProfile());
             ocrEditor.write(ocrFile.toURI(), 0, null);
         }
     }
 
-    private FileEntry findOcr(FileSet fileSet, String filePattern) {
-        Pattern ocrPattern = Pattern.compile(filePattern);
+    private FileEntry findOcr(FileSet fileSet, String filenameSuffix) {
         for (FileEntry entry : fileSet.getFiles()) {
-            if (ocrPattern.matcher(entry.getFile().getName()).matches()) {
+            String filename = entry.getFile().getName().toLowerCase();
+            if (filename.endsWith(filenameSuffix)) {
                 return entry;
             }
         }
         return null;
     }
 
-    private void createImages(File tempBatchFolder, File original, String originalFilename, LocalObject foxml)
-            throws IOException, DigitalObjectException {
+    private void createImages(File tempBatchFolder, File original,
+            String originalFilename, LocalObject foxml, ImportProfile config)
+            throws IOException, DigitalObjectException, AppConfigurationException {
         
         BinaryEditor.dissemination(foxml, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF)
                 .write(original, 0, null);
@@ -198,18 +201,24 @@ public final class TiffImporter {
         BinaryEditor.dissemination(foxml, BinaryEditor.FULL_ID, mediaType).write(f, 0, null);
 
         start = System.nanoTime();
+        Integer previewMaxHeight = config.getPreviewMaxHeight();
+        Integer previewMaxWidth = config.getPreviewMaxWidth();
+        config.checkPreviewScaleParams();
         targetName = String.format("%s.preview.%s", originalFilename, imageType.getDefaultFileExtension());
-        f = writeImage(scale(tiff, null, 1000), tempBatchFolder, targetName, imageType);
+        f = writeImage(scale(tiff, previewMaxWidth, previewMaxHeight), tempBatchFolder, targetName, imageType);
         long endPreview = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, BinaryEditor.PREVIEW_ID, mediaType).write(f, 0, null);
 
         start = System.nanoTime();
+        Integer thumbMaxHeight = config.getThumbnailMaxHeight();
+        Integer thumbMaxWidth = config.getThumbnailMaxWidth();
+        config.checkThumbnailScaleParams();
         targetName = String.format("%s.thumb.%s", originalFilename, imageType.getDefaultFileExtension());
-        f = writeImage(scale(tiff, 120, 128), tempBatchFolder, targetName, imageType);
+        f = writeImage(scale(tiff, thumbMaxWidth, thumbMaxHeight), tempBatchFolder, targetName, imageType);
         long endThumb = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, BinaryEditor.THUMB_ID, mediaType).write(f, 0, null);
 
-        LOG.info(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
+        LOG.fine(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
                 originalFilename, endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));
     }
 
@@ -243,7 +252,7 @@ public final class TiffImporter {
             targetWidth = (int) (width * scale);
         }
         BufferedImage scaled = ImageSupport.scale(tiff, targetWidth, targetHeight);
-        LOG.info(String.format("scaled [%s, %s] to [%s, %s], boundary [%s, %s] [w, h], time: %s ms",
+        LOG.fine(String.format("scaled [%s, %s] to [%s, %s], boundary [%s, %s] [w, h], time: %s ms",
                 width, height, targetWidth, targetHeight, maxWidth, maxHeight, (System.nanoTime() - start) / 1000000));
         return scaled;
     }

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.config;
 
+import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
 import java.io.BufferedReader;
 import java.io.File;
@@ -103,6 +104,10 @@ public final class AppConfiguration {
 
     public File getConfigHome() {
         return configHome;
+    }
+
+    public ImportProfile getImportConfiguration() {
+        return new ImportProfile(config);
     }
 
     public Kramerius4ExportOptions getKramerius4Export() {
