@@ -28,6 +28,7 @@
         <module>proarc-common</module>
         <module>proarc-oaidublincore</module>
         <module>proarc-webapp</module>
+        <module>proarc-z3950</module>
     </modules>
 
     <properties>

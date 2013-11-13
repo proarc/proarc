@@ -2,24 +2,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>cz.cas.lib.proarc</groupId>
-    <artifactId>z3950</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <parent>
+        <groupId>cz.cas.lib.proarc</groupId>
+        <artifactId>proarc</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>proarc-z3950</artifactId>
     <packaging>jar</packaging>
 
     <name>Z3950 Client</name>
 
-    <licenses>
-        <license>
-            <name>GNU General Public License</name>
-            <url>http://www.gnu.org/licenses/gpl.html</url>
-        </license>
-    </licenses>
-
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.6</maven.compiler.source>
-        <maven.compiler.target>1.6</maven.compiler.target>
         <!-- Template for junit properties with local resources.
              Redefine property with -Dcz.cas.lib.proarc.z3950.junit.properties.file=local_path_to_junit.properties
              or in settings.xml.
@@ -212,7 +207,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
             <scope>test</scope>
         </dependency>
         
@@ -241,23 +235,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5.1</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                    <showDeprecation>true</showDeprecation>
-                    <showWarnings>true</showWarnings>
-                    <compilerArguments>
-                        <Xlint />
-                        <Xlint:-path />
-                    </compilerArguments>
-                </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.12.2</version>
                 <configuration>
                     <systemPropertyVariables>
                         <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>
