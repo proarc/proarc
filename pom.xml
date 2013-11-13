@@ -48,7 +48,7 @@
         <repository>
             <id>proarc.repository</id>
             <name>ProArc Repository</name>
-            <url>http://code.google.com/p/archivacni-system/source/browse?repo=mvnrepo</url>
+            <url>http://mvnrepo.archivacni-system.googlecode.com/git</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
