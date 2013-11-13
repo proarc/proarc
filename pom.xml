@@ -45,6 +45,15 @@
     <repositories>
 
         <repository>
+            <id>proarc.repository</id>
+            <name>ProArc Repository</name>
+            <url>http://code.google.com/p/archivacni-system/source/browse?repo=mvnrepo</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
             <id>smartclient.com</id>
             <name>Smartclient Repository</name>
             <url>http://www.smartclient.com/maven2</url>
