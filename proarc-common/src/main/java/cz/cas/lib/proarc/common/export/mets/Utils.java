@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2013 Robert Simonovsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -69,32 +69,33 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsInfo;
-import cz.cas.lib.proarc.foxml.DatastreamType;
-import cz.cas.lib.proarc.foxml.DatastreamVersionType;
-import cz.cas.lib.proarc.foxml.DigitalObject;
-import cz.cas.lib.proarc.foxml.PropertyType;
-import cz.cas.lib.proarc.foxml.XmlContentType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.MdSecType;
-import cz.cas.lib.proarc.mets.ModsDefinition;
 import cz.cas.lib.proarc.mets.MdSecType.MdWrap;
 import cz.cas.lib.proarc.mets.MdSecType.MdWrap.XmlData;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsType.FileSec;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.StructMapType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
  * @author Robert Simonovsky
- * 
+ *
  *         Utility class
- * 
+ *
  */
 public class Utils {
 
@@ -105,44 +106,11 @@ public class Utils {
     /**
      * JAXB marshaler compatibility class
      */
-//    private static class NamespacePrefixMapperInternalImpl extends com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper {
-//
-//	public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix) {
-//	    if ("info:fedora/fedora-system:def/foxml#".equals(namespaceUri)) {
-//		return "foxml";
-//	    }
-//	    if ("http://www.loc.gov/mods/v3".equals(namespaceUri)) {
-//		return "mods";
-//	    }
-//	    if ("http://purl.org/dc/elements/1.1/".equals(namespaceUri)) {
-//		return "dc";
-//	    }
-//	    if ("http://www.openarchives.org/OAI/2.0/oai_dc/".equals(namespaceUri)) {
-//		return "oai_dc";
-//	    }
-//	    if ("info:fedora/fedora-system:def/model#".equals(namespaceUri)) {
-//		return "fedora-model";
-//	    }
-//	    if ("http://www.w3.org/1999/02/22-rdf-syntax-ns#".equals(namespaceUri)) {
-//		return "rdf";
-//	    }
-//	    if ("http://www.nsdl.org/ontologies/relationships#".equals(namespaceUri)) {
-//		return "kramerius";
-//	    }
-//	    if ("http://www.w3.org/1999/xlink".equals(namespaceUri)) {
-//		return "xlink";
-//	    }
-//	    if ("http://www.loc.gov/METS/".equals(namespaceUri)) {
-//		return "mets";
-//	    }
-//	    return suggestion;
-//	}
-//    }
-
     /**
      * JAXB marshaler compatibility class
      */
-    private static class NamespacePrefixMapperImpl extends com.sun.xml.bind.marshaller.NamespacePrefixMapper {
+    public static class NamespacePrefixMapperImpl extends NamespacePrefixMapper {
+	@Override
 	public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix) {
 	    if ("info:fedora/fedora-system:def/foxml#".equals(namespaceUri)) {
 		return "foxml";
@@ -171,6 +139,9 @@ public class Utils {
 	    if ("http://www.loc.gov/METS/".equals(namespaceUri)) {
 		return "mets";
 	    }
+	    if ("http://www.loc.gov/mix/v20".equals(namespaceUri)) {
+		return "mix";
+	    }
 	    return suggestion;
 	}
     }
@@ -196,9 +167,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Method used for retrieving a document type from the rels-ext stream
-     * 
+     *
      * @param relExtStream
      * @return
      */
@@ -211,10 +182,10 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Method used for retrieving the name of the mod element for selected
      * document type
-     * 
+     *
      * @param type
      * @return
      */
@@ -227,9 +198,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Method used for retrieving a document type from digital object
-     * 
+     *
      * @param object
      * @return
      */
@@ -242,9 +213,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Converts byte array to hex string
-     * 
+     *
      * @param byteArray
      * @return
      */
@@ -257,9 +228,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Returns a file name (content location) from the datastream
-     * 
+     *
      * @param elements
      * @return
      */
@@ -271,9 +242,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Returns a mime type attribute from datastream
-     * 
+     *
      * @param elements
      * @return
      */
@@ -285,9 +256,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Returns a property value from a list of properties
-     * 
+     *
      * @param name
      * @param properties
      * @return
@@ -308,9 +279,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Removes the top element "modsCollection" from the xml
-     * 
+     *
      * @param elements
      * @return
      */
@@ -327,9 +298,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Returns a datastream of given type
-     * 
+     *
      * @param datastreams
      * @param type
      * @return
@@ -349,9 +320,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Returns a datastream of given type from binary representation
-     * 
+     *
      * @param datastreams
      * @param type
      * @return
@@ -367,10 +338,10 @@ public class Utils {
 	}
 	return null;
     }
-    
+
     /**
      * Method for identifying dataStream name
-     * 
+     *
      * @param dataStream
      * @param streamName
      * @return
@@ -388,14 +359,14 @@ public class Utils {
 	}
 	if (dataStream.startsWith(datastreamIMG+".")) {
 	    return true;
-	}	
-	return false;	
+	}
+	return false;
     }
 
     /**
-     * 
+     *
      * Generates an XML document from list of elements
-     * 
+     *
      * @param elements
      * @return
      */
@@ -419,9 +390,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Returns a string from the xml document defined by the Xpath
-     * 
+     *
      * @param elements
      * @param xPath
      * @return
@@ -438,9 +409,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Returns a node from the xml document defined by the Xpath
-     * 
+     *
      * @param elements
      * @param xPath
      * @return
@@ -468,9 +439,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Returns a model of the document
-     * 
+     *
      * @param relExtStream
      * @return
      */
@@ -515,9 +486,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Returns a model of the document
-     * 
+     *
      * @param relExtStream
      * @return
      */
@@ -533,9 +504,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Prepares a logical/physical structure divs in mets
-     * 
+     *
      * @param mets
      * @param label
      * @param type
@@ -553,9 +524,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Inits the file groups in mets
-     * 
+     *
      * @param mets
      * @return
      */
@@ -600,9 +571,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Reads and unmarshalls Digital Object
-     * 
+     *
      * @param path
      * @return
      */
@@ -621,9 +592,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Reads and unmarshalls Digital Object from Fedora
-     * 
+     *
      * @param path
      * @return
      */
@@ -645,9 +616,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Transforms the xml document to a string
-     * 
+     *
      * @param doc
      * @return
      */
@@ -669,9 +640,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Validates given document agains an XSD schema
-     * 
+     *
      * @param document
      * @param xsd
      * @return
@@ -686,7 +657,7 @@ public class Utils {
 	    StreamResult sResult = new StreamResult();
 	    ByteArrayOutputStream bos = new ByteArrayOutputStream();
 	    sResult.setOutputStream(bos);
-	    transformer.transform(domSource,sResult);   
+	    transformer.transform(domSource,sResult);
 	    InputStream is = new ByteArrayInputStream(bos.toByteArray());
 	    DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
 	    dbfactory.setValidating(false);
@@ -719,9 +690,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Validates given XML file against an XSD schema
-     * 
+     *
      * @param file
      * @param xsd
      * @return
@@ -761,9 +732,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Generates and saves info.xml
-     * 
+     *
      * @param path
      * @param mets
      */
@@ -796,9 +767,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Saves mets file
-     * 
+     *
      * @param path
      * @param mets
      */
@@ -812,10 +783,10 @@ public class Utils {
 	    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 	    marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
 	    marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd");
-//	    try {
+	   // try {
 //		marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new NamespacePrefixMapperInternalImpl());
 //	    } catch (PropertyException ex) {
-		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl());
+		marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl());
 //	    }
 	    marshaller.marshal(mets.getMets(), file);
 	    MessageDigest md;
@@ -865,9 +836,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Returns an ObjectID from the rels-ext stream
-     * 
+     *
      * @param relExtElements
      * @return
      */
@@ -879,9 +850,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Indicates if the "has..." is used for defining children
-     * 
+     *
      * @param name
      * @return
      */
@@ -908,9 +879,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Reads referenced object from Fedora
-     * 
+     *
      * @param uuid
      * @param client
      * @return
@@ -921,9 +892,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Reads referenced object from file
-     * 
+     *
      * @param path
      * @param fileName
      * @return
@@ -948,10 +919,10 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Generates an MD5 checksum and copies a file (image) to defined
      * OutputStream
-     * 
+     *
      * @param is
      * @param os
      * @return
@@ -974,9 +945,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Mock method for simulation of resource index
-     * 
+     *
      * @param uuid
      * @return
      */
@@ -998,9 +969,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Checks if a monograph is MultiUnit
-     * 
+     *
      * @param monograph
      * @return
      */
@@ -1016,9 +987,9 @@ public class Utils {
     }
 
     /**
-     * 
+     *
      * Generates a document from a byte array
-     * 
+     *
      * @param bytes
      * @return
      */

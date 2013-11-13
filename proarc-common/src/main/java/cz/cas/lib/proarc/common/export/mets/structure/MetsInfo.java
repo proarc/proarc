@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2013 Robert Simonovsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -27,23 +27,23 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.log4j.Logger;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.Utils;
-import cz.cas.lib.proarc.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.MetsType.MetsHdr;
-import cz.incad.pas.editor.server.fedora.RemoteStorage;
 import edu.harvard.hul.ois.jhove.App;
 import edu.harvard.hul.ois.jhove.JhoveBase;
 
 /**
  * Java class representing the generic Mets element
- * 
+ *
  * @author Robert Simonovsky
- * 
+ *
  */
 public class MetsInfo {
     private XMLGregorianCalendar createDate;
@@ -51,7 +51,7 @@ public class MetsInfo {
     private String type;
     private String label;
     protected Mets mets = new Mets();
-    private String packageId;
+    private final String packageId;
     HashMap<String, FileGrp> fileGrpMap;
     public RemoteStorage remoteStorage;
     private String path;
@@ -61,16 +61,16 @@ public class MetsInfo {
     DivType physDivType;
     protected MetsElement rootElement;
     private int seq = 0;
-    private List<String> fileList = new ArrayList<String>();
+    private final List<String> fileList = new ArrayList<String>();
     public HashMap<String, MetsElement> pidElements = new HashMap<String, MetsElement>();
-    private HashMap<String, Integer> modOrderMap = new HashMap<String, Integer>();
+    private final HashMap<String, Integer> modOrderMap = new HashMap<String, Integer>();
     @SuppressWarnings("unused")
     private static Logger logger = Logger.getLogger(MetsInfo.class);
     public FedoraClient fedoraClient;
 
     /**
      * Registers file
-     * 
+     *
      * @param fileName
      */
     public void addFile(String fileName) {
@@ -79,7 +79,7 @@ public class MetsInfo {
 
     /**
      * Returns a new number of mod (sequence)
-     * 
+     *
      * @param type
      * @return
      */
@@ -95,7 +95,7 @@ public class MetsInfo {
 
     /**
      * Returns list of files registered in mets document
-     * 
+     *
      * @return
      */
     public List<String> getFileList() {
@@ -104,7 +104,7 @@ public class MetsInfo {
 
     /**
      * Returns a new number in sequence
-     * 
+     *
      * @return
      */
     public int getSeq() {
@@ -121,7 +121,7 @@ public class MetsInfo {
 
     /**
      * Returns an instance of Mets document (jaxb)
-     * 
+     *
      * @return
      */
     public Mets getMets() {
@@ -130,7 +130,7 @@ public class MetsInfo {
 
     /**
      * Returns a packageID
-     * 
+     *
      * @return
      */
     public String getPackageId() {
@@ -139,7 +139,7 @@ public class MetsInfo {
 
     /**
      * Getter for createDate attribute
-     * 
+     *
      * @return
      */
     public XMLGregorianCalendar getCreateDate() {
@@ -148,7 +148,7 @@ public class MetsInfo {
 
     /**
      * Setter for createDate attribute
-     * 
+     *
      * @param createDate
      */
     public void setCreateDate(XMLGregorianCalendar createDate) {
@@ -157,7 +157,7 @@ public class MetsInfo {
 
     /**
      * Getter for lastModDate attribute
-     * 
+     *
      * @return
      */
     public XMLGregorianCalendar getLastModDate() {
@@ -166,7 +166,7 @@ public class MetsInfo {
 
     /**
      * Setter for lastModDate attribute
-     * 
+     *
      * @param lastModDate
      */
     public void setLastModDate(XMLGregorianCalendar lastModDate) {
@@ -175,7 +175,7 @@ public class MetsInfo {
 
     /**
      * Returns a type of mets document
-     * 
+     *
      * @return
      */
     public String getType() {
@@ -184,7 +184,7 @@ public class MetsInfo {
 
     /**
      * Sets the type of mets document
-     * 
+     *
      * @param type
      */
     public void setType(String type) {
@@ -193,7 +193,7 @@ public class MetsInfo {
 
     /**
      * Getter for label attribute
-     * 
+     *
      * @return
      */
     public String getLabel() {
@@ -202,7 +202,7 @@ public class MetsInfo {
 
     /**
      * Setter for label attribute
-     * 
+     *
      * @param label
      */
     public void setLabel(String label) {
@@ -211,7 +211,7 @@ public class MetsInfo {
 
     /**
      * Constructor for FileSystem
-     * 
+     *
      * @param object
      * @param path
      * @param packageId
@@ -224,7 +224,7 @@ public class MetsInfo {
 
     /**
      * Constructor for Fedora
-     * 
+     *
      * @param object
      * @param path
      * @param packageId
@@ -250,9 +250,9 @@ public class MetsInfo {
     }
 
     /**
-     * 
+     *
      * Recursive method for deleting the folder
-     * 
+     *
      * @param folder
      */
     public static void deleteFolder(File folder) {
@@ -284,7 +284,7 @@ public class MetsInfo {
 
     /**
      * Inserts basic info into the mets document
-     * 
+     *
      * @param outputPath
      * @param withChildren
      */
@@ -296,7 +296,7 @@ public class MetsInfo {
 
     /**
      * Getter for source path attribute
-     * 
+     *
      * @return
      */
     public String getPath() {
@@ -305,7 +305,7 @@ public class MetsInfo {
 
     /**
      * Setter for source path attribute
-     * 
+     *
      * @param path
      */
     public void setPath(String path) {
@@ -314,7 +314,7 @@ public class MetsInfo {
 
     /**
      * Getter for outputPath attribute
-     * 
+     *
      * @return
      */
     public String getOutputPath() {
@@ -323,7 +323,7 @@ public class MetsInfo {
 
     /**
      * Setter for outputPath attribute
-     * 
+     *
      * @param outputPath
      */
     public void setOutputPath(String outputPath) {

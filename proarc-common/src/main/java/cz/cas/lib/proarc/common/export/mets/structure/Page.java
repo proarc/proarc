@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2013 Robert Simonovsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -34,19 +34,21 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
 import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.response.GetDatastreamsResponse;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.common.export.mets.Utils;
-import cz.cas.lib.proarc.foxml.DatastreamType;
-import cz.cas.lib.proarc.foxml.DatastreamVersionType;
-import cz.cas.lib.proarc.foxml.DigitalObject;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
@@ -57,26 +59,28 @@ import cz.cas.lib.proarc.mets.MdSecType.MdWrap;
 import cz.cas.lib.proarc.mets.MdSecType.MdWrap.XmlData;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsType;
+import cz.cas.lib.proarc.mets.MetsType.FileSec;
 import cz.cas.lib.proarc.mets.StructLinkType.SmLink;
+import cz.cas.lib.proarc.mets.StructMapType;
 
 /**
  * Java class representing Mets page
- * 
+ *
  * @author eskymo
- * 
+ *
  */
 public class Page extends MetsElement {
-    private HashMap<String, Object> fileNames = new HashMap<String, Object>();
-    private List<FileType> fileTypes = new ArrayList<FileType>();
-    private HashMap<String, String> mimeTypes = new HashMap<String, String>();
-    private HashMap<String, String> outputFileNames = new HashMap<String, String>();
+    private final HashMap<String, Object> fileNames = new HashMap<String, Object>();
+    private final List<FileType> fileTypes = new ArrayList<FileType>();
+    private final HashMap<String, String> mimeTypes = new HashMap<String, String>();
+    private final HashMap<String, String> outputFileNames = new HashMap<String, String>();
     private static HashMap<String, String> streamMapping = new HashMap<String, String>();
     public static HashMap<String, String> streamMappingFile = new HashMap<String, String>();
     private static HashMap<String, String> streamMappingPrefix = new HashMap<String, String>();
     private static Logger logger = Logger.getLogger(Page.class);
 
     private String outputDirectory;
-    private int seq;
+    private final int seq;
     private FileType ALTOfile;
 
     private String pageNumber;
@@ -106,7 +110,7 @@ public class Page extends MetsElement {
 
     /**
      * Returns the ALTOfile section of mets document
-     * 
+     *
      * @return
      */
     public FileType getALTOfile() {
@@ -115,7 +119,7 @@ public class Page extends MetsElement {
 
     /**
      * Constructor
-     * 
+     *
      * @param object
      * @param path
      * @param parent
@@ -147,11 +151,11 @@ public class Page extends MetsElement {
 
     /**
      * Inserts a file reference into a physical DIV
-     * 
+     *
      * @param physDivType
      * @param mets
      */
-    private void addFileToMetsDiv(DivType physDivType, Mets mets) {
+    private void addFileToMetsDiv(DivType physDivType) {
 	DivType divType = new DivType();
 	physDivType.getDiv().add(divType);
 	divType.setID(getPageId());
@@ -168,7 +172,7 @@ public class Page extends MetsElement {
     /**
      * Fills the internal structure (fileNames) with the definition of a file in
      * digital object
-     * 
+     *
      * @param object
      */
     private void fillFileNameInternal(DigitalObject object) {
@@ -210,7 +214,7 @@ public class Page extends MetsElement {
 
     /**
      * Returns an ID of a file
-     * 
+     *
      * @return
      */
     private String getFileId() {
@@ -219,7 +223,7 @@ public class Page extends MetsElement {
 
     /**
      * Returns the pageID
-     * 
+     *
      * @return
      */
     public String getPageId() {
@@ -228,7 +232,7 @@ public class Page extends MetsElement {
 
     /**
      * Returns a pageIndex attribute
-     * 
+     *
      * @return
      */
     public String getPageIndex() {
@@ -237,7 +241,7 @@ public class Page extends MetsElement {
 
     /**
      * Returns a pageNumber attribute
-     * 
+     *
      * @return
      */
     public String getPageNumber() {
@@ -252,11 +256,11 @@ public class Page extends MetsElement {
     }
 
     /**
-     * 
+     *
      * Generates amdSec metadata (MIX) using Jhove
-     * 
+     *
      */
-    private void generateTechMetadata() {
+    private Mets generateTechMetadata(MetsInfo metsInfo) {
 	int seq = 0;
 	Mets infoMets = new Mets();
 	AmdSecType amdSec = new AmdSecType();
@@ -281,18 +285,36 @@ public class Page extends MetsElement {
 		mdSec.setMdWrap(mdWrap);
 		amdSec.getTechMD().add(mdSec);
 	    }
+	    FileSec fileSec = new FileSec();
+	    infoMets.setFileSec(fileSec);
+	    for (String fileMap : metsInfo.fileGrpMap.keySet()) {
+		fileSec.getFileGrp().add(metsInfo.fileGrpMap.get(fileMap));
+	    }
 	}
+	return infoMets;
+    }
 
+    /**
+     *
+     * saves tech metadata
+     *
+     * @param amdSecMets
+     */
+    private void saveAmdSec(Mets amdSecMets) {
 	try {
 	    JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class);
 	    Marshaller marshaller = jaxbContext.createMarshaller();
 	    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 	    marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-	    marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd");
+	    marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/MIX/ http://www.loc.gov/mix/v20");
+	    marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new Utils.NamespacePrefixMapperImpl());
 	    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-	    marshaller.marshal(infoMets, bos);
-	    fileNames.put("FULL_AMD", bos.toByteArray());
+	    marshaller.marshal(amdSecMets, bos);
+	    byte[] byteArray = bos.toByteArray();
+	    fileNames.put("FULL_AMD", byteArray);
 	    mimeTypes.put("FULL_AMD", "text/xml");
+	    Document document = Utils.getDocumentFromBytes(byteArray);
+	    Utils.validateAgainstXSD(document, this.getClass().getResourceAsStream("mets.xsd"));
 	} catch (Exception ex) {
 	    logger.error(ex.getLocalizedMessage());
 	    throw new IllegalStateException(ex);
@@ -301,7 +323,7 @@ public class Page extends MetsElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.kramerius.importFoXML.structure.MetsElement#insertIntoMets(org.kramerius
      * .mets.Mets, boolean, java.lang.String)
@@ -323,21 +345,37 @@ public class Page extends MetsElement {
 	}
 
 	if (fileNames.get(streamMapping.get("TECHMDGRP")) == null) {
-	    System.out.println("Generating tech");
-	    generateTechMetadata();
+	    logger.debug("Generating tech");
+	    Mets amdSecMets = generateTechMetadata(metsInfo);
+	    StructMapType mapType = new StructMapType();
+	    mapType.setID(Const.DIV_PHYSICAL_ID);
+	    amdSecMets.getStructMap().add(mapType);
+	    DivType divType = new DivType();
+	    if (Const.PERIODICAL.equalsIgnoreCase(metsInfo.getType())) {
+		divType.setTYPE("PERIODICAL_PAGE");
+	    } else {
+		divType.setTYPE("MONOGRAPH_PAGE");
+	    }
+	    for (FileType fileType : fileTypes) {
+		    Fptr fptr = new Fptr();
+		    fptr.setFILEID(fileType);
+		    divType.getFptr().add(fptr);
+	    }
+	    mapType.setDiv(divType);
+	    saveAmdSec(amdSecMets);
 	    FileType fileType = prepareFileType(this.getSeq(), "TECHMDGRP");
 	    metsInfo.fileGrpMap.get("TECHMDGRP").getFile().add(fileType);
 	}
 
 	metsInfo.physDivType.setTYPE(this.metsInfo.getType());
 
-	addFileToMetsDiv(metsInfo.physDivType, mets);
+	addFileToMetsDiv(metsInfo.physDivType);
 	setStruct(parent.getElementId(), mets);
     }
 
     /**
      * Prepares a mets FileType element for a file
-     * 
+     *
      * @param seq
      * @param metsStreamName
      * @return
@@ -390,7 +428,7 @@ public class Page extends MetsElement {
 
     /**
      * Setter for pageIndex attribute
-     * 
+     *
      * @param pageIndex
      */
     private void setPageIndex(String pageIndex) {
@@ -399,7 +437,7 @@ public class Page extends MetsElement {
 
     /**
      * Setter for pageNumber attribute
-     * 
+     *
      * @param pageNumber
      */
     private void setPageNumber(String pageNumber) {
@@ -408,7 +446,7 @@ public class Page extends MetsElement {
 
     /**
      * Inserts the struct element into mets
-     * 
+     *
      * @param fromId
      * @param mets
      */

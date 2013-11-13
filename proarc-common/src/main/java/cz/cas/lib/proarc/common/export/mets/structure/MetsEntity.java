@@ -25,7 +25,7 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.Utils;
-import cz.cas.lib.proarc.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.StructMapType;
 
