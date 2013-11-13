@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConversionException;
 
@@ -31,8 +32,10 @@ public final class ImportProfile {
 
     public static final String PREVIEW_MAX_HEIGHT = "import.image.preview.maxHeight";
     public static final String PREVIEW_MAX_WIDTH = "import.image.preview.maxWidth";
+    public static final String PREVIEW_JAVA_SCALING = "import.image.preview.java.scalingMethod";
     public static final String THUMBNAIL_MAX_HEIGHT = "import.image.thumbnail.maxHeight";
     public static final String THUMBNAIL_MAX_WIDTH = "import.image.thumbnail.maxWidth";
+    public static final String THUMBNAIL_JAVA_SCALING = "import.image.thumbnail.java.scalingMethod";
     public static final String PLAIN_OCR_CHARSET = "import.text_ocr.file.charset";
     public static final String PLAIN_OCR_SUFFIX = "import.text_ocr.file.suffix";
 
@@ -60,12 +63,20 @@ public final class ImportProfile {
         return getPositiveInteger(PREVIEW_MAX_WIDTH);
     }
 
+    public ScalingMethod getPreviewScaling() {
+        return getJavaScaling(PREVIEW_JAVA_SCALING);
+    }
+
     public Integer getThumbnailMaxHeight() {
         return getPositiveInteger(THUMBNAIL_MAX_HEIGHT);
     }
 
     public Integer getThumbnailMaxWidth() {
         return config.getInteger(THUMBNAIL_MAX_WIDTH, null);
+    }
+
+    public ScalingMethod getThumbnailScaling() {
+        return getJavaScaling(THUMBNAIL_JAVA_SCALING);
     }
 
     public void checkPreviewScaleParams() throws AppConfigurationException {
@@ -83,6 +94,19 @@ public final class ImportProfile {
         if (maxHeight == null && maxHeight == maxWidth) {
             throw new AppConfigurationException(String.format("%s and %s cannot be null!",
                     THUMBNAIL_MAX_HEIGHT, THUMBNAIL_MAX_WIDTH));
+        }
+    }
+
+    private ScalingMethod getJavaScaling(String key) {
+        String val = config.getString(key);
+        if (val == null || val.isEmpty()) {
+            return ScalingMethod.BICUBIC_STEPPED;
+        }
+        try {
+            ScalingMethod hint = ScalingMethod.valueOf(val);
+            return hint;
+        } catch (Exception e) {
+            throw new ConversionException(key, e);
         }
     }
 

@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
+import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.File;
@@ -205,7 +206,9 @@ public final class TiffImporter {
         Integer previewMaxWidth = config.getPreviewMaxWidth();
         config.checkPreviewScaleParams();
         targetName = String.format("%s.preview.%s", originalFilename, imageType.getDefaultFileExtension());
-        f = writeImage(scale(tiff, previewMaxWidth, previewMaxHeight), tempBatchFolder, targetName, imageType);
+        f = writeImage(
+                scale(tiff, config.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
+                tempBatchFolder, targetName, imageType);
         long endPreview = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, BinaryEditor.PREVIEW_ID, mediaType).write(f, 0, null);
 
@@ -214,7 +217,9 @@ public final class TiffImporter {
         Integer thumbMaxWidth = config.getThumbnailMaxWidth();
         config.checkThumbnailScaleParams();
         targetName = String.format("%s.thumb.%s", originalFilename, imageType.getDefaultFileExtension());
-        f = writeImage(scale(tiff, thumbMaxWidth, thumbMaxHeight), tempBatchFolder, targetName, imageType);
+        f = writeImage(
+                scale(tiff, config.getThumbnailScaling(), thumbMaxWidth, thumbMaxHeight),
+                tempBatchFolder, targetName, imageType);
         long endThumb = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, BinaryEditor.THUMB_ID, mediaType).write(f, 0, null);
 
@@ -233,7 +238,9 @@ public final class TiffImporter {
         }
     }
 
-    private static BufferedImage scale(BufferedImage tiff, Integer maxWidth, Integer maxHeight) {
+    private static BufferedImage scale(BufferedImage tiff, ScalingMethod method,
+            Integer maxWidth, Integer maxHeight) {
+
         long start = System.nanoTime();
         int height = tiff.getHeight();
         int width = tiff.getWidth();
@@ -251,7 +258,7 @@ public final class TiffImporter {
             targetHeight = (int) (height * scale);
             targetWidth = (int) (width * scale);
         }
-        BufferedImage scaled = ImageSupport.scale(tiff, targetWidth, targetHeight);
+        BufferedImage scaled = ImageSupport.scale(tiff, targetWidth, targetHeight, method, true);
         LOG.fine(String.format("scaled [%s, %s] to [%s, %s], boundary [%s, %s] [w, h], time: %s ms",
                 width, height, targetWidth, targetHeight, maxWidth, maxHeight, (System.nanoTime() - start) / 1000000));
         return scaled;

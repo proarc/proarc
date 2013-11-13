@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.junit.After;
 import org.junit.Before;
@@ -88,6 +89,18 @@ public class ImportProfileTest {
         }
     }
 
+    @Test
+    public void testGetThumbnailScaling() {
+        ImportProfile instance = new ImportProfile(conf);
+        // test default
+        assertEquals(ScalingMethod.BICUBIC_STEPPED, instance.getThumbnailScaling());
+        // test invalid
+        conf.setProperty(ImportProfile.THUMBNAIL_JAVA_SCALING, "nonsense");
+        try {
+            fail(String.valueOf(instance.getThumbnailScaling()));
+        } catch (Exception e) {
+        }
+    }
 
     @Test
     public void testCheckThumbnailScaleParams() throws Exception {
