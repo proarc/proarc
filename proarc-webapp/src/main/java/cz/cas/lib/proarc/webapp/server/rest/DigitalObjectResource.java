@@ -51,9 +51,7 @@ import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.Mapping;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
-import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
@@ -61,7 +59,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -127,7 +124,6 @@ public class DigitalObjectResource {
     private final AppConfiguration appConfig;
     private final MetaModelRepository metamodels = MetaModelRepository.getInstance();
     private final ImportBatchManager importManager;
-    private final UserManager userManager;
     private final Request httpRequest;
     private final HttpHeaders httpHeaders;
     private final UserProfile user;
@@ -145,17 +141,8 @@ public class DigitalObjectResource {
         this.httpHeaders = httpHeaders;
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
         this.importManager = ImportBatchManager.getInstance(appConfig);
-        this.userManager = UserUtil.getDefaultManger();
-
-        Principal userPrincipal = securityCtx.getUserPrincipal();
-        String userName;
-        if (userPrincipal != null) {
-            userName = userPrincipal.getName();
-        } else {
-            userName = UserManager.GUEST_ID;
-        }
-        user = userManager.find(userName);
         session = SessionContext.from(httpRequest);
+        user = session.getUser();
         LOG.fine(user.toString());
     }
 

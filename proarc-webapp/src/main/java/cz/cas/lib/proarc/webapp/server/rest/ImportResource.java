@@ -33,16 +33,13 @@ import cz.cas.lib.proarc.common.imports.ImportDispatcher;
 import cz.cas.lib.proarc.common.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.imports.ImportFileScanner.Folder;
 import cz.cas.lib.proarc.common.imports.ImportProcess;
-import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.Principal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,14 +83,10 @@ public class ImportResource {
     private static final Pattern INVALID_PATH_CONTENT = Pattern.compile("\\.\\.|//");
 
     // XXX inject with guice
-    private final UserManager userManager;
     private final ImportBatchManager importManager;
     private final AppConfiguration appConfig;
 
-    private final SecurityContext securityCtx;
     private final UserProfile user;
-    private final HttpHeaders httpHeaders;
-    private final UriInfo uriInfo;
     private final SessionContext session;
 
     public ImportResource(
@@ -106,20 +99,8 @@ public class ImportResource {
 
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
         this.importManager = ImportBatchManager.getInstance(appConfig);
-        this.securityCtx = securityCtx;
-        this.userManager = UserUtil.getDefaultManger(); // XXX replace with injection
-        Principal userPrincipal = securityCtx.getUserPrincipal();
-        String userName;
-        if (userPrincipal != null) {
-            userName = userPrincipal.getName();
-        } else {
-            userName = UserManager.GUEST_ID;
-        }
-        user = userManager.find(userName);
-
-        this.httpHeaders = httpHeaders;
-        this.uriInfo = uriInfo;
         session = SessionContext.from(httpRequest);
+        user = session.getUser();
     }
 
     /**
