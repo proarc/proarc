@@ -282,7 +282,7 @@ public final class ImportProcess implements Runnable {
                 }
             }
         }
-        LOG.log(Level.INFO, "Total time: {0} ms", System.currentTimeMillis() - start);
+        LOG.log(Level.FINE, "Total time: {0} ms", System.currentTimeMillis() - start);
         batch.setState(Batch.State.LOADED);
     }
 
@@ -292,7 +292,7 @@ public final class ImportProcess implements Runnable {
         for (TiffImporter consumer : consumers) {
             BatchItemObject item = consumer.consume(fileSet, ctx);
             if (item != null) {
-                LOG.log(Level.INFO, "time: {0} ms, {1}", new Object[] {System.currentTimeMillis() - start, fileSet});
+                LOG.log(Level.FINE, "time: {0} ms, {1}", new Object[] {System.currentTimeMillis() - start, fileSet});
                 ++ctx.consumedFileCounter;
                 return item;
             }

@@ -105,7 +105,7 @@ public final class RemoteStorage {
         if (response.getStatus() != 201) {
             // XXX
         }
-        LOG.log(Level.INFO, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
+        LOG.log(Level.FINE, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
     }
 
     public void ingest(LocalObject object, String ingestUser) throws FedoraClientException {
@@ -136,7 +136,7 @@ public final class RemoteStorage {
         if (response.getStatus() != 201) {
             // XXX
         }
-        LOG.log(Level.INFO, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
+        LOG.log(Level.FINE, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
     }
 
     FedoraClient getClient() {

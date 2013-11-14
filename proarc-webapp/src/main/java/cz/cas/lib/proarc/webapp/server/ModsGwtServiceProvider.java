@@ -86,7 +86,7 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
             ModsType mods = editor.read();
             String xml = ModsUtils.toXml(mods, true);
             int xmlHash = xml.hashCode();
-            LOG.log(Level.INFO, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
+            LOG.log(Level.FINE, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
             ModsCollection modsCollection = new ModsCollection();
             modsCollection.setMods(Arrays.asList(mods));
             ModsCollectionClient modsClient = BiblioModsUtils.toModsClient(modsCollection);
@@ -113,12 +113,12 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
     public String write(String id, Integer batchId, ModsGwtRecord record) {
         SessionContext session = SessionContext.from(getThreadLocalRequest());
         String oldId = id;
-        LOG.log(Level.INFO, "id: {0}, modsClient: {1}, hash: {2}", new Object[]{id, record.getMods(), record.getXmlHash()});
+        LOG.log(Level.FINE, "id: {0}, modsClient: {1}, hash: {2}", new Object[]{id, record.getMods(), record.getXmlHash()});
         ModsCollection mods = BiblioModsUtils.toMods(record.getMods());
         ModsType modsType = mods.getMods().get(0);
         String xml = ModsUtils.toXml(modsType, true);
         int xmlHash = xml.hashCode();
-        LOG.log(Level.INFO, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
+        LOG.log(Level.FINE, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
         if (xmlHash == record.getXmlHash()) {
             return id;
         }
@@ -139,7 +139,7 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
             throw new IllegalStateException(ex);
         }
 
-        LOG.log(Level.INFO, "written id: {0}, old id: {1}", new Object[]{id, oldId});
+        LOG.log(Level.FINE, "written id: {0}, old id: {1}", new Object[]{id, oldId});
 
         return id;
     }
@@ -147,23 +147,10 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
     @Override
     @Deprecated
     public String getXml(ModsCollectionClient modsCollection) {
-        LOG.log(Level.INFO, "modsClient: {0}", new Object[]{modsCollection});
+        LOG.log(Level.FINE, "modsClient: {0}", new Object[]{modsCollection});
         ModsCollection mods = BiblioModsUtils.toMods(modsCollection);
         String xml = BiblioModsUtils.toXML(mods);
-//        sleep(10);
         return xml;
-    }
-
-    private void sleep(int timeInSec) {
-        long start = 0;
-        try {
-            LOG.info("sleep");
-            start = System.currentTimeMillis();
-            Thread.sleep(timeInSec * 1000);
-        } catch (InterruptedException ex) {
-            LOG.log(Level.SEVERE, null, ex);
-        }
-            LOG.log(Level.INFO, "wake up: {0} ms", (System.currentTimeMillis() - start));
     }
 
     // XXX temorary; unify with DigitalObjectResource.findFedoraObject to DigitalObject API
