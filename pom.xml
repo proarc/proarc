@@ -55,6 +55,15 @@
         </repository>
 
         <repository>
+            <id>rd.repository</id>
+            <name>RD Repository</name>
+            <url>http://mvnrepo.registrdigitalizace.googlecode.com/git</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
             <id>smartclient.com</id>
             <name>Smartclient Repository</name>
             <url>http://www.smartclient.com/maven2</url>
