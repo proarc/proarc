@@ -1,0 +1,21 @@
+-------------------------------------------------------------------
+             ProArc - The Production and Archiving System
+-------------------------------------------------------------------
+
+This is a source code release of ProArc. Before using this
+software, you must read and agree to the license, found under
+LICENSE.txt.
+
+Information about the project can be found for
+online browsing at the following URL:
+
+  http://code.google.com/p/archivacni-system/
+
+
+Building ProArc
+===============
+To build the release package use the following command:
+
+  mvn clean install -P proarc.production
+
+The release package can be found at proarc-webapp/target/proarc-*-release.zip
