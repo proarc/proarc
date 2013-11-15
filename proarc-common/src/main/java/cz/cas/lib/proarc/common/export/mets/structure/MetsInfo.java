@@ -30,6 +30,7 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.Utils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.mets.DivType;
@@ -59,9 +60,9 @@ public class MetsInfo {
     public JhoveBase jhoveBase;
     public App jhoveApp;
     DivType physDivType;
-    protected MetsElement rootElement;
+    public MetsElement rootElement;
     private int seq = 0;
-    private final List<String> fileList = new ArrayList<String>();
+    private final List<FileMD5Info> fileList = new ArrayList<FileMD5Info>();
     public HashMap<String, MetsElement> pidElements = new HashMap<String, MetsElement>();
     private final HashMap<String, Integer> modOrderMap = new HashMap<String, Integer>();
     @SuppressWarnings("unused")
@@ -73,8 +74,8 @@ public class MetsInfo {
      *
      * @param fileName
      */
-    public void addFile(String fileName) {
-	this.fileList.add(fileName);
+    public void addFile(FileMD5Info fileMD5info) {
+	this.fileList.add(fileMD5info);
     }
 
     /**
@@ -98,7 +99,7 @@ public class MetsInfo {
      *
      * @return
      */
-    public List<String> getFileList() {
+    public List<FileMD5Info> getFileList() {
 	return fileList;
     }
 

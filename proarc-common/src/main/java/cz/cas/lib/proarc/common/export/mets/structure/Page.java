@@ -46,6 +46,7 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.common.export.mets.Utils;
@@ -296,7 +297,7 @@ public class Page extends MetsElement {
 
     /**
      *
-     * saves tech metadata
+     * saves tech metadatao
      *
      * @param amdSecMets
      */
@@ -411,8 +412,10 @@ public class Page extends MetsElement {
 	String fullOutputFileName = outputDirectory + "/" + streamMappingFile.get(metsStreamName) + "/" + outputFileName;
 	outputFileNames.put(metsStreamName, fullOutputFileName);
 	try {
-	    fileType.setCHECKSUM(Utils.getDigestAndCopy(is, new FileOutputStream(fullOutputFileName)));
-	    metsInfo.addFile("./" + streamMappingFile.get(metsStreamName) + "/" + outputFileName);
+	    FileMD5Info fileMD5Info = Utils.getDigestAndCopy(is, new FileOutputStream(fullOutputFileName));
+	    fileMD5Info.setFileName("./" + streamMappingFile.get(metsStreamName) + "/" + outputFileName);
+	    fileType.setCHECKSUM(fileMD5Info.getMd5());
+	    metsInfo.addFile(fileMD5Info);
 	} catch (Exception e) {
 	    throw new RuntimeException(e);
 	}

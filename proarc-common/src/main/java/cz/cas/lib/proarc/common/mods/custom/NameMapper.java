@@ -1,20 +1,30 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.common.mods.custom;
+
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.namespace.QName;
 
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
 import cz.cas.lib.proarc.common.mods.custom.NameMapper.NameItem.NameRole;
@@ -26,14 +36,6 @@ import cz.fi.muni.xkremser.editor.server.mods.NameTypeAttribute;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import cz.fi.muni.xkremser.editor.server.mods.RoleType;
 import cz.fi.muni.xkremser.editor.server.mods.RoleType.RoleTerm;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.namespace.QName;
 
 /**
  * Usage:
@@ -60,7 +62,7 @@ import javax.xml.namespace.QName;
  * @author Jan Pokorsky
  */
 final class NameMapper {
-    
+
     ArrayMapper<NameType, NameItem> nameMap = new ArrayMapper<NameType, NameItem>(new NameItemMapper());
 
     public List<NameItem> map(ModsType mods) {
@@ -210,7 +212,7 @@ final class NameMapper {
             roleType.getRoleTerm().add(roleTerm);
             name.getNamePartOrDisplayFormOrAffiliation().add(factory.createNameTypeRole(roleType));
         }
-        
+
     }
 
     @javax.xml.bind.annotation.XmlAccessorType(XmlAccessType.FIELD)
@@ -262,6 +264,10 @@ final class NameMapper {
             private static NameRole fromDom(RoleType... roles) {
                 NameRole result = NameRole.OTHER;
                 for (RoleType role : roles) {
+                    if (role==null) {
+                	System.out.println("Null role");
+                    }
+                    System.out.println("Role:"+role.getRoleTerm().get(0).getValue());
                     for (RoleTerm roleTerm : role.getRoleTerm()) {
                         switch (roleTerm.getType()) {
                             case CODE: return fromCode(roleTerm.getValue());

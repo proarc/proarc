@@ -28,20 +28,24 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -80,6 +84,10 @@ import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsInfo;
+import cz.cas.lib.proarc.info.Info;
+import cz.cas.lib.proarc.info.Info.Checksum;
+import cz.cas.lib.proarc.info.Info.Itemlist;
+import cz.cas.lib.proarc.info.Info.Titleid;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.MdSecType.MdWrap;
@@ -102,6 +110,7 @@ public class Utils {
     private static Logger logger = Logger.getLogger(Utils.class);
     private static HashMap<String, String> typeMap = new HashMap<String, String>();
     private static HashMap<String, String> modMap = new HashMap<String, String>();
+
 
     /**
      * JAXB marshaler compatibility class
@@ -738,30 +747,52 @@ public class Utils {
      * @param path
      * @param mets
      */
-    private static void saveInfoFile(String path, MetsInfo mets) {
+    private static void saveInfoFile(String path, MetsInfo mets, String md5, String fileMd5Name, long fileSize) {
 	File infoFile = new File(path + "/info.xml");
-	OutputStreamWriter ow;
 	try {
-	    ow = new OutputStreamWriter(new FileOutputStream(infoFile));
-	} catch (FileNotFoundException e) {
-	    throw new RuntimeException(e);
-	}
-	try {
-	    ow.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-	    ow.write("<info xmlns=\"http://www.ee.cz/schemas/NDK/info.xsd\">\n");
-	    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-	    String date = sdf.format(new Date());
-	    ow.write("<created>" + date + "</created>\n");
-	    List<String> fileList = mets.getFileList();
-	    ow.write("<itemlist ITEMTOTAL=\"" + fileList.size() + "\">\n");
-	    for (String fileName : fileList) {
-		ow.write("<item>" + fileName + "</item>\n");
+	    GregorianCalendar c = new GregorianCalendar();
+	    c.setTime(new Date());
+	    XMLGregorianCalendar date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+	    Info infoJaxb = new Info();
+	    infoJaxb.setCreated(date2);
+	    Checksum checkSum = new Checksum();
+	    checkSum.setChecksum(md5);
+	    checkSum.setType("MD5");
+	    Map<String, String> identifiers = mets.rootElement.getModsIdentifiers();
+	    for (String type : identifiers.keySet()) {
+		Titleid titleId = new Titleid();
+		titleId.setType(type);
+		titleId.setValue(identifiers.get(type));
+		infoJaxb.getTitleid().add(titleId);
 	    }
-	    ow.write("</itemlist>\n");
-	    ow.write("<status>hotovo</status>\n");
-	    ow.write("</info>");
-	    ow.close();
-	} catch (IOException e) {
+	    checkSum.setValue(fileMd5Name);
+	    infoJaxb.setChecksum(checkSum);
+	    infoJaxb.setCreator("ProARC");
+	    infoJaxb.setPackageid(mets.getPackageId());
+	    infoJaxb.setMetadataversion("1.1");
+	    Itemlist itemList = new Itemlist();
+	    infoJaxb.setItemlist(itemList);
+	    itemList.setItemtotal(BigInteger.valueOf(mets.getFileList().size()));
+	    List<FileMD5Info> fileList = mets.getFileList();
+	    int size=(int) fileSize;
+	    for (FileMD5Info fileName : fileList) {
+		itemList.getItem().add(fileName.getFileName());
+		size+=fileName.getSize();
+	    }
+	    infoJaxb.setSize(size/1024);
+	    try {
+		    JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
+		    Marshaller marshaller = jaxbContext.createMarshaller();
+		    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+		    marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+		    marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl());
+		    marshaller.marshal(infoJaxb, infoFile);
+	    } catch (Exception ex) {
+		logger.error(ex.getLocalizedMessage());
+		throw new IllegalStateException(ex);
+	    }
+	    Utils.validateAgainstXSD(infoFile, Utils.class.getResourceAsStream("structure/info.xsd"));
+	} catch (Exception e) {
 	    throw new RuntimeException(e);
 	}
     }
@@ -775,7 +806,8 @@ public class Utils {
      */
     public static void saveMets(String path, MetsInfo mets) {
 	String fileName = "/METS_" + mets.getPackageId() + ".xml";
-	mets.addFile("." + fileName);
+	FileMD5Info fileMD5Info = new FileMD5Info("." + fileName);
+	mets.addFile(fileMD5Info);
 	File file = new File(path + fileName);
 	try {
 	    JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, OaiDcType.class, ModsDefinition.class);
@@ -820,12 +852,12 @@ public class Utils {
 	    String result = new String(Hex.encodeHex(digest));
 	    String fileMd5Name = "/MD5_" + mets.getPackageId() + ".md5";
 	    File fileMd5 = new File(path + fileMd5Name);
-	    mets.addFile("." + fileMd5Name);
+	    mets.addFile(new FileMD5Info("." + fileMd5Name));
 	    OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(fileMd5));
 	    osw.write(result);
 	    osw.close();
 	    is.close();
-	    saveInfoFile(path, mets);
+	    saveInfoFile(path, mets, result, fileMd5Name, file.length());
 	} catch (JAXBException e) {
 	    throw new RuntimeException(e);
 	} catch (FileNotFoundException e) {
@@ -929,19 +961,21 @@ public class Utils {
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
-    public static String getDigestAndCopy(InputStream is, OutputStream os) throws NoSuchAlgorithmException, IOException {
+    public static FileMD5Info getDigestAndCopy(InputStream is, OutputStream os) throws NoSuchAlgorithmException, IOException {
 	MessageDigest md = MessageDigest.getInstance("MD5");
 	md.reset();
 	byte[] bytes = new byte[2048];
 	int numBytes;
+	int totalBytes = 0;
 	while ((numBytes = is.read(bytes)) > 0) {
+	    totalBytes+=numBytes;
 	    md.update(bytes, 0, numBytes);
 	    os.write(bytes, 0, numBytes);
 	}
 	byte[] digest = md.digest();
 	os.close();
 	String result = new String(Hex.encodeHex(digest));
-	return result;
+	return new FileMD5Info(result, totalBytes);
     }
 
     /**

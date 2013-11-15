@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2013 Robert Simonovsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -18,7 +18,9 @@
 package cz.cas.lib.proarc.common.export.mets.structure;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -29,26 +31,27 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.Utils;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.Mets;
 
 /**
  * Java class representing simple Mets element (Title, Volume,..)
- * 
+ *
  * @author Robert Simonovsky
- * 
+ *
  */
 public class MetsElement {
-    private String id;
+    private final String id;
     private static Logger logger = Logger.getLogger(MetsElement.class);
 
     /**
      * Return uuid of element
-     * 
+     *
      * @return
      */
     public String getId() {
@@ -60,15 +63,37 @@ public class MetsElement {
     protected List<Element> MODSstream;
     protected List<Element> RELExtstream;
     public MdSecType modsMetsElement;
-    private Integer modOrder;
+    private final Integer modOrder;
     public String type;
     protected MetsElement parent;
     protected MetsInfo metsInfo;
     public List<MetsElement> children = new ArrayList<MetsElement>();
 
+
+    /**
+     *
+     * Collects all identifiers for mods element
+     *
+     * @return
+     */
+    public Map<String,String> getModsIdentifiers() {
+	Map<String, String> result = new HashMap<String, String>();
+	String XPATH = "*[local-name()='mods']";
+	Node descNode = Utils.xPathEvaluateNode(Utils.removeModsCollection(MODSstream), XPATH);
+	NodeList nodeList = descNode.getChildNodes();
+	for (int a=0;a<nodeList.getLength();a++) {
+	    Node node = nodeList.item(a);
+	    if ("identifier".equalsIgnoreCase(node.getLocalName())) {
+		result.put(node.getAttributes().getNamedItem("type").getNodeValue(), node.getNodeValue());
+	    }
+	}
+	return result;
+
+    }
+
     /**
      * Returns the mets id string for element
-     * 
+     *
      * @return
      */
     public String getElementId() {
@@ -81,7 +106,7 @@ public class MetsElement {
 
     /**
      * Inserts the element into a mets div
-     * 
+     *
      * @param parentDiv
      * @return
      */
@@ -105,7 +130,7 @@ public class MetsElement {
 
     /**
      * Returns an element for digital object
-     * 
+     *
      * @param object
      * @param path
      * @param parent
@@ -153,7 +178,7 @@ public class MetsElement {
 
     /**
      * Inits parent tree of the element
-     * 
+     *
      * @param object
      * @return
      */
@@ -185,7 +210,7 @@ public class MetsElement {
 
     /**
      * Constructor of mets element
-     * 
+     *
      * @param object
      * @param path
      * @param parent
@@ -234,7 +259,7 @@ public class MetsElement {
 
     /**
      * Inserts an element into mets
-     * 
+     *
      * @param mets
      * @param withChildren
      * @param outputDirectory
@@ -265,7 +290,7 @@ public class MetsElement {
 
     /**
      * Generates children of this element
-     * 
+     *
      */
     protected void fillChildren() {
 	Node node = Utils.xPathEvaluateNode(RELExtstream, "*[local-name()='RDF']/*[local-name()='Description']");

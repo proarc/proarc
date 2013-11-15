@@ -1,0 +1,50 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="info">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element type="xs:dateTime" name="created"/>
+        <xs:element name="metadataversion">
+        	<xs:simpleType>
+  				<xs:restriction base="xs:string">
+    				<xs:enumeration value="1.0"/>
+   			    	<xs:enumeration value="1.1"/>
+  				</xs:restriction>
+			</xs:simpleType>
+		</xs:element>
+        <xs:element type="xs:string" name="packageid"/>
+        <xs:element name="titleid" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="type" use="required"/>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
+        <xs:element type="xs:string" name="collection" minOccurs="0"/>
+        <xs:element type="xs:string" name="institution" minOccurs="0"/>
+        <xs:element type="xs:string" name="creator" minOccurs="0"/>
+        <xs:element type="xs:int" name="size"/>
+        <xs:element name="itemlist" maxOccurs="1" minOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element type="xs:string" name="item" maxOccurs="unbounded" minOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute type="xs:integer" name="itemtotal"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="checksum">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="type" use="required"/>
+                <xs:attribute type="xs:string" name="checksum" use="required"/>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
+        <xs:element type="xs:string" name="note" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

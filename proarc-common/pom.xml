@@ -33,7 +33,12 @@
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-mods</artifactId>
             <version>1.0-SNAPSHOT</version>
-        </dependency>        
+        </dependency>       
+         <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-info</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>      
         <dependency>
             <groupId>net.sourceforge.jhove</groupId>
             <artifactId>jhove</artifactId>
