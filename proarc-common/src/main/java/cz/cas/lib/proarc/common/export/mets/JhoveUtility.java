@@ -22,12 +22,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -40,88 +41,108 @@ import edu.harvard.hul.ois.jhove.OutputHandler;
 
 /**
  * @author eskymo
- *
- * Utility class for jHove application
- *
+ * 
+ *         Utility class for jHove application
+ * 
  */
 public class JhoveUtility {
 
-    private static Logger logger = Logger.getLogger(JhoveUtility.class);
+    private static final Logger LOG = Logger.getLogger(JhoveUtility.class.getName());
 
+    /**
+     * Returns a node with MIX info - helper
+     * 
+     * @param node
+     * @return
+     */
     private static Node getMixRecursive(Node node) {
-	if ((node.getNodeName().startsWith("mix"))) {
-	    return node;
-	} else {
-	    NodeList nl = node.getChildNodes();
-	    for (int a = 0; a < nl.getLength(); a++) {
-		Node mix = getMixRecursive(nl.item(a));
-		if (mix != null) {
-		    return mix;
-		}
-	    }
-	}
-	return null;
+        if ((node.getNodeName().startsWith("mix"))) {
+            return node;
+        } else {
+            NodeList nl = node.getChildNodes();
+            for (int a = 0; a < nl.getLength(); a++) {
+                Node mix = getMixRecursive(nl.item(a));
+                if (mix != null) {
+                    return mix;
+                }
+            }
+        }
+        return null;
     }
 
+    /**
+     * 
+     * Inits the Jhove app
+     * 
+     * @param metsInfo
+     */
     public static void initJhove(MetsInfo metsInfo) {
-	Calendar calendar = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance();
 
-	App app = new App(JhoveUtility.class.getSimpleName(), "1.0", new int[] { calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH) }, "jHove", "");
-	try {
+        App app = new App(JhoveUtility.class.getSimpleName(), "1.0", new int[] { calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH) }, "jHove", "");
+        try {
 
-	    JhoveBase jhoveBase = new JhoveBase();
-	    File jhoveConfigFile = createJhoveConfigurationFile();
-	    jhoveBase.init(jhoveConfigFile.getAbsolutePath(), null);
-	    metsInfo.jhoveBase = jhoveBase;
-	    metsInfo.jhoveApp = app;
-	} catch (Exception ex) {
-	    logger.error(ex.getLocalizedMessage());
-	    throw new IllegalStateException(ex);
-	}
+            JhoveBase jhoveBase = new JhoveBase();
+            File jhoveConfigFile = createJhoveConfigurationFile();
+            jhoveBase.init(jhoveConfigFile.getAbsolutePath(), null);
+            metsInfo.jhoveBase = jhoveBase;
+            metsInfo.jhoveApp = app;
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, ex.getLocalizedMessage());
+            throw new IllegalStateException(ex);
+        }
     }
 
+    /**
+     * 
+     * Returns a MIX node
+     * 
+     * @param targetFile
+     * @param metsinfo
+     * @return
+     */
     public static Node getMixNode(File targetFile, MetsInfo metsinfo) {
-	if (targetFile == null || !targetFile.isFile() || !targetFile.exists()) {
-	    logger.warn("target file '" + targetFile + "' cannot be found.");
-	    throw new RuntimeException("target file '" + targetFile + "' cannot be found.");
-	}
-	if (metsinfo.jhoveBase == null) {
-	    initJhove(metsinfo);
-	}
-	try {
-	    File outputFile = File.createTempFile("jhove", "output");
-	    logger.debug("JHOVE output file " + outputFile);
-	    Module module = metsinfo.jhoveBase.getModule(null);
-	    OutputHandler aboutHandler = metsinfo.jhoveBase.getHandler(null);
-	    OutputHandler xmlHandler = metsinfo.jhoveBase.getHandler("XML");
-	    logger.debug("Calling JHOVE dispatch(...) on file " + targetFile);
-	    metsinfo.jhoveBase.dispatch(metsinfo.jhoveApp, module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[] { targetFile.getAbsolutePath() });
-	    DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
-	    DocumentBuilder builder = builderFactory.newDocumentBuilder();
-	    Document jHoveDoc = builder.parse(outputFile);
-	    outputFile.delete();
-	    return getMixRecursive(jHoveDoc);
-	} catch (Exception e) {
-	    logger.warn("Error inspecting file '" + targetFile + "' - " + e.getMessage(), e);
-	}
-	return null;
+        if (targetFile == null || !targetFile.isFile() || !targetFile.exists()) {
+            LOG.log(Level.WARNING, "target file '" + targetFile + "' cannot be found.");
+            throw new IllegalStateException("target file '" + targetFile + "' cannot be found.");
+        }
+        if (metsinfo.jhoveBase == null) {
+            initJhove(metsinfo);
+        }
+        try {
+            File outputFile = File.createTempFile("jhove", "output");
+            LOG.log(Level.INFO, "JHOVE output file " + outputFile);
+            Module module = metsinfo.jhoveBase.getModule(null);
+            OutputHandler aboutHandler = metsinfo.jhoveBase.getHandler(null);
+            OutputHandler xmlHandler = metsinfo.jhoveBase.getHandler("XML");
+            LOG.log(Level.INFO, "Calling JHOVE dispatch(...) on file " + targetFile);
+            metsinfo.jhoveBase.dispatch(metsinfo.jhoveApp, module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[] { targetFile.getAbsolutePath() });
+            DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = builderFactory.newDocumentBuilder();
+            Document jHoveDoc = builder.parse(outputFile);
+            outputFile.delete();
+            return getMixRecursive(jHoveDoc);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error inspecting file '" + targetFile + "' - " + e.getMessage(), e);
+        }
+        return null;
     }
 
     /**
      * Copy the Jhove configuration file to a temporary file.
-     *
+     * 
      * @return the {@link File} where the Jhove configuration was saved.
-     *
+     * 
      * @throws IOException
      */
     private static File createJhoveConfigurationFile() throws IOException {
-	InputStream jhoveConfInputStream = JhoveUtility.class.getResourceAsStream("jhove.conf");
-	File jhoveConfFile = File.createTempFile("jhove", "conf");
-	FileOutputStream jhoveConfOutputStream = new FileOutputStream(jhoveConfFile);
-	IOUtils.copy(jhoveConfInputStream, jhoveConfOutputStream);
-	jhoveConfInputStream.close();
-	jhoveConfOutputStream.close();
-	logger.debug("JHOVE configuration file " + jhoveConfFile);
-	return jhoveConfFile;
+        InputStream jhoveConfInputStream = JhoveUtility.class.getResourceAsStream("jhove.conf");
+        File jhoveConfFile = File.createTempFile("jhove", "conf");
+        FileOutputStream jhoveConfOutputStream = new FileOutputStream(jhoveConfFile);
+        IOUtils.copy(jhoveConfInputStream, jhoveConfOutputStream);
+        jhoveConfInputStream.close();
+        jhoveConfOutputStream.close();
+        LOG.log(Level.INFO, "JHOVE configuration file " + jhoveConfFile);
+        return jhoveConfFile;
     }
 }

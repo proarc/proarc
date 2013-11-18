@@ -19,13 +19,11 @@ package cz.cas.lib.proarc.common.export.mets.structure;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.Utils;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.StructMapType;
 
@@ -36,19 +34,16 @@ import cz.cas.lib.proarc.mets.StructMapType;
  * 
  */
 public class MetsEntity extends MetsInfo {
-    @SuppressWarnings("unused")
-    private static Logger logger = Logger.getLogger(MetsEntity.class);
-
     /**
      * Initializes the type of mets document
      */
     private void initType(DigitalObject object) {
-	rootElement = MetsElement.getElement(object, null, this, true);
-	if (Const.PERIODICAL_TITLE.equals(rootElement.type)) {
-	    this.setType(Const.PERIODICAL);
-	} else {
-	    this.setType(Const.MONOGRAPH);
-	}
+        rootElement = MetsElement.getElement(object, null, this, true);
+        if (Const.PERIODICAL_TITLE.equals(rootElement.type)) {
+            this.setType(Const.PERIODICAL);
+        } else {
+            this.setType(Const.MONOGRAPH);
+        }
     }
 
     /**
@@ -59,8 +54,8 @@ public class MetsEntity extends MetsInfo {
      * @param packageId
      */
     public MetsEntity(DigitalObject object, String path, String packageId) {
-	super(object, path, packageId);
-	initType(object);
+        super(object, path, packageId);
+        initType(object);
     }
 
     /**
@@ -70,28 +65,28 @@ public class MetsEntity extends MetsInfo {
      * @param packageId
      */
     public MetsEntity(DigitalObject object, FedoraClient fedoraClient, String packageId) {
-	super(fedoraClient, packageId);
-	initType(object);
+        super(fedoraClient, packageId);
+        initType(object);
     }
 
     /**
      * Inits the logical structure of Mets
      */
     private void insertLogicalStructure() {
-	DivType rootDiv = null;
-	if ((Const.MONOGRAPH.equals(this.getType())) && (!Utils.isMultiUnitMonograph(rootElement))) {
-	    DivType logicalDivType = Utils.createStructureDiv(mets, Const.DIV_LOGICAL_LABEL, Const.DIV_LOGICAL_ID);
-	    logicalDivType.setID(this.getType().toUpperCase() + "_0001");
-	    rootDiv = rootElement.insertIntoDiv(logicalDivType);
-	} else {
-	    StructMapType structType = new StructMapType();
-	    mets.getStructMap().add(structType);
-	    structType.setLabel2(Const.DIV_LOGICAL_LABEL);
-	    structType.setTYPE(Const.DIV_LOGICAL_ID);
-	    rootDiv = rootElement.insertIntoDiv(null);
-	    structType.setDiv(rootDiv);
-	}
-	addRecursiveElements(rootDiv, rootElement.children);
+        DivType rootDiv = null;
+        if ((Const.MONOGRAPH.equals(this.getType())) && (!Utils.isMultiUnitMonograph(rootElement))) {
+            DivType logicalDivType = Utils.createStructureDiv(mets, Const.DIV_LOGICAL_LABEL, Const.DIV_LOGICAL_ID);
+            logicalDivType.setID(this.getType().toUpperCase() + "_0001");
+            rootDiv = rootElement.insertIntoDiv(logicalDivType);
+        } else {
+            StructMapType structType = new StructMapType();
+            mets.getStructMap().add(structType);
+            structType.setLabel2(Const.DIV_LOGICAL_LABEL);
+            structType.setTYPE(Const.DIV_LOGICAL_ID);
+            rootDiv = rootElement.insertIntoDiv(null);
+            structType.setDiv(rootDiv);
+        }
+        addRecursiveElements(rootDiv, rootElement.children);
     }
 
     /**
@@ -101,15 +96,15 @@ public class MetsEntity extends MetsInfo {
      * @param children
      */
     private void addRecursiveElements(DivType parentDiv, List<MetsElement> children) {
-	for (MetsElement element : children) {
-	    if (element instanceof Page) {
-		continue;
-	    }
-	    DivType elementDivType = element.insertIntoDiv(parentDiv);
-	    if (element.children.size() > 0) {
-		addRecursiveElements(elementDivType, element.children);
-	    }
-	}
+        for (MetsElement element : children) {
+            if (element instanceof Page) {
+                continue;
+            }
+            DivType elementDivType = element.insertIntoDiv(parentDiv);
+            if (element.children.size() > 0) {
+                addRecursiveElements(elementDivType, element.children);
+            }
+        }
     }
 
     /*
@@ -121,9 +116,9 @@ public class MetsEntity extends MetsInfo {
      */
     @Override
     public void insertIntoMets(String outputPath, boolean withChildren) {
-	super.insertIntoMets(outputPath, withChildren);
-	rootElement.insertIntoMets(mets, withChildren, outputPath);
-	insertLogicalStructure();
+        super.insertIntoMets(outputPath, withChildren);
+        rootElement.insertIntoMets(mets, withChildren, outputPath);
+        insertLogicalStructure();
     }
 
 }

@@ -15,50 +15,59 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 package cz.cas.lib.proarc.common.export.mets;
 
 /**
  * @author Robert Simonovsky
- *
- * Class is used to store md5 info and file size
- *
+ * 
+ *         Class is used to store md5 info and file size
+ * 
  */
 public class FileMD5Info {
-    private  String fileName;
+    private String fileName;
+
     public String getFileName() {
         return fileName;
     }
+
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
+
     private String md5;
     private int size;
+
     public String getMd5() {
         return md5;
     }
+
     public void setMd5(String md5) {
         this.md5 = md5;
     }
+
     public int getSize() {
         return size;
     }
+
     public void setSize(int size) {
         this.size = size;
     }
+
     public FileMD5Info(String fileName, String md5, int size) {
-	super();
-	this.fileName = fileName;
-	this.md5 = md5;
-	this.size = size;
+        super();
+        this.fileName = fileName;
+        this.md5 = md5;
+        this.size = size;
     }
+
     public FileMD5Info(String fileName) {
-	super();
-	this.fileName = fileName;
+        super();
+        this.fileName = fileName;
     }
+
     public FileMD5Info(String md5, int size) {
-   	super();
-   	this.md5 = md5;
-   	this.size = size;
+        super();
+        this.md5 = md5;
+        this.size = size;
     }
 }

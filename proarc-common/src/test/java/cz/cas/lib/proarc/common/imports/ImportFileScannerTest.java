@@ -1,20 +1,38 @@
 /*
  * Copyright (C) 2011 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.common.imports;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
+import org.easymock.EasyMock;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -22,19 +40,6 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.imports.ImportFileScanner.Folder;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import org.easymock.EasyMock;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
 
 /**
  *
@@ -106,10 +111,22 @@ public class ImportFileScannerTest {
         List<Folder> result = instance.findSubfolders(file);
     }
 
+    private boolean isWindows() {
+	System.out.println("System:"+System.getProperty("os.name"));
+	System.out.println(tmpFolder.getRoot().getAbsolutePath());
+	if (System.getProperty("os.name").toLowerCase().contains("win")) {
+	    return true;
+	}
+	return false;
+    }
+
     @Test
     public void testFolderSort() throws Exception {
 //        tmpFolder.setDeleteOnExit(false);
-        tmpFolder.newFolder("B");
+	if (!isWindows()) {
+	    tmpFolder.newFolder("B");
+	    tmpFolder.newFolder("Na Návrší");
+	}
         tmpFolder.newFolder("AAA");
         tmpFolder.newFolder("A");
         tmpFolder.newFile("AA");
@@ -120,11 +137,10 @@ public class ImportFileScannerTest {
         tmpFolder.newFolder("BB");
         tmpFolder.newFolder("23");
         tmpFolder.newFolder("1");
-
         tmpFolder.newFolder("Č");
         tmpFolder.newFolder("Na");
         tmpFolder.newFolder("Na návrší");
-        tmpFolder.newFolder("Na Návrší");
+
         tmpFolder.newFolder("Nad návrším");
 
         File folder = tmpFolder.getRoot();
@@ -136,9 +152,15 @@ public class ImportFileScannerTest {
         for (int i = 0; i < resultAsArray.length; i++) {
             resultAsArray[i] = result.get(i).getHandle().getName();
         }
-        String[] expectedOrder = {"1", "23", "A", "AAA", "b", "B", "BB", "C", "Č",
-                "H", "CH", "Na", "Na návrší", "Na Návrší", "Nad návrším"};
-        assertArrayEquals(Arrays.toString(resultAsArray), expectedOrder, resultAsArray);
+        if (isWindows()) {
+            String[]  expectedOrder = {"1", "23", "A", "AAA", "b", "BB", "C", "Č",
+                "H", "CH", "Na", "Na návrší", "Nad návrším"};
+            assertArrayEquals(Arrays.toString(resultAsArray), expectedOrder, resultAsArray);
+        } else {
+            String[]  expectedOrder = {"1", "23", "A", "AAA", "b", "B", "BB", "C", "Č",
+                    "H", "CH", "Na", "Na návrší", "Na Návrší", "Nad návrším"};
+                assertArrayEquals(Arrays.toString(resultAsArray), expectedOrder, resultAsArray);
+        }
     }
 
     @Test

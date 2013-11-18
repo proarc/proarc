@@ -17,8 +17,6 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
-import org.apache.log4j.Logger;
-
 /**
  * 
  * Internal part properties class
@@ -27,8 +25,6 @@ import org.apache.log4j.Logger;
  * 
  */
 public class IntPartInfo {
-    @SuppressWarnings("unused")
-    private static Logger logger = Logger.getLogger(IntPartInfo.class);
     private String type;
     private String altoPID;
     private String begin;
@@ -40,7 +36,7 @@ public class IntPartInfo {
      * @return
      */
     public String getOrder() {
-	return order;
+        return order;
     }
 
     /**
@@ -49,7 +45,7 @@ public class IntPartInfo {
      * @param order
      */
     public void setOrder(String order) {
-	this.order = order;
+        this.order = order;
     }
 
     /**
@@ -62,11 +58,11 @@ public class IntPartInfo {
      * @param order
      */
     public IntPartInfo(String type, String altoPID, String begin, String order) {
-	super();
-	this.type = type;
-	this.altoPID = altoPID;
-	this.begin = begin;
-	this.order = order;
+        super();
+        this.type = type;
+        this.altoPID = altoPID;
+        this.begin = begin;
+        this.order = order;
     }
 
     /**
@@ -75,7 +71,7 @@ public class IntPartInfo {
      * @return
      */
     public String getType() {
-	return type;
+        return type;
     }
 
     /**
@@ -84,7 +80,7 @@ public class IntPartInfo {
      * @param type
      */
     public void setType(String type) {
-	this.type = type;
+        this.type = type;
     }
 
     /**
@@ -93,7 +89,7 @@ public class IntPartInfo {
      * @return
      */
     public String getAltoPID() {
-	return altoPID;
+        return altoPID;
     }
 
     /**
@@ -102,7 +98,7 @@ public class IntPartInfo {
      * @param altoPID
      */
     public void setAltoPID(String altoPID) {
-	this.altoPID = altoPID;
+        this.altoPID = altoPID;
     }
 
     /**
@@ -111,7 +107,7 @@ public class IntPartInfo {
      * @return
      */
     public String getBegin() {
-	return begin;
+        return begin;
     }
 
     /**
@@ -120,6 +116,6 @@ public class IntPartInfo {
      * @param begin
      */
     public void setBegin(String begin) {
-	this.begin = begin;
+        this.begin = begin;
     }
 }
