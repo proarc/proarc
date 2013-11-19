@@ -76,6 +76,7 @@ import org.xml.sax.SAXParseException;
 
 import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
 import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
@@ -85,6 +86,8 @@ import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsInfo;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.info.Info;
 import cz.cas.lib.proarc.info.Info.Checksum;
 import cz.cas.lib.proarc.info.Info.Itemlist;
@@ -972,6 +975,34 @@ public class Utils {
         os.close();
         String result = new String(Hex.encodeHex(digest));
         return new FileMD5Info(result, totalBytes);
+    }
+
+    /**
+     * Returns parent pid from Resource index
+     * 
+     * @param uuid
+     * @param remoteStorage
+     * @return
+     */
+    public static String getParent(String uuid, RemoteStorage remoteStorage) {
+        List<Item> referrers;
+        try {
+            referrers = remoteStorage.getSearch().findReferrers(uuid);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, e.getLocalizedMessage());
+            throw new IllegalStateException(e);
+        } catch (FedoraClientException e) {
+            LOG.log(Level.SEVERE, e.getLocalizedMessage());
+            throw new IllegalStateException(e);
+        }
+        if (referrers.size() > 1) {
+            LOG.log(Level.SEVERE, "More referrers for pid:" + uuid);
+            throw new IllegalStateException("More referrers for pid:" + uuid);
+        }
+        if (referrers.size() == 0) {
+            return null;
+        }
+        return referrers.get(0).getPid();
     }
 
     /**

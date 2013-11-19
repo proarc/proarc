@@ -185,7 +185,13 @@ public class MetsElement {
      * @return
      */
     private MetsElement initParent(DigitalObject object) {
-        String parentId = Utils.getParent(id);
+        String parentId;
+        if (metsInfo.fedoraClient != null) {
+            parentId = Utils.getParent(id, metsInfo.remoteStorage);
+        } else {
+            parentId = Utils.getParent(id);
+        }
+
         if (parentId == null) {
             return null;
         }
