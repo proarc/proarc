@@ -109,9 +109,9 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
  *         Utility class
  * 
  */
-public class Utils {
+public class MetsUtils {
 
-    private static Logger LOG = Logger.getLogger(Utils.class.getName());
+    private static Logger LOG = Logger.getLogger(MetsUtils.class.getName());
     private static HashMap<String, String> typeMap = new HashMap<String, String>();
     private static HashMap<String, String> modMap = new HashMap<String, String>();
 
@@ -186,9 +186,9 @@ public class Utils {
      * @return
      */
     public static String getTypeModel(List<Element> relExtStream) {
-        String result = typeMap.get(Utils.getModel(relExtStream));
+        String result = typeMap.get(MetsUtils.getModel(relExtStream));
         if (result == null) {
-            throw new RuntimeException("Unknown model:" + Utils.getModel(relExtStream));
+            throw new RuntimeException("Unknown model:" + MetsUtils.getModel(relExtStream));
         }
         return result;
     }
@@ -217,9 +217,9 @@ public class Utils {
      * @return
      */
     public static String getTypeModel(DigitalObject object, MetsInfo metsInfo) {
-        String result = typeMap.get(Utils.getModel(object, metsInfo));
+        String result = typeMap.get(MetsUtils.getModel(object, metsInfo));
         if (result == null) {
-            throw new RuntimeException("Unknown model:" + Utils.getModel(object, metsInfo));
+            throw new RuntimeException("Unknown model:" + MetsUtils.getModel(object, metsInfo));
         }
         return result;
     }
@@ -250,7 +250,7 @@ public class Utils {
         if (elements == null) {
             return null;
         }
-        return Utils.xPathEvaluateString(elements, "*[local-name()='datastreamVersion']/*[local-name()='contentLocation'/@REF");
+        return MetsUtils.xPathEvaluateString(elements, "*[local-name()='datastreamVersion']/*[local-name()='contentLocation'/@REF");
     }
 
     /**
@@ -264,7 +264,7 @@ public class Utils {
         if (elements == null) {
             return null;
         }
-        return Utils.xPathEvaluateString(elements, "*[local-name()='datastreamVersion']/@MIMETYPE");
+        return MetsUtils.xPathEvaluateString(elements, "*[local-name()='datastreamVersion']/@MIMETYPE");
     }
 
     /**
@@ -458,7 +458,7 @@ public class Utils {
      * @return
      */
     private static String getModel(List<Element> relExtStream) {
-        Node hasPageNodes = Utils.xPathEvaluateNode(relExtStream, "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasModel']");
+        Node hasPageNodes = MetsUtils.xPathEvaluateNode(relExtStream, "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasModel']");
         String model = hasPageNodes.getAttributes().getNamedItem("rdf:resource").getNodeValue();
         return model;
     }
@@ -507,9 +507,9 @@ public class Utils {
     private static String getModel(DigitalObject object, MetsInfo metsInfo) {
         List<Element> relStream = null;
         if (metsInfo.fedoraClient != null) {
-            relStream = Utils.getDataStreams(metsInfo.fedoraClient, object.getPID(), "RELS-EXT");
+            relStream = MetsUtils.getDataStreams(metsInfo.fedoraClient, object.getPID(), "RELS-EXT");
         } else {
-            relStream = Utils.getDataStreams(object.getDatastream(), "RELS-EXT");
+            relStream = MetsUtils.getDataStreams(object.getDatastream(), "RELS-EXT");
         }
 
         return getModel(relStream);
@@ -795,7 +795,7 @@ public class Utils {
                 LOG.log(Level.SEVERE, ex.getLocalizedMessage());
                 throw new IllegalStateException(ex);
             }
-            Utils.validateAgainstXSD(infoFile, Info.class.getResourceAsStream("info.xsd"));
+            MetsUtils.validateAgainstXSD(infoFile, Info.class.getResourceAsStream("info.xsd"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -828,7 +828,7 @@ public class Utils {
                 throw new RuntimeException(e);
             }
             md.reset();
-            if (!Utils.validateAgainstXSD(file, Mets.class.getResourceAsStream("mets.xsd"))) {
+            if (!MetsUtils.validateAgainstXSD(file, Mets.class.getResourceAsStream("mets.xsd"))) {
                 LOG.log(Level.WARNING, "Invalid xml METS");
             }
 

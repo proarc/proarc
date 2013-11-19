@@ -29,7 +29,7 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
-import cz.cas.lib.proarc.common.export.mets.Utils;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.Mets;
@@ -113,7 +113,7 @@ public class MetsInfo {
      * Saves a mets into a file
      */
     public void save() {
-        Utils.saveMets(this.outputPath, this);
+        MetsUtils.saveMets(this.outputPath, this);
     }
 
     /**
@@ -216,7 +216,7 @@ public class MetsInfo {
     public MetsInfo(DigitalObject object, String path, String packageId) {
         this.packageId = packageId;
         this.path = path;
-        fileGrpMap = Utils.initFileGroups(mets);
+        fileGrpMap = MetsUtils.initFileGroups(mets);
     }
 
     /**
@@ -230,7 +230,7 @@ public class MetsInfo {
         this.packageId = packageId;
         this.fedoraClient = fedoraClient;
         this.remoteStorage = new RemoteStorage(fedoraClient);
-        fileGrpMap = Utils.initFileGroups(mets);
+        fileGrpMap = MetsUtils.initFileGroups(mets);
     }
 
     /**
@@ -243,7 +243,7 @@ public class MetsInfo {
         metsHdr.setCREATEDATE(getCreateDate());
         metsHdr.setLASTMODDATE(getLastModDate());
         mets.setMetsHdr(metsHdr);
-        physDivType = Utils.createStructureDiv(mets, Const.DIV_PHYSICAL_LABEL, Const.DIV_PHYSICAL_ID);
+        physDivType = MetsUtils.createStructureDiv(mets, Const.DIV_PHYSICAL_LABEL, Const.DIV_PHYSICAL_ID);
     }
 
     /**

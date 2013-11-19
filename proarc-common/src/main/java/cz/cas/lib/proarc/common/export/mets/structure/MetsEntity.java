@@ -23,7 +23,7 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
-import cz.cas.lib.proarc.common.export.mets.Utils;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.StructMapType;
 
@@ -74,8 +74,8 @@ public class MetsEntity extends MetsInfo {
      */
     private void insertLogicalStructure() {
         DivType rootDiv = null;
-        if ((Const.MONOGRAPH.equals(this.getType())) && (!Utils.isMultiUnitMonograph(rootElement))) {
-            DivType logicalDivType = Utils.createStructureDiv(mets, Const.DIV_LOGICAL_LABEL, Const.DIV_LOGICAL_ID);
+        if ((Const.MONOGRAPH.equals(this.getType())) && (!MetsUtils.isMultiUnitMonograph(rootElement))) {
+            DivType logicalDivType = MetsUtils.createStructureDiv(mets, Const.DIV_LOGICAL_LABEL, Const.DIV_LOGICAL_ID);
             logicalDivType.setID(this.getType().toUpperCase() + "_0001");
             rootDiv = rootElement.insertIntoDiv(logicalDivType);
         } else {

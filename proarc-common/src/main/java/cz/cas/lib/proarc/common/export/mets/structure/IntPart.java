@@ -32,7 +32,7 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.MutableSeq;
-import cz.cas.lib.proarc.common.export.mets.Utils;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.mets.AreaType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
@@ -87,7 +87,7 @@ public class IntPart extends MetsElement {
      * @param parentType
      */
     private void addInternalElements(DivType parentType) {
-        List<IntPartInfo> partInfoList = parseAltoInfo(Utils.getDocumentFromBytes(structStream));
+        List<IntPartInfo> partInfoList = parseAltoInfo(MetsUtils.getDocumentFromBytes(structStream));
         for (IntPartInfo partInfo : partInfoList) {
             seq.add(1);
             DivType divType = new DivType();
@@ -122,7 +122,7 @@ public class IntPart extends MetsElement {
 
     /* Fills the "isOnPage" structure */
     private void fillIsOnPage() {
-        Node node = Utils.xPathEvaluateNode(RELExtstream, "*[local-name()='RDF']/*[local-name()='Description']");
+        Node node = MetsUtils.xPathEvaluateNode(RELExtstream, "*[local-name()='RDF']/*[local-name()='Description']");
         NodeList hasPageNodes = node.getChildNodes();
         for (int a = 0; a < hasPageNodes.getLength(); a++) {
             if (hasPageNodes.item(a).getNodeName().equalsIgnoreCase(Const.ISONPAGE)) {
@@ -195,13 +195,13 @@ public class IntPart extends MetsElement {
     public IntPart(DigitalObject object, Object parent, boolean withChildren, MetsInfo metsInfo) {
         super(object, parent, withChildren, metsInfo);
         if (metsInfo.fedoraClient != null) {
-            structStream = Utils.getBinaryDataStreams(metsInfo.fedoraClient, object.getPID(), "STRUCT_MAP");
-            ocrStream = Utils.getBinaryDataStreams(metsInfo.fedoraClient, object.getPID(), "TEXT_OCR");
+            structStream = MetsUtils.getBinaryDataStreams(metsInfo.fedoraClient, object.getPID(), "STRUCT_MAP");
+            ocrStream = MetsUtils.getBinaryDataStreams(metsInfo.fedoraClient, object.getPID(), "TEXT_OCR");
         } else {
-            structStream = Utils.getBinaryDataStreams(object.getDatastream(), "STRUCT_MAP");
-            ocrStream = Utils.getBinaryDataStreams(object.getDatastream(), "TEXT_OCR");
+            structStream = MetsUtils.getBinaryDataStreams(object.getDatastream(), "STRUCT_MAP");
+            ocrStream = MetsUtils.getBinaryDataStreams(object.getDatastream(), "TEXT_OCR");
         }
-        this.setLabel(Utils.getProperty(Const.FEDORA_LABEL, object.getObjectProperties().getProperty()));
+        this.setLabel(MetsUtils.getProperty(Const.FEDORA_LABEL, object.getObjectProperties().getProperty()));
     }
 
     /**

@@ -50,7 +50,7 @@ import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
-import cz.cas.lib.proarc.common.export.mets.Utils;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
@@ -130,9 +130,9 @@ public class Page extends MetsElement {
      */
     public Page(DigitalObject object, Object parent, boolean withChildren, MetsInfo metsInfo) {
         super(object, parent, withChildren, metsInfo);
-        Node partNode = Utils.xPathEvaluateNode(MODSstream, "*[local-name()='modsCollection']/*[local-name()='mods']/*[local-name()='part']");
+        Node partNode = MetsUtils.xPathEvaluateNode(MODSstream, "*[local-name()='modsCollection']/*[local-name()='mods']/*[local-name()='part']");
         if (partNode == null) {
-            partNode = Utils.xPathEvaluateNode(MODSstream, "*[local-name()='mods']/*[local-name()='part']");
+            partNode = MetsUtils.xPathEvaluateNode(MODSstream, "*[local-name()='mods']/*[local-name()='part']");
         }
         this.seq = metsInfo.getSeq();
         this.type = partNode.getAttributes().getNamedItem("type").getNodeValue();
@@ -185,7 +185,7 @@ public class Page extends MetsElement {
                     List<DatastreamProfile> profiles = streams.getDatastreamProfiles();
                     for (DatastreamProfile profile : profiles) {
                         if (profile.getDsID().contains(streamName)) {
-                            fileNames.put(streamName, Utils.getBinaryDataStreams(metsInfo.fedoraClient, object.getPID(), profile.getDsID()));
+                            fileNames.put(streamName, MetsUtils.getBinaryDataStreams(metsInfo.fedoraClient, object.getPID(), profile.getDsID()));
                             mimeTypes.put(streamName, profile.getDsMIME());
                         }
                     }
@@ -196,7 +196,7 @@ public class Page extends MetsElement {
             } else {
                 List<DatastreamType> datastreams = object.getDatastream();
                 for (DatastreamType ds : datastreams) {
-                    if (Utils.equalDataStreams(ds.getID(), streamName)) {
+                    if (MetsUtils.equalDataStreams(ds.getID(), streamName)) {
                         Iterator<DatastreamVersionType> dvIter = ds.getDatastreamVersion().iterator();
                         while (dvIter.hasNext()) {
                             DatastreamVersionType dv = dvIter.next();
@@ -309,14 +309,14 @@ public class Page extends MetsElement {
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
             marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/MIX/ http://www.loc.gov/mix/v20");
-            marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new Utils.NamespacePrefixMapperImpl());
+            marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new MetsUtils.NamespacePrefixMapperImpl());
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             marshaller.marshal(amdSecMets, bos);
             byte[] byteArray = bos.toByteArray();
             fileNames.put("FULL_AMD", byteArray);
             mimeTypes.put("FULL_AMD", "text/xml");
-            Document document = Utils.getDocumentFromBytes(byteArray);
-            Utils.validateAgainstXSD(document, Mets.class.getResourceAsStream("mets.xsd"));
+            Document document = MetsUtils.getDocumentFromBytes(byteArray);
+            MetsUtils.validateAgainstXSD(document, Mets.class.getResourceAsStream("mets.xsd"));
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, ex.getLocalizedMessage());
             throw new IllegalStateException(ex);
@@ -413,7 +413,7 @@ public class Page extends MetsElement {
         String fullOutputFileName = outputDirectory + "/" + streamMappingFile.get(metsStreamName) + "/" + outputFileName;
         outputFileNames.put(metsStreamName, fullOutputFileName);
         try {
-            FileMD5Info fileMD5Info = Utils.getDigestAndCopy(is, new FileOutputStream(fullOutputFileName));
+            FileMD5Info fileMD5Info = MetsUtils.getDigestAndCopy(is, new FileOutputStream(fullOutputFileName));
             fileMD5Info.setFileName("./" + streamMappingFile.get(metsStreamName) + "/" + outputFileName);
             fileType.setCHECKSUM(fileMD5Info.getMd5());
             metsInfo.addFile(fileMD5Info);
