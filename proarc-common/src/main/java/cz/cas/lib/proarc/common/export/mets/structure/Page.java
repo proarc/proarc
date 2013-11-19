@@ -66,9 +66,9 @@ import cz.cas.lib.proarc.mets.StructMapType;
 
 /**
  * Java class representing Mets page
- *
+ * 
  * @author eskymo
- *
+ * 
  */
 public class Page extends MetsElement {
     private final HashMap<String, Object> fileNames = new HashMap<String, Object>();
@@ -90,37 +90,37 @@ public class Page extends MetsElement {
 
     /* Stream mapping */
     static {
-	streamMapping.put("MC_IMGGRP", "FULL");
-	streamMapping.put("UC_IMGGRP", "PREVIEW");
-	streamMapping.put("ALTOGRP", "ALTO");
-	streamMapping.put("TXTGRP", "TEXT_OCR");
-	streamMapping.put("TECHMDGRP", "FULL_AMD");
+        streamMapping.put("MC_IMGGRP", "FULL");
+        streamMapping.put("UC_IMGGRP", "PREVIEW");
+        streamMapping.put("ALTOGRP", "ALTO");
+        streamMapping.put("TXTGRP", "TEXT_OCR");
+        streamMapping.put("TECHMDGRP", "FULL_AMD");
 
-	streamMappingPrefix.put("MC_IMGGRP", "MC");
-	streamMappingPrefix.put("UC_IMGGRP", "UC");
-	streamMappingPrefix.put("ALTOGRP", "ALTO");
-	streamMappingPrefix.put("TXTGRP", "TXT");
-	streamMappingPrefix.put("TECHMDGRP", "AMD_METS");
+        streamMappingPrefix.put("MC_IMGGRP", "MC");
+        streamMappingPrefix.put("UC_IMGGRP", "UC");
+        streamMappingPrefix.put("ALTOGRP", "ALTO");
+        streamMappingPrefix.put("TXTGRP", "TXT");
+        streamMappingPrefix.put("TECHMDGRP", "AMD_METS");
 
-	streamMappingFile.put("MC_IMGGRP", "masterCopy");
-	streamMappingFile.put("UC_IMGGRP", "userCopy");
-	streamMappingFile.put("ALTOGRP", "ALTO");
-	streamMappingFile.put("TXTGRP", "txt");
-	streamMappingFile.put("TECHMDGRP", "amdSec");
+        streamMappingFile.put("MC_IMGGRP", "masterCopy");
+        streamMappingFile.put("UC_IMGGRP", "userCopy");
+        streamMappingFile.put("ALTOGRP", "ALTO");
+        streamMappingFile.put("TXTGRP", "txt");
+        streamMappingFile.put("TECHMDGRP", "amdSec");
     }
 
     /**
      * Returns the ALTOfile section of mets document
-     *
+     * 
      * @return
      */
     public FileType getALTOfile() {
-	return ALTOfile;
+        return ALTOfile;
     }
 
     /**
      * Constructor
-     *
+     * 
      * @param object
      * @param path
      * @param parent
@@ -128,338 +128,338 @@ public class Page extends MetsElement {
      * @param metsInfo
      */
     public Page(DigitalObject object, Object parent, boolean withChildren, MetsInfo metsInfo) {
-	super(object, parent, withChildren, metsInfo);
-	Node partNode = Utils.xPathEvaluateNode(MODSstream, "*[local-name()='modsCollection']/*[local-name()='mods']/*[local-name()='part']");
-	if (partNode == null) {
-	    partNode = Utils.xPathEvaluateNode(MODSstream, "*[local-name()='mods']/*[local-name()='part']");
-	}
-	this.seq = metsInfo.getSeq();
-	this.type = partNode.getAttributes().getNamedItem("type").getNodeValue();
-	NodeList nodeList = partNode.getChildNodes();
-	for (int a = 0; a < nodeList.getLength(); a++) {
-	    if (nodeList.item(a).getNodeName().equalsIgnoreCase("mods:detail")) {
-		Node numberNode = nodeList.item(a).getChildNodes().item(0).getFirstChild();
-		if (nodeList.item(a).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageNumber")) {
-		    this.setPageNumber(numberNode.getNodeValue());
-		}
-		if (nodeList.item(a).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageIndex")) {
-		    this.setPageIndex(numberNode.getNodeValue());
-		}
-	    }
-	}
-	fillFileNameInternal(object);
+        super(object, parent, withChildren, metsInfo);
+        Node partNode = Utils.xPathEvaluateNode(MODSstream, "*[local-name()='modsCollection']/*[local-name()='mods']/*[local-name()='part']");
+        if (partNode == null) {
+            partNode = Utils.xPathEvaluateNode(MODSstream, "*[local-name()='mods']/*[local-name()='part']");
+        }
+        this.seq = metsInfo.getSeq();
+        this.type = partNode.getAttributes().getNamedItem("type").getNodeValue();
+        NodeList nodeList = partNode.getChildNodes();
+        for (int a = 0; a < nodeList.getLength(); a++) {
+            if (nodeList.item(a).getNodeName().equalsIgnoreCase("mods:detail")) {
+                Node numberNode = nodeList.item(a).getChildNodes().item(0).getFirstChild();
+                if (nodeList.item(a).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageNumber")) {
+                    this.setPageNumber(numberNode.getNodeValue());
+                }
+                if (nodeList.item(a).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageIndex")) {
+                    this.setPageIndex(numberNode.getNodeValue());
+                }
+            }
+        }
+        fillFileNameInternal(object);
     }
 
     /**
      * Inserts a file reference into a physical DIV
-     *
+     * 
      * @param physDivType
      * @param mets
      */
     private void addFileToMetsDiv(DivType physDivType) {
-	DivType divType = new DivType();
-	physDivType.getDiv().add(divType);
-	divType.setID(getPageId());
-	divType.setORDER(new BigInteger(getPageIndex()));
-	divType.setORDERLABEL(getPageNumber());
-	divType.setTYPE(type);
-	for (FileType fileType : fileTypes) {
-	    Fptr fptr = new Fptr();
-	    fptr.setFILEID(fileType);
-	    divType.getFptr().add(fptr);
-	}
+        DivType divType = new DivType();
+        physDivType.getDiv().add(divType);
+        divType.setID(getPageId());
+        divType.setORDER(new BigInteger(getPageIndex()));
+        divType.setORDERLABEL(getPageNumber());
+        divType.setTYPE(type);
+        for (FileType fileType : fileTypes) {
+            Fptr fptr = new Fptr();
+            fptr.setFILEID(fileType);
+            divType.getFptr().add(fptr);
+        }
     }
 
     /**
      * Fills the internal structure (fileNames) with the definition of a file in
      * digital object
-     *
+     * 
      * @param object
      */
     private void fillFileNameInternal(DigitalObject object) {
-	for (String streamName : streamMapping.values()) {
-	    if (metsInfo.fedoraClient != null) {
-		try {
-		    GetDatastreamsResponse streams = FedoraClient.getDatastreams(object.getPID()).execute(metsInfo.fedoraClient);
-		    List<DatastreamProfile> profiles = streams.getDatastreamProfiles();
-		    for (DatastreamProfile profile : profiles) {
-			if (profile.getDsID().contains(streamName)) {
-			    fileNames.put(streamName, Utils.getBinaryDataStreams(metsInfo.fedoraClient, object.getPID(), profile.getDsID()));
-			    mimeTypes.put(streamName, profile.getDsMIME());
-			}
-		    }
-		} catch (Exception ex) {
-		    logger.error(ex.getLocalizedMessage());
-		    throw new IllegalStateException(ex);
-		}
-	    } else {
-		List<DatastreamType> datastreams = object.getDatastream();
-		for (DatastreamType ds : datastreams) {
-		    if (Utils.equalDataStreams(ds.getID(),streamName)) {
-			Iterator<DatastreamVersionType> dvIter = ds.getDatastreamVersion().iterator();
-			while (dvIter.hasNext()) {
-			    DatastreamVersionType dv = dvIter.next();
-			    mimeTypes.put(streamName, dv.getMIMETYPE());
-			    if (dv.getContentLocation() != null) {
-				fileNames.put(streamName, dv.getContentLocation().getREF());
-			    }
-			    if (dv.getBinaryContent() != null) {
-				fileNames.put(streamName, dv.getBinaryContent());
-			    }
-			}
-		    }
-		}
-	    }
-	}
+        for (String streamName : streamMapping.values()) {
+            if (metsInfo.fedoraClient != null) {
+                try {
+                    GetDatastreamsResponse streams = FedoraClient.getDatastreams(object.getPID()).execute(metsInfo.fedoraClient);
+                    List<DatastreamProfile> profiles = streams.getDatastreamProfiles();
+                    for (DatastreamProfile profile : profiles) {
+                        if (profile.getDsID().contains(streamName)) {
+                            fileNames.put(streamName, Utils.getBinaryDataStreams(metsInfo.fedoraClient, object.getPID(), profile.getDsID()));
+                            mimeTypes.put(streamName, profile.getDsMIME());
+                        }
+                    }
+                } catch (Exception ex) {
+                    logger.error(ex.getLocalizedMessage());
+                    throw new IllegalStateException(ex);
+                }
+            } else {
+                List<DatastreamType> datastreams = object.getDatastream();
+                for (DatastreamType ds : datastreams) {
+                    if (Utils.equalDataStreams(ds.getID(), streamName)) {
+                        Iterator<DatastreamVersionType> dvIter = ds.getDatastreamVersion().iterator();
+                        while (dvIter.hasNext()) {
+                            DatastreamVersionType dv = dvIter.next();
+                            mimeTypes.put(streamName, dv.getMIMETYPE());
+                            if (dv.getContentLocation() != null) {
+                                fileNames.put(streamName, dv.getContentLocation().getREF());
+                            }
+                            if (dv.getBinaryContent() != null) {
+                                fileNames.put(streamName, dv.getBinaryContent());
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
      * Returns an ID of a file
-     *
+     * 
      * @return
      */
     private String getFileId() {
-	return metsInfo.getPackageId() + "_" + String.format("%04d", seq);
+        return metsInfo.getPackageId() + "_" + String.format("%04d", seq);
     }
 
     /**
      * Returns the pageID
-     *
+     * 
      * @return
      */
     public String getPageId() {
-	return "DIV_P_PAGE_" + String.format("%04d", new BigInteger(getPageIndex()));
+        return "DIV_P_PAGE_" + String.format("%04d", new BigInteger(getPageIndex()));
     }
 
     /**
      * Returns a pageIndex attribute
-     *
+     * 
      * @return
      */
     public String getPageIndex() {
-	return pageIndex;
+        return pageIndex;
     }
 
     /**
      * Returns a pageNumber attribute
-     *
+     * 
      * @return
      */
     public String getPageNumber() {
-	return pageNumber;
+        return pageNumber;
     }
 
     /**
      * @return
      */
     public int getSeq() {
-	return seq;
+        return seq;
     }
 
     /**
-     *
+     * 
      * Generates amdSec metadata (MIX) using Jhove
-     *
+     * 
      */
     private Mets generateTechMetadata(MetsInfo metsInfo) {
-	int seq = 0;
-	Mets infoMets = new Mets();
-	AmdSecType amdSec = new AmdSecType();
-	infoMets.getAmdSec().add(amdSec);
+        int seq = 0;
+        Mets infoMets = new Mets();
+        AmdSecType amdSec = new AmdSecType();
+        infoMets.getAmdSec().add(amdSec);
 
-	for (String name : streamMapping.keySet()) {
-	    if (("ALTOGRP".equalsIgnoreCase(name)) || ("TXTGRP".equalsIgnoreCase(name))) {
-		continue;
-	    }
-	    if (fileNames.get(streamMapping.get(name)) != null) {
-		seq++;
-		String outputFileName = outputFileNames.get(name);
-		MdSecType mdSec = new MdSecType();
-		mdSec.setID("MIX_" + String.format("%03d", seq));
-		MdWrap mdWrap = new MdWrap();
-		mdWrap.setMIMETYPE("text/xml");
-		mdWrap.setMDTYPE("NISOIMG");
-		XmlData xmlData = new XmlData();
-		Node mixNode = JhoveUtility.getMixNode(new File(outputFileName), metsInfo);
-		mdWrap.setXmlData(xmlData);
-		xmlData.getAny().add(mixNode);
-		mdSec.setMdWrap(mdWrap);
-		amdSec.getTechMD().add(mdSec);
-	    }
-	    FileSec fileSec = new FileSec();
-	    infoMets.setFileSec(fileSec);
-	    for (String fileMap : metsInfo.fileGrpMap.keySet()) {
-		fileSec.getFileGrp().add(metsInfo.fileGrpMap.get(fileMap));
-	    }
-	}
-	return infoMets;
+        for (String name : streamMapping.keySet()) {
+            if (("ALTOGRP".equalsIgnoreCase(name)) || ("TXTGRP".equalsIgnoreCase(name))) {
+                continue;
+            }
+            if (fileNames.get(streamMapping.get(name)) != null) {
+                seq++;
+                String outputFileName = outputFileNames.get(name);
+                MdSecType mdSec = new MdSecType();
+                mdSec.setID("MIX_" + String.format("%03d", seq));
+                MdWrap mdWrap = new MdWrap();
+                mdWrap.setMIMETYPE("text/xml");
+                mdWrap.setMDTYPE("NISOIMG");
+                XmlData xmlData = new XmlData();
+                Node mixNode = JhoveUtility.getMixNode(new File(outputFileName), metsInfo);
+                mdWrap.setXmlData(xmlData);
+                xmlData.getAny().add(mixNode);
+                mdSec.setMdWrap(mdWrap);
+                amdSec.getTechMD().add(mdSec);
+            }
+            FileSec fileSec = new FileSec();
+            infoMets.setFileSec(fileSec);
+            for (String fileMap : metsInfo.fileGrpMap.keySet()) {
+                fileSec.getFileGrp().add(metsInfo.fileGrpMap.get(fileMap));
+            }
+        }
+        return infoMets;
     }
 
     /**
-     *
+     * 
      * saves tech metadatao
-     *
+     * 
      * @param amdSecMets
      */
     private void saveAmdSec(Mets amdSecMets) {
-	try {
-	    JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class);
-	    Marshaller marshaller = jaxbContext.createMarshaller();
-	    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-	    marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-	    marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/MIX/ http://www.loc.gov/mix/v20");
-	    marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new Utils.NamespacePrefixMapperImpl());
-	    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-	    marshaller.marshal(amdSecMets, bos);
-	    byte[] byteArray = bos.toByteArray();
-	    fileNames.put("FULL_AMD", byteArray);
-	    mimeTypes.put("FULL_AMD", "text/xml");
-	    Document document = Utils.getDocumentFromBytes(byteArray);
-	    Utils.validateAgainstXSD(document, this.getClass().getResourceAsStream("mets.xsd"));
-	} catch (Exception ex) {
-	    logger.error(ex.getLocalizedMessage());
-	    throw new IllegalStateException(ex);
-	}
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+            marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/MIX/ http://www.loc.gov/mix/v20");
+            marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new Utils.NamespacePrefixMapperImpl());
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            marshaller.marshal(amdSecMets, bos);
+            byte[] byteArray = bos.toByteArray();
+            fileNames.put("FULL_AMD", byteArray);
+            mimeTypes.put("FULL_AMD", "text/xml");
+            Document document = Utils.getDocumentFromBytes(byteArray);
+            Utils.validateAgainstXSD(document, this.getClass().getResourceAsStream("mets.xsd"));
+        } catch (Exception ex) {
+            logger.error(ex.getLocalizedMessage());
+            throw new IllegalStateException(ex);
+        }
     }
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * org.kramerius.importFoXML.structure.MetsElement#insertIntoMets(org.kramerius
      * .mets.Mets, boolean, java.lang.String)
      */
     @Override
     public void insertIntoMets(Mets mets, boolean withChildren, String outputDirectory) {
-	if (parent.modsMetsElement == null) {
-	    parent.insertIntoMets(mets, false, outputDirectory);
-	}
-	this.outputDirectory = outputDirectory;
-	for (String name : streamMapping.keySet()) {
-	    if (fileNames.get(streamMapping.get(name)) != null) {
-		FileType fileType = prepareFileType(this.getSeq(), name);
-		if ("ALTOGRP".equals(name)) {
-		    ALTOfile = fileType;
-		}
-		metsInfo.fileGrpMap.get(name).getFile().add(fileType);
-	    }
-	}
+        if (parent.modsMetsElement == null) {
+            parent.insertIntoMets(mets, false, outputDirectory);
+        }
+        this.outputDirectory = outputDirectory;
+        for (String name : streamMapping.keySet()) {
+            if (fileNames.get(streamMapping.get(name)) != null) {
+                FileType fileType = prepareFileType(this.getSeq(), name);
+                if ("ALTOGRP".equals(name)) {
+                    ALTOfile = fileType;
+                }
+                metsInfo.fileGrpMap.get(name).getFile().add(fileType);
+            }
+        }
 
-	if (fileNames.get(streamMapping.get("TECHMDGRP")) == null) {
-	    logger.debug("Generating tech");
-	    Mets amdSecMets = generateTechMetadata(metsInfo);
-	    StructMapType mapType = new StructMapType();
-	    mapType.setID(Const.DIV_PHYSICAL_ID);
-	    amdSecMets.getStructMap().add(mapType);
-	    DivType divType = new DivType();
-	    if (Const.PERIODICAL.equalsIgnoreCase(metsInfo.getType())) {
-		divType.setTYPE("PERIODICAL_PAGE");
-	    } else {
-		divType.setTYPE("MONOGRAPH_PAGE");
-	    }
-	    for (FileType fileType : fileTypes) {
-		    Fptr fptr = new Fptr();
-		    fptr.setFILEID(fileType);
-		    divType.getFptr().add(fptr);
-	    }
-	    mapType.setDiv(divType);
-	    saveAmdSec(amdSecMets);
-	    FileType fileType = prepareFileType(this.getSeq(), "TECHMDGRP");
-	    metsInfo.fileGrpMap.get("TECHMDGRP").getFile().add(fileType);
-	}
+        if (fileNames.get(streamMapping.get("TECHMDGRP")) == null) {
+            logger.debug("Generating tech");
+            Mets amdSecMets = generateTechMetadata(metsInfo);
+            StructMapType mapType = new StructMapType();
+            mapType.setID(Const.DIV_PHYSICAL_ID);
+            amdSecMets.getStructMap().add(mapType);
+            DivType divType = new DivType();
+            if (Const.PERIODICAL.equalsIgnoreCase(metsInfo.getType())) {
+                divType.setTYPE("PERIODICAL_PAGE");
+            } else {
+                divType.setTYPE("MONOGRAPH_PAGE");
+            }
+            for (FileType fileType : fileTypes) {
+                Fptr fptr = new Fptr();
+                fptr.setFILEID(fileType);
+                divType.getFptr().add(fptr);
+            }
+            mapType.setDiv(divType);
+            saveAmdSec(amdSecMets);
+            FileType fileType = prepareFileType(this.getSeq(), "TECHMDGRP");
+            metsInfo.fileGrpMap.get("TECHMDGRP").getFile().add(fileType);
+        }
 
-	metsInfo.physDivType.setTYPE(this.metsInfo.getType());
+        metsInfo.physDivType.setTYPE(this.metsInfo.getType());
 
-	addFileToMetsDiv(metsInfo.physDivType);
-	setStruct(parent.getElementId(), mets);
+        addFileToMetsDiv(metsInfo.physDivType);
+        setStruct(parent.getElementId(), mets);
     }
 
     /**
      * Prepares a mets FileType element for a file
-     *
+     * 
      * @param seq
      * @param metsStreamName
      * @return
      */
     private FileType prepareFileType(int seq, String metsStreamName) {
-	String streamName = streamMapping.get(metsStreamName);
-	FileType fileType = new FileType();
-	fileType.setCHECKSUMTYPE("MD5");
-	fileType.setSEQ(seq);
-	fileType.setMIMETYPE(mimeTypes.get(streamName));
-	fileTypes.add(fileType);
-	InputStream is = null;
-	fileType.setID(streamMappingPrefix.get(metsStreamName) + "_" + getFileId());
-	if (fileNames.get(streamName) instanceof String) {
-	    String fileNameOriginal = (String) fileNames.get(streamName);
-	    int lastIndex = fileNameOriginal.lastIndexOf("/");
-	    int preLastIndex = fileNameOriginal.substring(1, lastIndex).lastIndexOf("/");
-	    String fileName = metsInfo.getPath() + fileNameOriginal.substring(preLastIndex + 2);
-	    File file = new File(fileName);
-	    fileType.setSIZE(file.length());
-	    try {
-		is = new FileInputStream(file);
-	    } catch (FileNotFoundException e) {
-		throw new RuntimeException("File not found:" + fileName);
-	    }
-	}
-	if (fileNames.get(streamName) instanceof byte[]) {
-	    byte[] bytes = (byte[]) fileNames.get(streamName);
-	    is = new ByteArrayInputStream(bytes);
-	    fileType.setSIZE(Long.valueOf(bytes.length));
-	}
-	String outputFileName = fileType.getID() + "." + MimeType.getExtension(mimeTypes.get(streamName));
-	String fullOutputFileName = outputDirectory + "/" + streamMappingFile.get(metsStreamName) + "/" + outputFileName;
-	outputFileNames.put(metsStreamName, fullOutputFileName);
-	try {
-	    FileMD5Info fileMD5Info = Utils.getDigestAndCopy(is, new FileOutputStream(fullOutputFileName));
-	    fileMD5Info.setFileName("./" + streamMappingFile.get(metsStreamName) + "/" + outputFileName);
-	    fileType.setCHECKSUM(fileMD5Info.getMd5());
-	    metsInfo.addFile(fileMD5Info);
-	} catch (Exception e) {
-	    throw new RuntimeException(e);
-	}
+        String streamName = streamMapping.get(metsStreamName);
+        FileType fileType = new FileType();
+        fileType.setCHECKSUMTYPE("MD5");
+        fileType.setSEQ(seq);
+        fileType.setMIMETYPE(mimeTypes.get(streamName));
+        fileTypes.add(fileType);
+        InputStream is = null;
+        fileType.setID(streamMappingPrefix.get(metsStreamName) + "_" + getFileId());
+        if (fileNames.get(streamName) instanceof String) {
+            String fileNameOriginal = (String) fileNames.get(streamName);
+            int lastIndex = fileNameOriginal.lastIndexOf("/");
+            int preLastIndex = fileNameOriginal.substring(1, lastIndex).lastIndexOf("/");
+            String fileName = metsInfo.getPath() + fileNameOriginal.substring(preLastIndex + 2);
+            File file = new File(fileName);
+            fileType.setSIZE(file.length());
+            try {
+                is = new FileInputStream(file);
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException("File not found:" + fileName);
+            }
+        }
+        if (fileNames.get(streamName) instanceof byte[]) {
+            byte[] bytes = (byte[]) fileNames.get(streamName);
+            is = new ByteArrayInputStream(bytes);
+            fileType.setSIZE(Long.valueOf(bytes.length));
+        }
+        String outputFileName = fileType.getID() + "." + MimeType.getExtension(mimeTypes.get(streamName));
+        String fullOutputFileName = outputDirectory + "/" + streamMappingFile.get(metsStreamName) + "/" + outputFileName;
+        outputFileNames.put(metsStreamName, fullOutputFileName);
+        try {
+            FileMD5Info fileMD5Info = Utils.getDigestAndCopy(is, new FileOutputStream(fullOutputFileName));
+            fileMD5Info.setFileName("./" + streamMappingFile.get(metsStreamName) + "/" + outputFileName);
+            fileType.setCHECKSUM(fileMD5Info.getMd5());
+            metsInfo.addFile(fileMD5Info);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
-	FLocat flocat = new FLocat();
-	flocat.setLOCTYPE("URL");
-	flocat.setHref("./" + streamMappingFile.get(metsStreamName) + "/" + outputFileName);
-	fileType.getFLocat().add(flocat);
+        FLocat flocat = new FLocat();
+        flocat.setLOCTYPE("URL");
+        flocat.setHref("./" + streamMappingFile.get(metsStreamName) + "/" + outputFileName);
+        fileType.getFLocat().add(flocat);
 
-	return fileType;
+        return fileType;
 
     }
 
     /**
      * Setter for pageIndex attribute
-     *
+     * 
      * @param pageIndex
      */
     private void setPageIndex(String pageIndex) {
-	this.pageIndex = pageIndex;
+        this.pageIndex = pageIndex;
     }
 
     /**
      * Setter for pageNumber attribute
-     *
+     * 
      * @param pageNumber
      */
     private void setPageNumber(String pageNumber) {
-	this.pageNumber = pageNumber;
+        this.pageNumber = pageNumber;
     }
 
     /**
      * Inserts the struct element into mets
-     *
+     * 
      * @param fromId
      * @param mets
      */
     private void setStruct(String fromId, Mets mets) {
-	SmLink smLink = new SmLink();
-	smLink.setFrom(parent.getElementId());
-	smLink.setTo(getPageId());
-	if (mets.getStructLink() == null) {
-	    mets.setStructLink(new MetsType.StructLink());
-	}
-	mets.getStructLink().getSmLinkOrSmLinkGrp().add(smLink);
+        SmLink smLink = new SmLink();
+        smLink.setFrom(parent.getElementId());
+        smLink.setTo(getPageId());
+        if (mets.getStructLink() == null) {
+            mets.setStructLink(new MetsType.StructLink());
+        }
+        mets.getStructLink().getSmLinkOrSmLinkGrp().add(smLink);
     }
 }

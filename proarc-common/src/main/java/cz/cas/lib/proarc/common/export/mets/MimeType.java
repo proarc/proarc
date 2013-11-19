@@ -34,11 +34,11 @@ public class MimeType {
     private static Logger logger = Logger.getLogger(MimeType.class);
 
     static {
-	mimeMap.put("text/xml", "xml");
-	mimeMap.put("image/jp2", "jp2");
-	mimeMap.put("text/plain", "txt");
-	mimeMap.put("image/tiff", "tif");
-	mimeMap.put("image/jpeg", "jpg");
+        mimeMap.put("text/xml", "xml");
+        mimeMap.put("image/jp2", "jp2");
+        mimeMap.put("text/plain", "txt");
+        mimeMap.put("image/tiff", "tif");
+        mimeMap.put("image/jpeg", "jpg");
     }
 
     /**
@@ -49,10 +49,10 @@ public class MimeType {
      * @return
      */
     public static String getExtension(String mime) {
-	String result = mimeMap.get(mime);
-	if (result == null) {
-	    throw new RuntimeException("Unknown mime:" + mime);
-	}
-	return result;
+        String result = mimeMap.get(mime);
+        if (result == null) {
+            throw new RuntimeException("Unknown mime:" + mime);
+        }
+        return result;
     }
 }
