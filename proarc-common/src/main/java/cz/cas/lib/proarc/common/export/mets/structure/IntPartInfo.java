@@ -17,8 +17,6 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
-import org.apache.log4j.Logger;
-
 /**
  * 
  * Internal part properties class
@@ -27,8 +25,6 @@ import org.apache.log4j.Logger;
  * 
  */
 public class IntPartInfo {
-    @SuppressWarnings("unused")
-    private static Logger logger = Logger.getLogger(IntPartInfo.class);
     private String type;
     private String altoPID;
     private String begin;

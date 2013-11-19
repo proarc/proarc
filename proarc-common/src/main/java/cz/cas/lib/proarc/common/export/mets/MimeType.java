@@ -19,8 +19,6 @@ package cz.cas.lib.proarc.common.export.mets;
 
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
-
 /**
  * 
  * Mime type extension mapping
@@ -30,8 +28,6 @@ import org.apache.log4j.Logger;
  */
 public class MimeType {
     private static HashMap<String, String> mimeMap = new HashMap<String, String>();
-    @SuppressWarnings("unused")
-    private static Logger logger = Logger.getLogger(MimeType.class);
 
     static {
         mimeMap.put("text/xml", "xml");

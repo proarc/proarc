@@ -19,8 +19,6 @@ package cz.cas.lib.proarc.common.export.mets.structure;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
@@ -36,9 +34,6 @@ import cz.cas.lib.proarc.mets.StructMapType;
  * 
  */
 public class MetsEntity extends MetsInfo {
-    @SuppressWarnings("unused")
-    private static Logger logger = Logger.getLogger(MetsEntity.class);
-
     /**
      * Initializes the type of mets document
      */

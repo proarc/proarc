@@ -20,8 +20,9 @@ package cz.cas.lib.proarc.common.export.mets.structure;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -52,7 +53,7 @@ public class IntPart extends MetsElement {
     protected byte[] ocrStream;
     protected String label;
     MutableSeq seq = new MutableSeq();
-    private static Logger logger = Logger.getLogger(IntPart.class);
+    private static Logger LOG = Logger.getLogger(IntPart.class.getName());
 
     /**
      * 
@@ -94,7 +95,7 @@ public class IntPart extends MetsElement {
             try {
                 divType.setORDER(new BigInteger(partInfo.getOrder()));
             } catch (NumberFormatException ex) {
-                logger.warn(partInfo.getOrder() + " is not a number in  object " + this.originalPID);
+                LOG.log(Level.WARNING, partInfo.getOrder() + " is not a number in  object " + this.originalPID);
             }
             String number = String.format("%04d", seq.get());
 
@@ -124,7 +125,7 @@ public class IntPart extends MetsElement {
         Node node = Utils.xPathEvaluateNode(RELExtstream, "*[local-name()='RDF']/*[local-name()='Description']");
         NodeList hasPageNodes = node.getChildNodes();
         for (int a = 0; a < hasPageNodes.getLength(); a++) {
-            if (hasPageNodes.item(a).getNodeName().equalsIgnoreCase(Const.isONPAGE)) {
+            if (hasPageNodes.item(a).getNodeName().equalsIgnoreCase(Const.ISONPAGE)) {
                 String fileName = hasPageNodes.item(a).getAttributes().getNamedItem("rdf:resource").getNodeValue();
                 Page page = (Page) metsInfo.pidElements.get(fileName.substring(fileName.indexOf("/") + 1));
                 SmLink smLink = new SmLink();
@@ -164,7 +165,7 @@ public class IntPart extends MetsElement {
         if (parent.type.equalsIgnoreCase("ARTICLE")) {
             this.seq = ((IntPart) parent).seq;
             seq.add(1);
-            // TODO elementDivType.setORDER(new
+            // TODO elementDivType.setORDER
             // BigInteger(partInfo.getOrder()));
             String number = String.format("%04d", seq.get());
             elementDivType.setID(parent.getElementId() + "_" + number);

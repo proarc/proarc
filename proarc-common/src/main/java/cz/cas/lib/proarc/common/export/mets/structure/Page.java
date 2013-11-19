@@ -29,11 +29,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -78,7 +79,7 @@ public class Page extends MetsElement {
     private static HashMap<String, String> streamMapping = new HashMap<String, String>();
     public static HashMap<String, String> streamMappingFile = new HashMap<String, String>();
     private static HashMap<String, String> streamMappingPrefix = new HashMap<String, String>();
-    private static Logger logger = Logger.getLogger(Page.class);
+    private static Logger LOG = Logger.getLogger(Page.class.getName());
 
     private String outputDirectory;
     private final int seq;
@@ -189,7 +190,7 @@ public class Page extends MetsElement {
                         }
                     }
                 } catch (Exception ex) {
-                    logger.error(ex.getLocalizedMessage());
+                    LOG.log(Level.SEVERE, ex.getLocalizedMessage());
                     throw new IllegalStateException(ex);
                 }
             } else {
@@ -315,9 +316,9 @@ public class Page extends MetsElement {
             fileNames.put("FULL_AMD", byteArray);
             mimeTypes.put("FULL_AMD", "text/xml");
             Document document = Utils.getDocumentFromBytes(byteArray);
-            Utils.validateAgainstXSD(document, this.getClass().getResourceAsStream("mets.xsd"));
+            Utils.validateAgainstXSD(document, Mets.class.getResourceAsStream("mets.xsd"));
         } catch (Exception ex) {
-            logger.error(ex.getLocalizedMessage());
+            LOG.log(Level.SEVERE, ex.getLocalizedMessage());
             throw new IllegalStateException(ex);
         }
     }
@@ -346,7 +347,7 @@ public class Page extends MetsElement {
         }
 
         if (fileNames.get(streamMapping.get("TECHMDGRP")) == null) {
-            logger.debug("Generating tech");
+            LOG.log(Level.INFO, "Generating tech");
             Mets amdSecMets = generateTechMetadata(metsInfo);
             StructMapType mapType = new StructMapType();
             mapType.setID(Const.DIV_PHYSICAL_ID);

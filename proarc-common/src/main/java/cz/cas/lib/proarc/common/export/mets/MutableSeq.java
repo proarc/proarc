@@ -17,7 +17,6 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
-import org.apache.log4j.Logger;
 
 /**
  * 
@@ -27,8 +26,6 @@ import org.apache.log4j.Logger;
  * 
  */
 public class MutableSeq {
-    @SuppressWarnings("unused")
-    private static Logger logger = Logger.getLogger(MutableSeq.class);
     long number = 0;
 
     /**

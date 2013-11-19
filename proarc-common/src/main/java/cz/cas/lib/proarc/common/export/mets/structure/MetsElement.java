@@ -21,11 +21,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -38,6 +39,8 @@ import cz.cas.lib.proarc.common.export.mets.Utils;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.Mets;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
  * Java class representing simple Mets element (Title, Volume,..)
@@ -47,7 +50,7 @@ import cz.cas.lib.proarc.mets.Mets;
  */
 public class MetsElement {
     private final String id;
-    private static Logger logger = Logger.getLogger(MetsElement.class);
+    private static Logger LOG = Logger.getLogger(MetsElement.class.getName());
 
     /**
      * Return uuid of element
@@ -277,13 +280,13 @@ public class MetsElement {
         }
         Document docMods = Utils.getDocumentFromList(MODSstream);
         Document docDC = Utils.getDocumentFromList(DCstream);
-        if (!Utils.validateAgainstXSD(docMods, this.getClass().getResourceAsStream("mods.xsd"))) {
-            logger.warn("Invalid xml:" + this.getElementId());
-            logger.warn(Utils.documentToString(docMods));
+        if (!Utils.validateAgainstXSD(docMods, ModsDefinition.class.getResourceAsStream("mods.xsd"))) {
+            LOG.log(Level.WARNING, "Invalid xml:" + this.getElementId());
+            LOG.log(Level.INFO, Utils.documentToString(docMods));
         }
-        if (!Utils.validateAgainstXSD(docDC, this.getClass().getResourceAsStream("oai_dc.xsd"))) {
-            logger.warn("Invalid xml:" + this.getElementId());
-            logger.warn(Utils.documentToString(docDC));
+        if (!Utils.validateAgainstXSD(docDC, OaiDcType.class.getResourceAsStream("dc_oai.xsd"))) {
+            LOG.log(Level.WARNING, "Invalid xml:" + this.getElementId());
+            LOG.log(Level.INFO, Utils.documentToString(docDC));
         }
     }
 

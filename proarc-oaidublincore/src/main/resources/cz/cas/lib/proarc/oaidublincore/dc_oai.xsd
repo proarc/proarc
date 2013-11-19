@@ -13,7 +13,7 @@
   </documentation>
 </annotation>
 
-<!-- <import namespace="http://purl.org/dc/elements/1.1/"
+<!--import namespace="http://purl.org/dc/elements/1.1/"
         schemaLocation="simpledc20021212.xsd"/-->
 <import namespace="http://purl.org/dc/elements/1.1/"
         schemaLocation="http://dublincore.org/schemas/xmls/simpledc20021212.xsd"/>

@@ -38,6 +38,8 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -64,7 +66,6 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -107,7 +108,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
  */
 public class Utils {
 
-    private static Logger logger = Logger.getLogger(Utils.class);
+    private static Logger LOG = Logger.getLogger(Utils.class.getName());
     private static HashMap<String, String> typeMap = new HashMap<String, String>();
     private static HashMap<String, String> modMap = new HashMap<String, String>();
 
@@ -470,7 +471,7 @@ public class Utils {
             elements.add(doc.getDocumentElement());
             return elements;
         } catch (Exception ex) {
-            logger.error(ex.getLocalizedMessage());
+            LOG.log(Level.SEVERE, ex.getLocalizedMessage());
             throw new IllegalStateException(ex);
         }
     }
@@ -488,7 +489,7 @@ public class Utils {
             bos.close();
             return bos.toByteArray();
         } catch (Exception ex) {
-            logger.error(ex.getLocalizedMessage());
+            LOG.log(Level.SEVERE, ex.getLocalizedMessage());
             throw new IllegalStateException(ex);
         }
     }
@@ -617,7 +618,7 @@ public class Utils {
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             foXMLObject = (DigitalObject) unmarshaller.unmarshal(response.getEntityInputStream());
         } catch (Exception e) {
-            logger.error("Unable to get:" + uuid + "\n" + e.getLocalizedMessage());
+            LOG.log(Level.SEVERE, "Unable to get:" + uuid + "\n" + e.getLocalizedMessage());
             throw new IllegalStateException(e);
         }
         return foXMLObject;
@@ -643,6 +644,7 @@ public class Utils {
             transformer.transform(new DOMSource(doc), new StreamResult(sw));
             return sw.toString();
         } catch (TransformerException ex) {
+            LOG.log(Level.SEVERE, "Error converting to String " + ex.getLocalizedMessage());
             throw new RuntimeException("Error converting to String", ex);
         }
     }
@@ -675,7 +677,7 @@ public class Utils {
             documentBuilder.setErrorHandler(new ErrorHandler() {
                 @Override
                 public void warning(SAXParseException exception) throws SAXException {
-                    logger.warn(exception.getLocalizedMessage());
+                    LOG.log(Level.WARNING, exception.getLocalizedMessage());
                 }
 
                 @Override
@@ -692,7 +694,7 @@ public class Utils {
             documentBuilder.parse(is);
             return true;
         } catch (Exception ex) {
-            logger.warn(ex.getLocalizedMessage());
+            LOG.log(Level.WARNING, ex.getLocalizedMessage());
             return false;
         }
     }
@@ -717,7 +719,7 @@ public class Utils {
             documentBuilder.setErrorHandler(new ErrorHandler() {
                 @Override
                 public void warning(SAXParseException exception) throws SAXException {
-                    logger.warn(exception.getLocalizedMessage());
+                    LOG.log(Level.WARNING, exception.getLocalizedMessage());
                 }
 
                 @Override
@@ -734,7 +736,7 @@ public class Utils {
             documentBuilder.parse(file);
             return true;
         } catch (Exception ex) {
-            logger.warn(ex.getLocalizedMessage());
+            LOG.log(Level.WARNING, ex.getLocalizedMessage());
             return false;
         }
     }
@@ -787,10 +789,10 @@ public class Utils {
                 marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl());
                 marshaller.marshal(infoJaxb, infoFile);
             } catch (Exception ex) {
-                logger.error(ex.getLocalizedMessage());
+                LOG.log(Level.SEVERE, ex.getLocalizedMessage());
                 throw new IllegalStateException(ex);
             }
-            Utils.validateAgainstXSD(infoFile, Utils.class.getResourceAsStream("structure/info.xsd"));
+            Utils.validateAgainstXSD(infoFile, Info.class.getResourceAsStream("info.xsd"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -814,12 +816,7 @@ public class Utils {
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
             marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd");
-            // try {
-            // marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper",
-            // new NamespacePrefixMapperInternalImpl());
-            // } catch (PropertyException ex) {
             marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl());
-            // }
             marshaller.marshal(mets.getMets(), file);
             MessageDigest md;
             try {
@@ -828,9 +825,8 @@ public class Utils {
                 throw new RuntimeException(e);
             }
             md.reset();
-
-            if (!Utils.validateAgainstXSD(file, Utils.class.getResourceAsStream("structure/mets.xsd"))) {
-                logger.warn("Invalid xml METS");
+            if (!Utils.validateAgainstXSD(file, Mets.class.getResourceAsStream("mets.xsd"))) {
+                LOG.log(Level.WARNING, "Invalid xml METS");
             }
 
             InputStream is;
@@ -889,22 +885,22 @@ public class Utils {
      * @return
      */
     public static boolean hasReferenceXML(String name) {
-        if (Const.hasINTCOMPPART.equalsIgnoreCase(name)) {
+        if (Const.HASINTCOMPPART.equalsIgnoreCase(name)) {
             return true;
         }
-        if (Const.hasISSUE.equalsIgnoreCase(name)) {
+        if (Const.HASISSUE.equalsIgnoreCase(name)) {
             return true;
         }
-        if (Const.hasMEMBER.equalsIgnoreCase(name)) {
+        if (Const.HASMEMBER.equalsIgnoreCase(name)) {
             return true;
         }
-        if (Const.hasPAGE.equalsIgnoreCase(name)) {
+        if (Const.HASPAGE.equalsIgnoreCase(name)) {
             return true;
         }
-        if (Const.hasUNIT.equalsIgnoreCase(name)) {
+        if (Const.HASUNIT.equalsIgnoreCase(name)) {
             return true;
         }
-        if (Const.hasVOLUME.equalsIgnoreCase(name)) {
+        if (Const.HASVOLUME.equalsIgnoreCase(name)) {
             return true;
         }
         return false;

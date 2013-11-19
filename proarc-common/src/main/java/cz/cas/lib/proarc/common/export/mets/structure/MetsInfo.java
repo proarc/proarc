@@ -24,8 +24,6 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.log4j.Logger;
-
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
@@ -65,8 +63,6 @@ public class MetsInfo {
     private final List<FileMD5Info> fileList = new ArrayList<FileMD5Info>();
     public HashMap<String, MetsElement> pidElements = new HashMap<String, MetsElement>();
     private final HashMap<String, Integer> modOrderMap = new HashMap<String, Integer>();
-    @SuppressWarnings("unused")
-    private static Logger logger = Logger.getLogger(MetsInfo.class);
     public FedoraClient fedoraClient;
 
     /**
