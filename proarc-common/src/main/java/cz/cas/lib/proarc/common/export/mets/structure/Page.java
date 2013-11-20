@@ -49,8 +49,9 @@ import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.export.mets.MimeType;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
@@ -128,7 +129,7 @@ public class Page extends MetsElement {
      * @param withChildren
      * @param metsInfo
      */
-    public Page(DigitalObject object, Object parent, boolean withChildren, MetsInfo metsInfo) {
+    public Page(DigitalObject object, Object parent, boolean withChildren, MetsInfo metsInfo) throws MetsExportException {
         super(object, parent, withChildren, metsInfo);
         Node partNode = MetsUtils.xPathEvaluateNode(MODSstream, "*[local-name()='modsCollection']/*[local-name()='mods']/*[local-name()='part']");
         if (partNode == null) {
@@ -177,7 +178,7 @@ public class Page extends MetsElement {
      * 
      * @param object
      */
-    private void fillFileNameInternal(DigitalObject object) {
+    private void fillFileNameInternal(DigitalObject object) throws MetsExportException {
         for (String streamName : streamMapping.values()) {
             if (metsInfo.fedoraClient != null) {
                 try {
@@ -190,8 +191,8 @@ public class Page extends MetsElement {
                         }
                     }
                 } catch (Exception ex) {
-                    LOG.log(Level.SEVERE, ex.getLocalizedMessage());
-                    throw new IllegalStateException(ex);
+                    LOG.log(Level.SEVERE, "Error while getting file datastreams for " + this.originalPID, ex);
+                    throw new MetsExportException("Error while getting file datastreams for " + this.originalPID, false, ex);
                 }
             } else {
                 List<DatastreamType> datastreams = object.getDatastream();
@@ -262,7 +263,7 @@ public class Page extends MetsElement {
      * Generates amdSec metadata (MIX) using Jhove
      * 
      */
-    private Mets generateTechMetadata(MetsInfo metsInfo) {
+    private Mets generateTechMetadata(MetsInfo metsInfo) throws MetsExportException {
         int seq = 0;
         Mets infoMets = new Mets();
         AmdSecType amdSec = new AmdSecType();
@@ -316,9 +317,14 @@ public class Page extends MetsElement {
             fileNames.put("FULL_AMD", byteArray);
             mimeTypes.put("FULL_AMD", "text/xml");
             Document document = MetsUtils.getDocumentFromBytes(byteArray);
-            MetsUtils.validateAgainstXSD(document, Mets.class.getResourceAsStream("mets.xsd"));
+            try {
+                MetsUtils.validateAgainstXSD(document, Mets.class.getResourceAsStream("mets.xsd"));
+            } catch (MetsExportException ex) {
+                LOG.log(Level.WARNING, "Invalid AMD Sec document for " + this.originalPID);
+                metsInfo.metsExportException.addException(this.originalPID, "Invalid AMD Sec xml for " + this.originalPID, true, ex.exceptionList.get(0).getEx());
+            }
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, ex.getLocalizedMessage());
+            LOG.log(Level.SEVERE, "Error while saving AMDSec file for " + this.originalPID, ex);
             throw new IllegalStateException(ex);
         }
     }
@@ -331,7 +337,7 @@ public class Page extends MetsElement {
      * .mets.Mets, boolean, java.lang.String)
      */
     @Override
-    public void insertIntoMets(Mets mets, boolean withChildren, String outputDirectory) {
+    public void insertIntoMets(Mets mets, boolean withChildren, String outputDirectory) throws MetsExportException {
         if (parent.modsMetsElement == null) {
             parent.insertIntoMets(mets, false, outputDirectory);
         }
@@ -382,7 +388,7 @@ public class Page extends MetsElement {
      * @param metsStreamName
      * @return
      */
-    private FileType prepareFileType(int seq, String metsStreamName) {
+    private FileType prepareFileType(int seq, String metsStreamName) throws MetsExportException {
         String streamName = streamMapping.get(metsStreamName);
         FileType fileType = new FileType();
         fileType.setCHECKSUMTYPE("MD5");
@@ -401,7 +407,7 @@ public class Page extends MetsElement {
             try {
                 is = new FileInputStream(file);
             } catch (FileNotFoundException e) {
-                throw new RuntimeException("File not found:" + fileName);
+                throw new MetsExportException("File not found:" + fileName, false, e);
             }
         }
         if (fileNames.get(streamName) instanceof byte[]) {
@@ -418,7 +424,7 @@ public class Page extends MetsElement {
             fileType.setCHECKSUM(fileMD5Info.getMd5());
             metsInfo.addFile(fileMD5Info);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new MetsExportException("Unable to process file " + fullOutputFileName, false, e);
         }
 
         FLocat flocat = new FLocat();
@@ -454,7 +460,7 @@ public class Page extends MetsElement {
      * @param fromId
      * @param mets
      */
-    private void setStruct(String fromId, Mets mets) {
+    private void setStruct(String fromId, Mets mets) throws MetsExportException {
         SmLink smLink = new SmLink();
         smLink.setFrom(parent.getElementId());
         smLink.setTo(getPageId());

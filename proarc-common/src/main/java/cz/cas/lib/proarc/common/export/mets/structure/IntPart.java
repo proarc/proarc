@@ -31,8 +31,9 @@ import org.w3c.dom.NodeList;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
-import cz.cas.lib.proarc.common.export.mets.MutableSeq;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.mets.MutableSeq;
 import cz.cas.lib.proarc.mets.AreaType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
@@ -86,7 +87,7 @@ public class IntPart extends MetsElement {
      * 
      * @param parentType
      */
-    private void addInternalElements(DivType parentType) {
+    private void addInternalElements(DivType parentType) throws MetsExportException {
         List<IntPartInfo> partInfoList = parseAltoInfo(MetsUtils.getDocumentFromBytes(structStream));
         for (IntPartInfo partInfo : partInfoList) {
             seq.add(1);
@@ -121,7 +122,7 @@ public class IntPart extends MetsElement {
     }
 
     /* Fills the "isOnPage" structure */
-    private void fillIsOnPage() {
+    private void fillIsOnPage() throws MetsExportException {
         Node node = MetsUtils.xPathEvaluateNode(RELExtstream, "*[local-name()='RDF']/*[local-name()='Description']");
         NodeList hasPageNodes = node.getChildNodes();
         for (int a = 0; a < hasPageNodes.getLength(); a++) {
@@ -147,7 +148,7 @@ public class IntPart extends MetsElement {
      * .mets.Mets, boolean, java.lang.String)
      */
     @Override
-    public void insertIntoMets(Mets mets, boolean withChildren, String outputDirectory) {
+    public void insertIntoMets(Mets mets, boolean withChildren, String outputDirectory) throws MetsExportException {
         super.insertIntoMets(mets, withChildren, outputDirectory);
         fillIsOnPage();
     };
@@ -160,7 +161,7 @@ public class IntPart extends MetsElement {
      * .mets.DivType)
      */
     @Override
-    public DivType insertIntoDiv(DivType parentDiv) {
+    public DivType insertIntoDiv(DivType parentDiv) throws MetsExportException {
         DivType elementDivType = new DivType();
         if (parent.type.equalsIgnoreCase("ARTICLE")) {
             this.seq = ((IntPart) parent).seq;
@@ -192,7 +193,7 @@ public class IntPart extends MetsElement {
      * @param withChildren
      * @param metsInfo
      */
-    public IntPart(DigitalObject object, Object parent, boolean withChildren, MetsInfo metsInfo) {
+    public IntPart(DigitalObject object, Object parent, boolean withChildren, MetsInfo metsInfo) throws MetsExportException {
         super(object, parent, withChildren, metsInfo);
         if (metsInfo.fedoraClient != null) {
             structStream = MetsUtils.getBinaryDataStreams(metsInfo.fedoraClient, object.getPID(), "STRUCT_MAP");

@@ -23,6 +23,7 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.StructMapType;
@@ -37,7 +38,7 @@ public class MetsEntity extends MetsInfo {
     /**
      * Initializes the type of mets document
      */
-    private void initType(DigitalObject object) {
+    private void initType(DigitalObject object) throws MetsExportException {
         rootElement = MetsElement.getElement(object, null, this, true);
         if (Const.PERIODICAL_TITLE.equals(rootElement.type)) {
             this.setType(Const.PERIODICAL);
@@ -53,7 +54,7 @@ public class MetsEntity extends MetsInfo {
      * @param path
      * @param packageId
      */
-    public MetsEntity(DigitalObject object, String path, String packageId) {
+    public MetsEntity(DigitalObject object, String path, String packageId) throws MetsExportException {
         super(object, path, packageId);
         initType(object);
     }
@@ -64,7 +65,7 @@ public class MetsEntity extends MetsInfo {
      * @param remoteStorage
      * @param packageId
      */
-    public MetsEntity(DigitalObject object, FedoraClient fedoraClient, String packageId) {
+    public MetsEntity(DigitalObject object, FedoraClient fedoraClient, String packageId) throws MetsExportException {
         super(fedoraClient, packageId);
         initType(object);
     }
@@ -72,7 +73,7 @@ public class MetsEntity extends MetsInfo {
     /**
      * Inits the logical structure of Mets
      */
-    private void insertLogicalStructure() {
+    private void insertLogicalStructure() throws MetsExportException {
         DivType rootDiv = null;
         if ((Const.MONOGRAPH.equals(this.getType())) && (!MetsUtils.isMultiUnitMonograph(rootElement))) {
             DivType logicalDivType = MetsUtils.createStructureDiv(mets, Const.DIV_LOGICAL_LABEL, Const.DIV_LOGICAL_ID);
@@ -95,7 +96,7 @@ public class MetsEntity extends MetsInfo {
      * @param parentDiv
      * @param children
      */
-    private void addRecursiveElements(DivType parentDiv, List<MetsElement> children) {
+    private void addRecursiveElements(DivType parentDiv, List<MetsElement> children) throws MetsExportException {
         for (MetsElement element : children) {
             if (element instanceof Page) {
                 continue;
@@ -115,7 +116,7 @@ public class MetsEntity extends MetsInfo {
      * .String, boolean)
      */
     @Override
-    public void insertIntoMets(String outputPath, boolean withChildren) {
+    public void insertIntoMets(String outputPath, boolean withChildren) throws MetsExportException {
         super.insertIntoMets(outputPath, withChildren);
         rootElement.insertIntoMets(mets, withChildren, outputPath);
         insertLogicalStructure();

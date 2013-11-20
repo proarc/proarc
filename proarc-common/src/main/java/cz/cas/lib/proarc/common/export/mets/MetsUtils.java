@@ -76,7 +76,6 @@ import org.xml.sax.SAXParseException;
 
 import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
 import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
@@ -185,10 +184,11 @@ public class MetsUtils {
      * @param relExtStream
      * @return
      */
-    public static String getTypeModel(List<Element> relExtStream) {
+    public static String getTypeModel(List<Element> relExtStream) throws MetsExportException {
         String result = typeMap.get(MetsUtils.getModel(relExtStream));
         if (result == null) {
-            throw new RuntimeException("Unknown model:" + MetsUtils.getModel(relExtStream));
+            LOG.log(Level.SEVERE, "Unknown model:" + MetsUtils.getModel(relExtStream));
+            throw new MetsExportException("Unknown model:" + MetsUtils.getModel(relExtStream));
         }
         return result;
     }
@@ -201,10 +201,10 @@ public class MetsUtils {
      * @param type
      * @return
      */
-    public static String getModName(String type) {
+    public static String getModName(String type) throws MetsExportException {
         String result = modMap.get(type);
         if (result == null) {
-            throw new RuntimeException("Unknown type:" + type);
+            throw new MetsExportException("Unknown mod type:" + type);
         }
         return result;
     }
@@ -216,10 +216,10 @@ public class MetsUtils {
      * @param object
      * @return
      */
-    public static String getTypeModel(DigitalObject object, MetsInfo metsInfo) {
+    public static String getTypeModel(DigitalObject object, MetsInfo metsInfo) throws MetsExportException {
         String result = typeMap.get(MetsUtils.getModel(object, metsInfo));
         if (result == null) {
-            throw new RuntimeException("Unknown model:" + MetsUtils.getModel(object, metsInfo));
+            throw new MetsExportException("Unknown model:" + MetsUtils.getModel(object, metsInfo));
         }
         return result;
     }
@@ -246,7 +246,7 @@ public class MetsUtils {
      * @param elements
      * @return
      */
-    public static String getFileNameFromStream(List<Element> elements) {
+    public static String getFileNameFromStream(List<Element> elements) throws MetsExportException {
         if (elements == null) {
             return null;
         }
@@ -260,7 +260,7 @@ public class MetsUtils {
      * @param elements
      * @return
      */
-    public static String getMimeFromStream(List<Element> elements) {
+    public static String getMimeFromStream(List<Element> elements) throws MetsExportException {
         if (elements == null) {
             return null;
         }
@@ -275,19 +275,19 @@ public class MetsUtils {
      * @param properties
      * @return
      */
-    public static String getProperty(String name, java.util.List<PropertyType> properties) {
+    public static String getProperty(String name, java.util.List<PropertyType> properties) throws MetsExportException {
         if (name == null) {
-            throw new IllegalStateException("Name is null");
+            throw new MetsExportException("Name is null");
         }
         if (properties == null) {
-            throw new IllegalStateException("Properties is null");
+            throw new MetsExportException("Properties is null");
         }
         for (PropertyType property : properties) {
             if (name.equalsIgnoreCase(property.getNAME())) {
                 return property.getVALUE();
             }
         }
-        throw new IllegalStateException("Property " + name + " not found");
+        throw new MetsExportException("Property " + name + " not found");
     }
 
     /**
@@ -382,7 +382,7 @@ public class MetsUtils {
      * @param elements
      * @return
      */
-    public static Document getDocumentFromList(List<Element> elements) {
+    public static Document getDocumentFromList(List<Element> elements) throws MetsExportException {
         Document document = null;
         try {
             DocumentBuilderFactory builder = DocumentBuilderFactory.newInstance();
@@ -390,7 +390,7 @@ public class MetsUtils {
             builder.setNamespaceAware(true);
             document = builder.newDocumentBuilder().newDocument();
         } catch (ParserConfigurationException e1) {
-            throw new RuntimeException(e1);
+            throw new MetsExportException("Error while getting document from list", false, e1);
         }
 
         for (Element element : elements) {
@@ -409,14 +409,14 @@ public class MetsUtils {
      * @param xPath
      * @return
      */
-    public static String xPathEvaluateString(List<Element> elements, String xPath) {
+    public static String xPathEvaluateString(List<Element> elements, String xPath) throws MetsExportException {
         XPath xpathObject = XPathFactory.newInstance().newXPath();
 
         Document document = getDocumentFromList(elements);
         try {
             return xpathObject.compile(xPath).evaluate(document);
         } catch (XPathExpressionException e) {
-            throw new RuntimeException(e);
+            throw new MetsExportException("Error while evaluating xPath:" + xPath, false, e);
         }
     }
 
@@ -428,12 +428,12 @@ public class MetsUtils {
      * @param xPath
      * @return
      */
-    public static Node xPathEvaluateNode(List<Element> elements, String xPath) {
+    public static Node xPathEvaluateNode(List<Element> elements, String xPath) throws MetsExportException {
         Document document = null;
         try {
             document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         } catch (ParserConfigurationException e1) {
-            throw new RuntimeException(e1);
+            throw new MetsExportException("Error while evaluating xPath " + xPath, false, e1);
         }
 
         for (Element element : elements) {
@@ -446,7 +446,7 @@ public class MetsUtils {
         try {
             return (Node) xpathObject.compile(xPath).evaluate(document, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new RuntimeException(e);
+            throw new MetsExportException("Error while evaluating xPath " + xPath, false, e);
         }
     }
 
@@ -457,13 +457,13 @@ public class MetsUtils {
      * @param relExtStream
      * @return
      */
-    private static String getModel(List<Element> relExtStream) {
+    private static String getModel(List<Element> relExtStream) throws MetsExportException {
         Node hasPageNodes = MetsUtils.xPathEvaluateNode(relExtStream, "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasModel']");
         String model = hasPageNodes.getAttributes().getNamedItem("rdf:resource").getNodeValue();
         return model;
     }
 
-    public static List<Element> getDataStreams(FedoraClient fedoraClient, String pid, String streamName) {
+    public static List<Element> getDataStreams(FedoraClient fedoraClient, String pid, String streamName) throws MetsExportException {
         try {
             FedoraResponse response = FedoraClient.getDatastreamDissemination(pid, streamName).execute(fedoraClient);
             InputStream is = response.getEntityInputStream();
@@ -474,12 +474,12 @@ public class MetsUtils {
             elements.add(doc.getDocumentElement());
             return elements;
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, ex.getLocalizedMessage());
-            throw new IllegalStateException(ex);
+            LOG.log(Level.SEVERE, "Error while getting stream " + streamName + " from " + pid, ex);
+            throw new MetsExportException("Error while getting stream " + streamName + " from " + pid, false, ex);
         }
     }
 
-    public static byte[] getBinaryDataStreams(FedoraClient fedoraClient, String pid, String streamName) {
+    public static byte[] getBinaryDataStreams(FedoraClient fedoraClient, String pid, String streamName) throws MetsExportException {
         try {
             FedoraResponse response = FedoraClient.getDatastreamDissemination(pid, streamName).execute(fedoraClient);
             InputStream is = response.getEntityInputStream();
@@ -492,8 +492,8 @@ public class MetsUtils {
             bos.close();
             return bos.toByteArray();
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, ex.getLocalizedMessage());
-            throw new IllegalStateException(ex);
+            LOG.log(Level.SEVERE, pid, ex);
+            throw new MetsExportException("Error while getting stream " + streamName + " from " + pid, false, ex);
         }
     }
 
@@ -504,7 +504,7 @@ public class MetsUtils {
      * @param relExtStream
      * @return
      */
-    private static String getModel(DigitalObject object, MetsInfo metsInfo) {
+    private static String getModel(DigitalObject object, MetsInfo metsInfo) throws MetsExportException {
         List<Element> relStream = null;
         if (metsInfo.fedoraClient != null) {
             relStream = MetsUtils.getDataStreams(metsInfo.fedoraClient, object.getPID(), "RELS-EXT");
@@ -589,7 +589,7 @@ public class MetsUtils {
      * @param path
      * @return
      */
-    public static DigitalObject readFoXML(String path) {
+    public static DigitalObject readFoXML(String path) throws MetsExportException {
         DigitalObject foXMLObject;
         File file = new File(path);
         try {
@@ -599,7 +599,7 @@ public class MetsUtils {
 
             return foXMLObject;
         } catch (JAXBException e) {
-            throw new RuntimeException(e);
+            throw new MetsExportException("Unable to read FoXML document " + path, false, e);
         }
     }
 
@@ -610,19 +610,20 @@ public class MetsUtils {
      * @param path
      * @return
      */
-    public static DigitalObject readFoXML(String uuid, FedoraClient client) {
+    public static DigitalObject readFoXML(String uuid, FedoraClient client) throws MetsExportException {
         DigitalObject foXMLObject = null;
         if (uuid.startsWith("info:fedora/")) {
-            uuid = uuid.substring(uuid.indexOf("/"));
+            uuid = uuid.substring(uuid.indexOf("/") + 1);
         }
+        LOG.log(Level.INFO, "Reading document from Fedora:" + uuid);
         try {
             FedoraResponse response = FedoraClient.getObjectXML(uuid).execute(client);
             JAXBContext jaxbContext = JAXBContext.newInstance(DigitalObject.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             foXMLObject = (DigitalObject) unmarshaller.unmarshal(response.getEntityInputStream());
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Unable to get:" + uuid + "\n" + e.getLocalizedMessage());
-            throw new IllegalStateException(e);
+            LOG.log(Level.SEVERE, "Unable to get:" + uuid + " from Fedora", e);
+            throw new MetsExportException("Unable to get " + uuid + " from Fedora", false, e);
         }
         return foXMLObject;
     }
@@ -634,7 +635,7 @@ public class MetsUtils {
      * @param doc
      * @return
      */
-    public static String documentToString(Document doc) {
+    public static String documentToString(Document doc) throws MetsExportException {
         try {
             StringWriter sw = new StringWriter();
             TransformerFactory tf = TransformerFactory.newInstance();
@@ -647,8 +648,8 @@ public class MetsUtils {
             transformer.transform(new DOMSource(doc), new StreamResult(sw));
             return sw.toString();
         } catch (TransformerException ex) {
-            LOG.log(Level.SEVERE, "Error converting to String " + ex.getLocalizedMessage());
-            throw new RuntimeException("Error converting to String", ex);
+            LOG.log(Level.SEVERE, "Error converting Document to String", ex);
+            throw new MetsExportException("Error converting Document to String", false, ex);
         }
     }
 
@@ -660,7 +661,7 @@ public class MetsUtils {
      * @param xsd
      * @return
      */
-    public static boolean validateAgainstXSD(Document document, InputStream xsd) {
+    public static boolean validateAgainstXSD(Document document, InputStream xsd) throws MetsExportException {
         try {
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             Schema schema = factory.newSchema(new StreamSource(xsd));
@@ -680,25 +681,25 @@ public class MetsUtils {
             documentBuilder.setErrorHandler(new ErrorHandler() {
                 @Override
                 public void warning(SAXParseException exception) throws SAXException {
-                    LOG.log(Level.WARNING, exception.getLocalizedMessage());
+                    LOG.log(Level.WARNING, "Validation error", exception);
                 }
 
                 @Override
                 public void fatalError(SAXParseException exception) throws SAXException {
-                    throw new RuntimeException(exception);
-
+                    LOG.log(Level.SEVERE, "Error while parsing document", exception);
+                    throw new SAXException(exception);
                 }
 
                 @Override
                 public void error(SAXParseException exception) throws SAXException {
-                    throw new RuntimeException(exception);
+                    throw new SAXException(exception);
                 }
             });
             documentBuilder.parse(is);
             return true;
         } catch (Exception ex) {
-            LOG.log(Level.WARNING, ex.getLocalizedMessage());
-            return false;
+            LOG.log(Level.WARNING, "Error while validating document", ex);
+            throw new MetsExportException("Error validating document", true, ex);
         }
     }
 
@@ -710,7 +711,7 @@ public class MetsUtils {
      * @param xsd
      * @return
      */
-    public static boolean validateAgainstXSD(File file, InputStream xsd) {
+    public static boolean validateAgainstXSD(File file, InputStream xsd) throws MetsExportException {
         try {
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             Schema schema = factory.newSchema(new StreamSource(xsd));
@@ -722,25 +723,28 @@ public class MetsUtils {
             documentBuilder.setErrorHandler(new ErrorHandler() {
                 @Override
                 public void warning(SAXParseException exception) throws SAXException {
-                    LOG.log(Level.WARNING, exception.getLocalizedMessage());
+                    LOG.log(Level.WARNING, "Error while validating document", exception);
+                    throw new SAXException(exception);
                 }
 
                 @Override
                 public void fatalError(SAXParseException exception) throws SAXException {
-                    throw new RuntimeException(exception);
+                    LOG.log(Level.WARNING, "Error while validating document", exception);
+                    throw new SAXException(exception);
 
                 }
 
                 @Override
                 public void error(SAXParseException exception) throws SAXException {
-                    throw new RuntimeException(exception);
+                    LOG.log(Level.WARNING, "Error while validating document", exception);
+                    throw new SAXException(exception);
                 }
             });
             documentBuilder.parse(file);
             return true;
         } catch (Exception ex) {
-            LOG.log(Level.WARNING, ex.getLocalizedMessage());
-            return false;
+            LOG.log(Level.WARNING, "Error while validating document", ex);
+            throw new MetsExportException("Error validating document", true, ex);
         }
     }
 
@@ -751,7 +755,7 @@ public class MetsUtils {
      * @param path
      * @param mets
      */
-    private static void saveInfoFile(String path, MetsInfo mets, String md5, String fileMd5Name, long fileSize) {
+    private static void saveInfoFile(String path, MetsInfo mets, String md5, String fileMd5Name, long fileSize) throws MetsExportException {
         File infoFile = new File(path + "/info.xml");
         try {
             GregorianCalendar c = new GregorianCalendar();
@@ -792,12 +796,17 @@ public class MetsUtils {
                 marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl());
                 marshaller.marshal(infoJaxb, infoFile);
             } catch (Exception ex) {
-                LOG.log(Level.SEVERE, ex.getLocalizedMessage());
-                throw new IllegalStateException(ex);
+                LOG.log(Level.SEVERE, "Error while generating info.xml", ex);
+                throw new MetsExportException("Error while generating info.xml", false, ex);
             }
-            MetsUtils.validateAgainstXSD(infoFile, Info.class.getResourceAsStream("info.xsd"));
+            try {
+                MetsUtils.validateAgainstXSD(infoFile, Info.class.getResourceAsStream("info.xsd"));
+            } catch (MetsExportException ex) {
+                LOG.log(Level.WARNING, "Invalid info.xml");
+                mets.metsExportException.addException("Invalid info.xml", true, ex.exceptionList.get(0).getEx());
+            }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new MetsExportException("Error while creating info.xml", false, e);
         }
     }
 
@@ -808,7 +817,7 @@ public class MetsUtils {
      * @param path
      * @param mets
      */
-    public static void saveMets(String path, MetsInfo mets) {
+    public static void saveMets(String path, MetsInfo mets) throws MetsExportException {
         String fileName = "/METS_" + mets.getPackageId() + ".xml";
         FileMD5Info fileMD5Info = new FileMD5Info("." + fileName);
         mets.addFile(fileMD5Info);
@@ -825,18 +834,21 @@ public class MetsUtils {
             try {
                 md = MessageDigest.getInstance("MD5");
             } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
+                throw new MetsExportException("Unable to create MD5 hash", false, e);
             }
             md.reset();
-            if (!MetsUtils.validateAgainstXSD(file, Mets.class.getResourceAsStream("mets.xsd"))) {
+            try {
+                MetsUtils.validateAgainstXSD(file, Mets.class.getResourceAsStream("mets.xsd"));
+            } catch (MetsExportException ex) {
                 LOG.log(Level.WARNING, "Invalid xml METS");
+                mets.metsExportException.addException("Invalid Mets xml", true, ex.exceptionList.get(0).getEx());
             }
 
             InputStream is;
             try {
                 is = new FileInputStream(file);
             } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
+                throw new MetsExportException("Unable to open file" + file.getAbsolutePath(), false, e);
             }
             byte[] bytes = new byte[2048];
             int numBytes;
@@ -845,7 +857,7 @@ public class MetsUtils {
                     md.update(bytes, 0, numBytes);
                 }
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new MetsExportException("Unable to generate MD5 hash", false, e);
             }
             byte[] digest = md.digest();
             String result = new String(Hex.encodeHex(digest));
@@ -857,12 +869,9 @@ public class MetsUtils {
             osw.close();
             is.close();
             saveInfoFile(path, mets, result, fileMd5Name, file.length());
-        } catch (JAXBException e) {
-            throw new RuntimeException(e);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error while saving METS file", e);
+            throw new MetsExportException("Error while saving METS file", false, e);
         }
     }
 
@@ -873,7 +882,7 @@ public class MetsUtils {
      * @param relExtElements
      * @return
      */
-    public static String getObjectId(List<Element> relExtElements) {
+    public static String getObjectId(List<Element> relExtElements) throws MetsExportException {
         String XPATH = "*[local-name()='RDF']/*[local-name()='Description']";
         Node descNode = xPathEvaluateNode(relExtElements, XPATH);
         String ID = descNode.getAttributes().getNamedItem("rdf:about").getNodeValue();
@@ -917,7 +926,7 @@ public class MetsUtils {
      * @param client
      * @return
      */
-    public static DigitalObject readRelatedFoXML(String uuid, FedoraClient client) {
+    public static DigitalObject readRelatedFoXML(String uuid, FedoraClient client) throws MetsExportException {
         DigitalObject object = readFoXML(uuid, client);
         return object;
     }
@@ -930,7 +939,7 @@ public class MetsUtils {
      * @param fileName
      * @return
      */
-    public static DigitalObject readRelatedFoXML(String path, String fileName) {
+    public static DigitalObject readRelatedFoXML(String path, String fileName) throws MetsExportException {
         String fileNameInternal = path + fileName.substring(fileName.lastIndexOf(":") + 1) + ".xml";
         DigitalObject object = readFoXML(fileNameInternal);
         return object;
@@ -984,20 +993,17 @@ public class MetsUtils {
      * @param remoteStorage
      * @return
      */
-    public static String getParent(String uuid, RemoteStorage remoteStorage) {
+    public static String getParent(String uuid, RemoteStorage remoteStorage) throws MetsExportException {
         List<Item> referrers;
         try {
             referrers = remoteStorage.getSearch().findReferrers(uuid);
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, e.getLocalizedMessage());
-            throw new IllegalStateException(e);
-        } catch (FedoraClientException e) {
-            LOG.log(Level.SEVERE, e.getLocalizedMessage());
-            throw new IllegalStateException(e);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error while finiding parent for:" + uuid, e);
+            throw new MetsExportException("Error while finding parent for:" + uuid, false, e);
         }
         if (referrers.size() > 1) {
             LOG.log(Level.SEVERE, "More referrers for pid:" + uuid);
-            throw new IllegalStateException("More referrers for pid:" + uuid);
+            throw new MetsExportException("More referrers for pid:" + uuid, false);
         }
         if (referrers.size() == 0) {
             return null;
@@ -1054,7 +1060,7 @@ public class MetsUtils {
      * @param bytes
      * @return
      */
-    public static Document getDocumentFromBytes(byte[] bytes) {
+    public static Document getDocumentFromBytes(byte[] bytes) throws MetsExportException {
         if (bytes == null) {
             return null;
         }
@@ -1063,15 +1069,16 @@ public class MetsUtils {
         try {
             builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         } catch (ParserConfigurationException e) {
-            throw new RuntimeException(e);
+            LOG.log(Level.SEVERE, "Error while creating DocumentBuilder", e);
+            throw new MetsExportException("Error while creating DocumentBuilder", false, e);
         }
         Document document;
         try {
             document = builder.parse(new ByteArrayInputStream(bytes));
-        } catch (SAXException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error while parsing document", e);
+            LOG.log(Level.INFO, new String(bytes));
+            throw new MetsExportException("Error while parsing document", false, e);
         }
         return document;
     }

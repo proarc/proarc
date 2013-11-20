@@ -29,6 +29,7 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.mets.DivType;
@@ -45,6 +46,7 @@ import edu.harvard.hul.ois.jhove.JhoveBase;
  * 
  */
 public class MetsInfo {
+    public MetsExportException metsExportException = new MetsExportException();
     private XMLGregorianCalendar createDate;
     private XMLGregorianCalendar lastModDate;
     private String type;
@@ -112,7 +114,7 @@ public class MetsInfo {
     /**
      * Saves a mets into a file
      */
-    public void save() {
+    public void save() throws MetsExportException {
         MetsUtils.saveMets(this.outputPath, this);
     }
 
@@ -285,7 +287,7 @@ public class MetsInfo {
      * @param outputPath
      * @param withChildren
      */
-    public void insertIntoMets(String outputPath, boolean withChildren) {
+    public void insertIntoMets(String outputPath, boolean withChildren) throws MetsExportException {
         this.outputPath = outputPath;
         createDirectoryStructure();
         initHeader();

@@ -76,7 +76,7 @@ public class JhoveUtility {
      * 
      * @param metsInfo
      */
-    public static void initJhove(MetsInfo metsInfo) {
+    public static void initJhove(MetsInfo metsInfo) throws MetsExportException {
         Calendar calendar = Calendar.getInstance();
 
         App app = new App(JhoveUtility.class.getSimpleName(), "1.0", new int[] { calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH) }, "jHove", "");
@@ -88,8 +88,9 @@ public class JhoveUtility {
             metsInfo.jhoveBase = jhoveBase;
             metsInfo.jhoveApp = app;
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, ex.getLocalizedMessage());
-            throw new IllegalStateException(ex);
+            LOG.log(Level.SEVERE, "Error while initialising jHove", ex);
+            metsInfo.metsExportException.addException("Error while initialising jHove", false, ex);
+            throw metsInfo.metsExportException;
         }
     }
 
@@ -101,10 +102,10 @@ public class JhoveUtility {
      * @param metsinfo
      * @return
      */
-    public static Node getMixNode(File targetFile, MetsInfo metsinfo) {
+    public static Node getMixNode(File targetFile, MetsInfo metsinfo) throws MetsExportException {
         if (targetFile == null || !targetFile.isFile() || !targetFile.exists()) {
-            LOG.log(Level.WARNING, "target file '" + targetFile + "' cannot be found.");
-            throw new IllegalStateException("target file '" + targetFile + "' cannot be found.");
+            LOG.log(Level.SEVERE, "target file '" + targetFile + "' cannot be found.");
+            throw new MetsExportException("target file '" + targetFile + "' cannot be found.", false, null);
         }
         if (metsinfo.jhoveBase == null) {
             initJhove(metsinfo);
@@ -124,6 +125,7 @@ public class JhoveUtility {
             return getMixRecursive(jHoveDoc);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Error inspecting file '" + targetFile + "' - " + e.getMessage(), e);
+            metsinfo.metsExportException.addException("Error inspecting file '" + targetFile + "' - " + e.getMessage(), true, e);
         }
         return null;
     }
@@ -133,16 +135,21 @@ public class JhoveUtility {
      * 
      * @return the {@link File} where the Jhove configuration was saved.
      * 
-     * @throws IOException
      */
-    private static File createJhoveConfigurationFile() throws IOException {
+
+    private static File createJhoveConfigurationFile() throws MetsExportException {
         InputStream jhoveConfInputStream = JhoveUtility.class.getResourceAsStream("jhove.conf");
-        File jhoveConfFile = File.createTempFile("jhove", "conf");
-        FileOutputStream jhoveConfOutputStream = new FileOutputStream(jhoveConfFile);
-        IOUtils.copy(jhoveConfInputStream, jhoveConfOutputStream);
-        jhoveConfInputStream.close();
-        jhoveConfOutputStream.close();
-        LOG.log(Level.INFO, "JHOVE configuration file " + jhoveConfFile);
-        return jhoveConfFile;
+        try {
+            File jhoveConfFile = File.createTempFile("jhove", "conf");
+            LOG.log(Level.INFO, "JHOVE configuration file " + jhoveConfFile);
+            FileOutputStream jhoveConfOutputStream = new FileOutputStream(jhoveConfFile);
+            IOUtils.copy(jhoveConfInputStream, jhoveConfOutputStream);
+            jhoveConfInputStream.close();
+            jhoveConfOutputStream.close();
+            return jhoveConfFile;
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Unable to create jHove config file", ex);
+            throw new MetsExportException("Unable to create jHove config file", false, ex);
+        }
     }
 }

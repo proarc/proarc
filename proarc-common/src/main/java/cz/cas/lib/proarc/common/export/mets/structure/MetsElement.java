@@ -35,6 +35,7 @@ import org.w3c.dom.NodeList;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.MdSecType;
@@ -78,7 +79,7 @@ public class MetsElement {
      * 
      * @return
      */
-    public Map<String, String> getModsIdentifiers() {
+    public Map<String, String> getModsIdentifiers() throws MetsExportException {
         Map<String, String> result = new HashMap<String, String>();
         String XPATH = "*[local-name()='mods']";
         Node descNode = MetsUtils.xPathEvaluateNode(MetsUtils.removeModsCollection(MODSstream), XPATH);
@@ -98,7 +99,7 @@ public class MetsElement {
      * 
      * @return
      */
-    public String getElementId() {
+    public String getElementId() throws MetsExportException {
         /* monographUnit */
         if (MetsUtils.isMultiUnitMonograph(this)) {
             return "TITLE_" + String.format("%04d", modOrder);
@@ -112,7 +113,7 @@ public class MetsElement {
      * @param parentDiv
      * @return
      */
-    public DivType insertIntoDiv(DivType parentDiv) {
+    public DivType insertIntoDiv(DivType parentDiv) throws MetsExportException {
         DivType elementDivType = new DivType();
         if (Const.VOLUME.equalsIgnoreCase(this.type) && (MetsUtils.isMultiUnitMonograph(this))) {
             elementDivType.setTYPE("MONOGRAPH");
@@ -140,7 +141,7 @@ public class MetsElement {
      * @param withChildren
      * @return
      */
-    protected static MetsElement getElement(DigitalObject object, Object parent, MetsInfo metsInfo, boolean withChildren) {
+    protected static MetsElement getElement(DigitalObject object, Object parent, MetsInfo metsInfo, boolean withChildren) throws MetsExportException {
         MetsElement result = null;
         String type = MetsUtils.getTypeModel(object, metsInfo);
 
@@ -184,10 +185,11 @@ public class MetsElement {
      * @param object
      * @return
      */
-    private MetsElement initParent(DigitalObject object) {
+    private MetsElement initParent(DigitalObject object) throws MetsExportException {
         String parentId;
         if (metsInfo.fedoraClient != null) {
             parentId = MetsUtils.getParent(id, metsInfo.remoteStorage);
+            LOG.info("Parent found from Fedora:" + parentId);
         } else {
             parentId = MetsUtils.getParent(id);
         }
@@ -225,7 +227,7 @@ public class MetsElement {
      * @param withChildren
      * @param metsInfo
      */
-    public MetsElement(DigitalObject object, Object parent, boolean withChildren, MetsInfo metsInfo) {
+    public MetsElement(DigitalObject object, Object parent, boolean withChildren, MetsInfo metsInfo) throws MetsExportException {
         this.metsInfo = metsInfo;
         originalPID = object.getPID();
         metsInfo.pidElements.put(originalPID, this);
@@ -257,7 +259,7 @@ public class MetsElement {
                 metsInfo.setCreateDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(MetsUtils.getProperty(Const.FEDORA_CREATEDATE, object.getObjectProperties().getProperty())));
                 metsInfo.setLastModDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(MetsUtils.getProperty(Const.FEDORA_LASTMODIFIED, object.getObjectProperties().getProperty())));
             } catch (DatatypeConfigurationException e) {
-                throw new RuntimeException(e);
+                throw new MetsExportException("Unable to set dates", false, e);
             }
         }
         if (withChildren) {
@@ -272,7 +274,7 @@ public class MetsElement {
      * @param withChildren
      * @param outputDirectory
      */
-    public void insertIntoMets(Mets mets, boolean withChildren, String outputDirectory) {
+    public void insertIntoMets(Mets mets, boolean withChildren, String outputDirectory) throws MetsExportException {
         if ((parent != null) && (parent.modsMetsElement == null)) {
             parent.insertIntoMets(mets, false, outputDirectory);
         }
@@ -286,13 +288,19 @@ public class MetsElement {
         }
         Document docMods = MetsUtils.getDocumentFromList(MODSstream);
         Document docDC = MetsUtils.getDocumentFromList(DCstream);
-        if (!MetsUtils.validateAgainstXSD(docMods, ModsDefinition.class.getResourceAsStream("mods.xsd"))) {
-            LOG.log(Level.WARNING, "Invalid xml:" + this.getElementId());
+        try {
+            MetsUtils.validateAgainstXSD(docMods, ModsDefinition.class.getResourceAsStream("mods.xsd"));
+        } catch (MetsExportException ex) {
+            LOG.log(Level.WARNING, "Invalid MODS xml:" + this.getElementId() + "/" + this.originalPID);
+            metsInfo.metsExportException.addException(this.originalPID, "Invalid MODS xml for " + this.originalPID, true, ex.exceptionList.get(0).getEx());
             LOG.log(Level.INFO, MetsUtils.documentToString(docMods));
         }
-        if (!MetsUtils.validateAgainstXSD(docDC, OaiDcType.class.getResourceAsStream("dc_oai.xsd"))) {
-            LOG.log(Level.WARNING, "Invalid xml:" + this.getElementId());
+        try {
+            MetsUtils.validateAgainstXSD(docDC, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
+        } catch (MetsExportException ex) {
+            LOG.log(Level.WARNING, "Invalid DC xml:" + this.getElementId() + "/" + this.originalPID);
             LOG.log(Level.INFO, MetsUtils.documentToString(docDC));
+            metsInfo.metsExportException.addException(this.originalPID, "Invalid DC xml for " + this.originalPID, true, ex.exceptionList.get(0).getEx());
         }
     }
 
@@ -300,7 +308,7 @@ public class MetsElement {
      * Generates children of this element
      * 
      */
-    protected void fillChildren() {
+    protected void fillChildren() throws MetsExportException {
         Node node = MetsUtils.xPathEvaluateNode(RELExtstream, "*[local-name()='RDF']/*[local-name()='Description']");
         NodeList hasPageNodes = node.getChildNodes();
         for (int a = 0; a < hasPageNodes.getLength(); a++) {

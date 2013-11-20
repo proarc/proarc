@@ -18,6 +18,8 @@
 package cz.cas.lib.proarc.common.export.mets;
 
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * 
@@ -28,6 +30,7 @@ import java.util.HashMap;
  */
 public class MimeType {
     private static HashMap<String, String> mimeMap = new HashMap<String, String>();
+    private static Logger LOG = Logger.getLogger(MimeType.class.getName());
 
     static {
         mimeMap.put("text/xml", "xml");
@@ -44,10 +47,11 @@ public class MimeType {
      * @param mime
      * @return
      */
-    public static String getExtension(String mime) {
+    public static String getExtension(String mime) throws MetsExportException {
         String result = mimeMap.get(mime);
         if (result == null) {
-            throw new RuntimeException("Unknown mime:" + mime);
+            LOG.log(Level.SEVERE, "Unknown mime:" + mime);
+            throw new MetsExportException("Unknown mime:" + mime);
         }
         return result;
     }
