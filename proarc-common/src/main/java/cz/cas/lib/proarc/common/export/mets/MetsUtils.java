@@ -304,6 +304,8 @@ public class MetsUtils {
                 List<Element> result = new ArrayList<Element>();
                 result.add((Element) nl.item(0));
                 return result;
+            } else {
+                return elements;
             }
         }
         return null;
@@ -479,16 +481,28 @@ public class MetsUtils {
         }
     }
 
+    /**
+     * 
+     * Copies inputStream to outputStream
+     * 
+     * @param is
+     * @param os
+     * @throws IOException
+     */
+    public static void copyStream(InputStream is, OutputStream os) throws IOException {
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = is.read(buffer)) != -1) {
+            os.write(buffer, 0, len);
+        }
+    }
+
     public static byte[] getBinaryDataStreams(FedoraClient fedoraClient, String pid, String streamName) throws MetsExportException {
         try {
             FedoraResponse response = FedoraClient.getDatastreamDissemination(pid, streamName).execute(fedoraClient);
             InputStream is = response.getEntityInputStream();
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = is.read(buffer)) != -1) {
-                bos.write(buffer, 0, len);
-            }
+            copyStream(is, bos);
             bos.close();
             return bos.toByteArray();
         } catch (Exception ex) {
@@ -756,7 +770,7 @@ public class MetsUtils {
      * @param mets
      */
     private static void saveInfoFile(String path, MetsInfo mets, String md5, String fileMd5Name, long fileSize) throws MetsExportException {
-        File infoFile = new File(path + "/info.xml");
+        File infoFile = new File(path + File.separator + "info.xml");
         try {
             GregorianCalendar c = new GregorianCalendar();
             c.setTime(new Date());
@@ -806,6 +820,7 @@ public class MetsUtils {
                 mets.metsExportException.addException("Invalid info.xml", true, ex.exceptionList.get(0).getEx());
             }
         } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error while creating info.xml", e);
             throw new MetsExportException("Error while creating info.xml", false, e);
         }
     }
