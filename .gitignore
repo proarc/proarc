@@ -10,5 +10,6 @@ nb-configuration.xml
 .gwt
 .project
 .settings
+*/bin
 
 /target
