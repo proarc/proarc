@@ -240,7 +240,6 @@ public class MetsInfo {
      */
     protected void initHeader() {
         mets.setLabel1(getLabel());
-        mets.setTYPE(getType());
         MetsHdr metsHdr = new MetsHdr();
         metsHdr.setCREATEDATE(getCreateDate());
         metsHdr.setLASTMODDATE(getLastModDate());

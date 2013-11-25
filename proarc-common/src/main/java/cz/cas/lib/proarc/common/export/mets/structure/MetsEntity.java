@@ -36,18 +36,6 @@ import cz.cas.lib.proarc.mets.StructMapType;
  */
 public class MetsEntity extends MetsInfo {
     /**
-     * Initializes the type of mets document
-     */
-    private void initType(DigitalObject object) throws MetsExportException {
-        rootElement = MetsElement.getElement(object, null, this, true);
-        if (Const.PERIODICAL_TITLE.equals(rootElement.type)) {
-            this.setType(Const.PERIODICAL);
-        } else {
-            this.setType(Const.MONOGRAPH);
-        }
-    }
-
-    /**
      * Constructor
      * 
      * @param object
@@ -56,7 +44,7 @@ public class MetsEntity extends MetsInfo {
      */
     public MetsEntity(DigitalObject object, String path, String packageId) throws MetsExportException {
         super(object, path, packageId);
-        initType(object);
+        MetsElement.getElement(object, null, this, true);
     }
 
     /**
@@ -67,7 +55,7 @@ public class MetsEntity extends MetsInfo {
      */
     public MetsEntity(DigitalObject object, FedoraClient fedoraClient, String packageId) throws MetsExportException {
         super(fedoraClient, packageId);
-        initType(object);
+        MetsElement.getElement(object, null, this, true);
     }
 
     /**
@@ -108,6 +96,17 @@ public class MetsEntity extends MetsInfo {
         }
     }
 
+    /**
+     * Initializes the type of mets document
+     */
+    private void initType() throws MetsExportException {
+        if (Const.PERIODICAL_TITLE.equals(rootElement.type)) {
+            this.setType(Const.PERIODICAL);
+        } else {
+            this.setType(Const.MONOGRAPH);
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -118,6 +117,8 @@ public class MetsEntity extends MetsInfo {
     @Override
     public void insertIntoMets(String outputPath, boolean withChildren) throws MetsExportException {
         super.insertIntoMets(outputPath, withChildren);
+        initType();
+        mets.setTYPE(getType());
         rootElement.insertIntoMets(mets, withChildren, outputPath);
         insertLogicalStructure();
     }
