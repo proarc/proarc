@@ -191,7 +191,7 @@ public class MetsElement {
             parentId = MetsUtils.getParent(id, metsInfo.remoteStorage);
             LOG.info("Parent found from Fedora:" + parentId);
         } else {
-            parentId = MetsUtils.getParent(id);
+            parentId = MetsUtils.getParent(id, metsInfo.fileSystemParents);
             LOG.info("Parent found from Local:" + parentId);
         }
 

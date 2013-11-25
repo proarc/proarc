@@ -21,6 +21,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -66,6 +67,7 @@ public class MetsInfo {
     public HashMap<String, MetsElement> pidElements = new HashMap<String, MetsElement>();
     private final HashMap<String, Integer> modOrderMap = new HashMap<String, Integer>();
     public FedoraClient fedoraClient;
+    public Map<String, String> fileSystemParents = null;
 
     /**
      * Registers file
@@ -215,9 +217,10 @@ public class MetsInfo {
      * @param path
      * @param packageId
      */
-    public MetsInfo(DigitalObject object, String path, String packageId) {
+    public MetsInfo(DigitalObject object, String path, String packageId, Map<String, String> fileSystemParents) {
         this.packageId = packageId;
         this.path = path;
+        this.fileSystemParents = fileSystemParents;
         fileGrpMap = MetsUtils.initFileGroups(mets);
     }
 

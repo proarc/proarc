@@ -300,7 +300,7 @@ public class Page extends MetsElement {
 
     /**
      * 
-     * saves tech metadatao
+     * saves tech metadata
      * 
      * @param amdSecMets
      */

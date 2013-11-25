@@ -18,6 +18,7 @@
 package cz.cas.lib.proarc.common.export.mets.structure;
 
 import java.util.List;
+import java.util.Map;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
@@ -42,8 +43,8 @@ public class MetsEntity extends MetsInfo {
      * @param path
      * @param packageId
      */
-    public MetsEntity(DigitalObject object, String path, String packageId) throws MetsExportException {
-        super(object, path, packageId);
+    public MetsEntity(DigitalObject object, String path, String packageId, Map<String, String> fileSystemParents) throws MetsExportException {
+        super(object, path, packageId, fileSystemParents);
         MetsElement.getElement(object, null, this, true);
     }
 
