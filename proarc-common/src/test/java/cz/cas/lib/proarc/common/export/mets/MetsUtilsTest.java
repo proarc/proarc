@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2013 Robert Simonovsky
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package cz.cas.lib.proarc.common.export.mets;
 
 import static org.junit.Assert.assertEquals;
@@ -14,13 +31,15 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
+import net.lingala.zip4j.core.ZipFile;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsEntity;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsInfo;
 import cz.cas.lib.proarc.info.Info;
@@ -35,16 +54,16 @@ public class MetsUtilsTest {
      * 
      */
     private void initTestElements() {
-        List<String> monografieFiles = new ArrayList<String>();
-        monografieFiles.add("44589055-9fad-4a9f-b6a8-75be399f332d.xml");
-        monografieFiles.add("2ff2dd0c-d438-4d95-940f-690ee0f44a4a.xml");
-        monografieFiles.add("1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
-        MetsExportTestElement monografieTestElement = new MetsExportTestElement(monografieFiles, "monograph", 6, 647, 5, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
+        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph.zip", "monograph", 6, 647, 5, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
         this.testElements.add(monografieTestElement);
+        MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum.zip", "periodikum", 42, 14564, 5, "periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
+        this.testElements.add(periodikumTestElement);
+        MetsExportTestElement periodikumPageTestElement = new MetsExportTestElement("periodikum.zip", "periodikumPage", 7, 1581, 5, "periodical", "b46aff0e-26af-11e3-88e3-001b63bd97ba.xml");
+        this.testElements.add(periodikumPageTestElement);
     }
 
     @Rule
-    public CustomTemporaryFolder tmp = new CustomTemporaryFolder();
+    public TemporaryFolder tmp = new TemporaryFolder();
 
     @Before
     public void setUp() {
@@ -75,19 +94,17 @@ public class MetsUtilsTest {
         } catch (IOException ex) {
             throw new RuntimeException("Unable to create folder: " + testElement.getDirectory());
         }
-        for (String fileName : testElement.getFileList()) {
-            try {
-                InputStream is = this.getClass().getResourceAsStream(testElement.getDirectory() + "/" + fileName);
-                File fileCopy = new File(destination.getAbsolutePath() + File.separator + fileName);
-                LOG.log(Level.INFO, "Copying file to:" + fileCopy.getAbsolutePath());
-                FileOutputStream fos = new FileOutputStream(fileCopy);
-                MetsUtils.copyStream(is, fos);
-                fos.close();
-            } catch (IOException ex) {
-                throw new RuntimeException("Unable to copy file:" + fileName);
-            }
+        InputStream is = this.getClass().getResourceAsStream(testElement.getZipFile());
+        String zipFileLocation = tmp.getRoot().getAbsolutePath() + File.separator + testElement.getZipFile();
+        File zipFile = new File(zipFileLocation);
+        try {
+            FileOutputStream fos = new FileOutputStream(zipFile);
+            MetsUtils.copyStream(is, fos);
+            ZipFile zip = new ZipFile(zipFile);
+            zip.extractAll(destination.getAbsolutePath());
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         }
-
     }
 
     /**
@@ -129,14 +146,14 @@ public class MetsUtilsTest {
             JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             Info info = (Info) unmarshaller.unmarshal(infoFile);
-            assertEquals(info.getItemlist().getItemtotal().intValue(), testElement.getTotalItems());
-            assertEquals(info.getSize(), testElement.getSize());
+            assertEquals(testElement.getTotalItems(), info.getItemlist().getItemtotal().intValue());
+            assertEquals(testElement.getSize(), info.getSize());
             File metsFile = new File(resultDir.getAbsolutePath() + File.separator + "METS_SAMPLE.xml");
             JAXBContext jaxbContextMets = JAXBContext.newInstance(Mets.class);
             Unmarshaller unmarshallerMets = jaxbContextMets.createUnmarshaller();
             Mets mets = (Mets) unmarshallerMets.unmarshal(metsFile);
-            assertEquals(mets.getFileSec().getFileGrp().size(), testElement.getNumberOfFiles());
-            assertEquals(mets.getTYPE(), testElement.getType());
+            assertEquals(testElement.getNumberOfFiles(), mets.getFileSec().getFileGrp().size());
+            assertEquals(testElement.getType(), mets.getTYPE());
         }
     }
 }
