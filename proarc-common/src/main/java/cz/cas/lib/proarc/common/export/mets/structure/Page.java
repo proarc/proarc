@@ -82,6 +82,7 @@ public class Page extends MetsElement {
     private static HashMap<String, String> streamMappingPrefix = new HashMap<String, String>();
     private static Logger LOG = Logger.getLogger(Page.class.getName());
 
+    private final String partType;
     private String outputDirectory;
     private final int seq;
     private FileType ALTOfile;
@@ -136,7 +137,7 @@ public class Page extends MetsElement {
             partNode = MetsUtils.xPathEvaluateNode(MODSstream, "*[local-name()='mods']/*[local-name()='part']");
         }
         this.seq = metsInfo.getSeq();
-        this.type = partNode.getAttributes().getNamedItem("type").getNodeValue();
+        this.partType = partNode.getAttributes().getNamedItem("type").getNodeValue();
         NodeList nodeList = partNode.getChildNodes();
         for (int a = 0; a < nodeList.getLength(); a++) {
             if (nodeList.item(a).getNodeName().equalsIgnoreCase("mods:detail")) {
@@ -164,7 +165,7 @@ public class Page extends MetsElement {
         divType.setID(getPageId());
         divType.setORDER(new BigInteger(getPageIndex()));
         divType.setORDERLABEL(getPageNumber());
-        divType.setTYPE(type);
+        divType.setTYPE(partType);
         for (FileType fileType : fileTypes) {
             Fptr fptr = new Fptr();
             fptr.setFILEID(fileType);
@@ -424,6 +425,7 @@ public class Page extends MetsElement {
             fileType.setCHECKSUM(fileMD5Info.getMd5());
             metsInfo.addFile(fileMD5Info);
         } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Unable to process file " + fullOutputFileName, e);
             throw new MetsExportException("Unable to process file " + fullOutputFileName, false, e);
         }
 
