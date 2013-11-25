@@ -192,6 +192,7 @@ public class MetsElement {
             LOG.info("Parent found from Fedora:" + parentId);
         } else {
             parentId = MetsUtils.getParent(id);
+            LOG.info("Parent found from Local:" + parentId);
         }
 
         if (parentId == null) {

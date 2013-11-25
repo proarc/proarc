@@ -204,6 +204,7 @@ public class MetsUtils {
     public static String getModName(String type) throws MetsExportException {
         String result = modMap.get(type);
         if (result == null) {
+            LOG.log(Level.SEVERE, "Unknown mod type:" + type);
             throw new MetsExportException("Unknown mod type:" + type);
         }
         return result;
@@ -1047,7 +1048,8 @@ public class MetsUtils {
         parents.put("uuid:90ca85a1-beb8-4b5d-a320-b4b7ac5c8df5", "uuid:3733b6e3-61ab-42fc-a437-964d143acc45");
         parents.put("uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a", "uuid:44589055-9fad-4a9f-b6a8-75be399f332d");
         parents.put("uuid:44589055-9fad-4a9f-b6a8-75be399f332d", "uuid:1ccbf6c5-b22c-4d89-b42e-8cd14101a737");
-        return parents.get(uuid);
+        String result = parents.get(uuid);
+        return result;
     }
 
     /**
