@@ -278,6 +278,10 @@ public final class Kramerius4Export {
         Element dcElm = xmlContent.getAny().get(0);
         // remove xsi:schemaLocation attribute to make FOXML valid for Fedora ingest
         dcElm.removeAttributeNS(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "schemaLocation");
+        // optimize XML namespace declaration
+        dcElm.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI,
+                XMLConstants.XMLNS_ATTRIBUTE + ":" + DcConstants.PREFIX_NS_PURL,
+                DcConstants.NS_PURL);
         // add policy
         String policy = options.getPolicy();
         if (policy != null) {
