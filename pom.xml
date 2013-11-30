@@ -259,5 +259,13 @@
             <id>proarc.production</id>
         </profile>
 
+        <profile>
+            <!--fast check of project; no GWT compilation and tests-->
+            <id>proarc.nogwt</id>
+            <properties>
+                <gwt.compiler.skip>true</gwt.compiler.skip>
+            </properties>
+        </profile>
+
     </profiles>
 </project>
