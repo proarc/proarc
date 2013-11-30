@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object.model;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -30,24 +31,28 @@ public class MetaModel {
     private Boolean root;
     private Boolean leaf;
     private String displayName;
-    private String modsCustomEditor;
+    private String metadataFormat;
+    private String editorId;
     private EnumSet<DatastreamEditorType> dataStreamEditors;
 
     public MetaModel() {
     }
 
-    public MetaModel(String pid, Boolean root, Boolean leaf, String displayName) {
-        this(pid, root, leaf, displayName, null, null);
+    public MetaModel(String pid, Boolean root, Boolean leaf, String displayName,
+            String modsCustomEditor, EnumSet<DatastreamEditorType> dataStreamEditors) {
+
+        this(pid, root, leaf, displayName, ModsConstants.NS, modsCustomEditor, dataStreamEditors);
     }
 
     public MetaModel(String pid, Boolean root, Boolean leaf, String displayName,
-            String modsCustomEditor, EnumSet<DatastreamEditorType> dataStreamEditors) {
+            String metadataFormat, String editorId, EnumSet<DatastreamEditorType> dataStreamEditors) {
 
         this.pid = pid;
         this.root = root;
         this.leaf = leaf;
         this.displayName = displayName;
-        this.modsCustomEditor = modsCustomEditor;
+        this.metadataFormat = metadataFormat;
+        this.editorId = editorId;
         this.dataStreamEditors = dataStreamEditors;
     }
 
@@ -67,8 +72,12 @@ public class MetaModel {
         return root;
     }
 
+    public String getMetadataFormat() {
+        return metadataFormat;
+    }
+
     public String getModsCustomEditor() {
-        return modsCustomEditor;
+        return editorId;
     }
 
     public Set<DatastreamEditorType> getDataStreamEditors() {

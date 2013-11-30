@@ -23,6 +23,9 @@ package cz.cas.lib.proarc.common.mods.custom;
  */
 public interface ModsConstants {
 
+    /** Namespace {@code "http://www.loc.gov/mods/v3"}. */
+    public static final String NS = "http://www.loc.gov/mods/v3";
+
     // identifier
     public static final String FIELD_IDENTIFIER_VALUE = "value";
     public static final String FIELD_IDENTIFIER_TYPE = "type";

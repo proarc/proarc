@@ -86,6 +86,7 @@ public final class DigitalObjectResourceApi {
     public static final String METAMODEL_LEAF_PARAM = "leaf";
     public static final String METAMODEL_DISPLAYNAME_PARAM = "displayName";
     public static final String METAMODEL_MODSCUSTOMEDITORID_PARAM = "editorId";
+    public static final String METAMODEL_METADATAFORMAT_PARAM = "metadataFormat";
     /**
      * @see DatastreamEditorType
      */

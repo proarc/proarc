@@ -124,7 +124,7 @@ public class RemoteStorageTest {
         assertTrue(thumb.exists());
         BinaryEditor.dissemination(local, BinaryEditor.THUMB_ID).write(thumb, 0, null);
         local.flush();
-        System.out.println(FoxmlUtils.toXml(local.getDigitalObject(), true));
+//        System.out.println(FoxmlUtils.toXml(local.getDigitalObject(), true));
 
         String label = "testing";
         local.setLabel(label);
@@ -152,7 +152,8 @@ public class RemoteStorageTest {
         String dsId = "testId";
         LocalObject local = new LocalStorage().create();
         local.setLabel(test.getMethodName());
-        XmlStreamEditor leditor = local.getEditor(FoxmlUtils.inlineProfile(dsId, "testns", "label"));
+        String format = "testns";
+        XmlStreamEditor leditor = local.getEditor(FoxmlUtils.inlineProfile(dsId, format, "label"));
         EditorResult editorResult = leditor.createResult();
         TestXml content = new TestXml("test content");
         JAXB.marshal(content, editorResult);
@@ -169,6 +170,7 @@ public class RemoteStorageTest {
         assertEquals(content, resultContent);
         long lastModified = editor.getLastModified();
         assertTrue(String.valueOf(lastModified), lastModified != 0 && lastModified < System.currentTimeMillis());
+        assertEquals(format, editor.getProfile().getDsFormatURI());
     }
 
     @Test(expected = DigitalObjectNotFoundException.class)
@@ -224,6 +226,7 @@ public class RemoteStorageTest {
         assertTrue(lastModified < editor.getLastModified());
         String content = StringEditor.read(src);
         assertEquals("plain text", content);
+        assertNull(editor.getProfile().getDsFormatURI());
 
         // test new editor
         editor = new RemoteXmlStreamEditor(remote,
@@ -235,6 +238,7 @@ public class RemoteStorageTest {
         assertTrue(lastModified < editor.getLastModified());
         content = StringEditor.read(src);
         assertEquals("plain text", content);
+        assertNull(editor.getProfile().getDsFormatURI());
 }
 
     @Test
@@ -242,7 +246,8 @@ public class RemoteStorageTest {
         String dsId = "testId";
         LocalObject local = new LocalStorage().create();
         local.setLabel(test.getMethodName());
-        XmlStreamEditor leditor = local.getEditor(FoxmlUtils.inlineProfile(dsId, "testns", "label"));
+        String format = "testns";
+        XmlStreamEditor leditor = local.getEditor(FoxmlUtils.inlineProfile(dsId, format, "label"));
         EditorResult editorResult = leditor.createResult();
         TestXml content = new TestXml("test content");
         JAXB.marshal(content, editorResult);
@@ -263,6 +268,7 @@ public class RemoteStorageTest {
         editorResult = editor.createResult();
         JAXB.marshal(resultContent, editorResult);
         long lastModified = editor.getLastModified();
+        assertEquals(format, editor.getProfile().getDsFormatURI());
         editor.write(editorResult, lastModified, null);
         remote.flush();
 
@@ -271,6 +277,7 @@ public class RemoteStorageTest {
         long expectLastModified = editor.getLastModified();
         resultContent = JAXB.unmarshal(editor.read(), TestXml.class);
         assertEquals(new TestXml(expectedContent), resultContent);
+        assertEquals(format, editor.getProfile().getDsFormatURI());
 
         // test new editor
         remote = fedora.find(local.getPid());
@@ -281,6 +288,7 @@ public class RemoteStorageTest {
         assertEquals(new TestXml(expectedContent), resultContent);
         long resultLastModified = editor.getLastModified();
         assertEquals(expectLastModified, resultLastModified);
+        assertEquals(format, editor.getProfile().getDsFormatURI());
     }
 
     @Test(expected = DigitalObjectConcurrentModificationException.class)

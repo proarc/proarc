@@ -50,6 +50,10 @@ public abstract class AnnotatedMetaModel extends MetaModel {
     @Override
     public abstract Boolean isRoot();
 
+    @XmlElement(name = DigitalObjectResourceApi.METAMODEL_METADATAFORMAT_PARAM)
+    @Override
+    public abstract String getMetadataFormat();
+
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_MODSCUSTOMEDITORID_PARAM)
     @Override
     public abstract String getModsCustomEditor();
