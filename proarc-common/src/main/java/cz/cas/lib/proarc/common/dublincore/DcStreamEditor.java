@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
@@ -40,7 +41,7 @@ import javax.xml.transform.TransformerException;
 public final class DcStreamEditor {
 
     public static final String DATASTREAM_ID = "DC";
-    public static final String DATASTREAM_FORMAT_URI = DcUtils.OAI_DC_NAMESPACE;
+    public static final String DATASTREAM_FORMAT_URI = DcConstants.NS_OAIDC;
     public static final String DATASTREAM_LABEL = "Dublin Core Record for this object";
 
     private final XmlStreamEditor editor;

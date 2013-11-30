@@ -16,22 +16,20 @@
  */
 package cz.cas.lib.proarc.common.dublincore;
 
+import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.oaidublincore.ObjectFactory;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
+import java.util.List;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlNs;
-import javax.xml.bind.annotation.XmlSchema;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
@@ -46,28 +44,6 @@ import javax.xml.transform.stream.StreamSource;
  * @author Jan Pokorsky
  */
 public final class DcUtils {
-
-    public static final String DC_NAMESPACE;
-    public static final String DC_PREFIX;
-    public static final String OAI_DC_NAMESPACE;
-    static {
-        XmlSchema schema = ObjectFactory.class.getPackage().getAnnotation(XmlSchema.class);
-        OAI_DC_NAMESPACE = schema.namespace();
-        assert OAI_DC_NAMESPACE != null;
-        XmlType elmType = ElementType.class.getAnnotation(XmlType.class);
-        DC_NAMESPACE = elmType.namespace();
-        XmlNs[] xmlns = schema.xmlns();
-        DC_PREFIX = findPrefix(DC_NAMESPACE, xmlns);
-    }
-
-    private static String findPrefix(String ns, XmlNs[] xmlns) {
-        for (XmlNs xns : xmlns) {
-            if (ns.equals(xns.namespaceURI())) {
-                return xns.prefix();
-            }
-        }
-        throw new IllegalStateException(ns);
-    }
 
     private static JAXBContext defaultJaxbContext;
     private static ThreadLocal<Marshaller> defaultMarshaller = new ThreadLocal<Marshaller>();
@@ -173,16 +149,8 @@ public final class DcUtils {
      * @return label
      */
     public static String getLabel(OaiDcType dc) {
-        JAXBElement<ElementType> dummyTitle = new ObjectFactory().createTitle(null);
-        QName qnTitle = dummyTitle.getName();
-        for (JAXBElement<ElementType> elm : dc.getTitleOrCreatorOrSubject()) {
-            if (qnTitle.equals(elm.getName()) && elm.getValue() != null) {
-                ElementType elmTitle = elm.getValue();
-                String title = elmTitle.getValue();
-                return title;
-            }
-        }
-        return "?";
+        List<ElementType> titles = dc.getTitles();
+        return titles.isEmpty() ? "?" : titles.get(0).getValue();
     }
 
     private static Templates createMods2dcTemplate() {

@@ -211,6 +211,7 @@
                     <i18nMessagesBundle>cz.cas.lib.proarc.webapp.client.ClientMessages</i18nMessagesBundle>
                     <enableAssertions>true</enableAssertions>
                     <compileSourcesArtifacts>
+                        <artifact>cz.cas.lib.proarc:proarc-oaidublincore</artifact>
                         <artifact>cz.cas.lib.proarc:proarc-common</artifact>
                         <artifact>cz.mzk:EditMods</artifact>
                     </compileSourcesArtifacts>

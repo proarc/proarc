@@ -14,12 +14,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**
+ * OAI DC Schema.
+ *
+ * <p>Requires JDK 1.6.0_24 or later or com.sun.xml.bind:jaxb-impl:2.2.2 dependency.
+ */
 @XmlSchema(
-        namespace = "http://www.openarchives.org/OAI/2.0/oai_dc/",
+        namespace = DcConstants.NS_OAIDC,
         elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
         xmlns = {
-            @XmlNs(namespaceURI = "http://www.openarchives.org/OAI/2.0/oai_dc/", prefix = "oai_dc"),
-            @XmlNs(namespaceURI = "http://purl.org/dc/elements/1.1/", prefix = "dc")
+            @XmlNs(namespaceURI = DcConstants.NS_OAIDC, prefix = DcConstants.PREFIX_NS_OAIDC),
+            @XmlNs(namespaceURI = DcConstants.NS_PURL, prefix = DcConstants.PREFIX_NS_PURL)
         })
 package cz.cas.lib.proarc.oaidublincore;
 

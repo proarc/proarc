@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<module>
+
+    <!-- Export the paths with translatable GWT code -->
+
+    <source path=".">
+        <include name="DcConstants.java" />
+    </source>
+
+</module>

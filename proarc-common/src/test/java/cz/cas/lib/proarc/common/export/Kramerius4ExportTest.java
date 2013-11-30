@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.Relations;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import java.io.File;
 import java.util.HashMap;
 import org.custommonkey.xmlunit.SimpleNamespaceContext;
@@ -90,7 +91,7 @@ public class Kramerius4ExportTest {
 
         // check datastreams with xpath
         HashMap<String, String> namespaces = new HashMap<String, String>();
-        namespaces.put("dc", DcUtils.DC_NAMESPACE);
+        namespaces.put("dc", DcConstants.NS_PURL);
         namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
         namespaces.put("kramerius", Kramerius4Export.KRAMERIUS_RELATION_NS);
         namespaces.put("mods", ModsStreamEditor.DATASTREAM_FORMAT_URI);

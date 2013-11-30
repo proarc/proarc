@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+    <dc:contributor xml:lang="en">Contributor</dc:contributor>
+    <dc:coverage xml:lang="en">Coverage</dc:coverage>
+    <dc:creator xml:lang="en">Creator</dc:creator>
+    <dc:date xml:lang="en">Date</dc:date>
+    <dc:description xml:lang="en">Description</dc:description>
+    <dc:format xml:lang="en">Format</dc:format>
+    <dc:identifier xml:lang="en">Identifier</dc:identifier>
+    <dc:language xml:lang="en">Language</dc:language>
+    <dc:publisher xml:lang="en">Publisher</dc:publisher>
+    <dc:relation xml:lang="en">Relation</dc:relation>
+    <dc:rights xml:lang="en">Right</dc:rights>
+    <dc:source xml:lang="en">Source</dc:source>
+    <dc:subject xml:lang="en">Subject</dc:subject>
+    <dc:title xml:lang="en">Title</dc:title>
+    <dc:type xml:lang="en">Type</dc:type>
+</oai_dc:dc>
