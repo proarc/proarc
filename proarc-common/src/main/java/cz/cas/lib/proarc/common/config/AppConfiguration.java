@@ -16,8 +16,9 @@
  */
 package cz.cas.lib.proarc.common.config;
 
-import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
+import cz.cas.lib.proarc.common.imports.ImportProfile;
+import cz.cas.lib.proarc.common.object.DerDesaPlugin;
 import cz.cas.lib.proarc.common.object.NdkPlugin;
 import java.io.BufferedReader;
 import java.io.File;
@@ -118,7 +119,7 @@ public final class AppConfiguration {
     public String[] getPlugins() {
         String[] plugins = config.getStringArray("digital_object.plugins");
         if (plugins.length == 0) {
-            plugins = new String[] { NdkPlugin.class.getName() };
+            plugins = new String[] { NdkPlugin.class.getName(), DerDesaPlugin.class.getName() };
         }
         return plugins;
     }
