@@ -38,6 +38,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -87,10 +88,6 @@ import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsInfo;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
-import cz.cas.lib.proarc.mets.info.Info;
-import cz.cas.lib.proarc.mets.info.Info.Checksum;
-import cz.cas.lib.proarc.mets.info.Info.Itemlist;
-import cz.cas.lib.proarc.mets.info.Info.Titleid;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.MdSecType.MdWrap;
@@ -99,6 +96,10 @@ import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsType.FileSec;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.StructMapType;
+import cz.cas.lib.proarc.mets.info.Info;
+import cz.cas.lib.proarc.mets.info.Info.Checksum;
+import cz.cas.lib.proarc.mets.info.Info.Itemlist;
+import cz.cas.lib.proarc.mets.info.Info.Titleid;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
@@ -113,6 +114,25 @@ public class MetsUtils {
     private static Logger LOG = Logger.getLogger(MetsUtils.class.getName());
     private static HashMap<String, String> typeMap = new HashMap<String, String>();
     private static HashMap<String, String> modMap = new HashMap<String, String>();
+    private static Properties mimeToExtension = new Properties();
+
+    /**
+     * Returns the properties for mapping Mime type to file extension
+     * 
+     * @return
+     * @throws MetsExportException
+     */
+    public static Properties getMimeToExtension() throws MetsExportException {
+        if (mimeToExtension.isEmpty()) {
+            try {
+                mimeToExtension.loadFromXML(MetsUtils.class.getResourceAsStream("mimeToExt.xml"));
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "Unable to read mime type mapping", e);
+                throw new MetsExportException("Unable to read mime type mapping", false, e);
+            }
+        }
+        return mimeToExtension;
+    }
 
     /**
      * JAXB marshaler compatibility class
@@ -419,6 +439,7 @@ public class MetsUtils {
         try {
             return xpathObject.compile(xPath).evaluate(document);
         } catch (XPathExpressionException e) {
+            LOG.log(Level.SEVERE, "Unable to find:" + xPath + " in " + MetsUtils.documentToString(MetsUtils.getDocumentFromList(elements)), e);
             throw new MetsExportException("Error while evaluating xPath:" + xPath, false, e);
         }
     }
@@ -460,7 +481,7 @@ public class MetsUtils {
      * @param relExtStream
      * @return
      */
-    private static String getModel(List<Element> relExtStream) throws MetsExportException {
+    public static String getModel(List<Element> relExtStream) throws MetsExportException {
         Node hasPageNodes = MetsUtils.xPathEvaluateNode(relExtStream, "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasModel']");
         String model = hasPageNodes.getAttributes().getNamedItem("rdf:resource").getNodeValue();
         return model;
