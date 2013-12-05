@@ -831,11 +831,11 @@ public class DigitalObjectResource {
             LocalObject lobject = (LocalObject) fobject;
             BinaryEditor loader = BinaryEditor.dissemination(lobject, dsId);
             if (loader == null) {
-                RestException.plainNotFound(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM, dsId);
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM, dsId);
             }
             File entity = loader.read();
             if (entity == null) {
-                RestException.plainNotFound("content not found");
+                throw RestException.plainNotFound("content not found");
             }
 
             Date lastModification = new Date(loader.getLastModified());
@@ -929,7 +929,7 @@ public class DigitalObjectResource {
             ) throws IOException, DigitalObjectException {
 
         if (timestamp == null) {
-            RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
         }
         FedoraObject fobject = findFedoraObject(pid, batchId, false);
         StringEditor ocrEditor = StringEditor.ocr(fobject);
@@ -974,7 +974,7 @@ public class DigitalObjectResource {
             ) throws IOException, DigitalObjectException {
 
         if (timestamp == null) {
-            RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
         }
         FedoraObject fobject = findFedoraObject(pid, batchId, false);
         StringEditor editor = StringEditor.privateNote(fobject);
