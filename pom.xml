@@ -30,6 +30,7 @@
         <module>proarc-mets</module>
         <module>proarc-mods</module>
         <module>proarc-webapp</module>
+        <module>proarc-sip2desa</module>
     </modules>
 
     <properties>
