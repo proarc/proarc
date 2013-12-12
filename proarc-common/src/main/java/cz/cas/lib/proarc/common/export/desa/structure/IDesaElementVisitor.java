@@ -32,5 +32,5 @@ public interface IDesaElementVisitor {
      * @param desaElement
      * @throws MetsExportException
      */
-    public void insertIntoMets(IDesaElement desaElement) throws MetsExportException;
+    public void insertIntoMets(IDesaElement desaElement, boolean exportToDesa) throws MetsExportException;
 }

@@ -41,6 +41,7 @@ import org.w3c.dom.Element;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 
 import cz.cas.lib.proarc.common.export.desa.Const;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.SIP2DESATransporter;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
@@ -335,7 +336,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
      * (cz.cas.lib.proarc.common.export.desa.structure.IDesaElement)
      */
     @Override
-    public void insertIntoMets(IDesaElement desaElement) throws MetsExportException {
+    public void insertIntoMets(IDesaElement desaElement, boolean exportToDesa) throws MetsExportException {
         LOG.log(Level.INFO, "Inserting into Mets:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
         if (Const.DOCUMENT.equalsIgnoreCase(desaElement.getElementType())) {
             insertDerDocument(desaElement, null);
@@ -345,6 +346,15 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             throw new MetsExportException(desaElement.getOriginalPid(), "Unknown type:" + desaElement.getElementType() + " model:" + desaElement.getModel(), false, null);
         if (desaElement.getDesaContext().getMetsExportException().exceptionList.size() > 0) {
             throw desaElement.getDesaContext().getMetsExportException();
+        }
+        if (exportToDesa) {
+            LOG.log(Level.INFO, "Exporting to desa");
+            try {
+                SIP2DESATransporter sipTransporter = new SIP2DESATransporter();
+                sipTransporter.transport(desaElement.getDesaContext().getOutputPath(), desaElement.getDesaContext().getDesaResultPath(), desaElement.getDesaContext().getDesaResultPath());
+            } catch (Exception ex) {
+                throw new MetsExportException("Unable to transport mets to desa", false, ex);
+            }
         }
     }
 }

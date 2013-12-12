@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>proarc-sip2desa</artifactId>
+    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>ProArc Desa export library</name>

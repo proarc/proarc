@@ -98,6 +98,14 @@ public interface IDesaElement {
     public void accept(IDesaElementVisitor desaVisitor) throws MetsExportException;
 
     /**
+     * Accept method for generator of mets
+     * 
+     * @param desaVisitor
+     * @throws MetsExportException
+     */
+    public void accept(IDesaElementVisitor desaVisitor, boolean exportToDesa) throws MetsExportException;
+
+    /**
      * Returns the type an element
      * 
      * @return

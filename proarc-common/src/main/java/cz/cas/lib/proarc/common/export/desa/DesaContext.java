@@ -40,8 +40,27 @@ public class DesaContext {
     private Map<String, String> fsParentMap;
     private String path;
     private String outputPath;
+    private String desaResultPath;
     private String packageID;
     private final MetsExportException metsExportException = new MetsExportException();
+
+    /**
+     * Returns the path with desa export result
+     * 
+     * @return
+     */
+    public String getDesaResultPath() {
+        return desaResultPath;
+    }
+
+    /**
+     * Sets the path where the desa export result is stored
+     * 
+     * @param desaResultPath
+     */
+    public void setDesaResultPath(String desaResultPath) {
+        this.desaResultPath = desaResultPath;
+    }
 
     /**
      * Returns the export exception type

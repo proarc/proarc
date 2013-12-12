@@ -313,6 +313,18 @@ public class DesaElement implements IDesaElement {
      */
     @Override
     public void accept(IDesaElementVisitor desaVisitor) throws MetsExportException {
-        desaVisitor.insertIntoMets(this);
+        desaVisitor.insertIntoMets(this, false);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#accept(cz
+     * .cas.lib.proarc.common.export.desa.structure.IDesaElementVisitor)
+     */
+    @Override
+    public void accept(IDesaElementVisitor desaVisitor, boolean exportToDesa) throws MetsExportException {
+        desaVisitor.insertIntoMets(this, exportToDesa);
     }
 }
