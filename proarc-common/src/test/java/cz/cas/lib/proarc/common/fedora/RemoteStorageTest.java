@@ -213,14 +213,14 @@ public class RemoteStorageTest {
         assertNull(src);
         long lastModified = editor.getLastModified();
         assertEquals(-1, lastModified);
-        assertEquals(MediaType.TEXT_PLAIN, editor.getMimetype());
+        assertEquals(MediaType.TEXT_PLAIN, editor.getProfile().getDsMIME());
         editor.write("plain text".getBytes("UTF-8"), lastModified, null);
         remote.flush();
         
         // first test current editor
         src = editor.readStream();
         assertNotNull(src);
-        assertEquals(MediaType.TEXT_PLAIN, editor.getMimetype());
+        assertEquals(MediaType.TEXT_PLAIN, editor.getProfile().getDsMIME());
         assertTrue(lastModified < editor.getLastModified());
         String content = StringEditor.read(src);
         assertEquals("plain text", content);
@@ -231,7 +231,7 @@ public class RemoteStorageTest {
                     MediaType.TEXT_PLAIN_TYPE, "managedDatastreamLabel"));
         src = editor.readStream();
         assertNotNull(src);
-        assertEquals(MediaType.TEXT_PLAIN, editor.getMimetype());
+        assertEquals(MediaType.TEXT_PLAIN, editor.getProfile().getDsMIME());
         assertTrue(lastModified < editor.getLastModified());
         content = StringEditor.read(src);
         assertEquals("plain text", content);
@@ -406,6 +406,64 @@ public class RemoteStorageTest {
         FoxmlUtils.copy(is, resultData);
         is.close();
         assertArrayEquals(data, resultData.toByteArray());
+    }
+
+    @Test
+    public void testSetDatastreamProfile() throws Exception {
+        RemoteStorage fedora = new RemoteStorage(client);
+        LocalObject local = new LocalStorage().create();
+        local.setLabel(test.getMethodName());
+        fedora.ingest(local, "junit");
+        RemoteObject remote = fedora.find(local.getPid());
+        String dsId = "missingDatastream";
+        MediaType mime = MediaType.TEXT_PLAIN_TYPE;
+
+        // first test missing datastream
+        RemoteXmlStreamEditor editor = new RemoteXmlStreamEditor(remote, FoxmlUtils.managedProfile(dsId, mime, "defaultLabel"));
+        DatastreamProfile profile = editor.getProfile();
+        assertEquals(mime.toString(), profile.getDsMIME());
+        String expectedLabel = "label1";
+        profile.setDsLabel(expectedLabel);
+        editor.setProfile(profile);
+        editor.write(new byte[2], editor.getLastModified(), "write1");
+        remote.flush();
+
+        editor = new RemoteXmlStreamEditor(remote, FoxmlUtils.managedProfile(dsId, mime, ""));
+        profile = editor.getProfile();
+        assertEquals(mime.toString(), profile.getDsMIME());
+        assertEquals(expectedLabel, profile.getDsLabel());
+
+        // test existing datastream
+        expectedLabel = "label2";
+        MediaType newMime = MediaType.TEXT_HTML_TYPE;
+        profile = editor.getProfile();
+        profile.setDsMIME(newMime.toString());
+        profile.setDsLabel(expectedLabel);
+        editor.setProfile(profile);
+        editor.write(new byte[2], editor.getLastModified(), "write2");
+        profile = editor.getProfile();
+        assertEquals(newMime.toString(), profile.getDsMIME());
+        assertEquals(expectedLabel, profile.getDsLabel());
+        remote.flush();
+
+        editor = new RemoteXmlStreamEditor(remote, FoxmlUtils.managedProfile(dsId, mime, ""));
+        profile = editor.getProfile();
+        assertEquals(newMime.toString(), profile.getDsMIME());
+        assertEquals(expectedLabel, profile.getDsLabel());
+
+        // test standalone profile change (without content)
+        newMime = MediaType.APPLICATION_JSON_TYPE;
+        expectedLabel = "label3";
+        profile.setDsMIME(newMime.toString());
+        profile.setDsLabel(expectedLabel);
+        editor.setProfile(profile);
+        remote.flush();
+
+        editor = new RemoteXmlStreamEditor(remote, FoxmlUtils.managedProfile(dsId, mime, ""));
+        profile = editor.getProfile();
+        // MIME cannot be changed without content as it is send as Content-Type HTTP header!
+        assertNotEquals(newMime.toString(), profile.getDsMIME());
+        assertEquals(expectedLabel, profile.getDsLabel());
     }
 
     @XmlRootElement(namespace="testns")

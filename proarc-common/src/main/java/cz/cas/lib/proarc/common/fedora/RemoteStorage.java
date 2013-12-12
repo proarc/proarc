@@ -299,15 +299,16 @@ public final class RemoteStorage {
         }
 
         @Override
-        public String getMimetype() throws DigitalObjectException {
-            try {
-                fetchProfile();
-                return profile.getDsMIME();
-            } catch (DigitalObjectException ex) {
-                throw ex;
-            } catch (Exception ex) {
-                throw new DigitalObjectException(object.getPid(), toLogString(), ex);
-            }
+        public DatastreamProfile getProfile() throws DigitalObjectException {
+            fetchProfile();
+            return profile;
+        }
+
+        @Override
+        public void setProfile(DatastreamProfile profile) throws DigitalObjectException {
+            this.profile = profile;
+            object.register(this);
+            modified = true;
         }
 
         @Override
@@ -370,6 +371,7 @@ public final class RemoteStorage {
                 GetDatastreamResponse response = FedoraClient.getDatastream(object.getPid(), dsId)
                         .format("xml").execute(object.getClient());
                 profile = response.getDatastreamProfile();
+                profile = normalizeProfile(profile);
                 lastModified = response.getLastModifiedDate().getTime();
                 missingDataStream = false;
             } catch (FedoraClientException ex) {
@@ -395,6 +397,13 @@ public final class RemoteStorage {
                     throw new DigitalObjectException(object.getPid(), toLogString(), ex);
                 }
             }
+        }
+
+        private DatastreamProfile normalizeProfile(DatastreamProfile profile) {
+            // set empty format to null
+            String format = profile.getDsFormatURI();
+            profile.setDsFormatURI(format != null && format.isEmpty() ? null : format);
+            return profile;
         }
 
         private void fetchData() throws DigitalObjectException {
@@ -439,6 +448,7 @@ public final class RemoteStorage {
                 modified = false;
                 logMessage = null;
                 profile = response.getDatastreamProfile();
+                profile = normalizeProfile(profile);
                 lastModified = response.getLastModifiedDate().getTime();
             } catch (IOException ex) {
                 throw new DigitalObjectException(object.getPid(), toLogString(), ex);
@@ -481,13 +491,16 @@ public final class RemoteStorage {
                     .logMessage(logMessage)
                     .mimeType(profile.getDsMIME());
 
-            ControlGroup control = ControlGroup.fromExternal(profile.getDsControlGroup());
-            if (control == ControlGroup.INLINE || control == ControlGroup.MANAGED) {
-                request.content(data.asInputStream());
-            } else if (control == ControlGroup.EXTERNAL) {
-                request.dsLocation(data.reference.toASCIIString());
-            } else {
-                throw new UnsupportedOperationException("DsControlGroup: " + control + "; " + toLogString());
+            // some profile changes (MIME) cannot be written without contents!
+            if (data != null) {
+                ControlGroup control = ControlGroup.fromExternal(profile.getDsControlGroup());
+                if (control == ControlGroup.INLINE || control == ControlGroup.MANAGED) {
+                    request.content(data.asInputStream());
+                } else if (control == ControlGroup.EXTERNAL) {
+                    request.dsLocation(data.reference.toASCIIString());
+                } else {
+                    throw new UnsupportedOperationException("DsControlGroup: " + control + "; " + toLogString());
+                }
             }
             ModifyDatastreamResponse response = request.execute(object.getClient());
             return response;

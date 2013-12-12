@@ -844,7 +844,7 @@ public class DigitalObjectResource {
                 return evaluatePreconditions.build();
             }
 
-            return Response.ok(entity, loader.getMimetype())
+            return Response.ok(entity, loader.getProfile().getDsMIME())
                     .header("Content-Disposition", "inline; filename=" + entity.getName())
                     .lastModified(lastModification)
 //                    .cacheControl(null)

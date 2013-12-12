@@ -84,8 +84,12 @@ public final class BinaryEditor {
         return editor.getLastModified();
     }
 
-    public String getMimetype() throws DigitalObjectException {
-        return editor.getMimetype();
+    public DatastreamProfile getProfile() throws DigitalObjectException {
+        return editor.getProfile();
+    }
+
+    public void setProfile(DatastreamProfile profile) throws DigitalObjectException {
+        editor.setProfile(profile);
     }
 
     public File read() throws DigitalObjectException {

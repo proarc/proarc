@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.fedora;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils.ControlGroup;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
@@ -168,7 +169,9 @@ public class LocalStorageTest {
         String label = "label";
         XmlStreamEditor editor = lobject.getEditor(FoxmlUtils.managedProfile(dsID, mime, label));
         assertNotNull(editor);
-        assertEquals(mime.toString(), editor.getMimetype());
+        assertNotNull(editor.getProfile());
+        assertEquals(mime.toString(), editor.getProfile().getDsMIME());
+        assertNull(editor.getProfile().getDsFormatURI());
         byte[] data = "data".getBytes("UTF-8");
         editor.write(data, 0, null);
         lobject.flush();
@@ -197,7 +200,9 @@ public class LocalStorageTest {
         String label = "label";
         XmlStreamEditor editor = lobject.getEditor(FoxmlUtils.managedProfile(dsID, mime, label));
         assertNotNull(editor);
-        assertEquals(mime.toString(), editor.getMimetype());
+        assertNotNull(editor.getProfile());
+        assertEquals(mime.toString(), editor.getProfile().getDsMIME());
+        assertNull(editor.getProfile().getDsFormatURI());
         byte[] data = "data".getBytes("UTF-8");
         File attachment = tmp.newFile();
         editor.write(attachment.toURI(), 0, null);
@@ -233,7 +238,9 @@ public class LocalStorageTest {
         String label = "label";
         XmlStreamEditor editor = lobject.getEditor(FoxmlUtils.managedProfile(dsID, mime, label));
         assertNotNull(editor);
-        assertEquals(mime.toString(), editor.getMimetype());
+        assertNotNull(editor.getProfile());
+        assertEquals(mime.toString(), editor.getProfile().getDsMIME());
+        assertNull(editor.getProfile().getDsFormatURI());
         byte[] data = "data".getBytes("UTF-8");
         editor.write(new ByteArrayInputStream(data), 0, null);
         lobject.flush();
@@ -262,7 +269,9 @@ public class LocalStorageTest {
         String label = "label";
         XmlStreamEditor editor = lobject.getEditor(FoxmlUtils.managedProfile(dsID, mime, label));
         assertNotNull(editor);
-        assertEquals(mime.toString(), editor.getMimetype());
+        assertNotNull(editor.getProfile());
+        assertEquals(mime.toString(), editor.getProfile().getDsMIME());
+        assertNull(editor.getProfile().getDsFormatURI());
         byte[] data = "data".getBytes("UTF-8");
         File attachment = tmp.newFile();
         editor.write(attachment.toURI(), 0, null);
@@ -299,7 +308,9 @@ public class LocalStorageTest {
         String formatUri = "formatUri";
         XmlStreamEditor editor = lobject.getEditor(FoxmlUtils.inlineProfile(dsID, formatUri, label));
         assertNotNull(editor);
-        assertEquals(mime.toString(), editor.getMimetype());
+        assertNotNull(editor.getProfile());
+        assertEquals(mime.toString(), editor.getProfile().getDsMIME());
+        assertEquals(formatUri, editor.getProfile().getDsFormatURI());
         XmlData xdata = new XmlData("data");
         EditorResult xmlResult = editor.createResult();
         JAXB.marshal(xdata, xmlResult);
@@ -333,7 +344,9 @@ public class LocalStorageTest {
         String formatUri = "formatUri";
         XmlStreamEditor editor = lobject.getEditor(FoxmlUtils.managedProfile(dsID, formatUri, label));
         assertNotNull(editor);
-        assertEquals(mime.toString(), editor.getMimetype());
+        assertNotNull(editor.getProfile());
+        assertEquals(mime.toString(), editor.getProfile().getDsMIME());
+        assertEquals(formatUri, editor.getProfile().getDsFormatURI());
         File attachment = tmp.newFile();
         editor.write(attachment.toURI(), 0, null);
         XmlData xdata = new XmlData("data");
@@ -360,6 +373,38 @@ public class LocalStorageTest {
 
         XmlData result = JAXB.unmarshal(attachment, XmlData.class);
         assertEquals(xdata, result);
+    }
+
+    @Test
+    public void testSetDatastreamProfile() throws Exception {
+        LocalStorage storage = new LocalStorage();
+        LocalObject lobject = storage.create();
+        String dsID = "dsID";
+        MediaType mime = MediaType.TEXT_PLAIN_TYPE;
+        String label = "label";
+        XmlStreamEditor editor = lobject.getEditor(FoxmlUtils.managedProfile(dsID, mime, label));
+        assertNotNull(editor);
+        assertNotNull(editor.getProfile());
+        assertEquals(mime.toString(), editor.getProfile().getDsMIME());
+        assertNull(editor.getProfile().getDsFormatURI());
+        byte[] data = "data".getBytes("UTF-8");
+        File attachment = tmp.newFile();
+        editor.write(attachment.toURI(), 0, null);
+        editor.write(new ByteArrayInputStream(data), editor.getLastModified(), null);
+        lobject.flush();
+
+        // update mimetype
+        editor = lobject.getEditor(FoxmlUtils.managedProfile(dsID, mime, label));
+        String expectedMimetype = MediaType.APPLICATION_JSON;
+        DatastreamProfile profile = editor.getProfile();
+        profile.setDsMIME(expectedMimetype);
+        editor.setProfile(profile);
+        editor.write(data, editor.getLastModified(), label);
+        lobject.flush();
+
+        // check with new editor
+        editor = lobject.getEditor(FoxmlUtils.managedProfile(dsID, mime, label));
+        assertEquals(expectedMimetype, editor.getProfile().getDsMIME());
     }
 
     @XmlRootElement
