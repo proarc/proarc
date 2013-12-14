@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
+import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.ColorPicker;
 import com.smartgwt.client.widgets.form.events.ColorSelectedEvent;
@@ -28,6 +29,7 @@ import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.ArrayList;
@@ -47,6 +49,8 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private Action fullAction;
     private AbstractAction rawAction;
     private AbstractAction backgroundAction;
+    private AbstractAction uploadAction;
+    private DigitalObject digitalObject;
 
     public MediaEditor(ClientMessages i18n) {
         doPreview = new DigitalObjectPreview(i18n);
@@ -58,6 +62,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         if (digitalObject == null) {
             throw new NullPointerException();
         }
+        this.digitalObject = digitalObject;
         StringBuilder sb = new StringBuilder();
         sb.append(DigitalObjectResourceApi.DIGITALOBJECT_PID).append('=')
                 .append(digitalObject.getPid());
@@ -90,6 +95,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         return new Canvas[] {
             Actions.asIconButton(fullAction, this),
             Actions.asIconButton(rawAction, this),
+            Actions.asIconButton(uploadAction, this),
             Actions.asIconButton(backgroundAction, this),
             doPreview.getPreviewZoomer(),
         };
@@ -118,7 +124,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         }
     }
 
-    private void initActions(ClientMessages i18n) {
+    private void initActions(final ClientMessages i18n) {
         fullAction = new AbstractAction(
                 i18n.DigitalObjectPreview_ViewFullAction_Title(),
                 "[SKIN]/actions/view.png",
@@ -161,6 +167,25 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
                 picker.setDefaultColor(DigitalObjectPreview.BACKGROUND_COLOR);
                 picker.setKeepInParentRect(true);
                 picker.show();
+            }
+        };
+
+        uploadAction = new AbstractAction(
+                i18n.DigitalObjectEditor_MediaEditor_UploaderAction_Title(),
+                "[SKIN]/MultiUploadItem/icon_add_files.png",
+                i18n.DigitalObjectEditor_MediaEditor_UploaderAction_Hint()) {
+            @Override
+            public void performAction(ActionEvent event) {
+                UploadFile uploadFile = new UploadFile(i18n);
+                uploadFile.showWindow(digitalObject, new BooleanCallback() {
+
+                    @Override
+                    public void execute(Boolean value) {
+                        if (value != null && value) {
+                            RelationDataSource.getInstance().fireRelationChange(digitalObject.getPid());
+                        }
+                    }
+                });
             }
         };
     }

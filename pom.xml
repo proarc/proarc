@@ -72,6 +72,16 @@
             </snapshots>
         </repository>
 
+        <!--org.moxieapps.gwt:org.moxieapps.gwt.uploader-->
+        <repository>
+            <id>geosdi</id>
+            <name>geoSDI Repository</name>
+            <url>http://repo.geosdi.org</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
     </repositories>
 
     <dependencyManagement>

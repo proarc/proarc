@@ -113,6 +113,8 @@ public final class DigitalObjectResourceApi {
     /** Resource /object/dissemination */
     public static final String DISSEMINATION_PATH = "dissemination";
     public static final String DISSEMINATION_DATASTREAM = "datastream";
+    public static final String DISSEMINATION_FILE = "file";
+    public static final String DISSEMINATION_MIME = "mime";
 
     /** Resource /object/full */
     public static final String FULL_PATH = "full";

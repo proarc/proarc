@@ -494,8 +494,8 @@ public final class DigitalObjectPreview {
             ClientUtils.warning(LOG, "image onError: %s", image.getUrl());
             Img img = new Img("[SKIN]/Dialog/warn.png", 2 * 16, 2 * 16);
             img.setLayoutAlign(Alignment.CENTER);
-            img.setAltText(i18n.ImportBatchDataSource_State_LOADING_FAILED());
-            img.setPrompt(i18n.ImportBatchDataSource_State_LOADING_FAILED());
+            img.setAltText(i18n.DigitalObjectPreview_NoContent_Msg());
+            img.setPrompt(i18n.DigitalObjectPreview_NoContent_Msg());
             imgContainer.setMembers(img);
         }
 

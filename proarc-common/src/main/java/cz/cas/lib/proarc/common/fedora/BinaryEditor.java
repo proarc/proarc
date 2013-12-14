@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.fedora;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import java.io.File;
 import java.net.URI;
 import javax.ws.rs.core.MediaType;
@@ -73,9 +72,6 @@ public final class BinaryEditor {
     }
 
     public BinaryEditor(FedoraObject object, DatastreamProfile profile) {
-        if (!(object instanceof LocalObject)) {
-            throw new IllegalArgumentException("Unsupported fedora object: " + object.getClass());
-        }
         this.editor = object.getEditor(profile);
         this.object = object;
     }

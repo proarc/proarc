@@ -17,7 +17,10 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataParam;
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -868,6 +871,80 @@ public class DigitalObjectResource {
         throw new IllegalStateException("unsupported: " + fobject.getClass());
     }
 
+    /**
+     * Updates dissemination of digital object with binary data sent as
+     * {@link MediaType#MULTIPART_FORM_DATA}. It allows to upload file from
+     * client.
+     * <p>For now only RAW stream is supported.
+     *
+     * @param pid PID (required)
+     * @param batchId import batch ID (optional)
+     * @param dsId data stream ID.
+     * @param file contents
+     * @param fileInfo contents description metadata (injected by the server)
+     * @param mimeType MIME type of the sent contents (optional)
+     * @return HTTP status
+     * @throws IOException failure
+     * @throws DigitalObjectException failure
+     */
+    @POST
+    @Path(DigitalObjectResourceApi.DISSEMINATION_PATH)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response updateDissemination(
+            @FormDataParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormDataParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) File file,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) FormDataContentDisposition fileInfo,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_MIME) String mimeType
+            ) throws IOException, DigitalObjectException {
+
+        if (pid == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing pid!");
+        }
+        if (file == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing file!");
+        }
+        // XXX add config property or user permission
+        if (file.length() > 1*1024 * 1024 * 1024) { // 1GB
+            throw RestException.plainText(Status.BAD_REQUEST, "File contents too large!");
+        }
+        if (dsId != null && !dsId.equals(BinaryEditor.RAW_ID)) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing or unsupported datastream ID: " + dsId);
+        }
+        String filename = getFilename(fileInfo.getFileName());
+        try {
+            FedoraObject fobject = findFedoraObject(pid, batchId);
+            if (mimeType == null) {
+                // XXX workaround; replace with Dron or Pronom to get mimetype
+                mimeType = fileInfo.getType();
+            }
+            MediaType mime;
+            try {
+                mime = MediaType.valueOf(mimeType);
+            } catch (IllegalArgumentException ex) {
+                throw RestException.plainText(Status.BAD_REQUEST, "Invalid MIME type!");
+            }
+            BinaryEditor editor = BinaryEditor.dissemination(fobject, BinaryEditor.RAW_ID, mime);
+            DatastreamProfile profile = editor.getProfile();
+            profile.setDsMIME(mime.toString());
+            // fedora adds own extensions :-(
+            profile.setDsLabel(filename);
+            editor.setProfile(profile);
+            // XXX generate preview, thumb, ocr if possible
+            editor.write(file, editor.getLastModified(), session.asFedoraLog());
+
+            RelationEditor relationEditor = new RelationEditor(fobject);
+            relationEditor.setImportFile(filename);
+            relationEditor.write(relationEditor.getLastModified(), session.asFedoraLog());
+
+            fobject.flush();
+        } finally {
+            file.delete();
+        }
+        return Response.ok().build();
+    }
+
     @GET
     @Path(DigitalObjectResourceApi.THUMB_PATH)
     @Produces("image/*")
@@ -1069,6 +1146,32 @@ public class DigitalObjectResource {
             fobject = RemoteStorage.getInstance(appConfig).find(pid);
         }
         return fobject;
+    }
+
+    /**
+     * Removes extension from the file name.
+     * @param filename file name
+     * @return name without extension
+     */
+    private static String getBareFilename(String filename) {
+        int index = filename.lastIndexOf('.');
+        return index <= 0 ? filename : filename.substring(0, index);
+    }
+
+    /**
+     * Remove path from file name sent by client. It searches for platform path
+     * delimiters.
+     * @param filepath file path
+     * @return the file name
+     */
+    private static String getFilename(String filepath) {
+        int slashIndex = filepath.lastIndexOf('/');
+        int backslashIndex = filepath.lastIndexOf('\\');
+        int index = Math.max(slashIndex, backslashIndex);
+        if (index > 0) {
+            filepath = filepath.substring(index);
+        }
+        return filepath;
     }
 
     @XmlRootElement(name = DigitalObjectResourceApi.CUSTOMMODS_ELEMENT)

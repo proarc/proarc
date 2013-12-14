@@ -79,6 +79,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!--REST file upload-->
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-multipart</artifactId>
+            <version>${jerseyVersion}</version>
+        </dependency>
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-oaidublincore</artifactId>
@@ -99,6 +105,12 @@
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-common</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <!--HTML5 GWT file uploader-->
+        <dependency>
+            <groupId>org.moxieapps.gwt</groupId>
+            <artifactId>org.moxieapps.gwt.uploader</artifactId>
+            <version>1.1.0</version>
         </dependency>
 
         <!-- tests -->
