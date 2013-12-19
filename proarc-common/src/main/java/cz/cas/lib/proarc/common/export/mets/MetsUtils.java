@@ -240,6 +240,7 @@ public class MetsUtils {
     public static String getTypeModel(DigitalObject object, MetsInfo metsInfo) throws MetsExportException {
         String result = typeMap.get(MetsUtils.getModel(object, metsInfo));
         if (result == null) {
+            LOG.log(Level.SEVERE, "Unknown model:" + MetsUtils.getModel(object, metsInfo));
             throw new MetsExportException("Unknown model:" + MetsUtils.getModel(object, metsInfo));
         }
         return result;
@@ -298,9 +299,11 @@ public class MetsUtils {
      */
     public static String getProperty(String name, java.util.List<PropertyType> properties) throws MetsExportException {
         if (name == null) {
+            LOG.log(Level.SEVERE, "Name cannot be null");
             throw new MetsExportException("Name is null");
         }
         if (properties == null) {
+            LOG.log(Level.SEVERE, "Properties cannot be null");
             throw new MetsExportException("Properties is null");
         }
         for (PropertyType property : properties) {
@@ -308,6 +311,7 @@ public class MetsUtils {
                 return property.getVALUE();
             }
         }
+        LOG.log(Level.SEVERE, "Property " + name + " not found");
         throw new MetsExportException("Property " + name + " not found");
     }
 
@@ -413,6 +417,7 @@ public class MetsUtils {
             builder.setNamespaceAware(true);
             document = builder.newDocumentBuilder().newDocument();
         } catch (ParserConfigurationException e1) {
+            LOG.log(Level.SEVERE, "Error while getting document from list", e1);
             throw new MetsExportException("Error while getting document from list", false, e1);
         }
 
@@ -457,6 +462,7 @@ public class MetsUtils {
         try {
             document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         } catch (ParserConfigurationException e1) {
+            LOG.log(Level.SEVERE, "Error while evaluating xPath " + xPath, e1);
             throw new MetsExportException("Error while evaluating xPath " + xPath, false, e1);
         }
 
@@ -470,6 +476,7 @@ public class MetsUtils {
         try {
             return (Node) xpathObject.compile(xPath).evaluate(document, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
+            LOG.log(Level.SEVERE, "Error while evaluating xPath " + xPath, e);
             throw new MetsExportException("Error while evaluating xPath " + xPath, false, e);
         }
     }
@@ -645,6 +652,7 @@ public class MetsUtils {
 
             return foXMLObject;
         } catch (JAXBException e) {
+            LOG.log(Level.SEVERE, "Unable to read foXML document " + path);
             throw new MetsExportException("Unable to read FoXML document " + path, false, e);
         }
     }
@@ -738,6 +746,7 @@ public class MetsUtils {
 
                 @Override
                 public void error(SAXParseException exception) throws SAXException {
+                    LOG.log(Level.SEVERE, "Error while parsing document", exception);
                     throw new SAXException(exception);
                 }
             });
@@ -881,6 +890,7 @@ public class MetsUtils {
             try {
                 md = MessageDigest.getInstance("MD5");
             } catch (NoSuchAlgorithmException e) {
+                LOG.log(Level.SEVERE, "Unable to create MD5 hash", e);
                 throw new MetsExportException("Unable to create MD5 hash", false, e);
             }
             md.reset();
@@ -895,6 +905,7 @@ public class MetsUtils {
             try {
                 is = new FileInputStream(file);
             } catch (FileNotFoundException e) {
+                LOG.log(Level.SEVERE, "Unable to open file" + file.getAbsolutePath(), e);
                 throw new MetsExportException("Unable to open file" + file.getAbsolutePath(), false, e);
             }
             byte[] bytes = new byte[2048];
@@ -904,6 +915,7 @@ public class MetsUtils {
                     md.update(bytes, 0, numBytes);
                 }
             } catch (IOException e) {
+                LOG.log(Level.SEVERE, "Unable to generate MD5 hash", e);
                 throw new MetsExportException("Unable to generate MD5 hash", false, e);
             }
             byte[] digest = md.digest();
@@ -1113,7 +1125,6 @@ public class MetsUtils {
             document = builder.parse(new ByteArrayInputStream(bytes));
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Error while parsing document", e);
-            LOG.log(Level.INFO, new String(bytes));
             throw new MetsExportException("Error while parsing document", false, e);
         }
         return document;
