@@ -31,16 +31,37 @@ public class Const {
     public final static String DERFOLDER = "model:derFolder";
     public final static String DERDOCUMENT = "model:derDocument";
     public final static String DERFILE = "model:derFile";
+    public final static String DESFILE = "model:desFile";
+    public final static String DESFOLDER = "model:desFolder";
+    public final static String DESOWNDOCUMENT = "model:desOwnDocument";
+    public final static String DESSENTDOCUMENT = "model:desSentDocument";
     public final static String FEDORAPREFIX = "info:fedora/";
     public final static String FOLDER = "FOLDER";
     public final static String DOCUMENT = "DOCUMENT";
     public final static String FILE = "FILE";
 
+    public final static String ORIGINAL = "Original";
+    public final static String INPUT = "Input";
+    public final static String DIGITIZED = "Digitized";
+    public final static String PREVIEW = "Preview";
+    public final static String MIGRATED = "Migrated";
+
     public final static Map<String, String> typeMap = new HashMap<String, String>();
+    public final static Map<String, String> fileGrpMap = new HashMap<String, String>();
 
     static {
         typeMap.put(FEDORAPREFIX + DERFOLDER, FOLDER);
         typeMap.put(FEDORAPREFIX + DERDOCUMENT, DOCUMENT);
         typeMap.put(FEDORAPREFIX + DERFILE, FILE);
+        typeMap.put(FEDORAPREFIX + DESFOLDER, FOLDER);
+        typeMap.put(FEDORAPREFIX + DESOWNDOCUMENT, DOCUMENT);
+        typeMap.put(FEDORAPREFIX + DESSENTDOCUMENT, DOCUMENT);
+        typeMap.put(FEDORAPREFIX + DESFILE, FILE);
+
+        fileGrpMap.put("ADM", Const.INPUT);
+        fileGrpMap.put("PS", Const.DIGITIZED);
+        fileGrpMap.put("MC", Const.ORIGINAL);
+        fileGrpMap.put("UC", Const.PREVIEW);
+        // TODO Mapping to migrated is missing
     }
 }

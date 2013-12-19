@@ -22,9 +22,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -107,9 +110,28 @@ public class DesaElementVisitor implements IDesaElementVisitor {
      * @return
      * @throws MetsExportException
      */
-    private String getLabelFromDC(IDesaElement desaElement) throws MetsExportException {
-        List<Element> descriptor = desaElement.getDescriptor();
-        return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='dc']/*[local-name()='title']");
+    private String getLabel(IDesaElement desaElement) throws MetsExportException {
+        LOG.log(Level.INFO, "Element model:" + desaElement.getModel());
+        if (MetsUtils.xPathEvaluateNode(desaElement.getDescriptor(), "*[namespace-uri()='http://www.openarchives.org/OAI/2.0/oai_dc/']") != null) {
+            LOG.log(Level.INFO, "DC variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
+            List<Element> descriptor = desaElement.getDescriptor();
+            return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='dc']/*[local-name()='title']");
+        }
+        if (MetsUtils.xPathEvaluateNode(desaElement.getDescriptor(), "*[namespace-uri()='http://www.mvcr.cz/nsesss/v2']") != null) {
+            LOG.log(Level.INFO, "NSESS variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
+            List<Element> descriptor = desaElement.getDescriptor();
+            if (Const.FOLDER.equalsIgnoreCase(desaElement.getElementType())) {
+                return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Spis']/*[local-name()='EvidencniUdaje'/*[local-name()='Identifikace'/*[local-name()='Identifikator']");
+            }
+            if (Const.DOCUMENT.equalsIgnoreCase(desaElement.getElementType())) {
+                return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Dokument']/*[local-name()='EvidencniUdaje'/*[local-name()='Identifikace'/*[local-name()='Identifikator']");
+            }
+            LOG.log(Level.SEVERE, "Element nit DOCUMENT or FOLDER" + desaElement.getElementType());
+            throw new MetsExportException(desaElement.getOriginalPid(), "Element not DOCUMENT or FOLDER:" + desaElement.getElementType(), false, null);
+        }
+
+        LOG.log(Level.SEVERE, "Unable to get Label - DER/DES descriptor missing - " + desaElement.getModel());
+        throw new MetsExportException(desaElement.getOriginalPid(), "Unable to get Label - DER/DES descriptor missing - " + desaElement.getModel(), false, null);
     }
 
     /**
@@ -200,13 +222,71 @@ public class DesaElementVisitor implements IDesaElementVisitor {
     }
 
     /**
+     * Adds a file to the apropriate fileGroup
+     * 
+     * @param fileGrpMap
+     * @param desaElement
+     * @param fileType
+     * @throws MetsExportException
+     */
+    private void addFiletoFileGrp(Map<String, FileGrp> fileGrpMap, IDesaElement desaElement, FileType fileType) throws MetsExportException {
+        String type = MetsUtils.xPathEvaluateString(desaElement.getDescriptor(), "*[local-name()='dc']/*[local-name()='type']");
+        if (type == null) {
+            LOG.log(Level.SEVERE, "Element type is missing for pid:" + desaElement.getOriginalPid());
+            throw new MetsExportException(desaElement.getOriginalPid(), "Element type is missing", false, null);
+        }
+        String fileGrpType = Const.fileGrpMap.get(type);
+        if (fileGrpType == null) {
+            LOG.log(Level.SEVERE, "Unable to find mapping for file type:" + type);
+            throw new MetsExportException(desaElement.getOriginalPid(), "Unable to find mapping for file type:" + type, false, null);
+        }
+        fileGrpMap.get(fileGrpType).getFile().add(fileType);
+    }
+
+    /**
+     * Adds all non-empty filegroups to the mets
+     * 
+     * @param fileGrpMap
+     * @param fileSec
+     */
+    private void addFileGrpToMets(Map<String, FileGrp> fileGrpMap, FileSec fileSec) {
+        int order = 0;
+        for (String key : fileGrpMap.keySet()) {
+            FileGrp fileGrp = fileGrpMap.get(key);
+            if (fileGrp.getFile().size() > 0) {
+                order++;
+                fileGrp.setID("GRP_000" + order);
+                fileSec.getFileGrp().add(fileGrp);
+            }
+        }
+    }
+
+    /**
+     * 
+     * Prepares a map of all FileGroups
+     * 
+     * @return
+     */
+    private HashMap<String, FileGrp> prepareFileGrpMap() {
+        HashMap<String, FileGrp> grpMap = new HashMap<String, FileGrp>();
+        String[] uses = { Const.ORIGINAL, Const.PREVIEW, Const.DIGITIZED, Const.MIGRATED, Const.INPUT };
+        for (String use : uses) {
+            FileGrp fileGrp = new FileGrp();
+            fileGrp.setUSE(use);
+            grpMap.put(use, fileGrp);
+        }
+        return grpMap;
+    }
+
+    /**
      * Inserts a document element into a mets
      * 
      * @param desaElement
      * @param suffix
      * @throws MetsExportException
      */
-    private void insertDerDocument(IDesaElement desaElement, String suffix) throws MetsExportException {
+    private void insertDocument(IDesaElement desaElement, String suffix) throws MetsExportException {
+        Map<String, FileGrp> fileGrpMap = prepareFileGrpMap();
         if (suffix == null) {
             suffix = "0001";
         }
@@ -214,16 +294,13 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         File outputMets = new File(tmpFolder.getAbsolutePath() + "/mets.xml");
         Mets mets = prepareMets(desaElement);
         DivType divType = new DivType();
-        divType.setLabel(getLabelFromDC(desaElement));
+        divType.setLabel(getLabel(desaElement));
         divType.setTYPE("record");
         divType.getDMDID().add(mets.getDmdSec().get(0));
 
         FileSec fileSec = new FileSec();
         mets.setFileSec(fileSec);
-        FileGrp fileGrp = new FileGrp();
-        fileGrp.setUSE("Original");
-        fileSec.getFileGrp().add(fileGrp);
-        fileGrp.setID("GRP_0001");
+
         StructMapType structMapType = mets.getStructMap().get(0);
         structMapType.setDiv(divType);
 
@@ -279,11 +356,12 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             flocat.setLOCTYPE("URL");
             flocat.setHref(outputFileName);
             fileType.getFLocat().add(flocat);
-            fileGrp.getFile().add(fileType);
+            addFiletoFileGrp(fileGrpMap, fileElement, fileType);
             Fptr fptr = new Fptr();
             fptr.setFILEID(fileType);
             divType.getFptr().add(fptr);
         }
+        addFileGrpToMets(fileGrpMap, fileSec);
         saveMets(mets, outputMets, desaElement);
         desaElement.setZipName(desaElement.getDesaContext().getPackageID() + "_" + suffix);
         fileList.add(outputMets);
@@ -297,21 +375,22 @@ public class DesaElementVisitor implements IDesaElementVisitor {
      * @param desaElement
      * @throws MetsExportException
      */
-    private void insertDerFolder(IDesaElement desaElement) throws MetsExportException {
+    private void insertFolder(IDesaElement desaElement) throws MetsExportException {
         Mets mets = prepareMets(desaElement);
         DivType divType = new DivType();
         divType.setTYPE("file");
-        divType.setLabel(getLabelFromDC(desaElement));
+        divType.setLabel(getLabel(desaElement));
         divType.getDMDID().add(mets.getDmdSec().get(0));
         StructMapType structMapType = mets.getStructMap().get(0);
         structMapType.setDiv(divType);
         int documentOrder = 0;
         for (DesaElement documentElement : desaElement.getChildren()) {
             documentOrder++;
-            insertDerDocument(documentElement, String.format("%04d", documentOrder));
+            insertDocument(documentElement, String.format("%04d", documentOrder));
             DivType documentDiv = new DivType();
             documentDiv.setTYPE("record");
-            documentDiv.setLabel(getLabelFromDC(documentElement));
+            documentDiv.setLabel(getLabel(documentElement));
+            documentDiv.setORDER(BigInteger.valueOf(documentOrder));
             Mptr mptr = new Mptr();
             mptr.setLOCTYPE("OTHER");
             mptr.setOTHERLOCTYPE("internal_reference");
@@ -339,9 +418,9 @@ public class DesaElementVisitor implements IDesaElementVisitor {
     public void insertIntoMets(IDesaElement desaElement, boolean exportToDesa) throws MetsExportException {
         LOG.log(Level.INFO, "Inserting into Mets:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
         if (Const.DOCUMENT.equalsIgnoreCase(desaElement.getElementType())) {
-            insertDerDocument(desaElement, null);
+            insertDocument(desaElement, null);
         } else if (Const.FOLDER.equalsIgnoreCase(desaElement.getElementType())) {
-            insertDerFolder(desaElement);
+            insertFolder(desaElement);
         } else
             throw new MetsExportException(desaElement.getOriginalPid(), "Unknown type:" + desaElement.getElementType() + " model:" + desaElement.getModel(), false, null);
         if (desaElement.getDesaContext().getMetsExportException().exceptionList.size() > 0) {
