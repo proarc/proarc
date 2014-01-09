@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:dc xmlns:ns2="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns="http://purl.org/dc/elements/1.1/">
+    <identifier>isbn:123</identifier>
+    <title>Title</title>
+    <identifier>uuid:123</identifier>
+    <title xml:lang="cs">Title_cs</title>
+    <creator>Karel</creator>
+</ns2:dc>
