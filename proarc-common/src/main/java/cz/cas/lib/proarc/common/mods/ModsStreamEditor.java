@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.cas.lib.proarc.common.mods.custom.Mapping;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper.Page;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
@@ -43,7 +44,7 @@ import javax.xml.transform.stream.StreamSource;
 public final class ModsStreamEditor {
 
     public static final String DATASTREAM_ID = "BIBLIO_MODS";
-    public static final String DATASTREAM_FORMAT_URI = "http://www.loc.gov/mods/v3";
+    public static final String DATASTREAM_FORMAT_URI = ModsConstants.NS;
     public static final String DATASTREAM_LABEL = "MODS description";
 
     private final XmlStreamEditor editor;
@@ -59,7 +60,7 @@ public final class ModsStreamEditor {
         this(createEditor(object), object);
     }
 
-    ModsStreamEditor(XmlStreamEditor editor, FedoraObject object) {
+    public ModsStreamEditor(XmlStreamEditor editor, FedoraObject object) {
         this.editor = editor;
         this.object = object;
     }
@@ -137,19 +138,19 @@ public final class ModsStreamEditor {
         mapper.map(mods, page);
     }
 
-    public ModsType create(String pid, String model) {
+    public static ModsType create(String pid, String model) {
         ModsType mods = defaultMods(pid);
         return create(pid, model, mods);
     }
     
-    public ModsType create(String pid, String model, String xml) {
+    public static ModsType create(String pid, String model, String xml) {
         ModsType mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xml)));
         // XXX normalize MODS?
         addPid(mods, pid);
         return create(pid, model, mods);
     }
 
-    public ModsType create(String pid, String model, ModsType mods) {
+    public static ModsType create(String pid, String model, ModsType mods) {
         MetaModel metaModel = MetaModelRepository.getInstance().find(model);
         if (metaModel != null) {
             String mapper = metaModel.getModsCustomEditor();
