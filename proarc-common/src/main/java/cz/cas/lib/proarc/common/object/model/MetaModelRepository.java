@@ -16,12 +16,14 @@
  */
 package cz.cas.lib.proarc.common.object.model;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
+import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * The repository of models of digital objects.
@@ -45,20 +47,21 @@ public final class MetaModelRepository {
 //        repository = new ArrayList<MetaModel>();
     }
 
-    public Collection<MetaModel> find(Locale locale) {
+    public Collection<MetaModel> find() {
         // for now it is read only repository
-        String lang = locale.getLanguage();
         List<MetaModel> models = new ArrayList<MetaModel>();
         models.add(new MetaModel(
                 "model:periodical", true, null,
-                "cs".equals(lang) ? "Periodikum" : "Periodical",
+                Arrays.asList(new ElementType("Periodical", "en"), new ElementType("Periodikum", "cs")),
+                ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PERIODICAL,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
                 "model:periodicalvolume", null, null,
-                "cs".equals(lang) ? "Ročník" : "Periodical Volume",
+                Arrays.asList(new ElementType("Periodical Volume", "en"), new ElementType("Ročník", "cs")),
+                ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PERIODICAL_VOLUME,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
@@ -66,7 +69,8 @@ public final class MetaModelRepository {
                 ));
         models.add(new MetaModel(
                 "model:periodicalitem", null, null,
-                "cs".equals(lang) ? "Výtisk" : "Periodical Item",
+                Arrays.asList(new ElementType("Periodical Item", "en"), new ElementType("Výtisk", "cs")),
+                ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PERIODICAL_ISSUE,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
@@ -74,14 +78,16 @@ public final class MetaModelRepository {
                 ));
         models.add(new MetaModel(
                 "model:monograph", true, null,
-                "cs".equals(lang) ? "Monografie" : "Monograph",
+                Arrays.asList(new ElementType("Monograph", "en"), new ElementType("Monografie", "cs")),
+                ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_MONOGRAPH,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
                 "model:monographunit", null, null,
-                "cs".equals(lang) ? "Monografie - volná část" : "Monograph Unit",
+                Arrays.asList(new ElementType("Monograph Unit", "en"), new ElementType("Monografie - volná část", "cs")),
+                ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_MONOGRAPH_UNIT,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
@@ -89,7 +95,8 @@ public final class MetaModelRepository {
                 ));
         models.add(new MetaModel(
                 "model:page", null, true,
-                "cs".equals(lang) ? "Strana" : "Page",
+                Arrays.asList(new ElementType("Page", "en"), new ElementType("Strana", "cs")),
+                ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PAGE,
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
                 ));
@@ -98,7 +105,7 @@ public final class MetaModelRepository {
     }
 
     public MetaModel find(String model) {
-        for (MetaModel metaModel : find(Locale.ENGLISH)) {
+        for (MetaModel metaModel : find()) {
             if (metaModel.getPid().equals(model)) {
                 return metaModel;
             }

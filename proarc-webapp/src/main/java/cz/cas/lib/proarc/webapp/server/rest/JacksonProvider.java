@@ -54,7 +54,7 @@ public final class JacksonProvider extends JacksonJaxbJsonProvider {
         registerAnnotatedSuperclass(AnnotatedBatchView.class);
         registerAnnotatedSuperclass(AnnotatedDevice.class);
         registerAnnotatedSuperclass(AnnotatedDublinCoreRecord.class);
-        registerAnnotatedSuperclass(AnnotatedMetaModel.class);
+//        registerAnnotatedSuperclass(AnnotatedMetaModel.class);
         registerAnnotatedSuperclass(AnnotatedPageViewItem.class);
         registerAnnotatedSuperclass(AnnotatedSearchViewItem.class);
         registerAnnotatedSuperclass(AnnotatedStringRecord.class);

@@ -24,7 +24,6 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Locale;
 import javax.ws.rs.core.Response.Status;
 
 /**
@@ -50,7 +49,7 @@ public final class FedoraStorageInitializer {
 
     private void checkMetaModels() {
         MetaModelRepository modelRepo = MetaModelRepository.getInstance();
-        Collection<MetaModel> models = modelRepo.find(Locale.getDefault());
+        Collection<MetaModel> models = modelRepo.find();
         ArrayList<String> modelPids = new ArrayList<String>();
         modelPids.add("model:proarcobject");
         modelPids.add("proarc:device");

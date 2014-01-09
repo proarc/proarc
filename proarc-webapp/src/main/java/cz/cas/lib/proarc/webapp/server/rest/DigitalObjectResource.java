@@ -752,11 +752,15 @@ public class DigitalObjectResource {
     @GET
     @Path(DigitalObjectResourceApi.METAMODEL_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<MetaModel> listModels() {
+    public SmartGwtResponse<AnnotatedMetaModel> listModels() {
         Locale locale = session.getLocale(httpHeaders);
 
-        Collection<MetaModel> models = metamodels.find(locale);
-        return new SmartGwtResponse<MetaModel>(new ArrayList<MetaModel>(models));
+        Collection<MetaModel> models = metamodels.find();
+        ArrayList<AnnotatedMetaModel> result = new ArrayList<AnnotatedMetaModel>(models.size());
+        for (MetaModel model : models) {
+            result.add(new AnnotatedMetaModel(model, locale));
+        }
+        return new SmartGwtResponse<AnnotatedMetaModel>(result);
     }
 
     @GET

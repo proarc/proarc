@@ -16,7 +16,8 @@
  */
 package cz.cas.lib.proarc.common.object.model;
 
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.oaidublincore.ElementType;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -30,7 +31,7 @@ public class MetaModel {
     private String pid;
     private Boolean root;
     private Boolean leaf;
-    private String displayName;
+    private Collection<ElementType> displayNames;
     private String metadataFormat;
     private String editorId;
     private EnumSet<DatastreamEditorType> dataStreamEditors;
@@ -38,26 +39,28 @@ public class MetaModel {
     public MetaModel() {
     }
 
-    public MetaModel(String pid, Boolean root, Boolean leaf, String displayName,
-            String modsCustomEditor, EnumSet<DatastreamEditorType> dataStreamEditors) {
-
-        this(pid, root, leaf, displayName, ModsConstants.NS, modsCustomEditor, dataStreamEditors);
-    }
-
-    public MetaModel(String pid, Boolean root, Boolean leaf, String displayName,
-            String metadataFormat, String editorId, EnumSet<DatastreamEditorType> dataStreamEditors) {
+    public MetaModel(String pid, Boolean root, Boolean leaf,
+            Collection<ElementType> displayNames,
+            String metadataFormat,
+            String editorId,
+            EnumSet<DatastreamEditorType> dataStreamEditors) {
 
         this.pid = pid;
         this.root = root;
         this.leaf = leaf;
-        this.displayName = displayName;
+        this.displayNames = displayNames;
         this.metadataFormat = metadataFormat;
         this.editorId = editorId;
         this.dataStreamEditors = dataStreamEditors;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getDisplayName(String lang) {
+        for (ElementType displayName : displayNames) {
+            if (lang == null ? displayName.getLang() == null : lang.equals(displayName.getLang())) {
+                return displayName.getValue();
+            }
+        }
+        return displayNames.isEmpty() ? "?" : displayNames.iterator().next().getValue();
     }
 
     public Boolean isLeaf() {
