@@ -21,7 +21,9 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.i18n.SmartGwtMessages;
+import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.ValuesManager;
 import com.smartgwt.client.widgets.form.fields.CanvasItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.events.FormItemInitHandler;
@@ -32,6 +34,7 @@ import com.smartgwt.client.widgets.form.validator.Validator;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.widget.mods.event.ListChangedEvent;
 import cz.cas.lib.proarc.webapp.client.widget.mods.event.ListChangedHandler;
+import cz.cas.lib.proarc.webapp.shared.form.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -40,22 +43,25 @@ import java.util.logging.Logger;
 /**
  * Repeatable dynamic form item. Set {@link #setDataSource(com.smartgwt.client.data.DataSource)
  * custom DataSource} to use all its data field. Otherwise set
- * {@link CustomFormFactory } to define own logic.
+ * {@link CustomFormFactory } or {@link FormWidgetFactory} to define own logic.
  *
  * @author Jan Pokorsky
  */
 public final class RepeatableFormItem extends CanvasItem {
+
+    public static final String ATTR_PROFILE = "proarc.profile.form.field";
 
     private static final Logger LOG = Logger.getLogger(RepeatableFormItem.class.getName());
     
     private DataSource dataSource;
     private DynamicForm formPrototype;
     private CustomFormFactory formFactory;
+    private String width = "1"; // default width is autoWidth
 
     public RepeatableFormItem(String name, String title) {
         this(name, title, null);
     }
-    
+
     public RepeatableFormItem(String name, String title, CustomFormFactory formFactory) {
         super(name, title);
         this.formFactory = formFactory;
@@ -65,16 +71,14 @@ public final class RepeatableFormItem extends CanvasItem {
         setShowTitle(false);
         setCanFocus(true);
         setValidators();
+        setAutoWidth();
 
         setShouldSaveValue(true);
         setInitHandler(new FormItemInitHandler() {
 
             @Override
             public void onInit(FormItem item) {
-                if (RepeatableFormItem.this.formFactory == null) {
-                    RepeatableFormItem.this.formFactory = new DefaultCustomForm(formPrototype, dataSource);
-                }
-                RepeatableForm editor = new RepeatableForm(item.getTitle(), RepeatableFormItem.this.formFactory);
+                RepeatableForm editor = new RepeatableForm((RepeatableFormItem) item);
                 Object value = item.getValue();
                 if (LOG.isLoggable(Level.FINE)) {
                     ClientUtils.fine(LOG, "## onInit: %s, dump: %s", value, ClientUtils.dump(value));
@@ -120,8 +124,84 @@ public final class RepeatableFormItem extends CanvasItem {
         this.formPrototype = formPrototype;
     }
 
-    public void setCustomForm(CustomFormFactory factory) {
+    public CustomFormFactory getFormFactory() {
+        if (formFactory == null) {
+            formFactory = new DefaultCustomForm(formPrototype, dataSource);
+        }
+        return formFactory;
+    }
+
+    public void setFormFactory(CustomFormFactory factory) {
         this.formFactory = factory;
+    }
+
+    public Field getProfile() {
+        return (Field) getAttributeAsObject(ATTR_PROFILE);
+    }
+
+    public void setProfile(Field profile) {
+        setAttribute(ATTR_PROFILE, profile);
+    }
+
+    public int getMaxOccurrences() {
+        Integer maxOccurrences = null;
+        Field profile = getProfile();
+        if (profile != null) {
+            // prefer profile if available
+            maxOccurrences = profile.getMaxOccurrences();
+        }
+        // read attribute?
+        return maxOccurrences == null || maxOccurrences < 1 ? 5 : maxOccurrences;
+    }
+
+    @Override
+    public void setWidth(String width) {
+        this.width = width;
+        super.setWidth(width);
+    }
+
+    @Override
+    public void setWidth(int width) {
+        this.width = String.valueOf(width);
+        super.setWidth(width);
+    }
+
+//    @Override
+//    public int getWidth() {
+//        return super.getWidth();
+//    }
+
+    public String getWidthAsString() {
+        String width = null;
+        Field profile = getProfile();
+        if (profile != null) {
+            width = profile.getWidth();
+        }
+        if (width == null) {
+            width = this.width;
+        }
+        // Do not try super.getWidth to initialize RepeatableForm as it will
+        // throw exceptions!
+        return width;
+    }
+
+//    public boolean isAutoWidth(String width) {
+//        return width != null && ("*".equals(width) || "100%".equals(width));
+//    }
+
+    public boolean isAutoWidth() {
+        String width = getWidthAsString();
+//        return width != null && ("*".equals(width) || "100%".equals(width));
+        return width != null && "1".equals(width);
+    }
+
+    public boolean isWidth100() {
+        String width = getWidthAsString();
+        return width != null && ("*".equals(width) || "100%".equals(width));
+    }
+
+    public void setAutoWidth() {
+        setWidth(1);
     }
 
     /**
@@ -237,11 +317,43 @@ public final class RepeatableFormItem extends CanvasItem {
     }
 
     /**
-     * Allows custom implementation of repeatable form.
+     * Allows custom implementation of a simple repeatable form.
      */
     public interface CustomFormFactory {
 
         DynamicForm create();
+
+    }
+
+    /**
+     * Allows custom implementation of repeatable form.
+     */
+    public interface FormWidgetFactory extends CustomFormFactory {
+
+        FormWidget createFormWidget(Field formField);
+
+    }
+
+    /**
+     * Binds widget and the values manager.
+     */
+    public static final class FormWidget {
+
+        private Canvas widget;
+        private ValuesManager values;
+
+        public FormWidget(Canvas widget, ValuesManager values) {
+            this.widget = widget;
+            this.values = values;
+        }
+
+        public Canvas getWidget() {
+            return widget;
+        }
+
+        public ValuesManager getValues() {
+            return values;
+        }
 
     }
 
