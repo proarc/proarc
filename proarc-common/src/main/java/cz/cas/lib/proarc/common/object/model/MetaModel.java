@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object.model;
 
+import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -34,6 +35,7 @@ public class MetaModel {
     private Collection<ElementType> displayNames;
     private String metadataFormat;
     private String editorId;
+    private DigitalObjectPlugin plugin;
     private EnumSet<DatastreamEditorType> dataStreamEditors;
 
     public MetaModel() {
@@ -43,6 +45,7 @@ public class MetaModel {
             Collection<ElementType> displayNames,
             String metadataFormat,
             String editorId,
+            DigitalObjectPlugin plugin,
             EnumSet<DatastreamEditorType> dataStreamEditors) {
 
         this.pid = pid;
@@ -51,6 +54,7 @@ public class MetaModel {
         this.displayNames = displayNames;
         this.metadataFormat = metadataFormat;
         this.editorId = editorId;
+        this.plugin = plugin;
         this.dataStreamEditors = dataStreamEditors;
     }
 
@@ -79,12 +83,17 @@ public class MetaModel {
         return metadataFormat;
     }
 
+    // XXX rename to getMetadataEditor
     public String getModsCustomEditor() {
         return editorId;
     }
 
     public Set<DatastreamEditorType> getDataStreamEditors() {
         return dataStreamEditors;
+    }
+
+    public DigitalObjectPlugin getPlugin() {
+        return plugin;
     }
 
 }

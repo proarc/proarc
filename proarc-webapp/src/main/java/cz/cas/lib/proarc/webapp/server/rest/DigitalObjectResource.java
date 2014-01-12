@@ -16,11 +16,9 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
-import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -48,24 +46,24 @@ import cz.cas.lib.proarc.common.fedora.StringEditor.StringRecord;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.json.JsonUtils;
-import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.mods.ModsUtils;
-import cz.cas.lib.proarc.common.mods.custom.Mapping;
+import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.DisseminationHandler;
+import cz.cas.lib.proarc.common.object.DisseminationInput;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -86,22 +84,17 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Resource to manage digital objects.
@@ -155,7 +148,7 @@ public class DigitalObjectResource {
      * @param modelId model ID (model:page, ...) of the digital object; required
      * @param pid PID of the digital object from external Kramerius. PID must not be already assigned. Optional
      * @param parentPid optional PID of parent object to link the newly created object
-     * @param mods MODS XML used to create new object; optional
+     * @param xmlMetadata XML used to create new object; optional
      * @return
      * @throws URISyntaxException
      * @throws IOException
@@ -166,8 +159,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
-            @FormParam(DigitalObjectResourceApi.NEWOBJECT_MODS_PARAM) String mods
-            ) throws URISyntaxException, IOException, FedoraClientException, DigitalObjectException {
+            @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata
+            ) throws DigitalObjectException {
 
         if (modelId == null) {
             // XXX validate modelId values
@@ -188,69 +181,17 @@ public class DigitalObjectResource {
                         DigitalObjectResourceApi.DIGITALOBJECT_PID, "Invalid PID!").build();
             }
         }
-        mods = (mods == null || mods.isEmpty() || "null".equals(mods)) ? null : mods;
-        LOG.log(Level.FINE, "import model: {0} as mods: {1}", new Object[] {modelId, mods});
+        xmlMetadata = (xmlMetadata == null || xmlMetadata.isEmpty() || "null".equals(xmlMetadata)) ? null : xmlMetadata;
+        LOG.log(Level.FINE, "model: {0}, pid: {3}, parent: {2}, XML: {1}",
+                new Object[] {modelId, xmlMetadata, parentPid, pid});
 
-        LocalObject localObject = new LocalStorage().create(pid);
-        // MODS
-        ModsStreamEditor modsEditor = new ModsStreamEditor(localObject);
-        ModsType modsType;
-        if (mods == null) {
-            modsType = modsEditor.create(localObject.getPid(), modelId);
-        } else {
-            modsType = modsEditor.create(localObject.getPid(), modelId, mods);
-        }
-        modsEditor.write(modsType, 0, session.asFedoraLog());
-
-        // DC
-        DcStreamEditor dcEditor = new DcStreamEditor(localObject);
-        dcEditor.write(modsType, modelId, 0, session.asFedoraLog());
-
-        String label = ModsUtils.getLabel(modsType, modelId);
-        localObject.setLabel(label);
-        localObject.setOwner(user.getUserName());
-
-        // RELS-EXT
-        RelationEditor relsExt = new RelationEditor(localObject);
-        relsExt.setModel(modelId);
-        relsExt.write(0, session.asFedoraLog());
-
-        localObject.flush();
-
-        RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
-
-        // attach to parent object
-        RemoteObject parentObject = null;
-        if (parentPid != null) {
-            parentObject = fedora.find(parentPid);
-            RelationEditor parentRelsExt = new RelationEditor(parentObject);
-            List<String> members = parentRelsExt.getMembers();
-            members.add(localObject.getPid());
-            parentRelsExt.setMembers(members);
-            parentRelsExt.write(parentRelsExt.getLastModified(), session.asFedoraLog());
-        }
-
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
         try {
-            fedora.ingest(localObject, user.getUserName(), session.asFedoraLog());
-            if (parentObject != null) {
-                parentObject.flush();
-            }
-        } catch (FedoraClientException ex) {
-            // XXX hack: Fedora server does not notify existing object conflict with HTTP 409.
-            // Workaround parses error message.
-            // Check for existence before ingest would be insufficient as Fedora does not yet support transactions.
-            String message = ex.getMessage();
-            if (message != null && message.contains("org.fcrepo.server.errors.ObjectExistsException")) {
-                return SmartGwtResponse.<Item>asError().error("pid", "Object already exists!").build();
-            }
-            throw ex;
+            Item item = dom.createDigitalObject(modelId, pid, parentPid, user, xmlMetadata, session.asFedoraLog());
+            return new SmartGwtResponse<Item>(item);
+        } catch (DigitalObjectExistException ex) {
+            return SmartGwtResponse.<Item>asError().error("pid", "Object already exists!").build();
         }
-        Item item = new Item(localObject.getPid());
-        item.setLabel(localObject.getLabel());
-        item.setModel(modelId);
-        item.setOwner(localObject.getOwner());
-        item.setParentPid(parentPid);
-        return new SmartGwtResponse<Item>(item);
     }
 
     /**
@@ -640,6 +581,25 @@ public class DigitalObjectResource {
         }
     }
 
+    @GET
+    @Path(DigitalObjectResourceApi.DC_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public DublinCoreRecord getDublinCoreJson(
+            @QueryParam(DigitalObjectResourceApi.DUBLINCORERECORD_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.DUBLINCORERECORD_BATCHID) Integer batchId
+            ) throws IOException, DigitalObjectException {
+
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        DcStreamEditor dcEditor = new DcStreamEditor(fobject);
+        try {
+            DublinCoreRecord dc = dcEditor.read();
+            dc.setBatchId(batchId);
+            return dc;
+        } catch (DigitalObjectNotFoundException ex) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+    }
+
     @PUT
     @Path(DigitalObjectResourceApi.DC_PATH)
     @Consumes({MediaType.TEXT_XML, MediaType.APPLICATION_XML})
@@ -667,7 +627,7 @@ public class DigitalObjectResource {
     @GET
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public CustomMods<?> getCustomMods(
+    public DescriptionMetadata<Object> getDescriptionMetadata(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
@@ -677,25 +637,16 @@ public class DigitalObjectResource {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
 
-        FedoraObject fobject = findFedoraObject(pid, batchId);
-        ModsStreamEditor modsEditor = new ModsStreamEditor(fobject);
-
-        ModsType mods = modsEditor.read();
-        Mapping mapping = new Mapping();
-        Object customData = mapping.read(mods, editorId);
-        CustomMods<Object> result = new CustomMods<Object>();
-        result.setPid(pid);
-        result.setBatchId(batchId);
-        result.setEditor(editorId);
-        result.setTimestamp(modsEditor.getLastModified());
-        result.setData(customData);
-        return result;
+        DigitalObjectHandler doHandler = findHandler(pid, batchId);
+        DescriptionMetadata<Object> metadata = doHandler.metadata().getMetadataAsJsonObject(editorId);
+        metadata.setBatchId(batchId);
+        return metadata;
     }
 
     @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public CustomMods<?> updateCustomMods(
+    public DescriptionMetadata<?> updateDescriptionMetadata(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId,
@@ -710,43 +661,17 @@ public class DigitalObjectResource {
         if (timestamp == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
         }
-        FedoraObject fobject = findFedoraObject(pid, batchId);
-        ModsStreamEditor modsEditor = new ModsStreamEditor(fobject);
-
-        ModsType mods = modsEditor.read();
-        Mapping mapping = new Mapping();
-        Class<?> type = mapping.getType(editorId);
-        ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
-        try {
-            Object customData = jsMapper.readValue(customJsonData, type);
-            mapping.update(mods, customData, editorId);
-            if (LOG.isLoggable(Level.FINE)) {
-                String toXml = ModsUtils.toXml(mods, true);
-                LOG.fine(toXml);
-            }
-            modsEditor.write(mods, timestamp, session.asFedoraLog());
-
-            // DC
-            String model = new RelationEditor(fobject).getModel();
-            DcStreamEditor dcEditor = new DcStreamEditor(fobject);
-            dcEditor.write(mods, model, dcEditor.getLastModified(), session.asFedoraLog());
-
-            String label = ModsUtils.getLabel(mods, model);
-            fobject.setLabel(label);
-
-            fobject.flush();
-
-            CustomMods<Object> result = new CustomMods<Object>();
-            result.setPid(pid);
-            result.setBatchId(batchId);
-            result.setEditor(editorId);
-            result.setTimestamp(modsEditor.getLastModified());
-            result.setData(customData);
-            return result;
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, pid, ex);
-            throw new WebApplicationException(ex);
-        }
+        DigitalObjectHandler doHandler = findHandler(pid, batchId, false);
+        MetadataHandler<?> mHandler = doHandler.metadata();
+        DescriptionMetadata<String> metadataAsJson = new DescriptionMetadata<String>();
+        metadataAsJson.setPid(pid);
+        metadataAsJson.setBatchId(batchId);
+        metadataAsJson.setEditor(editorId);
+        metadataAsJson.setData(customJsonData);
+        metadataAsJson.setTimestamp(timestamp);
+        mHandler.setMetadataAsJson(metadataAsJson, session.asFedoraLog());
+        doHandler.commit();
+        return mHandler.getMetadataAsJsonObject(editorId);
     }
 
     @GET
@@ -826,53 +751,11 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId
-            ) throws IOException, DigitalObjectException {
+            ) throws DigitalObjectException {
 
-        FedoraObject fobject = findFedoraObject(pid, batchId);
-        if (dsId == null) {
-            return Response.ok(fobject.asText(), MediaType.TEXT_XML_TYPE)
-                    .header("Content-Disposition", "inline; filename=" + pid + ".xml")
-                    .build();
-        }
-        if (fobject instanceof LocalObject) {
-            LocalObject lobject = (LocalObject) fobject;
-            BinaryEditor loader = BinaryEditor.dissemination(lobject, dsId);
-            if (loader == null) {
-                throw RestException.plainNotFound(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM, dsId);
-            }
-            File entity = loader.read();
-            if (entity == null) {
-                throw RestException.plainNotFound("content not found");
-            }
-
-            Date lastModification = new Date(loader.getLastModified());
-            ResponseBuilder evaluatePreconditions = httpRequest.evaluatePreconditions(lastModification);
-            if (evaluatePreconditions != null) {
-                return evaluatePreconditions.build();
-            }
-
-            return Response.ok(entity, loader.getProfile().getDsMIME())
-                    .header("Content-Disposition", "inline; filename=" + entity.getName())
-                    .lastModified(lastModification)
-//                    .cacheControl(null)
-//                    .expires(new Date(2100, 1, 1))
-                    .build();
-        } else if (fobject instanceof RemoteObject) {
-            // This should limit fedora calls to 1.
-            // XXX It works around FedoraClient.FedoraClient.getDatastreamDissemination that hides HTTP headers of the response.
-            // Unfortunattely fedora does not return modification date as HTTP header
-            // In case of large images it could be faster to ask datastream for modification date first.
-            RemoteObject remote = (RemoteObject) fobject;
-            String path = String.format("objects/%s/datastreams/%s/content", remote.getPid(), dsId);
-            ClientResponse response = remote.getClient().resource().path(path).get(ClientResponse.class);
-            MultivaluedMap<String, String> headers = response.getHeaders();
-            String filename = headers.getFirst("Content-Disposition");
-            filename = filename != null ? filename : "inline; filename=" + pid + '-' + dsId;
-            return Response.ok(response.getEntity(InputStream.class), headers.getFirst("Content-Type"))
-                    .header("Content-Disposition", filename)
-                    .build();
-        }
-        throw new IllegalStateException("unsupported: " + fobject.getClass());
+        DigitalObjectHandler doHandler = findHandler(pid, batchId);
+        DisseminationHandler dissemination = doHandler.dissemination(dsId);
+        return dissemination.getDissemination(httpRequest);
     }
 
     /**
@@ -918,7 +801,6 @@ public class DigitalObjectResource {
         }
         String filename = getFilename(fileInfo.getFileName());
         try {
-            FedoraObject fobject = findFedoraObject(pid, batchId);
             if (mimeType == null) {
                 // XXX workaround; replace with Dron or Pronom to get mimetype
                 mimeType = fileInfo.getType();
@@ -929,20 +811,11 @@ public class DigitalObjectResource {
             } catch (IllegalArgumentException ex) {
                 throw RestException.plainText(Status.BAD_REQUEST, "Invalid MIME type!");
             }
-            BinaryEditor editor = BinaryEditor.dissemination(fobject, BinaryEditor.RAW_ID, mime);
-            DatastreamProfile profile = editor.getProfile();
-            profile.setDsMIME(mime.toString());
-            // fedora adds own extensions :-(
-            profile.setDsLabel(filename);
-            editor.setProfile(profile);
-            // XXX generate preview, thumb, ocr if possible
-            editor.write(file, editor.getLastModified(), session.asFedoraLog());
-
-            RelationEditor relationEditor = new RelationEditor(fobject);
-            relationEditor.setImportFile(filename);
-            relationEditor.write(relationEditor.getLastModified(), session.asFedoraLog());
-
-            fobject.flush();
+            DigitalObjectHandler doHandler = findHandler(pid, batchId);
+            DisseminationHandler dissemination = doHandler.dissemination(BinaryEditor.RAW_ID);
+            DisseminationInput input = new DisseminationInput(file, filename, mime);
+            dissemination.setDissemination(input, session.asFedoraLog());
+            doHandler.commit();
         } finally {
             file.delete();
         }
@@ -963,21 +836,18 @@ public class DigitalObjectResource {
     @GET
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_PLAIN_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public StringRecord getModsTxt(
+    public StringRecord getDescriptionMetadataTxt(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
-            ) throws IOException, DigitalObjectException {
+            ) throws DigitalObjectException {
 
-        FedoraObject fobject = findFedoraObject(pid, batchId, false);
-        ModsStreamEditor meditor = new ModsStreamEditor(fobject);
-        try {
-            String content = meditor.readAsString();
-            StringRecord mods = new StringRecord(content, meditor.getLastModified(), pid);
-            mods.setBatchId(batchId);
-            return mods;
-        } catch (DigitalObjectNotFoundException ex) {
-            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
-        }
+        DigitalObjectHandler handler = findHandler(pid, batchId, false);
+        MetadataHandler<?> metadataHandler = handler.metadata();
+        DescriptionMetadata<String> metadataAsXml = metadataHandler.getMetadataAsXml();
+        StringRecord result = new StringRecord(
+                metadataAsXml.getData(), metadataAsXml.getTimestamp(), metadataAsXml.getPid());
+        result.setBatchId(batchId);
+        return result;
     }
 
     @GET
@@ -1120,10 +990,28 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<AtmItem>(result);
     }
 
+    private DigitalObjectHandler findHandler(String pid, Integer batchId) throws DigitalObjectNotFoundException {
+        return findHandler(pid, batchId, true);
+    }
+
+    private DigitalObjectHandler findHandler(String pid, Integer batchId, boolean readonly)
+            throws DigitalObjectNotFoundException {
+
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        FedoraObject fobject = dom.find(pid, batchId);
+        if (!readonly && fobject instanceof LocalObject) {
+            Batch batch = importManager.get(batchId);
+            ImportResource.checkBatchState(batch);
+        }
+        return dom.createHandler(fobject);
+    }
+
+    @Deprecated
     private FedoraObject findFedoraObject(String pid, Integer batchId) throws IOException {
         return findFedoraObject(pid, batchId, true);
     }
 
+    @Deprecated
     private FedoraObject findFedoraObject(String pid, Integer batchId, boolean readonly) throws IOException {
         FedoraObject fobject;
         if (batchId != null) {
@@ -1176,65 +1064,6 @@ public class DigitalObjectResource {
             filepath = filepath.substring(index);
         }
         return filepath;
-    }
-
-    @XmlRootElement(name = DigitalObjectResourceApi.CUSTOMMODS_ELEMENT)
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class CustomMods<T> {
-
-        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_PID)
-        private String pid;
-        @XmlElement(name = DigitalObjectResourceApi.BATCHID_PARAM)
-        private Integer batchId;
-        @XmlElement(name = DigitalObjectResourceApi.TIMESTAMP_PARAM)
-        private long timestamp;
-        @XmlElement(name = DigitalObjectResourceApi.MODS_CUSTOM_EDITORID)
-        private String editor;
-        @XmlElement(name = DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA)
-        private T data;
-
-        public CustomMods() {
-        }
-
-        public Integer getBatchId() {
-            return batchId;
-        }
-
-        public void setBatchId(Integer batchId) {
-            this.batchId = batchId;
-        }
-
-        public T getData() {
-            return data;
-        }
-
-        public void setData(T data) {
-            this.data = data;
-        }
-
-        public String getEditor() {
-            return editor;
-        }
-
-        public void setEditor(String editor) {
-            this.editor = editor;
-        }
-
-        public String getPid() {
-            return pid;
-        }
-
-        public void setPid(String pid) {
-            this.pid = pid;
-        }
-
-        public long getTimestamp() {
-            return timestamp;
-        }
-
-        public void setTimestamp(long timestamp) {
-            this.timestamp = timestamp;
-        }
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)

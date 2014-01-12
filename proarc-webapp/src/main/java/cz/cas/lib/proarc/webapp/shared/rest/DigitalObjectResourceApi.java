@@ -30,7 +30,7 @@ public final class DigitalObjectResourceApi {
     public static final String BATCHID_PARAM = "batchId";
     public static final String TIMESTAMP_PARAM = "timestamp";
 
-    public static final String NEWOBJECT_MODS_PARAM = "mods";
+    public static final String NEWOBJECT_XML_PARAM = "xml";
 
     public static final String DELETE_HIERARCHY_PARAM = "hierarchy";
     public static final String DELETE_PID_PARAM = DIGITALOBJECT_PID;

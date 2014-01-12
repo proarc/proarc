@@ -16,14 +16,13 @@
  */
 package cz.cas.lib.proarc.common.object.model;
 
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
-import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
-import cz.cas.lib.proarc.oaidublincore.ElementType;
+import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
+import cz.cas.lib.proarc.common.object.NdkPlugin;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The repository of models of digital objects.
@@ -34,74 +33,38 @@ import java.util.List;
  */
 public final class MetaModelRepository {
 
-    private static final MetaModelRepository INSTANCE = new MetaModelRepository();
+    private static MetaModelRepository INSTANCE;
 
-//    private Collection<MetaModel> repository;
+    private final Collection<MetaModel> repository;
+
+    public static void setInstance(String[] plugins) {
+        MetaModelRepository mmr = new MetaModelRepository();
+        for (String pluginClass : plugins) {
+            try {
+                Class<?> clazz = mmr.getClass().getClassLoader().loadClass(pluginClass);
+                DigitalObjectPlugin plugin = (DigitalObjectPlugin) clazz.newInstance();
+                mmr.registerModels(plugin.getModel());
+            } catch (Exception ex) {
+                Logger.getLogger(MetaModelRepository.class.getName()).log(Level.SEVERE, pluginClass, ex);
+            }
+        }
+        INSTANCE = mmr;
+    }
 
     public static MetaModelRepository getInstance() {
+        if (INSTANCE == null) {
+            setInstance(new String[] {NdkPlugin.class.getName()});
+        }
         return INSTANCE;
     }
 
 
     private MetaModelRepository() {
-//        repository = new ArrayList<MetaModel>();
+        repository = new ArrayList<MetaModel>();
     }
 
     public Collection<MetaModel> find() {
-        // for now it is read only repository
-        List<MetaModel> models = new ArrayList<MetaModel>();
-        models.add(new MetaModel(
-                "model:periodical", true, null,
-                Arrays.asList(new ElementType("Periodical", "en"), new ElementType("Periodikum", "cs")),
-                ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_PERIODICAL,
-                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
-                ));
-        models.add(new MetaModel(
-                "model:periodicalvolume", null, null,
-                Arrays.asList(new ElementType("Periodical Volume", "en"), new ElementType("Ročník", "cs")),
-                ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_PERIODICAL_VOLUME,
-                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
-                ));
-        models.add(new MetaModel(
-                "model:periodicalitem", null, null,
-                Arrays.asList(new ElementType("Periodical Item", "en"), new ElementType("Výtisk", "cs")),
-                ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_PERIODICAL_ISSUE,
-                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
-                ));
-        models.add(new MetaModel(
-                "model:monograph", true, null,
-                Arrays.asList(new ElementType("Monograph", "en"), new ElementType("Monografie", "cs")),
-                ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_MONOGRAPH,
-                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
-                ));
-        models.add(new MetaModel(
-                "model:monographunit", null, null,
-                Arrays.asList(new ElementType("Monograph Unit", "en"), new ElementType("Monografie - volná část", "cs")),
-                ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_MONOGRAPH_UNIT,
-                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
-                ));
-        models.add(new MetaModel(
-                "model:page", null, true,
-                Arrays.asList(new ElementType("Page", "en"), new ElementType("Strana", "cs")),
-                ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_PAGE,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
-                ));
-
-        return models;
+        return Collections.unmodifiableCollection(repository);
     }
 
     public MetaModel find(String model) {
@@ -112,4 +75,9 @@ public final class MetaModelRepository {
         }
         return null;
     }
+
+    void registerModels(Collection<MetaModel> models) {
+        this.repository.addAll(models);
+    }
+
 }
