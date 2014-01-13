@@ -25,7 +25,7 @@ import java.util.Map;
  *
  * @author Jan Pokorsky
  */
-abstract class AbstractModelForm extends DynamicForm {
+public abstract class AbstractModelForm extends DynamicForm {
 
     @Override
     public void clearErrors(boolean show) {

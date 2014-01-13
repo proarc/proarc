@@ -423,7 +423,7 @@ public final class DigitalObjectChildrenEditor
     }
 
     private void createAddMenu(ResultSet models) {
-        Menu menuAdd = MetaModelDataSource.createMenu(models, false);
+        Menu menuAdd = MetaModelDataSource.createMenu(models, true);
         addActionButton.setMenu(menuAdd);
         menuAdd.addItemClickHandler(new ItemClickHandler() {
 

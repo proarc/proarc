@@ -26,6 +26,7 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
@@ -51,6 +52,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
+// XXX rename to DescriptionMultiEditor
 public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         BatchDatastreamEditor, Refreshable, Selectable<DigitalObject> {
 
@@ -241,7 +243,8 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
                 new SwitchAction(modsFullEditor,
                         i18n.ModsMultiEditor_TabFull_Title(),
                         Page.getAppDir() + "images/silk/16/container.png",
-                        i18n.ModsMultiEditor_TabFull_Hint()
+                        i18n.ModsMultiEditor_TabFull_Hint(),
+                        ModsConstants.NS
                 ), actionSource, false));
 
         menuMods.addItem(Actions.asMenuItem(
@@ -353,10 +356,16 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
     private final class SwitchAction extends AbstractAction {
 
         private final DatastreamEditor tab;
+        private final String format;
 
         public SwitchAction(DatastreamEditor tab, String title, String icon, String tooltip) {
+            this(tab, title, icon, tooltip, null);
+        }
+
+        public SwitchAction(DatastreamEditor tab, String title, String icon, String tooltip, String format) {
             super(title, icon, tooltip);
             this.tab = tab;
+            this.format = format;
         }
 
         @Override
@@ -367,7 +376,11 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         @Override
         public boolean accept(ActionEvent event) {
             DigitalObject[] selections = getSelection();
-            return selections != null && selections.length == 1;
+            return selections != null && selections.length == 1 && acceptFormat(selections[0]);
+        }
+
+        private boolean acceptFormat(DigitalObject obj) {
+            return format == null || format != null && format.equals(obj.getModel().getMetadataFormat());
         }
 
     }
