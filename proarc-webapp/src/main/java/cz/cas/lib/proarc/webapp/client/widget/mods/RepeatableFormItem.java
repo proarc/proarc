@@ -86,6 +86,8 @@ public final class RepeatableFormItem extends CanvasItem {
 //        setEndRow(false);
         setShowTitle(false);
         setCanFocus(true);
+        // show errors for nested data fields not for enclosing form
+        setShowErrorIcon(false);
         setValidators();
         setAutoWidth();
 

@@ -143,8 +143,6 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
 
     public boolean validate(boolean showError) {
         boolean valid = true;
-        // do not show item error in case of one row form
-        showError &= showError && formItem.getMaxOccurrences() > 1;
         for (Row row : activeRows) {
             ValuesManager vm = row.getForm();
             for (DynamicForm df : vm.getMembers()) {
@@ -155,10 +153,6 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     }
 
     public void showErrors() {
-        // do not show item error in case of one row form
-        if (formItem.getMaxOccurrences() <= 1) {
-            return ;
-        }
         for (Row row : activeRows) {
             ValuesManager vm = row.getForm();
             Map<?, ?> errors = vm.getErrors();
@@ -171,9 +165,9 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     public void clearErrors(boolean show) {
         for (Row row : activeRows) {
             ValuesManager vm = row.getForm();
-            Map<?, ?> errors = vm.getErrors();
-            if (errors != null && !errors.isEmpty()) {
-                vm.clearErrors(show);
+            // vm.clearErrors() broken in SmartGWT 3.0
+            for (DynamicForm form : vm.getMembers()) {
+                form.clearErrors(show);
             }
         }
     }
