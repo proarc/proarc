@@ -111,7 +111,7 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
         this.formItem = item;
         setAutoHeight();
         this.formFactory = item.getFormFactory();
-        if (formItem.getMaxOccurrences() > 1) {
+        if (formItem.getMaxOccurrences() > 1 || formItem.getTitle() != null) {
             setGroupTitle(formItem.getTitle());
             setIsGroup(true);
             setLayoutTopMargin(6);
