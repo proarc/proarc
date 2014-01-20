@@ -60,25 +60,21 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     private final RepeatableFormItem formItem;
 
     private static final class Row {
-        private ValuesManager form;
-        private Canvas formWidget;
+        private FormWidget formWidget;
+        /** form + buttons */
         private Canvas view;
         private IButton buttonAdd;
         private IButton buttonRemove;
 
         public ValuesManager getForm() {
-            return form;
+            return formWidget.getValues();
         }
 
-        public void setForm(ValuesManager form) {
-            this.form = form;
-        }
-
-        public Canvas getFormWidget() {
+        public FormWidget getFormWidget() {
             return formWidget;
         }
 
-        public void setFormWidget(Canvas formWidget) {
+        public void setFormWidget(FormWidget formWidget) {
             this.formWidget = formWidget;
         }
 
@@ -251,18 +247,17 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
         if (formFactory instanceof FormWidgetFactory) {
             FormWidgetFactory ff = (FormWidgetFactory) formFactory;
             FormWidget formWidget = ff.createFormWidget(formItem.getProfile());
-            row.setFormWidget(formWidget.getWidget());
+            row.setFormWidget(formWidget);
             vm = formWidget.getValues();
-            row.setForm(vm);
         } else {
             DynamicForm form = formFactory.create();
-            row.setFormWidget(form);
             vm = form.getValuesManager();
             if (vm == null) {
                 vm = new ValuesManager();
                 vm.addMember(form);
             }
-            row.setForm(vm);
+            FormWidget formWidget = new FormWidget(form, vm);
+            row.setFormWidget(formWidget);
         }
         for (DynamicForm form : vm.getMembers()) {
             form.setShowInlineErrors(true);
@@ -285,7 +280,7 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
         HLayout hLayout = new HLayout();
         Canvas buttons = createItemButtons(row);
         buttons.setLayoutAlign(VerticalAlignment.BOTTOM);
-        hLayout.addMember(row.getFormWidget());
+        hLayout.addMember(row.getFormWidget().getWidget());
         hLayout.addMember(buttons);
         return hLayout;
     }
