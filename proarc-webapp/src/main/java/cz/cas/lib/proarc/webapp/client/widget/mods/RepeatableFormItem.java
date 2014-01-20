@@ -32,6 +32,7 @@ import com.smartgwt.client.widgets.form.fields.events.ShowValueHandler;
 import com.smartgwt.client.widgets.form.validator.CustomValidator;
 import com.smartgwt.client.widgets.form.validator.Validator;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.mods.event.ListChangedEvent;
 import cz.cas.lib.proarc.webapp.client.widget.mods.event.ListChangedHandler;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
@@ -62,8 +63,19 @@ public final class RepeatableFormItem extends CanvasItem {
         this(name, title, null);
     }
 
+    public RepeatableFormItem(Field profile, CustomFormFactory formFactory) {
+        this(profile, profile.getName(), profile.getTitle(LanguagesDataSource.activeLocale()), formFactory);
+    }
+
     public RepeatableFormItem(String name, String title, CustomFormFactory formFactory) {
+        this(null, name, title, formFactory);
+    }
+
+    private  RepeatableFormItem(Field profile, String name, String title, CustomFormFactory formFactory) {
         super(name, title);
+        if (profile != null) {
+            setProfile(profile);
+        }
         this.formFactory = formFactory;
 
 //        setStartRow(false);
@@ -133,6 +145,10 @@ public final class RepeatableFormItem extends CanvasItem {
 
     public void setFormFactory(CustomFormFactory factory) {
         this.formFactory = factory;
+    }
+
+    static Field getProfile(FormItem item) {
+        return (Field) item.getAttributeAsObject(ATTR_PROFILE);
     }
 
     public Field getProfile() {
