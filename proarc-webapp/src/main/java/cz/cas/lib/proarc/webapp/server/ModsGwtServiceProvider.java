@@ -21,26 +21,27 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
-import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
-import cz.fi.muni.xkremser.editor.client.mods.ModsCollectionClient;
-import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.util.BiblioModsUtils;
+import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.webapp.client.rpc.ModsGwtRecord;
 import cz.cas.lib.proarc.webapp.client.rpc.ModsGwtService;
 import cz.cas.lib.proarc.webapp.server.rest.ImportResource;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import cz.fi.muni.xkremser.editor.client.mods.ModsCollectionClient;
+import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
+import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.fi.muni.xkremser.editor.server.util.BiblioModsUtils;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -81,16 +82,17 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
     @Override
     public ModsGwtRecord read(String id, Integer batchId) {
         try {
-            FedoraObject fbject = findFedoraObject(id, batchId, false);
-            ModsStreamEditor editor = new ModsStreamEditor(fbject);
-            ModsType mods = editor.read();
+            FedoraObject fobject = findFedoraObject(id, batchId, false);
+            DigitalObjectHandler doHandler = DigitalObjectManager.getDefault().createHandler(fobject);
+            DescriptionMetadata<ModsType> metadata = doHandler.<ModsType>metadata().getMetadata();
+            ModsType mods = metadata.getData();
             String xml = ModsUtils.toXml(mods, true);
             int xmlHash = xml.hashCode();
-            LOG.log(Level.INFO, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
+            LOG.log(Level.FINE, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
             ModsCollection modsCollection = new ModsCollection();
             modsCollection.setMods(Arrays.asList(mods));
             ModsCollectionClient modsClient = BiblioModsUtils.toModsClient(modsCollection);
-            return new ModsGwtRecord(modsClient, editor.getLastModified(), xmlHash);
+            return new ModsGwtRecord(modsClient, metadata.getTimestamp(), xmlHash);
         } catch (DigitalObjectException ex) {
             throw new IllegalStateException(ex);
         } catch (IOException ex) {
@@ -113,33 +115,34 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
     public String write(String id, Integer batchId, ModsGwtRecord record) {
         SessionContext session = SessionContext.from(getThreadLocalRequest());
         String oldId = id;
-        LOG.log(Level.INFO, "id: {0}, modsClient: {1}, hash: {2}", new Object[]{id, record.getMods(), record.getXmlHash()});
+        LOG.log(Level.FINE, "id: {0}, modsClient: {1}, hash: {2}", new Object[]{id, record.getMods(), record.getXmlHash()});
         ModsCollection mods = BiblioModsUtils.toMods(record.getMods());
         ModsType modsType = mods.getMods().get(0);
         String xml = ModsUtils.toXml(modsType, true);
         int xmlHash = xml.hashCode();
-        LOG.log(Level.INFO, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
+        LOG.log(Level.FINE, "id: {0}, hash: {2}, MODS: {1}", new Object[]{id, xml, xmlHash});
         if (xmlHash == record.getXmlHash()) {
             return id;
         }
 
         try {
             FedoraObject fObject = findFedoraObject(id, batchId, false);
-            ModsStreamEditor editor = new ModsStreamEditor(fObject);
-            editor.write(modsType, record.getTimestamp(), session.asFedoraLog());
-            // DC
-            String model = new RelationEditor(fObject).getModel();
-            DcStreamEditor dcEditor = new DcStreamEditor(fObject);
-            dcEditor.write(modsType, model, dcEditor.getLastModified(), session.asFedoraLog());
-            fObject.setLabel(ModsUtils.getLabel(modsType, model));
-            fObject.flush();
+            DigitalObjectHandler doHandler = DigitalObjectManager.getDefault().createHandler(fObject);
+            MetadataHandler<ModsType> mHandler = doHandler.metadata();
+            DescriptionMetadata<ModsType> metadata = new DescriptionMetadata<ModsType>();
+            metadata.setPid(id);
+            metadata.setBatchId(batchId);
+            metadata.setData(modsType);
+            metadata.setTimestamp(record.getTimestamp());
+            mHandler.setMetadata(metadata, session.asFedoraLog());
+            doHandler.commit();
         } catch (DigitalObjectException ex) {
             throw new IllegalStateException(ex);
         } catch (IOException ex) {
             throw new IllegalStateException(ex);
         }
 
-        LOG.log(Level.INFO, "written id: {0}, old id: {1}", new Object[]{id, oldId});
+        LOG.log(Level.FINE, "written id: {0}, old id: {1}", new Object[]{id, oldId});
 
         return id;
     }
@@ -147,23 +150,10 @@ public class ModsGwtServiceProvider extends RemoteServiceServlet implements Mods
     @Override
     @Deprecated
     public String getXml(ModsCollectionClient modsCollection) {
-        LOG.log(Level.INFO, "modsClient: {0}", new Object[]{modsCollection});
+        LOG.log(Level.FINE, "modsClient: {0}", new Object[]{modsCollection});
         ModsCollection mods = BiblioModsUtils.toMods(modsCollection);
         String xml = BiblioModsUtils.toXML(mods);
-//        sleep(10);
         return xml;
-    }
-
-    private void sleep(int timeInSec) {
-        long start = 0;
-        try {
-            LOG.info("sleep");
-            start = System.currentTimeMillis();
-            Thread.sleep(timeInSec * 1000);
-        } catch (InterruptedException ex) {
-            LOG.log(Level.SEVERE, null, ex);
-        }
-            LOG.log(Level.INFO, "wake up: {0} ms", (System.currentTimeMillis() - start));
     }
 
     // XXX temorary; unify with DigitalObjectResource.findFedoraObject to DigitalObject API

@@ -9,7 +9,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -63,17 +63,17 @@
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-oaidublincore</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>z3950</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>proarc-z3950</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>cz.incad</groupId>
             <artifactId>img-support</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>cz.registrdigitalizace</groupId>
@@ -108,7 +108,7 @@
         <dependency>
             <groupId>cz.mzk</groupId>
             <artifactId>EditMods</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
         <!--javax.ws.rs.core.MediaType-->
         <!--JsonUtils-->
@@ -155,6 +155,25 @@
     </dependencies>
 
     <build>
+
+        <resources>
+
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>proarc.properties</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/proarc.properties</include>
+                </includes>
+            </resource>
+
+        </resources>
 
         <plugins>
 

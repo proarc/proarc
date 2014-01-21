@@ -92,6 +92,14 @@ public final class RemoteStorage {
         return getSearch(null);
     }
 
+    /**
+     * Ingests a digital object stored in a file.
+     * @param foxml persisted digital object
+     * @param pid PID of the digital object
+     * @param ingestUser ignored in case the owner is already set for the object
+     * @param log message describing the action
+     * @throws FedoraClientException failure
+     */
     public void ingest(File foxml, String pid, String ingestUser, String log) throws FedoraClientException {
         if (ingestUser == null || ingestUser.isEmpty()) {
             throw new IllegalArgumentException("ingestUser");
@@ -105,15 +113,26 @@ public final class RemoteStorage {
         if (response.getStatus() != 201) {
             // XXX
         }
-        LOG.log(Level.INFO, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
+        LOG.log(Level.FINE, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
     }
 
+    /**
+     * Ingests a digital object with default log message.
+     * @param object digital object to ingest
+     * @param ingestUser ignored in case the owner is already set for the object
+     * @throws FedoraClientException failure
+     */
     public void ingest(LocalObject object, String ingestUser) throws FedoraClientException {
         ingest(object, ingestUser, "Ingested locally");
     }
 
     /**
-     * see https://wiki.duraspace.org/display/FEDORA35/Using+File+URIs to reference external files for ingest
+     * Ingests a digital object with default log message.
+     * <p>See https://wiki.duraspace.org/display/FEDORA35/Using+File+URIs to reference external files for ingest.
+     * @param object digital object to ingest
+     * @param ingestUser ignored in case the owner is already set for the object
+     * @param log message describing the action
+     * @throws FedoraClientException failure
      */
     public void ingest(LocalObject object, String ingestUser, String log) throws FedoraClientException {
         if (ingestUser == null || ingestUser.isEmpty()) {
@@ -121,6 +140,11 @@ public final class RemoteStorage {
         }
         if (log == null || ingestUser.isEmpty()) {
             throw new IllegalArgumentException("log");
+        }
+        if (object.getOwner() == null) {
+            // use the ownerId property as fedora ignores REST param ownerId
+            // in case of ingesting an object WITH contents
+            object.setOwner(ingestUser);
         }
         DigitalObject digitalObject = object.getDigitalObject();
 
@@ -131,12 +155,11 @@ public final class RemoteStorage {
 //                .namespace("")
 //                .xParam("", "")
                 .content(xml)
-                .ownerId(ingestUser)
                 .execute(client);
         if (response.getStatus() != 201) {
             // XXX
         }
-        LOG.log(Level.INFO, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
+        LOG.log(Level.FINE, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
     }
 
     FedoraClient getClient() {
@@ -276,15 +299,16 @@ public final class RemoteStorage {
         }
 
         @Override
-        public String getMimetype() throws DigitalObjectException {
-            try {
-                fetchProfile();
-                return profile.getDsMIME();
-            } catch (DigitalObjectException ex) {
-                throw ex;
-            } catch (Exception ex) {
-                throw new DigitalObjectException(object.getPid(), toLogString(), ex);
-            }
+        public DatastreamProfile getProfile() throws DigitalObjectException {
+            fetchProfile();
+            return profile;
+        }
+
+        @Override
+        public void setProfile(DatastreamProfile profile) throws DigitalObjectException {
+            this.profile = profile;
+            object.register(this);
+            modified = true;
         }
 
         @Override
@@ -347,6 +371,7 @@ public final class RemoteStorage {
                 GetDatastreamResponse response = FedoraClient.getDatastream(object.getPid(), dsId)
                         .format("xml").execute(object.getClient());
                 profile = response.getDatastreamProfile();
+                profile = normalizeProfile(profile);
                 lastModified = response.getLastModifiedDate().getTime();
                 missingDataStream = false;
             } catch (FedoraClientException ex) {
@@ -372,6 +397,13 @@ public final class RemoteStorage {
                     throw new DigitalObjectException(object.getPid(), toLogString(), ex);
                 }
             }
+        }
+
+        private DatastreamProfile normalizeProfile(DatastreamProfile profile) {
+            // set empty format to null
+            String format = profile.getDsFormatURI();
+            profile.setDsFormatURI(format != null && format.isEmpty() ? null : format);
+            return profile;
         }
 
         private void fetchData() throws DigitalObjectException {
@@ -416,6 +448,7 @@ public final class RemoteStorage {
                 modified = false;
                 logMessage = null;
                 profile = response.getDatastreamProfile();
+                profile = normalizeProfile(profile);
                 lastModified = response.getLastModifiedDate().getTime();
             } catch (IOException ex) {
                 throw new DigitalObjectException(object.getPid(), toLogString(), ex);
@@ -458,13 +491,16 @@ public final class RemoteStorage {
                     .logMessage(logMessage)
                     .mimeType(profile.getDsMIME());
 
-            ControlGroup control = ControlGroup.fromExternal(profile.getDsControlGroup());
-            if (control == ControlGroup.INLINE || control == ControlGroup.MANAGED) {
-                request.content(data.asInputStream());
-            } else if (control == ControlGroup.EXTERNAL) {
-                request.dsLocation(data.reference.toASCIIString());
-            } else {
-                throw new UnsupportedOperationException("DsControlGroup: " + control + "; " + toLogString());
+            // some profile changes (MIME) cannot be written without contents!
+            if (data != null) {
+                ControlGroup control = ControlGroup.fromExternal(profile.getDsControlGroup());
+                if (control == ControlGroup.INLINE || control == ControlGroup.MANAGED) {
+                    request.content(data.asInputStream());
+                } else if (control == ControlGroup.EXTERNAL) {
+                    request.dsLocation(data.reference.toASCIIString());
+                } else {
+                    throw new UnsupportedOperationException("DsControlGroup: " + control + "; " + toLogString());
+                }
             }
             ModifyDatastreamResponse response = request.execute(object.getClient());
             return response;

@@ -92,7 +92,6 @@ public final class UserResource {
 //            @FormParam("userHome") String home
             ) {
 
-        LOG.info(userName);
         checkAccess(userPrincipal, Permissions.ADMIN, Permissions.USERS_CREATE);
         if (userName == null) {
             return SmartGwtResponse.<UserProfile>asError().error("userName", "missing").build();
@@ -123,7 +122,6 @@ public final class UserResource {
 //            @FormParam("userHome") String home
             ) {
 
-        LOG.info(String.valueOf(userId));
         // check for admin or the same user
         UserProfile update = userId == null ? null : userManager.find(userId);
         boolean fullUpdate;

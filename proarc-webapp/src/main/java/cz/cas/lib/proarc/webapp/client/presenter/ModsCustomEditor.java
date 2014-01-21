@@ -27,7 +27,9 @@ import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.layout.VLayout;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
+import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
@@ -41,6 +43,7 @@ import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
+import cz.cas.lib.proarc.webapp.client.widget.dc.DcEditor;
 import cz.cas.lib.proarc.webapp.client.widget.mods.MonographForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.MonographUnitForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PageForm;
@@ -56,6 +59,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
+// XXX rename to DescriptionFormEditor
 public final class ModsCustomEditor extends AbstractDatastreamEditor implements Refreshable {
 
     private static final Logger LOG = Logger.getLogger(ModsCustomEditor.class.getName());
@@ -235,8 +239,22 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
     }
 
     private DynamicForm createCustomForm(MetaModelRecord model) {
+        String metadataFormat = model.getMetadataFormat();
         DynamicForm form = null;
-        final String editorId = model.getEditorId();
+        if (ModsConstants.NS.equals(metadataFormat)) {
+            form = createModsForm(model.getEditorId());
+        } else if (DcConstants.NS_OAIDC.equals(metadataFormat)) {
+            form = new DcEditor(i18n, model).getForm();
+        }
+        if (form == null) {
+            ClientUtils.warning(LOG, "Uknown model editor: %s, editor: %s, format: %s",
+                    model.getId(), model.getEditorId(), metadataFormat);
+        }
+        return form;
+    }
+
+    private DynamicForm createModsForm(String editorId) {
+        DynamicForm form = null;
         if (ModsCutomEditorType.EDITOR_PAGE.equals(editorId)) {
             form = new PageForm(i18n);
         } else if (ModsCutomEditorType.EDITOR_PERIODICAL.equals(editorId)) {
@@ -249,8 +267,6 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
             form = new PeriodicalIssueForm(i18n);
         } else if (ModsCutomEditorType.EDITOR_MONOGRAPH_UNIT.equals(editorId)) {
             form = new MonographUnitForm(i18n);
-        } else {
-            ClientUtils.warning(LOG, "Uknown model editor: %s, editor: %s", model.getId(), model.getEditorId());
         }
         return form;
     }
@@ -296,7 +312,6 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                     editedCustomRecord = customRecord;
                     editor.editRecord(customModsRecord);
                     editor.clearErrors(true);
-                    widget.setMembers(editor);
                     loadCallback.execute(Boolean.TRUE);
                     fireEvent(new EditorLoadEvent(false));
                     return ;

@@ -18,8 +18,13 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.BatchView;
+import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
+import cz.cas.lib.proarc.common.dublincore.DcUtils;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Date;
@@ -27,9 +32,13 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.transform.stream.StreamResult;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -62,6 +71,32 @@ public class JacksonProviderTest {
     @After
     public void tearDown() {
     }
+
+    @Test
+    public void testDublinCoreRecord() throws Exception {
+        ObjectMapper om = new JacksonProvider().locateMapper(DublinCoreRecord.class, MediaType.APPLICATION_JSON_TYPE);
+        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        URL resource = JacksonProviderTest.class.getResource("dc_test.xml");
+        assertNotNull(resource);
+        OaiDcType dc = JAXB.unmarshal(resource, OaiDcType.class);
+        DublinCoreRecord dr = new DublinCoreRecord(dc, System.currentTimeMillis(), "uuid:1");
+        String toJson = om.writeValueAsString(dr);
+//        System.out.println(toJson);
+
+        DublinCoreRecord ndr = om.readValue(toJson, DublinCoreRecord.class);
+        assertEquals(dr.getBatchId(), ndr.getBatchId());
+        assertEquals(dr.getPid(), ndr.getPid());
+        assertEquals(dr.getTimestamp(), ndr.getTimestamp());
+        assertEquals(dr.getDc().getIdentifiers(), ndr.getDc().getIdentifiers());
+        assertEquals(dr.getDc().getTitles(), ndr.getDc().getTitles());
+        assertEquals(dr.getDc().getCreators(), ndr.getDc().getCreators());
+
+        StringWriter toXml = new StringWriter();
+        DcUtils.marshal(new StreamResult(toXml), ndr.getDc(), true);
+        toXml.flush();
+//        System.out.println("---");
+//        System.out.println(toXml);
+}
 
     @Test
     public void testWrapRootValue() throws IOException {

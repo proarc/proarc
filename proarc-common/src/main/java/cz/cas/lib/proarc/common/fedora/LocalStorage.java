@@ -161,9 +161,8 @@ public final class LocalStorage {
     public static final class LocalXmlStreamEditor implements XmlStreamEditor {
 
         private final LocalObject object;
-        private final DatastreamProfile defaultProfile;
+        private DatastreamProfile defaultProfile;
         private final boolean isXml;
-        private String realMimetype;
 
         private LocalXmlStreamEditor(LocalObject object, DatastreamProfile defaultProfile) {
             this.object = object;
@@ -176,9 +175,6 @@ public final class LocalStorage {
         public Source read() {
             // find version
             DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), defaultProfile.getDsID());
-            if (version != null) {
-                realMimetype = version.getMIMETYPE();
-            }
             return createSource(version);
         }
 
@@ -249,16 +245,54 @@ public final class LocalStorage {
             return last;
         }
 
+        /**
+         * Gets {@link DatastreamVersionType} as {@link DatastreamProfile} for
+         * {@link #setProfile setProfile}. Only dsId, dsLabel, dsCreateDate,
+         * dsFormatURI and dsMIME are translated.
+         * @return the stream profile
+         * @throws DigitalObjectException
+         */
         @Override
-        public String getMimetype() {
-            if (realMimetype == null) {
-                DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), defaultProfile.getDsID());
-                realMimetype = version != null ? version.getMIMETYPE() : null;
+        public DatastreamProfile getProfile() throws DigitalObjectException {
+            return getProfileImp();
+        }
+
+        public DatastreamProfile getProfileImp() {
+            String dsId = defaultProfile.getDsID();
+            DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
+            if (version == null) {
+                return defaultProfile;
             }
-            if (realMimetype == null) {
-                realMimetype = defaultProfile.getDsMIME();
+            DatastreamProfile profile = new DatastreamProfile();
+            profile.setDsID(version.getID());
+            profile.setDsLabel(version.getLABEL());
+            profile.setDsCreateDate(version.getCREATED());
+            profile.setDsFormatURI(version.getFORMATURI());
+            profile.setDsMIME(version.getMIMETYPE());
+            return profile;
+        }
+
+        /**
+         * Updates {@link DatastreamVersionType} properties with {@link DatastreamProfile}
+         * where it makes sense.
+         * @param profile profile
+         * @throws DigitalObjectException failure
+         */
+        @Override
+        public void setProfile(DatastreamProfile profile) throws DigitalObjectException {
+            if (profile == null) {
+                throw new NullPointerException();
             }
-            return realMimetype;
+            String dsId = defaultProfile.getDsID();
+            DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
+            if (version == null) {
+                defaultProfile = profile;
+                return ;
+            }
+            version.setCREATED(profile.getDsCreateDate());
+            version.setFORMATURI(profile.getDsFormatURI());
+            version.setLABEL(profile.getDsLabel());
+            version.setMIMETYPE(profile.getDsMIME());
         }
 
         @Override
@@ -412,7 +446,7 @@ public final class LocalStorage {
                     getClass().getSimpleName(),
                     object.getPid(),
                     defaultProfile.getDsID(),
-                    getMimetype(),
+                    getProfileImp().getDsMIME(),
                     defaultProfile.getDsControlGroup(),
                     object.getFoxml());
         }

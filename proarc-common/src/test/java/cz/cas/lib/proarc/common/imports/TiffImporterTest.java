@@ -130,7 +130,8 @@ public class TiffImporterTest {
         String mimetype = ImportProcess.findMimeType(tiff1);
         assertNotNull(mimetype);
 
-        ImportOptions ctx = new ImportOptions(tiff1.getParentFile(), "model:page", "scanner:scanner1", true, "junit");
+        ImportOptions ctx = new ImportOptions(tiff1.getParentFile(), "model:page",
+                "scanner:scanner1", true, "junit", config.getImportConfiguration());
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);

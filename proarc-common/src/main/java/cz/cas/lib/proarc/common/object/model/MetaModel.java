@@ -16,6 +16,9 @@
  */
 package cz.cas.lib.proarc.common.object.model;
 
+import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
+import cz.cas.lib.proarc.oaidublincore.ElementType;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -29,30 +32,39 @@ public class MetaModel {
     private String pid;
     private Boolean root;
     private Boolean leaf;
-    private String displayName;
-    private String modsCustomEditor;
+    private Collection<ElementType> displayNames;
+    private String metadataFormat;
+    private String editorId;
+    private DigitalObjectPlugin plugin;
     private EnumSet<DatastreamEditorType> dataStreamEditors;
 
     public MetaModel() {
     }
 
-    public MetaModel(String pid, Boolean root, Boolean leaf, String displayName) {
-        this(pid, root, leaf, displayName, null, null);
-    }
-
-    public MetaModel(String pid, Boolean root, Boolean leaf, String displayName,
-            String modsCustomEditor, EnumSet<DatastreamEditorType> dataStreamEditors) {
+    public MetaModel(String pid, Boolean root, Boolean leaf,
+            Collection<ElementType> displayNames,
+            String metadataFormat,
+            String editorId,
+            DigitalObjectPlugin plugin,
+            EnumSet<DatastreamEditorType> dataStreamEditors) {
 
         this.pid = pid;
         this.root = root;
         this.leaf = leaf;
-        this.displayName = displayName;
-        this.modsCustomEditor = modsCustomEditor;
+        this.displayNames = displayNames;
+        this.metadataFormat = metadataFormat;
+        this.editorId = editorId;
+        this.plugin = plugin;
         this.dataStreamEditors = dataStreamEditors;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getDisplayName(String lang) {
+        for (ElementType displayName : displayNames) {
+            if (lang == null ? displayName.getLang() == null : lang.equals(displayName.getLang())) {
+                return displayName.getValue();
+            }
+        }
+        return displayNames.isEmpty() ? "?" : displayNames.iterator().next().getValue();
     }
 
     public Boolean isLeaf() {
@@ -67,12 +79,21 @@ public class MetaModel {
         return root;
     }
 
+    public String getMetadataFormat() {
+        return metadataFormat;
+    }
+
+    // XXX rename to getMetadataEditor
     public String getModsCustomEditor() {
-        return modsCustomEditor;
+        return editorId;
     }
 
     public Set<DatastreamEditorType> getDataStreamEditors() {
         return dataStreamEditors;
+    }
+
+    public DigitalObjectPlugin getPlugin() {
+        return plugin;
     }
 
 }

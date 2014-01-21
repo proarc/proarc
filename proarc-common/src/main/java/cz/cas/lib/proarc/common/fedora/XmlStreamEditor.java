@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import java.io.InputStream;
 import java.net.URI;
 import javax.xml.transform.Result;
@@ -36,7 +37,22 @@ public interface XmlStreamEditor {
 
     long getLastModified() throws DigitalObjectException;
 
-    String getMimetype() throws DigitalObjectException;
+    /**
+     * Gets subset of {@link DatastreamProfile} properties for
+     * {@link #setProfile setProfile}. dsId, dsLabel, dsCreateDate,
+     * dsFormatURI and dsMIME are guaranteed.
+     * @return the profile
+     * @throws DigitalObjectException failure
+     */
+    DatastreamProfile getProfile() throws DigitalObjectException;
+
+    /**
+     * Sets label, format or MIME. At least MIME requires to change also
+     * the stream contents.
+     * @param profile {@link #getProfile}
+     * @throws DigitalObjectException failure
+     */
+    void setProfile(DatastreamProfile profile) throws DigitalObjectException;
 
     /**
      * Provides content of the stream.

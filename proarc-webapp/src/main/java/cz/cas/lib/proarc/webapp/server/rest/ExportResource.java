@@ -23,15 +23,13 @@ import cz.cas.lib.proarc.common.export.DataStreamExport;
 import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.security.Principal;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
@@ -52,23 +50,16 @@ import javax.xml.bind.annotation.XmlElement;
 public class ExportResource {
 
     private final AppConfiguration appConfig;
-    private final UserManager userManager;
     private final UserProfile user;
 
     public ExportResource(
-            @Context SecurityContext securityCtx
+            @Context SecurityContext securityCtx,
+            @Context HttpServletRequest httpRequest
             ) throws AppConfigurationException {
-        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
-        this.userManager = UserUtil.getDefaultManger();
 
-        Principal userPrincipal = securityCtx.getUserPrincipal();
-        String userName;
-        if (userPrincipal != null) {
-            userName = userPrincipal.getName();
-        } else {
-            userName = UserManager.GUEST_ID;
-        }
-        user = userManager.find(userName);
+        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        SessionContext session = SessionContext.from(httpRequest);
+        user = session.getUser();
     }
 
     @POST

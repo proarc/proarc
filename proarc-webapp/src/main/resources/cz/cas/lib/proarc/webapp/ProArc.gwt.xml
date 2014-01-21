@@ -31,6 +31,9 @@
     <!-- CodeMirror Editor                                          -->
     <inherits name="com.google.codemirror2_gwt.CodeMirror2GWT" />
 
+    <!-- HTML5 file uploader                                        -->
+    <inherits name="org.moxieapps.gwt.uploader.Uploader" />
+
     <!-- Logging setup       -->
     <inherits name="com.google.gwt.logging.Logging"/>
 <!--    <set-property name="gwt.logging.enabled" value="FALSE"/> -->

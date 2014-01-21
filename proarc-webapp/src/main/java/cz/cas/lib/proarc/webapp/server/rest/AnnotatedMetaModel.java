@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.webapp.server.rest;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import java.util.Locale;
 import java.util.Set;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -32,30 +33,49 @@ import javax.xml.bind.annotation.XmlElement;
  * @author Jan Pokorsky
  */
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class AnnotatedMetaModel extends MetaModel {
+public class AnnotatedMetaModel {
+
+    private final MetaModel model;
+    private final Locale l;
+
+    public AnnotatedMetaModel(MetaModel model, Locale l) {
+        this.model = model;
+        this.l = l;
+    }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_DISPLAYNAME_PARAM)
-    @Override
-    public abstract String getDisplayName();
+    public String getDisplayName() {
+        return model.getDisplayName(l.getLanguage());
+    }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_LEAF_PARAM)
-    @Override
-    public abstract Boolean isLeaf();
+    public Boolean isLeaf() {
+        return model.isLeaf();
+    }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_PID_PARAM, required = true)
-    @Override
-    public abstract String getPid();
+    public String getPid() {
+        return model.getPid();
+    }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_ROOT_PARAM)
-    @Override
-    public abstract Boolean isRoot();
+    public Boolean isRoot() {
+        return model.isRoot();
+    }
+
+    @XmlElement(name = DigitalObjectResourceApi.METAMODEL_METADATAFORMAT_PARAM)
+    public String getMetadataFormat() {
+        return model.getMetadataFormat();
+    }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_MODSCUSTOMEDITORID_PARAM)
-    @Override
-    public abstract String getModsCustomEditor();
+    public String getModsCustomEditor() {
+        return model.getModsCustomEditor();
+    }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_DATASTREAMEDITOR_PARAM)
-    @Override
-    public abstract Set<DatastreamEditorType> getDataStreamEditors();
+    public Set<DatastreamEditorType> getDataStreamEditors() {
+        return model.getDataStreamEditors();
+    }
 
 }

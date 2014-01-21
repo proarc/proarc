@@ -19,16 +19,20 @@ package cz.cas.lib.proarc.webapp.client.widget.mods;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
+import com.smartgwt.client.types.VerticalAlignment;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
 import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.ValuesManager;
 import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
 import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableFormItem.CustomFormFactory;
+import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableFormItem.FormWidget;
+import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableFormItem.FormWidgetFactory;
 import cz.cas.lib.proarc.webapp.client.widget.mods.event.HasListChangedHandlers;
 import cz.cas.lib.proarc.webapp.client.widget.mods.event.ListChangedEvent;
 import cz.cas.lib.proarc.webapp.client.widget.mods.event.ListChangedHandler;
@@ -49,31 +53,75 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     /** Holds origin records with special fields. */
     private RecordList dataModel = new RecordList();
     private final CustomFormFactory formFactory;
-    /** active forms */
-    private ArrayList<DynamicForm> forms = new ArrayList<DynamicForm>();
     /** pool of available form widgets */
-    private ArrayList<ItemForm> pool = new ArrayList<ItemForm>();
-    /** active form widgets */
-    private ArrayList<ItemForm> active = new ArrayList<ItemForm>();
+    private ArrayList<Row> pool = new ArrayList<Row>();
+    /** active form rows */
+    private ArrayList<Row> activeRows = new ArrayList<Row>();
+    private final RepeatableFormItem formItem;
 
-    private static final class ItemForm {
-        private DynamicForm form;
+    private static final class Row {
+        private FormWidget formWidget;
+        /** form + buttons */
         private Canvas view;
+        private IButton buttonAdd;
+        private IButton buttonRemove;
 
-        public ItemForm(DynamicForm form, Canvas view) {
-            this.form = form;
+        public ValuesManager getForm() {
+            return formWidget.getValues();
+        }
+
+        public FormWidget getFormWidget() {
+            return formWidget;
+        }
+
+        public void setFormWidget(FormWidget formWidget) {
+            this.formWidget = formWidget;
+        }
+
+        public Canvas getView() {
+            return view;
+        }
+
+        public void setView(Canvas view) {
             this.view = view;
+        }
+
+        public IButton getButtonAdd() {
+            return buttonAdd;
+        }
+
+        public void setButtonAdd(IButton buttonAdd) {
+            this.buttonAdd = buttonAdd;
+        }
+
+        public IButton getButtonRemove() {
+            return buttonRemove;
+        }
+
+        public void setButtonRemove(IButton buttonRemove) {
+            this.buttonRemove = buttonRemove;
         }
     }
 
-    public RepeatableForm(String title, CustomFormFactory customForm) {
-        setGroupTitle(title);
-        setIsGroup(true);
-        setLayoutTopMargin(6);
-        setLayoutLeftMargin(4);
+    RepeatableForm(RepeatableFormItem item) {
+        this.formItem = item;
         setAutoHeight();
-        setAutoWidth();
-        this.formFactory = customForm;
+        this.formFactory = item.getFormFactory();
+        if (formItem.getMaxOccurrences() > 1 || formItem.getTitle() != null) {
+            setGroupTitle(formItem.getTitle());
+            setIsGroup(true);
+            setLayoutTopMargin(6);
+            setLayoutLeftMargin(4);
+        }
+        if (formItem.isAutoWidth()) {
+            setAutoWidth();
+        } else if (formItem.isWidth100()) {
+            setWidth100();
+        } else {
+            setWidth(formItem.getWidthAsString());
+        }
+//        ClientUtils.info(LOG, "init.RForm, name: %s, autoWidth: %s, width100: %s, width: %s",
+//                formItem.getName(), formItem.isAutoWidth(), formItem.isWidth100(), formItem.getWidthAsString());
     }
 
     @Override
@@ -91,34 +139,42 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
 
     public boolean validate(boolean showError) {
         boolean valid = true;
-        for (DynamicForm df : forms) {
-            valid &= showError ? df.validate() : df.valuesAreValid(false);
+        for (Row row : activeRows) {
+            ValuesManager vm = row.getForm();
+            for (DynamicForm df : vm.getMembers()) {
+                valid &= showError ? df.validate() : df.valuesAreValid(false);
+            }
         }
         return valid;
     }
 
     public void showErrors() {
-        for (DynamicForm df : forms) {
-            if (!df.getErrors().isEmpty()) {
-                df.showErrors();
+        for (Row row : activeRows) {
+            ValuesManager vm = row.getForm();
+            Map<?, ?> errors = vm.getErrors();
+            if (errors != null && errors.isEmpty()) {
+                vm.showErrors();
             }
         }
     }
 
     public void clearErrors(boolean show) {
-        for (DynamicForm df : forms) {
-            if (!df.getErrors().isEmpty()) {
-                df.clearErrors(show);
+        for (Row row : activeRows) {
+            ValuesManager vm = row.getForm();
+            // vm.clearErrors() broken in SmartGWT 3.0
+            for (DynamicForm form : vm.getMembers()) {
+                form.clearErrors(show);
             }
         }
     }
 
     public List<Map<Object, Object>> getErrors() {
         ArrayList<Map<Object, Object>> result = new ArrayList<Map<Object, Object>>();
-        for (DynamicForm df : forms) {
+        for (Row row : activeRows) {
+            ValuesManager vm = row.getForm();
             @SuppressWarnings("unchecked")
-            Map<Object, Object> errors = df.getErrors();
-            if (!errors.isEmpty()) {
+            Map<Object, Object> errors = vm.getErrors();
+            if (errors != null && !errors.isEmpty()) {
                 result.add(errors);
             }
         }
@@ -129,30 +185,33 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
      * for now it uses ResultSet as a plain static array of records
      */
     public void setData(RecordList data) {
-        forms.clear();
         dataModel = data;
         if (data.isEmpty()) {
             data.add(new Record());
         }
 
-        int itemSize = 0;
-        for (; itemSize < data.getLength(); itemSize++) {
-            Record record = data.get(itemSize);
-            DynamicForm form;
-            if (itemSize < active.size()) {
-                ItemForm itemForm = active.get(itemSize);
-                form = itemForm.form;
+        int rowIndex = 0;
+        for (; rowIndex < data.getLength(); rowIndex++) {
+            Record record = data.get(rowIndex);
+            ValuesManager form;
+            Row row;
+            if (rowIndex < activeRows.size()) {
+                // reuse active row
+                row = activeRows.get(rowIndex);
+                form = row.getForm();
             } else {
-                ItemForm itemForm = getItemForm();
-                form = itemForm.form;
-                addMember(itemForm.view);
-                active.add(itemForm);
+                // get new row
+                row = getRow();
+                form = row.getForm();
+                addMember(row.getView());
+                activeRows.add(row);
             }
+            showRow(row);
             form.editRecord(record);
-            forms.add(form);
         }
-        while (itemSize < active.size()) {
-            ItemForm remove = active.remove(itemSize);
+        // release unused rows
+        while (rowIndex < activeRows.size()) {
+            Row remove = activeRows.remove(rowIndex);
             pool.add(remove);
             removeMember(remove.view);
         }
@@ -161,17 +220,18 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     /**
      * Gets available item from the pool or creates new one.
      */
-    private ItemForm getItemForm() {
-        ItemForm itemForm;
+    private Row getRow() {
+        Row row;
         if (pool.isEmpty()) {
-            DynamicForm form = createIdentifierForm();
-            Canvas listItem = createListItem(form);
-            itemForm = new ItemForm(form, listItem);
+            row = new Row();
+            createRowForm(row);
+            Canvas listItem = createRowWidget(row);
+            row.setView(listItem);
         } else {
-            itemForm = pool.remove(0);
-            itemForm.form.clearValues();
+            row = pool.remove(0);
+            row.getForm().clearValues();
         }
-        return itemForm;
+        return row;
     }
 
     public Record[] getData() {
@@ -182,94 +242,120 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
         return dataModel;
     }
 
-    private DynamicForm createIdentifierForm() {
-        final DynamicForm form = formFactory.create();
-        form.setShowInlineErrors(true);
-        form.setShowErrorStyle(true);
-
-        form.addItemChangedHandler(new ItemChangedHandler() {
-
-            @Override
-            public void onItemChanged(ItemChangedEvent event) {
-                // get original record and update its attribute with new values
-                Record record = dataModel.get(forms.indexOf(form));
-                record.setAttribute(event.getItem().getName(), event.getNewValue());
-                RepeatableForm.this.fireEvent(new ListChangedEvent());
+    private void createRowForm(final Row row) {
+        ValuesManager vm;
+        if (formFactory instanceof FormWidgetFactory) {
+            FormWidgetFactory ff = (FormWidgetFactory) formFactory;
+            FormWidget formWidget = ff.createFormWidget(formItem.getProfile());
+            row.setFormWidget(formWidget);
+            vm = formWidget.getValues();
+        } else {
+            DynamicForm form = formFactory.create();
+            vm = form.getValuesManager();
+            if (vm == null) {
+                vm = new ValuesManager();
+                vm.addMember(form);
             }
-        });
-        return form;
+            FormWidget formWidget = new FormWidget(form, vm);
+            row.setFormWidget(formWidget);
+        }
+        for (DynamicForm form : vm.getMembers()) {
+            form.setShowInlineErrors(true);
+            form.setShowErrorStyle(true);
+
+            form.addItemChangedHandler(new ItemChangedHandler() {
+
+                @Override
+                public void onItemChanged(ItemChangedEvent event) {
+                    // get original record and update its attribute with new values
+                    Record record = dataModel.get(activeRows.indexOf(row));
+                    record.setAttribute(event.getItem().getName(), event.getNewValue());
+                    RepeatableForm.this.fireEvent(new ListChangedEvent());
+                }
+            });
+        }
     }
 
-    private Canvas createEmptyListItem() {
-        return createListItem(null);
-    }
-
-    private Canvas createListItem(Canvas c) {
+    private Canvas createRowWidget(Row row) {
         HLayout hLayout = new HLayout();
-        boolean emptyList = c == null;
-        Canvas buttons = createItemButtons(hLayout, emptyList);
-        if (!emptyList) {
-//            c.setWidth100();
-            hLayout.addMember(c);
-        }
+        Canvas buttons = createItemButtons(row);
+        buttons.setLayoutAlign(VerticalAlignment.BOTTOM);
+        hLayout.addMember(row.getFormWidget().getWidget());
         hLayout.addMember(buttons);
-        if (emptyList) {
-            Canvas spacer = new Canvas();
-            spacer.setWidth(100);
-            hLayout.addMember(spacer);
-        }
         return hLayout;
     }
 
-    private Canvas createItemButtons(final Canvas item, final boolean empty) {
+    private void showRow(Row row) {
+        boolean repeatable = formItem.getMaxOccurrences() != 1;
+        row.getButtonAdd().setVisible(repeatable);
+        row.getButtonRemove().setVisible(repeatable);
+    }
+
+    private void onAddRowClick(int eventRowIndex) {
+        if (activeRows.size() >= formItem.getMaxOccurrences()) {
+            return ;
+        }
+        Row row = getRow();
+        Canvas newListItem = row.getView();
+        RepeatableForm.this.addMember(newListItem, eventRowIndex + 1);
+        Record newRecord = new Record();
+        dataModel.addAt(newRecord, eventRowIndex + 1);
+        activeRows.add(eventRowIndex + 1, row);
+        // disable Add buttons
+        if (activeRows.size() >= formItem.getMaxOccurrences()) {
+            setAddDisabled(true);
+        }
+        RepeatableForm.this.fireEvent(new ListChangedEvent());
+    }
+
+    private void onRemoveRowClick(int eventRowIndex) {
+        if (activeRows.size() == 1) {
+            // do not remove last item
+            Row row = activeRows.get(0);
+            row.getForm().clearValues();
+            return ;
+        }
+        Row row = activeRows.remove(eventRowIndex);
+        pool.add(row);
+        dataModel.removeAt(eventRowIndex);
+        RepeatableForm.this.removeMember(row.getView());
+        setAddDisabled(false);
+        RepeatableForm.this.fireEvent(new ListChangedEvent());
+    }
+
+    private void setAddDisabled(boolean disable) {
+        for (Row row : activeRows) {
+            row.getButtonAdd().setDisabled(disable);
+        }
+    }
+
+    private Canvas createItemButtons(final Row row) {
         HLayout hLayout = new HLayout(2);
         hLayout.setLayoutMargin(2);
         IButton btnAdd = new IButton("+", new ClickHandler() {
 
             @Override
             public void onClick(ClickEvent event) {
-                Record newRecord = new Record();
-                ItemForm itemForm = getItemForm();
-                Canvas newListItem = itemForm.view;
-                int itemIndex = -1;
-                if (empty) {
-                    RepeatableForm.this.removeMember(item);
-                } else {
-                    itemIndex = RepeatableForm.this.getMemberNumber(item);
-                }
-                RepeatableForm.this.addMember(newListItem, itemIndex + 1);
-                forms.add(itemIndex + 1, itemForm.form);
-                dataModel.addAt(newRecord, itemIndex + 1);
-                active.add(itemIndex + 1, itemForm);
-                RepeatableForm.this.fireEvent(new ListChangedEvent());
+                int rowIndex = activeRows.indexOf(row);
+                onAddRowClick(rowIndex);
             }
         });
         btnAdd.setAutoFit(true);
         hLayout.addMember(btnAdd);
-        if (empty) {
-            return hLayout;
-        }
+        row.setButtonAdd(btnAdd);
 
         IButton btnRemove = new IButton("-", new ClickHandler() {
 
             @Override
             public void onClick(ClickEvent event) {
-                if (RepeatableForm.this.getMembers().length == 1) {
-                    // do not remove last item
-                    return ;
-                }
-                int itemIndex = RepeatableForm.this.getMemberNumber(item);
-                forms.remove(itemIndex);
-                ItemForm itemForm = active.remove(itemIndex);
-                pool.add(itemForm);
-                dataModel.removeAt(itemIndex);
-                RepeatableForm.this.removeMember(item);
-                RepeatableForm.this.fireEvent(new ListChangedEvent());
+                int rowIndex = activeRows.indexOf(row);
+                onRemoveRowClick(rowIndex);
             }
         });
         btnRemove.setAutoFit(true);
 
         hLayout.addMember(btnRemove);
+        row.setButtonRemove(btnRemove);
         return hLayout;
     }
 

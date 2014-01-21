@@ -39,7 +39,7 @@
 
     <servlet-mapping>
         <servlet-name>Jersey Web Application</servlet-name>
-        <url-pattern>/rest/*</url-pattern>
+        <url-pattern>/rest/v1/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

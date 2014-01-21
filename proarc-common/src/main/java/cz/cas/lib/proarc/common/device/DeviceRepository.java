@@ -30,7 +30,6 @@ import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import cz.cas.lib.proarc.oaidublincore.ObjectFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +38,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBElement;
 
 /**
  * The repository of devices producing digital objects.
@@ -205,20 +203,12 @@ public final class DeviceRepository {
     private void updateDc(FedoraObject robj, String id, String label, String log) throws DigitalObjectException {
         DcStreamEditor dcEditor = new DcStreamEditor(robj);
         DublinCoreRecord dcr = dcEditor.read();
-        ObjectFactory of = new ObjectFactory();
-        OaiDcType dc = of.createOaiDcType();
-        List<JAXBElement<ElementType>> dcElms = dc.getTitleOrCreatorOrSubject();
-        dcElms.add(of.createTitle(createElementType(label, of)));
-        dcElms.add(of.createIdentifier(createElementType(id, of)));
-        dcElms.add(of.createType(createElementType(METAMODEL_ID, of)));
+        OaiDcType dc = new OaiDcType();
+        dc.getTitles().add(new ElementType(label, null));
+        dc.getIdentifiers().add(new ElementType(id, null));
+        dc.getTypes().add(new ElementType(METAMODEL_ID, null));
         dcr.setDc(dc);
         dcEditor.write(dcr, log);
-    }
-
-    private ElementType createElementType(String value, ObjectFactory of) {
-        ElementType et = of.createElementType();
-        et.setValue(value);
-        return et;
     }
 
     static void checkDeviceId(String id) throws DeviceException {

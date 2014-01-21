@@ -66,7 +66,7 @@ public final class SessionContext {
      */
     public String asFedoraLog() {
         // use Jackson for complex JSON; String.format is enough for now
-        return String.format("{\"proarc\":{\"user\":\"%s\",\"ip\":\"%s\"}}", user, ip);
+        return String.format("{\"proarc\":{\"user\":\"%s\",\"ip\":\"%s\"}}", user.getUserName(), ip);
     }
 
     public Locale getLocale(HttpHeaders httpHeaders) {

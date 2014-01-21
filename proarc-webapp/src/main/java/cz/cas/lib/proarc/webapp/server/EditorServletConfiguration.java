@@ -25,6 +25,8 @@ import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportDispatcher;
 import cz.cas.lib.proarc.common.imports.ImportProcess;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.sql.DbUtils;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -55,9 +57,13 @@ public final class EditorServletConfiguration implements ServletContextListener 
         LOG.fine("contextInitialized");
 
         AppConfiguration config = initConfig(sce.getServletContext());
+        initProarcModel(config);
         DataSource proarcSource = initProarcDb();
         initUsers(config, proarcSource);
         initImport(config);
+        DigitalObjectManager.setDefault(new DigitalObjectManager(
+                config, ImportBatchManager.getInstance(), null,
+                MetaModelRepository.getInstance()));
 
     }
 
@@ -82,6 +88,9 @@ public final class EditorServletConfiguration implements ServletContextListener 
             readServletParameter(AppConfiguration.PROPERTY_APP_HOME, ctx, env);
             AppConfiguration config = configFactory.create(env);
             configFactory.setDefaultInstance(config);
+
+            config.copyConfigTemplate(config.getConfigHome());
+
             return configFactory.defaultInstance();
         } catch (AppConfigurationException ex) {
             throw new IllegalStateException(ex);
@@ -96,7 +105,11 @@ public final class EditorServletConfiguration implements ServletContextListener 
         }
         return val;
     }
-    
+
+    private void initProarcModel(AppConfiguration config) {
+        MetaModelRepository.setInstance(config.getPlugins());
+    }
+
     private DataSource initProarcDb() {
         try {
             DataSource proarcSource = DbUtils.getProarcSource();
@@ -124,7 +137,7 @@ public final class EditorServletConfiguration implements ServletContextListener 
         ImportDispatcher importDispatcher = new ImportDispatcher();
         ImportDispatcher.setDefault(importDispatcher);
         importDispatcher.init();
-        ImportProcess.resumeAll(ibm, importDispatcher);
+        ImportProcess.resumeAll(ibm, importDispatcher, config.getImportConfiguration());
     }
 
 }

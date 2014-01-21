@@ -30,7 +30,7 @@ public final class DigitalObjectResourceApi {
     public static final String BATCHID_PARAM = "batchId";
     public static final String TIMESTAMP_PARAM = "timestamp";
 
-    public static final String NEWOBJECT_MODS_PARAM = "mods";
+    public static final String NEWOBJECT_XML_PARAM = "xml";
 
     public static final String DELETE_HIERARCHY_PARAM = "hierarchy";
     public static final String DELETE_PID_PARAM = DIGITALOBJECT_PID;
@@ -86,6 +86,7 @@ public final class DigitalObjectResourceApi {
     public static final String METAMODEL_LEAF_PARAM = "leaf";
     public static final String METAMODEL_DISPLAYNAME_PARAM = "displayName";
     public static final String METAMODEL_MODSCUSTOMEDITORID_PARAM = "editorId";
+    public static final String METAMODEL_METADATAFORMAT_PARAM = "metadataFormat";
     /**
      * @see DatastreamEditorType
      */
@@ -112,6 +113,8 @@ public final class DigitalObjectResourceApi {
     /** Resource /object/dissemination */
     public static final String DISSEMINATION_PATH = "dissemination";
     public static final String DISSEMINATION_DATASTREAM = "datastream";
+    public static final String DISSEMINATION_FILE = "file";
+    public static final String DISSEMINATION_MIME = "mime";
 
     /** Resource /object/full */
     public static final String FULL_PATH = "full";

@@ -51,6 +51,7 @@ public class MetaModelDataSource extends RestDataSource {
     public static final String FIELD_DISPLAY_NAME = DigitalObjectResourceApi.METAMODEL_DISPLAYNAME_PARAM;
     public static final String FIELD_IS_ROOT = DigitalObjectResourceApi.METAMODEL_ROOT_PARAM;
     public static final String FIELD_IS_LEAF = DigitalObjectResourceApi.METAMODEL_LEAF_PARAM;
+    public static final String FIELD_METADATA_FORMAT = DigitalObjectResourceApi.METAMODEL_METADATAFORMAT_PARAM;
     public static final String FIELD_EDITOR = DigitalObjectResourceApi.METAMODEL_MODSCUSTOMEDITORID_PARAM;
     public static final String FIELD_DATASTREAM_EDITORS = DigitalObjectResourceApi.METAMODEL_DATASTREAMEDITOR_PARAM;
     /**
@@ -77,11 +78,13 @@ public class MetaModelDataSource extends RestDataSource {
 
         DataSourceTextField editor = new DataSourceTextField(FIELD_EDITOR);
 
+        DataSourceTextField metadataFormat = new DataSourceTextField(FIELD_METADATA_FORMAT);
+
         DataSourceField dataStreamEditors = new DataSourceField(FIELD_DATASTREAM_EDITORS, FieldType.ANY);
         dataStreamEditors.setCanEdit(Boolean.FALSE);
         dataStreamEditors.setHidden(Boolean.TRUE);
 
-        setFields(pid, displayName, isRoot, isLeaf, editor, dataStreamEditors);
+        setFields(pid, displayName, isRoot, isLeaf, metadataFormat, editor, dataStreamEditors);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
@@ -195,6 +198,10 @@ public class MetaModelDataSource extends RestDataSource {
 
         public boolean isRoot() {
             return record.getAttributeAsBoolean(FIELD_IS_ROOT);
+        }
+
+        public String getMetadataFormat() {
+            return record.getAttribute(FIELD_METADATA_FORMAT);
         }
 
         public String getEditorId() {

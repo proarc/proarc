@@ -16,12 +16,13 @@
  */
 package cz.cas.lib.proarc.common.object.model;
 
-import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
+import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
+import cz.cas.lib.proarc.common.object.NdkPlugin;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Locale;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The repository of models of digital objects.
@@ -32,77 +33,51 @@ import java.util.Locale;
  */
 public final class MetaModelRepository {
 
-    private static final MetaModelRepository INSTANCE = new MetaModelRepository();
+    private static MetaModelRepository INSTANCE;
 
-//    private Collection<MetaModel> repository;
+    private final Collection<MetaModel> repository;
+
+    public static void setInstance(String[] plugins) {
+        MetaModelRepository mmr = new MetaModelRepository();
+        for (String pluginClass : plugins) {
+            try {
+                Class<?> clazz = mmr.getClass().getClassLoader().loadClass(pluginClass);
+                DigitalObjectPlugin plugin = (DigitalObjectPlugin) clazz.newInstance();
+                mmr.registerModels(plugin.getModel());
+            } catch (Exception ex) {
+                Logger.getLogger(MetaModelRepository.class.getName()).log(Level.SEVERE, pluginClass, ex);
+            }
+        }
+        INSTANCE = mmr;
+    }
 
     public static MetaModelRepository getInstance() {
+        if (INSTANCE == null) {
+            setInstance(new String[] {NdkPlugin.class.getName()});
+        }
         return INSTANCE;
     }
 
 
     private MetaModelRepository() {
-//        repository = new ArrayList<MetaModel>();
+        repository = new ArrayList<MetaModel>();
     }
 
-    public Collection<MetaModel> find(Locale locale) {
-        // for now it is read only repository
-        String lang = locale.getLanguage();
-        List<MetaModel> models = new ArrayList<MetaModel>();
-        models.add(new MetaModel(
-                "model:periodical", true, null,
-                "cs".equals(lang) ? "Periodikum" : "Periodical",
-                ModsCutomEditorType.EDITOR_PERIODICAL,
-                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
-                ));
-        models.add(new MetaModel(
-                "model:periodicalvolume", null, null,
-                "cs".equals(lang) ? "Ročník" : "Periodical Volume",
-                ModsCutomEditorType.EDITOR_PERIODICAL_VOLUME,
-                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
-                ));
-        models.add(new MetaModel(
-                "model:periodicalitem", null, null,
-                "cs".equals(lang) ? "Výtisk" : "Periodical Item",
-                ModsCutomEditorType.EDITOR_PERIODICAL_ISSUE,
-                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
-                ));
-        models.add(new MetaModel(
-                "model:monograph", true, null,
-                "cs".equals(lang) ? "Monografie" : "Monograph",
-                ModsCutomEditorType.EDITOR_MONOGRAPH,
-                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
-                ));
-        models.add(new MetaModel(
-                "model:monographunit", null, null,
-                "cs".equals(lang) ? "Monografie - volná část" : "Monograph Unit",
-                ModsCutomEditorType.EDITOR_MONOGRAPH_UNIT,
-                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
-                ));
-        models.add(new MetaModel(
-                "model:page", null, true,
-                "cs".equals(lang) ? "Strana" : "Page",
-                ModsCutomEditorType.EDITOR_PAGE,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
-                ));
-
-        return models;
+    public Collection<MetaModel> find() {
+        return Collections.unmodifiableCollection(repository);
     }
 
     public MetaModel find(String model) {
-        for (MetaModel metaModel : find(Locale.ENGLISH)) {
+        for (MetaModel metaModel : find()) {
             if (metaModel.getPid().equals(model)) {
                 return metaModel;
             }
         }
         return null;
     }
+
+    void registerModels(Collection<MetaModel> models) {
+        this.repository.addAll(models);
+    }
+
 }
