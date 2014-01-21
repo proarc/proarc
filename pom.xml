@@ -36,7 +36,7 @@
     </modules>
 
     <properties>
-        <proarc.version>1.0-SNAPSHOT</proarc.version>
+        <proarc.version>${project.version}</proarc.version>
         <gwtVersion>2.5.1</gwtVersion>
         <jerseyVersion>1.11.1</jerseyVersion>
         <smartGwtVersion>3.0</smartGwtVersion>
