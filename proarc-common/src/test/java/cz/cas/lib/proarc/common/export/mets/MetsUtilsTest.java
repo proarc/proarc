@@ -43,8 +43,8 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 import cz.cas.lib.proarc.common.export.mets.structure.MetsEntity;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsInfo;
-import cz.cas.lib.proarc.info.Info;
 import cz.cas.lib.proarc.mets.Mets;
+import cz.cas.lib.proarc.mets.info.Info;
 
 public class MetsUtilsTest {
     private static final Logger LOG = Logger.getLogger(MetsUtilsTest.class.getName());
