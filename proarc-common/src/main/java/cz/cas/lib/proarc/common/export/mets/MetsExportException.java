@@ -27,9 +27,7 @@ import java.util.List;
  * 
  */
 public class MetsExportException extends Exception {
-    /**
-     * 
-     */
+
     private static final long serialVersionUID = 1L;
 
     /**
@@ -105,5 +103,12 @@ public class MetsExportException extends Exception {
     }
 
     public MetsExportException() {
+    }
+
+    /**
+     * @return the list of export exceptions
+     */
+    public List<MetsExportExceptionElement> getExceptions() {
+        return exceptionList;
     }
 }

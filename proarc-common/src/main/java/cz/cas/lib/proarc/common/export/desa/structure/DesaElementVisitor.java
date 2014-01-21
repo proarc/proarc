@@ -213,7 +213,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                 MetsUtils.validateAgainstXSD(outputFile, Mets.class.getResourceAsStream("mets.xsd"));
             } catch (MetsExportException ex) {
                 LOG.log(Level.WARNING, "Invalid mets.xml for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
-                desaElement.getDesaContext().getMetsExportException().addException(desaElement.getOriginalPid(), "Invalid mets !", true, ex.exceptionList.get(0).getEx());
+                desaElement.getDesaContext().getMetsExportException().addException(desaElement.getOriginalPid(), "Invalid mets !", true, ex.getExceptions().get(0).getEx());
             }
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Unable to save mets file:" + outputFile.getAbsolutePath());
@@ -423,7 +423,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             insertFolder(desaElement);
         } else
             throw new MetsExportException(desaElement.getOriginalPid(), "Unknown type:" + desaElement.getElementType() + " model:" + desaElement.getModel(), false, null);
-        if (desaElement.getDesaContext().getMetsExportException().exceptionList.size() > 0) {
+        if (desaElement.getDesaContext().getMetsExportException().getExceptions().size() > 0) {
             throw desaElement.getDesaContext().getMetsExportException();
         }
         if (exportToDesa) {

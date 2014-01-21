@@ -118,7 +118,7 @@ public class DesaExportTest {
             DesaElementVisitor desaVisitor = new DesaElementVisitor();
             desaContext.getRootElement().accept(desaVisitor);
         } catch (MetsExportException ex) {
-            assertEquals(0, ex.exceptionList.size());
+            assertEquals(0, ex.getExceptions().size());
         }
         String outputDir = extractFile(resultDir + File.separator + "SAMPLEDESA_FILE.zip", "correctDesaTest");
         Mets mets = readMets(outputDir + File.separator + "mets.xml");
@@ -157,7 +157,7 @@ public class DesaExportTest {
             DesaElementVisitor desaVisitor = new DesaElementVisitor();
             desaContext.getRootElement().accept(desaVisitor);
         } catch (MetsExportException ex) {
-            assertEquals(0, ex.exceptionList.size());
+            assertEquals(0, ex.getExceptions().size());
         }
         String outputDir = extractFile(resultDir + File.separator + "SAMPLEDESA2_FILE.zip", "noFileNameDesaTest");
         Mets mets = readMets(outputDir + File.separator + "mets.xml");

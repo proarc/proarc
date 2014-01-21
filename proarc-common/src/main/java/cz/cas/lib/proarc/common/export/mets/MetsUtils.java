@@ -858,7 +858,7 @@ public class MetsUtils {
                 MetsUtils.validateAgainstXSD(infoFile, Info.class.getResourceAsStream("info.xsd"));
             } catch (MetsExportException ex) {
                 LOG.log(Level.WARNING, "Invalid info.xml");
-                mets.metsExportException.addException("Invalid info.xml", true, ex.exceptionList.get(0).getEx());
+                mets.metsExportException.addException("Invalid info.xml", true, ex.getExceptions().get(0).getEx());
             }
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Error while creating info.xml", e);
@@ -898,7 +898,7 @@ public class MetsUtils {
                 MetsUtils.validateAgainstXSD(file, Mets.class.getResourceAsStream("mets.xsd"));
             } catch (MetsExportException ex) {
                 LOG.log(Level.WARNING, "Invalid xml METS");
-                mets.metsExportException.addException("Invalid Mets xml", true, ex.exceptionList.get(0).getEx());
+                mets.metsExportException.addException("Invalid Mets xml", true, ex.getExceptions().get(0).getEx());
             }
 
             InputStream is;

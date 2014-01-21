@@ -293,7 +293,7 @@ public class MetsElement {
             MetsUtils.validateAgainstXSD(docMods, ModsDefinition.class.getResourceAsStream("mods.xsd"));
         } catch (MetsExportException ex) {
             LOG.log(Level.WARNING, "Invalid MODS xml:" + this.getElementId() + "/" + this.originalPID);
-            metsInfo.metsExportException.addException(this.originalPID, "Invalid MODS xml for " + this.originalPID, true, ex.exceptionList.get(0).getEx());
+            metsInfo.metsExportException.addException(this.originalPID, "Invalid MODS xml for " + this.originalPID, true, ex.getExceptions().get(0).getEx());
             LOG.log(Level.INFO, MetsUtils.documentToString(docMods));
         }
         try {
@@ -301,7 +301,7 @@ public class MetsElement {
         } catch (MetsExportException ex) {
             LOG.log(Level.WARNING, "Invalid DC xml:" + this.getElementId() + "/" + this.originalPID);
             LOG.log(Level.INFO, MetsUtils.documentToString(docDC));
-            metsInfo.metsExportException.addException(this.originalPID, "Invalid DC xml for " + this.originalPID, true, ex.exceptionList.get(0).getEx());
+            metsInfo.metsExportException.addException(this.originalPID, "Invalid DC xml for " + this.originalPID, true, ex.getExceptions().get(0).getEx());
         }
     }
 
