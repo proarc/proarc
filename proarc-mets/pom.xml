@@ -15,7 +15,7 @@
     <artifactId>proarc-mets</artifactId>
     <packaging>jar</packaging>
 
-    <name>Proarc OAI Dublin Core JAXB Model</name>
+    <name>Proarc Mets JAXB Model</name>
 
     <dependencies>
     </dependencies>
@@ -26,22 +26,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
-
-            <!--Creates sources.jar to allow to inherit included GWT modules-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
         </plugins>
     </build>
 </project>

@@ -68,7 +68,7 @@ public class MetsExportException extends Exception {
         }
     }
 
-    public List<MetsExportExceptionElement> exceptionList = new ArrayList<MetsExportException.MetsExportExceptionElement>();
+    private final List<MetsExportExceptionElement> exceptionList = new ArrayList<MetsExportException.MetsExportExceptionElement>();
 
     public void addException(String pid, String message, boolean warning, Exception ex) {
         exceptionList.add(new MetsExportExceptionElement(pid, message, warning, ex));
