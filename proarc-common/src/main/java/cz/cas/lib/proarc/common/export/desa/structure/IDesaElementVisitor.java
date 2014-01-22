@@ -27,7 +27,14 @@ import cz.cas.lib.proarc.common.export.mets.MetsExportException;
  */
 public interface IDesaElementVisitor {
     /**
-     * Inserts an Element into mets structure and saves it
+     * Inserts an Element into mets structure and saves it. The output is stored
+     * in the directory specified in DesaContext (outputPath). The result is a
+     * set of ZIP files - 1 main descriptor ([PACKAGE_ID]_FILE.ZIP]) and other
+     * documents ([PACKAGE_ID]_XXXX.ZIP)
+     * 
+     * If exportToDesa parameter is set, ZIP files are sent to DESA. The result
+     * of the export is stored in the directory specified in DesaContext
+     * (desaResultPath)
      * 
      * @param desaElement
      * @throws MetsExportException

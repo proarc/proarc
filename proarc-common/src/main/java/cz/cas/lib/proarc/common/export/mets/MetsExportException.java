@@ -106,4 +106,8 @@ public class MetsExportException extends Exception {
 
     public MetsExportException() {
     }
+
+    public List<MetsExportExceptionElement> getExceptions() {
+        return exceptionList;
+    }
 }

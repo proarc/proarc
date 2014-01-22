@@ -75,7 +75,6 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
@@ -132,49 +131,6 @@ public class MetsUtils {
             }
         }
         return mimeToExtension;
-    }
-
-    /**
-     * JAXB marshaler compatibility class
-     */
-    /**
-     * JAXB marshaler compatibility class
-     */
-    public static class NamespacePrefixMapperImpl extends NamespacePrefixMapper {
-        @Override
-        public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix) {
-            if ("info:fedora/fedora-system:def/foxml#".equals(namespaceUri)) {
-                return "foxml";
-            }
-            if ("http://www.loc.gov/mods/v3".equals(namespaceUri)) {
-                return "mods";
-            }
-            if ("http://purl.org/dc/elements/1.1/".equals(namespaceUri)) {
-                return "dc";
-            }
-            if ("http://www.openarchives.org/OAI/2.0/oai_dc/".equals(namespaceUri)) {
-                return "oai_dc";
-            }
-            if ("info:fedora/fedora-system:def/model#".equals(namespaceUri)) {
-                return "fedora-model";
-            }
-            if ("http://www.w3.org/1999/02/22-rdf-syntax-ns#".equals(namespaceUri)) {
-                return "rdf";
-            }
-            if ("http://www.nsdl.org/ontologies/relationships#".equals(namespaceUri)) {
-                return "kramerius";
-            }
-            if ("http://www.w3.org/1999/xlink".equals(namespaceUri)) {
-                return "xlink";
-            }
-            if ("http://www.loc.gov/METS/".equals(namespaceUri)) {
-                return "mets";
-            }
-            if ("http://www.loc.gov/mix/v20".equals(namespaceUri)) {
-                return "mix";
-            }
-            return suggestion;
-        }
     }
 
     static {
@@ -848,7 +804,8 @@ public class MetsUtils {
                 Marshaller marshaller = jaxbContext.createMarshaller();
                 marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
                 marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-                marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl());
+                // marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper",
+                // new NamespacePrefixMapperImpl());
                 marshaller.marshal(infoJaxb, infoFile);
             } catch (Exception ex) {
                 LOG.log(Level.SEVERE, "Error while generating info.xml", ex);
@@ -858,7 +815,7 @@ public class MetsUtils {
                 MetsUtils.validateAgainstXSD(infoFile, Info.class.getResourceAsStream("info.xsd"));
             } catch (MetsExportException ex) {
                 LOG.log(Level.WARNING, "Invalid info.xml");
-                mets.metsExportException.addException("Invalid info.xml", true, ex.exceptionList.get(0).getEx());
+                mets.metsExportException.addException("Invalid info.xml", true, ex.getExceptions().get(0).getEx());
             }
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Error while creating info.xml", e);
@@ -884,7 +841,8 @@ public class MetsUtils {
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
             marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd");
-            marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl());
+            // marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper",
+            // new NamespacePrefixMapperImpl());
             marshaller.marshal(mets.getMets(), file);
             MessageDigest md;
             try {
@@ -898,7 +856,7 @@ public class MetsUtils {
                 MetsUtils.validateAgainstXSD(file, Mets.class.getResourceAsStream("mets.xsd"));
             } catch (MetsExportException ex) {
                 LOG.log(Level.WARNING, "Invalid xml METS");
-                mets.metsExportException.addException("Invalid Mets xml", true, ex.exceptionList.get(0).getEx());
+                mets.metsExportException.addException("Invalid Mets xml", true, ex.getExceptions().get(0).getEx());
             }
 
             InputStream is;

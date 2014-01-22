@@ -48,7 +48,6 @@ import cz.cas.lib.proarc.common.export.desa.sip2desa.SIP2DESATransporter;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils.NamespacePrefixMapperImpl;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
@@ -207,13 +206,12 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
             marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd");
-            marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl());
             marshaller.marshal(mets, outputFile);
             try {
                 MetsUtils.validateAgainstXSD(outputFile, Mets.class.getResourceAsStream("mets.xsd"));
             } catch (MetsExportException ex) {
                 LOG.log(Level.WARNING, "Invalid mets.xml for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
-                desaElement.getDesaContext().getMetsExportException().addException(desaElement.getOriginalPid(), "Invalid mets !", true, ex.exceptionList.get(0).getEx());
+                desaElement.getDesaContext().getMetsExportException().addException(desaElement.getOriginalPid(), "Invalid mets !", true, ex.getExceptions().get(0).getEx());
             }
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Unable to save mets file:" + outputFile.getAbsolutePath());
@@ -423,7 +421,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             insertFolder(desaElement);
         } else
             throw new MetsExportException(desaElement.getOriginalPid(), "Unknown type:" + desaElement.getElementType() + " model:" + desaElement.getModel(), false, null);
-        if (desaElement.getDesaContext().getMetsExportException().exceptionList.size() > 0) {
+        if (desaElement.getDesaContext().getMetsExportException().getExceptions().size() > 0) {
             throw desaElement.getDesaContext().getMetsExportException();
         }
         if (exportToDesa) {

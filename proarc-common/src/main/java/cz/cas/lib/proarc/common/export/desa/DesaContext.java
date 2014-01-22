@@ -29,6 +29,17 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 /**
  * Context for Desa mets export
  * 
+ * If Fedora is used as a source for FoXML documents, then fedoraClient should
+ * be set and fsParentMap and path should be empty.
+ * 
+ * If FoXML documents are stored on a file system, then fedoraClient should be
+ * empty and fsParentMap must contain parent mappings and path is an absolute
+ * path to the directory with FoXML documents
+ * 
+ * outputPath is an absolute path where ZIP files are stored ZIP files (minimum
+ * 2) - 1 descriptor for files ([PACKAGE_ID]_FILE.ZIP) and then the documents
+ * ([PACKAGE_ID]_XXXX.ZIP)
+ * 
  * @author Robert Simonovsky
  * 
  */
@@ -81,7 +92,7 @@ public class DesaContext {
     }
 
     /**
-     * Sets the package ID
+     * Sets the package ID for the desa export
      * 
      * @param packageID
      */
@@ -90,7 +101,9 @@ public class DesaContext {
     }
 
     /**
-     * Returns the output path
+     * Returns the output absolute path where ZIP files are stored ZIP files
+     * (minimum 2) - 1 descriptor for files ([PACKAGE_ID]_FILE.ZIP) and then the
+     * documents ([PACKAGE_ID]_XXXX.ZIP)
      * 
      * @return
      */
@@ -99,7 +112,9 @@ public class DesaContext {
     }
 
     /**
-     * Sets the output path
+     * Sets the output absolute path where ZIP files are stored ZIP files
+     * (minimum 2) - 1 descriptor for files ([PACKAGE_ID]_FILE.ZIP) and then the
+     * documents ([PACKAGE_ID]_XXXX.ZIP)
      * 
      * @param outputPath
      */
@@ -108,7 +123,8 @@ public class DesaContext {
     }
 
     /**
-     * Returns the path for FS FoXML
+     * Returns the absolute path for FoXML documents on file system - not used
+     * when using Fedora
      * 
      * @return
      */
@@ -117,7 +133,8 @@ public class DesaContext {
     }
 
     /**
-     * Sets the path for FS FoXML
+     * Sets the absolute path for FoXML documents on file system - not used when
+     * using Fedora
      * 
      * @param path
      */
@@ -126,7 +143,8 @@ public class DesaContext {
     }
 
     /**
-     * Returns the parent map for resource index on a file system
+     * Returns the parent map for resource index on a file system - not used
+     * when using Fedora
      * 
      * @return
      */
@@ -135,7 +153,8 @@ public class DesaContext {
     }
 
     /**
-     * Sets the parent map for resource index on a file system
+     * Sets the parent map for resource index on a file system - not used when
+     * using Fedora
      * 
      * @param fsParentMap
      */
@@ -144,7 +163,7 @@ public class DesaContext {
     }
 
     /**
-     * Returns the root element of Desa export
+     * Returns the root element of Desa export - used for DesaVisitor
      * 
      * @return
      */
@@ -180,7 +199,7 @@ public class DesaContext {
     }
 
     /**
-     * Sets the fedora client
+     * Sets the fedora client - used when FoXML documents are stored in Fedora
      * 
      * @param fedoraClient
      */
@@ -189,7 +208,7 @@ public class DesaContext {
     }
 
     /**
-     * Returns the remote storage
+     * Returns the remote storage (Fedora)
      * 
      * @return
      */
@@ -198,7 +217,7 @@ public class DesaContext {
     }
 
     /**
-     * Sets the remote storage
+     * Sets the remote storage (Fedora)
      * 
      * @param remoteStorage
      */
