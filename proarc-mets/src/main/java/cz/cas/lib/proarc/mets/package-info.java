@@ -23,8 +23,12 @@
 @XmlSchema(namespace = cz.cas.lib.proarc.mets.MetsConstants.NS_METS,
         elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
         xmlns = { @XmlNs(namespaceURI = cz.cas.lib.proarc.mets.MetsConstants.NS_METS,
-                prefix = cz.cas.lib.proarc.mets.MetsConstants.PREFIX_NS_METS) })
+                prefix = cz.cas.lib.proarc.mets.MetsConstants.PREFIX_NS_METS),
+                @XmlNs(namespaceURI = cz.cas.lib.proarc.mets.MetsConstants.NS_XLINK,
+                        prefix = cz.cas.lib.proarc.mets.MetsConstants.PREFIX_NS_XLINK)
+        })
 package cz.cas.lib.proarc.mets;
 
 import javax.xml.bind.annotation.XmlNs;
 import javax.xml.bind.annotation.XmlSchema;
+

@@ -26,4 +26,6 @@ package cz.cas.lib.proarc.mets;
 public class MetsConstants {
     public static final String NS_METS = "http://www.loc.gov/METS/";
     public static final String PREFIX_NS_METS = "mets";
+    public static final String NS_XLINK = "http://www.w3.org/1999/xlink";
+    public static final String PREFIX_NS_XLINK = "xlink";
 }
