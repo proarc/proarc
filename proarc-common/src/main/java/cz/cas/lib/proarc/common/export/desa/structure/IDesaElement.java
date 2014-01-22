@@ -128,13 +128,15 @@ public interface IDesaElement {
 
     /**
      * Returns the name of a mets-zip file where this document/element is stored
+     * the name of the file is without path and suffix (PACKAGE_ID_XXXX)
      * 
      * @return
      */
     public String getZipName();
 
     /**
-     * Sets the name of a zip file where this document/element is stored
+     * Sets the name of a zip file where this document/element is stored the
+     * name of the file is without path and suffix (PACKAGE_ID_XXXX)
      * 
      * @param zipName
      */
