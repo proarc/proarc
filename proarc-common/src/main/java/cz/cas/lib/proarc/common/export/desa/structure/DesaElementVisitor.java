@@ -103,6 +103,37 @@ public class DesaElementVisitor implements IDesaElementVisitor {
     }
 
     /**
+     * Returns a identifier from BIBLIO-MODS stream
+     * 
+     * @param desaElement
+     * @return
+     * @throws MetsExportException
+     */
+    private String getIdentifier(IDesaElement desaElement) throws MetsExportException {
+        LOG.log(Level.INFO, "Element model:" + desaElement.getModel());
+        if (MetsUtils.xPathEvaluateNode(desaElement.getDescriptor(), "*[namespace-uri()='http://www.openarchives.org/OAI/2.0/oai_dc/']") != null) {
+            LOG.log(Level.INFO, "DC variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
+            List<Element> descriptor = desaElement.getDescriptor();
+            return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='dc']/*[local-name()='identifier']");
+        }
+        if (MetsUtils.xPathEvaluateNode(desaElement.getDescriptor(), "*[namespace-uri()='http://www.mvcr.cz/nsesss/v2']") != null) {
+            LOG.log(Level.INFO, "NSESS variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
+            List<Element> descriptor = desaElement.getDescriptor();
+            if (Const.FOLDER.equalsIgnoreCase(desaElement.getElementType())) {
+                return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Spis']/*[local-name()='EvidencniUdaje'/*[local-name()='Identifikace'/*[local-name()='Identifikator']");
+            }
+            if (Const.DOCUMENT.equalsIgnoreCase(desaElement.getElementType())) {
+                return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Dokument']/*[local-name()='EvidencniUdaje'/*[local-name()='Identifikace'/*[local-name()='Identifikator']");
+            }
+            LOG.log(Level.SEVERE, "Element nit DOCUMENT or FOLDER" + desaElement.getElementType());
+            throw new MetsExportException(desaElement.getOriginalPid(), "Element not DOCUMENT or FOLDER:" + desaElement.getElementType(), false, null);
+        }
+
+        LOG.log(Level.SEVERE, "Unable to get Identifier - DER/DES descriptor missing - " + desaElement.getModel());
+        throw new MetsExportException(desaElement.getOriginalPid(), "Unable to get Identifier - DER/DES descriptor missing - " + desaElement.getModel(), false, null);
+    }
+
+    /**
      * Returns a label for LOGICAL div from DC stream
      * 
      * @param desaElement
@@ -392,7 +423,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             Mptr mptr = new Mptr();
             mptr.setLOCTYPE("OTHER");
             mptr.setOTHERLOCTYPE("internal_reference");
-            mptr.setHref(documentElement.getZipName());
+            mptr.setHref(getIdentifier(documentElement));
             documentDiv.getMptr().add(mptr);
             divType.getDiv().add(documentDiv);
         }

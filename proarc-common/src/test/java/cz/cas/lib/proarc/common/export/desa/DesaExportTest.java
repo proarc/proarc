@@ -129,7 +129,7 @@ public class DesaExportTest {
         String innerStructType = mets.getStructMap().get(0).getDiv().getDiv().get(0).getTYPE();
         assertEquals("record", innerStructType);
         String href = mets.getStructMap().get(0).getDiv().getDiv().get(0).getMptr().get(0).getHref();
-        assertEquals("SAMPLEDESA_0001", href);
+        assertEquals("A-37_01", href);
         outputDir = extractFile(resultDir + File.separator + "SAMPLEDESA_0001.zip", "noFileNameDesaTest");
         mets = readMets(outputDir + File.separator + "mets.xml");
         FileType fileType = mets.getFileSec().getFileGrp().get(0).getFile().get(0);
@@ -168,7 +168,7 @@ public class DesaExportTest {
         String innerStructType = mets.getStructMap().get(0).getDiv().getDiv().get(0).getTYPE();
         assertEquals("record", innerStructType);
         String href = mets.getStructMap().get(0).getDiv().getDiv().get(0).getMptr().get(0).getHref();
-        assertEquals("SAMPLEDESA2_0001", href);
+        assertEquals("A-37_01", href);
         outputDir = extractFile(resultDir + File.separator + "SAMPLEDESA2_0001.zip", "noFileNameDesaTest");
         mets = readMets(outputDir + File.separator + "mets.xml");
         FileType fileType = mets.getFileSec().getFileGrp().get(0).getFile().get(0);
