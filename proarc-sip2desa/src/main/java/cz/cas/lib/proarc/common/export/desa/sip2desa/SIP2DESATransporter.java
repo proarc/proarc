@@ -68,6 +68,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 import cz.cas.lib.proarc.common.export.desa.sip2desa.api.FileHashAlg;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.api.NomenclatureListType;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmission;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmissionFault;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmissionService;
@@ -344,6 +345,39 @@ public class SIP2DESATransporter {
         log.info("Elapsed time: " + ((timeFinish - timeStart) / 1000.0) + " seconds. " + sourceFiles.length + " SIP packages transported.");
         log.info("RESULT: OK");
 
+    }
+
+    /**
+     * Returns the nomenclatures - the list of wanted nomenclatures is in
+     * nomenclaturesList
+     * 
+     * @param customConfig
+     * @param nomenclaturesList
+     * @return
+     */
+    public String getNomenclatures(Map<String, ?> customConfig, List<String> nomenclaturesList) {
+        System.setProperty("java.awt.headless", "true");
+        initConfig(customConfig);
+        GregorianCalendar c = new GregorianCalendar();
+        c.setTime(new Date());
+        XMLGregorianCalendar currentDate;
+        try {
+            currentDate = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+        } catch (DatatypeConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+
+        initializeDesa();
+        NomenclatureListType nsType = new NomenclatureListType();
+        try {
+            for (String nomenclature : nomenclaturesList) {
+                nsType.getNomenclatureAcronyme().add(nomenclature);
+            }
+            byte[] result = desaPort.getNomenclatures(0, config.getString("desa.producer"), config.getString("desa.user"), nsType, currentDate);
+            return new String(result);
+        } catch (SIPSubmissionFault e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
