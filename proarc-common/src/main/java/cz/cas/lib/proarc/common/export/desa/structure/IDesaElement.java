@@ -17,6 +17,7 @@
 
 package cz.cas.lib.proarc.common.export.desa.structure;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -33,6 +34,21 @@ import cz.cas.lib.proarc.common.export.mets.MetsExportException;
  * 
  */
 public interface IDesaElement {
+
+    /**
+     * Returns the IdSIPVersion from the DESA transport
+     * 
+     * @return
+     */
+    public String getIdSIPVersion();
+
+    /**
+     * Sets the IdSIPVersion from the DESA transport
+     * 
+     * @return
+     */
+    public void setIdSIPVersion(String idSIPVersion);
+
     /**
      * Returns a parent DesaElement
      * 
@@ -98,12 +114,13 @@ public interface IDesaElement {
     public void accept(IDesaElementVisitor desaVisitor) throws MetsExportException;
 
     /**
-     * Accept method for generator of mets
+     * Accept method for generator of mets, desaProps contain properties for
+     * DESA trasport
      * 
      * @param desaVisitor
      * @throws MetsExportException
      */
-    public void accept(IDesaElementVisitor desaVisitor, boolean exportToDesa) throws MetsExportException;
+    public void accept(IDesaElementVisitor desaVisitor, HashMap<String, String> desaProps) throws MetsExportException;
 
     /**
      * Returns the type an element

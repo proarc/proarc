@@ -17,6 +17,8 @@
 
 package cz.cas.lib.proarc.common.export.desa.structure;
 
+import java.util.HashMap;
+
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 
 /**
@@ -39,5 +41,5 @@ public interface IDesaElementVisitor {
      * @param desaElement
      * @throws MetsExportException
      */
-    public void insertIntoMets(IDesaElement desaElement, boolean exportToDesa) throws MetsExportException;
+    public void insertIntoMets(IDesaElement desaElement, HashMap<String, String> desaProps) throws MetsExportException;
 }

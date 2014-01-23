@@ -45,6 +45,8 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 
 import cz.cas.lib.proarc.common.export.desa.Const;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.SIP2DESATransporter;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.PSPSIP;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.PSPSIP.SIP;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
@@ -174,7 +176,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
     private File createTempFolder(IDesaElement desaElement) throws MetsExportException {
         File tmpFileFolder = null;
         try {
-            tmpFileFolder = File.createTempFile("tmp" + desaElement.getDesaContext().getPackageID() + desaElement.getElementID(), ".tmp");
+            tmpFileFolder = File.createTempFile("tmp" + getIdentifier(desaElement.getDesaContext().getRootElement()) + desaElement.getElementID(), ".tmp");
             tmpFileFolder.delete();
             tmpFileFolder = new File(tmpFileFolder.getAbsolutePath());
         } catch (IOException e) {
@@ -378,7 +380,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                 throw new MetsExportException(fileElement.getOriginalPid(), "Unable to save file", false, e);
             }
             FileType fileType = new FileType();
-            fileType.setID(desaElement.getDesaContext().getPackageID() + "_" + suffix + "_" + String.format("%04d", fileOrder));
+            fileType.setID(getIdentifier(desaElement) + "_" + String.format("%04d", fileOrder));
             fileType.setCHECKSUMTYPE("MD5");
             fileType.setCHECKSUM(fileMd5Info.getMd5());
             FLocat flocat = new FLocat();
@@ -392,9 +394,9 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         }
         addFileGrpToMets(fileGrpMap, fileSec);
         saveMets(mets, outputMets, desaElement);
-        desaElement.setZipName(desaElement.getDesaContext().getPackageID() + "_" + suffix);
+        desaElement.setZipName(getIdentifier(desaElement));
         fileList.add(outputMets);
-        String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getDesaContext().getPackageID() + "_" + suffix + ".zip";
+        String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getZipName() + ".zip";
         zip(zipFileName, fileList, desaElement);
     }
 
@@ -430,10 +432,32 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         File tmpFolder = createTempFolder(desaElement);
         File outputMets = new File(tmpFolder.getAbsolutePath() + "/mets.xml");
         saveMets(mets, outputMets, desaElement);
-        String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getDesaContext().getPackageID() + "_FILE.zip";
+        desaElement.setZipName(getIdentifier(desaElement) + "_FILE");
+        String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getZipName() + ".zip";
         ArrayList<File> fileList = new ArrayList<File>();
         fileList.add(outputMets);
         zip(zipFileName, fileList, desaElement);
+    }
+
+    /**
+     * Updates desaElements with the IdSIPVersion from DESA transport
+     * 
+     * @param desaElement
+     * @param transportResult
+     */
+    private void updateSIPversion(IDesaElement desaElement, PSPSIP transportResult) {
+        for (DesaElement desaElementChild : desaElement.getChildren()) {
+            updateSIPversion(desaElementChild, transportResult);
+        }
+
+        if (desaElement.getZipName() != null) {
+            for (SIP sip : transportResult.getSIP()) {
+                if (sip.getIdentifier().equals(desaElement.getZipName())) {
+                    desaElement.setIdSIPVersion(sip.getIdSIPVersion());
+                    break;
+                }
+            }
+        }
     }
 
     /*
@@ -444,7 +468,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
      * (cz.cas.lib.proarc.common.export.desa.structure.IDesaElement)
      */
     @Override
-    public void insertIntoMets(IDesaElement desaElement, boolean exportToDesa) throws MetsExportException {
+    public void insertIntoMets(IDesaElement desaElement, HashMap<String, String> desaProps) throws MetsExportException {
         LOG.log(Level.INFO, "Inserting into Mets:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
         if (Const.DOCUMENT.equalsIgnoreCase(desaElement.getElementType())) {
             insertDocument(desaElement, null);
@@ -455,11 +479,16 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         if (desaElement.getDesaContext().getMetsExportException().getExceptions().size() > 0) {
             throw desaElement.getDesaContext().getMetsExportException();
         }
-        if (exportToDesa) {
+        if (desaProps != null) {
             LOG.log(Level.INFO, "Exporting to desa");
             try {
-                SIP2DESATransporter sipTransporter = new SIP2DESATransporter();
-                sipTransporter.transport(desaElement.getDesaContext().getOutputPath(), desaElement.getDesaContext().getDesaResultPath(), desaElement.getDesaContext().getDesaResultPath());
+                if (desaProps.get("desa.resultDir") != null) {
+                    SIP2DESATransporter sipTransporter = new SIP2DESATransporter();
+                    sipTransporter.transport(desaElement.getDesaContext().getOutputPath(), desaProps.get("desa.resultDir"), desaProps.get("desa.resultDir"), desaProps);
+                    updateSIPversion(desaElement, sipTransporter.getResults());
+                } else {
+                    throw new MetsExportException("Result dir (desa.resultDir) is not set", false);
+                }
             } catch (Exception ex) {
                 throw new MetsExportException("Unable to transport mets to desa", false, ex);
             }

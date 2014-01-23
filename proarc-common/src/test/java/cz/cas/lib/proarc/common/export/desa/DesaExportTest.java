@@ -120,7 +120,7 @@ public class DesaExportTest {
         } catch (MetsExportException ex) {
             assertEquals(0, ex.getExceptions().size());
         }
-        String outputDir = extractFile(resultDir + File.separator + "SAMPLEDESA_FILE.zip", "correctDesaTest");
+        String outputDir = extractFile(resultDir + File.separator + "A-37_FILE.zip", "correctDesaTest");
         Mets mets = readMets(outputDir + File.separator + "mets.xml");
         String DMDID = mets.getDmdSec().get(0).getID();
         assertEquals("DM_0001", DMDID);
@@ -130,7 +130,7 @@ public class DesaExportTest {
         assertEquals("record", innerStructType);
         String href = mets.getStructMap().get(0).getDiv().getDiv().get(0).getMptr().get(0).getHref();
         assertEquals("A-37_01", href);
-        outputDir = extractFile(resultDir + File.separator + "SAMPLEDESA_0001.zip", "noFileNameDesaTest");
+        outputDir = extractFile(resultDir + File.separator + "A-37_01.zip", "noFileNameDesaTest");
         mets = readMets(outputDir + File.separator + "mets.xml");
         FileType fileType = mets.getFileSec().getFileGrp().get(0).getFile().get(0);
         assertEquals("b5100365bd0c93d1596e29fb8e8969a0", fileType.getCHECKSUM());
@@ -159,7 +159,7 @@ public class DesaExportTest {
         } catch (MetsExportException ex) {
             assertEquals(0, ex.getExceptions().size());
         }
-        String outputDir = extractFile(resultDir + File.separator + "SAMPLEDESA2_FILE.zip", "noFileNameDesaTest");
+        String outputDir = extractFile(resultDir + File.separator + "A-37_FILE.zip", "noFileNameDesaTest");
         Mets mets = readMets(outputDir + File.separator + "mets.xml");
         String DMDID = mets.getDmdSec().get(0).getID();
         assertEquals("DM_0001", DMDID);
@@ -169,7 +169,7 @@ public class DesaExportTest {
         assertEquals("record", innerStructType);
         String href = mets.getStructMap().get(0).getDiv().getDiv().get(0).getMptr().get(0).getHref();
         assertEquals("A-37_01", href);
-        outputDir = extractFile(resultDir + File.separator + "SAMPLEDESA2_0001.zip", "noFileNameDesaTest");
+        outputDir = extractFile(resultDir + File.separator + "A-37_01.zip", "noFileNameDesaTest");
         mets = readMets(outputDir + File.separator + "mets.xml");
         FileType fileType = mets.getFileSec().getFileGrp().get(0).getFile().get(0);
         assertEquals("b5100365bd0c93d1596e29fb8e8969a0", fileType.getCHECKSUM());

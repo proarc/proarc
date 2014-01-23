@@ -99,6 +99,15 @@ public class SIP2DESATransporter {
 
     private PSPSIP results = resultsFactory.createPSPSIP();
 
+    /**
+     * Returns the parsed result from the result file
+     * 
+     * @return
+     */
+    public PSPSIP getResults() {
+        return results;
+    }
+
     private Config config;
 
     private File desaFolder = null;

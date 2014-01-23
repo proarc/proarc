@@ -18,6 +18,7 @@
 package cz.cas.lib.proarc.common.export.desa.structure;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,6 +51,32 @@ public class DesaElement implements IDesaElement {
     private final List<DesaElement> children = new ArrayList<DesaElement>();
     private final List<Element> relsExt;
     private final DigitalObject sourceObject;
+    private String idSIPVersion;
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getIdSIPVersion
+     * ()
+     */
+    @Override
+    public String getIdSIPVersion() {
+        return idSIPVersion;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#setIdSIPVersion
+     * (java.lang.String)
+     */
+    @Override
+    public void setIdSIPVersion(String idSIPVersion) {
+        this.idSIPVersion = idSIPVersion;
+    }
+
     private final String elementType;
     private final String elementID;
     private String zipName;
@@ -313,7 +340,7 @@ public class DesaElement implements IDesaElement {
      */
     @Override
     public void accept(IDesaElementVisitor desaVisitor) throws MetsExportException {
-        desaVisitor.insertIntoMets(this, false);
+        desaVisitor.insertIntoMets(this, null);
     }
 
     /*
@@ -324,7 +351,7 @@ public class DesaElement implements IDesaElement {
      * .cas.lib.proarc.common.export.desa.structure.IDesaElementVisitor)
      */
     @Override
-    public void accept(IDesaElementVisitor desaVisitor, boolean exportToDesa) throws MetsExportException {
-        desaVisitor.insertIntoMets(this, exportToDesa);
+    public void accept(IDesaElementVisitor desaVisitor, HashMap<String, String> desaProps) throws MetsExportException {
+        desaVisitor.insertIntoMets(this, desaProps);
     }
 }
