@@ -328,71 +328,74 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         divType.setLabel(getLabel(desaElement));
         divType.setTYPE("record");
         divType.getDMDID().add(mets.getDmdSec().get(0));
-
-        FileSec fileSec = new FileSec();
-        mets.setFileSec(fileSec);
-
-        StructMapType structMapType = mets.getStructMap().get(0);
-        structMapType.setDiv(divType);
-
-        int fileOrder = 0;
         ArrayList<File> fileList = new ArrayList<File>();
-        for (DesaElement fileElement : desaElement.getChildren()) {
-            fileOrder++;
-            DatastreamType rawDS = FoxmlUtils.findDatastream(fileElement.getSourceObject(), "RAW");
-            byte[] fileContent = new byte[0];
-            String mimeType = "empty";
-            if (rawDS != null) {
-                fileContent = rawDS.getDatastreamVersion().get(0).getBinaryContent();
-                mimeType = rawDS.getDatastreamVersion().get(0).getMIMETYPE();
-            } else {
-                LOG.log(Level.WARNING, "RAW datastream is null for:" + desaElement.getOriginalPid() + " - skipping");
-                desaElement.getDesaContext().getMetsExportException().addException(fileElement.getOriginalPid(), "RAW datastream is missing", false, null);
-                continue;
+
+        // if no files are present, then skip
+        if (desaElement.getChildren().size() > 0) {
+            FileSec fileSec = new FileSec();
+            mets.setFileSec(fileSec);
+
+            StructMapType structMapType = mets.getStructMap().get(0);
+            structMapType.setDiv(divType);
+
+            int fileOrder = 0;
+            for (DesaElement fileElement : desaElement.getChildren()) {
+                fileOrder++;
+                DatastreamType rawDS = FoxmlUtils.findDatastream(fileElement.getSourceObject(), "RAW");
+                byte[] fileContent = new byte[0];
+                String mimeType = "empty";
+                if (rawDS != null) {
+                    fileContent = rawDS.getDatastreamVersion().get(0).getBinaryContent();
+                    mimeType = rawDS.getDatastreamVersion().get(0).getMIMETYPE();
+                } else {
+                    LOG.log(Level.WARNING, "RAW datastream is null for:" + desaElement.getOriginalPid() + " - skipping");
+                    desaElement.getDesaContext().getMetsExportException().addException(fileElement.getOriginalPid(), "RAW datastream is missing", false, null);
+                    continue;
+                }
+                FileOutputStream fos;
+                String outputFileName = getFileName(fileElement);
+                /*
+                 * Generates a filename if it's not provided from the original
+                 * document
+                 */
+                if ((outputFileName == null) || (outputFileName.trim().length() == 0)) {
+                    outputFileName = "file_" + String.format("%04d", fileOrder) + "." + MetsUtils.getMimeToExtension().getProperty(mimeType);
+                    LOG.log(Level.INFO, "importFile was not specified for:" + fileElement.getOriginalPid() + " new name was generated:" + outputFileName);
+                }
+                String fullOutputFileName = tmpFolder.getAbsolutePath() + File.separator + outputFileName;
+                try {
+                    File outputFile = new File(fullOutputFileName);
+                    fos = new FileOutputStream(outputFile);
+                    fileList.add(outputFile);
+                } catch (FileNotFoundException e) {
+                    LOG.log(Level.SEVERE, "Unable to create a temp file:" + fullOutputFileName);
+                    throw new MetsExportException(fileElement.getOriginalPid(), "Unable to create a temp file:" + fullOutputFileName, false, e);
+                }
+                FileMD5Info fileMd5Info;
+                try {
+                    fileMd5Info = MetsUtils.getDigestAndCopy(new ByteArrayInputStream(fileContent), fos);
+                } catch (NoSuchAlgorithmException e) {
+                    LOG.log(Level.SEVERE, "Unable to generate MD5 digest", e);
+                    throw new MetsExportException(fileElement.getOriginalPid(), "Unable to generate MD5 digest", false, e);
+                } catch (IOException e) {
+                    LOG.log(Level.SEVERE, "Unable to save file", e);
+                    throw new MetsExportException(fileElement.getOriginalPid(), "Unable to save file", false, e);
+                }
+                FileType fileType = new FileType();
+                fileType.setID(getIdentifier(desaElement) + "_" + String.format("%04d", fileOrder));
+                fileType.setCHECKSUMTYPE("MD5");
+                fileType.setCHECKSUM(fileMd5Info.getMd5());
+                FLocat flocat = new FLocat();
+                flocat.setLOCTYPE("URL");
+                flocat.setHref(outputFileName);
+                fileType.getFLocat().add(flocat);
+                addFiletoFileGrp(fileGrpMap, fileElement, fileType);
+                Fptr fptr = new Fptr();
+                fptr.setFILEID(fileType);
+                divType.getFptr().add(fptr);
             }
-            FileOutputStream fos;
-            String outputFileName = getFileName(fileElement);
-            /*
-             * Generates a filename if it's not provided from the original
-             * document
-             */
-            if ((outputFileName == null) || (outputFileName.trim().length() == 0)) {
-                outputFileName = "file_" + String.format("%04d", fileOrder) + "." + MetsUtils.getMimeToExtension().getProperty(mimeType);
-                LOG.log(Level.INFO, "importFile was not specified for:" + fileElement.getOriginalPid() + " new name was generated:" + outputFileName);
-            }
-            String fullOutputFileName = tmpFolder.getAbsolutePath() + File.separator + outputFileName;
-            try {
-                File outputFile = new File(fullOutputFileName);
-                fos = new FileOutputStream(outputFile);
-                fileList.add(outputFile);
-            } catch (FileNotFoundException e) {
-                LOG.log(Level.SEVERE, "Unable to create a temp file:" + fullOutputFileName);
-                throw new MetsExportException(fileElement.getOriginalPid(), "Unable to create a temp file:" + fullOutputFileName, false, e);
-            }
-            FileMD5Info fileMd5Info;
-            try {
-                fileMd5Info = MetsUtils.getDigestAndCopy(new ByteArrayInputStream(fileContent), fos);
-            } catch (NoSuchAlgorithmException e) {
-                LOG.log(Level.SEVERE, "Unable to generate MD5 digest", e);
-                throw new MetsExportException(fileElement.getOriginalPid(), "Unable to generate MD5 digest", false, e);
-            } catch (IOException e) {
-                LOG.log(Level.SEVERE, "Unable to save file", e);
-                throw new MetsExportException(fileElement.getOriginalPid(), "Unable to save file", false, e);
-            }
-            FileType fileType = new FileType();
-            fileType.setID(getIdentifier(desaElement) + "_" + String.format("%04d", fileOrder));
-            fileType.setCHECKSUMTYPE("MD5");
-            fileType.setCHECKSUM(fileMd5Info.getMd5());
-            FLocat flocat = new FLocat();
-            flocat.setLOCTYPE("URL");
-            flocat.setHref(outputFileName);
-            fileType.getFLocat().add(flocat);
-            addFiletoFileGrp(fileGrpMap, fileElement, fileType);
-            Fptr fptr = new Fptr();
-            fptr.setFILEID(fileType);
-            divType.getFptr().add(fptr);
+            addFileGrpToMets(fileGrpMap, fileSec);
         }
-        addFileGrpToMets(fileGrpMap, fileSec);
         saveMets(mets, outputMets, desaElement);
         desaElement.setZipName(getIdentifier(desaElement));
         fileList.add(outputMets);
