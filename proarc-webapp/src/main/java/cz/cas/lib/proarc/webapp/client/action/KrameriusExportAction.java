@@ -23,8 +23,11 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.SC;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ExportDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
@@ -50,7 +53,26 @@ public final class KrameriusExportAction extends AbstractAction {
     @Override
     public boolean accept(ActionEvent event) {
         Object[] selection = Actions.getSelection(event);
-        return selection != null && selection.length > 0 && selection instanceof Record[];
+        return selection != null && selection.length > 0 && selection instanceof Record[]
+                && acceptMods((Record[]) selection);
+    }
+
+    /** Accepts only if all records are objects with description metadata in MODS format */
+    private boolean acceptMods(Record[] records) {
+        boolean accept = false;
+        for (Record record : records) {
+            DigitalObject dobj = DigitalObject.createOrNull(record);
+            if (dobj != null) {
+                MetaModelRecord model = dobj.getModel();
+                if (model != null && ModsConstants.NS.equals(model.getMetadataFormat())) {
+                    accept = true;
+                    continue;
+                }
+            }
+            accept = false;
+            break;
+        }
+        return accept;
     }
 
     @Override
