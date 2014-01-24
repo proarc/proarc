@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema 
+     attributeFormDefault="unqualified"
+     elementFormDefault="qualified"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     targetNamespace="http://dea.i.cz/nomen/xmlbeans/gen"
+>
+  <xs:element name="nomenclatures">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="a-collects" maxOccurs="1">
+        	<xs:complexType>
+        		<xs:sequence>
+                            <xs:element minOccurs="0" name="title" type="xs:string" />
+                            <xs:element minOccurs="0" name="descr"
+        				type="xs:string" />
+        			<xs:element minOccurs="0" maxOccurs="unbounded"
+        				name="a-collect">
+        				<xs:complexType>
+        					<xs:sequence>
+                                        <xs:element minOccurs="0" name="title" type="xs:string" />
+                                        <xs:element minOccurs="0" name="descr"
+        							type="xs:string" />
+        						<xs:element minOccurs="0"
+        							name="defBlockXsd" type="xs:string" />
+        					</xs:sequence>
+        				</xs:complexType>
+        			</xs:element>
+        		</xs:sequence>
+        	</xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="a-funds" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+                            <xs:element minOccurs="0" name="title" type="xs:string" />
+                            <xs:element minOccurs="0" name="descr" type="xs:string" />
+              <xs:element minOccurs="0" name="a-fund" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                                        <xs:element minOccurs="0" name="title" type="xs:string" />
+                                        <xs:element minOccurs="0" name="descr" type="xs:string" />
+                    <xs:element minOccurs="0" name="defBlockXsd" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="cre-cntrls">
+          <xs:complexType>
+            <xs:sequence>
+                            <xs:element minOccurs="0" name="title" type="xs:string" />
+                            <xs:element minOccurs="0" name="descr" type="xs:string" />
+              <xs:element minOccurs="0" name="cre-cntrl" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                                        <xs:element minOccurs="0" name="title" type="xs:string" />
+                                        <xs:element minOccurs="0" name="descr" type="xs:string" />
+                    <xs:element minOccurs="0" name="acr" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="doc-types">
+          <xs:complexType>
+            <xs:sequence>
+                            <xs:element minOccurs="0" name="title" type="xs:string" />
+                            <xs:element minOccurs="0" name="descr" type="xs:string" />
+              <xs:element minOccurs="0" name="doc-type" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                                        <xs:element minOccurs="0" name="title" type="xs:string" />
+                                        <xs:element minOccurs="0" name="descr" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="locs">
+          <xs:complexType>
+            <xs:sequence>
+                            <xs:element minOccurs="0" name="title" type="xs:string" />
+                            <xs:element minOccurs="0" name="descr" type="xs:string" />
+              <xs:element minOccurs="0" name="loc" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                                        <xs:element minOccurs="0" name="fullyQcc" type="xs:string" />
+                                        <xs:element minOccurs="0" name="title" type="xs:string" />
+                                        <xs:element minOccurs="0" name="descr" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="pronoms">
+          <xs:complexType>
+            <xs:sequence>
+                            <xs:element minOccurs="0" name="title" type="xs:string" />
+                            <xs:element minOccurs="0" name="descr" type="xs:string" />
+              <xs:element minOccurs="0" name="pronom" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                                        <xs:element minOccurs="0" name="puid" type="xs:string" />
+                                        <xs:element minOccurs="0" name="title" type="xs:string" />
+                                        <xs:element minOccurs="0" name="descr" type="xs:string" />
+                    <xs:element minOccurs="0" name="mime" type="xs:string" />
+                                        <xs:element minOccurs="0" name="suffix" type="xs:string" />
+                                        <xs:element minOccurs="0" name="state" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="rd-cntrls">
+          <xs:complexType>
+            <xs:sequence>
+                            <xs:element minOccurs="0" name="title" type="xs:string" />
+                            <xs:element minOccurs="0" name="descr" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="rd-cntrl">
+                <xs:complexType>
+                  <xs:sequence>
+                                        <xs:element minOccurs="0" name="acr" type="xs:string" />
+                                        <xs:element minOccurs="0" name="title" type="xs:string" />
+                                        <xs:element minOccurs="0" name="descr" type="xs:string" />
+                    <xs:element minOccurs="0" name="action" type="xs:string" />
+                    <xs:element minOccurs="0" name="userPeriod" type="xs:boolean" />
+                    <xs:element minOccurs="0" name="mand" type="xs:string" />
+                    <xs:element minOccurs="0" name="period" type="xs:int" />
+                    <xs:element minOccurs="0" name="reas" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="rec-types">
+          <xs:complexType>
+            <xs:sequence>
+                            <xs:element minOccurs="0" name="title" type="xs:string" />
+                            <xs:element minOccurs="0" name="descr" type="xs:string" />
+              <xs:element minOccurs="0" name="rec-type" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                                        <xs:element minOccurs="0" name="title" type="xs:string" />
+                                        <xs:element minOccurs="0" name="descr" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="rec-cls">
+          <xs:complexType>
+            <xs:sequence>
+                            <xs:element minOccurs="0" name="title" type="xs:string" />
+                            <xs:element minOccurs="0" name="descr" type="xs:string" />
+              <xs:element minOccurs="0" name="rec-cl" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                  	<xs:element minOccurs="0" name="fullyQcc"
+                  		type="xs:string" />
+                  	<xs:element minOccurs="0" name="title"
+                  		type="xs:string" />
+                  	<xs:element minOccurs="0" name="descr"
+                  		type="xs:string" />
+
+                  	<xs:element minOccurs="0" name="ag"
+                  		type="xs:string" />
+                  	<xs:element minOccurs="0" name="classCode"
+                  		type="xs:string" />
+                  	<xs:element minOccurs="0" name="crecntrl"
+                  		type="xs:string" />
+
+                  	<xs:element minOccurs="0" name="gen"
+                  		type="xs:string" />
+                  	<xs:element minOccurs="0" name="keyw"
+                  		type="xs:string" />
+                  	<xs:element minOccurs="0" name="loc"
+                  		type="xs:string" />
+                  	<xs:element name="parent" type="xs:string"
+                  		maxOccurs="1" minOccurs="0">
+                  	</xs:element>
+                  	<xs:element name="acl" type="xs:string" maxOccurs="1" minOccurs="0"></xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

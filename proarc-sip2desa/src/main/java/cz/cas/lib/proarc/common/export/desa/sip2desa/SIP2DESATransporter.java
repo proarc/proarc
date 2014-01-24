@@ -72,6 +72,7 @@ import cz.cas.lib.proarc.common.export.desa.sip2desa.api.NomenclatureListType;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmission;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmissionFault;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmissionService;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.ObjectFactory;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.PSPSIP;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.ResultType;
@@ -87,6 +88,9 @@ public class SIP2DESATransporter {
 
     private Marshaller marshaller = null;
     private Unmarshaller unmarshaller = null;
+
+    private Marshaller marshallerNomen = null;
+    private Unmarshaller unmarshallerNomen = null;
 
     private File[] sourceFiles = null;
 
@@ -355,7 +359,7 @@ public class SIP2DESATransporter {
      * @param nomenclaturesList
      * @return
      */
-    public String getNomenclatures(Map<String, ?> customConfig, List<String> nomenclaturesList) {
+    public Nomenclatures getNomenclatures(Map<String, ?> customConfig, List<String> nomenclaturesList) {
         System.setProperty("java.awt.headless", "true");
         initConfig(customConfig);
         GregorianCalendar c = new GregorianCalendar();
@@ -374,10 +378,32 @@ public class SIP2DESATransporter {
                 nsType.getNomenclatureAcronyme().add(nomenclature);
             }
             byte[] result = desaPort.getNomenclatures(0, config.getString("desa.producer"), config.getString("desa.user"), nsType, currentDate);
-            return new String(result);
+            ByteArrayInputStream bis = new ByteArrayInputStream(result);
+            initJAXBNomen();
+            return (Nomenclatures) unmarshallerNomen.unmarshal(bis);
         } catch (SIPSubmissionFault e) {
             throw new IllegalStateException(e);
+        } catch (JAXBException e) {
+            throw new IllegalStateException("Unable to unmarshall nomenclatures", e);
         }
+    }
+
+    /**
+     * Initialize JAXB transformers for Nomenclatures
+     * 
+     * @throws JAXBException
+     */
+    private void initJAXBNomen() throws JAXBException {
+        JAXBContext jaxbContext = JAXBContext.newInstance(Nomenclatures.class);
+        marshallerNomen = jaxbContext.createMarshaller();
+        marshallerNomen.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+        marshallerNomen.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+        try {
+            marshallerNomen.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new NamespacePrefixMapperInternalImpl());
+        } catch (PropertyException ex) {
+            marshallerNomen.setProperty("com.sun.xml.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl());
+        }
+        unmarshallerNomen = jaxbContext.createUnmarshaller();
     }
 
     /**
