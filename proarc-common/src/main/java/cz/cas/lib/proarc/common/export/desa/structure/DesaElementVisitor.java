@@ -473,22 +473,27 @@ public class DesaElementVisitor implements IDesaElementVisitor {
     @Override
     public void insertIntoMets(IDesaElement desaElement, HashMap<String, String> desaProps) throws MetsExportException {
         LOG.log(Level.INFO, "Inserting into Mets:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
-        if (Const.DOCUMENT.equalsIgnoreCase(desaElement.getElementType())) {
-            insertDocument(desaElement, null);
-        } else if (Const.FOLDER.equalsIgnoreCase(desaElement.getElementType())) {
-            insertFolder(desaElement);
+        // get root element first
+        IDesaElement rootElement = desaElement.getDesaContext().getRootElement();
+        if (rootElement == null) {
+            throw new MetsExportException("Element does not have a root set:" + desaElement.getModel() + " - " + desaElement.getOriginalPid(), false);
+        }
+        if (Const.DOCUMENT.equalsIgnoreCase(rootElement.getElementType())) {
+            insertDocument(rootElement, null);
+        } else if (Const.FOLDER.equalsIgnoreCase(rootElement.getElementType())) {
+            insertFolder(rootElement);
         } else
-            throw new MetsExportException(desaElement.getOriginalPid(), "Unknown type:" + desaElement.getElementType() + " model:" + desaElement.getModel(), false, null);
-        if (desaElement.getDesaContext().getMetsExportException().getExceptions().size() > 0) {
-            throw desaElement.getDesaContext().getMetsExportException();
+            throw new MetsExportException(rootElement.getOriginalPid(), "Unknown type:" + rootElement.getElementType() + " model:" + rootElement.getModel(), false, null);
+        if (rootElement.getDesaContext().getMetsExportException().getExceptions().size() > 0) {
+            throw rootElement.getDesaContext().getMetsExportException();
         }
         if (desaProps != null) {
             LOG.log(Level.INFO, "Exporting to desa");
             try {
                 if (desaProps.get("desa.resultDir") != null) {
                     SIP2DESATransporter sipTransporter = new SIP2DESATransporter();
-                    sipTransporter.transport(desaElement.getDesaContext().getOutputPath(), desaProps.get("desa.resultDir"), desaProps.get("desa.resultDir"), desaProps);
-                    updateSIPversion(desaElement, sipTransporter.getResults());
+                    sipTransporter.transport(rootElement.getDesaContext().getOutputPath(), desaProps.get("desa.resultDir"), desaProps.get("desa.resultDir"), desaProps);
+                    updateSIPversion(rootElement, sipTransporter.getResults());
                 } else {
                     throw new MetsExportException("Result dir (desa.resultDir) is not set", false);
                 }
