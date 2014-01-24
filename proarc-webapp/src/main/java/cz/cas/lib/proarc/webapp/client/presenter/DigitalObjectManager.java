@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.DataStreamExportAction;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
+import cz.cas.lib.proarc.webapp.client.action.DesaExportAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
 import cz.cas.lib.proarc.webapp.client.action.KrameriusExportAction;
@@ -66,6 +67,8 @@ public final class DigitalObjectManager {
     private final DigitalObjectTreeView treeView;
     private FoxmlViewAction foxmlAction;
     private KrameriusExportAction krameriusExportAction;
+    private DesaExportAction desaDownloadAction;
+    private DesaExportAction desaExportAction;
     private DataStreamExportAction fullDataStreamExportAction;
     private DataStreamExportAction rawDataStreamExportAction;
     private DeleteAction deleteAction;
@@ -166,6 +169,8 @@ public final class DigitalObjectManager {
     private void createActions() {
         foxmlAction = new FoxmlViewAction(i18n);
         krameriusExportAction = new KrameriusExportAction(i18n);
+        desaExportAction = DesaExportAction.export(i18n);
+        desaDownloadAction = DesaExportAction.download(i18n);
         fullDataStreamExportAction = DataStreamExportAction.full(i18n);
         rawDataStreamExportAction = DataStreamExportAction.raw(i18n);
         deleteAction = new DeleteAction(DigitalObjectDataSource.createDeletable(), i18n);
@@ -218,6 +223,8 @@ public final class DigitalObjectManager {
         IconMenuButton btnExport = Actions.asIconMenuButton(exportMenuAction, actionSource);
         Menu menuExport = Actions.createMenu();
         menuExport.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(desaExportAction, actionSource, true));
+        menuExport.addItem(Actions.asMenuItem(desaDownloadAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(fullDataStreamExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(rawDataStreamExportAction, actionSource, false));
         btnExport.setMenu(menuExport);
@@ -250,6 +257,8 @@ public final class DigitalObjectManager {
         menu.addItem(Actions.asMenuItem(foxmlAction, actionSource, true));
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(desaExportAction, actionSource, true));
+        menu.addItem(Actions.asMenuItem(desaDownloadAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(fullDataStreamExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(rawDataStreamExportAction, actionSource, false));
         menu.addItem(new MenuItemSeparator());

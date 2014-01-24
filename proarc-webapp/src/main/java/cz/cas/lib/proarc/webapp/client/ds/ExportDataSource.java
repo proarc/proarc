@@ -48,6 +48,10 @@ public final class ExportDataSource extends RestDataSource {
         return new ExportDataSource(RestConfig.URL_EXPORT_DATASTREAM);
     }
 
+    public static ExportDataSource getDesa() {
+        return new ExportDataSource(RestConfig.URL_EXPORT_DESA);
+    }
+
     public static ExportDataSource getKramerius4() {
         return new ExportDataSource(RestConfig.URL_EXPORT_KRAMERIUS4);
     }

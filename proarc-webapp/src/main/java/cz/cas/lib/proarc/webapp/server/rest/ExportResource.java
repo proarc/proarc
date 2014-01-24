@@ -16,30 +16,45 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.sun.jersey.spi.CloseableService;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.export.DataStreamExport;
+import cz.cas.lib.proarc.common.export.DesaExport;
+import cz.cas.lib.proarc.common.export.DesaExport.Result;
 import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import org.apache.commons.io.FileUtils;
 
 /**
  * REST resource to export data from the system.
@@ -104,10 +119,101 @@ public class ExportResource {
     }
 
     /**
-     * Export result.
+     * Starts a new export to DESA repository.
+     *
+     * @param pids PIDs to export
+     * @param hierarchy export also children hierarchy of requested PIDs. Default is {@code false}.
+     * @param forDownload export to file system for later client download. If {@code true} dryRun is ignored.
+     *              Default is {@code false}.
+     * @param dryRun use to build packages without sending to the repository. Default is {@code false}.
+     * @return the list of results for requested PIDs
+     * @throws IOException unexpected failure
+     * @throws ExportException unexpected failure
+     */
+    @POST
+    @Path(ExportResourceApi.DESA_PATH)
+    public SmartGwtResponse<ExportResult> newDesaExport(
+            @FormParam(ExportResourceApi.DESA_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.DESA_HIERARCHY_PARAM) @DefaultValue("false") boolean hierarchy,
+            @FormParam(ExportResourceApi.DESA_FORDOWNLOAD_PARAM) @DefaultValue("false") boolean forDownload,
+            @FormParam(ExportResourceApi.DESA_DRYRUN_PARAM) @DefaultValue("false") boolean dryRun
+            ) throws IOException, ExportException {
+
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
+        }
+        DesaExport export = new DesaExport(RemoteStorage.getInstance(appConfig), null);
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        ExportResult result;
+        if (forDownload) {
+            Result r = export.exportDownload(exportFolder, pids.get(0));
+            result = r.getValidationError() != null
+                    ? new ExportResult(r.getValidationError().getExceptions())
+                    : new ExportResult(r.getDownloadToken());
+        } else {
+            // XXX support multiple pids
+            if (dryRun) {
+                List<MetsExportExceptionElement> errors = export.validate(exportFolder, pids.get(0), hierarchy);
+                result = new ExportResult(errors);
+            } else {
+                Result r = export.export(exportFolder, pids.get(0), null, false, hierarchy, false);
+                if (r.getValidationError() != null) {
+                    result = new ExportResult(r.getValidationError().getExceptions());
+                } else {
+                    URI targetPath = user.getUserHomeUri().relativize(r.getTargetFolder().toURI());
+                    result = new ExportResult(0, targetPath.toASCIIString());
+                }
+            }
+        }
+        return new SmartGwtResponse<ExportResult>(result);
+    }
+
+    /**
+     * Gets the exported package built by {@link #newDesaExport() } with {@code forDownload=true}.
+     * The package data are removed after completion of the response.
+     *
+     * @param token token to identify the prepared package
+     * @return the package contents in ZIP format
+     */
+    @GET
+    @Path(ExportResourceApi.DESA_PATH)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getDesaExport(
+            @QueryParam(ExportResourceApi.RESULT_TOKEN) String token,
+            @Context CloseableService finalizer
+            ) {
+
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        final File file = DesaExport.findExportedPackage(exportFolder, token);
+        if (file == null) {
+            return Response.status(Status.NOT_FOUND).type(MediaType.TEXT_PLAIN_TYPE)
+                    .entity("The contents not found!").build();
+        }
+        finalizer.add(new Closeable() {
+
+            @Override
+            public void close() throws IOException {
+                FileUtils.deleteQuietly(file.getParentFile());
+            }
+        });
+        return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM)
+                .header("Content-Disposition", "attachment; filename=" + file.getName())
+                .build();
+    }
+
+    /**
+     * The export result.
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class ExportResult {
+
+        @XmlElement(name = ExportResourceApi.RESULT_ID)
+        private Integer exportId;
+
+        @XmlElement(name = ExportResourceApi.RESULT_TOKEN)
+        private String token;
 
         /**
          * The target folder path.
@@ -115,12 +221,96 @@ public class ExportResource {
         @XmlElement(name = ExportResourceApi.RESULT_TARGET)
         private String target;
 
+        @XmlElement(name = ExportResourceApi.RESULT_ERRORS)
+        private List<ExportError> errors;
+
         public ExportResult() {
         }
 
-        public ExportResult(String target) {
+        public ExportResult(String token) {
+            this.token = token;
+        }
+
+        public ExportResult(Integer exportId, String target) {
+            this.exportId = exportId;
             this.target = target;
         }
 
+        public ExportResult(List<MetsExportExceptionElement> validations) {
+            if (validations != null) {
+                errors = new ArrayList<ExportError>();
+                for (MetsExportExceptionElement me : validations) {
+                    errors.add(new ExportError(me));
+                }
+            }
+        }
+
+        public Integer getExportId() {
+            return exportId;
+        }
+
+        public String getTarget() {
+            return target;
+        }
+
+        public List<ExportError> getErrors() {
+            return errors;
+        }
+
+        public void setExportId(Integer exportId) {
+            this.exportId = exportId;
+        }
+
+        public void setTarget(String target) {
+            this.target = target;
+        }
+
+        public void setErrors(List<ExportError> errors) {
+            this.errors = errors;
+        }
+
+        public String getToken() {
+            return token;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
+        }
+
     }
+
+    /**
+     * The export error.
+     */
+    @XmlRootElement(name = ExportResourceApi.RESULT_ERROR)
+    public static class ExportError {
+
+        @XmlElement(name = ExportResourceApi.RESULT_ERROR_PID)
+        private String pid;
+
+        @XmlElement(name = ExportResourceApi.RESULT_ERROR_MESSAGE)
+        private String message;
+
+        @XmlElement(name = ExportResourceApi.RESULT_ERROR_WARNING)
+        private boolean warning;
+
+        @XmlElement(name = ExportResourceApi.RESULT_ERROR_LOG)
+        private String log;
+
+        public ExportError(MetsExportExceptionElement me) {
+            this.pid = me.getPid();
+            this.message = me.getMessage();
+            this.warning = me.isWarning();
+            Exception ex = me.getEx();
+            if (ex != null) {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                ex.printStackTrace(pw);
+                pw.close();
+                this.log = sw.toString();
+            }
+        }
+
+    }
+
 }

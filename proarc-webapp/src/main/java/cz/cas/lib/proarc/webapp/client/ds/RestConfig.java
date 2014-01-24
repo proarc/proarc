@@ -75,6 +75,8 @@ public final class RestConfig {
     public static final String URL_EXPORT = path(URL_ROOT, ExportResourceApi.PATH);
     public static final String URL_EXPORT_DATASTREAM = path(
             URL_EXPORT, ExportResourceApi.DATASTREAM_PATH);
+    public static final String URL_EXPORT_DESA = path(
+            URL_EXPORT, ExportResourceApi.DESA_PATH);
     public static final String URL_EXPORT_KRAMERIUS4 = path(
             URL_EXPORT, ExportResourceApi.KRAMERIUS4_PATH);
     public static final String URL_DEVICE = path(URL_ROOT, DeviceResourceApi.PATH);
