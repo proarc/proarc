@@ -52,6 +52,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
@@ -89,7 +91,6 @@ public class SIP2DESATransporter {
     private Marshaller marshaller = null;
     private Unmarshaller unmarshaller = null;
 
-    private Marshaller marshallerNomen = null;
     private Unmarshaller unmarshallerNomen = null;
 
     private File[] sourceFiles = null;
@@ -352,14 +353,30 @@ public class SIP2DESATransporter {
     }
 
     /**
+     * Gets nomenclatures from the remote registry.
+     * @param customConfig transporter configuration
+     * @param nomenclatureAcronyms query acronyms
+     * @return nomenclatures
+     */
+    public Nomenclatures getNomenclatures(Map<String, ?> customConfig, List<String> nomenclatureAcronyms) {
+        try {
+            Source src = getNomenclaturesSource(customConfig, nomenclatureAcronyms);
+            initJAXBNomen();
+            return unmarshallerNomen.unmarshal(src, Nomenclatures.class).getValue();
+        } catch (JAXBException ex) {
+            throw new IllegalStateException("Unable to unmarshall nomenclatures", ex);
+        }
+    }
+
+    /**
      * Returns the nomenclatures - the list of wanted nomenclatures is in
      * nomenclaturesList
-     * 
+     *
      * @param customConfig
-     * @param nomenclaturesList
+     * @param nomenclatureAcronyms
      * @return
      */
-    public Nomenclatures getNomenclatures(Map<String, ?> customConfig, List<String> nomenclaturesList) {
+    public Source getNomenclaturesSource(Map<String, ?> customConfig, List<String> nomenclatureAcronyms) {
         System.setProperty("java.awt.headless", "true");
         initConfig(customConfig);
         GregorianCalendar c = new GregorianCalendar();
@@ -374,17 +391,14 @@ public class SIP2DESATransporter {
         initializeDesa();
         NomenclatureListType nsType = new NomenclatureListType();
         try {
-            for (String nomenclature : nomenclaturesList) {
+            for (String nomenclature : nomenclatureAcronyms) {
                 nsType.getNomenclatureAcronyme().add(nomenclature);
             }
-            byte[] result = desaPort.getNomenclatures(0, config.getString("desa.producer"), config.getString("desa.user"), nsType, currentDate);
+            byte[] result = desaPort.getNomenclatures(null, config.getString("desa.producer"), config.getString("desa.user"), nsType, currentDate);
             ByteArrayInputStream bis = new ByteArrayInputStream(result);
-            initJAXBNomen();
-            return (Nomenclatures) unmarshallerNomen.unmarshal(bis);
+            return new StreamSource(bis);
         } catch (SIPSubmissionFault e) {
             throw new IllegalStateException(e);
-        } catch (JAXBException e) {
-            throw new IllegalStateException("Unable to unmarshall nomenclatures", e);
         }
     }
 
@@ -394,15 +408,10 @@ public class SIP2DESATransporter {
      * @throws JAXBException
      */
     private void initJAXBNomen() throws JAXBException {
-        JAXBContext jaxbContext = JAXBContext.newInstance(Nomenclatures.class);
-        marshallerNomen = jaxbContext.createMarshaller();
-        marshallerNomen.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-        marshallerNomen.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-        try {
-            marshallerNomen.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new NamespacePrefixMapperInternalImpl());
-        } catch (PropertyException ex) {
-            marshallerNomen.setProperty("com.sun.xml.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl());
+        if (unmarshallerNomen != null) {
+            return ;
         }
+        JAXBContext jaxbContext = JAXBContext.newInstance(Nomenclatures.class);
         unmarshallerNomen = jaxbContext.createUnmarshaller();
     }
 
@@ -412,6 +421,9 @@ public class SIP2DESATransporter {
      * @throws JAXBException
      */
     private void initJAXB() throws JAXBException {
+        if (marshaller != null) {
+            return ;
+        }
         JAXBContext jaxbContext = JAXBContext.newInstance(PSPSIP.class);
         marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
