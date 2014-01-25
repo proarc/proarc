@@ -145,24 +145,27 @@ public class ExportResource {
         DesaExport export = new DesaExport(RemoteStorage.getInstance(appConfig), null);
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
-        ExportResult result;
+        List<ExportResult> result = new ArrayList<ExportResult>(pids.size());
         if (forDownload) {
             Result r = export.exportDownload(exportFolder, pids.get(0));
-            result = r.getValidationError() != null
+            result.add(r.getValidationError() != null
                     ? new ExportResult(r.getValidationError().getExceptions())
-                    : new ExportResult(r.getDownloadToken());
+                    : new ExportResult(r.getDownloadToken()));
         } else {
-            // XXX support multiple pids
             if (dryRun) {
-                List<MetsExportExceptionElement> errors = export.validate(exportFolder, pids.get(0), hierarchy);
-                result = new ExportResult(errors);
+                for (String pid : pids) {
+                    List<MetsExportExceptionElement> errors = export.validate(exportFolder, pid, hierarchy);
+                    result.add(new ExportResult(errors));
+                }
             } else {
-                Result r = export.export(exportFolder, pids.get(0), null, false, hierarchy, false);
-                if (r.getValidationError() != null) {
-                    result = new ExportResult(r.getValidationError().getExceptions());
-                } else {
-                    URI targetPath = user.getUserHomeUri().relativize(r.getTargetFolder().toURI());
-                    result = new ExportResult(0, targetPath.toASCIIString());
+                for (String pid : pids) {
+                    Result r = export.export(exportFolder, pid, null, false, hierarchy, false);
+                    if (r.getValidationError() != null) {
+                        result.add(new ExportResult(r.getValidationError().getExceptions()));
+                    } else {
+                        URI targetPath = user.getUserHomeUri().relativize(r.getTargetFolder().toURI());
+                        result.add(new ExportResult((Integer) null, targetPath.toASCIIString()));
+                    }
                 }
             }
         }

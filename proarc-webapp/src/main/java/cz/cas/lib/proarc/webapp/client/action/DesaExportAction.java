@@ -23,6 +23,7 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.PromptStyle;
@@ -191,18 +192,29 @@ public class DesaExportAction extends AbstractAction {
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
-                    Record[] errors = data[0].getAttributeAsRecordArray(ExportResourceApi.RESULT_ERRORS);
-                    if (errors != null && errors.length > 0) {
-                        ExportResultWidget.showErrors(errors);
-                    } else {
+                    RecordList erl = errorsFromExportResult(data);
+                    if (erl.isEmpty()) {
                         String dryRun = export.getAttribute(ExportResourceApi.DESA_DRYRUN_PARAM);
                         SC.say(dryRun == null
                                 ? i18n.DesaExportAction_ExportDone_Msg()
                                 : i18n.DesaExportAction_ValidationDone_Msg());
+                    } else {
+                        ExportResultWidget.showErrors(erl.toArray());
                     }
                 }
             }
         }, dsRequest);
+    }
+
+    private RecordList errorsFromExportResult(Record[] exportResults) {
+        RecordList recordList = new RecordList();
+        for (Record result : exportResults) {
+            Record[] errors = result.getAttributeAsRecordArray(ExportResourceApi.RESULT_ERRORS);
+            if (errors != null && errors.length > 0) {
+                recordList.addList(errors);
+            }
+        }
+        return recordList;
     }
 
     private void openResult(String pid, String token) {
