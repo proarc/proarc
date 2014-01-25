@@ -490,6 +490,9 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         if (desaProps != null) {
             LOG.log(Level.INFO, "Exporting to desa");
             try {
+                if (desaProps.get("desa.resultDir") == null && rootElement.getDesaContext().getDesaResultPath() != null) {
+                    desaProps.put("desa.resultDir", rootElement.getDesaContext().getDesaResultPath());
+                }
                 if (desaProps.get("desa.resultDir") != null) {
                     SIP2DESATransporter sipTransporter = new SIP2DESATransporter();
                     sipTransporter.transport(rootElement.getDesaContext().getOutputPath(), desaProps.get("desa.resultDir"), desaProps.get("desa.resultDir"), desaProps);
