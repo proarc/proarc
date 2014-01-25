@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.config;
 
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
+import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.object.DerDesaPlugin;
 import cz.cas.lib.proarc.common.object.NdkPlugin;
@@ -114,6 +115,10 @@ public final class AppConfiguration {
 
     public Kramerius4ExportOptions getKramerius4Export() {
         return Kramerius4ExportOptions.from(config);
+    }
+
+    public DesaServices getDesaServices() {
+        return new DesaServices(config);
     }
 
     public String[] getPlugins() {

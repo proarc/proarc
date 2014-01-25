@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import java.io.Closeable;
@@ -142,7 +143,8 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
         }
-        DesaExport export = new DesaExport(RemoteStorage.getInstance(appConfig), null);
+        DesaExport export = new DesaExport(RemoteStorage.getInstance(appConfig),
+                appConfig.getDesaServices(), MetaModelRepository.getInstance());
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         List<ExportResult> result = new ArrayList<ExportResult>(pids.size());

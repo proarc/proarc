@@ -17,7 +17,10 @@
 package cz.cas.lib.proarc.common.export;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.export.desa.Const;
 import cz.cas.lib.proarc.common.export.desa.DesaContext;
+import cz.cas.lib.proarc.common.export.desa.DesaServices;
+import cz.cas.lib.proarc.common.export.desa.DesaServices.DesaConfiguration;
 import cz.cas.lib.proarc.common.export.desa.structure.DesaElement;
 import cz.cas.lib.proarc.common.export.desa.structure.DesaElementVisitor;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
@@ -26,6 +29,8 @@ import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +38,8 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 
 /**
- * The exporter of digital objects in format expected by the DESA repository.
+ * The exporter of digital objects. It can build and validate SIP in format
+ * expected by the DESA registry.
  *
  * @author Jan Pokorsky
  */
@@ -41,9 +47,13 @@ public final class DesaExport {
 
     private static final Logger LOG = Logger.getLogger(DesaExport.class.getName());
     private final RemoteStorage rstorage;
+    private final DesaServices desaServices;
+    private final MetaModelRepository models;
 
-    public DesaExport(RemoteStorage rstorage, Object desaService) {
+    public DesaExport(RemoteStorage rstorage, DesaServices desaServices, MetaModelRepository models) {
         this.rstorage = rstorage;
+        this.desaServices = desaServices;
+        this.models = models;
     }
 
     /**
@@ -111,19 +121,12 @@ public final class DesaExport {
                 result.setTargetFolder(target);
             }
             RemoteObject fo = rstorage.find(pid);
-            DesaContext dc = new DesaContext();
-            dc.setFedoraClient(fo.getClient());
-            dc.setRemoteStorage(rstorage);
-            dc.setPackageID(packageId);
-            dc.setOutputPath(target.getAbsolutePath());
-            // transporter logs
-            dc.setDesaResultPath(new File(target, "transporter").getAbsolutePath());
+            DesaContext dc = buildContext(fo, packageId, target);
             try {
                 DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
                 DesaElement dElm = DesaElement.getElement(dobj, null, dc, hierarchy);
-                // XXX if not dryRun configure DESA transporter here
-                HashMap<String, String> desaServiceCfg = null;
-                dElm.accept(new DesaElementVisitor(), desaServiceCfg);
+                HashMap<String, String> tProps = transporterProperties(dryRun, dElm);
+                dElm.accept(new DesaElementVisitor(), tProps);
                 result.setValidationError(dc.getMetsExportException());
                 return result;
             } catch (MetsExportException ex) {
@@ -142,6 +145,41 @@ public final class DesaExport {
                 }
             }
         }
+    }
+
+    private DesaContext buildContext(RemoteObject fo, String packageId, File targetFolder) {
+        DesaContext dc = new DesaContext();
+        dc.setFedoraClient(fo.getClient());
+        dc.setRemoteStorage(rstorage);
+        dc.setPackageID(packageId);
+        dc.setOutputPath(targetFolder.getAbsolutePath());
+        // transporter logs
+        dc.setDesaResultPath(new File(targetFolder, "transporter").getAbsolutePath());
+        return dc;
+    }
+
+    /**
+     * Finds a transporter configuration for the element or {@code null} when
+     * {@code dryRun} is {@code true}.
+     * @throws MetsExportException no configuration found
+     */
+    private HashMap<String, String> transporterProperties(boolean dryRun, DesaElement dElm) throws MetsExportException {
+        if (!dryRun) {
+            String modelId = dElm.getModel();
+            if (modelId.startsWith(Const.FEDORAPREFIX)) {
+                // uff, model is not model but fedora resource reference
+                modelId = new RelationResource(modelId).getPid();
+            }
+            DesaConfiguration desaCfg = desaServices.findConfiguration(models.find(modelId));
+            if (desaCfg != null) {
+                return desaCfg.toTransporterConfig();
+            } else {
+                throw new MetsExportException(dElm.getOriginalPid(),
+                        String.format("No configuration of the DESA registry found for type %s!", modelId),
+                        false, null);
+            }
+        }
+        return null;
     }
 
     /**
