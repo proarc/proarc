@@ -61,6 +61,9 @@ public final class DesaServices {
      */
     public List<ValueMap> getValueMap(Nomenclatures n, String pluginId) {
         ArrayList<ValueMap> maps = new ArrayList<ValueMap>();
+        if (n == null) {
+            return maps;
+        }
         if (n.getRdCntrls() != null) {
             maps.add(new ValueMap<RdCntrl>(pluginId + ".rd-cntrl", n.getRdCntrls().getRdCntrl()));
         }
