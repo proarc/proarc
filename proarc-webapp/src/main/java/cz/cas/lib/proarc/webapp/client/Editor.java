@@ -54,7 +54,6 @@ import com.smartgwt.client.widgets.tree.events.FolderClosedEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClosedHandler;
 import com.smartgwt.client.widgets.tree.events.LeafClickEvent;
 import com.smartgwt.client.widgets.tree.events.LeafClickHandler;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils.SweepTask;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -64,6 +63,7 @@ import cz.cas.lib.proarc.webapp.client.ds.LocalizationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.UserPermissionDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.DeviceManager;
 import cz.cas.lib.proarc.webapp.client.presenter.DeviceManaging.DeviceManagerPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreating.DigitalObjectCreatorPlace;
@@ -182,6 +182,7 @@ public class Editor implements EntryPoint {
         desktop.draw();
 
         LocalizationDataSource.getInstance().initOnStart(sweepTask.expect());
+        ValueMapDataSource.getInstance().initOnStart(sweepTask.expect());
         loadPermissions();
     }
 

@@ -16,9 +16,14 @@
  */
 package cz.cas.lib.proarc.common.object;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
+import cz.cas.lib.proarc.common.export.desa.DesaServices;
+import cz.cas.lib.proarc.common.export.desa.DesaServices.DesaConfiguration;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
@@ -35,6 +40,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import javax.ws.rs.core.Request;
@@ -112,6 +118,23 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
             return new DerRawDisseminationHandler(handler, ddh);
         } else {
             return ddh;
+        }
+    }
+
+    @Override
+    public List<ValueMap> getValueMaps() {
+        try {
+            AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+            DesaServices desaServices = appConfig.getDesaServices();
+            DesaConfiguration dc = desaServices.findConfigurationWithModel(MODEL_DOCUMENT, MODEL_FILE, MODEL_FOLDER);
+            if (dc != null) {
+                Nomenclatures nomenclatures = desaServices.getNomenclatures(dc);
+                return desaServices.getValueMap(nomenclatures, ID);
+            } else {
+                return Collections.emptyList();
+            }
+        } catch (Exception ex) {
+            throw new IllegalStateException("Cannot init value maps for " + ID + " plugin!", ex);
         }
     }
 

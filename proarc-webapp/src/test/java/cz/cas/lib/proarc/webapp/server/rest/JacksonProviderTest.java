@@ -20,6 +20,11 @@ import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
+import cz.cas.lib.proarc.common.export.desa.DesaServices;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls.RecCl;
+import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -97,6 +102,25 @@ public class JacksonProviderTest {
 //        System.out.println("---");
 //        System.out.println(toXml);
 }
+
+    @Test
+    public void testNomenclatureAsValueMap() throws Exception {
+        Nomenclatures n = new Nomenclatures();
+        n.setRecCls(new RecCls());
+        List<RecCl> recCls = n.getRecCls().getRecCl();
+        RecCl recCl = new RecCl();
+        recCl.setFullyQcc("FullyQcc");
+        recCls.add(recCl);
+        DesaServices desaServices = new DesaServices(null);
+        List<ValueMap> valueMap = desaServices.getValueMap(n, "test");
+        SmartGwtResponse<ValueMap> sgr = new SmartGwtResponse<ValueMap>(valueMap);
+
+        ObjectMapper om = new JacksonProvider().locateMapper(SmartGwtResponse.class, MediaType.APPLICATION_JSON_TYPE);
+        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        String toJson = om.writeValueAsString(sgr);
+        System.out.println(toJson);
+        assertTrue(toJson.contains("\"data\":[{\"mapId\":\"test.rec-cl\",\"values\":[{\"fullyQcc\":\"FullyQcc\"}]}]}"));
+    }
 
     @Test
     public void testWrapRootValue() throws IOException {

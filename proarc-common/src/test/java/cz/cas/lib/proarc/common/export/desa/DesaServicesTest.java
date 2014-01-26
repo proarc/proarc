@@ -17,8 +17,13 @@
 package cz.cas.lib.proarc.common.export.desa;
 
 import cz.cas.lib.proarc.common.export.desa.DesaServices.DesaConfiguration;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls.RecCl;
+import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.junit.AfterClass;
@@ -60,11 +65,13 @@ public class DesaServicesTest {
         conf.setProperty(prefix + DesaConfiguration.PROPERTY_EXPORTMODELS, "model:id1, model:id2");
         conf.setProperty(prefix + DesaConfiguration.PROPERTY_RESTAPI, "https://SERVER/dea-frontend/rest/sipsubmission");
         conf.setProperty(prefix + DesaConfiguration.PROPERTY_WEBSERVICE, "https://SERVER/dea-frontend/ws/SIPSubmissionService");
+        conf.setProperty(prefix + DesaConfiguration.PROPERTY_NOMENCLATUREACRONYMS, "acr1, acr2");
 
         prefix = DesaServices.PREFIX_DESA + '.' + "dsNulls" + '.';
         conf.setProperty(prefix + DesaConfiguration.PROPERTY_USER, null);
         conf.setProperty(prefix + DesaConfiguration.PROPERTY_PASSWD, "");
         conf.setProperty(prefix + DesaConfiguration.PROPERTY_EXPORTMODELS, null);
+        conf.setProperty(prefix + DesaConfiguration.PROPERTY_NOMENCLATUREACRONYMS, null);
 
         prefix = DesaServices.PREFIX_DESA + '.' + "dsNotActive" + '.';
         conf.setProperty(prefix + DesaConfiguration.PROPERTY_USER, "NA");
@@ -92,6 +99,7 @@ public class DesaServicesTest {
         assertNotNull(ds1);
         assertEquals("ds1", ds1.getServiceId());
         assertEquals(Arrays.asList("model:id1", "model:id2"), ds1.getExportModels());
+        assertEquals(Arrays.asList("acr1", "acr2"), ds1.getNomenclatureAcronyms());
         Map<String, String> tc = ds1.toTransporterConfig();
         assertEquals("ds1user", tc.get("desa.user"));
         assertEquals("ds1passwd", tc.get("desa.password"));
@@ -108,6 +116,7 @@ public class DesaServicesTest {
         assertNotNull(ds);
         assertEquals("dsNulls", ds.getServiceId());
         assertEquals(Arrays.asList(), ds.getExportModels());
+        assertEquals(Arrays.asList(), ds.getNomenclatureAcronyms());
         Map<String, String> tc = ds.toTransporterConfig();
         assertEquals(null, tc.get("desa.user"));
         assertEquals("", tc.get("desa.password"));
@@ -118,6 +127,27 @@ public class DesaServicesTest {
     public void testFindConfiguration_String3() {
         DesaConfiguration ds = desaServices.findConfiguration("dsNotActive");
         assertNull(ds);
+    }
+
+    @Test
+    public void testFindConfigurationWithModel() {
+        DesaConfiguration result = desaServices.findConfigurationWithModel("unknown", "model:id1");
+        assertNotNull(result);
+        assertEquals("ds1", result.getServiceId());
+
+        result = desaServices.findConfigurationWithModel("unknown");
+        assertNull(result);
+    }
+
+    @Test
+    public void testGetValueMap() {
+        Nomenclatures n = new Nomenclatures();
+        n.setRecCls(new RecCls());
+        List<RecCl> recCls = n.getRecCls().getRecCl();
+        recCls.add(new RecCl());
+        List<ValueMap> result = desaServices.getValueMap(n, "test");
+        assertNotNull(result);
+        assertEquals("test.rec-cl", result.get(0).getMapId());
     }
 
 }

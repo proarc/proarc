@@ -17,6 +17,10 @@
 package cz.cas.lib.proarc.common.export.desa;
 
 import cz.cas.lib.proarc.common.export.desa.sip2desa.SIP2DESATransporter;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RdCntrls.RdCntrl;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls.RecCl;
+import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +51,38 @@ public final class DesaServices {
 
     public DesaServices(Configuration config) {
         this.config = config;
+    }
+
+    /**
+     * Gets value maps of nomenclatures.
+     * @param n nomenclature
+     * @param pluginId prefix for each added value map
+     * @return list of value maps
+     */
+    public List<ValueMap> getValueMap(Nomenclatures n, String pluginId) {
+        ArrayList<ValueMap> maps = new ArrayList<ValueMap>();
+        if (n.getRdCntrls() != null) {
+            maps.add(new ValueMap<RdCntrl>(pluginId + ".rd-cntrl", n.getRdCntrls().getRdCntrl()));
+        }
+        if (n.getRecCls() != null) {
+            maps.add(new ValueMap<RecCl>(pluginId + ".rec-cl", n.getRecCls().getRecCl()));
+        }
+        return maps;
+    }
+
+    /**
+     * Gets nomenclatures.
+     * @param dc configuration to query
+     * @return nomenclatures or {@code null}
+     */
+    public Nomenclatures getNomenclatures(DesaConfiguration dc) {
+        List<String> acronyms = dc.getNomenclatureAcronyms();
+        if (acronyms.isEmpty()) {
+            return null;
+        } else {
+            SIP2DESATransporter t = new SIP2DESATransporter();
+            return t.getNomenclatures(dc.toTransporterConfig(), acronyms);
+        }
     }
 
 //    public SIP2DESATransporter getTransporter(String serviceId) {
@@ -89,6 +125,32 @@ public final class DesaServices {
         return null;
     }
 
+    /**
+     * Finds a configuration that declares any of the passed model IDs.
+     * @param modelIds mode IDs to query
+     * @return the service configuration or {@code null}
+     */
+    public DesaConfiguration findConfigurationWithModel(String... modelIds) {
+        for (String sid : config.getStringArray(PROPERTY_DESASERVICES)) {
+            DesaConfiguration dc = readConfiguration(config, sid);
+            List<String> exportModels = dc.getExportModels();
+            for (String modelId : modelIds) {
+                if (exportModels.contains(modelId)) {
+                    return dc;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets all configurations.
+     * @return the list of service configurations
+     */
+    public List<DesaConfiguration> getConfigurations() {
+        return readConfigurations(config);
+    }
+
     private List<DesaConfiguration> readConfigurations(Configuration config) {
         ArrayList<DesaConfiguration> configs = new ArrayList<DesaConfiguration>();
         for (String serviceId : config.getStringArray(PROPERTY_DESASERVICES)) {
@@ -115,6 +177,7 @@ public final class DesaServices {
         public static final String PROPERTY_RESTAPI = "restapi";
         public static final String PROPERTY_WEBSERVICE = "webservice";
         public static final String PROPERTY_EXPORTMODELS = "exportModels";
+        public static final String PROPERTY_NOMENCLATUREACRONYMS = "nomenclatureAcronyms";
 
         private final String serviceId;
         private final String prefix;
@@ -136,6 +199,14 @@ public final class DesaServices {
          */
         public List<String> getExportModels() {
             return Arrays.asList(properties.getStringArray(PROPERTY_EXPORTMODELS));
+        }
+
+        /**
+         * Gets nomenclature acronyms to query {@link Nomenclatures} for value maps from the registry.
+         * @return list of acronyms
+         */
+        public List<String> getNomenclatureAcronyms() {
+            return Arrays.asList(properties.getStringArray(PROPERTY_NOMENCLATUREACRONYMS));
         }
 
         /**
@@ -162,6 +233,7 @@ public final class DesaServices {
         @Override
         public String toString() {
             return "DesaConfiguration{" + "serviceId=" + serviceId + ", models=" + getExportModels()
+                    + ", acronyms=" + getNomenclatureAcronyms()
                     + ", properties=" + toTransporterConfig() + '}';
         }
 

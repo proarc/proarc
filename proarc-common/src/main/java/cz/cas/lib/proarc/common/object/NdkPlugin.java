@@ -34,6 +34,7 @@ import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
@@ -124,6 +125,11 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTy
     @Override
     public MetadataHandler<ModsType> createMetadataHandler(DigitalObjectHandler handler) {
         return new NdkMetadataHandler(handler);
+    }
+
+    @Override
+    public List<ValueMap> getValueMaps() {
+        return Collections.emptyList();
     }
 
     static class NdkMetadataHandler implements MetadataHandler<ModsType> {

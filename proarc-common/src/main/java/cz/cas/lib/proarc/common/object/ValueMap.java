@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Jan Pokorsky
+ * Copyright (C) 2014 Jan Pokorsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,41 +16,47 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import cz.cas.lib.proarc.common.object.model.MetaModel;
-import java.util.Collection;
 import java.util.List;
 
 /**
- * Allows to add specific behavior of digital objects.
+ * Describes a value map used in client forms.
  *
  * @author Jan Pokorsky
  */
-public interface DigitalObjectPlugin {
+public class ValueMap<T> {
+
+    private String mapId;
+
+    private List<T> values;
+
+    public ValueMap(String mapId, List<T> values) {
+        this.mapId = mapId;
+        this.values = values;
+    }
+
+    public ValueMap() {
+    }
 
     /**
-     * Gets unique ID of the plugin.
-     * @return ID
+     * Gets the unique map ID.
      */
-    String getId();
+    public String getMapId() {
+        return mapId;
+    }
+
+    public void setMapId(String mapId) {
+        this.mapId = mapId;
+    }
 
     /**
-     * Gets supported models.
-     * @return models
+     * Gets list of POJOs. Their fields are used as key/value.
      */
-    Collection<MetaModel> getModel();
+    public List<T> getValues() {
+        return values;
+    }
 
-    /**
-     * Gets a provider to handle contents of supported digital objects.
-     * @param <T> handler type
-     * @param type handler type class
-     * @return the provider or {@code null}
-     */
-    <T extends HasDataHandler> T getHandlerProvider(Class<T> type);
-
-    /**
-     * Gets value maps specific to provided models.
-     * @return the list of value maps
-     */
-    List<ValueMap> getValueMaps();
+    public void setValues(List<T> values) {
+        this.values = values;
+    }
 
 }

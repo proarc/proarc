@@ -30,6 +30,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,6 +81,7 @@ public final class RestConfig {
     public static final String URL_EXPORT_KRAMERIUS4 = path(
             URL_EXPORT, ExportResourceApi.KRAMERIUS4_PATH);
     public static final String URL_DEVICE = path(URL_ROOT, DeviceResourceApi.PATH);
+    public static final String URL_VALUEMAP = path(URL_ROOT, ValueMapResourceApi.PATH);
 
     public static DSRequest createRestRequest(DSDataFormat format) {
         DSRequest dsr = new DSRequest();
