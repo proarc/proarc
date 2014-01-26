@@ -17,6 +17,7 @@
 
 package cz.cas.lib.proarc.common.export.desa;
 
+import cz.cas.lib.proarc.common.object.DerDesaPlugin;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,9 +29,9 @@ import java.util.Map;
  * 
  */
 public class Const {
-    public final static String DERFOLDER = "model:derFolder";
-    public final static String DERDOCUMENT = "model:derDocument";
-    public final static String DERFILE = "model:derFile";
+    public final static String DERFOLDER = DerDesaPlugin.MODEL_FOLDER;
+    public final static String DERDOCUMENT = DerDesaPlugin.MODEL_DOCUMENT;
+    public final static String DERFILE = DerDesaPlugin.MODEL_FILE;
     public final static String DESFILE = "model:desFile";
     public final static String DESFOLDER = "model:desFolder";
     public final static String DESOWNDOCUMENT = "model:desOwnDocument";

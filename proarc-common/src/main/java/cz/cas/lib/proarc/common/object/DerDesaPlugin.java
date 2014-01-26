@@ -50,9 +50,17 @@ import org.codehaus.jackson.map.ObjectMapper;
 public class DerDesaPlugin implements DigitalObjectPlugin,
         HasMetadataHandler<OaiDcType>, HasDisseminationHandler {
 
+    /**
+     * The plugin ID.
+     */
+    public static final String ID = "desa-der";
+    public static final String MODEL_FOLDER = "model:derFolder";
+    public static final String MODEL_DOCUMENT = "model:derDocument";
+    public static final String MODEL_FILE = "model:derFile";
+
     @Override
     public String getId() {
-        return "desa-der";
+        return ID;
     }
 
     @Override
@@ -64,7 +72,7 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
     public Collection<MetaModel> getModel() {
         ArrayList<MetaModel> models = new ArrayList<MetaModel>();
         models.add(new MetaModel(
-                "model:derFolder", true, null,
+                MODEL_FOLDER, true, null,
                 Arrays.asList(new ElementType("Folder", "en"), new ElementType("Složka", "cs")),
                 DcConstants.NS_OAIDC, "proarc.metadata.editor.dc.derFolder",
                 this,
@@ -72,7 +80,7 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                "model:derDocument", true, null,
+                MODEL_DOCUMENT, true, null,
                 Arrays.asList(new ElementType("Document", "en"), new ElementType("Dokument", "cs")),
                 DcConstants.NS_OAIDC, "proarc.metadata.editor.dc.derDocument",
                 this,
@@ -81,7 +89,7 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
                         DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                "model:derFile", null, true,
+                MODEL_FILE, null, true,
                 Arrays.asList(new ElementType("Component", "en"), new ElementType("Komponenta", "cs")),
                 DcConstants.NS_OAIDC, "proarc.metadata.editor.dc.derFile",
                 this,
@@ -205,11 +213,11 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
             }
             String modelId = handler.relations().getModel();
 
-            if ("model:derFolder".equals(modelId)) {
+            if (MODEL_FOLDER.equals(modelId)) {
                 String identifier = "_";
                 dc.getIdentifiers().add(new ElementType(identifier, null));
                 dc.getTitles().add(new ElementType(identifier + '-', null));
-            } else if ("model:derDocument".equals(modelId)) {
+            } else if (MODEL_DOCUMENT.equals(modelId)) {
                 if (parentMetadata != null) {
                     OaiDcType parentDc = parentMetadata.getMetadata().getData();
                     if (!parentDc.getIdentifiers().isEmpty()) {
