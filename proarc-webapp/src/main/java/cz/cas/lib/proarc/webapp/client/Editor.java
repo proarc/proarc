@@ -158,6 +158,7 @@ public class Editor implements EntryPoint {
 
             @Override
             public void processing() {
+                SC.clearPrompt();
                 TreeNode[] menuContent = createMenuContent();
                 Tree tree = menu.getTree();
                 TreeNode root = tree.getRoot();
@@ -181,6 +182,7 @@ public class Editor implements EntryPoint {
         desktop.setMembers(mainHeader, mainLayout);
         desktop.draw();
 
+        SC.showPrompt(i18n.Editor_InitialLoading_Msg());
         LocalizationDataSource.getInstance().initOnStart(sweepTask.expect());
         ValueMapDataSource.getInstance().initOnStart(sweepTask.expect());
         loadPermissions();

@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
@@ -27,7 +26,6 @@ import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
-import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.BooleanCallback;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
 import java.util.HashMap;
@@ -61,10 +59,7 @@ public class ValueMapDataSource extends RestDataSource {
         DataSourceField values = new DataSourceField(ValueMapResourceApi.RESULT_VALUES, FieldType.ANY);
         setFields(mapId, values);
 
-        DSRequest request = RestConfig.createRestRequest(getDataFormat());
-        request.setPromptStyle(PromptStyle.DIALOG);
-//        request.setPrompt("loading value maps");
-        setRequestProperties(request);
+        setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         // cache data source for session
         setCacheAllData(Boolean.TRUE);
     }
