@@ -16,8 +16,12 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.dc;
 
+import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.cas.lib.proarc.webapp.client.widget.form.FormGenerator;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
+import static cz.cas.lib.proarc.webapp.shared.form.Field.*;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
 
@@ -28,85 +32,99 @@ import cz.cas.lib.proarc.webapp.shared.form.Form;
  */
 public final class DerForms {
 
+    public DynamicForm getForm(MetaModelRecord model, String lang) {
+        String modelId = model.getId();
+        Form f;
+        if ("model:derFolder".equals(modelId)) {
+            f = derFolder();
+        } else if ("model:derDocument".equals(modelId)) {
+            f = derDocument();
+        } else if ("model:derFile".equals(modelId)) {
+            f = derFile();
+        } else {
+            return null;
+        }
+        return new FormGenerator(f, lang).generateForm();
+    }
+
     public static Form derFolder() {
         Form f = new Form();
         f.getFields().add(new FieldBuilder(DcConstants.IDENTIFIER).setMaxOccurrences(1)
-                .addField(new FieldBuilder(DcConstants.VALUE).setWidth("300").setRequired(true)
+                .addField(new FieldBuilder(DcConstants.VALUE).setRequired(true)
                         .setTitle("Identifikátor složky")
                         .setHint("<b>Identifikátor složky</b> - pole pro zadání inventárního čísla složky")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
-        f.getFields().add(new FieldBuilder(DcConstants.TITLE).setMaxOccurrences(1).setWidth("*")
-                .addField(new FieldBuilder(DcConstants.VALUE).setWidth("*").setRequired(true)
+        f.getFields().add(new FieldBuilder(DcConstants.TITLE).setMaxOccurrences(1)
+                .addField(new FieldBuilder(DcConstants.VALUE).setRequired(true)
                         .setTitle("Název složky")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(2000)
                         .createField())
-                .addField(noLang())
                 .createField());
         // ciselnik!
         f.getFields().add(new FieldBuilder(DcConstants.SUBJECT).setMaxOccurrences(1)
-                .addField(new FieldBuilder(DcConstants.VALUE).setWidth("300").setRequired(true)
+                .addField(new FieldBuilder(DcConstants.VALUE).setRequired(true)
                         .setTitle("Klasifikace")
+                        .setType(COMBO).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.TYPE).setMaxOccurrences(1)
-                .addField(new FieldBuilder(DcConstants.VALUE).setWidth("300").setRequired(true)
+                .addField(new FieldBuilder(DcConstants.VALUE).setRequired(true)
                         .setTitle("Typ složky")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.CONTRIBUTOR).setMaxOccurrences(1)
-                .addField(new FieldBuilder(DcConstants.VALUE).setWidth("300")
+                .addField(new FieldBuilder(DcConstants.VALUE)
                         .setTitle("Přispěvatel")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.DATE).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Datum")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(20).setWidth("150")
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.CREATOR).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Tvůrce")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.FORMAT).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Format")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.SOURCE).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Zdroj")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.LANGUAGE).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Jazyk")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(20).setWidth("150")
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.RELATION).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Vztah")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.COVERAGE).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Pokrytí")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.RIGHTS).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Práva")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
-        f.getFields().add(new FieldBuilder(DcConstants.DESCRIPTION).setMaxOccurrences(1).setWidth("*")
-                .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Popis").setWidth("*")
-                        .setType("textArea").setLength(2000)
+        f.getFields().add(new FieldBuilder(DcConstants.DESCRIPTION).setMaxOccurrences(1)
+                .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Popis")
+                        .setType(TEXTAREA).setLength(2000).setMaxOccurrences(1).setWidth("400")
                         .createField())
-                .addField(noLang())
                 .createField());
         return f;
     }
@@ -114,110 +132,106 @@ public final class DerForms {
     public static Form derDocument() {
         Form f = new Form();
         f.getFields().add(new FieldBuilder(DcConstants.IDENTIFIER).setMaxOccurrences(1)
-                .addField(new FieldBuilder(DcConstants.VALUE).setWidth("300").setRequired(true)
+                .addField(new FieldBuilder(DcConstants.VALUE).setRequired(true)
                         .setTitle("Číslo dokumentu")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
-        f.getFields().add(new FieldBuilder(DcConstants.TITLE).setMaxOccurrences(1).setWidth("*")
-                .addField(new FieldBuilder(DcConstants.VALUE).setWidth("*").setRequired(true)
+        f.getFields().add(new FieldBuilder(DcConstants.TITLE).setMaxOccurrences(1)
+                .addField(new FieldBuilder(DcConstants.VALUE).setRequired(true)
                         .setTitle("Název dokumentu")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(2000)
                         .createField())
-                .addField(noLang())
                 .createField());
         // ciselnik!
         f.getFields().add(new FieldBuilder(DcConstants.SUBJECT).setMaxOccurrences(1)
-                .addField(new FieldBuilder(DcConstants.VALUE).setWidth("300").setRequired(true)
+                .addField(new FieldBuilder(DcConstants.VALUE).setRequired(true)
                         .setTitle("Klasifikace")
+                        .setType(COMBO).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.TYPE).setMaxOccurrences(1)
-                .addField(new FieldBuilder(DcConstants.VALUE).setWidth("300").setRequired(true)
+                .addField(new FieldBuilder(DcConstants.VALUE).setRequired(true)
                         .setTitle("Typ dokumentu")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.CONTRIBUTOR).setMaxOccurrences(1)
-                .addField(new FieldBuilder(DcConstants.VALUE).setWidth("300")
+                .addField(new FieldBuilder(DcConstants.VALUE)
                         .setTitle("Přispěvatel")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.DATE).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Datum")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(20).setWidth("150")
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.CREATOR).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Tvůrce")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.FORMAT).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Format")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.SOURCE).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Zdroj")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.LANGUAGE).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Jazyk")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(20).setWidth("150")
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.RELATION).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Vztah")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.COVERAGE).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Pokrytí")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.RIGHTS).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Práva")
+                        .setType(TEXT).setMaxOccurrences(1).setLength(1000)
                         .createField())
-                .addField(noLang())
                 .createField());
-        f.getFields().add(new FieldBuilder(DcConstants.DESCRIPTION).setMaxOccurrences(1).setWidth("*")
-                .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Popis").setWidth("*")
-                        .setType("textArea").setLength(2000)
+        f.getFields().add(new FieldBuilder(DcConstants.DESCRIPTION).setMaxOccurrences(1)
+                .addField(new FieldBuilder(DcConstants.VALUE).setTitle("Popis")
+                        .setType(TEXTAREA).setLength(2000).setMaxOccurrences(1).setWidth("400")
                         .createField())
-                .addField(noLang())
                 .createField());
         return f;
     }
 
     public static Form derFile() {
         Form f = new Form();
-//        f.getFields().add(new FieldBuilder(DcConstants.TITLE).setMaxOccurrences(1).setWidth("*")
-//                .addField(new FieldBuilder(DcConstants.VALUE).setWidth("*").setRequired(true)
-//                        .setTitle("Název souboru???")
-//                        .createField())
-//                .addField(noLang())
-//                .createField());
-        // XXX valueMap
         f.getFields().add(new FieldBuilder(DcConstants.TYPE).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setWidth("300").setRequired(true)
-                        .setType("select").setTitle("Typ")
+                        .setMaxOccurrences(1)
+                        .setType(SELECT).setTitle("Typ")
                         .addMapValue("ADM", "Technická metadata")
                         .addMapValue("PS", "Primární sken")
                         .addMapValue("MC", "Master copy")
                         .addMapValue("UC", "User copy")
                         .createField())
-                .addField(noLang())
                 .createField());
-//        f.getFields().add(new FieldBuilder(DcConstants.FORMAT).setMaxOccurrences(1)
-//                .addField(new FieldBuilder(DcConstants.VALUE).setTitle("MIME??")
-//                        .createField())
-//                .addField(noLang())
-//                .createField());
-//        System.out.println("derFile: " + f.getFields().get(0));
+        f.getFields().add(new FieldBuilder(DcConstants.FORMAT).setMaxOccurrences(1)
+                .addField(new FieldBuilder(DcConstants.VALUE).setMaxOccurrences(1)
+                    .setTitle("MIME typ").setType(TEXT).setReadOnly(true).setWidth("300")
+                .createField())
+            .createField()); // FORMAT
+        f.getFields().add(new FieldBuilder(DcConstants.TITLE).setMaxOccurrences(1)
+                .addField(new FieldBuilder(DcConstants.VALUE).setMaxOccurrences(1)
+                    .setTitle("Název souboru").setType(TEXT).setReadOnly(true).setWidth("400")
+                .createField())
+            .createField()); // TITLE
         return f;
     }
 

@@ -44,6 +44,7 @@ import java.util.List;
  *
  * @author Jan Pokorsky
  */
+// XXX cleanup required
 public class DcEditor {
 
     private final ClientMessages i18n;
@@ -61,22 +62,16 @@ public class DcEditor {
         if (form != null) {
             return form;
         }
-        Form formProfile = null;
-        if (model == null) {
-            // no-op
-        } else if ("model:derFolder".equals(model.getId())) {
-            formProfile = DerForms.derFolder();
-        } else if ("model:derDocument".equals(model.getId())) {
-            formProfile = DerForms.derDocument();
-        } else if ("model:derFile".equals(model.getId())) {
-            formProfile = DerForms.derFile();
-        } else if ("model:desFile".equals(model.getId())) {
-            form = new DesForms().getForm(model, activeLocale);
-            return form;
+        if (model != null) {
+            form = new DerForms().getForm(model, activeLocale);
+            if (form == null) {
+                form = new DesForms().getForm(model, activeLocale);
+            }
+            if (form != null) {
+                return form;
+            }
         }
-        form = formProfile == null
-                ? createFullForm()
-                : createForm(formProfile);
+        form = createFullForm();
         return form;
     }
 
