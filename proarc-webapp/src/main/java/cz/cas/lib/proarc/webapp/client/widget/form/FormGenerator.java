@@ -233,6 +233,9 @@ public class FormGenerator {
         if (width != null) {
             item.setWidth(width);
         }
+        if (f.getReadOnly() != null && f.getReadOnly()) {
+            item.setCanEdit(!f.getReadOnly());
+        }
         return item;
     }
 

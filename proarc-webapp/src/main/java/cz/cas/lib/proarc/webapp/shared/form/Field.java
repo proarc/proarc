@@ -40,13 +40,20 @@ public class Field {
     private Integer maxOccurrences;
     private Boolean required;
     private Boolean hidden;
+    private Boolean readOnly;
     private String width;
     private Integer length;
     private LinkedHashMap<String, String> valueMap;
     private List<Field> fields;
     private transient Field parent;
 
-    public Field(String name, String type, List<Localized> title, List<Localized> hint, Integer maxOccurrences, Boolean required, Boolean hidden, Integer length, String width, LinkedHashMap<String, String> valueMap, List<Field> fields) {
+    public Field(String name, String type, List<Localized> title,
+            List<Localized> hint, Integer maxOccurrences,
+            Boolean required, Boolean hidden, Boolean readOnly,
+            Integer length, String width,
+            LinkedHashMap<String, String> valueMap,
+            List<Field> fields) {
+
         this.name = name;
         this.type = type;
         this.title = title;
@@ -54,6 +61,7 @@ public class Field {
         this.maxOccurrences = maxOccurrences;
         this.required = required;
         this.hidden = hidden;
+        this.readOnly = readOnly;
         this.length = length;
         this.width = width;
         this.valueMap = valueMap;
@@ -99,6 +107,10 @@ public class Field {
         return hidden;
     }
 
+    public Boolean getReadOnly() {
+        return readOnly;
+    }
+
     public Integer getLength() {
         return length;
     }
@@ -134,7 +146,7 @@ public class Field {
     public String toString() {
         return "Field{" + "name=" + name + ", type=" + type + ", title=" + title
                 + ", hint=" + hint + ", maxOccurrences=" + maxOccurrences
-                + ", required=" + required + ", hidden=" + hidden
+                + ", required=" + required + ", hidden=" + hidden + ", readOnly=" + readOnly
                 + ", width=" + width + ", length=" + length
                 + ", valueMap=" + valueMap + '}';
     }

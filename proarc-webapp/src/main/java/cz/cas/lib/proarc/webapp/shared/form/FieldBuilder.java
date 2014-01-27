@@ -31,6 +31,7 @@ public final class FieldBuilder {
     private Integer maxOccurrences;
     private Boolean required;
     private Boolean hidden;
+    private Boolean readOnly;
     private Integer length;
     private String width;
     private LinkedHashMap<String, String> valueMap = new LinkedHashMap<String, String>();
@@ -80,6 +81,11 @@ public final class FieldBuilder {
         return this;
     }
 
+    public FieldBuilder setReadOnly(Boolean readOnly) {
+        this.readOnly = readOnly;
+        return this;
+    }
+
     public FieldBuilder setLength(Integer length) {
         this.length = length;
         return this;
@@ -96,7 +102,7 @@ public final class FieldBuilder {
     }
 
     public Field createField() {
-        return new Field(name, type, title, hint, maxOccurrences, required, hidden, length, width, valueMap, fields);
+        return new Field(name, type, title, hint, maxOccurrences, required, hidden, readOnly, length, width, valueMap, fields);
     }
 
 }
