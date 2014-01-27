@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.common.json.JsonUtils;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -46,6 +47,7 @@ public final class JacksonProvider extends JacksonJaxbJsonProvider {
         configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
         configure(SerializationConfig.Feature.WRITE_NULL_PROPERTIES, false);
         configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
+        configure(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         ObjectMapper mapper = _mapperConfig.getConfiguredMapper();
         serializationConfig = mapper.getSerializationConfig();
         deserializationConfig = mapper.getDeserializationConfig();
@@ -60,6 +62,7 @@ public final class JacksonProvider extends JacksonJaxbJsonProvider {
         registerAnnotatedSuperclass(AnnotatedSearchViewItem.class);
         registerAnnotatedSuperclass(AnnotatedStringRecord.class);
         registerAnnotatedSuperclass(AnnotatedValueMap.class);
+        JsonUtils.setDefaultObjectMapper(mapper);
     }
 
     private void register(Class<?> target, Class<?> mixinSource) {

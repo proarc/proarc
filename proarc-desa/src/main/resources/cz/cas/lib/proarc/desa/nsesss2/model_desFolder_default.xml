@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Default values for model:desFile
+-->
+<Spis ID="" xmlns="http://www.mvcr.cz/nsesss/v2">
+    <EvidencniUdaje>
+        <Identifikace>
+            <Identifikator zdroj="ERMS"></Identifikator>
+        </Identifikace>
+        <Evidence>
+            <NazevEvidenceDokumentu>ERMS</NazevEvidenceDokumentu>
+        </Evidence>
+        <Puvod>
+            <DatumVytvoreni></DatumVytvoreni>
+        </Puvod>
+        <VyrizeniUzavreni>
+            <Zpusob>vyřízení dokumentem</Zpusob>
+        </VyrizeniUzavreni>
+        <Vyrazovani>
+            <SkartacniRezim>
+                <Oduvodneni>Vyplývá ze spisového plánu organizace</Oduvodneni>
+                <SkartacniLhuta>1</SkartacniLhuta>
+                <SpousteciUdalost>Uzavření spisu</SpousteciUdalost>
+            </SkartacniRezim>
+        </Vyrazovani>
+        <Manipulace>
+            <NezbytnyDokument>ano</NezbytnyDokument>
+            <AnalogovyDokument>ano</AnalogovyDokument>
+        </Manipulace>
+    </EvidencniUdaje>
+</Spis>

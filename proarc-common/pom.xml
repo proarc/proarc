@@ -71,6 +71,11 @@
             <version>0.0.1</version>
         </dependency>
         <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-desa</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>cz.registrdigitalizace</groupId>
             <artifactId>soapclient</artifactId>
             <version>1.1</version>

@@ -24,7 +24,14 @@ import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls.RecCl;
+import cz.cas.lib.proarc.common.object.DesDesaPlugin.DesMetadataHandler;
+import cz.cas.lib.proarc.common.object.DesDesaPlugin.DesObjectWrapper;
 import cz.cas.lib.proarc.common.object.ValueMap;
+import cz.cas.lib.proarc.desa.nsesss2.Dokument;
+import cz.cas.lib.proarc.desa.nsesss2.NsesssUtils;
+import cz.cas.lib.proarc.desa.nsesss2.Spis;
+import cz.cas.lib.proarc.desa.nsesss2.TLogicky;
+import cz.cas.lib.proarc.desa.nsesss2.TZpusobVyrizeni;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -101,7 +108,52 @@ public class JacksonProviderTest {
         toXml.flush();
 //        System.out.println("---");
 //        System.out.println(toXml);
-}
+    }
+
+    @Test
+    public void testNsesss2WrappedInternalDocument() throws Exception {
+        ObjectMapper om = new JacksonProvider().locateMapper(DesObjectWrapper.class, MediaType.APPLICATION_JSON_TYPE);
+        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        Dokument nsesss = NsesssUtils.defaultInternalDokument();
+        String toJson = om.writeValueAsString(new DesObjectWrapper(DesMetadataHandler.mapToJson(nsesss)));
+//        System.out.println(toJson);
+        DesObjectWrapper result = om.readValue(toJson, DesObjectWrapper.class);
+        assertNotNull(result);
+        assertNotNull(result.getDokument());
+//        System.out.println("---");
+//        System.out.println(NsesssUtils.toXml(result.getDokument(), true));
+    }
+
+    @Test
+    public void testNsesss2WrappedSpis() throws Exception {
+        ObjectMapper om = new JacksonProvider().locateMapper(Spis.class, MediaType.APPLICATION_JSON_TYPE);
+        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        Spis spis = NsesssUtils.defaultSpis();
+        String toJson = om.writeValueAsString(new DesObjectWrapper(spis));
+//        System.out.println(toJson);
+        DesObjectWrapper wrapper = om.readValue(toJson, DesObjectWrapper.class);
+        assertNotNull(wrapper);
+        Spis result = wrapper.getSpis();
+        assertNotNull(result);
+        assertEquals("ERMS", result.getEvidencniUdaje().getEvidence().getNazevEvidenceDokumentu());
+        assertEquals(TZpusobVyrizeni.VYŘÍZENÍ_DOKUMENTEM, result.getEvidencniUdaje().getVyrizeniUzavreni().getZpusob());
+        assertEquals("Vyplývá ze spisového plánu organizace",
+                result.getEvidencniUdaje().getVyrazovani().getSkartacniRezim().getOduvodneni());
+        assertEquals("Uzavření spisu",
+                result.getEvidencniUdaje().getVyrazovani().getSkartacniRezim().getSpousteciUdalost());
+        assertEquals(TLogicky.ANO, result.getEvidencniUdaje().getManipulace().getAnalogovyDokument().ANO);
+//        System.out.println("---");
+//        System.out.println(NsesssUtils.toXml(spisResult, true));
+    }
+
+    @Test
+    public void testReadNsesss2WrappedSpis() throws Exception {
+        String toJson = "{ \"Spis\":{ \"EvidencniUdaje\":{ \"Identifikace\":{ \"Identifikator\":[ { \"value\":\"\", \"zdroj\":\"ERMS\" } ] }, \"Popis\":{ \"Nazev\":\"Název\", \"KlicovaSlova\":{ \"KlicoveSlovo\":[ \"slovo2\" ] } }, \"Evidence\":{ \"NazevEvidenceDokumentu\":\"ERMS\" }, \"Puvod\":{ \"DatumVytvoreni\":{ \"value\":\"2013-12-31T23:00:00.000+0000\" } }, \"VyrizeniUzavreni\":{ \"Zpusob\":\"VYŘÍZENÍ_DOKUMENTEM\" }, \"Vyrazovani\":{ \"SkartacniRezim\":{ \"Oduvodneni\":\"Vyplývá ze spisového plánu organizace\", \"SkartacniLhuta\":1, \"SpousteciUdalost\":\"Uzavření spisu\" } }, \"Manipulace\":{ \"AnalogovyDokument\":\"ANO\" } }, \"ID\":\"1\" }}";
+        ObjectMapper om = new JacksonProvider().locateMapper(DesObjectWrapper.class, MediaType.APPLICATION_JSON_TYPE);
+//        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        DesObjectWrapper result = om.readValue(toJson, DesObjectWrapper.class);
+        assertNotNull(result.getSpis());
+    }
 
     @Test
     public void testNomenclatureAsValueMap() throws Exception {
@@ -118,7 +170,7 @@ public class JacksonProviderTest {
         ObjectMapper om = new JacksonProvider().locateMapper(SmartGwtResponse.class, MediaType.APPLICATION_JSON_TYPE);
         om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
         String toJson = om.writeValueAsString(sgr);
-        System.out.println(toJson);
+//        System.out.println(toJson);
         assertTrue(toJson.contains("\"data\":[{\"mapId\":\"test.rec-cl\",\"values\":[{\"fullyQcc\":\"FullyQcc\"}]}]}"));
     }
 

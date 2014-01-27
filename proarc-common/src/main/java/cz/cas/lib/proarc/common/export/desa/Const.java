@@ -18,6 +18,7 @@
 package cz.cas.lib.proarc.common.export.desa;
 
 import cz.cas.lib.proarc.common.object.DerDesaPlugin;
+import cz.cas.lib.proarc.common.object.DesDesaPlugin;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,10 +33,10 @@ public class Const {
     public final static String DERFOLDER = DerDesaPlugin.MODEL_FOLDER;
     public final static String DERDOCUMENT = DerDesaPlugin.MODEL_DOCUMENT;
     public final static String DERFILE = DerDesaPlugin.MODEL_FILE;
-    public final static String DESFILE = "model:desFile";
-    public final static String DESFOLDER = "model:desFolder";
-    public final static String DESOWNDOCUMENT = "model:desOwnDocument";
-    public final static String DESSENTDOCUMENT = "model:desSentDocument";
+    public final static String DESFILE = DesDesaPlugin.MODEL_FILE;
+    public final static String DESFOLDER = DesDesaPlugin.MODEL_FOLDER;
+    public final static String DESOWNDOCUMENT = DesDesaPlugin.MODEL_INTERNAL_RECORD;
+    public final static String DESSENTDOCUMENT = DesDesaPlugin.MODEL_EXTERNAL_RECORD;
     public final static String FEDORAPREFIX = "info:fedora/";
     public final static String FOLDER = "FOLDER";
     public final static String DOCUMENT = "DOCUMENT";

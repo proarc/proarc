@@ -24,4 +24,12 @@ package cz.cas.lib.proarc.desa.nsesss2;
 public final class NsesssConstants {
 
     public static final String NS = "http://www.mvcr.cz/nsesss/v2";
+    /**
+     * The value for {@code /Dokument/EvidencniUdaje/Vyrizeni/Prijemce/Subjekt/subjectType}.
+     */
+    public static final String DOKUMENT_PRIJEMCE_FYZICKA_OSOBA = "FyzickaOsoba";
+    /**
+     * The value for {@code /Dokument/EvidencniUdaje/Vyrizeni/Prijemce/Subjekt/subjectType}.
+     */
+    public static final String DOKUMENT_PRIJEMCE_PRAVNICKA_OSOBA = "PravnickaOsoba";
 }

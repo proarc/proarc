@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.json;
 
+import java.util.logging.Logger;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -27,13 +28,28 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
  */
 public final class JsonUtils {
 
+    private static final Logger LOG = Logger.getLogger(JsonUtils.class.getName());
+    private static ObjectMapper MAPPER;
+
     public static ObjectMapper defaultObjectMapper() {
+        if (MAPPER != null) {
+            return MAPPER;
+        }
+        LOG.warning("Using default JSON ObjectMapper!");
         ObjectMapper om = new ObjectMapper();
+        // JaxbAnnotationIntrospector failes to handle enums.
+        // It requires the itnrospector pair (JSON, JAXB) to mimic JacksonJaxbJsonProvider.
+        // Use setDefaultObjectMapper in webapp tests!
         AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
         om.getSerializationConfig().setAnnotationIntrospector(introspector);
         om.getDeserializationConfig().setAnnotationIntrospector(introspector);
-        om.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        setDefaultObjectMapper(om);
         return om;
+    }
+
+    public static void setDefaultObjectMapper(ObjectMapper om) {
+        om.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        MAPPER = om;
     }
 
 }
