@@ -23,12 +23,15 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.export.desa.DesaServices.DesaConfiguration;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.json.JsonUtils;
+import cz.cas.lib.proarc.common.object.DerDesaPlugin.DerMetadataHandler;
+import cz.cas.lib.proarc.common.object.DerDesaPlugin.DerRawDisseminationHandler;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.desa.nsesss2.Dokument;
@@ -42,6 +45,7 @@ import cz.cas.lib.proarc.desa.nsesss2.TIdentifikator;
 import cz.cas.lib.proarc.desa.nsesss2.TPopis;
 import cz.cas.lib.proarc.desa.nsesss2.mapping.PrijemceMapping;
 import cz.cas.lib.proarc.desa.nsesss2.mapping.PrijemceMapping.SubjektExterni;
+import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.ArrayList;
@@ -56,10 +60,13 @@ import javax.xml.transform.Source;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
+ * Support of the DES DESA model. The plugin is used to provide list of all
+ * DES models but each model gets custom subclass to handle different data type
+ * but to reuse common stuff.
  *
  * @author Jan Pokorsky
  */
-public class DesDesaPlugin implements DigitalObjectPlugin, HasMetadataHandler<Object> {
+public class DesDesaPlugin implements DigitalObjectPlugin {
 
     public static final String ID = "desa-des";
     /** {@link Spis} */
@@ -78,12 +85,13 @@ public class DesDesaPlugin implements DigitalObjectPlugin, HasMetadataHandler<Ob
     @Override
     public Collection<MetaModel> getModel() {
         ArrayList<MetaModel> models = new ArrayList<MetaModel>();
+        DesNsesssDesaPlugin nsesssPlugin = new DesNsesssDesaPlugin();
         models.add(new MetaModel(
                 MODEL_FOLDER, true, null,
                 Arrays.asList(new ElementType("File", "en"), new ElementType("Spis", "cs")),
                 NsesssConstants.NS,
                 "proarc.metadata.editor.nsesss.desFolder",
-                this,
+                nsesssPlugin,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                 ));
@@ -92,7 +100,7 @@ public class DesDesaPlugin implements DigitalObjectPlugin, HasMetadataHandler<Ob
                 Arrays.asList(new ElementType("Internal Record", "en"), new ElementType("Vlastní dokument", "cs")),
                 NsesssConstants.NS,
                 "proarc.metadata.editor.nsesss.desInternalRecord",
-                this,
+                nsesssPlugin,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                 ));
@@ -101,21 +109,25 @@ public class DesDesaPlugin implements DigitalObjectPlugin, HasMetadataHandler<Ob
 //                Arrays.asList(new ElementType("External Record", "en"), new ElementType("Doručený dokument", "cs")),
 //                NsesssConstants.NS,
 //                "proarc.metadata.editor.nsesss.desExternalRecord",
-//                this,
+//                nsesssPlugin,
 //                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
 //                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
 //                ));
+        models.add(new MetaModel(
+                MODEL_FILE, null, true,
+                Arrays.asList(new ElementType("DES Component", "en"), new ElementType("DES Komponenta", "cs")),
+                DcConstants.NS_OAIDC, "proarc.metadata.editor.dc.desFile",
+                new DesDcDesaPlugin(),
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT,
+                        DatastreamEditorType.MEDIA, DatastreamEditorType.ATM)
+                ));
         return models;
     }
 
     @Override
     public <T extends HasDataHandler> T getHandlerProvider(Class<T> type) {
         return type.isInstance(this) ? type.cast(this): null;
-    }
-
-    @Override
-    public MetadataHandler<Object> createMetadataHandler(DigitalObjectHandler handler) {
-        return new DesMetadataHandler(handler);
     }
 
     @Override
@@ -134,6 +146,39 @@ public class DesDesaPlugin implements DigitalObjectPlugin, HasMetadataHandler<Ob
         } catch (Exception ex) {
             throw new IllegalStateException("Cannot init value maps for " + ID + " plugin!", ex);
         }
+    }
+
+    /**
+     * Handles NSESSS2 format.
+     */
+    private static class DesNsesssDesaPlugin extends DesDesaPlugin implements HasMetadataHandler<Object> {
+
+        @Override
+        public MetadataHandler<Object> createMetadataHandler(DigitalObjectHandler handler) {
+            return new DesMetadataHandler(handler);
+        }
+
+    }
+
+    /**
+     * Handles DC format.
+     */
+    private static class DesDcDesaPlugin extends DesDesaPlugin implements HasMetadataHandler<OaiDcType>, HasDisseminationHandler {
+
+        @Override
+        public DisseminationHandler createDisseminationHandler(String dsId, DigitalObjectHandler handler) {
+            DefaultDisseminationHandler ddh = new DefaultDisseminationHandler(dsId, handler);
+            if (BinaryEditor.RAW_ID.equals(dsId)) {
+                return new DerRawDisseminationHandler(handler, ddh);
+            }
+            return ddh;
+        }
+
+        @Override
+        public MetadataHandler<OaiDcType> createMetadataHandler(DigitalObjectHandler handler) {
+            return new DerMetadataHandler(handler);
+        }
+
     }
 
     public static class DesMetadataHandler implements MetadataHandler<Object> {

@@ -96,7 +96,7 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
                 ));
         models.add(new MetaModel(
                 MODEL_FILE, null, true,
-                Arrays.asList(new ElementType("Component", "en"), new ElementType("Komponenta", "cs")),
+                Arrays.asList(new ElementType("DER Component", "en"), new ElementType("DER Komponenta", "cs")),
                 DcConstants.NS_OAIDC, "proarc.metadata.editor.dc.derFile",
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,

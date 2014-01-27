@@ -26,6 +26,7 @@ import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.layout.HLayout;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.widget.mods.AbstractModelForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableFormItem;
@@ -48,10 +49,12 @@ public class DcEditor {
     private final ClientMessages i18n;
     private DynamicForm form;
     private final MetaModelRecord model;
+    private final String activeLocale;
 
     public DcEditor(ClientMessages i18n, MetaModelRecord model) {
         this.i18n = i18n;
         this.model = model;
+        activeLocale = LanguagesDataSource.activeLocale();
     }
 
     public DynamicForm getForm() {
@@ -67,6 +70,9 @@ public class DcEditor {
             formProfile = DerForms.derDocument();
         } else if ("model:derFile".equals(model.getId())) {
             formProfile = DerForms.derFile();
+        } else if ("model:desFile".equals(model.getId())) {
+            form = new DesForms().getForm(model, activeLocale);
+            return form;
         }
         form = formProfile == null
                 ? createFullForm()
