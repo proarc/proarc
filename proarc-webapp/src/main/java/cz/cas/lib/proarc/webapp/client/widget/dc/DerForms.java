@@ -62,11 +62,15 @@ public final class DerForms {
                         .setType(TEXT).setMaxOccurrences(1).setLength(2000)
                         .createField())
                 .createField());
-        // ciselnik!
         f.getFields().add(new FieldBuilder(DcConstants.SUBJECT).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setRequired(true)
-                        .setTitle("Klasifikace")
+                        .setTitle("Klasifikace").setWidth("400")
                         .setType(COMBO).setMaxOccurrences(1).setLength(1000)
+                        // mapId syntax is <pluginId>.<Nomenclatures.RecCls.RecCl XML name>
+                        .setOptionDataSource(new FieldBuilder("desa-der.rec-cl")
+                            .addField(new FieldBuilder("title").createField())
+                            .createField(),
+                            "fullyQcc")
                         .createField())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.TYPE).setMaxOccurrences(1)
@@ -143,11 +147,14 @@ public final class DerForms {
                         .setType(TEXT).setMaxOccurrences(1).setLength(2000)
                         .createField())
                 .createField());
-        // ciselnik!
         f.getFields().add(new FieldBuilder(DcConstants.SUBJECT).setMaxOccurrences(1)
                 .addField(new FieldBuilder(DcConstants.VALUE).setRequired(true)
-                        .setTitle("Klasifikace")
+                        .setTitle("Klasifikace").setWidth("400")
                         .setType(COMBO).setMaxOccurrences(1).setLength(1000)
+                        .setOptionDataSource(new FieldBuilder("desa-der.rec-cl")
+                            .addField(new FieldBuilder("title").setTitle("Název").createField())
+                            .createField(),
+                            "fullyQcc")
                         .createField())
                 .createField());
         f.getFields().add(new FieldBuilder(DcConstants.TYPE).setMaxOccurrences(1)

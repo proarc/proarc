@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.client.widget.form;
 
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
+import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.TitleOrientation;
@@ -32,6 +33,8 @@ import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.RadioGroupItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.grid.ListGridField;
+import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.mods.AbstractModelForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableFormItem;
 import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableFormItem.CustomFormFactory;
@@ -206,14 +209,43 @@ public class FormGenerator {
 
     public ComboBoxItem getComboBoxItem(Field f, String lang) {
         ComboBoxItem item = new ComboBoxItem(f.getName(), f.getTitle(lang));
-        item.setValueMap(f.getValueMap());
+        if (f.getOptionDataSource() != null) {
+            Field of = f.getOptionDataSource();
+            setOptionDataSource(item, f);
+            item.setPickListFields(getPickListFields(of, lang));
+        } else {
+            item.setValueMap(f.getValueMap());
+        }
         return item;
     }
 
     public SelectItem getSelectItem(Field f, String lang) {
         SelectItem item = new SelectItem(f.getName(), f.getTitle(lang));
-        item.setValueMap(f.getValueMap());
+        if (f.getOptionDataSource() != null) {
+            Field of = f.getOptionDataSource();
+            setOptionDataSource(item, f);
+            item.setPickListFields(getPickListFields(of, lang));
+        } else {
+            item.setValueMap(f.getValueMap());
+        }
         return item;
+    }
+
+    private static void setOptionDataSource(FormItem item, Field f) {
+        Field optionField = f.getOptionDataSource();
+        DataSource ds = ValueMapDataSource.getInstance().getOptionDataSource(optionField.getName());
+        item.setValueField(f.getOptionValueField()[0]);
+        item.setOptionDataSource(ds);
+    }
+
+    private static ListGridField[] getPickListFields(Field optionField, String lang) {
+        List<Field> columns = optionField.getFields();
+        ListGridField[] listFields = new ListGridField[columns.size()];
+        int i = 0;
+        for (Field field : optionField.getFields()) {
+            listFields[i++] = new ListGridField(field.getName(), field.getTitle(lang));
+        }
+        return listFields;
     }
 
     public RadioGroupItem getRadioGroupItem(Field f, String lang) {

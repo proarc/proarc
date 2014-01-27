@@ -36,6 +36,8 @@ public final class FieldBuilder {
     private String width;
     private LinkedHashMap<String, String> valueMap = new LinkedHashMap<String, String>();
     private final List<Field> fields = new ArrayList<Field>();
+    private Field optionDataSource;
+    private String[] valueFieldNames;
 
     public FieldBuilder(String name) {
         this.name = name;
@@ -101,8 +103,17 @@ public final class FieldBuilder {
         return this;
     }
 
+    public FieldBuilder setOptionDataSource(Field fieldAsDataSource, String... valueFieldNames) {
+        this.optionDataSource = fieldAsDataSource;
+        this.valueFieldNames = valueFieldNames;
+        return this;
+    }
+
     public Field createField() {
-        return new Field(name, type, title, hint, maxOccurrences, required, hidden, readOnly, length, width, valueMap, fields);
+        return new Field(name, type, title, hint, maxOccurrences,
+                required, hidden, readOnly, length, width,
+                valueMap, optionDataSource, valueFieldNames,
+                fields);
     }
 
 }

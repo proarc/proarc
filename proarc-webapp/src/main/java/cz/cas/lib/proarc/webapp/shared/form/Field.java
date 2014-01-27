@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.shared.form;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -45,6 +46,8 @@ public class Field {
     private String width;
     private Integer length;
     private LinkedHashMap<String, String> valueMap;
+    private final Field optionDataSource;
+    private final String[] valueFieldNames;
     private List<Field> fields;
     private transient Field parent;
 
@@ -52,7 +55,7 @@ public class Field {
             List<Localized> hint, Integer maxOccurrences,
             Boolean required, Boolean hidden, Boolean readOnly,
             Integer length, String width,
-            LinkedHashMap<String, String> valueMap,
+            LinkedHashMap<String, String> valueMap, Field optionDataSource, String[] valueFieldNames,
             List<Field> fields) {
 
         this.name = name;
@@ -66,6 +69,8 @@ public class Field {
         this.length = length;
         this.width = width;
         this.valueMap = valueMap;
+        this.optionDataSource = optionDataSource;
+        this.valueFieldNames = valueFieldNames;
         this.fields = fields != null ? fields : new ArrayList<Field>();
         for (Field child : this.fields) {
             child.parent = this;
@@ -124,6 +129,20 @@ public class Field {
         return valueMap;
     }
 
+    /**
+     * Gets field describing data source.
+     * The name stands for {@link cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource}
+     * mapId. Child fields describe columns of ListGrid.
+     */
+    public Field getOptionDataSource() {
+        return optionDataSource;
+    }
+
+    /** Gets field names holding option value. */
+    public String[] getOptionValueField() {
+        return valueFieldNames;
+    }
+
     public List<Field> getFields() {
         return fields;
     }
@@ -149,7 +168,9 @@ public class Field {
                 + ", hint=" + hint + ", maxOccurrences=" + maxOccurrences
                 + ", required=" + required + ", hidden=" + hidden + ", readOnly=" + readOnly
                 + ", width=" + width + ", length=" + length
-                + ", valueMap=" + valueMap + '}';
+                + ", valueMap=" + valueMap
+                + ", optionDataSource=" + optionDataSource + ", valueFields=" + Arrays.toString(valueFieldNames)
+                + '}';
     }
 
 }

@@ -94,7 +94,7 @@ public class ValueMapDataSource extends RestDataSource {
             Record mapRecord = cache.findByKey(mapId);
             if (mapRecord != null) {
                 Record[] attributeAsRecordArray = mapRecord.getAttributeAsRecordArray(
-                        ValueMapResourceApi.RESULT_MAPID);
+                        ValueMapResourceApi.RESULT_VALUES);
                 dataSource.setTestData(attributeAsRecordArray);
             }
             optionDataSources.put(mapId, dataSource);
