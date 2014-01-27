@@ -16,37 +16,12 @@
  */
 package cz.cas.lib.proarc.common.export;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
-import java.util.Set;
-
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
-
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -61,15 +36,36 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.fedora.relation.Relations;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.Set;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Exports digital object and transforms its data streams to Kramerius4 format.
- * 
+ *
  * For now it exports FOXML in archive format. It is memory intensive but fast.
  * In case of OOME it should be rewritten to export FOXML in public or migrate
  * format and fetch each managed data streams with REST or build the whole FOXML
  * from scratch.
- * 
+ *
  * @author Jan Pokorsky
  */
 public final class Kramerius4Export {
@@ -78,14 +74,14 @@ public final class Kramerius4Export {
     public static final String KRAMERIUS_RELATION_PREFIX = "kramerius";
     public static final String OAI_NS = "http://www.openarchives.org/OAI/2.0/";
 
-    private final RemoteStorage rstorage;
-    private final LocalStorage lstorage = new LocalStorage();
+    private RemoteStorage rstorage;
+    private LocalStorage lstorage = new LocalStorage();
     private final SearchView search;
     /** already exported PIDs to prevent loops */
-    private final HashSet<String> exportedPids = new HashSet<String>();
+    private HashSet<String> exportedPids = new HashSet<String>();
     /** PIDs scheduled for export */
-    private final Queue<String> toExport = new LinkedList<String>();
-
+    private Queue<String> toExport = new LinkedList<String>();
+    
     private final Kramerius4ExportOptions options;
 
     public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options) {
@@ -115,7 +111,7 @@ public final class Kramerius4Export {
     void exportPid(File output, boolean hierarchy, String pid) {
         try {
             if (exportedPids.contains(pid)) {
-                return;
+                return ;
             }
             exportedPids.add(pid);
             RemoteObject robject = rstorage.find(pid);
@@ -141,16 +137,13 @@ public final class Kramerius4Export {
     }
 
     /**
-     * Exports hierarchy of parent objects. Leafs of the hierarchy are PIDs that
-     * were selected for export.
-     * <p/>
-     * RELS-EXT of exported parent objects contains only PIDs that are subject
-     * to export. Other relations are excluded.
-     * 
-     * @param output
-     *            output folder
-     * @param pids
-     *            PIDs selected for export
+     * Exports hierarchy of parent objects. Leafs of the hierarchy are PIDs
+     * that were selected for export.
+     * <p/>RELS-EXT of exported parent objects contains only PIDs that are subject to export.
+     * Other relations are excluded.
+     *
+     * @param output output folder
+     * @param pids PIDs selected for export
      */
     private void exportParents(File output, Collection<String> pids) {
         Map<String, Set<String>> buildPidTree = buildPidTree(pids, exportedPids);
@@ -182,11 +175,9 @@ public final class Kramerius4Export {
 
     /**
      * Builds tree of digital objects as map of parent nodes and their children.
-     * 
-     * @param pids
-     *            PIDs that will be leafs of the tree
-     * @param exportedPids
-     *            collection of already exported PIDs
+     *
+     * @param pids PIDs that will be leafs of the tree
+     * @param exportedPids collection of already exported PIDs
      * @return {@code Map<parent-PID, Set<child-PID>>}
      */
     private Map<String, Set<String>> buildPidTree(Collection<String> pids, Collection<String> exportedPids) {
@@ -194,7 +185,7 @@ public final class Kramerius4Export {
         // P1/R1/C2
         // P1/R3/C3
         // pids={C1, C2, C3}
-        // Map<PID, Set<PID>> tree P1={R1, R3}, R1={C1, C2}, R3={C3}
+        // Map<PID, Set<PID>> tree  P1={R1, R3}, R1={C1, C2}, R3={C3}
         Map<String, Set<String>> pidTree = new HashMap<String, Set<String>>();
         for (String pid : pids) {
             String parentPid = getParent(pid);
@@ -221,7 +212,7 @@ public final class Kramerius4Export {
             throw new IllegalStateException(pid, ex);
         }
     }
-
+    
     private void exportDatastreams(LocalObject local, RelationEditor editor) {
         DigitalObject dobj = local.getDigitalObject();
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
@@ -280,13 +271,12 @@ public final class Kramerius4Export {
 
     private void processDublinCore(DatastreamType datastream) {
         if (!DcStreamEditor.DATASTREAM_ID.equals(datastream.getID())) {
-            return;
+            return ;
         }
         DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
         XmlContentType xmlContent = version.getXmlContent();
         Element dcElm = xmlContent.getAny().get(0);
-        // remove xsi:schemaLocation attribute to make FOXML valid for Fedora
-        // ingest
+        // remove xsi:schemaLocation attribute to make FOXML valid for Fedora ingest
         dcElm.removeAttributeNS(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "schemaLocation");
         // optimize XML namespace declaration
         dcElm.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI,
@@ -305,7 +295,7 @@ public final class Kramerius4Export {
 
     private void processMods(DatastreamType datastream) {
         if (!ModsStreamEditor.DATASTREAM_ID.equals(datastream.getID())) {
-            return;
+            return ;
         }
         DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
         XmlContentType xmlContent = version.getXmlContent();
@@ -316,13 +306,12 @@ public final class Kramerius4Export {
 
     /**
      * Removes all subelements with xsi:nil attribute as they are worthless.
-     * 
-     * JAXB optimizes namespace declarations and moves them to common parent
-     * elements but Fedora ingest ignores it. Then some ingested datastreams may
-     * be broken as they miss optimized namespace declarations (xsi in this
-     * case).
+     *
+     * JAXB optimizes namespace declarations and moves them to common parent elements
+     * but Fedora ingest ignores it. Then some ingested datastreams may be broken
+     * as they miss optimized namespace declarations (xsi in this case).
      */
-    public static void removeNils(Element elm) {
+    private static void removeNils(Element elm) {
         NodeList children = elm.getChildNodes();
         for (int i = children.getLength() - 1; i >= 0; i--) {
             Node item = children.item(i);
@@ -338,13 +327,12 @@ public final class Kramerius4Export {
     }
 
     /**
-     * Wraps mods root element in modsCollection element like Kramerius expects
-     * it.
+     * Wraps mods root element in modsCollection element like Kramerius expects it.
      */
     private static void wrapModsInCollection(XmlContentType xmlContent) {
         Element mods = xmlContent.getAny().get(0);
         if ("modsCollection".equals(mods.getLocalName())) {
-            return;
+            return ;
         }
         Element modsCollection = mods.getOwnerDocument().createElementNS(
                 ModsStreamEditor.DATASTREAM_FORMAT_URI, "mods:modsCollection");
@@ -358,7 +346,7 @@ public final class Kramerius4Export {
             ) {
 
         if (!RelationEditor.DATASTREAM_ID.equals(datastream.getID())) {
-            return;
+            return ;
         }
         try {
             List<Item> childDescriptors = search.findChildren(pid);
@@ -392,14 +380,14 @@ public final class Kramerius4Export {
             List<Element> relations = editor.getRelations();
 
             setOaiId(pid, relations, doc);
-
+            
             setImportFile(editor, relations, doc);
 
             setPolicy(options.getPolicy(), relations, doc);
 
             editor.setDevice(null);
 
-            editor.setMembers(Collections.<String> emptyList());
+            editor.setMembers(Collections.<String>emptyList());
             for (String childPid : children) {
                 Item desc = remove(childPid, childDescriptors);
                 if (desc == null) {
@@ -440,18 +428,14 @@ public final class Kramerius4Export {
 
     /**
      * Sets OAI ID as relation if necessary.
-     * 
-     * @param pid
-     *            PID to use as OAI ID
-     * @param relations
-     *            list of existing relations
-     * @param doc
-     *            DOM
+     * @param pid PID to use as OAI ID
+     * @param relations list of existing relations
+     * @param doc DOM
      */
     private static void setOaiId(String pid, List<Element> relations, Document doc) {
         for (Element relation : relations) {
             if (OAI_NS.equals(relation.getNamespaceURI()) && "itemID".equals(relation.getLocalName())) {
-                return;
+                return ;
             }
         }
         Element elm = doc.createElementNS(OAI_NS, "oai:itemID");
@@ -461,13 +445,9 @@ public final class Kramerius4Export {
 
     /**
      * Sets kramerius:policy as relation if necessary.
-     * 
-     * @param policy
-     *            access policy
-     * @param relations
-     *            list of existing relations
-     * @param doc
-     *            DOM
+     * @param policy access policy
+     * @param relations list of existing relations
+     * @param doc DOM
      */
     private static void setPolicy(String policy, List<Element> relations, Document doc) {
         if (policy != null) {
