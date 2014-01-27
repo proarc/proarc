@@ -89,14 +89,14 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             if (file.exists()) {
                 file.delete();
                 file = null;
-                LOG.log(Level.INFO, "File:" + zipFileName + " exists, so it was deleted");
+                LOG.log(Level.FINE, "File:" + zipFileName + " exists, so it was deleted");
             }
             ZipFile zipFile = new ZipFile(zipFileName);
             ZipParameters zip4jZipParameters = new ZipParameters();
             zip4jZipParameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
             zip4jZipParameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
             zipFile.addFiles(fileList, zip4jZipParameters);
-            LOG.log(Level.INFO, "Zip archive created:" + zipFileName + " for " + desaElement.getElementType());
+            LOG.log(Level.FINE, "Zip archive created:" + zipFileName + " for " + desaElement.getElementType());
         } catch (ZipException e) {
             LOG.log(Level.SEVERE, "Unable to create a zip file:" + zipFileName, e);
             throw new MetsExportException(desaElement.getOriginalPid(), "Unable to create a zip file:" + zipFileName, false, e);
@@ -112,14 +112,14 @@ public class DesaElementVisitor implements IDesaElementVisitor {
      * @throws MetsExportException
      */
     private String getIdentifier(IDesaElement desaElement) throws MetsExportException {
-        LOG.log(Level.INFO, "Element model:" + desaElement.getModel());
+        LOG.log(Level.FINE, "Element model:" + desaElement.getModel());
         if (MetsUtils.xPathEvaluateNode(desaElement.getDescriptor(), "*[namespace-uri()='http://www.openarchives.org/OAI/2.0/oai_dc/']") != null) {
-            LOG.log(Level.INFO, "DC variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
+            LOG.log(Level.FINE, "DC variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
             List<Element> descriptor = desaElement.getDescriptor();
             return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='dc']/*[local-name()='identifier']");
         }
         if (MetsUtils.xPathEvaluateNode(desaElement.getDescriptor(), "*[namespace-uri()='http://www.mvcr.cz/nsesss/v2']") != null) {
-            LOG.log(Level.INFO, "NSESS variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
+            LOG.log(Level.FINE, "NSESS variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
             List<Element> descriptor = desaElement.getDescriptor();
             if (Const.FOLDER.equalsIgnoreCase(desaElement.getElementType())) {
                 return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Spis']/*[local-name()='EvidencniUdaje'/*[local-name()='Identifikace'/*[local-name()='Identifikator']");
@@ -143,14 +143,14 @@ public class DesaElementVisitor implements IDesaElementVisitor {
      * @throws MetsExportException
      */
     private String getLabel(IDesaElement desaElement) throws MetsExportException {
-        LOG.log(Level.INFO, "Element model:" + desaElement.getModel());
+        LOG.log(Level.FINE, "Element model:" + desaElement.getModel());
         if (MetsUtils.xPathEvaluateNode(desaElement.getDescriptor(), "*[namespace-uri()='http://www.openarchives.org/OAI/2.0/oai_dc/']") != null) {
-            LOG.log(Level.INFO, "DC variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
+            LOG.log(Level.FINE, "DC variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
             List<Element> descriptor = desaElement.getDescriptor();
             return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='dc']/*[local-name()='title']");
         }
         if (MetsUtils.xPathEvaluateNode(desaElement.getDescriptor(), "*[namespace-uri()='http://www.mvcr.cz/nsesss/v2']") != null) {
-            LOG.log(Level.INFO, "NSESS variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
+            LOG.log(Level.FINE, "NSESS variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
             List<Element> descriptor = desaElement.getDescriptor();
             if (Const.FOLDER.equalsIgnoreCase(desaElement.getElementType())) {
                 return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Spis']/*[local-name()='EvidencniUdaje'/*[local-name()='Identifikace'/*[local-name()='Identifikator']");
@@ -184,7 +184,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             throw new MetsExportException(desaElement.getOriginalPid(), "Unable to create a temp folder", false, e);
         }
         tmpFileFolder.mkdir();
-        LOG.log(Level.INFO, "TMP folder:" + tmpFileFolder.getAbsolutePath() + " created for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
+        LOG.log(Level.FINE, "TMP folder:" + tmpFileFolder.getAbsolutePath() + " created for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
         return tmpFileFolder;
     }
 
@@ -242,6 +242,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             marshaller.marshal(mets, outputFile);
             try {
                 MetsUtils.validateAgainstXSD(outputFile, Mets.class.getResourceAsStream("mets.xsd"));
+                LOG.log(Level.FINE, "Element validated:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
             } catch (MetsExportException ex) {
                 LOG.log(Level.WARNING, "Invalid mets.xml for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
                 desaElement.getDesaContext().getMetsExportException().addException(desaElement.getOriginalPid(), "Invalid mets !", true, ex.getExceptions().get(0).getEx());
@@ -360,7 +361,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                  */
                 if ((outputFileName == null) || (outputFileName.trim().length() == 0)) {
                     outputFileName = "file_" + String.format("%04d", fileOrder) + "." + MetsUtils.getMimeToExtension().getProperty(mimeType);
-                    LOG.log(Level.INFO, "importFile was not specified for:" + fileElement.getOriginalPid() + " new name was generated:" + outputFileName);
+                    LOG.log(Level.INFO, "importFile name was not specified for:" + fileElement.getOriginalPid() + " new name was generated:" + outputFileName);
                 }
                 String fullOutputFileName = tmpFolder.getAbsolutePath() + File.separator + outputFileName;
                 try {
@@ -401,6 +402,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         fileList.add(outputMets);
         String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getZipName() + ".zip";
         zip(zipFileName, fileList, desaElement);
+        LOG.fine("Document successfuly exported");
     }
 
     /**
@@ -440,6 +442,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         ArrayList<File> fileList = new ArrayList<File>();
         fileList.add(outputMets);
         zip(zipFileName, fileList, desaElement);
+        LOG.fine("Folder successfuly exported");
     }
 
     /**
@@ -472,7 +475,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
      */
     @Override
     public void insertIntoMets(IDesaElement desaElement, HashMap<String, String> desaProps) throws MetsExportException {
-        LOG.log(Level.INFO, "Inserting into Mets:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
+        LOG.log(Level.FINE, "Inserting into Mets:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
         // get root element first
         IDesaElement rootElement = desaElement.getDesaContext().getRootElement();
         if (rootElement == null) {

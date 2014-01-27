@@ -158,7 +158,7 @@ public class DesaElement implements IDesaElement {
 
         if (this.parent == null) {
             desaContext.setRootElement(this);
-            LOG.log(Level.INFO, "Root element found:" + getOriginalPid() + "(" + getElementType() + ")");
+            LOG.log(Level.FINE, "Root element found:" + getOriginalPid() + "(" + getElementType() + ")");
         }
     }
 
@@ -206,13 +206,14 @@ public class DesaElement implements IDesaElement {
         String parentId;
         if (desaContext.getFedoraClient() != null) {
             parentId = MetsUtils.getParent(originalPid, desaContext.getRemoteStorage());
-            LOG.info("Parent found from Fedora:" + parentId);
+            LOG.fine("Parent found from Fedora:" + parentId);
         } else {
             parentId = MetsUtils.getParent(originalPid, desaContext.getFsParentMap());
-            LOG.info("Parent found from Local:" + parentId);
+            LOG.fine("Parent found from Local:" + parentId);
         }
 
         if (parentId == null) {
+            LOG.fine("Parent not found - returning null");
             return null;
         }
 
@@ -326,7 +327,7 @@ public class DesaElement implements IDesaElement {
                 }
                 DesaElement child = new DesaElement(object, this, desaContext, true);
                 this.children.add(child);
-                LOG.log(Level.INFO, "Child found for:" + getOriginalPid() + "(" + getElementType() + ") - " + child.getOriginalPid() + "(" + child.getElementType() + ")");
+                LOG.log(Level.FINE, "Child found for:" + getOriginalPid() + "(" + getElementType() + ") - " + child.getOriginalPid() + "(" + child.getElementType() + ")");
             }
         }
     }
@@ -352,6 +353,7 @@ public class DesaElement implements IDesaElement {
      */
     @Override
     public void accept(IDesaElementVisitor desaVisitor, HashMap<String, String> desaProps) throws MetsExportException {
+        LOG.info("Export visitor accepted for:" + this.getOriginalPid() + "(" + this.getElementType() + ")");
         desaVisitor.insertIntoMets(this, desaProps);
     }
 }
