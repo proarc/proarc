@@ -311,7 +311,7 @@ public final class Kramerius4Export {
      * but Fedora ingest ignores it. Then some ingested datastreams may be broken
      * as they miss optimized namespace declarations (xsi in this case).
      */
-    private static void removeNils(Element elm) {
+    public static void removeNils(Element elm) {
         NodeList children = elm.getChildNodes();
         for (int i = children.getLength() - 1; i >= 0; i--) {
             Node item = children.item(i);
