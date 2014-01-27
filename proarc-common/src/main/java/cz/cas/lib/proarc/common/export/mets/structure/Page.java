@@ -317,12 +317,7 @@ public class Page extends MetsElement {
             fileNames.put("FULL_AMD", byteArray);
             mimeTypes.put("FULL_AMD", "text/xml");
             Document document = MetsUtils.getDocumentFromBytes(byteArray);
-            try {
-                MetsUtils.validateAgainstXSD(document, Mets.class.getResourceAsStream("mets.xsd"));
-            } catch (MetsExportException ex) {
-                LOG.log(Level.WARNING, "Invalid AMD Sec document for " + this.originalPID);
-                metsInfo.metsExportException.addException(this.originalPID, "Invalid AMD Sec xml for " + this.originalPID, true, ex.getExceptions().get(0).getEx());
-            }
+            MetsUtils.validateAgainstXSD(document, Mets.class.getResourceAsStream("mets.xsd"));
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Error while saving AMDSec file for " + this.originalPID, ex);
             throw new IllegalStateException(ex);

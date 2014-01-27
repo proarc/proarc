@@ -39,6 +39,7 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.util.Zip4jConstants;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
@@ -51,6 +52,7 @@ import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.desa.nsesss2.Spis;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
 import cz.cas.lib.proarc.mets.DivType.Mptr;
@@ -115,11 +117,26 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         LOG.log(Level.FINE, "Element model:" + desaElement.getModel());
         if (MetsUtils.xPathEvaluateNode(desaElement.getDescriptor(), "*[namespace-uri()='http://www.openarchives.org/OAI/2.0/oai_dc/']") != null) {
             LOG.log(Level.FINE, "DC variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
+            Document dcDoc = MetsUtils.getDocumentFromList(desaElement.getDescriptor());
+            try {
+                MetsUtils.validateAgainstXSD(dcDoc, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
+            } catch (MetsExportException ex) {
+                LOG.severe("Invalid DC document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
+                throw new MetsExportException("Invalid DC document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, ex);
+            }
             List<Element> descriptor = desaElement.getDescriptor();
             return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='dc']/*[local-name()='identifier']");
         }
         if (MetsUtils.xPathEvaluateNode(desaElement.getDescriptor(), "*[namespace-uri()='http://www.mvcr.cz/nsesss/v2']") != null) {
             LOG.log(Level.FINE, "NSESS variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
+            Document nsessDoc = MetsUtils.getDocumentFromList(desaElement.getDescriptor());
+            try {
+                MetsUtils.validateAgainstXSD(nsessDoc, Spis.class.getResourceAsStream("nsesss2.xsd"));
+            } catch (MetsExportException ex) {
+                LOG.warning("Invalid NSESSS document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
+                desaElement.getDesaContext().getMetsExportException().addException(desaElement.getOriginalPid(), "Invalid NSESSS document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", true, ex);
+            }
+
             List<Element> descriptor = desaElement.getDescriptor();
             if (Const.FOLDER.equalsIgnoreCase(desaElement.getElementType())) {
                 return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Spis']/*[local-name()='EvidencniUdaje'/*[local-name()='Identifikace'/*[local-name()='Identifikator']");
@@ -240,13 +257,8 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
             marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd");
             marshaller.marshal(mets, outputFile);
-            try {
-                MetsUtils.validateAgainstXSD(outputFile, Mets.class.getResourceAsStream("mets.xsd"));
-                LOG.log(Level.FINE, "Element validated:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
-            } catch (MetsExportException ex) {
-                LOG.log(Level.WARNING, "Invalid mets.xml for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
-                desaElement.getDesaContext().getMetsExportException().addException(desaElement.getOriginalPid(), "Invalid mets !", true, ex.getExceptions().get(0).getEx());
-            }
+            MetsUtils.validateAgainstXSD(outputFile, Mets.class.getResourceAsStream("mets.xsd"));
+            LOG.log(Level.FINE, "Element validated:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Unable to save mets file:" + outputFile.getAbsolutePath());
             throw new MetsExportException("Unable to save mets file:" + outputFile.getAbsolutePath(), false, e);
