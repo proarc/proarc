@@ -27,7 +27,7 @@ import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableFormItem.CustomForm
  *
  * @author Jan Pokorsky
  */
-final class StringFormFactory implements CustomFormFactory {
+public final class StringFormFactory implements CustomFormFactory {
     
     private final String title;
     private final boolean showTitle;

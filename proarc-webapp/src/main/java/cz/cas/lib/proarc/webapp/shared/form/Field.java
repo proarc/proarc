@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.shared.form;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -23,6 +24,14 @@ import java.util.List;
  * Describes field of a form.
  */
 public class Field {
+
+    public static final String COMBO = "combo";
+    public static final String DATE = "date";
+    public static final String G_YEAR = "gYear";
+    public static final String CUSTOM_FORM = "customform";
+    public static final String RADIOGROUP = "radiogroup";
+    public static final String SELECT = "select";
+    public static final String TEXT = "text";
 
     private String name;
     private String type;
@@ -35,6 +44,7 @@ public class Field {
     private Integer length;
     private LinkedHashMap<String, String> valueMap;
     private List<Field> fields;
+    private transient Field parent;
 
     public Field(String name, String type, List<Localized> title, List<Localized> hint, Integer maxOccurrences, Boolean required, Boolean hidden, Integer length, String width, LinkedHashMap<String, String> valueMap, List<Field> fields) {
         this.name = name;
@@ -47,7 +57,10 @@ public class Field {
         this.length = length;
         this.width = width;
         this.valueMap = valueMap;
-        this.fields = fields;
+        this.fields = fields != null ? fields : new ArrayList<Field>();
+        for (Field child : this.fields) {
+            child.parent = this;
+        }
     }
 
     public String getName() {
@@ -111,6 +124,10 @@ public class Field {
             }
         }
         return null;
+    }
+
+    public Field getParent() {
+        return parent;
     }
 
     @Override

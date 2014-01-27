@@ -158,7 +158,7 @@ public final class RepeatableFormItem extends CanvasItem {
     private static boolean isSimpleArrayItemField(FormItem item) {
         Field profile = getProfile(item);
         if (profile != null && profile.getType() != null) { // no inner form; just array
-            if (!"Choice".equals(profile.getType()) && profile.getMaxOccurrences() > 1) {
+            if (!Field.CUSTOM_FORM.equals(profile.getType()) && profile.getMaxOccurrences() > 1) {
                 return true;
             }
         }
