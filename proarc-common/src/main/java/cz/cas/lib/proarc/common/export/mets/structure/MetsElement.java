@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -34,6 +33,7 @@ import org.w3c.dom.NodeList;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
+import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
@@ -288,21 +288,12 @@ public class MetsElement {
             }
         }
         Document docMods = MetsUtils.getDocumentFromList(MODSstream);
+        Kramerius4Export.removeNils(docMods.getDocumentElement());
+
         Document docDC = MetsUtils.getDocumentFromList(DCstream);
-        try {
-            MetsUtils.validateAgainstXSD(docMods, ModsDefinition.class.getResourceAsStream("mods.xsd"));
-        } catch (MetsExportException ex) {
-            LOG.log(Level.WARNING, "Invalid MODS xml:" + this.getElementId() + "/" + this.originalPID);
-            metsInfo.metsExportException.addException(this.originalPID, "Invalid MODS xml for " + this.originalPID, true, ex.getExceptions().get(0).getEx());
-            LOG.log(Level.FINE, MetsUtils.documentToString(docMods));
-        }
-        try {
-            MetsUtils.validateAgainstXSD(docDC, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
-        } catch (MetsExportException ex) {
-            LOG.log(Level.WARNING, "Invalid DC xml:" + this.getElementId() + "/" + this.originalPID);
-            LOG.log(Level.FINE, MetsUtils.documentToString(docDC));
-            metsInfo.metsExportException.addException(this.originalPID, "Invalid DC xml for " + this.originalPID, true, ex.getExceptions().get(0).getEx());
-        }
+        LOG.info("Validating:" + this.originalPID);
+        MetsUtils.validateAgainstXSD(docMods, ModsDefinition.class.getResourceAsStream("mods.xsd"));
+        MetsUtils.validateAgainstXSD(docDC, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
     }
 
     /**

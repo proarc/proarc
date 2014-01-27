@@ -625,7 +625,7 @@ public class MetsUtils {
         if (uuid.startsWith("info:fedora/")) {
             uuid = uuid.substring(uuid.indexOf("/") + 1);
         }
-        LOG.log(Level.INFO, "Reading document from Fedora:" + uuid);
+        LOG.log(Level.FINE, "Reading document from Fedora:" + uuid);
         try {
             FedoraResponse response = FedoraClient.getObjectXML(uuid).execute(client);
             JAXBContext jaxbContext = JAXBContext.newInstance(DigitalObject.class);
@@ -811,12 +811,7 @@ public class MetsUtils {
                 LOG.log(Level.SEVERE, "Error while generating info.xml", ex);
                 throw new MetsExportException("Error while generating info.xml", false, ex);
             }
-            try {
-                MetsUtils.validateAgainstXSD(infoFile, Info.class.getResourceAsStream("info.xsd"));
-            } catch (MetsExportException ex) {
-                LOG.log(Level.WARNING, "Invalid info.xml");
-                mets.metsExportException.addException("Invalid info.xml", true, ex.getExceptions().get(0).getEx());
-            }
+            MetsUtils.validateAgainstXSD(infoFile, Info.class.getResourceAsStream("info.xsd"));
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Error while creating info.xml", e);
             throw new MetsExportException("Error while creating info.xml", false, e);
@@ -852,13 +847,7 @@ public class MetsUtils {
                 throw new MetsExportException("Unable to create MD5 hash", false, e);
             }
             md.reset();
-            try {
-                MetsUtils.validateAgainstXSD(file, Mets.class.getResourceAsStream("mets.xsd"));
-            } catch (MetsExportException ex) {
-                LOG.log(Level.WARNING, "Invalid xml METS");
-                mets.metsExportException.addException("Invalid Mets xml", true, ex.getExceptions().get(0).getEx());
-            }
-
+            MetsUtils.validateAgainstXSD(file, Mets.class.getResourceAsStream("mets.xsd"));
             InputStream is;
             try {
                 is = new FileInputStream(file);
