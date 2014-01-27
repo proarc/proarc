@@ -112,11 +112,11 @@ public class JhoveUtility {
         }
         try {
             File outputFile = File.createTempFile("jhove", "output");
-            LOG.log(Level.INFO, "JHOVE output file " + outputFile);
+            LOG.log(Level.FINE, "JHOVE output file " + outputFile);
             Module module = metsinfo.jhoveBase.getModule(null);
             OutputHandler aboutHandler = metsinfo.jhoveBase.getHandler(null);
             OutputHandler xmlHandler = metsinfo.jhoveBase.getHandler("XML");
-            LOG.log(Level.INFO, "Calling JHOVE dispatch(...) on file " + targetFile);
+            LOG.log(Level.FINE, "Calling JHOVE dispatch(...) on file " + targetFile);
             metsinfo.jhoveBase.dispatch(metsinfo.jhoveApp, module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[] { targetFile.getAbsolutePath() });
             DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = builderFactory.newDocumentBuilder();
@@ -141,7 +141,7 @@ public class JhoveUtility {
         InputStream jhoveConfInputStream = JhoveUtility.class.getResourceAsStream("jhove.conf");
         try {
             File jhoveConfFile = File.createTempFile("jhove", "conf");
-            LOG.log(Level.INFO, "JHOVE configuration file " + jhoveConfFile);
+            LOG.log(Level.FINE, "JHOVE configuration file " + jhoveConfFile);
             FileOutputStream jhoveConfOutputStream = new FileOutputStream(jhoveConfFile);
             IOUtils.copy(jhoveConfInputStream, jhoveConfOutputStream);
             jhoveConfInputStream.close();
