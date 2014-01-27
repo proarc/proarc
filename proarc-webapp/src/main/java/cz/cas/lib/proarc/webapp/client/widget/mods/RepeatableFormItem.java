@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.mods.event.ListChangedEvent;
 import cz.cas.lib.proarc.webapp.client.widget.mods.event.ListChangedHandler;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -457,6 +458,7 @@ public final class RepeatableFormItem extends CanvasItem {
 
         private Canvas widget;
         private ValuesManager values;
+        private ArrayList<FormWidgetListener> listeners = new ArrayList<FormWidgetListener>();
 
         public FormWidget(Canvas widget, ValuesManager values) {
             this.widget = widget;
@@ -471,6 +473,24 @@ public final class RepeatableFormItem extends CanvasItem {
             return values;
         }
 
+        public void addFormWidgetListener(FormWidgetListener l) {
+            this.listeners.add(l);
+        }
+
+        void fireDataLoad() {
+            for (FormWidgetListener l : listeners) {
+                l.onDataLoad();
+            }
+        }
+
+    }
+
+    public interface FormWidgetListener {
+        /**
+         * Notifies about loaded (fetch or set) data. For user changes use
+         * {@link com.smartgwt.client.widgets.form.fields.events.ChangedHandler}
+         */
+        void onDataLoad();
     }
 
     private static final class DefaultCustomForm implements CustomFormFactory {

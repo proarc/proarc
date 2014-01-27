@@ -208,6 +208,7 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
             }
             showRow(row);
             form.editRecord(record);
+            row.getFormWidget().fireDataLoad();
         }
         // release unused rows
         while (rowIndex < activeRows.size()) {
