@@ -32,6 +32,7 @@ public class Field {
     public static final String RADIOGROUP = "radiogroup";
     public static final String SELECT = "select";
     public static final String TEXT = "text";
+    public static final String TEXTAREA = "textArea";
 
     private String name;
     private String type;

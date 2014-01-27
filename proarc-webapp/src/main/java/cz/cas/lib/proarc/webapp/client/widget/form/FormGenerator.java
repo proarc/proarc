@@ -25,6 +25,7 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.FormItemValueFormatter;
 import com.smartgwt.client.widgets.form.FormItemValueParser;
 import com.smartgwt.client.widgets.form.ValuesManager;
+import com.smartgwt.client.widgets.form.fields.AutoFitTextAreaItem;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.DateItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
@@ -128,7 +129,7 @@ public class FormGenerator {
         } else if (!fields.isEmpty()) {
             itemType = ItemType.FORM;
         } else {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException(String.valueOf(f));
         }
         return itemType;
     }
@@ -176,6 +177,13 @@ public class FormGenerator {
         TextItem item = new TextItem(f.getName(), f.getTitle(activeLocale));
         item.setLength(f.getLength());
         item.setWidth("400");
+        return item;
+    }
+
+    public AutoFitTextAreaItem getTextAreaFormItem(Field f, String lang) {
+        AutoFitTextAreaItem item = new AutoFitTextAreaItem(f.getName(), f.getTitle(activeLocale));
+        item.setLength(f.getLength());
+        item.setWidth("*");
         return item;
     }
 
@@ -244,6 +252,8 @@ public class FormGenerator {
         String type = f.getType();
         if (Field.TEXT.equals(type)) {
             formItem = getTextFormItem(f, lang);
+        } else if (Field.TEXTAREA.equals(type)) {
+            formItem = getTextAreaFormItem(f, lang);
         } else if (Field.G_YEAR.equals(type)) {
             formItem = getDateYearFormItem(f, lang);
         } else if (Field.DATE.equals(type)) {
