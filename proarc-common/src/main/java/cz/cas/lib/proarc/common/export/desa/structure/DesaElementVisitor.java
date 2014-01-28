@@ -18,10 +18,12 @@
 package cz.cas.lib.proarc.common.export.desa.structure;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -42,9 +44,14 @@ import net.lingala.zip4j.util.Zip4jConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.client.request.GetDatastream;
+import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 
 import cz.cas.lib.proarc.common.export.desa.Const;
+import cz.cas.lib.proarc.common.export.desa.DesaContext;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.SIP2DESATransporter;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.PSPSIP;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.PSPSIP.SIP;
@@ -358,7 +365,30 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                 byte[] fileContent = new byte[0];
                 String mimeType = "empty";
                 if (rawDS != null) {
-                    fileContent = rawDS.getDatastreamVersion().get(0).getBinaryContent();
+                    if (rawDS.getDatastreamVersion().get(0).getContentLocation() != null) {
+                        LOG.info(rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE());
+                        if ("INTERNAL_ID".equals(rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE())) {
+                            desaElement.getDesaContext().getFedoraClient();
+                            GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(fileElement.getOriginalPid(), "RAW");
+                            try {
+                                InputStream is = dsRaw.execute(desaElement.getDesaContext().getFedoraClient()).getEntityInputStream();
+                                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                                try {
+                                    MetsUtils.copyStream(is, bos);
+                                    bos.close();
+                                    fileContent = bos.toByteArray();
+                                } catch (IOException e) {
+                                    LOG.log(Level.SEVERE, "Unable to copy raw datastream content", e);
+                                    throw new MetsExportException(desaElement.getOriginalPid(), "Unable to copy raw datastream content", false, e);
+                                }
+                            } catch (FedoraClientException e) {
+                                LOG.log(Level.SEVERE, "Unable to read raw datastream content", e);
+                                throw new MetsExportException(desaElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                            }
+                        }
+                    } else {
+                        fileContent = rawDS.getDatastreamVersion().get(0).getBinaryContent();
+                    }
                     mimeType = rawDS.getDatastreamVersion().get(0).getMIMETYPE();
                 } else {
                     LOG.log(Level.WARNING, "RAW datastream is null for:" + desaElement.getOriginalPid() + " - skipping");
