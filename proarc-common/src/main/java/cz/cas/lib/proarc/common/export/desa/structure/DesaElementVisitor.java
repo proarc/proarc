@@ -115,7 +115,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
      */
     private String getIdentifier(IDesaElement desaElement) throws MetsExportException {
         LOG.log(Level.FINE, "Element model:" + desaElement.getModel());
-        if (MetsUtils.xPathEvaluateNode(desaElement.getDescriptor(), "*[namespace-uri()='http://www.openarchives.org/OAI/2.0/oai_dc/']") != null) {
+        if (Const.DC_URI.equals(desaElement.getDescriptorType())) {
             LOG.log(Level.FINE, "DC variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
             Document dcDoc = MetsUtils.getDocumentFromList(desaElement.getDescriptor());
             try {
@@ -127,7 +127,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             List<Element> descriptor = desaElement.getDescriptor();
             return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='dc']/*[local-name()='identifier']");
         }
-        if (MetsUtils.xPathEvaluateNode(desaElement.getDescriptor(), "*[namespace-uri()='http://www.mvcr.cz/nsesss/v2']") != null) {
+        if (Const.NSESSS_URI.equals(desaElement.getDescriptorType())) {
             LOG.log(Level.FINE, "NSESS variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
             Document nsessDoc = MetsUtils.getDocumentFromList(desaElement.getDescriptor());
             try {

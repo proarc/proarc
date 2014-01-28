@@ -23,11 +23,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 
+ *
  * Constants for DesaMetsExport
- * 
+ *
  * @author Robert Simonovsky
- * 
+ *
  */
 public class Const {
     public final static String DERFOLDER = DerDesaPlugin.MODEL_FOLDER;
@@ -41,6 +41,9 @@ public class Const {
     public final static String FOLDER = "FOLDER";
     public final static String DOCUMENT = "DOCUMENT";
     public final static String FILE = "FILE";
+
+    public final static String DC_URI = "http://www.openarchives.org/OAI/2.0/oai_dc/";
+    public final static String NSESSS_URI = "http://www.mvcr.cz/nsesss/v2";
 
     public final static String ORIGINAL = "Original";
     public final static String INPUT = "Input";

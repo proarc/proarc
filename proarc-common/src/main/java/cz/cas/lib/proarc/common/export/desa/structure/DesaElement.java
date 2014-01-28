@@ -27,6 +27,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 import cz.cas.lib.proarc.common.export.desa.Const;
@@ -37,9 +38,9 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 
 /**
  * Class that represents the element of Desa export
- * 
+ *
  * @author Robert Simonovsky
- * 
+ *
  */
 public class DesaElement implements IDesaElement {
     public final List<Element> descriptor;
@@ -52,10 +53,23 @@ public class DesaElement implements IDesaElement {
     private final List<Element> relsExt;
     private final DigitalObject sourceObject;
     private String idSIPVersion;
+    private final String descriptorType;
 
     /*
      * (non-Javadoc)
      * 
+     * @see
+     * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getDescriptorType
+     * ()
+     */
+    @Override
+    public String getDescriptorType() {
+        return descriptorType;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getIdSIPVersion
      * ()
@@ -67,7 +81,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#setIdSIPVersion
      * (java.lang.String)
@@ -83,7 +97,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getZipName()
      */
@@ -94,7 +108,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#setZipName
      * (java.lang.String)
@@ -106,7 +120,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getDesaContext
      * ()
@@ -118,7 +132,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getElementType
      * ()
@@ -130,7 +144,7 @@ public class DesaElement implements IDesaElement {
 
     /**
      * Constructor
-     * 
+     *
      * @param digitalObject
      * @param parent
      * @param desaContext
@@ -141,7 +155,9 @@ public class DesaElement implements IDesaElement {
         this.desaContext = desaContext;
         this.sourceObject = digitalObject;
         this.relsExt = FoxmlUtils.findDatastream(digitalObject, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
-        this.descriptor = FoxmlUtils.findDatastream(digitalObject, "BIBLIO_MODS").getDatastreamVersion().get(0).getXmlContent().getAny();
+        DatastreamVersionType biblioVersion = FoxmlUtils.findDatastream(digitalObject, "BIBLIO_MODS").getDatastreamVersion().get(0);
+        this.descriptor = biblioVersion.getXmlContent().getAny();
+        this.descriptorType = biblioVersion.getFORMATURI();
         model = MetsUtils.getModel(relsExt);
         this.elementType = Const.typeMap.get(model);
         this.elementID = this.elementType + desaContext.addElementId(this.elementType);
@@ -164,7 +180,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getElementID
      * ()
@@ -176,7 +192,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getParent()
      */
@@ -187,7 +203,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getChildren()
      */
@@ -198,7 +214,7 @@ public class DesaElement implements IDesaElement {
 
     /**
      * Inits the parent element of current element
-     * 
+     *
      * @return
      * @throws MetsExportException
      */
@@ -230,7 +246,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getDescriptor
      * ()
@@ -242,7 +258,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getModel()
      */
@@ -253,7 +269,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getOriginalPid
      * ()
@@ -265,7 +281,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getRelsExt()
      */
@@ -276,7 +292,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getSourceObject
      * ()
@@ -288,7 +304,7 @@ public class DesaElement implements IDesaElement {
 
     /**
      * Static method for instantiating an Element
-     * 
+     *
      * @param object
      * @param parent
      * @param desaContext
@@ -308,7 +324,7 @@ public class DesaElement implements IDesaElement {
 
     /**
      * Generates children of this element
-     * 
+     *
      */
     @Override
     public void fillChildren() throws MetsExportException {
@@ -334,7 +350,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#accept(cz
      * .cas.lib.proarc.common.export.desa.structure.IDesaElementVisitor)
@@ -346,7 +362,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#accept(cz
      * .cas.lib.proarc.common.export.desa.structure.IDesaElementVisitor)
