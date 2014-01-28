@@ -104,9 +104,9 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
  * @author Robert Simonovsky
- * 
+ *
  *         Utility class
- * 
+ *
  */
 public class MetsUtils {
 
@@ -117,7 +117,7 @@ public class MetsUtils {
 
     /**
      * Returns the properties for mapping Mime type to file extension
-     * 
+     *
      * @return
      * @throws MetsExportException
      */
@@ -154,9 +154,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Method used for retrieving a document type from the rels-ext stream
-     * 
+     *
      * @param relExtStream
      * @return
      */
@@ -170,10 +170,10 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Method used for retrieving the name of the mod element for selected
      * document type
-     * 
+     *
      * @param type
      * @return
      */
@@ -187,9 +187,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Method used for retrieving a document type from digital object
-     * 
+     *
      * @param object
      * @return
      */
@@ -203,9 +203,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Converts byte array to hex string
-     * 
+     *
      * @param byteArray
      * @return
      */
@@ -218,9 +218,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Returns a file name (content location) from the datastream
-     * 
+     *
      * @param elements
      * @return
      */
@@ -232,9 +232,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Returns a mime type attribute from datastream
-     * 
+     *
      * @param elements
      * @return
      */
@@ -246,9 +246,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Returns a property value from a list of properties
-     * 
+     *
      * @param name
      * @param properties
      * @return
@@ -272,9 +272,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Removes the top element "modsCollection" from the xml
-     * 
+     *
      * @param elements
      * @return
      */
@@ -293,9 +293,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Returns a datastream of given type
-     * 
+     *
      * @param datastreams
      * @param type
      * @return
@@ -315,9 +315,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Returns a datastream of given type from binary representation
-     * 
+     *
      * @param datastreams
      * @param type
      * @return
@@ -336,7 +336,7 @@ public class MetsUtils {
 
     /**
      * Method for identifying dataStream name
-     * 
+     *
      * @param dataStream
      * @param streamName
      * @return
@@ -359,9 +359,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Generates an XML document from list of elements
-     * 
+     *
      * @param elements
      * @return
      */
@@ -386,9 +386,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Returns a string from the xml document defined by the Xpath
-     * 
+     *
      * @param elements
      * @param xPath
      * @return
@@ -406,9 +406,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Returns a node from the xml document defined by the Xpath
-     * 
+     *
      * @param elements
      * @param xPath
      * @return
@@ -438,9 +438,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Returns a model of the document
-     * 
+     *
      * @param relExtStream
      * @return
      */
@@ -451,9 +451,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Returns a dataStream from Fedora for given pid
-     * 
+     *
      * @param fedoraClient
      * @param pid
      * @param streamName
@@ -477,9 +477,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Copies inputStream to outputStream
-     * 
+     *
      * @param is
      * @param os
      * @throws IOException
@@ -490,6 +490,7 @@ public class MetsUtils {
         while ((len = is.read(buffer)) != -1) {
             os.write(buffer, 0, len);
         }
+        is.close();
     }
 
     public static byte[] getBinaryDataStreams(FedoraClient fedoraClient, String pid, String streamName) throws MetsExportException {
@@ -507,9 +508,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Returns a model of the document
-     * 
+     *
      * @param relExtStream
      * @return
      */
@@ -525,9 +526,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Prepares a logical/physical structure divs in mets
-     * 
+     *
      * @param mets
      * @param label
      * @param type
@@ -545,9 +546,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Inits the file groups in mets
-     * 
+     *
      * @param mets
      * @return
      */
@@ -592,9 +593,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Reads and unmarshalls Digital Object
-     * 
+     *
      * @param path
      * @return
      */
@@ -614,9 +615,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Reads and unmarshalls Digital Object from Fedora
-     * 
+     *
      * @param path
      * @return
      */
@@ -639,9 +640,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Transforms the xml document to a string
-     * 
+     *
      * @param doc
      * @return
      */
@@ -664,9 +665,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Validates given document agains an XSD schema
-     * 
+     *
      * @param document
      * @param xsd
      * @return
@@ -715,9 +716,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Validates given XML file against an XSD schema
-     * 
+     *
      * @param file
      * @param xsd
      * @return
@@ -760,9 +761,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Generates and saves info.xml
-     * 
+     *
      * @param path
      * @param mets
      */
@@ -819,9 +820,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Saves mets file
-     * 
+     *
      * @param path
      * @param mets
      */
@@ -882,9 +883,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Returns an ObjectID from the rels-ext stream
-     * 
+     *
      * @param relExtElements
      * @return
      */
@@ -896,9 +897,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Indicates if the "has..." is used for defining children
-     * 
+     *
      * @param name
      * @return
      */
@@ -925,9 +926,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Reads referenced object from Fedora
-     * 
+     *
      * @param uuid
      * @param client
      * @return
@@ -938,9 +939,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Reads referenced object from file
-     * 
+     *
      * @param path
      * @param fileName
      * @return
@@ -965,10 +966,10 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Generates an MD5 checksum and copies a file (image) to defined
      * OutputStream
-     * 
+     *
      * @param is
      * @param os
      * @return
@@ -994,7 +995,7 @@ public class MetsUtils {
 
     /**
      * Returns parent pid from Resource index
-     * 
+     *
      * @param uuid
      * @param remoteStorage
      * @return
@@ -1018,9 +1019,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Mock method for simulation of resource index
-     * 
+     *
      * @param uuid
      * @return
      */
@@ -1031,9 +1032,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Checks if a monograph is MultiUnit
-     * 
+     *
      * @param monograph
      * @return
      */
@@ -1049,9 +1050,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Generates a document from a byte array
-     * 
+     *
      * @param bytes
      * @return
      */
