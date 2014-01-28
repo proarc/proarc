@@ -70,16 +70,16 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
  * Visitor class for creating mets document out of Desa objects
- * 
+ *
  * @author eskymo
- * 
+ *
  */
 public class DesaElementVisitor implements IDesaElementVisitor {
     private final Logger LOG = Logger.getLogger(DesaElementVisitor.class.getName());
 
     /**
      * Archives the list of files to a zip archive
-     * 
+     *
      * @param zipFileName
      * @param fileList
      * @param desaElement
@@ -108,7 +108,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
 
     /**
      * Returns a identifier from BIBLIO-MODS stream
-     * 
+     *
      * @param desaElement
      * @return
      * @throws MetsExportException
@@ -122,7 +122,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                 MetsUtils.validateAgainstXSD(dcDoc, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
             } catch (MetsExportException ex) {
                 LOG.severe("Invalid DC document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
-                throw new MetsExportException("Invalid DC document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, ex);
+                throw new MetsExportException(desaElement.getOriginalPid(), "Invalid DC document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, ex);
             }
             List<Element> descriptor = desaElement.getDescriptor();
             return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='dc']/*[local-name()='identifier']");
@@ -139,10 +139,10 @@ public class DesaElementVisitor implements IDesaElementVisitor {
 
             List<Element> descriptor = desaElement.getDescriptor();
             if (Const.FOLDER.equalsIgnoreCase(desaElement.getElementType())) {
-                return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Spis']/*[local-name()='EvidencniUdaje'/*[local-name()='Identifikace'/*[local-name()='Identifikator']");
+                return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Spis']/*[local-name()='EvidencniUdaje']/*[local-name()='Identifikace']/*[local-name()='Identifikator']");
             }
             if (Const.DOCUMENT.equalsIgnoreCase(desaElement.getElementType())) {
-                return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Dokument']/*[local-name()='EvidencniUdaje'/*[local-name()='Identifikace'/*[local-name()='Identifikator']");
+                return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Dokument']/*[local-name()='EvidencniUdaje']/*[local-name()='Identifikace']/*[local-name()='Identifikator']");
             }
             LOG.log(Level.SEVERE, "Element nit DOCUMENT or FOLDER" + desaElement.getElementType());
             throw new MetsExportException(desaElement.getOriginalPid(), "Element not DOCUMENT or FOLDER:" + desaElement.getElementType(), false, null);
@@ -154,7 +154,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
 
     /**
      * Returns a label for LOGICAL div from DC stream
-     * 
+     *
      * @param desaElement
      * @return
      * @throws MetsExportException
@@ -170,10 +170,10 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             LOG.log(Level.FINE, "NSESS variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
             List<Element> descriptor = desaElement.getDescriptor();
             if (Const.FOLDER.equalsIgnoreCase(desaElement.getElementType())) {
-                return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Spis']/*[local-name()='EvidencniUdaje'/*[local-name()='Identifikace'/*[local-name()='Identifikator']");
+                return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Spis']/*[local-name()='EvidencniUdaje']/*[local-name()='Identifikace']/*[local-name()='Identifikator']");
             }
             if (Const.DOCUMENT.equalsIgnoreCase(desaElement.getElementType())) {
-                return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Dokument']/*[local-name()='EvidencniUdaje'/*[local-name()='Identifikace'/*[local-name()='Identifikator']");
+                return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Dokument']/*[local-name()='EvidencniUdaje']/*[local-name()='Identifikace']/*[local-name()='Identifikator']");
             }
             LOG.log(Level.SEVERE, "Element nit DOCUMENT or FOLDER" + desaElement.getElementType());
             throw new MetsExportException(desaElement.getOriginalPid(), "Element not DOCUMENT or FOLDER:" + desaElement.getElementType(), false, null);
@@ -185,7 +185,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
 
     /**
      * Creates a temporary folder
-     * 
+     *
      * @param desaElement
      * @return
      * @throws MetsExportException
@@ -207,7 +207,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
 
     /**
      * Prepares the generic mets information
-     * 
+     *
      * @param desaElement
      * @return
      * @throws MetsExportException
@@ -232,7 +232,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
 
     /**
      * Returns a file name of original file in RAW datastream
-     * 
+     *
      * @param desaElement
      * @return
      * @throws MetsExportException
@@ -244,7 +244,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
 
     /**
      * Saves the mets document into a file
-     * 
+     *
      * @param mets
      * @param outputFile
      * @throws MetsExportException
@@ -261,13 +261,13 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             LOG.log(Level.FINE, "Element validated:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Unable to save mets file:" + outputFile.getAbsolutePath());
-            throw new MetsExportException("Unable to save mets file:" + outputFile.getAbsolutePath(), false, e);
+            throw new MetsExportException(desaElement.getOriginalPid(), "Unable to save mets file:" + outputFile.getAbsolutePath(), false, e);
         }
     }
 
     /**
      * Adds a file to the apropriate fileGroup
-     * 
+     *
      * @param fileGrpMap
      * @param desaElement
      * @param fileType
@@ -289,7 +289,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
 
     /**
      * Adds all non-empty filegroups to the mets
-     * 
+     *
      * @param fileGrpMap
      * @param fileSec
      */
@@ -306,9 +306,9 @@ public class DesaElementVisitor implements IDesaElementVisitor {
     }
 
     /**
-     * 
+     *
      * Prepares a map of all FileGroups
-     * 
+     *
      * @return
      */
     private HashMap<String, FileGrp> prepareFileGrpMap() {
@@ -324,7 +324,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
 
     /**
      * Inserts a document element into a mets
-     * 
+     *
      * @param desaElement
      * @param suffix
      * @throws MetsExportException
@@ -419,7 +419,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
 
     /**
      * Insert a folder element into a mets
-     * 
+     *
      * @param desaElement
      * @throws MetsExportException
      */
@@ -459,7 +459,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
 
     /**
      * Updates desaElements with the IdSIPVersion from DESA transport
-     * 
+     *
      * @param desaElement
      * @param transportResult
      */
@@ -480,7 +480,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see cz.cas.lib.proarc.common.export.desa.structure.IDesaElementVisitor#
      * insertIntoMets
      * (cz.cas.lib.proarc.common.export.desa.structure.IDesaElement)
@@ -513,10 +513,10 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                     sipTransporter.transport(rootElement.getDesaContext().getOutputPath(), desaProps.get("desa.resultDir"), desaProps.get("desa.resultDir"), desaProps);
                     updateSIPversion(rootElement, sipTransporter.getResults());
                 } else {
-                    throw new MetsExportException("Result dir (desa.resultDir) is not set", false);
+                    throw new MetsExportException(desaElement.getOriginalPid(), "Result dir (desa.resultDir) is not set", false, null);
                 }
             } catch (Exception ex) {
-                throw new MetsExportException("Unable to transport mets to desa", false, ex);
+                throw new MetsExportException(desaElement.getOriginalPid(), "Unable to transport mets to desa", false, ex);
             }
         }
     }
