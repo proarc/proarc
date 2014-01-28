@@ -127,7 +127,7 @@ public final class DesaExport {
                 DesaElement dElm = DesaElement.getElement(dobj, null, dc, hierarchy);
                 HashMap<String, String> tProps = transporterProperties(dryRun, dElm);
                 dElm.accept(new DesaElementVisitor(), tProps);
-                result.setValidationError(dc.getMetsExportException());
+                // result.setValidationError(dc.getMetsExportException());
                 return result;
             } catch (MetsExportException ex) {
                 keepResult = false;
