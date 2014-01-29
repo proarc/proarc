@@ -75,9 +75,9 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
  * Visitor class for creating mets document out of Desa objects
- * 
+ *
  * @author Robert Simonovsky
- * 
+ *
  */
 public class DesaElementVisitor implements IDesaElementVisitor {
     private final Logger LOG = Logger.getLogger(DesaElementVisitor.class.getName());
@@ -198,7 +198,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
     private File createTempFolder(IDesaElement desaElement) throws MetsExportException {
         File tmpFileFolder = null;
         try {
-            tmpFileFolder = File.createTempFile("tmp" + getIdentifier(desaElement.getDesaContext().getRootElement()) + desaElement.getElementID(), ".tmp");
+            tmpFileFolder = File.createTempFile("tmp" + desaElement.getElementID(), ".tmp");
             tmpFileFolder.delete();
             tmpFileFolder = new File(tmpFileFolder.getAbsolutePath());
         } catch (IOException e) {
