@@ -51,6 +51,7 @@ public final class SearchDataSource extends RestDataSource {
     public static final String FIELD_STATE = DigitalObjectResourceApi.MEMBERS_ITEM_STATE;
     public static final String FIELD_CREATED = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED;
     public static final String FIELD_MODIFIED = DigitalObjectResourceApi.MEMBERS_ITEM_MODIFIED;
+    public static final String FIELD_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_EXPORT;
 
     public SearchDataSource() {
         setID(ID);
@@ -72,11 +73,12 @@ public final class SearchDataSource extends RestDataSource {
         created.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
         DataSourceDateTimeField modified = new DataSourceDateTimeField(FIELD_MODIFIED);
         modified.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
+        DataSourceField export = new DataSourceField(FIELD_EXPORT, FieldType.TEXT);
 
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
         model.setForeignKey(MetaModelDataSource.ID + '.' + MetaModelDataSource.FIELD_PID);
 
-        setFields(label, model, pid, created, modified, owner, state);
+        setFields(label, model, pid, created, modified, owner, state, export);
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
 

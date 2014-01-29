@@ -24,6 +24,8 @@ import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls.RecCl;
+import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.object.DesDesaPlugin.DesMetadataHandler;
 import cz.cas.lib.proarc.common.object.DesDesaPlugin.DesObjectWrapper;
 import cz.cas.lib.proarc.common.object.ValueMap;
@@ -172,6 +174,19 @@ public class JacksonProviderTest {
         String toJson = om.writeValueAsString(sgr);
 //        System.out.println(toJson);
         assertTrue(toJson.contains("\"data\":[{\"mapId\":\"test.rec-cl\",\"values\":[{\"fullyQcc\":\"FullyQcc\"}]}]}"));
+    }
+
+    /**
+     * Tests read without mix in annotations and write with them.
+     * @throws Exception
+     */
+    @Test
+    public void testMapSearcViewItemToJson() throws Exception {
+        ObjectMapper om = new JacksonProvider().locateMapper(Item.class, MediaType.APPLICATION_JSON_TYPE);
+        String input = "{\"pid\":\"pid\",\"model\":\"model:test\",\"k0\":1}";
+        Item item = JsonUtils.createObjectMapper().readValue(input, Item.class);
+        String json = om.writeValueAsString(item);
+        System.out.println(json);
     }
 
     @Test

@@ -36,11 +36,13 @@ import java.util.Locale;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
+ * Implements search queries with ITQL.
+ *
+ * <p>It will require an interface to implement an alternative search that
+ * does not support ITQL.
  *
  * @author Jan Pokorsky
  */
@@ -60,6 +62,7 @@ public final class SearchView {
     private final int maxLimit;
     private final RemoteStorage storage;
     private Locale locale = Locale.ENGLISH;
+    private ObjectMapper mapper;
 
     SearchView(RemoteStorage storage) {
         this(storage, 100);
@@ -377,9 +380,16 @@ public final class SearchView {
 
     private List<Item> consumeSearch(RiSearchResponse response) throws IOException {
         String json = response.getEntity(String.class);
-        ObjectMapper om = JsonUtils.defaultObjectMapper();
-        Result result = om.readValue(json, Result.class);
+        Result result = readResponse(json);
         return consumeSearch(result.results);
+    }
+
+    Result readResponse(String json) throws IOException {
+        if (mapper == null) {
+            // requires mapper without mix in annotation of Item
+            mapper = JsonUtils.createObjectMapper();
+        }
+        return  mapper.readValue(json, Result.class);
     }
 
     private List<Item> consumeSearch(List<Item> items) {
@@ -446,6 +456,12 @@ public final class SearchView {
         private String parent;
         /** batch import ID. Optional for some queries */
         private Integer batchId;
+        /**
+         * Synthetic name of count query. count(hasExport)
+         * @see <a href='http://docs.mulgara.org/itqlcommands/select.html#o194'>
+         *      Count Function</a>
+         */
+        private String k0;
 
         public Item() {
         }
@@ -526,12 +542,38 @@ public final class SearchView {
             this.batchId = batchId;
         }
 
+        public String getK0() {
+            return k0;
+        }
+
+        public void setK0(String k0) {
+            this.k0 = k0;
+        }
+
+        public Integer getHasExport() {
+            if (k0 != null && !k0.isEmpty()) {
+                try {
+                    return Integer.parseInt(k0);
+                } catch (NumberFormatException ex) {
+                    // ignore
+                }
+            }
+            return null;
+        }
+
     }
 
-    @XmlAccessorType(XmlAccessType.FIELD)
     static class Result {
 
         private List<Item> results;
+
+        public List<Item> getResults() {
+            return results;
+        }
+
+        public void setResults(List<Item> results) {
+            this.results = results;
+        }
 
     }
 

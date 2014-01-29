@@ -44,6 +44,7 @@ public final class DigitalObjectAdministrationDataSource extends RestDataSource 
     public static final String FIELD_MODIFIED = DigitalObjectResourceApi.ATM_ITEM_MODIFIED;
     public static final String FIELD_DEVICE = DigitalObjectResourceApi.ATM_ITEM_DEVICE;
     public static final String FIELD_FILENAME = DigitalObjectResourceApi.ATM_ITEM_FILENAME;
+    public static final String FIELD_EXPORT = DigitalObjectResourceApi.ATM_ITEM_EXPORTRESULT;
 
 
     public static DigitalObjectAdministrationDataSource getInstance() {
@@ -68,8 +69,9 @@ public final class DigitalObjectAdministrationDataSource extends RestDataSource 
         DataSourceTextField modified = new DataSourceTextField(FIELD_MODIFIED);
         DataSourceTextField owner = new DataSourceTextField(FIELD_OWNER);
         DataSourceTextField state = new DataSourceTextField(FIELD_STATE);
+        DataSourceTextField export = new DataSourceTextField(FIELD_EXPORT);
 
-        setFields(pid, model, state, owner, created, modified, device, filename);
+        setFields(pid, model, state, owner, created, modified, device, filename, export);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

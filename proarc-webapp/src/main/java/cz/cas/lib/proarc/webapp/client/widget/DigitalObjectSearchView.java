@@ -39,6 +39,7 @@ import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.validator.LengthRangeValidator;
 import com.smartgwt.client.widgets.form.validator.RequiredIfFunction;
 import com.smartgwt.client.widgets.form.validator.RequiredIfValidator;
+import com.smartgwt.client.widgets.grid.CellFormatter;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
@@ -130,7 +131,18 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         ListGridField state = new ListGridField(SearchDataSource.FIELD_STATE,
                 i18n.DigitalObjectSearchView_ListHeaderState_Title(), 100);
         state.setHidden(true);
-        grid.setFields(label, model, pid, created, modified, owner, state);
+        ListGridField export = new ListGridField(SearchDataSource.FIELD_EXPORT,
+                i18n.DigitalObjectSearchView_ListHeaderExport_Title(), 100);
+        export.setCellFormatter(new CellFormatter() {
+
+            @Override
+            public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                return value == null || "0".equals(value)
+                        ? i18nSmartGwt.dialog_NoButtonTitle()
+                        : i18nSmartGwt.dialog_YesButtonTitle();
+            }
+        });
+        grid.setFields(label, model, pid, created, modified, owner, state, export);
         grid.setContextMenu(Actions.createMenu());
         return grid;
     }

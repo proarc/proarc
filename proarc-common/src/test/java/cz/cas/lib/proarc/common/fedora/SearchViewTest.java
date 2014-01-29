@@ -18,8 +18,12 @@ package cz.cas.lib.proarc.common.fedora;
 
 import static cz.cas.lib.proarc.common.fedora.FedoraTestSupport.assertItem;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchView.Result;
+import cz.cas.lib.proarc.common.json.JsonUtils;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -45,6 +49,18 @@ public class SearchViewTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testReadJsonResult() throws Exception {
+        SearchView instance = new SearchView(storage);
+        String json = "{\"results\":[{\"pid\" : \"p1\", \"k0\" : \"1\"}]}";
+        Result result = instance.readResponse(json);
+        assertNotNull(result);
+        assertNotNull(result.getResults());
+        assertEquals("p1", result.getResults().get(0).getPid());
+        assertEquals("1", result.getResults().get(0).getK0());
+        assertEquals((Integer) 1, result.getResults().get(0).getHasExport());
     }
 
     @Test

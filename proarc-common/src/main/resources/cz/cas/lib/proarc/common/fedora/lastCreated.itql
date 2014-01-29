@@ -1,4 +1,5 @@
 select     $pid $model $owner $label $state $created $modified
+count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasExport>       $export)
 from       <#ri>
 where      $pid     <info:fedora/fedora-system:def/model#hasModel>        $model
 and        $model   <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/model:proarcobject>

@@ -76,6 +76,7 @@ public final class DigitalObjectResourceApi {
     public static final String MEMBERS_ITEM_CREATED = "created";
     public static final String MEMBERS_ITEM_MODIFIED = "modified";
     public static final String MEMBERS_ITEM_PARENT = "parent";
+    public static final String MEMBERS_ITEM_EXPORT = "export";
 
     public static final String MEMBERS_ROOT_PARAM = "root";
 
@@ -139,6 +140,7 @@ public final class DigitalObjectResourceApi {
     public static final String ATM_ITEM_BATCHID = ImportResourceApi.BATCHITEM_BATCHID;
     public static final String ATM_ITEM_CREATED = MEMBERS_ITEM_CREATED;
     public static final String ATM_ITEM_DEVICE = "device";
+    public static final String ATM_ITEM_EXPORTRESULT = "exportResult";
     public static final String ATM_ITEM_FILENAME = "filename";
     public static final String ATM_ITEM_MODEL = DIGITALOBJECT_MODEL;
     public static final String ATM_ITEM_MODIFIED = MEMBERS_ITEM_MODIFIED;
