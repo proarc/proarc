@@ -46,12 +46,10 @@ import org.w3c.dom.Element;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.client.request.GetDatastream;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 
 import cz.cas.lib.proarc.common.export.desa.Const;
-import cz.cas.lib.proarc.common.export.desa.DesaContext;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.SIP2DESATransporter;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.PSPSIP;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.PSPSIP.SIP;
@@ -366,8 +364,11 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                 String mimeType = "empty";
                 if (rawDS != null) {
                     if (rawDS.getDatastreamVersion().get(0).getContentLocation() != null) {
-                        LOG.info(rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE());
                         if ("INTERNAL_ID".equals(rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE())) {
+                            if (desaElement.getDesaContext().getFedoraClient() == null) {
+                                LOG.log(Level.SEVERE, "Datastream dissemination allowed only for Fedora storage - for filesystem only binary content is allowed");
+                                throw new MetsExportException(fileElement.getOriginalPid(), "Datastream dissemination allowed only for Fedora storage", false, null);
+                            }
                             desaElement.getDesaContext().getFedoraClient();
                             GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(fileElement.getOriginalPid(), "RAW");
                             try {
@@ -385,6 +386,9 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                                 LOG.log(Level.SEVERE, "Unable to read raw datastream content", e);
                                 throw new MetsExportException(desaElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                             }
+                        } else {
+                            LOG.log(Level.SEVERE, "Expecting INTERNAL_ID type in ContentLocation - found:" + rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE());
+                            throw new MetsExportException(fileElement.getOriginalPid(), "Expecting INTERNAL_ID type in ContentLocation - found:" + rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE(), false, null);
                         }
                     } else {
                         fileContent = rawDS.getDatastreamVersion().get(0).getBinaryContent();
@@ -529,9 +533,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             insertFolder(rootElement);
         } else
             throw new MetsExportException(rootElement.getOriginalPid(), "Unknown type:" + rootElement.getElementType() + " model:" + rootElement.getModel(), false, null);
-        if (rootElement.getDesaContext().getMetsExportException().getExceptions().size() > 0) {
-            throw rootElement.getDesaContext().getMetsExportException();
-        }
+
         if (desaProps != null) {
             LOG.log(Level.INFO, "Exporting to desa");
             try {

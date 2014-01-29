@@ -67,6 +67,10 @@ public class Const {
         fileGrpMap.put("PS", Const.DIGITIZED);
         fileGrpMap.put("MC", Const.ORIGINAL);
         fileGrpMap.put("UC", Const.PREVIEW);
-        // TODO Mapping to migrated is missing
+        fileGrpMap.put("Input", Const.INPUT);
+        fileGrpMap.put("Digitized", Const.DIGITIZED);
+        fileGrpMap.put("Original", Const.ORIGINAL);
+        fileGrpMap.put("Preview", Const.PREVIEW);
+        fileGrpMap.put("Migrated", Const.MIGRATED);
     }
 }
