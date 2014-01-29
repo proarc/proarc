@@ -43,12 +43,8 @@ public final class JacksonProvider extends JacksonJaxbJsonProvider {
     private final DeserializationConfig deserializationConfig;
 
     public JacksonProvider() {
-        // reuses XmlRootElement.name to adhere to XML structure
-        configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
-        configure(SerializationConfig.Feature.WRITE_NULL_PROPERTIES, false);
-        configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
-        configure(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-        ObjectMapper mapper = _mapperConfig.getConfiguredMapper();
+        ObjectMapper mapper = _mapperConfig.getDefaultMapper();
+        mapper = JsonUtils.createObjectMapper(mapper);
         serializationConfig = mapper.getSerializationConfig();
         deserializationConfig = mapper.getDeserializationConfig();
 
