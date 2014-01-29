@@ -75,9 +75,9 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
  * Visitor class for creating mets document out of Desa objects
- *
- * @author eskymo
- *
+ * 
+ * @author Robert Simonovsky
+ * 
  */
 public class DesaElementVisitor implements IDesaElementVisitor {
     private final Logger LOG = Logger.getLogger(DesaElementVisitor.class.getName());
@@ -208,6 +208,25 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         tmpFileFolder.mkdir();
         LOG.log(Level.FINE, "TMP folder:" + tmpFileFolder.getAbsolutePath() + " created for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
         return tmpFileFolder;
+    }
+
+    /**
+     * Deletes a folder
+     *
+     * @param folder
+     */
+    public static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    f.delete();
+                }
+            }
+        }
+        folder.delete();
     }
 
     /**
@@ -448,6 +467,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         fileList.add(outputMets);
         String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getZipName() + ".zip";
         zip(zipFileName, fileList, desaElement);
+        deleteFolder(tmpFolder);
         LOG.fine("Document successfuly exported");
     }
 
@@ -488,6 +508,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         ArrayList<File> fileList = new ArrayList<File>();
         fileList.add(outputMets);
         zip(zipFileName, fileList, desaElement);
+        deleteFolder(tmpFolder);
         LOG.fine("Folder successfuly exported");
     }
 
