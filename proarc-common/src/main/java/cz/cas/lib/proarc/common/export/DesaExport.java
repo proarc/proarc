@@ -68,7 +68,11 @@ public final class DesaExport {
             boolean hierarchy) throws ExportException {
 
         Result export = export(exportsFolder, pid, null, true, hierarchy, false);
-        return export.getValidationError().getExceptions();
+        if (export.getValidationError() != null) {
+            return export.getValidationError().getExceptions();
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -137,7 +141,8 @@ public final class DesaExport {
                 return result.setValidationError(ex);
             }
         } finally {
-            if (!keepResult || result.getValidationError() != null) {
+            // if (!keepResult || result.getValidationError() != null) {
+            if (!keepResult) {
                 // run asynchronously not to block client request?
                 boolean deleted = FileUtils.deleteQuietly(target);
                 if (!deleted) {
