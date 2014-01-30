@@ -26,10 +26,15 @@ import cz.cas.lib.proarc.common.export.desa.structure.DesaElementVisitor;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import java.io.File;
 import java.util.HashMap;
@@ -67,7 +72,7 @@ public final class DesaExport {
     public List<MetsExportExceptionElement> validate(File exportsFolder, String pid,
             boolean hierarchy) throws ExportException {
 
-        Result export = export(exportsFolder, pid, null, true, hierarchy, false);
+        Result export = export(exportsFolder, pid, null, true, hierarchy, false, null);
         if (export.getValidationError() != null) {
             return export.getValidationError().getExceptions();
         } else {
@@ -83,7 +88,7 @@ public final class DesaExport {
      * @throws ExportException unexpected failure
      */
     public Result exportDownload(File exportsFolder, String pid) throws ExportException {
-        return export(exportsFolder, pid, null, true, false, true);
+        return export(exportsFolder, pid, null, true, false, true, null);
     }
 
     /**
@@ -108,16 +113,23 @@ public final class DesaExport {
     }
 
     /**
-     * Exports PIDs in format suitable for DESA storage.
+     * Exports PIDs in format suitable for DESA registry. It also writes SIP IDs
+     * as a hasExport relation to corresponding digital objects in case of
+     * successful package delivery to the registry.
+     *
      * @param exportsFolder folder with user exports
      * @param pid PID to export
      * @param hierarchy export PID ant its children
      * @param dryRun build package without sending to the repository.
      * @param keepResult delete or not export folder on exit
+     * @param log message for storage logging
      * @return the result
      * @throws ExportException unexpected failure
      */
-    public Result export(File exportsFolder, String pid, String packageId, boolean dryRun, boolean hierarchy, boolean keepResult) throws ExportException {
+    public Result export(File exportsFolder, String pid, String packageId,
+            boolean dryRun, boolean hierarchy, boolean keepResult, String log
+            ) throws ExportException {
+
         File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pid));
         Result result = new Result();
         try {
@@ -131,17 +143,23 @@ public final class DesaExport {
                 DesaElement dElm = DesaElement.getElement(dobj, null, dc, hierarchy);
                 HashMap<String, String> tProps = transporterProperties(dryRun, dElm);
                 dElm.accept(new DesaElementVisitor(), tProps);
+                // dc.getMetsExportException() should be ignored now; validation warnings are always thrown
                 // result.setValidationError(dc.getMetsExportException());
+                if (!dryRun) {
+                    storeExportResult(dElm, log);
+                }
                 return result;
             } catch (MetsExportException ex) {
                 keepResult = false;
                 if (ex.getExceptions().isEmpty()) {
-                    throw new ExportException(ex);
+                    throw new ExportException(pid, ex);
                 }
                 return result.setValidationError(ex);
+            } catch (Throwable ex) {
+                keepResult = false;
+                throw new ExportException(pid, ex);
             }
         } finally {
-            // if (!keepResult || result.getValidationError() != null) {
             if (!keepResult) {
                 // run asynchronously not to block client request?
                 boolean deleted = FileUtils.deleteQuietly(target);
@@ -185,6 +203,35 @@ public final class DesaExport {
             }
         }
         return null;
+    }
+
+    /**
+     * Stores SIP ID to all digital objects referenced by the DESA element
+     * hierarchy.
+     * @param dElm exported elements
+     * @throws MetsExportException write failure
+     */
+    void storeExportResult(DesaElement dElm, String log) throws MetsExportException {
+        for (DesaElement childElm : dElm.getChildren()) {
+            storeExportResult(childElm, log);
+        }
+        String idSIPVersion = dElm.getIdSIPVersion();
+        String pid = dElm.getOriginalPid();
+        storeObjectExportResult(pid, idSIPVersion, log);
+    }
+
+    void storeObjectExportResult(String pid, String idSIPVersion, String log) throws MetsExportException {
+        try {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            FedoraObject fo = dom.find(pid, null);
+            DigitalObjectHandler doh = dom.createHandler(fo);
+            RelationEditor relations = doh.relations();
+            relations.setExportResult(idSIPVersion);
+            relations.write(relations.getLastModified(), log);
+            doh.commit();
+        } catch (DigitalObjectException ex) {
+            throw new MetsExportException(pid, "Cannot store SIP ID Version!", false, ex);
+        }
     }
 
     /**

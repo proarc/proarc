@@ -68,6 +68,7 @@ public class RelationDataSource extends RestDataSource {
     public static final String FIELD_STATE = DigitalObjectResourceApi.MEMBERS_ITEM_STATE;
     public static final String FIELD_CREATED = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED;
     public static final String FIELD_MODIFIED = DigitalObjectResourceApi.MEMBERS_ITEM_MODIFIED;
+    public static final String FIELD_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_EXPORT;
 
     /**
      * Attribute holding PIDs of the reorder update {@link #reorderChildren operation}.
@@ -101,8 +102,9 @@ public class RelationDataSource extends RestDataSource {
         created.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
         DataSourceDateTimeField modified = new DataSourceDateTimeField(FIELD_MODIFIED);
         modified.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
+        DataSourceField export = new DataSourceField(FIELD_EXPORT, FieldType.TEXT);
 
-        setFields(pid, parent, label, model, created, modified, owner);
+        setFields(pid, parent, label, model, created, modified, owner, export);
         setTitleField(FIELD_LABEL);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));

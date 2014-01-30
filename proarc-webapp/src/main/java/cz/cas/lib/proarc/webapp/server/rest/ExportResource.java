@@ -67,6 +67,7 @@ public class ExportResource {
 
     private final AppConfiguration appConfig;
     private final UserProfile user;
+    private final SessionContext session;
 
     public ExportResource(
             @Context SecurityContext securityCtx,
@@ -74,7 +75,7 @@ public class ExportResource {
             ) throws AppConfigurationException {
 
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
-        SessionContext session = SessionContext.from(httpRequest);
+        session = SessionContext.from(httpRequest);
         user = session.getUser();
     }
 
@@ -97,7 +98,7 @@ public class ExportResource {
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids, dsIds);
         URI targetPath = user.getUserHomeUri().relativize(target.toURI());
-        return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath.toASCIIString()));
+        return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath));
     }
 
     @POST
@@ -116,7 +117,7 @@ public class ExportResource {
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids.toArray(new String[pids.size()]));
         URI targetPath = user.getUserHomeUri().relativize(target.toURI());
-        return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath.toASCIIString()));
+        return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath));
     }
 
     /**
@@ -161,12 +162,12 @@ public class ExportResource {
                 }
             } else {
                 for (String pid : pids) {
-                    Result r = export.export(exportFolder, pid, null, false, hierarchy, false);
+                    Result r = export.export(exportFolder, pid, null, false, hierarchy, false, session.asFedoraLog());
                     if (r.getValidationError() != null) {
                         result.add(new ExportResult(r.getValidationError().getExceptions()));
                     } else {
-                        URI targetPath = user.getUserHomeUri().relativize(r.getTargetFolder().toURI());
-                        result.add(new ExportResult((Integer) null, targetPath.toASCIIString()));
+                        // XXX not used for now
+                        result.add(new ExportResult((Integer) null, "done"));
                     }
                 }
             }
@@ -230,6 +231,10 @@ public class ExportResource {
         private List<ExportError> errors;
 
         public ExportResult() {
+        }
+
+        public ExportResult(URI targetPath) {
+            this.target = targetPath.toASCIIString();
         }
 
         public ExportResult(String token) {

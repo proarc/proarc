@@ -104,6 +104,24 @@ public final class RelationEditor {
     }
 
     /**
+     * Sets some identifier of the export action.
+     * @param result e.g. SIP ID or folder
+     * @throws DigitalObjectException failure
+     */
+    public void setExportResult(String result) throws DigitalObjectException {
+        getRdf().getDescription().setHasExport(result);
+    }
+
+    /**
+     * Gets an export identifier.
+     * @return the identifier
+     * @throws DigitalObjectException  failure
+     */
+    public String getExportResult() throws DigitalObjectException {
+        return getRdf().getDescription().getHasExport();
+    }
+
+    /**
      * Relations defining object hierarchy graph.
      *
      * @return list of PIDs or {@code null} if Fedora object not found.

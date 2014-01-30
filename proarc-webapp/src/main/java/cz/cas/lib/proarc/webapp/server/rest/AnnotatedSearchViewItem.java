@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * Helper class to annotate {@link Item} properties.
@@ -31,7 +32,6 @@ import javax.xml.bind.annotation.XmlElement;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AnnotatedSearchViewItem extends Item {
-
 
     @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED)
     @Override
@@ -68,5 +68,13 @@ public abstract class AnnotatedSearchViewItem extends Item {
     @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
     @Override
     public abstract Integer getBatchId();
+
+    @XmlTransient
+    @Override
+    public abstract String getK0();
+
+    @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_EXPORT)
+    @Override
+    public abstract Integer getHasExport();
 
 }

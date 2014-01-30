@@ -18,10 +18,13 @@ package cz.cas.lib.proarc.webapp.client.widget;
 
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.grid.CellFormatter;
 import com.smartgwt.client.widgets.grid.ListGridField;
+import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.tree.Tree;
@@ -31,10 +34,12 @@ import com.smartgwt.client.widgets.tree.TreeNode;
 import com.smartgwt.client.widgets.tree.events.DataArrivedEvent;
 import com.smartgwt.client.widgets.tree.events.DataArrivedHandler;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import java.util.Map;
 
 /**
@@ -47,11 +52,13 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
     private final Canvas rootWidget;
     private final TreeGrid treeSelector;
     private final ClientMessages i18n;
+    private final SmartGwtMessages i18nSmartGwt;
     private String rootPid;
     private final ToolStrip toolbar;
 
     public DigitalObjectTreeView(ClientMessages i18n) {
         this.i18n = i18n;
+        this.i18nSmartGwt = ClientUtils.createSmartGwtMessages();
         treeSelector = createTreeSelector();
 
         VLayout vLayout = new VLayout();
@@ -94,7 +101,18 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         modified.setAlign(Alignment.CENTER);
         TreeGridField owner = new TreeGridField(RelationDataSource.FIELD_OWNER,
                 i18n.DigitalObjectSearchView_ListHeaderOwner_Title(), 100);
-        treeGrid.setFields(parentId, label, model, pid, created, modified, owner);
+        TreeGridField export = new TreeGridField(SearchDataSource.FIELD_EXPORT,
+                i18n.DigitalObjectSearchView_ListHeaderExport_Title(), 100);
+        export.setCellFormatter(new CellFormatter() {
+
+            @Override
+            public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                return value == null || "0".equals(value)
+                        ? i18nSmartGwt.dialog_NoButtonTitle()
+                        : i18nSmartGwt.dialog_YesButtonTitle();
+            }
+        });
+        treeGrid.setFields(parentId, label, model, pid, created, modified, owner, export);
         treeGrid.setTitleField(RelationDataSource.FIELD_LABEL);
         treeGrid.setShowConnectors(true);
         treeGrid.setEmptyMessage(i18n.DigitalObjectTreeView_EmptySelection_Msg());

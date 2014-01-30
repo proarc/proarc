@@ -51,8 +51,6 @@ public class RdfDescription {
      * RDF relation defines digital device of the digital object. E.g.:
      *
      * <p/>{@code <proarc-rels:hasDevice rdf:resource="info:fedora/device:scanner1"/>}
-     *
-     * @author Jan Pokorsky
      */
     @XmlElement(namespace = Relations.PROARC_RELS_NS)
     private RdfRelation hasDevice;
@@ -61,11 +59,18 @@ public class RdfDescription {
      * RDF relation defines filename of the imported digital content. E.g.:
      *
      * <p/>{@code <proarc-rels:importFile>ABA00726009905207199800001.tif<importFile/>}
-     *
-     * @author Jan Pokorsky
      */
     @XmlElement(namespace = Relations.PROARC_RELS_NS)
     private String importFile;
+
+    /**
+     * RDF relation defines existence of any export. It can be some SIP ID or folder E.g.:
+     *
+     * <p/>{@code <proarc-rels:hasExport>1234<hasExport/>}
+     * <p>It is expected to be overridden by the latest export for now.
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String hasExport;
 
     /**
      * RDF relation referencing members of the digital object.
@@ -151,6 +156,14 @@ public class RdfDescription {
 
     public void setImportFile(String importFile) {
         this.importFile = importFile;
+    }
+
+    public String getHasExport() {
+        return hasExport;
+    }
+
+    public void setHasExport(String hasExport) {
+        this.hasExport = hasExport;
     }
 
 }

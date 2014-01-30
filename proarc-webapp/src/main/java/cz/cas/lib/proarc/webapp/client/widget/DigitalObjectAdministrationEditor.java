@@ -236,7 +236,12 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             filename.setWidth("*");
             filename.setCanEdit(Boolean.FALSE);
 
-            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename);
+            TextItem export = new TextItem(DigitalObjectAdministrationDataSource.FIELD_EXPORT,
+                    i18n.DigitalObjectEditor_AdministrationEditor_Export_Title());
+            export.setWidth("*");
+            export.setCanEdit(Boolean.FALSE);
+
+            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export);
             widget.setMembers(form);
         }
 

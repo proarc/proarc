@@ -90,6 +90,7 @@ public final class AtmEditor {
         atm.deviceId = relationEditor.getDevice();
         atm.importFile = relationEditor.getImportFile();
         atm.model = relationEditor.getModel();
+        atm.export = relationEditor.getExportResult();
         return atm;
     }
 
@@ -104,6 +105,7 @@ public final class AtmEditor {
         private String modified;
         private String deviceId;
         private String importFile;
+        private String export;
 
         public AtmItem() {
         }
@@ -146,6 +148,10 @@ public final class AtmEditor {
 
         public String getImportFile() {
             return importFile;
+        }
+
+        public String getExport() {
+            return export;
         }
     }
 
