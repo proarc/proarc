@@ -364,115 +364,116 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             suffix = "0001";
         }
         File tmpFolder = createTempFolder(desaElement);
-        File outputMets = new File(tmpFolder.getAbsolutePath() + "/mets.xml");
-        Mets mets = prepareMets(desaElement);
-        DivType divType = new DivType();
-        divType.setLabel(getLabel(desaElement));
-        divType.setTYPE("record");
-        divType.getDMDID().add(mets.getDmdSec().get(0));
-        ArrayList<File> fileList = new ArrayList<File>();
-
-        // if no files are present, then skip
-        if (desaElement.getChildren().size() > 0) {
-            FileSec fileSec = new FileSec();
-            mets.setFileSec(fileSec);
-
+        try {
+            File outputMets = new File(tmpFolder.getAbsolutePath() + "/mets.xml");
+            Mets mets = prepareMets(desaElement);
+            DivType divType = new DivType();
+            divType.setLabel(getLabel(desaElement));
+            divType.setTYPE("record");
+            divType.getDMDID().add(mets.getDmdSec().get(0));
+            ArrayList<File> fileList = new ArrayList<File>();
             StructMapType structMapType = mets.getStructMap().get(0);
             structMapType.setDiv(divType);
 
-            int fileOrder = 0;
-            for (DesaElement fileElement : desaElement.getChildren()) {
-                fileOrder++;
-                DatastreamType rawDS = FoxmlUtils.findDatastream(fileElement.getSourceObject(), "RAW");
-                byte[] fileContent = new byte[0];
-                String mimeType = "empty";
-                if (rawDS != null) {
-                    if (rawDS.getDatastreamVersion().get(0).getContentLocation() != null) {
-                        if ("INTERNAL_ID".equals(rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE())) {
-                            if (desaElement.getDesaContext().getFedoraClient() == null) {
-                                LOG.log(Level.SEVERE, "Datastream dissemination allowed only for Fedora storage - for filesystem only binary content is allowed");
-                                throw new MetsExportException(fileElement.getOriginalPid(), "Datastream dissemination allowed only for Fedora storage", false, null);
-                            }
-                            desaElement.getDesaContext().getFedoraClient();
-                            GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(fileElement.getOriginalPid(), "RAW");
-                            try {
-                                InputStream is = dsRaw.execute(desaElement.getDesaContext().getFedoraClient()).getEntityInputStream();
-                                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                                try {
-                                    MetsUtils.copyStream(is, bos);
-                                    bos.close();
-                                    fileContent = bos.toByteArray();
-                                } catch (IOException e) {
-                                    LOG.log(Level.SEVERE, "Unable to copy raw datastream content", e);
-                                    throw new MetsExportException(desaElement.getOriginalPid(), "Unable to copy raw datastream content", false, e);
+            // if no files are present, then skip
+            if (desaElement.getChildren().size() > 0) {
+                FileSec fileSec = new FileSec();
+                mets.setFileSec(fileSec);
+                int fileOrder = 0;
+                for (DesaElement fileElement : desaElement.getChildren()) {
+                    fileOrder++;
+                    DatastreamType rawDS = FoxmlUtils.findDatastream(fileElement.getSourceObject(), "RAW");
+                    byte[] fileContent = new byte[0];
+                    String mimeType = "empty";
+                    if (rawDS != null) {
+                        if (rawDS.getDatastreamVersion().get(0).getContentLocation() != null) {
+                            if ("INTERNAL_ID".equals(rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE())) {
+                                if (desaElement.getDesaContext().getFedoraClient() == null) {
+                                    LOG.log(Level.SEVERE, "Datastream dissemination allowed only for Fedora storage - for filesystem only binary content is allowed");
+                                    throw new MetsExportException(fileElement.getOriginalPid(), "Datastream dissemination allowed only for Fedora storage", false, null);
                                 }
-                            } catch (FedoraClientException e) {
-                                LOG.log(Level.SEVERE, "Unable to read raw datastream content", e);
-                                throw new MetsExportException(desaElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                                desaElement.getDesaContext().getFedoraClient();
+                                GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(fileElement.getOriginalPid(), "RAW");
+                                try {
+                                    InputStream is = dsRaw.execute(desaElement.getDesaContext().getFedoraClient()).getEntityInputStream();
+                                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                                    try {
+                                        MetsUtils.copyStream(is, bos);
+                                        bos.close();
+                                        fileContent = bos.toByteArray();
+                                    } catch (IOException e) {
+                                        LOG.log(Level.SEVERE, "Unable to copy raw datastream content", e);
+                                        throw new MetsExportException(desaElement.getOriginalPid(), "Unable to copy raw datastream content", false, e);
+                                    }
+                                } catch (FedoraClientException e) {
+                                    LOG.log(Level.SEVERE, "Unable to read raw datastream content", e);
+                                    throw new MetsExportException(desaElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                                }
+                            } else {
+                                LOG.log(Level.SEVERE, "Expecting INTERNAL_ID type in ContentLocation - found:" + rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE());
+                                throw new MetsExportException(fileElement.getOriginalPid(), "Expecting INTERNAL_ID type in ContentLocation - found:" + rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE(), false, null);
                             }
                         } else {
-                            LOG.log(Level.SEVERE, "Expecting INTERNAL_ID type in ContentLocation - found:" + rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE());
-                            throw new MetsExportException(fileElement.getOriginalPid(), "Expecting INTERNAL_ID type in ContentLocation - found:" + rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE(), false, null);
+                            fileContent = rawDS.getDatastreamVersion().get(0).getBinaryContent();
                         }
+                        mimeType = rawDS.getDatastreamVersion().get(0).getMIMETYPE();
                     } else {
-                        fileContent = rawDS.getDatastreamVersion().get(0).getBinaryContent();
+                        LOG.log(Level.WARNING, "RAW datastream is null for:" + desaElement.getOriginalPid() + " - skipping");
+                        desaElement.getDesaContext().getMetsExportException().addException(fileElement.getOriginalPid(), "RAW datastream is missing", false, null);
+                        continue;
                     }
-                    mimeType = rawDS.getDatastreamVersion().get(0).getMIMETYPE();
-                } else {
-                    LOG.log(Level.WARNING, "RAW datastream is null for:" + desaElement.getOriginalPid() + " - skipping");
-                    desaElement.getDesaContext().getMetsExportException().addException(fileElement.getOriginalPid(), "RAW datastream is missing", false, null);
-                    continue;
+                    FileOutputStream fos;
+                    String outputFileName = getFileName(fileElement);
+                    /*
+                     * Generates a filename if it's not provided from the
+                     * original document
+                     */
+                    if ((outputFileName == null) || (outputFileName.trim().length() == 0)) {
+                        outputFileName = "file_" + String.format("%04d", fileOrder) + "." + MetsUtils.getMimeToExtension().getProperty(mimeType);
+                        LOG.log(Level.INFO, "importFile name was not specified for:" + fileElement.getOriginalPid() + " new name was generated:" + outputFileName);
+                    }
+                    String fullOutputFileName = tmpFolder.getAbsolutePath() + File.separator + outputFileName;
+                    try {
+                        File outputFile = new File(fullOutputFileName);
+                        fos = new FileOutputStream(outputFile);
+                        fileList.add(outputFile);
+                    } catch (FileNotFoundException e) {
+                        LOG.log(Level.SEVERE, "Unable to create a temp file:" + fullOutputFileName);
+                        throw new MetsExportException(fileElement.getOriginalPid(), "Unable to create a temp file:" + fullOutputFileName, false, e);
+                    }
+                    FileMD5Info fileMd5Info;
+                    try {
+                        fileMd5Info = MetsUtils.getDigestAndCopy(new ByteArrayInputStream(fileContent), fos);
+                    } catch (NoSuchAlgorithmException e) {
+                        LOG.log(Level.SEVERE, "Unable to generate MD5 digest", e);
+                        throw new MetsExportException(fileElement.getOriginalPid(), "Unable to generate MD5 digest", false, e);
+                    } catch (IOException e) {
+                        LOG.log(Level.SEVERE, "Unable to save file", e);
+                        throw new MetsExportException(fileElement.getOriginalPid(), "Unable to save file", false, e);
+                    }
+                    FileType fileType = new FileType();
+                    fileType.setID(getIdentifier(desaElement) + "_" + String.format("%04d", fileOrder));
+                    fileType.setCHECKSUMTYPE("MD5");
+                    fileType.setCHECKSUM(fileMd5Info.getMd5());
+                    FLocat flocat = new FLocat();
+                    flocat.setLOCTYPE("URL");
+                    flocat.setHref(outputFileName);
+                    fileType.getFLocat().add(flocat);
+                    addFiletoFileGrp(fileGrpMap, fileElement, fileType);
+                    Fptr fptr = new Fptr();
+                    fptr.setFILEID(fileType);
+                    divType.getFptr().add(fptr);
                 }
-                FileOutputStream fos;
-                String outputFileName = getFileName(fileElement);
-                /*
-                 * Generates a filename if it's not provided from the original
-                 * document
-                 */
-                if ((outputFileName == null) || (outputFileName.trim().length() == 0)) {
-                    outputFileName = "file_" + String.format("%04d", fileOrder) + "." + MetsUtils.getMimeToExtension().getProperty(mimeType);
-                    LOG.log(Level.INFO, "importFile name was not specified for:" + fileElement.getOriginalPid() + " new name was generated:" + outputFileName);
-                }
-                String fullOutputFileName = tmpFolder.getAbsolutePath() + File.separator + outputFileName;
-                try {
-                    File outputFile = new File(fullOutputFileName);
-                    fos = new FileOutputStream(outputFile);
-                    fileList.add(outputFile);
-                } catch (FileNotFoundException e) {
-                    LOG.log(Level.SEVERE, "Unable to create a temp file:" + fullOutputFileName);
-                    throw new MetsExportException(fileElement.getOriginalPid(), "Unable to create a temp file:" + fullOutputFileName, false, e);
-                }
-                FileMD5Info fileMd5Info;
-                try {
-                    fileMd5Info = MetsUtils.getDigestAndCopy(new ByteArrayInputStream(fileContent), fos);
-                } catch (NoSuchAlgorithmException e) {
-                    LOG.log(Level.SEVERE, "Unable to generate MD5 digest", e);
-                    throw new MetsExportException(fileElement.getOriginalPid(), "Unable to generate MD5 digest", false, e);
-                } catch (IOException e) {
-                    LOG.log(Level.SEVERE, "Unable to save file", e);
-                    throw new MetsExportException(fileElement.getOriginalPid(), "Unable to save file", false, e);
-                }
-                FileType fileType = new FileType();
-                fileType.setID(getIdentifier(desaElement) + "_" + String.format("%04d", fileOrder));
-                fileType.setCHECKSUMTYPE("MD5");
-                fileType.setCHECKSUM(fileMd5Info.getMd5());
-                FLocat flocat = new FLocat();
-                flocat.setLOCTYPE("URL");
-                flocat.setHref(outputFileName);
-                fileType.getFLocat().add(flocat);
-                addFiletoFileGrp(fileGrpMap, fileElement, fileType);
-                Fptr fptr = new Fptr();
-                fptr.setFILEID(fileType);
-                divType.getFptr().add(fptr);
+                addFileGrpToMets(fileGrpMap, fileSec);
             }
-            addFileGrpToMets(fileGrpMap, fileSec);
+            saveMets(mets, outputMets, desaElement);
+            desaElement.setZipName(getIdentifier(desaElement));
+            fileList.add(outputMets);
+            String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getZipName() + ".zip";
+            zip(zipFileName, fileList, desaElement);
+        } finally {
+            deleteFolder(tmpFolder);
         }
-        saveMets(mets, outputMets, desaElement);
-        desaElement.setZipName(getIdentifier(desaElement));
-        fileList.add(outputMets);
-        String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getZipName() + ".zip";
-        zip(zipFileName, fileList, desaElement);
-        deleteFolder(tmpFolder);
         LOG.fine("Document successfuly exported");
     }
 
@@ -506,14 +507,18 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             divType.getDiv().add(documentDiv);
         }
         File tmpFolder = createTempFolder(desaElement);
-        File outputMets = new File(tmpFolder.getAbsolutePath() + "/mets.xml");
-        saveMets(mets, outputMets, desaElement);
-        desaElement.setZipName(getIdentifier(desaElement) + "_FILE");
-        String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getZipName() + ".zip";
-        ArrayList<File> fileList = new ArrayList<File>();
-        fileList.add(outputMets);
-        zip(zipFileName, fileList, desaElement);
-        deleteFolder(tmpFolder);
+        try {
+            File outputMets = new File(tmpFolder.getAbsolutePath() + "/mets.xml");
+            saveMets(mets, outputMets, desaElement);
+            desaElement.setZipName(getIdentifier(desaElement) + "_FILE");
+            String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getZipName() + ".zip";
+            ArrayList<File> fileList = new ArrayList<File>();
+            fileList.add(outputMets);
+            zip(zipFileName, fileList, desaElement);
+        } finally {
+            deleteFolder(tmpFolder);
+        }
+
         LOG.fine("Folder successfuly exported");
     }
 
