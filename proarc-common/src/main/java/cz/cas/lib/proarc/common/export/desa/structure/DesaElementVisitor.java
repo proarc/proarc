@@ -215,7 +215,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
      *
      * @param folder
      */
-    public static void deleteFolder(File folder) {
+    private static void deleteFolder(File folder) {
         File[] files = folder.listFiles();
         if (files != null) {
             for (File f : files) {
@@ -281,12 +281,17 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
             marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd");
             marshaller.marshal(mets, outputFile);
-            MetsUtils.validateAgainstXSD(outputFile, Mets.class.getResourceAsStream("mets.xsd"));
-            LOG.log(Level.FINE, "Element validated:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Unable to save mets file:" + outputFile.getAbsolutePath());
-            throw new MetsExportException(desaElement.getOriginalPid(), "Unable to save mets file:" + outputFile.getAbsolutePath(), false, e);
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "Unable to save mets file:" + outputFile.getAbsolutePath(), ex);
+            throw new MetsExportException(desaElement.getOriginalPid(), "Unable to save mets file:" + outputFile.getAbsolutePath(), false, ex);
         }
+        try {
+            MetsUtils.validateAgainstXSD(outputFile, Mets.class.getResourceAsStream("mets.xsd"));
+        } catch (MetsExportException ex) {
+            LOG.log(Level.SEVERE, "Mets file: " + outputFile + " is not valid");
+            throw ex;
+        }
+        LOG.log(Level.FINE, "Element validated:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
     }
 
     /**

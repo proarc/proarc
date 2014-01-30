@@ -163,5 +163,5 @@ public interface IDesaElement {
      *
      * @param zipName
      */
-    public void setZipName(String zipName);
+    public void setZipName(String zipName) throws MetsExportException;
 }

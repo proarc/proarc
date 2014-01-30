@@ -1,22 +1,23 @@
 /*
  * Copyright (C) 2013 Robert Simonovsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -31,14 +32,14 @@ import cz.cas.lib.proarc.mets.StructMapType;
 
 /**
  * Java class representing a Mets document
- * 
+ *
  * @author Robert Simonovsky
- * 
+ *
  */
 public class MetsEntity extends MetsInfo {
     /**
      * Constructor
-     * 
+     *
      * @param object
      * @param path
      * @param packageId
@@ -50,7 +51,7 @@ public class MetsEntity extends MetsInfo {
 
     /**
      * Constructor
-     * 
+     *
      * @param remoteStorage
      * @param packageId
      */
@@ -81,7 +82,7 @@ public class MetsEntity extends MetsInfo {
 
     /**
      * Inserts a recursive element into the logical div
-     * 
+     *
      * @param parentDiv
      * @param children
      */
@@ -110,7 +111,7 @@ public class MetsEntity extends MetsInfo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.kramerius.importFoXML.structure.MetsInfo#insertIntoMets(java.lang
      * .String, boolean)
@@ -122,6 +123,10 @@ public class MetsEntity extends MetsInfo {
         mets.setTYPE(getType());
         rootElement.insertIntoMets(mets, withChildren, outputPath);
         insertLogicalStructure();
+        if (jhoveBase != null) {
+            File file = new File(jhoveBase.getConfigFile());
+            file.delete();
+        }
     }
 
 }

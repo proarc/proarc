@@ -1027,7 +1027,7 @@ public class MetsUtils {
      */
     public static String getParent(String uuid, Map<String, String> fileSystemParents) {
         String result = fileSystemParents.get(uuid);
-        LOG.log(Level.INFO, "Parent from FS for :" + uuid + " found:" + result);
+        LOG.log(Level.FINE, "Parent from FS for :" + uuid + " found:" + result);
         return result;
     }
 

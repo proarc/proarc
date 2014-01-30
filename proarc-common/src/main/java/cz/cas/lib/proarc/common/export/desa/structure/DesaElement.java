@@ -17,6 +17,8 @@
 
 package cz.cas.lib.proarc.common.export.desa.structure;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +59,7 @@ public class DesaElement implements IDesaElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.desa.structure.IDesaElement#getDescriptorType
      * ()
@@ -114,8 +116,12 @@ public class DesaElement implements IDesaElement {
      * (java.lang.String)
      */
     @Override
-    public void setZipName(String zipName) {
+    public void setZipName(String zipName) throws MetsExportException {
         this.zipName = zipName;
+        if (!checkZipFileOK()) {
+            LOG.severe("Invalid identifier for " + this.getOriginalPid() + " filename is not valid:" + zipName);
+            throw new MetsExportException(this.getOriginalPid(), "Identifier is not valid - generated output file name is:" + zipName, false, null);
+        }
     }
 
     /*
@@ -371,5 +377,25 @@ public class DesaElement implements IDesaElement {
     public void accept(IDesaElementVisitor desaVisitor, HashMap<String, String> desaProps) throws MetsExportException {
         LOG.info("Export visitor accepted for:" + this.getOriginalPid() + "(" + this.getElementType() + ")");
         desaVisitor.insertIntoMets(this, desaProps);
+    }
+
+    /**
+     * Checks if fileName is correct
+     *
+     * @param folder
+     */
+    private boolean checkZipFileOK() {
+        File file = null;
+        try {
+            file = new File(this.getDesaContext().getOutputPath() + "/" + this.getZipName() + ".zip");
+            LOG.fine("Checking if fileName is OK:" + file.getAbsolutePath());
+            file.createNewFile();
+            file.delete();
+            return true;
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "file:" + file.getAbsolutePath() + " is not valid filename");
+            return false;
+        }
+
     }
 }
