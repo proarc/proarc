@@ -22,12 +22,15 @@ import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RdCntrl
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls.RecCl;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXB;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.FileUtils;
 
 /**
  * Manages DESA service clients and their configurations.
@@ -83,9 +86,30 @@ public final class DesaServices {
         if (acronyms.isEmpty()) {
             return null;
         } else {
-            SIP2DESATransporter t = new SIP2DESATransporter();
-            return t.getNomenclatures(dc.toTransporterConfig(), acronyms);
+            return getNomenclaturesCache(dc);
         }
+    }
+
+    private Nomenclatures getNomenclaturesCache(DesaConfiguration dc) {
+        File tmpFolder = FileUtils.getTempDirectory();
+        File cache = null;
+        if (dc.getNomenclatureExpiration() > 0) {
+            synchronized(DesaServices.this) {
+                cache = new File(tmpFolder, String.format("%s.nomenclatures.cache", dc.getServiceId()));
+                int expiration = dc.getNomenclatureExpiration();
+                if (cache.exists() && (System.currentTimeMillis() - cache.lastModified() < expiration)) {
+                    return JAXB.unmarshal(cache, Nomenclatures.class);
+                }
+            }
+        }
+        SIP2DESATransporter t = new SIP2DESATransporter();
+        Nomenclatures nomenclatures = t.getNomenclatures(dc.toTransporterConfig(), dc.getNomenclatureAcronyms());
+        if (cache != null) {
+            synchronized (DesaServices.this) {
+                JAXB.marshal(nomenclatures, cache);
+            }
+        }
+        return nomenclatures;
     }
 
 //    public SIP2DESATransporter getTransporter(String serviceId) {
@@ -181,6 +205,7 @@ public final class DesaServices {
         public static final String PROPERTY_WEBSERVICE = "webservice";
         public static final String PROPERTY_EXPORTMODELS = "exportModels";
         public static final String PROPERTY_NOMENCLATUREACRONYMS = "nomenclatureAcronyms";
+        public static final String PROPERTY_NOMENCLATUREEXPIRATION = "nomenclatureCacheExpiration";
 
         private final String serviceId;
         private final String prefix;
@@ -210,6 +235,14 @@ public final class DesaServices {
          */
         public List<String> getNomenclatureAcronyms() {
             return Arrays.asList(properties.getStringArray(PROPERTY_NOMENCLATUREACRONYMS));
+        }
+
+        /**
+         * Gets time to hold caches.
+         * @return time in milliseconds
+         */
+        public int getNomenclatureExpiration() {
+            return properties.getInt(PROPERTY_NOMENCLATUREEXPIRATION, 0) * 60 * 1000;
         }
 
         /**
