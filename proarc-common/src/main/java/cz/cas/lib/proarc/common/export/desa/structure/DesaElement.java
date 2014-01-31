@@ -175,7 +175,9 @@ public class DesaElement implements IDesaElement {
             fillChildren();
         }
         if (parent == null) {
-            this.parent = initParent();
+            if (Const.FILE.equals(this.getElementType())) {
+                this.parent = initParent();
+            }
         }
 
         if (this.parent == null) {

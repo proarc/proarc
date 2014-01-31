@@ -62,7 +62,7 @@ public class DesaExportTest {
 
     /**
      * Copies the files for a test from jar file to a temporary file system
-     * 
+     *
      * @param testElement
      */
     private void copyFiles(String directory, String zipName) {
@@ -106,7 +106,7 @@ public class DesaExportTest {
         copyFiles("correctDesa", "correctDesa.zip");
         String sourceDirPath = tmp.getRoot().getAbsolutePath() + File.separator + directory + File.separator;
         File resultDir = tmp.newFolder("result" + directory);
-        String path = sourceDirPath + "619dbb60-fada-4abd-b2ce-3144c086327d.xml";
+        String path = sourceDirPath + "d18329c6-2f2a-48b3-b315-0da2a896ba3e.xml";
         DesaContext desaContext = new DesaContext();
         desaContext.setFsParentMap(testParentMap);
         desaContext.setOutputPath(resultDir.getAbsolutePath());
@@ -159,18 +159,21 @@ public class DesaExportTest {
         } catch (MetsExportException ex) {
             assertEquals(0, ex.getExceptions().size());
         }
-        String outputDir = extractFile(resultDir + File.separator + "A-37_FILE.zip", "correctDesaTest");
+        // String outputDir = extractFile(resultDir + File.separator +
+        // "A-37_FILE.zip", "correctDesaTest");
+        // Mets mets = readMets(outputDir + File.separator + "mets.xml");
+        // String DMDID = mets.getDmdSec().get(0).getID();
+        // assertEquals("DM_0001", DMDID);
+        // String structType = mets.getStructMap().get(0).getDiv().getTYPE();
+        // assertEquals("file", structType);
+        // String innerStructType =
+        // mets.getStructMap().get(0).getDiv().getDiv().get(0).getTYPE();
+        // assertEquals("record", innerStructType);
+        // String href =
+        // mets.getStructMap().get(0).getDiv().getDiv().get(0).getMptr().get(0).getHref();
+        // assertEquals("A-37_01", href);
+        String outputDir = extractFile(resultDir + File.separator + "A-37_01.zip", "noFileNameDesaTest");
         Mets mets = readMets(outputDir + File.separator + "mets.xml");
-        String DMDID = mets.getDmdSec().get(0).getID();
-        assertEquals("DM_0001", DMDID);
-        String structType = mets.getStructMap().get(0).getDiv().getTYPE();
-        assertEquals("file", structType);
-        String innerStructType = mets.getStructMap().get(0).getDiv().getDiv().get(0).getTYPE();
-        assertEquals("record", innerStructType);
-        String href = mets.getStructMap().get(0).getDiv().getDiv().get(0).getMptr().get(0).getHref();
-        assertEquals("A-37_01", href);
-        outputDir = extractFile(resultDir + File.separator + "A-37_01.zip", "noFileNameDesaTest");
-        mets = readMets(outputDir + File.separator + "mets.xml");
         FileType fileType = mets.getFileSec().getFileGrp().get(0).getFile().get(0);
         assertEquals("b5100365bd0c93d1596e29fb8e8969a0", fileType.getCHECKSUM());
         assertEquals("kniha_text.tif", fileType.getFLocat().get(0).getHref());
@@ -184,7 +187,7 @@ public class DesaExportTest {
         copyFiles(directory, "desaNoFileName.zip");
         String sourceDirPath = tmp.getRoot().getAbsolutePath() + File.separator + directory + File.separator;
         File resultDir = tmp.newFolder("result" + directory);
-        String path = sourceDirPath + "619dbb60-fada-4abd-b2ce-3144c086327d.xml";
+        String path = sourceDirPath + "d18329c6-2f2a-48b3-b315-0da2a896ba3e.xml";
         DesaContext desaContext = new DesaContext();
         desaContext.setFsParentMap(testParentMap);
         desaContext.setOutputPath(resultDir.getAbsolutePath());
