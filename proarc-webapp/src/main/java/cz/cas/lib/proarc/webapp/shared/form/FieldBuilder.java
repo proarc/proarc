@@ -56,11 +56,13 @@ public final class FieldBuilder {
     }
 
     public FieldBuilder setTitle(String title) {
+        this.title.clear();
         this.title.add(new Localized(null, title));
         return this;
     }
 
     public FieldBuilder setHint(String hint) {
+        this.hint.clear();
         this.hint.add(new Localized(null, hint));
         return this;
     }
