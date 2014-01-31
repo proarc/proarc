@@ -50,6 +50,7 @@ import cz.cas.lib.proarc.webapp.client.widget.mods.PageForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalIssueForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalVolumeForm;
+import cz.cas.lib.proarc.webapp.client.widget.nsesss.NsesssV2Form;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -245,6 +246,8 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
             form = createModsForm(model.getEditorId());
         } else if (DcConstants.NS_OAIDC.equals(metadataFormat)) {
             form = new DcEditor(i18n, model).getForm();
+        } else if ("http://www.mvcr.cz/nsesss/v2".equals(metadataFormat)) {
+            form = new NsesssV2Form(i18n, model).getForm();
         }
         if (form == null) {
             ClientUtils.warning(LOG, "Uknown model editor: %s, editor: %s, format: %s",
