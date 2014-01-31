@@ -268,9 +268,9 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
 
                 @Override
                 public void onItemChanged(ItemChangedEvent event) {
-                    // get original record and update its attribute with new values
-                    Record record = dataModel.get(activeRows.indexOf(row));
-                    record.setAttribute(event.getItem().getName(), event.getNewValue());
+                    // get original record and replace it with all form attributes
+                    Map values = row.getForm().getValues();
+                    dataModel.set(activeRows.indexOf(row), new Record(values));
                     RepeatableForm.this.fireEvent(new ListChangedEvent());
                 }
             });
