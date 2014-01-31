@@ -16,12 +16,14 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.form;
 
+import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.TitleOrientation;
+import com.smartgwt.client.util.JSOHelper;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.FormItemValueFormatter;
 import com.smartgwt.client.widgets.form.FormItemValueParser;
@@ -303,7 +305,7 @@ public class FormGenerator {
                             }
                             String value = selectedRecord.getAttribute(pickName);
                             ValuesManager vm = item.getForm().getValuesManager();
-                            vm.setValue(fieldName, value);
+                            setFieldValue(vm, fieldName, value);
                         }
                     } else {
                         for (String fieldName : valueFields) {
@@ -318,6 +320,85 @@ public class FormGenerator {
                 }
             }
         });
+    }
+
+    /**
+     * Sets a value to field of the values manager.
+     * @param vm values manager
+     * @param fieldName field name or relative path to nested field; '/' as a separator
+     * @param value value to set
+     */
+    private void setFieldValue(ValuesManager vm, String fieldName, String value) {
+        String[] path = fieldName.split("/");
+//        ClientUtils.severe(LOG, "#setValue: %s, %s, %s", fieldName, path.length, value);
+        if (path.length <= 1) {
+            vm.setValue(fieldName, value);
+        } else {
+            int index = 0;
+            Object vmValue = vm.getValue(path[index]);
+            Record vmValueRecord = fillValueForPath(path, 0, vmValue, value);
+            if (vmValueRecord != null) {
+//                ClientUtils.warning(LOG, "## vm.setValue %s", path[index]);
+                vm.setValue(path[index], vmValueRecord);
+            }
+        }
+    }
+
+    /**
+     * Fills a new value of the nested field. It traverses the path of field names
+     * to the leaf recursively.
+     *
+     * @param path path to field; '/' as a separator
+     * @param pathIndex field name index in path to update
+     * @param pathValue set of attributes of selected field; see pathIndex
+     * @param value value to set
+     * @return the record with updated attributes or {@code null}
+     */
+    private Record fillValueForPath(String[] path, int pathIndex, Object pathValue, String value) {
+        Record pathRecord = null;
+//        ClientUtils.warning(LOG, "##setValue: %s, %s\n%s",
+//                path[pathIndex], ClientUtils.safeGetClass(pathValue), ClientUtils.dump(pathValue));
+
+        // Record[], RecordList, Object[]??
+        if (pathValue instanceof JavaScriptObject) {
+            JavaScriptObject jso = (JavaScriptObject) pathValue;
+//            ClientUtils.warning(LOG, "## isArray %s", JSOHelper.isArray(jso));
+            if (JSOHelper.isArray(jso)) {
+                // RecordList ??
+            } else {
+                pathRecord = new Record(jso);
+//                ClientUtils.warning(LOG, "## vmValueRecord.setAttribute %s", pathIndex + 2 == path.length);
+                // is .../field1/field2 leaf?
+                if (pathIndex + 2 == path.length) {
+//                    ClientUtils.warning(LOG, "## vm.setValue %s", path[pathIndex + 1]);
+                    pathRecord.setAttribute(path[pathIndex + 1], value);
+                } else {
+                    Object nextValueInPath = pathRecord.getAttributeAsObject(path[pathIndex + 1]);
+                    // recursion
+                    Record newValueForPath = fillValueForPath(path, pathIndex + 1, nextValueInPath, value);
+                    if (newValueForPath != null) {
+                        pathRecord.setAttribute(path[pathIndex + 1], newValueForPath);
+                    }
+                }
+            }
+        } else if (pathValue == null) {
+            // no value yet; let's create new values for remaining path
+            pathRecord = new Record();
+            // is .../field1/field2 leaf?
+            if (pathIndex + 2 == path.length) {
+//                ClientUtils.warning(LOG, "## vm.setValue %s", path[pathIndex + 1]);
+                pathRecord.setAttribute(path[pathIndex + 1], value);
+            } else {
+                Record newValueForPath = fillValueForPath(path, pathIndex + 1, null, value);
+                if (newValueForPath != null) {
+                    pathRecord.setAttribute(path[pathIndex + 1], newValueForPath);
+                } else {
+                    // unknown new value, do not create anything
+                    pathRecord = null;
+                }
+            }
+        }
+        return pathRecord;
     }
 
     protected static Integer getWidthAsInteger(String width) {

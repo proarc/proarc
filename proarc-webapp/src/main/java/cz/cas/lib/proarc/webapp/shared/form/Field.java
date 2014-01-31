@@ -156,6 +156,8 @@ public class Field {
      * Gets mapping of options data source field names to sibling field names.
      * Used by select or combo pick lists to put selected values to matching fields
      * in case options data source field names differs from the target form field names.
+     * <p>It supports target fields described as a path to nested field with {@code '/'} as separator.
+     * E.g. map {@code "code" -> "nestedFormFieldName/internalCode"}.
      */
     public Map<String, String> getOptionValueFieldMap() {
         return valueFieldMap;
