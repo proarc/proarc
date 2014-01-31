@@ -33,7 +33,10 @@ import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.RadioGroupItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.fields.events.ChangedEvent;
+import com.smartgwt.client.widgets.form.fields.events.ChangedHandler;
 import com.smartgwt.client.widgets.grid.ListGridField;
+import com.smartgwt.client.widgets.grid.ListGridRecord;
 import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.mods.AbstractModelForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableFormItem;
@@ -46,6 +49,8 @@ import cz.cas.lib.proarc.webapp.shared.form.Form;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -212,9 +217,7 @@ public class FormGenerator {
     public ComboBoxItem getComboBoxItem(Field f, String lang) {
         ComboBoxItem item = new ComboBoxItem(f.getName(), f.getTitle(lang));
         if (f.getOptionDataSource() != null) {
-            Field of = f.getOptionDataSource();
-            setOptionDataSource(item, f);
-            item.setPickListFields(getPickListFields(of, lang));
+            setOptionDataSource(item, f, lang);
         } else {
             item.setValueMap(f.getValueMap());
         }
@@ -224,20 +227,35 @@ public class FormGenerator {
     public SelectItem getSelectItem(Field f, String lang) {
         SelectItem item = new SelectItem(f.getName(), f.getTitle(lang));
         if (f.getOptionDataSource() != null) {
-            Field of = f.getOptionDataSource();
-            setOptionDataSource(item, f);
-            item.setPickListFields(getPickListFields(of, lang));
+            setOptionDataSource(item, f, lang);
         } else {
             item.setValueMap(f.getValueMap());
         }
         return item;
     }
 
-    private static void setOptionDataSource(FormItem item, Field f) {
+    private void setOptionDataSource(FormItem item, Field f, String lang) {
         Field optionField = f.getOptionDataSource();
         DataSource ds = ValueMapDataSource.getInstance().getOptionDataSource(optionField.getName());
         item.setValueField(f.getOptionValueField()[0]);
         item.setOptionDataSource(ds);
+
+        setPickListValueMapping(item, f);
+
+        Integer pickListWidth = getWidthAsInteger(optionField.getWidth());
+        if (item instanceof SelectItem) {
+            SelectItem selectItem = (SelectItem) item;
+            selectItem.setPickListFields(getPickListFields(optionField, lang));
+            if (pickListWidth != null) {
+                selectItem.setPickListWidth(pickListWidth);
+            }
+        } else if (item instanceof ComboBoxItem) {
+            ComboBoxItem cbi = (ComboBoxItem) item;
+            cbi.setPickListFields(getPickListFields(optionField, lang));
+            if (pickListWidth != null) {
+                cbi.setPickListWidth(pickListWidth);
+            }
+        }
     }
 
     private static ListGridField[] getPickListFields(Field optionField, String lang) {
@@ -248,6 +266,69 @@ public class FormGenerator {
             listFields[i++] = new ListGridField(field.getName(), field.getTitle(lang));
         }
         return listFields;
+    }
+
+    /**
+     * Listens to item value changes and and propagate selection to sibling fields
+     * according to Field.getOptionValueFieldMap and Field.getOptionValueField.
+     * @param item select or combo
+     * @param field field with option data source
+     */
+    private void setPickListValueMapping(FormItem item, Field field) {
+        final Map<String, String> nameMap = field.getOptionValueFieldMap();
+        final String[] valueFields = field.getOptionValueField();
+        if (nameMap == null && valueFields.length == 1) {
+            return ;
+        }
+        item.addChangedHandler(new ChangedHandler() {
+
+            @Override
+            public void onChanged(ChangedEvent event) {
+                FormItem item = event.getItem();
+                ListGridRecord selectedRecord = null;
+                if (item instanceof SelectItem) {
+                    SelectItem selectItem = (SelectItem) item;
+                    selectedRecord = selectItem.getSelectedRecord();
+                } else if (item instanceof ComboBoxItem) {
+                    ComboBoxItem cbi = (ComboBoxItem) item;
+                    selectedRecord = cbi.getSelectedRecord();
+                }
+                if (selectedRecord != null) {
+                    if (nameMap != null) {
+                        for (Entry<String, String> entry : nameMap.entrySet()) {
+                            String pickName = entry.getKey();
+                            String fieldName = entry.getValue();
+                            if (item.getName().equals(fieldName)) {
+                                continue;
+                            }
+                            String value = selectedRecord.getAttribute(pickName);
+                            ValuesManager vm = item.getForm().getValuesManager();
+                            vm.setValue(fieldName, value);
+                        }
+                    } else {
+                        for (String fieldName : valueFields) {
+                            if (item.getName().equals(fieldName)) {
+                                continue;
+                            }
+                            String value = selectedRecord.getAttribute(fieldName);
+                            ValuesManager vm = item.getForm().getValuesManager();
+                            vm.setValue(fieldName, value);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    protected static Integer getWidthAsInteger(String width) {
+        if (width != null) {
+            try {
+                return Integer.parseInt(width);
+            } catch (NumberFormatException ex) {
+                // no-op
+            }
+        }
+        return null;
     }
 
     public RadioGroupItem getRadioGroupItem(Field f, String lang) {

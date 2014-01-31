@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.webapp.shared.form;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The helper class to build form fields programmatically.
@@ -38,6 +39,7 @@ public final class FieldBuilder {
     private final List<Field> fields = new ArrayList<Field>();
     private Field optionDataSource;
     private String[] valueFieldNames;
+    private Map<String, String> valueFieldMap;
 
     public FieldBuilder(String name) {
         this.name = name;
@@ -109,10 +111,20 @@ public final class FieldBuilder {
         return this;
     }
 
+    public FieldBuilder setOptionDataSource(Field fieldAsDataSource,
+            String valueFieldName, Map<String, String> valueFieldMap) {
+
+        this.optionDataSource = fieldAsDataSource;
+        this.valueFieldNames = new String[] {valueFieldName};
+        this.valueFieldMap = valueFieldMap;
+        return this;
+    }
+
     public Field createField() {
         return new Field(name, type, title, hint, maxOccurrences,
                 required, hidden, readOnly, length, width,
-                valueMap, optionDataSource, valueFieldNames,
+                valueMap,
+                optionDataSource, valueFieldNames, valueFieldMap,
                 fields);
     }
 

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Describes field of a form.
@@ -48,6 +49,7 @@ public class Field {
     private LinkedHashMap<String, String> valueMap;
     private final Field optionDataSource;
     private final String[] valueFieldNames;
+    private Map<String, String> valueFieldMap;
     private List<Field> fields;
     private transient Field parent;
 
@@ -55,7 +57,8 @@ public class Field {
             List<Localized> hint, Integer maxOccurrences,
             Boolean required, Boolean hidden, Boolean readOnly,
             Integer length, String width,
-            LinkedHashMap<String, String> valueMap, Field optionDataSource, String[] valueFieldNames,
+            LinkedHashMap<String, String> valueMap,
+            Field optionDataSource, String[] valueFieldNames, Map<String, String> valueFieldMap,
             List<Field> fields) {
 
         this.name = name;
@@ -71,6 +74,7 @@ public class Field {
         this.valueMap = valueMap;
         this.optionDataSource = optionDataSource;
         this.valueFieldNames = valueFieldNames;
+        this.valueFieldMap = valueFieldMap;
         this.fields = fields != null ? fields : new ArrayList<Field>();
         for (Field child : this.fields) {
             child.parent = this;
@@ -138,9 +142,23 @@ public class Field {
         return optionDataSource;
     }
 
-    /** Gets field names holding option value. */
+    /**
+     * Gets options data source field name(s) holding selected value(s).
+     * Gets {@code array.length > 1} in case the selected values should be copied to other form fields.
+     * Use {@link #getOptionValueFieldMap() } in case of option names differs from form field names
+     * and there is more then one option field to copy.
+     */
     public String[] getOptionValueField() {
         return valueFieldNames;
+    }
+
+    /**
+     * Gets mapping of options data source field names to sibling field names.
+     * Used by select or combo pick lists to put selected values to matching fields
+     * in case options data source field names differs from the target form field names.
+     */
+    public Map<String, String> getOptionValueFieldMap() {
+        return valueFieldMap;
     }
 
     public List<Field> getFields() {
