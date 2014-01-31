@@ -59,6 +59,8 @@ public class FormGenerator {
     private static final Logger LOG = Logger.getLogger(FormGenerator.class.getName());
     private final Form formDeclaration;
     private final String activeLocale;
+    private int defaultTextLength = 1000;
+    private String defaultWidth = "400";
 
     public FormGenerator(Form f, String activeLocale) {
         this.formDeclaration = f;
@@ -178,8 +180,8 @@ public class FormGenerator {
 
     public TextItem getTextFormItem(Field f, String lang) {
         TextItem item = new TextItem(f.getName(), f.getTitle(activeLocale));
-        item.setLength(f.getLength());
-        item.setWidth("400");
+        item.setLength(f.getLength() != null ? f.getLength() : defaultTextLength);
+        item.setWidth(defaultWidth);
         return item;
     }
 
