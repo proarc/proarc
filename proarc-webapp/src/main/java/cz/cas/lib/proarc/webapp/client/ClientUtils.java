@@ -271,8 +271,11 @@ public final class ClientUtils {
         HashMap<Object, Object> nonNunlls = new HashMap<Object, Object>();
         Map<?, ?> recordMap = r.toMap();
         for (Map.Entry<?, ?> entry : recordMap.entrySet()) {
-            if (entry.getValue() != null) {
-                nonNunlls.put(entry.getKey(), entry.getValue());
+            Object value = entry.getValue();
+            if (value instanceof Map && ((Map) value).isEmpty()) {
+                hasNull = true;
+            } else if (value != null) {
+                nonNunlls.put(entry.getKey(), value);
             } else {
                 hasNull = true;
             }

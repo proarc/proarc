@@ -361,6 +361,10 @@ public final class RepeatableFormItem extends CanvasItem {
             Field profile = getProfile(canvasItem);
             if (profile != null && profile.getMaxOccurrences() != null && profile.getMaxOccurrences() == 1) {
                 Record dataAsRecord = dataAsRecordList.isEmpty() ? null : dataAsRecordList.get(0);
+                if (dataAsRecord != null) {
+                    // or put it to RepeatableForm.onItemChanged?
+                    dataAsRecord = ClientUtils.removeNulls(dataAsRecord);
+                }
                 canvasItem.storeValue(dataAsRecord);
             } else {
                 canvasItem.storeValue(new RecordList(dataAsRecordList.duplicate()));
