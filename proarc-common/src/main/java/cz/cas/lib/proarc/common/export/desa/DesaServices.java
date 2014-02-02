@@ -18,8 +18,16 @@ package cz.cas.lib.proarc.common.export.desa;
 
 import cz.cas.lib.proarc.common.export.desa.sip2desa.SIP2DESATransporter;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.ACollects.ACollect;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.AFunds.AFund;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.CreCntrls.CreCntrl;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.DocTypes.DocType;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.Locs;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.Locs.Loc;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.Pronoms.Pronom;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RdCntrls.RdCntrl;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls.RecCl;
+import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecTypes.RecType;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import java.io.File;
@@ -67,11 +75,32 @@ public final class DesaServices {
         if (n == null) {
             return maps;
         }
+        if (n.getACollects() != null) {
+            maps.add(new ValueMap<ACollect>(pluginId + ".a-collect", n.getACollects().getACollect()));
+        }
+        if (n.getAFunds() != null) {
+            maps.add(new ValueMap<AFund>(pluginId + ".a-fund", n.getAFunds().getAFund()));
+        }
+        if (n.getCreCntrls() != null) {
+            maps.add(new ValueMap<CreCntrl>(pluginId + ".cre-cntrl", n.getCreCntrls().getCreCntrl()));
+        }
+        if (n.getDocTypes() != null) {
+            maps.add(new ValueMap<DocType>(pluginId + ".doc-type", n.getDocTypes().getDocType()));
+        }
+        if (n.getLocs() != null) {
+            maps.add(new ValueMap<Loc>(pluginId + ".loc", n.getLocs().getLoc()));
+        }
+        if (n.getPronoms() != null) {
+            maps.add(new ValueMap<Pronom>(pluginId + ".pronom", n.getPronoms().getPronom()));
+        }
         if (n.getRdCntrls() != null) {
             maps.add(new ValueMap<RdCntrl>(pluginId + ".rd-cntrl", n.getRdCntrls().getRdCntrl()));
         }
         if (n.getRecCls() != null) {
             maps.add(new ValueMap<RecCl>(pluginId + ".rec-cl", n.getRecCls().getRecCl()));
+        }
+        if (n.getRecTypes() != null) {
+            maps.add(new ValueMap<RecType>(pluginId + ".rec-type", n.getRecTypes().getRecType()));
         }
         return maps;
     }
