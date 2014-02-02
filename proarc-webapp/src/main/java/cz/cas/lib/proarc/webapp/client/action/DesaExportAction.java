@@ -51,6 +51,8 @@ import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ExportDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
+import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  * The DESA export action.
@@ -59,6 +61,9 @@ import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
  */
 public class DesaExportAction extends AbstractAction {
 
+    private static final HashSet<String> MODELS = new HashSet<String>(Arrays.asList(
+            "model:desFolder", "model:desInternalRecord", "model:desExternalRecord",
+            "model:derFolder", "model:derDocument"));
     private final ClientMessages i18n;
     private final ExportType type;
 
@@ -111,7 +116,7 @@ public class DesaExportAction extends AbstractAction {
 //                String metadataFormat = model.getMetadataFormat();
                 String modelId = dobj.getModelId();
                 // XXX hack; it needs support to query model/object for action availability
-                if (modelId != null && (modelId.startsWith("model:des") || modelId.startsWith("model:der"))) {
+                if (MODELS.contains(modelId)) {
                     accept = true;
                     continue;
                 }
