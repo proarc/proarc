@@ -102,17 +102,19 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
                 "proarc.metadata.editor.nsesss.desInternalRecord",
                 nsesssPlugin,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
                 ));
-//        models.add(new MetaModel(
-//                MODEL_EXTERNAL_RECORD, true, null,
-//                Arrays.asList(new ElementType("External Record", "en"), new ElementType("Doručený dokument", "cs")),
-//                NsesssConstants.NS,
-//                "proarc.metadata.editor.nsesss.desExternalRecord",
-//                nsesssPlugin,
-//                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-//                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
-//                ));
+        models.add(new MetaModel(
+                MODEL_EXTERNAL_RECORD, true, null,
+                Arrays.asList(new ElementType("External Record", "en"), new ElementType("Doručený dokument", "cs")),
+                NsesssConstants.NS,
+                "proarc.metadata.editor.nsesss.desExternalRecord",
+                nsesssPlugin,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
         models.add(new MetaModel(
                 MODEL_FILE, null, true,
                 Arrays.asList(new ElementType("DES Component", "en"), new ElementType("DES Komponenta", "cs")),
@@ -309,7 +311,7 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
             } else if (MODEL_INTERNAL_RECORD.equals(modelId)) {
                 return NsesssUtils.defaultInternalDokument();
             } else if (MODEL_EXTERNAL_RECORD.equals(modelId)) {
-                return new Dokument();
+                return NsesssUtils.defaultExternalDocument();
             }
             throw new DigitalObjectException(fobject.getPid(), null,
                     DESCRIPTION_DATASTREAM_ID, "Unknown model: " + modelId, null);

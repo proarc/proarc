@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Default values for model:desExternalRecord
+-->
+<Dokument ID="" xmlns="http://www.mvcr.cz/nsesss/v2">
+    <EvidencniUdaje>
+        <Identifikace>
+            <Identifikator zdroj="ERMS"></Identifikator>
+        </Identifikace>
+        <Evidence>
+            <UrceneCasoveObdobi>
+                <Rok></Rok>
+            </UrceneCasoveObdobi>
+            <NazevEvidenceDokumentu>ERMS</NazevEvidenceDokumentu>
+        </Evidence>
+        <Jazyky>
+            <Jazyk>cze</Jazyk>
+        </Jazyky>
+        <Vyrizeni>
+            <Datum></Datum>
+            <Zpusob>vyřízení dokumentem</Zpusob>
+        </Vyrizeni>
+        <Vyrazovani>
+            <SkartacniRezim>
+                <Oduvodneni>Vyplývá ze spisového plánu organizace</Oduvodneni>
+                <SkartacniZnak>V</SkartacniZnak>
+                <SkartacniLhuta>1</SkartacniLhuta>
+                <SpousteciUdalost>Uzavření spisu</SpousteciUdalost>
+            </SkartacniRezim>
+        </Vyrazovani>
+        <Manipulace>
+            <NezbytnyDokument>ne</NezbytnyDokument>
+            <AnalogovyDokument>ano</AnalogovyDokument>
+        </Manipulace>
+    </EvidencniUdaje>
+</Dokument>

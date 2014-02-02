@@ -126,4 +126,10 @@ public final class NsesssUtils {
         return d;
     }
 
+    public static Dokument defaultExternalDocument() {
+        URL template = NsesssUtils.class.getResource("model_desExternalRecord_default.xml");
+        Dokument d = unmarshal(template, Dokument.class);
+        return d;
+    }
+
 }

@@ -58,6 +58,8 @@ public class NsesssV2Form {
             f = DesForms.spisForm();
         } else if ("model:desInternalRecord".equals(modelId)) {
             f = DesForms.intenalDocumentForm();
+        } else if ("model:desExternalRecord".equals(modelId)) {
+            f = DesForms.externalDocumentForm();
         } else {
             return null;
         }
@@ -82,6 +84,13 @@ public class NsesssV2Form {
                 FormItem formItem = form.getField("subjectType");
                 if (formItem != null) {
                     return attachVyrizeniPrijemceSubjektGroup(fw, formItem, f);
+                }
+            } else if ("Subjekt".equals(f.getName())
+                    && f.getParent() != null && "Odesilatel".equals(f.getParent().getName())) {
+
+                FormItem formItem = form.getField("subjectType");
+                if (formItem != null) {
+                    return attachPuvodDorucenyDokumentOdesilatelSubjectGroup(fw, formItem, f);
                 }
             }
             return fw;
@@ -114,6 +123,51 @@ public class NsesssV2Form {
             fw.addFormWidgetListener(handler);
             itemSubject.addChangeHandler(handler);
             return fw;
+        }
+
+        /** XXX ugly; requires refactoring! */
+        private FormWidget attachPuvodDorucenyDokumentOdesilatelSubjectGroup(FormWidget fw, final FormItem itemSubject, final Field group) {
+            class Handler implements FormWidgetListener, ChangeHandler {
+
+                @Override
+                public void onDataLoad() {
+                    if (itemSubject.getValue() == null) {
+                        // init of empty form
+                        itemSubject.setValue("PravnickaOsoba");
+                    }
+                    resetDorucenyDokumentOdesilatelForm(itemSubject.getForm(), group, null, false);
+                }
+
+                @Override
+                public void onChange(ChangeEvent event) {
+                    String name = event.getItem().getName();
+                    Object oldValue = event.getOldValue();
+                    Object value = event.getValue();
+                    if (oldValue == null || !oldValue.equals(value)) {
+                        resetDorucenyDokumentOdesilatelForm(itemSubject.getForm(), group, String.valueOf(value), true);
+                    }
+                }
+
+            }
+            Handler handler = new Handler();
+            fw.addFormWidgetListener(handler);
+            itemSubject.addChangeHandler(handler);
+            return fw;
+        }
+
+        /** Switches form members according to selected subject type. */
+        private void resetDorucenyDokumentOdesilatelForm(DynamicForm form, Field group, String subjectTypeValue, boolean clear) {
+            String value = subjectTypeValue != null ? subjectTypeValue : form.getValueAsString("subjectType");
+            boolean isPravnickaOsoba = "PravnickaOsoba".equals(value);
+            resetField(form.getField("PostovniAdresa"), clear && isPravnickaOsoba, !isPravnickaOsoba, !isPravnickaOsoba);
+            resetIdentifierField(form.getField("IdentifikatorOrganizace"), clear && !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
+            resetIdentifierField(form.getField("IdentifikatorFyzickeOsoby"), false, true, false);
+            resetField(form.getField("NazevFyzickeOsoby"),  false, true, !isPravnickaOsoba);
+            resetField(form.getField("NazevOrganizace"), clear && !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
+            resetField(form.getField("OrganizacniUtvar"), clear && !isPravnickaOsoba, isPravnickaOsoba, false);
+            resetField(form.getField("PracovniPozice"), clear && !isPravnickaOsoba, isPravnickaOsoba, false);
+            resetField(form.getField("SidloOrganizace"), clear && !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
+            resetField(form.getField("ElektronickyKontakt"), false, true, !isPravnickaOsoba);
         }
 
         /** Switches form members according to selected subject type. */

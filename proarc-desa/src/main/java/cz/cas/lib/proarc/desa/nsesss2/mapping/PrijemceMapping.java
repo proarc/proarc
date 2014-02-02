@@ -18,8 +18,11 @@ package cz.cas.lib.proarc.desa.nsesss2.mapping;
 
 import cz.cas.lib.proarc.desa.nsesss2.Dokument;
 import cz.cas.lib.proarc.desa.nsesss2.NsesssConstants;
+import cz.cas.lib.proarc.desa.nsesss2.TDorucenyDokument;
 import cz.cas.lib.proarc.desa.nsesss2.TEvidencniUdajeDokumentu;
+import cz.cas.lib.proarc.desa.nsesss2.TOsobaExterni;
 import cz.cas.lib.proarc.desa.nsesss2.TOsobyExterni;
+import cz.cas.lib.proarc.desa.nsesss2.TPuvodDokumentu;
 import cz.cas.lib.proarc.desa.nsesss2.TSubjektExterni;
 import cz.cas.lib.proarc.desa.nsesss2.TVyrizeniEntity;
 import java.util.ArrayList;
@@ -45,6 +48,17 @@ public final class PrijemceMapping {
             TVyrizeniEntity vyrizeni = eu.getVyrizeni();
             if (vyrizeni != null) {
                 toJson(vyrizeni.getPrijemce());
+            }
+            TPuvodDokumentu puvod = eu.getPuvod();
+            if (puvod != null) {
+                TDorucenyDokument dorucenyDokument = puvod.getDorucenyDokument();
+                if (dorucenyDokument != null) {
+                    TOsobaExterni odesilatel = dorucenyDokument.getOdesilatel();
+                    if (odesilatel != null) {
+                        TSubjektExterni synthetic = toJson(odesilatel.getSubjekt());
+                        odesilatel.setSubjekt(synthetic);
+                    }
+                }
             }
         }
         return d;
