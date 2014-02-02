@@ -534,7 +534,15 @@ public final class RepeatableFormItem extends CanvasItem {
             Object validatedValue = rfItem.getValue();
             setResultingValue(validatedValue);
 
-            RecordList recordList = new RecordList((JavaScriptObject) validatedValue);
+//            ClientUtils.severe(LOG, "DefaultValidator.name: %s, class: %s, JSO: %s",
+//                    rfItem.getName(), ClientUtils.safeGetClass(validatedValue), ClientUtils.dump(validatedValue));
+            JavaScriptObject jso = (JavaScriptObject) validatedValue;
+            RecordList recordList = null;
+            if (JSOHelper.isArray(jso)) {
+                recordList = new RecordList(jso);
+            } else if (jso != null) {
+                recordList = new RecordList(new Record[] {new Record(jso)});
+            }
             valid &= conditionRequired(recordList);
             return valid;
         }
