@@ -67,9 +67,9 @@ public class DesForms {
                                     .addField(new FieldBuilder("fullyQcc").setTitle("Kód").createField())
                                     .addField(new FieldBuilder("title").setTitle("Název").createField())
                                 .createField(), // desa-des.rec-cl
-                                "fullyQcc", new HashMap<String, String>() {{put("fullyQcc", "JednoduchySpisovyZnak"); put("title", "PlneUrcenySpisovyZnak");}})
+                                "classCode", new HashMap<String, String>() {{put("classCode", "JednoduchySpisovyZnak"); put("fullyQcc", "PlneUrcenySpisovyZnak");}})
                         .createField()) // JednoduchySpisovyZnak
-                        .addField(new FieldBuilder("PlneUrcenySpisovyZnak").setTitle("Název").setMaxOccurrences(1).setType(TEXT).setLength(255).setRequired(true).createField())
+                        .addField(new FieldBuilder("PlneUrcenySpisovyZnak").setTitle("Plný kód").setMaxOccurrences(1).setType(TEXT).setLength(255).setRequired(true).createField())
                     .createField()) // Trideni
 
                     .addField(new FieldBuilder("VyrizeniUzavreni").setTitle("Uzavření").setMaxOccurrences(1).setRequired(true)
@@ -85,6 +85,7 @@ public class DesForms {
                             .addField(createSubjectOsobyInterniField("Zpracovatelé")) // Subjekt
                         .createField()) // Zpracovatel
                     .createField()) // VyrizeniUzavreni
+
                     .addField(new FieldBuilder("Vyrazovani").setTitle("Skartace").setMaxOccurrences(1).setRequired(true)
                         .addField(new FieldBuilder("SkartacniRezim").setMaxOccurrences(1).setRequired(true)
                             .addField(createIdentifikatorField("Identifikator", "Identifikátor skartačního režimu"))
