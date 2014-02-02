@@ -59,7 +59,7 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     private ArrayList<Row> activeRows = new ArrayList<Row>();
     private final RepeatableFormItem formItem;
 
-    private static final class Row {
+    public static final class Row {
         private FormWidget formWidget;
         /** form + buttons */
         private Canvas view;
@@ -127,6 +127,10 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     @Override
     public HandlerRegistration addListChangedHandler(ListChangedHandler handler) {
         return doAddHandler(handler, ListChangedEvent.TYPE);
+    }
+
+    public List<Row> getRows() {
+        return activeRows;
     }
 
     public void setData(Record... data) {

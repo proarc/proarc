@@ -16,14 +16,19 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.nsesss;
 
+import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.ValuesManager;
 import com.smartgwt.client.widgets.form.fields.FormItem;
-import com.smartgwt.client.widgets.form.fields.events.ChangedEvent;
-import com.smartgwt.client.widgets.form.fields.events.ChangedHandler;
+import com.smartgwt.client.widgets.form.fields.events.ChangeEvent;
+import com.smartgwt.client.widgets.form.fields.events.ChangeHandler;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.widget.form.FormGenerator;
+import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableForm.Row;
+import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableFormItem;
 import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableFormItem.FormWidget;
 import cz.cas.lib.proarc.webapp.client.widget.mods.RepeatableFormItem.FormWidgetListener;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
@@ -51,8 +56,8 @@ public class NsesssV2Form {
         Form f;
         if ("model:desFolder".equals(modelId)) {
             f = DesForms.spisForm();
-//        } else if ("model:desInternalRecord".equals(modelId)) {
-//            f = DesForms.intenalDocumentForm();
+        } else if ("model:desInternalRecord".equals(modelId)) {
+            f = DesForms.intenalDocumentForm();
         } else {
             return null;
         }
@@ -82,38 +87,63 @@ public class NsesssV2Form {
             return fw;
         }
 
-        private FormWidget attachVyrizeniPrijemceSubjektGroup(FormWidget fw, final FormItem formItem, final Field group) {
-            class Handler implements FormWidgetListener, ChangedHandler {
+        private FormWidget attachVyrizeniPrijemceSubjektGroup(FormWidget fw, final FormItem itemSubject, final Field group) {
+            class Handler implements FormWidgetListener, ChangeHandler {
 
                 @Override
                 public void onDataLoad() {
-                    resetDokumentPrijemceForm(formItem.getForm(), group);
+                    if (itemSubject.getValue() == null) {
+                        // init of empty form
+                        itemSubject.setValue("PravnickaOsoba");
+                    }
+                    resetDokumentPrijemceForm(itemSubject.getForm(), group, null, false);
                 }
 
                 @Override
-                public void onChanged(ChangedEvent event) {
-                    resetDokumentPrijemceForm(formItem.getForm(), group);
+                public void onChange(ChangeEvent event) {
+                    String name = event.getItem().getName();
+                    Object oldValue = event.getOldValue();
+                    Object value = event.getValue();
+                    if (oldValue == null || !oldValue.equals(value)) {
+                        resetDokumentPrijemceForm(itemSubject.getForm(), group, String.valueOf(value), true);
+                    }
                 }
 
             }
             Handler handler = new Handler();
             fw.addFormWidgetListener(handler);
-            formItem.addChangedHandler(handler);
+            itemSubject.addChangeHandler(handler);
             return fw;
         }
 
-        private void resetDokumentPrijemceForm(DynamicForm form, Field group) {
-            String value = form.getValueAsString("subjectType");
+        /** Switches form members according to selected subject type. */
+        private void resetDokumentPrijemceForm(DynamicForm form, Field group, String subjectTypeValue, boolean clear) {
+            String value = subjectTypeValue != null ? subjectTypeValue : form.getValueAsString("subjectType");
             boolean isPravnickaOsoba = "PravnickaOsoba".equals(value);
-            resetField(form.getField("PostovniAdresa"), isPravnickaOsoba, !isPravnickaOsoba, !isPravnickaOsoba);
-            resetField(form.getField("IdentifikatorOrganizace"), !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
-            resetField(form.getField("IdentifikatorFyzickeOsoby"), false, true, !isPravnickaOsoba);
-            resetField(form.getField("NazevOrganizace"), !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
-            resetField(form.getField("OrganizacniUtvar"), !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
-            resetField(form.getField("PracovniPozice"), !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
-            resetField(form.getField("SidloOrganizace"), !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
+            resetField(form.getField("PostovniAdresa"), clear && isPravnickaOsoba, !isPravnickaOsoba, !isPravnickaOsoba);
+            resetIdentifierField(form.getField("IdentifikatorOrganizace"), clear && !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
+            resetIdentifierField(form.getField("IdentifikatorFyzickeOsoby"), false, true, !isPravnickaOsoba);
+            resetField(form.getField("NazevOrganizace"), clear && !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
+            resetField(form.getField("OrganizacniUtvar"), clear && !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
+            resetField(form.getField("PracovniPozice"), clear && !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
+            resetField(form.getField("SidloOrganizace"), clear && !isPravnickaOsoba, isPravnickaOsoba, isPravnickaOsoba);
         }
 
+        /** Resets nested Identifier members. */
+        private void resetIdentifierField(FormItem fi, boolean clear, boolean visible, boolean required) {
+            Canvas canvas = ((RepeatableFormItem) fi).getCanvas();
+            RepeatableForm rf = (RepeatableForm) canvas;
+            for (Row row : rf.getRows()) {
+                ValuesManager vm = row.getForm();
+                DynamicForm[] nestedForms = vm.getMembers();
+                for (DynamicForm nf : nestedForms) {
+                    for (FormItem formItem : nf.getFields()) {
+                        formItem.setRequired(required);
+                    }
+                }
+            }
+            resetField(fi, clear, visible, required);
+        }
         private void resetField(FormItem fi, boolean clear, boolean visible, boolean required) {
             fi.setVisible(visible);
             fi.setRequired(required);
