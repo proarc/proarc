@@ -107,7 +107,7 @@ public class SIP2DESATransporter {
 
     /**
      * Returns the parsed result from the result file
-     * 
+     *
      * @return
      */
     public PSPSIP getResults() {
@@ -128,7 +128,7 @@ public class SIP2DESATransporter {
 
     /**
      * The transporter entry point
-     * 
+     *
      * @param args
      *            command line arguments for transport mode : transport
      *            <input-folder> <results-folder> <log-folder> command line
@@ -168,7 +168,7 @@ public class SIP2DESATransporter {
      * The status of the import of each SIP is written in the results XML file
      * named TRANSF_packageid.xml in the resultsRoot folder. The JDK logging
      * output is mirrored in the packageid.log file in the logRoot folder.
-     * 
+     *
      * @param sourceRoot
      * @param resultsRoot
      * @param logRootIn
@@ -183,7 +183,7 @@ public class SIP2DESATransporter {
      * The status of the import of each SIP is written in the results XML file
      * named TRANSF_packageid.xml in the resultsRoot folder. The JDK logging
      * output is mirrored in the packageid.log file in the logRoot folder.
-     * 
+     *
      * @param sourceRoot
      * @param resultsRoot
      * @param logRootIn
@@ -248,7 +248,10 @@ public class SIP2DESATransporter {
                 if (mtdpspIndex > -1) {
                     uploadFile(sourceFiles[mtdpspIndex], SipType.RECORD, true);
                 }
-                uploadFile(sourceFiles[filesIndex], SipType.FILE, true);
+
+                if (filesIndex >= 0) {
+                    uploadFile(sourceFiles[filesIndex], SipType.FILE, true);
+                }
 
             } catch (Throwable th) {
                 log.log(Level.SEVERE, "Error in file upload: ", th);
@@ -404,7 +407,7 @@ public class SIP2DESATransporter {
 
     /**
      * Initialize JAXB transformers for Nomenclatures
-     * 
+     *
      * @throws JAXBException
      */
     private void initJAXBNomen() throws JAXBException {
@@ -417,7 +420,7 @@ public class SIP2DESATransporter {
 
     /**
      * Initialize JAXB transformers
-     * 
+     *
      * @throws JAXBException
      */
     private void initJAXB() throws JAXBException {
@@ -441,7 +444,7 @@ public class SIP2DESATransporter {
      * asyncSubmitPackageStart, then copy the zip file to the mapped DESA target
      * folder and finally call the DESA API method asyncSubmitPackageEnd. Add
      * the corresponding entry into the results file JAXB representation.
-     * 
+     *
      * @param file
      * @param sipType
      * @param writeResults
@@ -579,7 +582,7 @@ public class SIP2DESATransporter {
     /**
      * Initialize the Typesafe Config configuration system
      * (https://github.com/typesafehub/config)
-     * 
+     *
      * @return
      */
     private void initConfig(Map<String, ?> customConfig) {
@@ -606,6 +609,19 @@ public class SIP2DESATransporter {
                 filesIndex = i;
             } else if (sourceFiles[i].getName().endsWith("_MTDPSP.zip")) {
                 mtdpspIndex = i;
+            }
+        }
+
+        if (packageid == null) {
+            for (int i = 0; i < sourceFiles.length; i++) {
+                if (sourceFiles[i].getName().endsWith(".zip")) {
+                    if (sourceFiles[i].getName().indexOf("_")>0) {
+                        packageid = sourceFiles[i].getName().substring(0, sourceFiles[i].getName().indexOf("_"));
+                    } else {
+                        packageid = sourceFiles[i].getName().replace(".zip", "");
+                    }
+                    break;
+                }
             }
         }
 
@@ -726,7 +742,7 @@ public class SIP2DESATransporter {
      * resultsRoot folder is checked by call to the DESA API getPackageStatus
      * method. The results file is then updated accordingly. The JDK logging
      * output is mirrored in the packageid.log file in the logRoot folder.
-     * 
+     *
      * @param resultsFileStr
      * @param logRootIn
      */
@@ -740,7 +756,7 @@ public class SIP2DESATransporter {
      * resultsRoot folder is checked by call to the DESA API getPackageStatus
      * method. The results file is then updated accordingly. The JDK logging
      * output is mirrored in the packageid.log file in the logRoot folder.
-     * 
+     *
      * @param resultsFileStr
      * @param logRootIn
      * @param customConfig
@@ -830,7 +846,7 @@ public class SIP2DESATransporter {
 
     /**
      * Convert the existing results file to JAXB representation
-     * 
+     *
      * @param resultsFile
      */
     private void parseResultsFile(File resultsFile) {
@@ -856,7 +872,7 @@ public class SIP2DESATransporter {
     /**
      * Check the status of the SIP of one entry in the results file and update
      * the entry in the JAXB object.
-     * 
+     *
      * @param sip
      * @return
      */
@@ -916,7 +932,7 @@ public class SIP2DESATransporter {
     /**
      * Check if the directory with the given path exists and create it if
      * necessary
-     * 
+     *
      * @param name
      *            The path of the requested directory
      * @return The File representation of the requested directory
@@ -940,7 +956,7 @@ public class SIP2DESATransporter {
 
     /**
      * Calculate the MD5 checksum of the given file
-     * 
+     *
      * @param file
      * @return
      */
