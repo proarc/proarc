@@ -188,7 +188,7 @@ public final class AppConfiguration {
 
     private void copyConfigTemplateImpl(File configHome) throws IOException {
         File cfgFile = new File(configHome, CONFIG_FILE_NAME + ".template");
-        if (!cfgFile.exists()) {
+        if (!cfgFile.exists() || cfgFile.exists() && cfgFile.isFile() && cfgFile.canWrite()) {
             Enumeration<URL> resources = AppConfiguration.class.getClassLoader()
                     .getResources(DEFAULT_PROPERTIES_RESOURCE);
             URL lastResource = null;
