@@ -230,10 +230,6 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
             // XXX user -> organization -> identifier
             handler.getParameterUser();
             DigitalObjectHandler parent = handler.getParameterParent();
-            MetadataHandler<OaiDcType> parentMetadata = null;
-            if (parent != null) {
-                parentMetadata = parent.metadata();
-            }
             String modelId = handler.relations().getModel();
 
             if (MODEL_FOLDER.equals(modelId)) {
@@ -241,8 +237,8 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
                 dc.getIdentifiers().add(new ElementType(identifier, null));
                 dc.getTitles().add(new ElementType(identifier + '-', null));
             } else if (MODEL_DOCUMENT.equals(modelId)) {
-                if (parentMetadata != null) {
-                    OaiDcType parentDc = parentMetadata.getMetadata().getData();
+                OaiDcType parentDc = getParentDcMetadata(parent);
+                if (parentDc != null) {
                     if (!parentDc.getIdentifiers().isEmpty()) {
                         String identifier = parentDc.getIdentifiers().get(0).getValue();
                         dc.getIdentifiers().add(new ElementType(identifier + '-', null));
@@ -336,6 +332,25 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
                         "datastream not initialized!", null);
             }
             return src;
+        }
+
+        /**
+         * Gets parent DC.
+         * @param parent parent to query
+         * @return the description metadata or {@code null}
+         * @throws DigitalObjectException failure
+         */
+        private static OaiDcType getParentDcMetadata(DigitalObjectHandler parent) throws DigitalObjectException {
+            if (parent != null) {
+                MetadataHandler<Object> metadataHandler = parent.metadata();
+                if (metadataHandler != null) {
+                    Object metadata = metadataHandler.getMetadata().getData();
+                    if (metadata instanceof OaiDcType) {
+                        return (OaiDcType) metadata;
+                    }
+                }
+            }
+            return null;
         }
 
         static void addPid(OaiDcType dc, String pid) {
