@@ -35,7 +35,7 @@
                     <generatePackage>cz.cas.lib.proarc.mods</generatePackage>
                     <schemaLanguage>XMLSCHEMA</schemaLanguage>
                     <schemaDirectory>src/main/resources/cz/cas/lib/proarc/mods</schemaDirectory>
-                    <catalog>catalog.cat</catalog>
+                    <catalog>src/main/resources/cz/cas/lib/proarc/mods/catalog.cat</catalog>
                     <args>
                         <!--
                             Use custom package-info.java with preferred namespace prefixes.

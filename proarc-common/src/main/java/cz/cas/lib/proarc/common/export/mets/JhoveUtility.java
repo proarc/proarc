@@ -25,8 +25,12 @@ import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
@@ -41,9 +45,9 @@ import edu.harvard.hul.ois.jhove.OutputHandler;
 
 /**
  * @author eskymo
- * 
+ *
  *         Utility class for jHove application
- * 
+ *
  */
 public class JhoveUtility {
 
@@ -51,7 +55,7 @@ public class JhoveUtility {
 
     /**
      * Returns a node with MIX info - helper
-     * 
+     *
      * @param node
      * @return
      */
@@ -71,9 +75,9 @@ public class JhoveUtility {
     }
 
     /**
-     * 
+     *
      * Inits the Jhove app
-     * 
+     *
      * @param metsInfo
      */
     public static void initJhove(MetsInfo metsInfo) throws MetsExportException {
@@ -95,9 +99,9 @@ public class JhoveUtility {
     }
 
     /**
-     * 
+     *
      * Returns a MIX node
-     * 
+     *
      * @param targetFile
      * @param metsinfo
      * @return
@@ -132,18 +136,26 @@ public class JhoveUtility {
 
     /**
      * Copy the Jhove configuration file to a temporary file.
-     * 
+     *
      * @return the {@link File} where the Jhove configuration was saved.
-     * 
+     *
      */
 
     private static File createJhoveConfigurationFile() throws MetsExportException {
         InputStream jhoveConfInputStream = JhoveUtility.class.getResourceAsStream("jhove.conf");
+        InputStream jhoveConfXSDInputStream = JhoveUtility.class.getResourceAsStream("jhoveConfig.xsd");
         try {
             File jhoveConfFile = File.createTempFile("jhove", "conf");
             LOG.log(Level.FINE, "JHOVE configuration file " + jhoveConfFile);
             FileOutputStream jhoveConfOutputStream = new FileOutputStream(jhoveConfFile);
             IOUtils.copy(jhoveConfInputStream, jhoveConfOutputStream);
+            File xsdFile = new File(jhoveConfFile.getParent() + File.separator + "jhoveConfig.xsd");
+            if (!xsdFile.exists()) {
+                FileOutputStream jhoveXSDOutputStream = new FileOutputStream(xsdFile);
+                IOUtils.copy(jhoveConfXSDInputStream, jhoveXSDOutputStream);
+                jhoveConfXSDInputStream.close();
+                jhoveXSDOutputStream.close();
+            }
             jhoveConfInputStream.close();
             jhoveConfOutputStream.close();
             return jhoveConfFile;
