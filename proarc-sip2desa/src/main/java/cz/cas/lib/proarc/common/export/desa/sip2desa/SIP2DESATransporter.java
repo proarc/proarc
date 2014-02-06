@@ -458,8 +458,13 @@ public class SIP2DESATransporter {
 
         if (config.getBoolean("desa.rest")) {
             try {
-                String operator = config.getString("desa.operator");
-                if (operator == null) {
+                String operator;
+                if (config.hasPath("desa.operator")) {
+                    operator = config.getString("desa.operator");
+                    if (operator == null) {
+                        operator = config.getString("desa.user");
+                    }
+                } else {
                     operator = config.getString("desa.user");
                 }
 
