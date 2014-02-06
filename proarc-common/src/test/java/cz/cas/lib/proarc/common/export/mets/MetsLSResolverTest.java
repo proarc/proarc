@@ -21,14 +21,25 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.InputStream;
 import org.junit.Test;
+import org.w3c.dom.ls.LSInput;
 
 public class MetsLSResolverTest {
     @Test
     public void checkLSResolvers() {
-        MetsLSResolver metsLSResolver = new MetsLSResolver();
-        for (String resource : MetsLSResolver.urlMap.keySet()) {
-            InputStream is = metsLSResolver.getClass().getResourceAsStream(MetsLSResolver.urlMap.get(resource));
+        MetsLSResolver metsLSResolver = MetsLSResolver.getInstance();
+        for (String resource : MetsLSResolver.URL_MAP.keySet()) {
+            InputStream is = metsLSResolver.getClass().getResourceAsStream(MetsLSResolver.URL_MAP.get(resource));
             assertNotNull(is);
         }
+    }
+
+    @Test
+    public void testResolveResource() throws Exception {
+        MetsLSResolver resolver = MetsLSResolver.getInstance();
+        LSInput input = resolver.resolveResource(null, null, null, "http://www.openarchives.org/OAI/2.0/oai_dc.xsd", null);
+        assertNotNull(input);
+        InputStream stream = input.getByteStream();
+        assertNotNull(stream);
+        stream.close();
     }
 }

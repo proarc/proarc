@@ -675,7 +675,7 @@ public class MetsUtils {
     public static boolean validateAgainstXSD(Document document, InputStream xsd) throws MetsExportException {
         try {
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            factory.setResourceResolver(new MetsLSResolver());
+            factory.setResourceResolver(MetsLSResolver.getInstance());
             Schema schema = factory.newSchema(new StreamSource(xsd));
             TransformerFactory tFactory = TransformerFactory.newInstance();
             Transformer transformer = tFactory.newTransformer();
@@ -727,7 +727,7 @@ public class MetsUtils {
     public static boolean validateAgainstXSD(File file, InputStream xsd) throws MetsExportException {
         try {
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            factory.setResourceResolver(new MetsLSResolver());
+            factory.setResourceResolver(MetsLSResolver.getInstance());
             Schema schema = factory.newSchema(new StreamSource(xsd));
             DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
             dbfactory.setValidating(false);
