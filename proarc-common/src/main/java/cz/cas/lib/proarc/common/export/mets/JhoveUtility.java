@@ -19,7 +19,7 @@ package cz.cas.lib.proarc.common.export.mets;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -134,30 +134,25 @@ public class JhoveUtility {
      * @return the {@link File} where the Jhove configuration was saved.
      *
      */
-
     private static File createJhoveConfigurationFile() throws MetsExportException {
-        InputStream jhoveConfInputStream = JhoveUtility.class.getResourceAsStream("jhove.conf");
-        InputStream jhoveConfXSDInputStream = JhoveUtility.class.getResourceAsStream("jhoveConfig.xsd");
+        URL jhoveConf = JhoveUtility.class.getResource("jhove.conf");
+        URL jhoveConfXsd = JhoveUtility.class.getResource("jhoveConfig.xsd");
         try {
-            File jhoveConfFile = File.createTempFile("jhove", "conf");
+            File jhoveConfFile = new File(FileUtils.getTempDirectory(), "jhove.conf");
             LOG.log(Level.FINE, "JHOVE configuration file " + jhoveConfFile);
-            FileUtils.copyInputStreamToFile(jhoveConfInputStream, jhoveConfFile);
-            File xsdFile = new File(jhoveConfFile.getParent() + File.separator + "jhoveConfig.xsd");
+            // XXX it is not thread safe!
+            if (!jhoveConfFile.exists()) {
+                FileUtils.copyURLToFile(jhoveConf, jhoveConfFile);
+            }
+            File xsdFile = new File(jhoveConfFile.getParent(), "jhoveConfig.xsd");
+            // XXX it is not thread safe!
             if (!xsdFile.exists()) {
-                FileUtils.copyInputStreamToFile(jhoveConfXSDInputStream, xsdFile);
+                FileUtils.copyURLToFile(jhoveConfXsd, xsdFile);
             }
             return jhoveConfFile;
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Unable to create jHove config file", ex);
             throw new MetsExportException("Unable to create jHove config file", false, ex);
-        } finally {
-            try {
-                jhoveConfInputStream.close();
-                jhoveConfXSDInputStream.close();
-            } catch (IOException ioEx) {
-                LOG.log(Level.SEVERE, "Unable to close inputStream", ioEx);
-                throw new MetsExportException("Unable to close inputStream", false, ioEx);
-            }
         }
     }
 }
