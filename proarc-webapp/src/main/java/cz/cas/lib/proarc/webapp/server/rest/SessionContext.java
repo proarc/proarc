@@ -16,12 +16,15 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.authentication.ProarcPrincipal;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+
 import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
@@ -48,12 +51,18 @@ public final class SessionContext {
         if (userPrincipal == null) {
             throw new WebApplicationException(Status.FORBIDDEN);
         }
-        UserManager userManager = UserUtil.getDefaultManger();
-        UserProfile user = userManager.find(userPrincipal.getName());
-        if (user == null) {
-            throw new WebApplicationException(Status.FORBIDDEN);
+        ProarcPrincipal proarcPrincipal = (ProarcPrincipal) userPrincipal;
+        // if proarc princial has no association -> associate
+        if (proarcPrincipal.getAssociatedUserProfile() == null) {
+            UserManager userManager = UserUtil.getDefaultManger();
+            UserProfile user = userManager.find(userPrincipal.getName());
+            if (user == null) {
+                throw new WebApplicationException(Status.FORBIDDEN);
+            }
+            proarcPrincipal.associateUserProfile(user);
         }
-        return new SessionContext(user, remoteAddr);
+        
+        return new SessionContext(proarcPrincipal.getAssociatedUserProfile(), remoteAddr);
     }
 
     public static SessionContext from(UserProfile user, String clientIp) {

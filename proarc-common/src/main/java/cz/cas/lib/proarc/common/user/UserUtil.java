@@ -113,7 +113,7 @@ public final class UserUtil {
         }
     }
 
-    static String getDigist(String s) {
+    public static String getDigist(String s) {
         try {
             MessageDigest instance = MessageDigest.getInstance("SHA");
             byte[] digest = instance.digest(s.getBytes("UTF-8"));

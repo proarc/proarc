@@ -1,0 +1,45 @@
+html(error, url) ::=<<
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+$head()$
+$body(error=error, url=url)$
+</html>
+>>
+
+head() ::=<<
+<head>
+ 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <meta name="description" content="ProArc editor" />
+    <meta name="keywords" content="ProArc,editor, kramerius, fedora" />
+    <meta name="author" content="INCAD, www.incad.cz" />
+</head>
+>>
+
+body(error, url) ::=<<
+<body>
+<h2>Prihlaseni do systemu proarc</h2>	
+$if(error)$
+<strong><font color="red">chyba prihlaseni</font></strong>
+$endif$
+$loginform(url=url)$	
+</body>	
+>>
+
+loginform(url) ::=<<
+	<form name="login" id="loginForm" action="proarclogin" method="post">
+     <span id="name">Přihlašovací jméno</span><br>
+     <input type="text" size="30" name="j_username" style="border:1px solid silver;"><br>
+     <span id="password">Heslo</span><br>
+     <input type="password" name="j_password" size="30" style="border:1px solid silver;"><br>
+     <div style="padding:3px;"></div>   
+
+     <span id="code">Kod puvodce</span><br>
+     <input type="text" name="j_code" size="30" style="border:1px solid silver;"><br>
+
+     <input id="button" type="submit" value="Přihlášení" alt="Login">
+
+     <input id="url" type="hidden" value="$url$" >
+    </form>
+>>

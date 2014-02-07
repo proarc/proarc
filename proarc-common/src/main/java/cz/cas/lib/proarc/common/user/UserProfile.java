@@ -49,6 +49,8 @@ public final class UserProfile {
     private Date created;
     private Date lastLogin;
 
+    private boolean proarcuser=true;
+    
     public UserProfile() {
     }
 
@@ -185,7 +187,17 @@ public final class UserProfile {
         this.lastLogin = lastLogin;
     }
 
-    @Override
+    
+    
+    public boolean isProarcuser() {
+		return proarcuser;
+	}
+
+	public void setProarcuser(boolean proarcuser) {
+		this.proarcuser = proarcuser;
+	}
+
+	@Override
     public String toString() {
         return String.format("UserProfile[id:%s, username:%s, created:%s, lastLogin:%s, email:%s,"
                 + " forename:%s, surname:%s, userHome:%s, userHomeUri:%s, userPasswordDigest:%s]",
@@ -193,15 +205,18 @@ public final class UserProfile {
     }
 
     void validateAsNew () {
-        if (userName == null || !UserUtil.USERNAME_PATTERN.matcher(userName).matches()) {
-            throw new IllegalArgumentException("Invalid user name: " + userName);
-        }
+    	// validation only for proarc users
+    	if (this.proarcuser) {
+        	if (userName == null || !UserUtil.USERNAME_PATTERN.matcher(userName).matches()) {
+                throw new IllegalArgumentException("Invalid user name: " + userName);
+            }
 
-        if (userPassword == null || userPassword.length() < 6) {
-            throw new IllegalArgumentException("Invalid password");
-        }
+            if (userPassword == null || userPassword.length() < 6) {
+                throw new IllegalArgumentException("Invalid password");
+            }
 
-        userPasswordDigest = UserUtil.getDigist(userPassword);
+            userPasswordDigest = UserUtil.getDigist(userPassword);
+    	}
     }
 
 }

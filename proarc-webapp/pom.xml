@@ -111,6 +111,13 @@
             <artifactId>proarc-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+	<!-- proarc auth module -->
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!--HTML5 GWT file uploader-->
         <dependency>
             <groupId>org.moxieapps.gwt</groupId>

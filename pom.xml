@@ -26,7 +26,8 @@
 
     <modules>
         <module>proarc-common</module>
-        <module>proarc-desa</module>
+        <module>proarc-auth</module>
+	<module>proarc-desa</module>
         <module>proarc-oaidublincore</module>
         <module>proarc-mets</module>
         <module>proarc-mods</module>

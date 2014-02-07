@@ -159,10 +159,12 @@ final class UserManagerSql implements UserManager {
             try {
                 c.setAutoCommit(false);
                 if (profile.getUserPassword() != null) {
-                    profile.setUserPasswordDigest(UserUtil.getDigist(profile.getUserPassword()));
-                    updateTomcatUser(c, profile);
-                    profile.setUserPassword(null);
-                    profile.setUserPasswordDigest(null);
+                    if (profile.isProarcuser()) {
+                        profile.setUserPasswordDigest(UserUtil.getDigist(profile.getUserPassword()));
+                        updateTomcatUser(c, profile);
+                        profile.setUserPassword(null);
+                        profile.setUserPasswordDigest(null);
+                    }
                 }
                 updateProarcUser(c, profile);
                 c.commit();
@@ -317,8 +319,10 @@ final class UserManagerSql implements UserManager {
     UserProfile add(Connection c, UserProfile profile) {
         boolean rollback = true;
         try {
-            addTomcatUser(c, profile);
-            addTomcatRole(c, profile);
+        	if (profile.isProarcuser()) {
+                addTomcatUser(c, profile);
+                addTomcatRole(c, profile);
+        	}
             profile = addProarcUser(c, profile);
             c.commit();
             rollback = false;

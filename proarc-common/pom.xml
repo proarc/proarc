@@ -44,12 +44,14 @@
             <artifactId>proarc-sip2desa</artifactId>
             <version>${project.version}</version>
          </dependency>
+         
         <dependency>
             <groupId>net.sourceforge.jhove</groupId>
             <artifactId>jhove</artifactId>
             <version>1.6-SNAPSHOT</version>
         </dependency>
-        <dependency>
+        
+	<dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.3</version>
@@ -65,11 +67,20 @@
             <artifactId>proarc-z3950</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
+        
+	<dependency>
             <groupId>cz.incad</groupId>
             <artifactId>img-support</artifactId>
             <version>0.0.1</version>
-        </dependency>
+	    <exclusions>
+	                <!-- excluded not to downgrade soapclient/jaxws-rt/jaxb-impl.2.2.5-2-->
+                <exclusion>
+             	  <artifactId>jai_codec</artifactId>
+                  <groupId>com.sun.media.jai.codec</groupId>
+                </exclusion>
+           </exclusions>
+  	</dependency>
+       
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-desa</artifactId>
