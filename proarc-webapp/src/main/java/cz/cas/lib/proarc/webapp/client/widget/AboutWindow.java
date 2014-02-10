@@ -16,8 +16,11 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
+import com.google.gwt.i18n.client.Dictionary;
 import com.smartgwt.client.widgets.Dialog;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
+import java.util.MissingResourceException;
 
 /**
  * Informations about the application.
@@ -47,6 +50,13 @@ public final class AboutWindow {
     }
 
     private Dialog init(ClientMessages i18n) {
+        String appendMsg;
+        try {
+            Dictionary dictionary = Dictionary.getDictionary("aboutProArc");
+            appendMsg = dictionary.get(LanguagesDataSource.activeLocale());
+        } catch (MissingResourceException e) {
+            appendMsg = "";
+        }
         String rev = String.valueOf(i18n.proarc_build_revision());
         rev = rev.length() < 9 ? rev : rev.substring(0, 9);
         String msg = i18n.AboutWindow_Msg(
@@ -55,7 +65,7 @@ public final class AboutWindow {
 
         Dialog d = new Dialog();
         d.setTitle(i18n.AboutWindow_Title());
-        d.setMessage(msg);
+        d.setMessage(msg + appendMsg);
         d.setButtons(Dialog.OK);
         d.setIsModal(Boolean.TRUE);
         d.setDismissOnOutsideClick(Boolean.TRUE);
