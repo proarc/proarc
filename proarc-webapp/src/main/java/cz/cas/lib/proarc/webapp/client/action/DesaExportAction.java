@@ -314,7 +314,8 @@ public class DesaExportAction extends AbstractAction {
 
                 @Override
                 public void onClick(com.smartgwt.client.widgets.events.ClickEvent event) {
-                    finish().onSuccess(form.getValuesAsRecord());
+                    Record r = new Record(form.getValues());
+                    finish().onSuccess(r);
                 }
             });
             btnExport.setPrompt(i18n.ExportOptionsWidget_ExportBtn_Hint());
@@ -322,7 +323,6 @@ public class DesaExportAction extends AbstractAction {
 
                 @Override
                 public void onClick(com.smartgwt.client.widgets.events.ClickEvent event) {
-//                    Record r = form.getValuesAsRecord();
                     Record r = new Record(form.getValues());
                     r.setAttribute(ExportResourceApi.DESA_DRYRUN_PARAM, true);
                     finish().onSuccess(r);
