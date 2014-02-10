@@ -59,7 +59,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         String pid = fobject.getPid();
         if (dsId == null) {
             return Response.ok(fobject.asText(), MediaType.TEXT_XML_TYPE)
-                    .header("Content-Disposition", "inline; filename=" + pid + ".xml")
+                    .header("Content-Disposition", "inline; filename=\"" + pid + ".xml\"")
                     .build();
         }
         if (fobject instanceof LocalObject) {
@@ -83,7 +83,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
             }
 
             return Response.ok(entity, loader.getProfile().getDsMIME())
-                    .header("Content-Disposition", "inline; filename=" + entity.getName())
+                    .header("Content-Disposition", "inline; filename=\"" + entity.getName() + '"')
                     .lastModified(lastModification)
 //                    .cacheControl(null)
 //                    .expires(new Date(2100, 1, 1))
