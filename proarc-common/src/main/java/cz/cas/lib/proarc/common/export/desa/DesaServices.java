@@ -22,7 +22,6 @@ import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.ACollec
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.AFunds.AFund;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.CreCntrls.CreCntrl;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.DocTypes.DocType;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.Locs;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.Locs.Loc;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.Pronoms.Pronom;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RdCntrls.RdCntrl;
@@ -280,7 +279,6 @@ public final class DesaServices {
          */
         public HashMap<String, String> toTransporterConfig() {
             HashMap<String, String> tcfg = new HashMap<String, String>();
-            tcfg.put("desa." + PROPERTY_USER, properties.getString(PROPERTY_USER));
             putProperty(tcfg, PROPERTY_USER, PROPERTY_PASSWD, PROPERTY_PRODUCER,
                     PROPERTY_OPERATOR, PROPERTY_RESTAPI, PROPERTY_WEBSERVICE);
             // enforce REST file upload
