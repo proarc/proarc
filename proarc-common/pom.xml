@@ -109,6 +109,12 @@
             <groupId>cz.mzk</groupId>
             <artifactId>EditMods</artifactId>
             <version>0.0.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.smartgwt</groupId>
+                    <artifactId>smartgwt</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!--javax.ws.rs.core.MediaType-->
         <!--JsonUtils-->

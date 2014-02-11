@@ -35,6 +35,8 @@ import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
+import com.smartgwt.client.widgets.menu.events.MenuIconClickEvent;
+import com.smartgwt.client.widgets.menu.events.MenuIconClickHandler;
 import com.smartgwt.client.widgets.menu.events.MenuItemClickEvent;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import com.smartgwt.client.widgets.toolbar.ToolStripButton;
@@ -164,23 +166,10 @@ public final class Actions {
         if (tooltip != null) {
             btn.setTooltip(tooltip);
         }
-        btn.addClickHandler(new ClickHandler() {
 
-            @Override
-            public void onClick(ClickEvent event) {
-                Menu menu = btn.getMenu();
-                boolean showMenu = menu != null && !(menu.isDrawn() && menu.isVisible());
-                if (showMenu) {
-                    // here could be default action
-                    btn.showMenu();
-                    return;
-                }
-                if (menu == null) {
-                    ActionEvent aEvent = new ActionEvent(source);
-                    action.performAction(aEvent);
-                }
-            }
-        });
+        IconMenuButtonHandler handler = new IconMenuButtonHandler(btn, source, action);
+        btn.addClickHandler(handler);
+        btn.addMenuIconClickHandler(handler);
 
         if (actionSource != null) {
             actionSource.addValueChangeHandler(new ValueChangeHandler<ActionEvent>() {
@@ -414,6 +403,44 @@ public final class Actions {
             menuItems.remove(item);
             super.removeItem(item);
         }
+    }
+
+    private static class IconMenuButtonHandler implements ClickHandler, MenuIconClickHandler {
+
+        private final IconMenuButton btn;
+        private final Object source;
+        private final Action action;
+
+        public IconMenuButtonHandler(IconMenuButton btn, Object source, Action action) {
+            this.btn = btn;
+            this.source = source;
+            this.action = action;
+        }
+
+        @Override
+        public void onClick(ClickEvent event) {
+            onClick();
+        }
+
+        @Override
+        public void onMenuIconClick(MenuIconClickEvent event) {
+            onClick();
+        }
+
+        private void onClick() {
+            Menu menu = btn.getMenu();
+            boolean showMenu = menu != null && !(menu.isDrawn() && menu.isVisible());
+            if (showMenu) {
+                // here could be default action
+                btn.showMenu();
+                return;
+            }
+            if (menu == null) {
+                ActionEvent aEvent = new ActionEvent(source);
+                action.performAction(aEvent);
+            }
+        }
+
     }
 
 }

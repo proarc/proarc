@@ -39,7 +39,7 @@
         <proarc.version>${project.version}</proarc.version>
         <gwtVersion>2.5.1</gwtVersion>
         <jerseyVersion>1.11.1</jerseyVersion>
-        <smartGwtVersion>3.0</smartGwtVersion>
+        <smartGwtVersion>4.0</smartGwtVersion>
         <maven.compiler.source>1.6</maven.compiler.source>
         <maven.compiler.target>1.6</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -279,6 +279,11 @@
             <properties>
                 <gwt.compiler.skip>true</gwt.compiler.skip>
             </properties>
+        </profile>
+
+        <!--see proarc-webapp/pom.xml-->
+        <profile>
+            <id>proarc.fixedSmartGwt</id>
         </profile>
 
     </profiles>

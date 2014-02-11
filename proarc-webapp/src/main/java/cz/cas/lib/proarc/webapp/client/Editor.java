@@ -326,6 +326,8 @@ public class Editor implements EntryPoint {
         menuWindow.setDismissOnOutsideClick(true);
         menuWindow.setShowFooter(false);
         menuWindow.setShowHeader(false);
+        // XXX SmartGWT 4.0 fix: replace .windowBackground with .normal to get rid of window edges
+        menuWindow.setStyleName("normal");
         menuWindow.setShowEdges(false);
         menuWindow.setIsModal(true);
         menuWindow.addItem(menu);
