@@ -176,7 +176,7 @@ public class DesForms {
                         .createField()) // VlastniDokument
                     .createField()) // Puvod
 
-                    .addField(new FieldBuilder("Trideni").setTitle("Třídění").setMaxOccurrences(1).setRequired(true)
+                    .addField(new FieldBuilder("Trideni").setTitle("Věcná skupina").setMaxOccurrences(1).setRequired(true)
 //                        .addField(new FieldBuilder("Titul_SpisovyZnak").setTitle("Věcná skupina").setMaxOccurrences(1).setType(SELECT).setLength(50).setWidth("400").setRequired(true)
 //                            .setOptionDataSource(new FieldBuilder("desa-des.rec-cl")
 //                                    .addField(new FieldBuilder("fullyQcc").setTitle("Kód").createField())
@@ -341,7 +341,7 @@ public class DesForms {
                         .createField()) // VlastniDokument
                     .createField()) // Puvod
 
-                    .addField(new FieldBuilder("Trideni").setTitle("Třídění").setMaxOccurrences(1).setRequired(true)
+                    .addField(new FieldBuilder("Trideni").setTitle("Věcná skupina").setMaxOccurrences(1).setRequired(true)
                         .addField(new FieldBuilder("JednoduchySpisovyZnak").setTitle("Kód").setMaxOccurrences(1).setType(SELECT).setLength(50).setRequired(true)
                             .setOptionDataSource(new FieldBuilder("desa-des.rec-cl").setWidth("400")
                                     .addField(new FieldBuilder("fullyQcc").setTitle("Kód").createField())
