@@ -32,7 +32,6 @@ public class DesForms {
     public static Form spisForm() {
         Form f = new Form();
         f.getFields().add(new FieldBuilder("Spis").setMaxOccurrences(1)
-                .addField(new FieldBuilder("ID").setTitle("ID").setMaxOccurrences(1).setType(TEXT).setRequired(true).createField())
 
                 .addField(new FieldBuilder("EvidencniUdaje").setMaxOccurrences(1)
                     .addField(new FieldBuilder("Identifikace").setMaxOccurrences(1)
@@ -140,7 +139,6 @@ public class DesForms {
     public static Form intenalDocumentForm() {
         Form f = new Form();
         f.getFields().add(new FieldBuilder("Dokument").setMaxOccurrences(1)
-                .addField(new FieldBuilder("ID").setTitle("ID").setMaxOccurrences(1).setType(TEXT).setRequired(true).createField())
 
                 .addField(new FieldBuilder("EvidencniUdaje").setMaxOccurrences(1)
                     .addField(new FieldBuilder("Identifikace").setMaxOccurrences(1)
@@ -290,7 +288,6 @@ public class DesForms {
     public static Form externalDocumentForm() {
         Form f = new Form();
         f.getFields().add(new FieldBuilder("Dokument").setMaxOccurrences(1)
-                .addField(new FieldBuilder("ID").setTitle("ID").setMaxOccurrences(1).setType(TEXT).setRequired(true).createField())
 
                 .addField(new FieldBuilder("EvidencniUdaje").setMaxOccurrences(1)
                     .addField(new FieldBuilder("Identifikace").setMaxOccurrences(1)
