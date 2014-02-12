@@ -43,8 +43,8 @@ import cz.cas.lib.proarc.desa.nsesss2.TEvidencniUdajeSpisu;
 import cz.cas.lib.proarc.desa.nsesss2.TIdentifikace;
 import cz.cas.lib.proarc.desa.nsesss2.TIdentifikator;
 import cz.cas.lib.proarc.desa.nsesss2.TPopis;
-import cz.cas.lib.proarc.desa.nsesss2.mapping.PrijemceMapping;
-import cz.cas.lib.proarc.desa.nsesss2.mapping.PrijemceMapping.SubjektExterni;
+import cz.cas.lib.proarc.desa.nsesss2.mapping.NsesssMapper;
+import cz.cas.lib.proarc.desa.nsesss2.mapping.NsesssMapper.SubjektExterni;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
@@ -218,7 +218,8 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
                 try {
                     DesObjectWrapper wrapper = jsMapper.readValue(json, DesObjectWrapper.class);
                     metadata = wrapper.getSpis() != null
-                            ? wrapper.getSpis() : mapFromJson(wrapper.getDokument());
+                            ? mapFromJson(wrapper.getSpis())
+                            : mapFromJson(wrapper.getDokument());
                 } catch (Exception ex) {
                     throw new DigitalObjectException(fobject.getPid(), null, editor.getProfile().getDsID(), null, ex);
                 }
@@ -283,12 +284,31 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
         }
 
         public static Dokument mapToJson(Dokument d) {
-            d = new PrijemceMapping().toJson(d);
+            NsesssMapper mapper = new NsesssMapper();
+            d = mapper.replaceTSubjektExterni(d);
             return d;
         }
 
-        public static Dokument mapFromJson(Dokument d) {
-            // no-op for now
+        /**
+         * Gets unique ID for NSESSS object.
+         * @return ID
+         */
+        private String nsesssId() {
+            // prefix uuid to comply with NCName syntax; cannot start with a number
+            return "ID_" + FoxmlUtils.pidAsUuid(fobject.getPid());
+        }
+
+        public Spis mapFromJson(Spis s) {
+            s.setID(nsesssId());
+            NsesssMapper mapper = new NsesssMapper();
+            s = mapper.fillZdroj(s);
+            return s;
+        }
+
+        public Dokument mapFromJson(Dokument d) {
+            d.setID(nsesssId());
+            NsesssMapper mapper = new NsesssMapper();
+            d = mapper.fillZdroj(d);
             return d;
         }
 

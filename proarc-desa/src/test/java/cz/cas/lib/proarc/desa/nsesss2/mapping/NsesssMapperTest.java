@@ -20,7 +20,7 @@ import cz.cas.lib.proarc.desa.nsesss2.NsesssConstants;
 import cz.cas.lib.proarc.desa.nsesss2.TIdentifikator;
 import cz.cas.lib.proarc.desa.nsesss2.TOsobyExterni;
 import cz.cas.lib.proarc.desa.nsesss2.TSubjektExterni;
-import cz.cas.lib.proarc.desa.nsesss2.mapping.PrijemceMapping.SubjektExterni;
+import cz.cas.lib.proarc.desa.nsesss2.mapping.NsesssMapper.SubjektExterni;
 import java.util.List;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -29,9 +29,9 @@ import static org.junit.Assert.*;
  *
  * @author Jan Pokorsky
  */
-public class PrijemceMappingTest {
+public class NsesssMapperTest {
 
-    public PrijemceMappingTest() {
+    public NsesssMapperTest() {
     }
 
     @Test
@@ -60,7 +60,7 @@ public class PrijemceMappingTest {
 
         List<TSubjektExterni> input = osobyExterni.getSubjekt();
         assertEquals(2, input.size());
-        PrijemceMapping instance = new PrijemceMapping();
+        NsesssMapper instance = new NsesssMapper();
         TOsobyExterni result = instance.toJson(osobyExterni);
         List<TSubjektExterni> jsonResult = result.getSubjekt();
         assertEquals(2, jsonResult.size());
