@@ -61,7 +61,7 @@ public class NsesssMapperTest {
         List<TSubjektExterni> input = osobyExterni.getSubjekt();
         assertEquals(2, input.size());
         NsesssMapper instance = new NsesssMapper();
-        TOsobyExterni result = instance.toJson(osobyExterni);
+        TOsobyExterni result = instance.replaceTSubjektExterni(osobyExterni);
         List<TSubjektExterni> jsonResult = result.getSubjekt();
         assertEquals(2, jsonResult.size());
 

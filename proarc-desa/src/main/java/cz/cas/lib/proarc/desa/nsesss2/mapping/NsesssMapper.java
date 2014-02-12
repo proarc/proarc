@@ -62,7 +62,7 @@ public final class NsesssMapper {
         if (eu != null) {
             TVyrizeniEntity vyrizeni = eu.getVyrizeni();
             if (vyrizeni != null) {
-                toJson(vyrizeni.getPrijemce());
+                replaceTSubjektExterni(vyrizeni.getPrijemce());
             }
             TPuvodDokumentu puvod = eu.getPuvod();
             if (puvod != null) {
@@ -70,7 +70,7 @@ public final class NsesssMapper {
                 if (dorucenyDokument != null) {
                     TOsobaExterni odesilatel = dorucenyDokument.getOdesilatel();
                     if (odesilatel != null) {
-                        TSubjektExterni synthetic = toJson(odesilatel.getSubjekt());
+                        TSubjektExterni synthetic = replaceTSubjektExterni(odesilatel.getSubjekt());
                         odesilatel.setSubjekt(synthetic);
                     }
                 }
@@ -79,27 +79,27 @@ public final class NsesssMapper {
         return d;
     }
 
-    TOsobyExterni toJson(TOsobyExterni obj) {
+    TOsobyExterni replaceTSubjektExterni(TOsobyExterni obj) {
         if (obj == null) {
             return obj;
         }
         List<TSubjektExterni> in = obj.getSubjekt();
-        List<TSubjektExterni> mapped = toJson(in);
+        List<TSubjektExterni> mapped = replaceTSubjektExterni(in);
         in.clear();
         in.addAll(mapped);
         return obj;
     }
 
-    List<TSubjektExterni> toJson(List<TSubjektExterni> subjects) {
+    List<TSubjektExterni> replaceTSubjektExterni(List<TSubjektExterni> subjects) {
         List<TSubjektExterni> mappedSubjects = new ArrayList<TSubjektExterni>(subjects.size());
         for (TSubjektExterni subject : subjects) {
-            TSubjektExterni mapped = toJson(subject);
+            TSubjektExterni mapped = replaceTSubjektExterni(subject);
             mappedSubjects.add(mapped);
         }
         return mappedSubjects;
     }
 
-    private TSubjektExterni toJson(TSubjektExterni subject) {
+    private TSubjektExterni replaceTSubjektExterni(TSubjektExterni subject) {
         return SubjektExterni.fromSubjektExterni(subject);
     }
 
