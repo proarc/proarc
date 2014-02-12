@@ -19,12 +19,15 @@ package cz.cas.lib.proarc.desa.nsesss2.mapping;
 import cz.cas.lib.proarc.desa.nsesss2.Dokument;
 import cz.cas.lib.proarc.desa.nsesss2.NsesssConstants;
 import cz.cas.lib.proarc.desa.nsesss2.Spis;
+import cz.cas.lib.proarc.desa.nsesss2.TDataceVyrazeni;
+import cz.cas.lib.proarc.desa.nsesss2.TDatum;
 import cz.cas.lib.proarc.desa.nsesss2.TDorucenyDokument;
 import cz.cas.lib.proarc.desa.nsesss2.TEvidence;
 import cz.cas.lib.proarc.desa.nsesss2.TEvidencniUdajeDokumentu;
 import cz.cas.lib.proarc.desa.nsesss2.TEvidencniUdajeSpisu;
 import cz.cas.lib.proarc.desa.nsesss2.TIdentifikace;
 import cz.cas.lib.proarc.desa.nsesss2.TIdentifikator;
+import cz.cas.lib.proarc.desa.nsesss2.TManipulaceSeskupeni;
 import cz.cas.lib.proarc.desa.nsesss2.TOsobaExterni;
 import cz.cas.lib.proarc.desa.nsesss2.TOsobyExterni;
 import cz.cas.lib.proarc.desa.nsesss2.TOsobyInterni;
@@ -41,6 +44,10 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Maps NSESSS object values.
@@ -48,6 +55,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
  * @author Jan Pokorsky
  */
 public final class NsesssMapper {
+
+    private DatatypeFactory xmlTypes;
 
     /**
      * Replaces {@link TSubjektExterni} to {@link SubjektExterni} to allow to recognize
@@ -215,6 +224,93 @@ public final class NsesssMapper {
                 fillZdroj(sbj.getIdentifikatorFyzickeOsoby(), evidenceId);
                 fillZdroj(sbj.getIdentifikatorOrganizace(), evidenceId);
             }
+        }
+    }
+
+    /**
+     * Fills elements {@code Dokument/EvidencniUdaje/Vyrazovani/SkartacniRezim/DataceVyrazeni/RokSpousteciUdalosti+RokSpousteciUdalosti}
+     * with combination of {@code Dokument/EvidencniUdaje/Vyrizeni/Datum}
+     * and {@code Dokument/EvidencniUdaje/Vyrazovani/SkartacniRezim/SkartacniLhuta}.
+     */
+    public void fillDisposalDate(Dokument d) {
+        TEvidencniUdajeDokumentu eu = d.getEvidencniUdaje();
+        if (eu != null) {
+            XMLGregorianCalendar closeDate = null;
+            TVyrizeniEntity vyrizeni = eu.getVyrizeni();
+            if (vyrizeni != null) {
+                TDatum datum = vyrizeni.getDatum();
+                if (datum != null) {
+                    closeDate = datum.getValue();
+                }
+            }
+            TVyrazovani vyrazovani = eu.getVyrazovani();
+            if (vyrazovani == null && closeDate != null) {
+                vyrazovani = new TVyrazovani();
+                eu.setVyrazovani(vyrazovani);
+            }
+            fillDisposalDate(vyrazovani, closeDate);
+        }
+    }
+
+    /**
+     * Fills elements {@code Spis/EvidencniUdaje/Vyrazovani/SkartacniRezim/DataceVyrazeni/RokSpousteciUdalosti+RokSpousteciUdalosti}
+     * with combination of {@code Spis/EvidencniUdaje/Manipulace/DatumUzavreni}
+     * and {@code Spis/EvidencniUdaje/Vyrazovani/SkartacniRezim/SkartacniLhuta}.
+     */
+    public Spis fillDisposalDate(Spis s) {
+        TEvidencniUdajeSpisu eu = s.getEvidencniUdaje();
+        if (eu != null) {
+            XMLGregorianCalendar closeDate = null;
+            TManipulaceSeskupeni manipulace = eu.getManipulace();
+            if (manipulace != null) {
+                TDatum datumUzavreni = manipulace.getDatumUzavreni();
+                if (datumUzavreni != null) {
+                    closeDate = datumUzavreni.getValue();
+                }
+            }
+            TVyrazovani vyrazovani = eu.getVyrazovani();
+            if (vyrazovani == null && closeDate != null) {
+                vyrazovani = new TVyrazovani();
+                eu.setVyrazovani(vyrazovani);
+            }
+            fillDisposalDate(vyrazovani, closeDate);
+        }
+        return s;
+    }
+
+    private void fillDisposalDate(TVyrazovani vyrazovani, XMLGregorianCalendar closeDate) {
+        if (vyrazovani != null) {
+            int disposalPeriod = 0;
+            TSkartacniRezim skartacniRezim = vyrazovani.getSkartacniRezim();
+            if (skartacniRezim != null) {
+                disposalPeriod = skartacniRezim.getSkartacniLhuta();
+            }
+            TDataceVyrazeni dataceVyrazeni = vyrazovani.getDataceVyrazeni();
+            if (dataceVyrazeni == null && closeDate != null) {
+                dataceVyrazeni = new TDataceVyrazeni();
+                vyrazovani.setDataceVyrazeni(dataceVyrazeni);
+            }
+            if (dataceVyrazeni != null) {
+                XMLGregorianCalendar disposalDate = null;
+                if (closeDate != null) {
+                    Duration duration = getXmlTypes().newDurationYearMonth(true, 1 + disposalPeriod, 0);
+                    disposalDate = (XMLGregorianCalendar) closeDate.clone();
+                    disposalDate.add(duration);
+                }
+                dataceVyrazeni.setRokSkartacniOperace(disposalDate);
+                dataceVyrazeni.setRokSpousteciUdalosti(closeDate);
+            }
+        }
+    }
+
+    DatatypeFactory getXmlTypes() {
+        try {
+            if (xmlTypes == null) {
+                xmlTypes = DatatypeFactory.newInstance();
+            }
+            return xmlTypes;
+        } catch (DatatypeConfigurationException ex) {
+            throw new IllegalStateException(ex);
         }
     }
 

@@ -301,14 +301,16 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
         public Spis mapFromJson(Spis s) {
             s.setID(nsesssId());
             NsesssMapper mapper = new NsesssMapper();
-            s = mapper.fillZdroj(s);
+            mapper.fillZdroj(s);
+            mapper.fillDisposalDate(s);
             return s;
         }
 
         public Dokument mapFromJson(Dokument d) {
             d.setID(nsesssId());
             NsesssMapper mapper = new NsesssMapper();
-            d = mapper.fillZdroj(d);
+            mapper.fillZdroj(d);
+            mapper.fillDisposalDate(d);
             return d;
         }
 

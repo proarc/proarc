@@ -17,8 +17,13 @@
 package cz.cas.lib.proarc.desa.nsesss2.mapping;
 
 import cz.cas.lib.proarc.desa.nsesss2.NsesssConstants;
+import cz.cas.lib.proarc.desa.nsesss2.Spis;
+import cz.cas.lib.proarc.desa.nsesss2.TDatum;
+import cz.cas.lib.proarc.desa.nsesss2.TEvidencniUdajeSpisu;
 import cz.cas.lib.proarc.desa.nsesss2.TIdentifikator;
+import cz.cas.lib.proarc.desa.nsesss2.TManipulaceSeskupeni;
 import cz.cas.lib.proarc.desa.nsesss2.TOsobyExterni;
+import cz.cas.lib.proarc.desa.nsesss2.TSkartacniRezim;
 import cz.cas.lib.proarc.desa.nsesss2.TSubjektExterni;
 import cz.cas.lib.proarc.desa.nsesss2.mapping.NsesssMapper.SubjektExterni;
 import java.util.List;
@@ -91,6 +96,45 @@ public class NsesssMapperTest {
         i.setValue(value);
         i.setZdroj(zdroj);
         return i;
+    }
+
+    @Test
+    public void testfillDisposalDate() throws Exception {
+        NsesssMapper mapper = new NsesssMapper();
+        Spis s = mapper.fillDisposalDate(new Spis());
+        assertNull(s.getEvidencniUdaje());
+
+        TEvidencniUdajeSpisu eu = new TEvidencniUdajeSpisu();
+        TManipulaceSeskupeni ms = new TManipulaceSeskupeni();
+        TDatum datumUzavreni = new TDatum();
+        datumUzavreni.setValue(mapper.getXmlTypes().newXMLGregorianCalendar("2012-02-02"));
+        ms.setDatumUzavreni(datumUzavreni);
+        eu.setManipulace(ms);
+        s.setEvidencniUdaje(eu);
+
+        // test fill new dates without period
+        mapper.fillDisposalDate(s);
+        assertEquals("2013-02-02", eu.getVyrazovani().getDataceVyrazeni().getRokSkartacniOperace().toXMLFormat());
+        assertEquals("2012-02-02", eu.getVyrazovani().getDataceVyrazeni().getRokSpousteciUdalosti().toXMLFormat());
+
+        // test update of new date with period 5
+        TSkartacniRezim skartacniRezim = new TSkartacniRezim();
+        skartacniRezim.setSkartacniLhuta(5);
+        eu.getVyrazovani().setSkartacniRezim(skartacniRezim);
+        datumUzavreni.setValue(mapper.getXmlTypes().newXMLGregorianCalendar("2000-02-02"));
+        mapper.fillDisposalDate(s);
+        assertEquals("2006-02-02", eu.getVyrazovani().getDataceVyrazeni().getRokSkartacniOperace().toXMLFormat());
+        assertEquals("2000-02-02", eu.getVyrazovani().getDataceVyrazeni().getRokSpousteciUdalosti().toXMLFormat());
+
+        // test update with missing date
+        datumUzavreni.setValue(null);
+        mapper.fillDisposalDate(s);
+        assertNull(eu.getVyrazovani().getDataceVyrazeni().getRokSkartacniOperace());
+        assertNull(eu.getVyrazovani().getDataceVyrazeni().getRokSpousteciUdalosti());
+//        TransformerFactory.newInstance().newTransformer().transform(
+//                new JAXBSource(JAXBContext.newInstance(Spis.class), s),
+//                new StreamResult(System.out));
+//        System.out.println("");
     }
 
 }

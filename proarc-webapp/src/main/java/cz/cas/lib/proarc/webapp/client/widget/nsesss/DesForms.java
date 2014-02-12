@@ -111,10 +111,6 @@ public class DesForms {
                             .addField(new FieldBuilder("SkartacniLhuta").setTitle("Skartační lhůta").setMaxOccurrences(1).setType(TEXT).setReadOnly(true).setRequired(true).setWidth("100").createField())
                             .addField(new FieldBuilder("SpousteciUdalost").setTitle("Spouštěcí událost").setMaxOccurrences(1).setType(TEXT).setLength(2000).setRequired(true).createField())
                         .createField()) // SkartacniRezim
-                        .addField(new FieldBuilder("DataceVyrazeni").setMaxOccurrences(1).setRequired(true)
-                            .addField(new FieldBuilder("RokSpousteciUdalosti").setTitle("Rok spouštěcí události").setMaxOccurrences(1).setType(G_YEAR).setRequired(true).createField())
-                            .addField(new FieldBuilder("RokSkartacniOperace").setTitle("Rok skartační operace").setMaxOccurrences(1).setType(G_YEAR).setRequired(true).createField())
-                        .createField()) // DataceVyrazeni
                     .createField()) // Vyrazovani
 
                     .addField(new FieldBuilder("Manipulace").setMaxOccurrences(1).setRequired(true)
@@ -266,10 +262,6 @@ public class DesForms {
                             .addField(new FieldBuilder("SkartacniLhuta").setTitle("Skartační lhůta").setMaxOccurrences(1).setType(TEXT).setReadOnly(true).setRequired(true).setWidth("100").createField())
                             .addField(new FieldBuilder("SpousteciUdalost").setTitle("Spouštěcí událost").setMaxOccurrences(1).setType(TEXT).setLength(2000).setRequired(true).createField())
                         .createField()) // SkartacniRezim
-                        .addField(new FieldBuilder("DataceVyrazeni").setMaxOccurrences(1).setRequired(true)
-                            .addField(new FieldBuilder("RokSpousteciUdalosti").setTitle("Rok spouštěcí události").setMaxOccurrences(1).setType(G_YEAR).setRequired(true).createField())
-                            .addField(new FieldBuilder("RokSkartacniOperace").setTitle("Rok skartační operace").setMaxOccurrences(1).setType(G_YEAR).setRequired(true).createField())
-                        .createField()) // DataceVyrazeni
                     .createField()) // Vyrazovani
 
                     .addField(new FieldBuilder("Manipulace").setMaxOccurrences(1).setWidth("200").setRequired(true)
@@ -404,10 +396,6 @@ public class DesForms {
                             .addField(new FieldBuilder("SkartacniLhuta").setTitle("Skartační lhůta").setMaxOccurrences(1).setType(TEXT).setReadOnly(true).setRequired(true).setWidth("100").createField())
                             .addField(new FieldBuilder("SpousteciUdalost").setTitle("Spouštěcí událost").setMaxOccurrences(1).setType(TEXT).setLength(2000).setRequired(true).createField())
                         .createField()) // SkartacniRezim
-                        .addField(new FieldBuilder("DataceVyrazeni").setMaxOccurrences(1).setRequired(true)
-                            .addField(new FieldBuilder("RokSpousteciUdalosti").setTitle("Rok spouštěcí události").setMaxOccurrences(1).setType(G_YEAR).setRequired(true).createField())
-                            .addField(new FieldBuilder("RokSkartacniOperace").setTitle("Rok skartační operace").setMaxOccurrences(1).setType(G_YEAR).setRequired(true).createField())
-                        .createField()) // DataceVyrazeni
                     .createField()) // Vyrazovani
 
                     .addField(new FieldBuilder("Manipulace").setMaxOccurrences(1).setWidth("200").setRequired(true)
