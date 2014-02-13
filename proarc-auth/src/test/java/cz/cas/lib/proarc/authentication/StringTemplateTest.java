@@ -46,8 +46,6 @@ public class StringTemplateTest {
         ST html = stGroup.getInstanceOf("html");
         html.add("error", true);
         html.add("url", "http://localhost:8080/proarc");
-        String render = html.render();
-        System.out.println(render);
         assertNotNull(html.render());
     }
 }
