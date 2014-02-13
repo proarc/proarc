@@ -16,19 +16,19 @@
  */
 package cz.cas.lib.proarc.common.export.desa;
 
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.ACollects.ACollect;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.AFunds.AFund;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.CreCntrls.CreCntrl;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.DocTypes.DocType;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.Locs.Loc;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.Pronoms.Pronom;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RdCntrls.RdCntrl;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls.RecCl;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecTypes.RecType;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.desa.SIP2DESATransporter;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.ACollects.ACollect;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.AFunds.AFund;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.CreCntrls.CreCntrl;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.DocTypes.DocType;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.Locs.Loc;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.Pronoms.Pronom;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RdCntrls.RdCntrl;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecCls.RecCl;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecTypes.RecType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;

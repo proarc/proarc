@@ -111,11 +111,11 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <schemaDirectory>src/main/resources</schemaDirectory>
+                            <schemaDirectory>src/main/resources/cz/cas/lib/proarc/desa/xml</schemaDirectory>
                             <schemaIncludes>
                                 <include>nomen-import.xsd</include>
                             </schemaIncludes>
-                            <generatePackage>cz.cas.lib.proarc.common.export.desa.sip2desa.nomen</generatePackage>
+                            <generatePackage>cz.cas.lib.proarc.desa.nomenclature</generatePackage>
                             <generateDirectory>${project.build.directory}/generated-sources/xjcNomen</generateDirectory>
                         </configuration>
                     </execution>

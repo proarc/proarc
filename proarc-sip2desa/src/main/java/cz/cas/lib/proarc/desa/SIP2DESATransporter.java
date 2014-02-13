@@ -74,7 +74,7 @@ import cz.cas.lib.proarc.common.export.desa.sip2desa.api.NomenclatureListType;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmission;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmissionFault;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmissionService;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.desa.pspsip.ObjectFactory;
 import cz.cas.lib.proarc.desa.pspsip.PSPSIP;
 import cz.cas.lib.proarc.desa.pspsip.ResultType;

@@ -17,11 +17,11 @@
 package cz.cas.lib.proarc.common.export.desa;
 
 import cz.cas.lib.proarc.common.export.desa.DesaServices.DesaConfiguration;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls.RecCl;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecCls;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecCls.RecCl;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
