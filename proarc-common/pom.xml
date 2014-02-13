@@ -72,7 +72,7 @@
         </dependency>
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>proarc-desa</artifactId>
+            <artifactId>proarc-nsesss</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
