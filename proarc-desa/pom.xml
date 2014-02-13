@@ -13,7 +13,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>proarc-sip2desa</artifactId>
+    <artifactId>proarc-desa</artifactId>
     <packaging>jar</packaging>
 
     <name>ProArc DESA Client</name>

@@ -41,7 +41,7 @@
         </dependency>
          <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>proarc-sip2desa</artifactId>
+            <artifactId>proarc-desa</artifactId>
             <version>${project.version}</version>
          </dependency>
         <dependency>

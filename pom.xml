@@ -26,11 +26,11 @@
 
     <modules>
         <module>proarc-common</module>
+        <module>proarc-desa</module>
         <module>proarc-mets</module>
         <module>proarc-mods</module>
         <module>proarc-nsesss</module>
         <module>proarc-oaidublincore</module>
-        <module>proarc-sip2desa</module>
         <module>proarc-webapp</module>
         <module>proarc-z3950</module>
     </modules>
