@@ -18,6 +18,9 @@ head() ::=<<
 >>
 
 body(error, url) ::=<<
+
+<body>
+
 	<script type="text/javascript">
 		// hash parameters in url
 		var AnchorURLRepair = function() {}
@@ -38,7 +41,6 @@ body(error, url) ::=<<
 		}
 	</script>
 
-<body>
 <h2>Prihlaseni do systemu proarc</h2>	
 $if(error)$
 <strong><font color="red">chyba prihlaseni</font></strong>

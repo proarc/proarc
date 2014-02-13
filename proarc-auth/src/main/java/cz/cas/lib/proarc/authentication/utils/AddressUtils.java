@@ -41,7 +41,12 @@ public class AddressUtils {
      * @throws IOException
      */
     public static void redirectToLogin(HttpServletRequest httpReq, HttpServletResponse httpResp, boolean errorOccured) throws IOException {
-        httpResp.sendRedirect("proarclogin?"+RETURNS_URL_PARAM+"="+returnURLParam(httpReq)+"&"+ERROR_PARAM+"="+errorOccured);
+        String url = httpReq.getParameter("url");
+        if (errorOccured) {
+            httpResp.sendRedirect("proarclogin?"+RETURNS_URL_PARAM+"="+returnURLParam(httpReq)+"&"+ERROR_PARAM+"=login&url="+url);
+        } else {
+            httpResp.sendRedirect("proarclogin?"+RETURNS_URL_PARAM+"="+returnURLParam(httpReq)+"&url="+url);
+        }
     }
         
     
