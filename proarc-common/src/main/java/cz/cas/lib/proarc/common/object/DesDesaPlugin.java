@@ -328,12 +328,13 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
         }
 
         private Object createDefaultMetadata(String modelId) throws DigitalObjectException {
+            NsesssMapper mapper = new NsesssMapper();
             if (MODEL_FOLDER.equals(modelId)) {
-                return NsesssUtils.defaultSpis();
+                return mapper.fillDefaults(NsesssUtils.defaultSpis(), nsesssId());
             } else if (MODEL_INTERNAL_RECORD.equals(modelId)) {
-                return NsesssUtils.defaultInternalDokument();
+                return mapper.fillDefaults(NsesssUtils.defaultInternalDokument(), true, nsesssId());
             } else if (MODEL_EXTERNAL_RECORD.equals(modelId)) {
-                return NsesssUtils.defaultExternalDocument();
+                return mapper.fillDefaults(NsesssUtils.defaultExternalDocument(), true, nsesssId());
             }
             throw new DigitalObjectException(fobject.getPid(), null,
                     DESCRIPTION_DATASTREAM_ID, "Unknown model: " + modelId, null);

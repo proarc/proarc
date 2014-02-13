@@ -32,15 +32,18 @@ import cz.cas.lib.proarc.desa.nsesss2.TOsobaExterni;
 import cz.cas.lib.proarc.desa.nsesss2.TOsobyExterni;
 import cz.cas.lib.proarc.desa.nsesss2.TOsobyInterni;
 import cz.cas.lib.proarc.desa.nsesss2.TPuvodDokumentu;
+import cz.cas.lib.proarc.desa.nsesss2.TPuvodSeskupeni;
 import cz.cas.lib.proarc.desa.nsesss2.TSkartacniRezim;
 import cz.cas.lib.proarc.desa.nsesss2.TSubjektExterni;
 import cz.cas.lib.proarc.desa.nsesss2.TSubjektInterni;
 import cz.cas.lib.proarc.desa.nsesss2.TTrideniDokumentu;
 import cz.cas.lib.proarc.desa.nsesss2.TTypDokumentu;
+import cz.cas.lib.proarc.desa.nsesss2.TUrceneCasoveObdobi;
 import cz.cas.lib.proarc.desa.nsesss2.TVlastniDokument;
 import cz.cas.lib.proarc.desa.nsesss2.TVyrazovani;
 import cz.cas.lib.proarc.desa.nsesss2.TVyrizeniEntity;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -301,6 +304,88 @@ public final class NsesssMapper {
                 dataceVyrazeni.setRokSpousteciUdalosti(closeDate);
             }
         }
+    }
+
+    /**
+     * Fills default values. ID, current date, ...
+     * @param id unique ID with NCName syntax
+     */
+    public Spis fillDefaults(Spis s, String id) {
+        s.setID(id);
+        XMLGregorianCalendar now = getXmlTypes().newXMLGregorianCalendar(new GregorianCalendar());
+        TEvidencniUdajeSpisu eu = s.getEvidencniUdaje();
+        if (eu == null) {
+            eu = new TEvidencniUdajeSpisu();
+            s.setEvidencniUdaje(eu);
+        }
+        TPuvodSeskupeni puvod = eu.getPuvod();
+        if (puvod == null) {
+            puvod = new TPuvodSeskupeni();
+            eu.setPuvod(puvod);
+        }
+        TDatum datumVytvoreni = puvod.getDatumVytvoreni();
+        if (datumVytvoreni == null) {
+            datumVytvoreni = new TDatum();
+            puvod.setDatumVytvoreni(datumVytvoreni);
+        }
+        datumVytvoreni.setValue(now);
+
+        TEvidence evidence = eu.getEvidence();
+        if (evidence == null) {
+            evidence = new TEvidence();
+            eu.setEvidence(evidence);
+        }
+        TUrceneCasoveObdobi urceneCasoveObdobi = evidence.getUrceneCasoveObdobi();
+        if (urceneCasoveObdobi == null) {
+            urceneCasoveObdobi = new TUrceneCasoveObdobi();
+            evidence.setUrceneCasoveObdobi(urceneCasoveObdobi);
+        }
+        urceneCasoveObdobi.setRok(now);
+        return s;
+    }
+
+    /**
+     * Fills default values. ID, current date, ...
+     * @param id unique ID with NCName syntax
+     */
+    public Dokument fillDefaults(Dokument d, boolean intenalDocument, String id) {
+        d.setID(id);
+        XMLGregorianCalendar now = getXmlTypes().newXMLGregorianCalendar(new GregorianCalendar());
+        TEvidencniUdajeDokumentu eu = d.getEvidencniUdaje();
+        if (eu == null) {
+            eu = new TEvidencniUdajeDokumentu();
+            d.setEvidencniUdaje(eu);
+        }
+        TPuvodDokumentu puvod = eu.getPuvod();
+        if (puvod == null) {
+            puvod = new TPuvodDokumentu();
+            eu.setPuvod(puvod);
+        }
+        if (intenalDocument) {
+            TVlastniDokument vlastniDokument = puvod.getVlastniDokument();
+            if (vlastniDokument == null) {
+                vlastniDokument = new TVlastniDokument();
+                puvod.setVlastniDokument(vlastniDokument);
+            }
+            TDatum datumVytvoreni = vlastniDokument.getDatumVytvoreni();
+            if (datumVytvoreni == null) {
+                datumVytvoreni = new TDatum();
+                vlastniDokument.setDatumVytvoreni(datumVytvoreni);
+            }
+            datumVytvoreni.setValue(now);
+        }
+        TEvidence evidence = eu.getEvidence();
+        if (evidence == null) {
+            evidence = new TEvidence();
+            eu.setEvidence(evidence);
+        }
+        TUrceneCasoveObdobi urceneCasoveObdobi = evidence.getUrceneCasoveObdobi();
+        if (urceneCasoveObdobi == null) {
+            urceneCasoveObdobi = new TUrceneCasoveObdobi();
+            evidence.setUrceneCasoveObdobi(urceneCasoveObdobi);
+        }
+        urceneCasoveObdobi.setRok(now);
+        return d;
     }
 
     DatatypeFactory getXmlTypes() {
