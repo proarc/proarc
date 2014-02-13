@@ -35,6 +35,15 @@ public class AddressUtils {
     public static void redirectToLogin(HttpServletRequest httpReq, HttpServletResponse httpResp) throws IOException {
         httpResp.sendRedirect("proarclogin?"+RETURNS_URL_PARAM+"="+returnURLParam(httpReq));
     }
+        
+    /**
+     * Sends forbidden error
+     * @param httpResp
+     * @throws IOException
+     */
+    public static void forbiddenResource(HttpServletResponse httpResp) throws IOException {
+        httpResp.sendError(HttpServletResponse.SC_FORBIDDEN);
+    }
 
     /**
      * Redirects to login page with ecnoded url parameter and error flag indicated first login failed

@@ -53,11 +53,11 @@ public class ProarcAuthFilter implements Filter {
     public void doFilter(ServletRequest arg0, ServletResponse arg1,
             FilterChain chain) throws IOException, ServletException {
         String reqUri = ((HttpServletRequest) arg0).getRequestURI();
-        // proarclogin
+        // only proarclogin is public resource
         if (reqUri.endsWith("proarclogin")) {
             chain.doFilter(arg0, arg1);
         } else {
-            // filter secured content 
+            // secured content 
             securedContent(arg0, arg1, chain);
         }
     }
@@ -82,13 +82,26 @@ public class ProarcAuthFilter implements Filter {
                 HttpServletRequest authenticatedRequest = ProarcAuthenticatedHTTPRequest.newInstance(httpReq, p, p.getName());
                 chain.doFilter(authenticatedRequest, httpResp);
             } else {
-                // not logged -> redirect
-                redirectToLogin(httpReq, httpResp);
+                // not logged -> redirect || forbidden
+                if (isRedirectingResource(httpReq.getRequestURL().toString())) {
+                    redirectToLogin(httpReq, httpResp);
+                } else {
+                    forbiddenResource(httpResp);
+                }
             }
         } else {
-            // no session -> not logged -> redirect
-            redirectToLogin(httpReq, httpResp);
+            // no session -> not logged -> redirect || forbidden
+            if (isRedirectingResource(httpReq.getRequestURL().toString())) {
+                redirectToLogin(httpReq, httpResp);
+            } else {
+                forbiddenResource(httpResp);
+            }
         }
+    }
+        
+    
+    private boolean isRedirectingResource(String reqUrl) {
+        return reqUrl != null && reqUrl.endsWith("index.html");
     }
 
     @Override
