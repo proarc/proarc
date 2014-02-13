@@ -69,16 +69,16 @@ import com.google.common.io.Files;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import cz.cas.lib.proarc.common.export.desa.sip2desa.api.FileHashAlg;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.api.NomenclatureListType;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmission;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmissionFault;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmissionService;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.desa.pspsip.ObjectFactory;
 import cz.cas.lib.proarc.desa.pspsip.PSPSIP;
 import cz.cas.lib.proarc.desa.pspsip.ResultType;
 import cz.cas.lib.proarc.desa.pspsip.SipType;
+import cz.cas.lib.proarc.desa.soap.FileHashAlg;
+import cz.cas.lib.proarc.desa.soap.NomenclatureListType;
+import cz.cas.lib.proarc.desa.soap.SIPSubmission;
+import cz.cas.lib.proarc.desa.soap.SIPSubmissionFault;
+import cz.cas.lib.proarc.desa.soap.SIPSubmissionService;
 
 /**
  * Main class for import of the SIP packages to DESA repository and for checking
