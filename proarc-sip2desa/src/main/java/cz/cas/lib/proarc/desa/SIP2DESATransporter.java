@@ -15,7 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cz.cas.lib.proarc.common.export.desa.sip2desa;
+package cz.cas.lib.proarc.desa;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -75,10 +75,10 @@ import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmission;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmissionFault;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.api.SIPSubmissionService;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.ObjectFactory;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.PSPSIP;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.ResultType;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.SipType;
+import cz.cas.lib.proarc.desa.pspsip.ObjectFactory;
+import cz.cas.lib.proarc.desa.pspsip.PSPSIP;
+import cz.cas.lib.proarc.desa.pspsip.ResultType;
+import cz.cas.lib.proarc.desa.pspsip.SipType;
 
 /**
  * Main class for import of the SIP packages to DESA repository and for checking

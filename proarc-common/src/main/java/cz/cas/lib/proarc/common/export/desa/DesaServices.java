@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.export.desa;
 
-import cz.cas.lib.proarc.common.export.desa.sip2desa.SIP2DESATransporter;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.ACollects.ACollect;
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.AFunds.AFund;
@@ -29,6 +28,7 @@ import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls.
 import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecTypes.RecType;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.desa.SIP2DESATransporter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;

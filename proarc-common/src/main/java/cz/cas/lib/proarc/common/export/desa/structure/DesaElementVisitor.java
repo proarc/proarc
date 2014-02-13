@@ -50,13 +50,13 @@ import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 
 import cz.cas.lib.proarc.common.export.desa.Const;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.SIP2DESATransporter;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.PSPSIP;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.PSPSIP.SIP;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.desa.SIP2DESATransporter;
+import cz.cas.lib.proarc.desa.pspsip.PSPSIP;
+import cz.cas.lib.proarc.desa.pspsip.PSPSIP.SIP;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
 import cz.cas.lib.proarc.mets.DivType.Mptr;

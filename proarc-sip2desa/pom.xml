@@ -12,7 +12,7 @@
     <artifactId>proarc-sip2desa</artifactId>
     <packaging>jar</packaging>
 
-    <name>ProArc Desa export library</name>
+    <name>ProArc DESA Client</name>
 
     <properties>
         <slf4j.version>1.6.0</slf4j.version>
@@ -97,11 +97,11 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <schemaDirectory>src/main/resources</schemaDirectory>
+                            <schemaDirectory>src/main/resources/cz/cas/lib/proarc/desa/xml</schemaDirectory>
                             <schemaIncludes>
                                 <include>pspsip.xsd</include>
                             </schemaIncludes>
-                            <generatePackage>cz.cas.lib.proarc.common.export.desa.sip2desa.protocol</generatePackage>
+                            <generatePackage>cz.cas.lib.proarc.desa.pspsip</generatePackage>
                             <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
                         </configuration>
                     </execution>
