@@ -66,8 +66,8 @@ public class ProarcHTTPServlet extends HttpServlet {
         resp.setContentType("text/html; charset=utf-8");
         PrintWriter writer = resp.getWriter();
         String error = req.getParameter("error");
-        String render = htmlTemplate(error != null && error.equals("login"), req.getParameter("url"))
-                .render();
+        String redirectURLAddress = req.getParameter("url");
+        String render = htmlTemplate(error != null && error.equals("login"), redirectURLAddress).render();
         writer.write(render);
     }
 

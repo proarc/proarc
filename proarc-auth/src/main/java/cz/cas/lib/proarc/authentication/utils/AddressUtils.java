@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.authentication.utils;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -52,13 +54,14 @@ public class AddressUtils {
     }
     /**
      * Returns encoded return url parameter
+     * @throws UnsupportedEncodingException 
      */
-    public static String returnURLParam(HttpServletRequest httpReq) {
+    public static String returnURLParam(HttpServletRequest httpReq) throws UnsupportedEncodingException {
         String addr = httpReq.getRequestURL().toString();
         String queryString = httpReq.getQueryString();
         if (queryString != null) {
             addr += "?" + queryString;
         }
-        return addr;
+        return URLEncoder.encode(addr, "UTF-8");
     }
 }
