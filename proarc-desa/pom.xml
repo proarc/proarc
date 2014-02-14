@@ -140,6 +140,7 @@
                 <configuration>
                     <packageName>cz.cas.lib.proarc.desa.soap</packageName>
                     <wsdlDirectory>${basedir}/src/main/resources/cz/cas/lib/proarc/desa/wsdl</wsdlDirectory>
+                    <wsdlLocation>/cz/cas/lib/proarc/desa/wsdl/SIPSubmission.wsdl</wsdlLocation>
                     <xnocompile>false</xnocompile>
                 </configuration>
                 <executions>
