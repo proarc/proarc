@@ -101,6 +101,10 @@ public class DesaServicesTest {
         assertEquals(Arrays.asList("model:id1", "model:id2"), ds1.getExportModels());
         assertEquals(Arrays.asList("acr1", "acr2"), ds1.getNomenclatureAcronyms());
         Map<String, String> tc = ds1.toTransporterConfig();
+        assertEquals("ds1user", ds1.getUsername());
+        assertEquals("ds1passwd", ds1.getPassword());
+        assertEquals("https://SERVER/dea-frontend/rest/sipsubmission", ds1.getRestServiceUrl());
+        assertEquals("https://SERVER/dea-frontend/ws/SIPSubmissionService", ds1.getSoapServiceUrl());
         assertEquals("ds1user", tc.get("desa.user"));
         assertEquals("ds1passwd", tc.get("desa.password"));
         assertEquals("ds1producer", tc.get("desa.producer"));

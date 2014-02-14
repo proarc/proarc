@@ -565,15 +565,13 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         } else
             throw new MetsExportException(rootElement.getOriginalPid(), "Unknown type:" + rootElement.getElementType() + " model:" + rootElement.getModel(), false, null);
 
-        if (desaProps != null) {
+        SIP2DESATransporter sipTransporter = desaElement.getDesaContext().getTransporter();
+        if (sipTransporter != null) {
             LOG.log(Level.INFO, "Exporting to desa");
             try {
-                if (desaProps.get("desa.resultDir") == null && rootElement.getDesaContext().getDesaResultPath() != null) {
-                    desaProps.put("desa.resultDir", rootElement.getDesaContext().getDesaResultPath());
-                }
-                if (desaProps.get("desa.resultDir") != null) {
-                    SIP2DESATransporter sipTransporter = new SIP2DESATransporter();
-                    sipTransporter.transport(rootElement.getDesaContext().getOutputPath(), desaProps.get("desa.resultDir"), desaProps.get("desa.resultDir"), desaProps);
+                String desaResultPath = rootElement.getDesaContext().getDesaResultPath();
+                if (desaResultPath != null) {
+                    sipTransporter.transport(rootElement.getDesaContext().getOutputPath(), desaResultPath, desaResultPath);
                     updateSIPversion(rootElement, sipTransporter.getResults());
                 } else {
                     throw new MetsExportException(desaElement.getOriginalPid(), "Result dir (desa.resultDir) is not set", false, null);

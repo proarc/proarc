@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.export.desa;
 
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.desa.DesaClient;
 import cz.cas.lib.proarc.desa.SIP2DESATransporter;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.ACollects.ACollect;
@@ -130,8 +131,11 @@ public final class DesaServices {
                 }
             }
         }
-        SIP2DESATransporter t = new SIP2DESATransporter();
-        Nomenclatures nomenclatures = t.getNomenclatures(dc.toTransporterConfig(), dc.getNomenclatureAcronyms());
+        DesaClient desaClient = getDesaClient(dc);
+        Nomenclatures nomenclatures = desaClient.getNomenclatures(
+                // XXX replace with real producer code from http request
+                dc.toTransporterConfig().get("desa." + DesaConfiguration.PROPERTY_PRODUCER),
+                dc.getNomenclatureAcronyms());
         if (cache != null) {
             synchronized (DesaServices.this) {
                 JAXB.marshal(nomenclatures, cache);
@@ -140,9 +144,11 @@ public final class DesaServices {
         return nomenclatures;
     }
 
-//    public SIP2DESATransporter getTransporter(String serviceId) {
-//        return new SIP2DESATransporter();
-//    }
+    public DesaClient getDesaClient(DesaConfiguration dc) {
+        DesaClient desaClient = new DesaClient(dc.getSoapServiceUrl(),
+                dc.getRestServiceUrl(), dc.getUsername(), dc.getPassword());
+        return desaClient;
+    }
 
     /**
      * Finds a service configuration that accepts the passes model.
@@ -249,6 +255,22 @@ public final class DesaServices {
             return serviceId;
         }
 
+        public String getSoapServiceUrl() {
+            return properties.getString(PROPERTY_WEBSERVICE);
+        }
+
+        public String getRestServiceUrl() {
+            return properties.getString(PROPERTY_RESTAPI);
+        }
+
+        public String getUsername() {
+            return properties.getString(PROPERTY_USER);
+        }
+
+        public String getPassword() {
+            return properties.getString(PROPERTY_PASSWD);
+        }
+
         /**
          * Digital object model IDs accepted by the registry.
          * @return list of IDs
@@ -277,6 +299,7 @@ public final class DesaServices {
          * Properties required by the {@link SIP2DESATransporter}.
          * @return map of properties
          */
+        @Deprecated
         public HashMap<String, String> toTransporterConfig() {
             HashMap<String, String> tcfg = new HashMap<String, String>();
             putProperty(tcfg, PROPERTY_USER, PROPERTY_PASSWD, PROPERTY_PRODUCER,

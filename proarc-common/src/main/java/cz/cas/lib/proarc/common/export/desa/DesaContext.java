@@ -25,6 +25,7 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 import cz.cas.lib.proarc.common.export.desa.structure.DesaElement;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.desa.SIP2DESATransporter;
 
 /**
  * Context for Desa mets export
@@ -54,6 +55,7 @@ public class DesaContext {
     private String desaResultPath;
     private String packageID;
     private final MetsExportException metsExportException = new MetsExportException();
+    private SIP2DESATransporter transporter;
 
     /**
      * Returns the path with desa export result
@@ -223,6 +225,14 @@ public class DesaContext {
      */
     public void setRemoteStorage(RemoteStorage remoteStorage) {
         this.remoteStorage = remoteStorage;
+    }
+
+    public SIP2DESATransporter getTransporter() {
+        return transporter;
+    }
+
+    public void setTransporter(SIP2DESATransporter transporter) {
+        this.transporter = transporter;
     }
 
     /**
