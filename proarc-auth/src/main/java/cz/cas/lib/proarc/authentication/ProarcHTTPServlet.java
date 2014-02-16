@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.authentication;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -25,7 +24,6 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -33,13 +31,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STGroupString;
 
 import cz.cas.lib.proarc.authentication.desa.DESAAuthenticator;
 import cz.cas.lib.proarc.authentication.proarc.ProArcAuthenticator;
-import cz.cas.lib.proarc.authentication.utils.IOUtils;
 import static cz.cas.lib.proarc.authentication.utils.AddressUtils.*;
 
 /**
@@ -80,17 +78,20 @@ public class ProarcHTTPServlet extends HttpServlet {
      */
     public ST htmlTemplate(boolean error, String redirectURL) throws IOException,
             UnsupportedEncodingException {
-        URL urlRes = IOUtils.class.getClassLoader()
+        URL urlRes = ProarcHTTPServlet.class.getClassLoader()
                 .getResource("loginfile.stg");
         InputStream isStream = urlRes.openStream();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        IOUtils.copyStreams(isStream, bos);
-        String str = new String(bos.toByteArray(), "UTF-8");
-        STGroup stGroup = new STGroupString(str, str, '$', '$');
-        ST html = stGroup.getInstanceOf("html");
-        html.add("error", error);
-        html.add("url", redirectURL);
-        return html;
+        try {
+            String str = IOUtils.toString(isStream, "UTF-8");
+            isStream.close();
+            STGroup stGroup = new STGroupString(str, str, '$', '$');
+            ST html = stGroup.getInstanceOf("html");
+            html.add("error", error);
+            html.add("url", redirectURL);
+            return html;
+        } finally {
+            IOUtils.closeQuietly(isStream);
+        }
     }
 
     /**

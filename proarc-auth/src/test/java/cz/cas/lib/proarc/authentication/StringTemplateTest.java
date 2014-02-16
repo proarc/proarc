@@ -18,30 +18,24 @@ package cz.cas.lib.proarc.authentication;
 
 import static org.junit.Assert.*;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STGroupString;
 
-import cz.cas.lib.proarc.authentication.utils.IOUtils;
-
 public class StringTemplateTest {
 
     @Test
     public void testTemplate() throws IOException {
-        URL urlRes = IOUtils.class.getClassLoader()
+        URL urlRes = ProarcHTTPServlet.class.getClassLoader()
                 .getResource("loginfile.stg");
         InputStream isStream = urlRes.openStream();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        IOUtils.copyStreams(isStream, bos);
-        String str = new String(bos.toByteArray(), "UTF-8");
+        String str = IOUtils.toString(isStream, "UTF-8");
         STGroup stGroup = new STGroupString(str, str, '$', '$');
         ST html = stGroup.getInstanceOf("html");
         html.add("error", true);
