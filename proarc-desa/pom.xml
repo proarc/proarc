@@ -19,7 +19,6 @@
     <name>ProArc DESA Client</name>
 
     <properties>
-        <slf4j.version>1.6.0</slf4j.version>
         <!-- local junit properties -->
         <proarc-desa.junit.properties.file>${project.basedir}/src/test/resources/junit.properties</proarc-desa.junit.properties.file>
     </properties>
@@ -36,24 +35,6 @@
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>
             <version>${jerseyVersion}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
 
         <dependency>
