@@ -52,8 +52,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import com.google.common.io.Files;
-
 import cz.cas.lib.proarc.desa.pspsip.ObjectFactory;
 import cz.cas.lib.proarc.desa.pspsip.PSPSIP;
 import cz.cas.lib.proarc.desa.pspsip.ResultType;
@@ -61,6 +59,7 @@ import cz.cas.lib.proarc.desa.pspsip.SipType;
 import cz.cas.lib.proarc.desa.soap.FileHashAlg;
 import cz.cas.lib.proarc.desa.soap.SIPSubmission;
 import cz.cas.lib.proarc.desa.soap.SIPSubmissionFault;
+import org.apache.commons.io.FileUtils;
 
 /**
  * Main class for import of the SIP packages to DESA repository and for checking
@@ -380,7 +379,7 @@ public final class SIP2DESATransporter {
             }
             File target = new File(getDesaFolder(), idSipVersion.value + ".sip");
             try {
-                Files.copy(file, target);
+                FileUtils.copyFile(file, target);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -749,19 +748,12 @@ public final class SIP2DESATransporter {
      */
     private static File checkDirectory(String name) {
         File directory = new File(name);
-        if (!directory.exists() || !directory.isDirectory()) {
-            try {
-                Files.createParentDirs(directory);
-            } catch (IOException e) {
-                throw new RuntimeException("Folder doesn't exist and can't be created: " + directory.getAbsolutePath());
-            }
-            if (!directory.mkdir()) {
-                // log.severe("Folder doesn't exist and can't be created: " +
-                // directory.getAbsolutePath());
-                throw new RuntimeException("Folder doesn't exist and can't be created: " + directory.getAbsolutePath());
-            }
+        try {
+            FileUtils.forceMkdir(directory);
+            return directory;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        return directory;
     }
 
     /**
