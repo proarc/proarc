@@ -310,19 +310,6 @@ public final class DesaServices {
             return tcfg;
         }
 
-        
-        /**
-         * Properties required by the {@link DESAAuthenticator}
-         * @return
-         */
-        public HashMap<String, String> toDESAAuthenticationConfig() {
-            HashMap<String, String> tcfg = new HashMap<String, String>();
-            tcfg.put("desa." + PROPERTY_USER, properties.getString(PROPERTY_USER));
-            putProperty(tcfg, PROPERTY_USER, PROPERTY_PASSWD, PROPERTY_PRODUCER,
-                    PROPERTY_OPERATOR, PROPERTY_RESTAPI, PROPERTY_WEBSERVICE);
-            return tcfg;
-        }
-        
         private void putProperty(HashMap<String, String> tcfg, String... names) {
             for (String name : names) {
                 tcfg.put("desa." + name, properties.getString(name));

@@ -16,31 +16,30 @@
  */
 package cz.cas.lib.proarc.authentication;
 
-import java.util.Date;
-
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 
 public abstract  class AbstractAuthenticator implements Authenticator {
 
+    // XXX move to ProArcAuthenticator; null profile cannot occur!
     public void associateUserProfile(ProarcPrincipal principal, String user) {
         UserManager userManager = UserUtil.getDefaultManger();
         // NOTE: UserProfile.validateAsNew(UserProfile.java:197) only lower
         // case supports but ws
         String proarcValidUserName = user;
         UserProfile userProfile = userManager.find(proarcValidUserName);
-        if (userProfile == null) {
-            userProfile = new UserProfile();
-            // not proarc user
-            userProfile.setProarcuser(false);
-            userProfile.setUserName(proarcValidUserName);
-            userProfile.setCreated(new Date());
-            userProfile.setDisplayName(user);
-            userProfile.setForename(user);
-            userProfile.setSurname("-ws user-");
-            userManager.add(userProfile);
-        }
+//        if (userProfile == null) {
+//            userProfile = new UserProfile();
+//            // not proarc user
+//            userProfile.setProarcuser(false);
+//            userProfile.setUserName(proarcValidUserName);
+//            userProfile.setCreated(new Date());
+//            userProfile.setDisplayName(user);
+//            userProfile.setForename(user);
+//            userProfile.setSurname("-ws user-");
+//            userManager.add(userProfile);
+//        }
         if (userProfile != null) {
             principal.associateUserProfile(userProfile);
         }
