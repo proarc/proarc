@@ -21,7 +21,11 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.api.client.filter.LoggingFilter;
+import com.sun.xml.ws.client.ClientTransportException;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
+import cz.cas.lib.proarc.desa.soap.AuthenticateUserFault;
+import cz.cas.lib.proarc.desa.soap.AuthenticateUserRequest;
+import cz.cas.lib.proarc.desa.soap.AuthenticateUserResponse;
 import cz.cas.lib.proarc.desa.soap.FileHashAlg;
 import cz.cas.lib.proarc.desa.soap.NomenclatureListType;
 import cz.cas.lib.proarc.desa.soap.SIPSubmission;
@@ -32,6 +36,7 @@ import java.io.File;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -50,6 +55,7 @@ import javax.xml.ws.BindingProvider;
  */
 public final class DesaClient {
 
+    private static final Logger LOG = Logger.getLogger(DesaClient.class.getName());
     private final String soapUrl;
     private final String restUrl;
     private final String user;
@@ -145,6 +151,34 @@ public final class DesaClient {
         }
         String aipVersionId = response.getHeaders().getFirst("X-DEA-AipVersionId");
         return aipVersionId;
+    }
+
+    /**
+     * Authenticates an operator.
+     *
+     * @param operator operator user name
+     * @param passwd operator password
+     * @param producerCode producer code (not ID)
+     * @return the authenticated operator
+     * @throws AuthenticateUserFault authentication failure
+     * @throws ClientTransportException soap failure
+     */
+    public AuthenticateUserResponse authenticateUser(
+            String operator, String passwd, String producerCode)
+            throws AuthenticateUserFault, ClientTransportException {
+
+        AuthenticateUserRequest request = new AuthenticateUserRequest();
+        request.setLogin(operator);
+        request.setPassword(passwd);
+        request.setProducerCode(producerCode);
+        AuthenticateUserResponse response = getSoapClient().authenticateUser(request);
+        if ("OK".equals(response.getStatus())) {
+            return response;
+        } else {
+            String msg = String.format("operator: %s, producer: %s, status: %s",
+                    operator, producerCode, response.getStatus());
+            throw new AuthenticateUserFault(msg, null);
+        }
     }
 
     public boolean isDebug() {
