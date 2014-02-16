@@ -24,6 +24,9 @@
         <gwt.user.agent><![CDATA[<set-property name="user.agent" value="gecko1_8" />]]></gwt.user.agent>
         <!-- contains filtered GWT modules (*.gwt.xml) -->
         <gwt.filtered>${project.build.directory}/gwt-filtered</gwt.filtered>
+        <smartGwtGroupId>com.smartgwt</smartGwtGroupId>
+        <smartGwtArtifact>smartgwt</smartGwtArtifact>
+        <smartGwtSkinsArtifact>smartgwt-skins</smartGwtSkinsArtifact>
     </properties>
 
     <dependencies>
@@ -40,14 +43,14 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.smartgwt</groupId>
-            <artifactId>smartgwt</artifactId>
+            <groupId>${smartGwtGroupId}</groupId>
+            <artifactId>${smartGwtArtifact}</artifactId>
             <version>${smartGwtVersion}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.smartgwt</groupId>
-            <artifactId>smartgwt-skins</artifactId>
+            <groupId>${smartGwtGroupId}</groupId>
+            <artifactId>${smartGwtSkinsArtifact}</artifactId>
             <version>${smartGwtVersion}</version>
             <scope>provided</scope>
         </dependency>
@@ -55,6 +58,12 @@
             <groupId>cz.mzk</groupId>
             <artifactId>EditMods</artifactId>
             <version>0.0.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.smartgwt</groupId>
+                    <artifactId>smartgwt</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- CodeMirror Editor -->
         <dependency>
@@ -87,7 +96,7 @@
         </dependency>
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>proarc-desa</artifactId>
+            <artifactId>proarc-nsesss</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -288,6 +297,30 @@
     </build>
 
     <profiles>
+
+        <!--
+            Uses the latest patched SmartGWT build that has to be installed manually.
+            Patched builds are not deployed to the public repository. It is necessary
+            to install them locally from http://www.smartclient.com/builds and
+            use POMs from smartgwt-4.0p.zip/maven/pom.
+
+            mvn org.apache.maven.plugins:maven-install-plugin:2.5.1:install-file -Dfile=.../smartgwt.jar -DpomFile=.../smartgwt-4.0p/maven/pom/smartgwt-lgpl.pom
+            mvn org.apache.maven.plugins:maven-install-plugin:2.5.1:install-file -Dfile=.../smartgwt-skins.jar -DpomFile=.../smartgwt-4.0p/maven/pom/smartgwt-skins.pom
+
+            To activate profile use -Pproarc.fixedSmartGwt.
+            Without profile it falls back to the public dependency that is sufficient for the compilation.
+            See also  https://isomorphic.atlassian.net/wiki/display/Main/Using+Maven+with+SmartGWT.
+        -->
+        <profile>
+            <id>proarc.fixedSmartGwt</id>
+            <properties>
+                <smartGwtVersion>4.0-p20140211</smartGwtVersion>
+                <smartGwtGroupId>com.isomorphic.smartgwt.lgpl</smartGwtGroupId>
+                <smartGwtArtifact>smartgwt-lgpl</smartGwtArtifact>
+                <smartGwtSkinsArtifact>smartgwt-skins</smartGwtSkinsArtifact>
+            </properties>
+
+        </profile>
 
         <profile>
             <id>proarc.production</id>

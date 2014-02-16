@@ -22,9 +22,14 @@
 
         <title>ProArc</title>
 
-        <!-- editor client class logging configuration -->
-        <!-- format: "logger name" : "java.util.logging.Level" -->
         <script type="text/javascript">
+            // Allows to append custom contents to the About window. The format is "locale":"<hr>custom message"
+            var aboutProArc = {
+                "cs": "",
+                "en": ""
+            };
+            // editor client class logging configuration
+            // format: "logger name" : "java.util.logging.Level"
             var EditorLoggingConfiguration = {
                 "cz.cas.lib.proarc.webapp.client" : "INFO"
                 , "cz.cas.lib.proarc.webapp.client.widget.ListFormItem" : "INFO"
@@ -33,7 +38,7 @@
 
         <!-- prevents ID conflicts of SmartGWT components -->
         <script>
-            window.isc_useSimpleNames = false
+            window.isc_useSimpleNames = false;
         </script>
 
         <!-- CodeMirror XML Editor -->

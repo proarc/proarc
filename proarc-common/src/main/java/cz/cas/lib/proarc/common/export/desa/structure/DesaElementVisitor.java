@@ -50,14 +50,13 @@ import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 
 import cz.cas.lib.proarc.common.export.desa.Const;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.SIP2DESATransporter;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.PSPSIP;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.protocol.PSPSIP.SIP;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.desa.nsesss2.Spis;
+import cz.cas.lib.proarc.desa.SIP2DESATransporter;
+import cz.cas.lib.proarc.desa.pspsip.PSPSIP;
+import cz.cas.lib.proarc.desa.pspsip.PSPSIP.SIP;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
 import cz.cas.lib.proarc.mets.DivType.Mptr;
@@ -71,6 +70,7 @@ import cz.cas.lib.proarc.mets.MetsType.FileSec;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.StructMapType;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.nsesss2.Spis;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
@@ -565,15 +565,13 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         } else
             throw new MetsExportException(rootElement.getOriginalPid(), "Unknown type:" + rootElement.getElementType() + " model:" + rootElement.getModel(), false, null);
 
-        if (desaProps != null) {
+        SIP2DESATransporter sipTransporter = desaElement.getDesaContext().getTransporter();
+        if (sipTransporter != null) {
             LOG.log(Level.INFO, "Exporting to desa");
             try {
-                if (desaProps.get("desa.resultDir") == null && rootElement.getDesaContext().getDesaResultPath() != null) {
-                    desaProps.put("desa.resultDir", rootElement.getDesaContext().getDesaResultPath());
-                }
-                if (desaProps.get("desa.resultDir") != null) {
-                    SIP2DESATransporter sipTransporter = new SIP2DESATransporter();
-                    sipTransporter.transport(rootElement.getDesaContext().getOutputPath(), desaProps.get("desa.resultDir"), desaProps.get("desa.resultDir"), desaProps);
+                String desaResultPath = rootElement.getDesaContext().getDesaResultPath();
+                if (desaResultPath != null) {
+                    sipTransporter.transport(rootElement.getDesaContext().getOutputPath(), desaResultPath, desaResultPath);
                     updateSIPversion(rootElement, sipTransporter.getResults());
                 } else {
                     throw new MetsExportException(desaElement.getOriginalPid(), "Result dir (desa.resultDir) is not set", false, null);

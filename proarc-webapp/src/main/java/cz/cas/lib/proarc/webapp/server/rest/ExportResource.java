@@ -205,7 +205,7 @@ public class ExportResource {
             }
         });
         return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-Disposition", "attachment; filename=" + file.getName())
+                .header("Content-Disposition", "attachment; filename=\"" + file.getName() + '"')
                 .build();
     }
 

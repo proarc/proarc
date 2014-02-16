@@ -675,6 +675,7 @@ public class MetsUtils {
     public static boolean validateAgainstXSD(Document document, InputStream xsd) throws MetsExportException {
         try {
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            factory.setResourceResolver(MetsLSResolver.getInstance());
             Schema schema = factory.newSchema(new StreamSource(xsd));
             TransformerFactory tFactory = TransformerFactory.newInstance();
             Transformer transformer = tFactory.newTransformer();
@@ -726,6 +727,7 @@ public class MetsUtils {
     public static boolean validateAgainstXSD(File file, InputStream xsd) throws MetsExportException {
         try {
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            factory.setResourceResolver(MetsLSResolver.getInstance());
             Schema schema = factory.newSchema(new StreamSource(xsd));
             DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
             dbfactory.setValidating(false);
@@ -836,7 +838,7 @@ public class MetsUtils {
             Marshaller marshaller = jaxbContext.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-            marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd");
+            marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd oai_dc.xds");
             // marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper",
             // new NamespacePrefixMapperImpl());
             marshaller.marshal(mets.getMets(), file);

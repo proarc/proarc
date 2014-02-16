@@ -141,7 +141,15 @@ public final class DesaExport {
             try {
                 DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
                 DesaElement dElm = DesaElement.getElement(dobj, null, dc, hierarchy);
-                HashMap<String, String> tProps = transporterProperties(dryRun, dElm);
+                DesaConfiguration desaCfg = transporterProperties(dryRun, dElm);
+                HashMap<String, String> tProps = null;
+                if (desaCfg != null) {
+                    tProps = desaCfg.toTransporterConfig();
+                    dc.setTransporter(desaServices.getDesaClient(desaCfg).getSipTransporter(
+                            // XXX replace with real operator and producer code from http request
+                            tProps.get("desa." + DesaConfiguration.PROPERTY_OPERATOR),
+                            tProps.get("desa." + DesaConfiguration.PROPERTY_PRODUCER)));
+                }
                 dElm.accept(new DesaElementVisitor(), tProps);
                 // dc.getMetsExportException() should be ignored now; validation warnings are always thrown
                 // result.setValidationError(dc.getMetsExportException());
@@ -186,7 +194,7 @@ public final class DesaExport {
      * {@code dryRun} is {@code true}.
      * @throws MetsExportException no configuration found
      */
-    private HashMap<String, String> transporterProperties(boolean dryRun, DesaElement dElm) throws MetsExportException {
+    private DesaConfiguration transporterProperties(boolean dryRun, DesaElement dElm) throws MetsExportException {
         if (!dryRun) {
             String modelId = dElm.getModel();
             if (modelId.startsWith(Const.FEDORAPREFIX)) {
@@ -195,7 +203,7 @@ public final class DesaExport {
             }
             DesaConfiguration desaCfg = desaServices.findConfiguration(models.find(modelId));
             if (desaCfg != null) {
-                return desaCfg.toTransporterConfig();
+                return desaCfg;
             } else {
                 throw new MetsExportException(dElm.getOriginalPid(),
                         String.format("No configuration of the DESA registry found for type %s!", modelId),

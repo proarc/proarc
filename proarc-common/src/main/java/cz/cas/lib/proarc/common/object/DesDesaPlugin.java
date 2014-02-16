@@ -22,7 +22,6 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.export.desa.DesaServices.DesaConfiguration;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
@@ -34,17 +33,18 @@ import cz.cas.lib.proarc.common.object.DerDesaPlugin.DerMetadataHandler;
 import cz.cas.lib.proarc.common.object.DerDesaPlugin.DerRawDisseminationHandler;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
-import cz.cas.lib.proarc.desa.nsesss2.Dokument;
-import cz.cas.lib.proarc.desa.nsesss2.NsesssConstants;
-import cz.cas.lib.proarc.desa.nsesss2.NsesssUtils;
-import cz.cas.lib.proarc.desa.nsesss2.Spis;
-import cz.cas.lib.proarc.desa.nsesss2.TEvidencniUdajeDokumentu;
-import cz.cas.lib.proarc.desa.nsesss2.TEvidencniUdajeSpisu;
-import cz.cas.lib.proarc.desa.nsesss2.TIdentifikace;
-import cz.cas.lib.proarc.desa.nsesss2.TIdentifikator;
-import cz.cas.lib.proarc.desa.nsesss2.TPopis;
-import cz.cas.lib.proarc.desa.nsesss2.mapping.PrijemceMapping;
-import cz.cas.lib.proarc.desa.nsesss2.mapping.PrijemceMapping.SubjektExterni;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
+import cz.cas.lib.proarc.nsesss2.Dokument;
+import cz.cas.lib.proarc.nsesss2.NsesssConstants;
+import cz.cas.lib.proarc.nsesss2.NsesssUtils;
+import cz.cas.lib.proarc.nsesss2.Spis;
+import cz.cas.lib.proarc.nsesss2.TEvidencniUdajeDokumentu;
+import cz.cas.lib.proarc.nsesss2.TEvidencniUdajeSpisu;
+import cz.cas.lib.proarc.nsesss2.TIdentifikace;
+import cz.cas.lib.proarc.nsesss2.TIdentifikator;
+import cz.cas.lib.proarc.nsesss2.TPopis;
+import cz.cas.lib.proarc.nsesss2.mapping.NsesssMapper;
+import cz.cas.lib.proarc.nsesss2.mapping.NsesssMapper.SubjektExterni;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
@@ -218,7 +218,8 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
                 try {
                     DesObjectWrapper wrapper = jsMapper.readValue(json, DesObjectWrapper.class);
                     metadata = wrapper.getSpis() != null
-                            ? wrapper.getSpis() : mapFromJson(wrapper.getDokument());
+                            ? mapFromJson(wrapper.getSpis())
+                            : mapFromJson(wrapper.getDokument());
                 } catch (Exception ex) {
                     throw new DigitalObjectException(fobject.getPid(), null, editor.getProfile().getDsID(), null, ex);
                 }
@@ -283,12 +284,33 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
         }
 
         public static Dokument mapToJson(Dokument d) {
-            d = new PrijemceMapping().toJson(d);
+            NsesssMapper mapper = new NsesssMapper();
+            d = mapper.replaceTSubjektExterni(d);
             return d;
         }
 
-        public static Dokument mapFromJson(Dokument d) {
-            // no-op for now
+        /**
+         * Gets unique ID for NSESSS object.
+         * @return ID
+         */
+        private String nsesssId() {
+            // prefix uuid to comply with NCName syntax; cannot start with a number
+            return "ID_" + FoxmlUtils.pidAsUuid(fobject.getPid());
+        }
+
+        public Spis mapFromJson(Spis s) {
+            s.setID(nsesssId());
+            NsesssMapper mapper = new NsesssMapper();
+            mapper.fillZdroj(s);
+            mapper.fillDisposalDate(s);
+            return s;
+        }
+
+        public Dokument mapFromJson(Dokument d) {
+            d.setID(nsesssId());
+            NsesssMapper mapper = new NsesssMapper();
+            mapper.fillZdroj(d);
+            mapper.fillDisposalDate(d);
             return d;
         }
 
@@ -306,12 +328,13 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
         }
 
         private Object createDefaultMetadata(String modelId) throws DigitalObjectException {
+            NsesssMapper mapper = new NsesssMapper();
             if (MODEL_FOLDER.equals(modelId)) {
-                return NsesssUtils.defaultSpis();
+                return mapper.fillDefaults(NsesssUtils.defaultSpis(), nsesssId());
             } else if (MODEL_INTERNAL_RECORD.equals(modelId)) {
-                return NsesssUtils.defaultInternalDokument();
+                return mapper.fillDefaults(NsesssUtils.defaultInternalDokument(), true, nsesssId());
             } else if (MODEL_EXTERNAL_RECORD.equals(modelId)) {
-                return NsesssUtils.defaultExternalDocument();
+                return mapper.fillDefaults(NsesssUtils.defaultExternalDocument(), true, nsesssId());
             }
             throw new DigitalObjectException(fobject.getPid(), null,
                     DESCRIPTION_DATASTREAM_ID, "Unknown model: " + modelId, null);

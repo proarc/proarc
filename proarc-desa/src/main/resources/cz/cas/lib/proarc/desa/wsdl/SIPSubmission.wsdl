@@ -1,0 +1,1033 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:tns="http://i.cz/dea/schemas/SIPSubmission"
+                  xmlns:impl="http://i.cz/dea/schemas/SIPSubmission/types"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  name="SIPSubmission" targetNamespace="http://i.cz/dea/schemas/SIPSubmission">
+    <wsdl:types>
+        <xsd:schema targetNamespace="http://i.cz/dea/schemas/SIPSubmission/types">
+            <xsd:element name="submitPackage" type="impl:SubmitPackageRequest">
+            </xsd:element>
+            <xsd:element name="submitPackageResponse" type="impl:SubmitPackageResponse">
+            </xsd:element>
+            <xsd:complexType name="SubmitPackageRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="producerSIPID" type="xsd:string" />
+                    <xsd:element name="inputSIPData" type="xsd:base64Binary" />
+                    <xsd:element name="filename" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="SubmitPackageResponse">
+                <xsd:sequence>
+                    <xsd:element name="idSIPVersion" type="xsd:string" />
+                    <xsd:element name="producerSIPID" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="submitPackageUpdate" type="impl:SubmitPackageUpdateRequest">
+            </xsd:element>
+            <xsd:element name="submitPackageUpdateResponse" type="impl:SubmitPackageResponse">
+            </xsd:element>
+            <xsd:complexType name="SubmitPackageUpdateRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="producerSIPID" type="xsd:string" />
+                    <xsd:element name="updateSIPData" type="xsd:base64Binary" />
+                    <xsd:element name="prevIdSIPVersion" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="getPackageChanges" type="impl:GetPackageChangesRequest">
+            </xsd:element>
+            <xsd:element name="getPackageChangesResponse" type="impl:GetPackageChanges">
+            </xsd:element>
+            <xsd:complexType name="GetPackageChangesRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="startByTime" type="xsd:dateTime" />
+                    <xsd:element name="limitCount" type="xsd:int" maxOccurs="1" minOccurs="0"></xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="GetPackageChanges">
+                <xsd:sequence>
+                    <xsd:element name="changeList" type="impl:ArrayPackageChanges" />
+                    <xsd:element name="lastItemTime" type="xsd:dateTime" maxOccurs="1" minOccurs="0"></xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="PackageChanges">
+                <xsd:sequence>
+                    <xsd:element name="idSIPVersion" type="xsd:string">
+                    </xsd:element>
+                    <xsd:element name="producerSIPID" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="ArrayPackageChanges">
+                <xsd:sequence>
+                    <xsd:element name="item" type="impl:PackageChanges"
+                                 minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="getPackageStatus" type="impl:GetPackageStatusRequest">
+            </xsd:element>
+            <xsd:element name="getPackageStatusResponse" type="impl:GetPackageStatusResponse">
+            </xsd:element>
+            <xsd:complexType name="GetPackageStatusRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="idSIPVersion" type="xsd:string">
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="GetPackageStatusResponse">
+                <xsd:sequence>
+                    <xsd:element name="idSIPVersion" type="xsd:string"></xsd:element>
+                    <xsd:element name="producerSIPID" type="xsd:string" />
+                    <xsd:element name="packageStateCode" type="xsd:string" />
+                    <xsd:element name="packageStateText" type="xsd:string" />
+                    <xsd:element name="errorCode" type="xsd:string" maxOccurs="1" minOccurs="0"></xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="ArrayPackageComponentsHash">
+                <xsd:sequence>
+                    <xsd:element name="item" type="impl:PackageComponentsHash"
+                                 minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="PackageComponentsHash">
+                <xsd:sequence>
+                    <xsd:element name="componentName" type="xsd:string" />
+                    <xsd:element name="componentHash" type="xsd:string" />
+                    <xsd:element name="componentErmsId" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="getNomenclatures" type="impl:GetNomenclaturesRequest">
+            </xsd:element>
+            <xsd:complexType name="GetNomenclaturesRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="nomenlatureList" type="impl:NomenclatureListType" />
+                    <xsd:element name="date" type="xsd:date" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="getNomenclaturesResponse" type="impl:GetNomenclaturesResponse">
+            </xsd:element>
+            <xsd:complexType name="GetNomenclaturesResponse">
+                <xsd:sequence>
+                    <xsd:element name="nomenclaturesData" type="xsd:base64Binary" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AsyncSubmitPackageStartRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="producerSIPID" type="xsd:string" />
+                    <xsd:element name="fileSize" type="xsd:int" />
+                    <xsd:element name="fileCheckSum" type="xsd:string" />
+                    <xsd:element name="fileHashAlg" type="impl:FileHashAlg" maxOccurs="1" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AsyncSubmitPackageStartResponse">
+                <xsd:sequence>
+                    <xsd:element name="idSIPVersion" type="xsd:string" />
+                    <xsd:element name="producerSIPID" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AsyncSubmitPackageEndRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="idSIPVersion" type="xsd:string">
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="changeSUnitLocationRequest" type="impl:ChangeSUnitLocationRequest" />
+            <xsd:element name="changeSUnitLocationResponse" type="impl:ChangeSUnitLocationResponse" />
+            <xsd:element name="changeSUnitLocationFault" type="impl:ChangeSUnitLocationFault" />
+            <xsd:complexType name="ChangeSUnitLocationRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:choice>
+                        <xsd:element name="identifier" type="xsd:string" />
+                        <xsd:element name="erms_uid" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="locationAcr" type="xsd:string" />
+                    <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="ChangeSUnitLocationResponse">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="ChangeSUnitLocationFault">
+                <xsd:sequence>
+                    <xsd:element name="changeSUnitLocationFault" type="xsd:string"></xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:element name="setupSUnitRequest" type="impl:SetupSUnitRequest" />
+            <xsd:element name="setupSUnitResponse" type="impl:SetupSUnitResponse" />
+            <xsd:element name="setupSUnitFault" type="impl:SetupSUnitFault" />
+
+            <xsd:complexType name="SetupSUnitRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+
+                    <xsd:choice>
+                        <xsd:sequence>
+                            <xsd:element name="identifier" type="xsd:string" />
+                            <xsd:element name="erms_uid" type="xsd:string" />
+                        </xsd:sequence>
+                        <xsd:sequence>
+                            <xsd:element name="identifier" type="xsd:string" />
+                        </xsd:sequence>
+                        <xsd:sequence>
+                            <xsd:element name="erms_uid" type="xsd:string" />
+                        </xsd:sequence>
+                    </xsd:choice>
+
+                    <xsd:element name="title" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="type" type="impl:tSUnitType" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="classificationFullyQcc" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="retentionAndDispositionControlAcronym" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="author" type="impl:tArchivalObjectPerson" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="dateCreated" type="xsd:date" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="dateClosed" type="xsd:date" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="unitsCount" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="itemsCount" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="locationAcr" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                    <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:simpleType name="tSUnitType">
+                <xsd:restriction base="xsd:string" />
+            </xsd:simpleType>
+
+            <xsd:complexType name="tArchivalObjectPerson">
+                <xsd:sequence>
+                    <xsd:element name="fullname" type="xsd:string"/>
+                    <xsd:element name="identifier" type="xsd:string" maxOccurs="1" minOccurs="0" />
+                    <xsd:element name="address" type="xsd:string" maxOccurs="1" minOccurs="0" />
+                    <xsd:element name="email" type="xsd:string" maxOccurs="1" minOccurs="0" />
+                    <xsd:element name="organisationIdentifier" type="xsd:string" maxOccurs="1" minOccurs="0" />
+                    <xsd:element name="organisationalUnit" type="xsd:string" maxOccurs="1" minOccurs="0" />
+                    <xsd:element name="position" type="xsd:string" maxOccurs="1" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:complexType name="SetupSUnitResponse">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="SetupSUnitFault">
+                <xsd:sequence>
+                    <xsd:element name="setupSUnitFault" type="xsd:string"></xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:element name="asyncSubmitPackageStart" type="impl:AsyncSubmitPackageStartRequest">
+            </xsd:element>
+            <xsd:element name="asyncSubmitPackageStartResponse" type="impl:AsyncSubmitPackageStartResponse">
+            </xsd:element>
+            <xsd:element name="asyncSubmitPackageEnd" type="impl:AsyncSubmitPackageEndRequest">
+            </xsd:element>
+            <xsd:element name="asyncSubmitPackageEndResponse" type="impl:AsyncSubmitPackageEndResponse">
+            </xsd:element>
+            <xsd:complexType name="AsyncSubmitPackageEndResponse">
+                <xsd:sequence>
+                    <xsd:element name="retCode" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="updatePackageMetadata" type="impl:UpdatePackageMetadataRequest">
+            </xsd:element>
+            <xsd:element name="updatePackageMetadataResponse" type="impl:UpdatePackageMetadataResponse">
+            </xsd:element>
+            <xsd:element name="updateExternalEvent" type="impl:UpdateExternalEventRequest">
+            </xsd:element>
+            <xsd:element name="updateExternalEventResponse" type="impl:UpdateExternalEventResponse">
+            </xsd:element>
+            <xsd:element name="createRDProcess" type="impl:CreateRDProcessRequest">
+            </xsd:element>
+            <xsd:element name="createRDProcessResponse" type="impl:CreateRDProcessResponse">
+            </xsd:element>
+            <xsd:element name="addRDProcessPackages" type="impl:AddRDProcessPackagesRequest">
+            </xsd:element>
+            <xsd:element name="addRDProcessPackagesResponse" type="impl:AddRDProcessPackagesResponse">
+            </xsd:element>
+            <xsd:element name="removeRDProcessPackages" type="impl:RemoveRDProcessPackagesRequest">
+            </xsd:element>
+            <xsd:element name="removeRDProcessPackagesResponse" type="impl:RemoveRDProcessPackagesResponse">
+            </xsd:element>
+            <xsd:element name="setRDProcessState" type="impl:SetRDProcessStateRequest">
+            </xsd:element>
+            <xsd:element name="setRDProcessStateResponse" type="impl:SetRDProcessStateResponse">
+            </xsd:element>
+            <xsd:element name="updateRDProcessPackage" type="impl:UpdateRDProcessPackageRequest">
+            </xsd:element>
+            <xsd:element name="updateRDProcessPackageResponse" type="impl:UpdateRDProcessPackageResponse">
+            </xsd:element>
+            <xsd:element name="getRDProcessConflicts" type="impl:GetRDProcessConflictsRequest">
+            </xsd:element>
+            <xsd:element name="getRDProcessConflictsResponse" type="impl:GetRDProcessConflictsResponse">
+            </xsd:element>
+            <xsd:complexType name="NomenclatureListType">
+                <xsd:sequence>
+                    <xsd:element name="nomenclatureAcronyme" type="xsd:string"
+                                 minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="SIPSubmissionError">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="errorCode" type="xsd:string" />
+                        <xsd:element name="errorText" type="xsd:string" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:simpleType name="FileHashAlg">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="MD5"></xsd:enumeration>
+                    <xsd:enumeration value="SHA-1"></xsd:enumeration>
+                    <xsd:enumeration value="SHA-256"></xsd:enumeration>
+                    <xsd:enumeration value="SHA-384"></xsd:enumeration>
+                    <xsd:enumeration value="SHA-512"></xsd:enumeration>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="UpdatePackageMetadataRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="producerSIPID" type="xsd:string" />
+                    <xsd:element name="idUpdateSIPVersion" type="xsd:string" />
+                    <xsd:element name="xsl" type="xsd:base64Binary" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="UpdatePackageMetadataResponse">
+                <xsd:sequence>
+                    <xsd:element name="idSIPVersion" type="xsd:string" />
+                    <xsd:element name="producerSIPID" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="updatePackageMetadataFault">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="updatePackageMetadataFault" type="xsd:string"></xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="updateExternalEventFault">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="updateExternalEventFault" type="xsd:string"></xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:complexType name="UpdateExternalEventRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:choice>
+                        <xsd:element name="aipVersionId" type="xsd:string"></xsd:element>
+                        <xsd:element name="externalId" type="xsd:string"></xsd:element>
+                    </xsd:choice>
+                    <xsd:element name="externalEventDate" type="xsd:date"></xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="UpdateExternalEventResponse">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="CreateRDProcessRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="acronym" type="xsd:string" />
+                    <xsd:element name="type" type="impl:RDProcessType" />
+                    <xsd:element name="determinationDate" type="xsd:date" minOccurs="0" maxOccurs="1" />
+                    <xsd:element name="deleteDiscarded" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+                    <xsd:element name="deleteRemoved" type="xsd:boolean" minOccurs="0" maxOccurs="1" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="RDProcessType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="RDT_INT"></xsd:enumeration>
+                    <xsd:enumeration value="RDT_REL"></xsd:enumeration>
+                    <xsd:enumeration value="RDT_RD"></xsd:enumeration>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="CreateRDProcessResponse">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AddRDProcessPackagesRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="acronym" type="xsd:string" />
+                    <xsd:element name="idSIPVersions" type="impl:ArraySIPVersion" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AddRDProcessPackagesResponse">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" />
+                    <xsd:element name="failedSIPVersions" type="impl:ArrayFailedSIPVersion" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="RemoveRDProcessPackagesRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="acronym" type="xsd:string" />
+                    <xsd:element name="idSIPVersions" type="impl:ArraySIPVersion" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="RemoveRDProcessPackagesResponse">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" />
+                    <xsd:element name="failedSIPVersions" type="impl:ArrayFailedSIPVersion" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="SetRDProcessStateRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="acronym" type="xsd:string" />
+                    <xsd:element name="processState" type="impl:RDProcessState" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="RDProcessState">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="RDP_SELECT" />
+                    <xsd:enumeration value="RDP_REVIEW" />
+                    <xsd:enumeration value="RDP_CANCEL" />
+                    <xsd:enumeration value="RDP_ACCEPTED" />
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="SetRDProcessStateResponse">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="UpdateRDProcessPackageRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="acronym" type="xsd:string" />
+                    <xsd:element name="idSIPVersion" type="xsd:string" />
+                    <xsd:element name="packageAction" type="impl:RDAipProcessAction" minOccurs="0" maxOccurs="1" />
+                    <xsd:element name="discardPeriod" type="xsd:int" minOccurs="0" maxOccurs="1" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="RDAipProcessAction">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="RD_ARCHIVE" />
+                    <xsd:enumeration value="RD_DISCARD" />
+                    <xsd:enumeration value="RD_DELAYED" />
+                    <xsd:enumeration value="RD_DECIDE" />
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="UpdateRDProcessPackageResponse">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="GetRDProcessConflictsRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="userLogin" type="xsd:string" />
+                    <xsd:element name="acronym" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="GetRDProcessConflictsResponse">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" />
+                    <xsd:element name="conflicts" type="impl:ArrayRDProcessConflicts" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="ArrayRDProcessConflicts">
+                <xsd:sequence>
+                    <xsd:element name="item" type="impl:RDProcessConflict" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="RDProcessConflict">
+                <xsd:sequence>
+                    <xsd:element name="idSIPVersion" type="xsd:string" />
+                    <xsd:element name="code" type="impl:RDConflictCode" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="RDConflictCode">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="C_SUBFILE_ACTION" />
+                    <xsd:enumeration value="C_VOLUME_ACTION" />
+                    <xsd:enumeration value="C_PART_ACTION" />
+
+                    <xsd:enumeration value="C_SUBFILE_PERIOD" />
+                    <xsd:enumeration value="C_VOLUME_PERIOD" />
+                    <xsd:enumeration value="C_PART_PERIOD" />
+                    <xsd:enumeration value="C_RECS_PERIOD" />
+                    <xsd:enumeration value="C_VOLS_PERIOD" />
+                    <xsd:enumeration value="C_PARTS_PERIOD" />
+
+                    <xsd:enumeration value="C_RECS_ACTION" />
+                    <xsd:enumeration value="C_VOLS_ACTION" />
+                    <xsd:enumeration value="C_PARTS_ACTION" />
+                    <xsd:enumeration value="C_REF_PERIOD" />
+                    <xsd:enumeration value="C_CONTENT_RDPROC" />
+                    <xsd:enumeration value="C_CONTENT_DELAYED" />
+                    <xsd:enumeration value="C_REF_RDPROC" />
+
+                    <xsd:enumeration value="C_ACTION_V" />
+                    <xsd:enumeration value="C_BORROWED" />
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="ArraySIPVersion">
+                <xsd:sequence>
+                    <xsd:element name="idSIPVersion" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="ArrayFailedSIPVersion">
+                <xsd:sequence>
+                    <xsd:element name="item" type="impl:FailedSIPVersion" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="FailedSIPVersion">
+                <xsd:sequence>
+                    <xsd:element name="idSIPVersion" type="xsd:string" />
+                    <xsd:element name="code" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:element name="authenticateUserRequest" type="impl:authenticateUserRequest" />
+            <xsd:element name="authenticateUserResponse" type="impl:authenticateUserResponse" />
+
+            <xsd:complexType name="authenticateUserRequest">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="producerID" type="xsd:int" />
+                        <xsd:element name="producerCode" type="xsd:string" />
+                    </xsd:choice>
+                    <xsd:element name="login" type="xsd:string" />
+                    <xsd:element name="password" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:complexType name="authenticateUserResponse">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" />
+                    <xsd:element name="name" type="xsd:string" maxOccurs="1" minOccurs="0" />
+                    <xsd:element name="surname" type="xsd:string" maxOccurs="1" minOccurs="0" />
+                    <xsd:element name="email" type="xsd:string" maxOccurs="1" minOccurs="0" />
+                    <xsd:element name="superAdmin" type="xsd:boolean" maxOccurs="1" minOccurs="0" />
+                    <xsd:element name="roles" type="impl:ArrayRoles" maxOccurs="1" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:complexType name="ArrayRoles">
+                <xsd:sequence>
+                    <xsd:element name="item" type="impl:Role" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="Role">
+                <xsd:sequence>
+                    <xsd:element name="RoleAcr" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+    </wsdl:types>
+    <wsdl:message name="getPackageChangesRequest">
+        <wsdl:part name="part" element="impl:getPackageChanges"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getPackageChangesResponse">
+        <wsdl:part name="part" element="impl:getPackageChangesResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getPackageStatusRequest">
+        <wsdl:part name="part" element="impl:getPackageStatus"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getPackageStatusResponse">
+        <wsdl:part name="part" element="impl:getPackageStatusResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getNomenclaturesRequest">
+        <wsdl:part name="part" element="impl:getNomenclatures"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getNomenclaturesResponse">
+        <wsdl:part name="part" element="impl:getNomenclaturesResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="asyncSubmitPackageStartRequest">
+        <wsdl:part name="part" element="impl:asyncSubmitPackageStart"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="asyncSubmitPackageStartResponse">
+        <wsdl:part name="part" element="impl:asyncSubmitPackageStartResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="asyncSubmitPackageEndRequest">
+        <wsdl:part name="part" element="impl:asyncSubmitPackageEnd"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="asyncSubmitPackageEndResponse">
+        <wsdl:part name="part" element="impl:asyncSubmitPackageEndResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="SIPSubmissionFault">
+        <wsdl:part name="part" element="impl:SIPSubmissionError" />
+    </wsdl:message>
+    <wsdl:message name="updatePackageMetadataRequest">
+        <wsdl:part name="part" element="impl:updatePackageMetadata"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updatePackageMetadataResponse">
+        <wsdl:part name="part" element="impl:updatePackageMetadataResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updatePackageMetadataFault">
+        <wsdl:part name="part" element="impl:SIPSubmissionError"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateExternalEventRequest">
+        <wsdl:part name="part" element="impl:updateExternalEvent"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateExternalEventResponse">
+        <wsdl:part name="part" element="impl:updateExternalEventResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateExternalEventFault">
+        <wsdl:part name="part" element="impl:SIPSubmissionError"></wsdl:part>
+    </wsdl:message>
+
+    <wsdl:message name="createRDProcessRequest">
+        <wsdl:part name="part" element="impl:createRDProcess"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="createRDProcessResponse">
+        <wsdl:part name="part" element="impl:createRDProcessResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="createRDProcessFault">
+        <wsdl:part name="part" element="impl:SIPSubmissionError"></wsdl:part>
+    </wsdl:message>
+
+    <wsdl:message name="addRDProcessPackagesRequest">
+        <wsdl:part name="part" element="impl:addRDProcessPackages"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="addRDProcessPackagesResponse">
+        <wsdl:part name="part" element="impl:addRDProcessPackagesResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="addRDProcessPackagesFault">
+        <wsdl:part name="part" element="impl:SIPSubmissionError"></wsdl:part>
+    </wsdl:message>
+
+    <wsdl:message name="removeRDProcessPackagesRequest">
+        <wsdl:part name="part" element="impl:removeRDProcessPackages"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="removeRDProcessPackagesResponse">
+        <wsdl:part name="part" element="impl:removeRDProcessPackagesResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="removeRDProcessPackagesFault">
+        <wsdl:part name="part" element="impl:SIPSubmissionError"></wsdl:part>
+    </wsdl:message>
+
+    <wsdl:message name="setRDProcessStateRequest">
+        <wsdl:part name="part" element="impl:setRDProcessState"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setRDProcessStateResponse">
+        <wsdl:part name="part" element="impl:setRDProcessStateResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setRDProcessStateFault">
+        <wsdl:part name="part" element="impl:SIPSubmissionError"></wsdl:part>
+    </wsdl:message>
+
+    <wsdl:message name="updateRDProcessPackageRequest">
+        <wsdl:part name="part" element="impl:updateRDProcessPackage"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateRDProcessPackageResponse">
+        <wsdl:part name="part" element="impl:updateRDProcessPackageResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateRDProcessPackageFault">
+        <wsdl:part name="part" element="impl:SIPSubmissionError"></wsdl:part>
+    </wsdl:message>
+
+    <wsdl:message name="getRDProcessConflictsRequest">
+        <wsdl:part name="part" element="impl:getRDProcessConflicts"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getRDProcessConflictsResponse">
+        <wsdl:part name="part" element="impl:getRDProcessConflictsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getRDProcessConflictsFault">
+        <wsdl:part name="part" element="impl:SIPSubmissionError"></wsdl:part>
+    </wsdl:message>
+
+    <wsdl:message name="authenticateUserRequest">
+        <wsdl:part name="part" element="impl:authenticateUserRequest"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="authenticateUserResponse">
+        <wsdl:part name="part" element="impl:authenticateUserResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="authenticateUserFault">
+        <wsdl:part name="part" element="impl:SIPSubmissionError"></wsdl:part>
+    </wsdl:message>
+
+    <wsdl:message name="changeSUnitLocationRequest">
+        <wsdl:part name="part" element="impl:changeSUnitLocationRequest" />
+    </wsdl:message>
+    <wsdl:message name="changeSUnitLocationResponse">
+        <wsdl:part name="part" element="impl:changeSUnitLocationResponse" />
+    </wsdl:message>
+    <wsdl:message name="changeSUnitLocationFault">
+        <wsdl:part name="part" element="impl:changeSUnitLocationFault" />
+    </wsdl:message>
+
+    <wsdl:message name="setupSUnitRequest">
+        <wsdl:part name="part" element="impl:setupSUnitRequest" />
+    </wsdl:message>
+    <wsdl:message name="setupSUnitResponse">
+        <wsdl:part name="part" element="impl:setupSUnitResponse" />
+    </wsdl:message>
+    <wsdl:message name="setupSUnitRequestFault">
+        <wsdl:part name="part" element="impl:setupSUnitFault" />
+    </wsdl:message>
+
+    <wsdl:portType name="SIPSubmission">
+        <wsdl:operation name="getPackageChanges">
+            <wsdl:input message="tns:getPackageChangesRequest" />
+            <wsdl:output message="tns:getPackageChangesResponse" />
+            <wsdl:fault name="SIPSubmissionFault" message="tns:SIPSubmissionFault" />
+        </wsdl:operation>
+        <wsdl:operation name="getPackageStatus">
+            <wsdl:input message="tns:getPackageStatusRequest" />
+            <wsdl:output message="tns:getPackageStatusResponse" />
+            <wsdl:fault name="SIPSubmissionFault" message="tns:SIPSubmissionFault" />
+        </wsdl:operation>
+        <wsdl:operation name="getNomenclatures">
+            <wsdl:input message="tns:getNomenclaturesRequest" />
+            <wsdl:output message="tns:getNomenclaturesResponse" />
+            <wsdl:fault name="SIPSubmissionFault" message="tns:SIPSubmissionFault" />
+        </wsdl:operation>
+        <wsdl:operation name="asyncSubmitPackageStart">
+            <wsdl:input message="tns:asyncSubmitPackageStartRequest" />
+            <wsdl:output message="tns:asyncSubmitPackageStartResponse" />
+            <wsdl:fault name="SIPSubmissionFault" message="tns:SIPSubmissionFault" />
+        </wsdl:operation>
+        <wsdl:operation name="asyncSubmitPackageEnd">
+            <wsdl:input message="tns:asyncSubmitPackageEndRequest" />
+            <wsdl:output message="tns:asyncSubmitPackageEndResponse" />
+            <wsdl:fault name="SIPSubmissionFault" message="tns:SIPSubmissionFault" />
+        </wsdl:operation>
+        <wsdl:operation name="updatePackageMetadata">
+            <wsdl:input message="tns:updatePackageMetadataRequest" />
+            <wsdl:output message="tns:updatePackageMetadataResponse" />
+            <wsdl:fault name="SIPSubmissionFault" message="tns:updatePackageMetadataFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateExternalEvent">
+            <wsdl:input message="tns:updateExternalEventRequest"></wsdl:input>
+            <wsdl:output message="tns:updateExternalEventResponse"></wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault" message="tns:updateExternalEventFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="createRDProcess">
+            <wsdl:input message="tns:createRDProcessRequest"></wsdl:input>
+            <wsdl:output message="tns:createRDProcessResponse"></wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault" message="tns:createRDProcessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addRDProcessPackages">
+            <wsdl:input message="tns:addRDProcessPackagesRequest"></wsdl:input>
+            <wsdl:output message="tns:addRDProcessPackagesResponse"></wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault" message="tns:addRDProcessPackagesFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeRDProcessPackages">
+            <wsdl:input message="tns:removeRDProcessPackagesRequest"></wsdl:input>
+            <wsdl:output message="tns:removeRDProcessPackagesResponse"></wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault" message="tns:removeRDProcessPackagesFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setRDProcessState">
+            <wsdl:input message="tns:setRDProcessStateRequest"></wsdl:input>
+            <wsdl:output message="tns:setRDProcessStateResponse"></wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault" message="tns:setRDProcessStateFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateRDProcessPackage">
+            <wsdl:input message="tns:updateRDProcessPackageRequest"></wsdl:input>
+            <wsdl:output message="tns:updateRDProcessPackageResponse"></wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault" message="tns:updateRDProcessPackageFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRDProcessConflicts">
+            <wsdl:input message="tns:getRDProcessConflictsRequest"></wsdl:input>
+            <wsdl:output message="tns:getRDProcessConflictsResponse"></wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault" message="tns:getRDProcessConflictsFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="authenticateUser">
+            <wsdl:input message="tns:authenticateUserRequest" />
+            <wsdl:output message="tns:authenticateUserResponse" />
+            <wsdl:fault name="AuthenticateUserFault" message="tns:authenticateUserFault" />
+        </wsdl:operation>
+        <wsdl:operation name="changeSUnitLocation">
+            <wsdl:input message="tns:changeSUnitLocationRequest" />
+            <wsdl:output message="tns:changeSUnitLocationResponse" />
+            <wsdl:fault name="ChangeSUnitLocationFault" message="tns:changeSUnitLocationFault" />
+        </wsdl:operation>
+        <wsdl:operation name="setupSUnit">
+            <wsdl:input message="tns:setupSUnitRequest" />
+            <wsdl:output message="tns:setupSUnitResponse" />
+            <wsdl:fault name="SetupSUnitFault" message="tns:setupSUnitRequestFault" />
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="SIPSubmissionSOAP" type="tns:SIPSubmission">
+        <soap:binding style="document"
+                      transport="http://schemas.xmlsoap.org/soap/http" />
+        <wsdl:operation name="getPackageChanges">
+            <soap:operation
+                soapAction="http://i.cz/dea/schemas/SIPSubmission/getPackageChanges" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getPackageStatus">
+            <soap:operation
+                soapAction="http://i.cz/dea/schemas/SIPSubmission/getPackageStatus" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getNomenclatures">
+            <soap:operation
+                soapAction="http://i.cz/dea/schemas/SIPSubmission/getNomenclatures" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="asyncSubmitPackageStart">
+            <soap:operation
+                soapAction="http://i.cz/dea/schemas/SIPSubmission/asyncSubmitPackageStart" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="asyncSubmitPackageEnd">
+            <soap:operation
+                soapAction="http://i.cz/dea/schemas/SIPSubmission/asyncSubmitPackageEnd" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updatePackageMetadata">
+            <soap:operation
+                soapAction="http://i.cz/dea/schemas/SIPSubmission/updatePackageMetadata" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateExternalEvent">
+            <soap:operation soapAction="http://i.cz/dea/schemas/SIPSubmission/updateExternalEvent" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="createRDProcess">
+            <soap:operation soapAction="http://i.cz/dea/schemas/SIPSubmission/createRDProcess" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addRDProcessPackages">
+            <soap:operation soapAction="http://i.cz/dea/schemas/SIPSubmission/addRDProcessPackages" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeRDProcessPackages">
+            <soap:operation soapAction="http://i.cz/dea/schemas/SIPSubmission/removeRDProcessPackages" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setRDProcessState">
+            <soap:operation soapAction="http://i.cz/dea/schemas/SIPSubmission/setRDProcessState" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateRDProcessPackage">
+            <soap:operation soapAction="http://i.cz/dea/schemas/SIPSubmission/updateRDProcessPackage" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRDProcessConflicts">
+            <soap:operation soapAction="http://i.cz/dea/schemas/SIPSubmission/getRDProcessConflicts" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SIPSubmissionFault">
+                <soap:fault use="literal" name="SIPSubmissionFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="authenticateUser">
+            <soap:operation soapAction="http://i.cz/dea/schemas/SIPSubmission/authenticateUser" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="AuthenticateUserFault">
+                <soap:fault use="literal" name="AuthenticateUserFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="changeSUnitLocation">
+            <soap:operation soapAction="http://i.cz/dea/schemas/SIPSubmission/changeSUnitLocation" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="ChangeSUnitLocationFault">
+                <soap:fault use="literal" name="ChangeSUnitLocationFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setupSUnit">
+            <soap:operation soapAction="http://i.cz/dea/schemas/SIPSubmission/setupSUnit" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="SetupSUnitFault">
+                <soap:fault use="literal" name="SetupSUnitFault" />
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="SIPSubmissionService">
+        <wsdl:port binding="tns:SIPSubmissionSOAP" name="SIPSubmissionSOAP">
+            <soap:address location="/ws/SIPSubmissionService" />
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

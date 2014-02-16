@@ -41,7 +41,7 @@
         </dependency>
          <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>proarc-sip2desa</artifactId>
+            <artifactId>proarc-desa</artifactId>
             <version>${project.version}</version>
          </dependency>
          
@@ -83,7 +83,7 @@
        
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>proarc-desa</artifactId>
+            <artifactId>proarc-nsesss</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -120,6 +120,12 @@
             <groupId>cz.mzk</groupId>
             <artifactId>EditMods</artifactId>
             <version>0.0.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.smartgwt</groupId>
+                    <artifactId>smartgwt</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!--javax.ws.rs.core.MediaType-->
         <!--JsonUtils-->

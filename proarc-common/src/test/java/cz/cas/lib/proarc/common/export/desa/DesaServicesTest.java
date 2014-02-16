@@ -17,11 +17,11 @@
 package cz.cas.lib.proarc.common.export.desa;
 
 import cz.cas.lib.proarc.common.export.desa.DesaServices.DesaConfiguration;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls;
-import cz.cas.lib.proarc.common.export.desa.sip2desa.nomen.Nomenclatures.RecCls.RecCl;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecCls;
+import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecCls.RecCl;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +101,10 @@ public class DesaServicesTest {
         assertEquals(Arrays.asList("model:id1", "model:id2"), ds1.getExportModels());
         assertEquals(Arrays.asList("acr1", "acr2"), ds1.getNomenclatureAcronyms());
         Map<String, String> tc = ds1.toTransporterConfig();
+        assertEquals("ds1user", ds1.getUsername());
+        assertEquals("ds1passwd", ds1.getPassword());
+        assertEquals("https://SERVER/dea-frontend/rest/sipsubmission", ds1.getRestServiceUrl());
+        assertEquals("https://SERVER/dea-frontend/ws/SIPSubmissionService", ds1.getSoapServiceUrl());
         assertEquals("ds1user", tc.get("desa.user"));
         assertEquals("ds1passwd", tc.get("desa.password"));
         assertEquals("ds1producer", tc.get("desa.producer"));

@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<project
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>cz.cas.lib.proarc</groupId>
+        <artifactId>proarc</artifactId>
+        <version>1.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>proarc-nsesss</artifactId>
+
+    <name>ProArc NSESSS JAXB Model</name>
+
+    <properties>
+    </properties>
+
+    <dependencies>
+
+        <!-- tests -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+
+            <!--Creates sources.jar to allow to inherit included GWT modules-->
+<!--            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>-->
+
+<!--            <plugin>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <configuration>
+                    <generatePackage>cz.cas.lib.proarc.nsesss2</generatePackage>
+                    <schemaLanguage>XMLSCHEMA</schemaLanguage>
+                    <schemaDirectory>src/main/resources/cz/cas/lib/proarc/nsesss2</schemaDirectory>
+                    <args>
+                        
+                            Use custom package-info.java with preferred namespace prefixes.
+                            Requires JDK 1.6.0_24 or later or com.sun.xml.bind:jaxb-impl:2.2.2 dependency.
+                            -npa:  suppress generation of package level annotations (**/package-info.java)
+                        
+                        <arg>-npa</arg>
+                    </args>
+                    <extension>true</extension>
+                    <debug>true</debug>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>-->
+
+        </plugins>
+    </build>
+</project>

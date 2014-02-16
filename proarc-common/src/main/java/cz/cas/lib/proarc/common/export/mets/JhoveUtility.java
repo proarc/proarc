@@ -18,9 +18,8 @@
 package cz.cas.lib.proarc.common.export.mets;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,7 +27,7 @@ import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -41,9 +40,9 @@ import edu.harvard.hul.ois.jhove.OutputHandler;
 
 /**
  * @author eskymo
- * 
+ *
  *         Utility class for jHove application
- * 
+ *
  */
 public class JhoveUtility {
 
@@ -51,7 +50,7 @@ public class JhoveUtility {
 
     /**
      * Returns a node with MIX info - helper
-     * 
+     *
      * @param node
      * @return
      */
@@ -71,9 +70,9 @@ public class JhoveUtility {
     }
 
     /**
-     * 
+     *
      * Inits the Jhove app
-     * 
+     *
      * @param metsInfo
      */
     public static void initJhove(MetsInfo metsInfo) throws MetsExportException {
@@ -81,7 +80,6 @@ public class JhoveUtility {
 
         App app = new App(JhoveUtility.class.getSimpleName(), "1.0", new int[] { calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH) }, "jHove", "");
         try {
-
             JhoveBase jhoveBase = new JhoveBase();
             File jhoveConfigFile = createJhoveConfigurationFile();
             jhoveBase.init(jhoveConfigFile.getAbsolutePath(), null);
@@ -95,9 +93,9 @@ public class JhoveUtility {
     }
 
     /**
-     * 
+     *
      * Returns a MIX node
-     * 
+     *
      * @param targetFile
      * @param metsinfo
      * @return
@@ -132,20 +130,25 @@ public class JhoveUtility {
 
     /**
      * Copy the Jhove configuration file to a temporary file.
-     * 
+     *
      * @return the {@link File} where the Jhove configuration was saved.
-     * 
+     *
      */
-
     private static File createJhoveConfigurationFile() throws MetsExportException {
-        InputStream jhoveConfInputStream = JhoveUtility.class.getResourceAsStream("jhove.conf");
+        URL jhoveConf = JhoveUtility.class.getResource("jhove.conf");
+        URL jhoveConfXsd = JhoveUtility.class.getResource("jhoveConfig.xsd");
         try {
-            File jhoveConfFile = File.createTempFile("jhove", "conf");
+            File jhoveConfFile = new File(FileUtils.getTempDirectory(), "jhove.conf");
             LOG.log(Level.FINE, "JHOVE configuration file " + jhoveConfFile);
-            FileOutputStream jhoveConfOutputStream = new FileOutputStream(jhoveConfFile);
-            IOUtils.copy(jhoveConfInputStream, jhoveConfOutputStream);
-            jhoveConfInputStream.close();
-            jhoveConfOutputStream.close();
+            // XXX it is not thread safe!
+            if (!jhoveConfFile.exists()) {
+                FileUtils.copyURLToFile(jhoveConf, jhoveConfFile);
+            }
+            File xsdFile = new File(jhoveConfFile.getParent(), "jhoveConfig.xsd");
+            // XXX it is not thread safe!
+            if (!xsdFile.exists()) {
+                FileUtils.copyURLToFile(jhoveConfXsd, xsdFile);
+            }
             return jhoveConfFile;
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Unable to create jHove config file", ex);

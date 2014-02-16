@@ -32,7 +32,6 @@ public class DesForms {
     public static Form spisForm() {
         Form f = new Form();
         f.getFields().add(new FieldBuilder("Spis").setMaxOccurrences(1)
-                .addField(new FieldBuilder("ID").setTitle("ID").setMaxOccurrences(1).setType(TEXT).setRequired(true).createField())
 
                 .addField(new FieldBuilder("EvidencniUdaje").setMaxOccurrences(1)
                     .addField(new FieldBuilder("Identifikace").setMaxOccurrences(1)
@@ -86,10 +85,9 @@ public class DesForms {
                         .createField()) // Zpracovatel
                     .createField()) // VyrizeniUzavreni
 
-                    .addField(new FieldBuilder("Vyrazovani").setTitle("Skartace").setMaxOccurrences(1).setRequired(true)
+                    .addField(new FieldBuilder("Vyrazovani").setTitle("Skartační režim").setMaxOccurrences(1).setRequired(true)
                         .addField(new FieldBuilder("SkartacniRezim").setMaxOccurrences(1).setRequired(true)
-                            .addField(createIdentifikatorField("Identifikator", "Identifikátor skartačního režimu"))
-                            .addField(new FieldBuilder("Nazev").setTitle("Název").setMaxOccurrences(1).setType(COMBO).setWidth("400").setLength(100).setRequired(true)
+                            .addField(new FieldBuilder("Nazev").setTitle("Název").setMaxOccurrences(1).setType(SELECT).setWidth("400").setLength(100).setRequired(true)
                                 .setOptionDataSource(new FieldBuilder("desa-des.rd-cntrl")
                                         .addField(new FieldBuilder("acr").setTitle("Kód").createField())
                                         .addField(new FieldBuilder("title").setTitle("Název").createField())
@@ -103,17 +101,16 @@ public class DesForms {
                                         put("period", "SkartacniLhuta");
                                     }})
                             .createField()) // Nazev
-                            .addField(new FieldBuilder("Oduvodneni").setTitle("Odůvodnění skartačního režimu").setMaxOccurrences(1).setType(TEXT).setLength(2000).setRequired(true).createField())
-                            .addField(new FieldBuilder("SkartacniZnak").setTitle("Skartační znak").setMaxOccurrences(1).setType(SELECT).setRequired(true)//.setReadOnly(true)
+                            .addField(new FieldBuilder("Identifikator").setMaxOccurrences(1)
+                                .addField(new FieldBuilder("value").setTitle("Identifikátor skartačního režimu").setMaxOccurrences(1).setType(TEXT).setReadOnly(true).setWidth("400").createField())
+                            .createField()) // Identifikator
+                            .addField(new FieldBuilder("Oduvodneni").setTitle("Odůvodnění skartačního režimu").setMaxOccurrences(1).setType(TEXT).setReadOnly(true).setRequired(true).createField())
+                            .addField(new FieldBuilder("SkartacniZnak").setTitle("Skartační znak").setMaxOccurrences(1).setType(SELECT).setReadOnly(true).setRequired(true)
                                 .addMapValue("A", "A - Archiv").addMapValue("S", "S - Stoupa").addMapValue("V", "V - Výběr")
                             .createField()) // SkartacniZnak
-                            .addField(new FieldBuilder("SkartacniLhuta").setTitle("Skartační lhůta").setMaxOccurrences(1).setType(TEXT).setLength(3).setRequired(true).setWidth("100").createField())
+                            .addField(new FieldBuilder("SkartacniLhuta").setTitle("Skartační lhůta").setMaxOccurrences(1).setType(TEXT).setReadOnly(true).setRequired(true).setWidth("100").createField())
                             .addField(new FieldBuilder("SpousteciUdalost").setTitle("Spouštěcí událost").setMaxOccurrences(1).setType(TEXT).setLength(2000).setRequired(true).createField())
                         .createField()) // SkartacniRezim
-                        .addField(new FieldBuilder("DataceVyrazeni").setMaxOccurrences(1).setRequired(true)
-                            .addField(new FieldBuilder("RokSpousteciUdalosti").setTitle("Rok spouštěcí události").setMaxOccurrences(1).setType(G_YEAR).setRequired(true).createField())
-                            .addField(new FieldBuilder("RokSkartacniOperace").setTitle("Rok skartační operace").setMaxOccurrences(1).setType(G_YEAR).setRequired(true).createField())
-                        .createField()) // DataceVyrazeni
                     .createField()) // Vyrazovani
 
                     .addField(new FieldBuilder("Manipulace").setMaxOccurrences(1).setRequired(true)
@@ -140,7 +137,6 @@ public class DesForms {
     public static Form intenalDocumentForm() {
         Form f = new Form();
         f.getFields().add(new FieldBuilder("Dokument").setMaxOccurrences(1)
-                .addField(new FieldBuilder("ID").setTitle("ID").setMaxOccurrences(1).setType(TEXT).setRequired(true).createField())
 
                 .addField(new FieldBuilder("EvidencniUdaje").setMaxOccurrences(1)
                     .addField(new FieldBuilder("Identifikace").setMaxOccurrences(1)
@@ -178,7 +174,7 @@ public class DesForms {
                         .createField()) // VlastniDokument
                     .createField()) // Puvod
 
-                    .addField(new FieldBuilder("Trideni").setTitle("Třídění").setMaxOccurrences(1).setRequired(true)
+                    .addField(new FieldBuilder("Trideni").setTitle("Věcná skupina").setMaxOccurrences(1).setRequired(true)
 //                        .addField(new FieldBuilder("Titul_SpisovyZnak").setTitle("Věcná skupina").setMaxOccurrences(1).setType(SELECT).setLength(50).setWidth("400").setRequired(true)
 //                            .setOptionDataSource(new FieldBuilder("desa-des.rec-cl")
 //                                    .addField(new FieldBuilder("fullyQcc").setTitle("Kód").createField())
@@ -198,9 +194,7 @@ public class DesForms {
                         .createField()) // JednoduchySpisovyZnak
                         .addField(new FieldBuilder("PlneUrcenySpisovyZnak").setTitle("Plný kód").setMaxOccurrences(1).setType(TEXT).setLength(255).setRequired(true).createField())
                         .addField(new FieldBuilder("TypDokumentu").setMaxOccurrences(1).setRequired(true)
-//                            .addField(createIdentifikatorField("Identifikator", "Typ dokumentu"))
                             .addField(new FieldBuilder("Identifikator").setMaxOccurrences(1)
-                                .addField(new FieldBuilder("zdroj").setTitle("Zdroj evidence").setMaxOccurrences(1).setType(TEXT).setRequired(true).createField())
                                 .addField(new FieldBuilder("value").setTitle("Typ dokumentu").setMaxOccurrences(1).setType(SELECT).setRequired(true).setLength(50).setWidth("400")
                                     .setOptionDataSource(new FieldBuilder("desa-des.rec-type")
                                         .addField(new FieldBuilder("title").createField())
@@ -242,10 +236,9 @@ public class DesForms {
                         .createField()) // Prijemce
                     .createField()) // Vyrizeni
 
-                    .addField(new FieldBuilder("Vyrazovani").setTitle("Skartace").setMaxOccurrences(1).setRequired(true)
+                    .addField(new FieldBuilder("Vyrazovani").setTitle("Skartační režim").setMaxOccurrences(1).setRequired(true)
                         .addField(new FieldBuilder("SkartacniRezim").setMaxOccurrences(1).setRequired(true)
-                            .addField(createIdentifikatorField("Identifikator", "Identifikátor skartačního režimu"))
-                            .addField(new FieldBuilder("Nazev").setTitle("Název").setMaxOccurrences(1).setType(COMBO).setWidth("400").setLength(100).setRequired(true)
+                            .addField(new FieldBuilder("Nazev").setTitle("Název").setMaxOccurrences(1).setType(SELECT).setWidth("400").setLength(100).setRequired(true)
                                 .setOptionDataSource(new FieldBuilder("desa-des.rd-cntrl")
                                         .addField(new FieldBuilder("acr").setTitle("Kód").createField())
                                         .addField(new FieldBuilder("title").setTitle("Název").createField())
@@ -259,17 +252,16 @@ public class DesForms {
                                         put("period", "SkartacniLhuta");
                                     }})
                             .createField()) // Nazev
-                            .addField(new FieldBuilder("Oduvodneni").setTitle("Odůvodnění skartačního režimu").setMaxOccurrences(1).setType(TEXT).setLength(2000).setRequired(true).createField())
-                            .addField(new FieldBuilder("SkartacniZnak").setTitle("Skartační znak").setMaxOccurrences(1).setType(SELECT).setRequired(true)//.setReadOnly(true)
+                            .addField(new FieldBuilder("Identifikator").setMaxOccurrences(1)
+                                .addField(new FieldBuilder("value").setTitle("Identifikátor skartačního režimu").setMaxOccurrences(1).setType(TEXT).setReadOnly(true).setWidth("400").createField())
+                            .createField()) // Identifikator
+                            .addField(new FieldBuilder("Oduvodneni").setTitle("Odůvodnění skartačního režimu").setMaxOccurrences(1).setType(TEXT).setReadOnly(true).setRequired(true).createField())
+                            .addField(new FieldBuilder("SkartacniZnak").setTitle("Skartační znak").setMaxOccurrences(1).setType(SELECT).setReadOnly(true).setRequired(true)
                                 .addMapValue("A", "A - Archiv").addMapValue("S", "S - Stoupa").addMapValue("V", "V - Výběr")
                             .createField()) // SkartacniZnak
-                            .addField(new FieldBuilder("SkartacniLhuta").setTitle("Skartační lhůta").setMaxOccurrences(1).setType(TEXT).setLength(3).setRequired(true).setWidth("100").createField())
+                            .addField(new FieldBuilder("SkartacniLhuta").setTitle("Skartační lhůta").setMaxOccurrences(1).setType(TEXT).setReadOnly(true).setRequired(true).setWidth("100").createField())
                             .addField(new FieldBuilder("SpousteciUdalost").setTitle("Spouštěcí událost").setMaxOccurrences(1).setType(TEXT).setLength(2000).setRequired(true).createField())
                         .createField()) // SkartacniRezim
-                        .addField(new FieldBuilder("DataceVyrazeni").setMaxOccurrences(1).setRequired(true)
-                            .addField(new FieldBuilder("RokSpousteciUdalosti").setTitle("Rok spouštěcí události").setMaxOccurrences(1).setType(G_YEAR).setRequired(true).createField())
-                            .addField(new FieldBuilder("RokSkartacniOperace").setTitle("Rok skartační operace").setMaxOccurrences(1).setType(G_YEAR).setRequired(true).createField())
-                        .createField()) // DataceVyrazeni
                     .createField()) // Vyrazovani
 
                     .addField(new FieldBuilder("Manipulace").setMaxOccurrences(1).setWidth("200").setRequired(true)
@@ -290,7 +282,6 @@ public class DesForms {
     public static Form externalDocumentForm() {
         Form f = new Form();
         f.getFields().add(new FieldBuilder("Dokument").setMaxOccurrences(1)
-                .addField(new FieldBuilder("ID").setTitle("ID").setMaxOccurrences(1).setType(TEXT).setRequired(true).createField())
 
                 .addField(new FieldBuilder("EvidencniUdaje").setMaxOccurrences(1)
                     .addField(new FieldBuilder("Identifikace").setMaxOccurrences(1)
@@ -344,7 +335,7 @@ public class DesForms {
                         .createField()) // VlastniDokument
                     .createField()) // Puvod
 
-                    .addField(new FieldBuilder("Trideni").setTitle("Třídění").setMaxOccurrences(1).setRequired(true)
+                    .addField(new FieldBuilder("Trideni").setTitle("Věcná skupina").setMaxOccurrences(1).setRequired(true)
                         .addField(new FieldBuilder("JednoduchySpisovyZnak").setTitle("Kód").setMaxOccurrences(1).setType(SELECT).setLength(50).setRequired(true)
                             .setOptionDataSource(new FieldBuilder("desa-des.rec-cl").setWidth("400")
                                     .addField(new FieldBuilder("fullyQcc").setTitle("Kód").createField())
@@ -356,7 +347,6 @@ public class DesForms {
                         .addField(new FieldBuilder("PlneUrcenySpisovyZnak").setTitle("Plný kód").setMaxOccurrences(1).setType(TEXT).setLength(255).setRequired(true).createField())
                         .addField(new FieldBuilder("TypDokumentu").setMaxOccurrences(1).setRequired(true)
                             .addField(new FieldBuilder("Identifikator").setMaxOccurrences(1)
-                                .addField(new FieldBuilder("zdroj").setTitle("Zdroj evidence").setMaxOccurrences(1).setType(TEXT).setRequired(true).createField())
                                 .addField(new FieldBuilder("value").setTitle("Typ dokumentu").setMaxOccurrences(1).setType(SELECT).setRequired(true).setLength(50).setWidth("400")
                                     .setOptionDataSource(new FieldBuilder("desa-des.rec-type")
                                         .addField(new FieldBuilder("title").createField())
@@ -380,10 +370,9 @@ public class DesForms {
                         .createField()) // Zpracovatel
                     .createField()) // Vyrizeni
 
-                    .addField(new FieldBuilder("Vyrazovani").setTitle("Skartace").setMaxOccurrences(1).setRequired(true)
+                    .addField(new FieldBuilder("Vyrazovani").setTitle("Skartační režim").setMaxOccurrences(1).setRequired(true)
                         .addField(new FieldBuilder("SkartacniRezim").setMaxOccurrences(1).setRequired(true)
-                            .addField(createIdentifikatorField("Identifikator", "Identifikátor skartačního režimu"))
-                            .addField(new FieldBuilder("Nazev").setTitle("Název").setMaxOccurrences(1).setType(COMBO).setWidth("400").setLength(100).setRequired(true)
+                            .addField(new FieldBuilder("Nazev").setTitle("Název").setMaxOccurrences(1).setType(SELECT).setWidth("400").setLength(100).setRequired(true)
                                 .setOptionDataSource(new FieldBuilder("desa-des.rd-cntrl")
                                         .addField(new FieldBuilder("acr").setTitle("Kód").createField())
                                         .addField(new FieldBuilder("title").setTitle("Název").createField())
@@ -397,17 +386,16 @@ public class DesForms {
                                         put("period", "SkartacniLhuta");
                                     }})
                             .createField()) // Nazev
-                            .addField(new FieldBuilder("Oduvodneni").setTitle("Odůvodnění skartačního režimu").setMaxOccurrences(1).setType(TEXT).setLength(2000).setRequired(true).createField())
-                            .addField(new FieldBuilder("SkartacniZnak").setTitle("Skartační znak").setMaxOccurrences(1).setType(SELECT).setRequired(true)//.setReadOnly(true)
+                            .addField(new FieldBuilder("Identifikator").setMaxOccurrences(1)
+                                .addField(new FieldBuilder("value").setTitle("Identifikátor skartačního režimu").setMaxOccurrences(1).setType(TEXT).setReadOnly(true).setWidth("400").createField())
+                            .createField()) // Identifikator
+                            .addField(new FieldBuilder("Oduvodneni").setTitle("Odůvodnění skartačního režimu").setMaxOccurrences(1).setType(TEXT).setReadOnly(true).setRequired(true).createField())
+                            .addField(new FieldBuilder("SkartacniZnak").setTitle("Skartační znak").setMaxOccurrences(1).setType(SELECT).setReadOnly(true).setRequired(true)
                                 .addMapValue("A", "A - Archiv").addMapValue("S", "S - Stoupa").addMapValue("V", "V - Výběr")
                             .createField()) // SkartacniZnak
-                            .addField(new FieldBuilder("SkartacniLhuta").setTitle("Skartační lhůta").setMaxOccurrences(1).setType(TEXT).setLength(3).setRequired(true).setWidth("100").createField())
+                            .addField(new FieldBuilder("SkartacniLhuta").setTitle("Skartační lhůta").setMaxOccurrences(1).setType(TEXT).setReadOnly(true).setRequired(true).setWidth("100").createField())
                             .addField(new FieldBuilder("SpousteciUdalost").setTitle("Spouštěcí událost").setMaxOccurrences(1).setType(TEXT).setLength(2000).setRequired(true).createField())
                         .createField()) // SkartacniRezim
-                        .addField(new FieldBuilder("DataceVyrazeni").setMaxOccurrences(1).setRequired(true)
-                            .addField(new FieldBuilder("RokSpousteciUdalosti").setTitle("Rok spouštěcí události").setMaxOccurrences(1).setType(G_YEAR).setRequired(true).createField())
-                            .addField(new FieldBuilder("RokSkartacniOperace").setTitle("Rok skartační operace").setMaxOccurrences(1).setType(G_YEAR).setRequired(true).createField())
-                        .createField()) // DataceVyrazeni
                     .createField()) // Vyrazovani
 
                     .addField(new FieldBuilder("Manipulace").setMaxOccurrences(1).setWidth("200").setRequired(true)
@@ -431,7 +419,6 @@ public class DesForms {
 
     private static Field createIdentifikatorField(String elmName, String title, Boolean required) {
         return new FieldBuilder(elmName).setMaxOccurrences(1)
-                .addField(new FieldBuilder("zdroj").setTitle("Zdroj evidence").setMaxOccurrences(1).setType(TEXT).setRequired(required).createField())
                 .addField(new FieldBuilder("value").setTitle(title).setMaxOccurrences(1).setType(TEXT).setRequired(required).setLength(50).setWidth("400").createField())
             .createField();
     }
