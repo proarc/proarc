@@ -12,7 +12,7 @@
 
     <artifactId>proarc-auth</artifactId>
     <packaging>jar</packaging>
-    <name>ProArc simple auth module</name>
+    <name>ProArc Authentication</name>
 
     <dependencies>
 
@@ -21,61 +21,46 @@
             <artifactId>servlet-api</artifactId>
             <version>2.5</version>
             <scope>provided</scope>
-        </dependency>	
-	
+        </dependency>
+
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.3</version>
         </dependency>
 
+        <!-- template login dialog -->
         <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.5</version>
+            <groupId>org.antlr</groupId>
+            <artifactId>stringtemplate</artifactId>
+            <version>4.0.2</version>
         </dependency>
-	
-	<!-- template login dialog -->
-	<dependency>
-		<groupId>org.antlr</groupId>
-		<artifactId>stringtemplate</artifactId>
-		<version>4.0.2</version>
-	</dependency>
 
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-desa</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-	<dependency>
-		<groupId>cz.cas.lib.proarc</groupId>
-		<artifactId>proarc-sip2desa</artifactId>
-		<version>1.1-SNAPSHOT</version>
-	</dependency>
-       
-
-     	<dependency>
+        <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-common</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
 
-
-     
-       <!-- test dependencies -->
+        <!-- test dependencies -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
             <scope>test</scope>
         </dependency>
 
-       <dependency>
+        <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
-            <version>3.0</version>
             <scope>test</scope>
         </dependency>
 
-
-
-   </dependencies>
-
+    </dependencies>
 
 </project>
