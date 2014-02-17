@@ -48,10 +48,13 @@ public class FedoraTestSupport {
     }
 
     private static FedoraClient fedoraClientSetup() {
+        String user = System.getProperty("proarc-common.FedoraTestSupport.user");
+        String passwd = System.getProperty("proarc-common.FedoraTestSupport.passwd");
+        String url = System.getProperty("proarc-common.FedoraTestSupport.url");
+        Assume.assumeNotNull(url, user, passwd);
         FedoraClient client = null;
         try {
-            client = new FedoraClient(new FedoraCredentials(
-                    "http://localhost:8080/fedora", "fedoraAdmin", "fedoraAdmin"));
+            client = new FedoraClient(new FedoraCredentials(url, user, passwd));
             client.getServerVersion();
         } catch (Exception ex) {
             Assume.assumeNoException(ex);
