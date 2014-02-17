@@ -17,7 +17,6 @@
 
 package cz.cas.lib.proarc.desa;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -37,14 +36,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.transform.sax.SAXSource;
 import javax.xml.ws.Holder;
-
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 import cz.cas.lib.proarc.desa.pspsip.ObjectFactory;
 import cz.cas.lib.proarc.desa.pspsip.PSPSIP;
@@ -542,15 +534,7 @@ public final class SIP2DESATransporter {
      */
     private void parseResultsFile(File resultsFile) {
         try {
-            XMLReader reader = XMLReaderFactory.createXMLReader();
-            reader.setEntityResolver(new EntityResolver() {
-                @Override
-                public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
-                    return new InputSource(new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes()));
-                }
-            });
-            SAXSource saxSource = new SAXSource(reader, new InputSource(new FileInputStream(resultsFile)));
-            results = (PSPSIP) unmarshaller.unmarshal(saxSource);
+            results = (PSPSIP) unmarshaller.unmarshal(resultsFile);
             packageid = results.getPackageID();
         } catch (Exception e) {
             Handler handler = setupLogHandler(resultsFile.getName());
