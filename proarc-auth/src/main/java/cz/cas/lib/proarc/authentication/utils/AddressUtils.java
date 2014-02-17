@@ -42,7 +42,9 @@ public class AddressUtils {
      * @throws IOException
      */
     public static void forbiddenResource(HttpServletResponse httpResp) throws IOException {
-        httpResp.sendError(HttpServletResponse.SC_FORBIDDEN);
+        //httpResp.sendError(HttpServletResponse.SC_FORBIDDEN);
+        //TODO: change ->  loginRequiredMarker
+                
     }
 
     /**

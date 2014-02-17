@@ -40,6 +40,7 @@ public abstract  class AbstractAuthenticator implements Authenticator {
 //            userProfile.setSurname("-ws user-");
 //            userManager.add(userProfile);
 //        }
+        // this is the reason 
         if (userProfile != null) {
             principal.associateUserProfile(userProfile);
         }
