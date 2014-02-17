@@ -67,6 +67,7 @@ import org.apache.commons.io.FileUtils;
 public final class SIP2DESATransporter {
 
     private static final Logger log = Logger.getLogger(SIP2DESATransporter.class.toString());
+    private static JAXBContext PSPSIP_JAXB;
 
     private final SIPSubmission desaPort;
     private final DesaClient desaClient;
@@ -322,6 +323,16 @@ public final class SIP2DESATransporter {
     }
 
     /**
+     * Gets the cached thread safe JAXB context.
+     */
+    private static JAXBContext getPspipJaxb() throws JAXBException {
+        if (PSPSIP_JAXB == null) {
+            PSPSIP_JAXB = JAXBContext.newInstance(PSPSIP.class);
+        }
+        return PSPSIP_JAXB;
+    }
+
+    /**
      * Initialize JAXB transformers
      *
      * @throws JAXBException
@@ -330,7 +341,7 @@ public final class SIP2DESATransporter {
         if (marshaller != null) {
             return ;
         }
-        JAXBContext jaxbContext = JAXBContext.newInstance(PSPSIP.class);
+        JAXBContext jaxbContext = getPspipJaxb();
         marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
