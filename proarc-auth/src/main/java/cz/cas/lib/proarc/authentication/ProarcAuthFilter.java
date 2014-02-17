@@ -19,7 +19,10 @@ package cz.cas.lib.proarc.authentication;
 import static cz.cas.lib.proarc.authentication.utils.AddressUtils.*;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.logging.Logger;
 
@@ -32,6 +35,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import org.apache.commons.io.IOUtils;
+import org.stringtemplate.v4.ST;
 
 import cz.cas.lib.proarc.authentication.utils.AddressUtils;
 
@@ -86,7 +92,7 @@ public class ProarcAuthFilter implements Filter {
                 if (isRedirectingResource(httpReq.getRequestURL().toString())) {
                     redirectToLogin(httpReq, httpResp);
                 } else {
-                    forbiddenResource(httpResp);
+                    forbiddenResource(httpResp, sessiontimeout().render());
                 }
             }
         } else {
@@ -94,7 +100,7 @@ public class ProarcAuthFilter implements Filter {
             if (isRedirectingResource(httpReq.getRequestURL().toString())) {
                 redirectToLogin(httpReq, httpResp);
             } else {
-                forbiddenResource(httpResp);
+                forbiddenResource(httpResp,sessiontimeout().render());
             }
         }
     }
@@ -106,5 +112,26 @@ public class ProarcAuthFilter implements Filter {
 
     @Override
     public void init(FilterConfig arg0) throws ServletException {
+    }
+
+    /**
+     * Session timeout content
+     * 
+     * @return Session timeout template
+     * @throws IOException IO Error has been occured
+     * @throws UnsupportedEncodingException UTF-8 is unsupported
+     * {@link http://www.smartclient.com/docs/6.5.1/a/b/c/go.html#group..relogin}
+     */
+    public static ST sessiontimeout() throws IOException, UnsupportedEncodingException {
+            URL urlRes = ProarcHTTPServlet.class.getClassLoader().getResource("sessiontimeout.st");
+        InputStream isStream = urlRes.openStream();
+        try {
+            String str = IOUtils.toString(isStream, "UTF-8");
+            isStream.close();
+            ST st = new ST(str, '$', '$');
+            return st;
+        } finally {
+            IOUtils.closeQuietly(isStream);
+        }
     }
 }

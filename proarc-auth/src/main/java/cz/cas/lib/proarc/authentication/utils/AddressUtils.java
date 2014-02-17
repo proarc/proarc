@@ -23,6 +23,9 @@ import java.net.URLEncoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.stringtemplate.v4.STGroup;
+import org.stringtemplate.v4.STGroupString;
+
 public class AddressUtils {
 
     public static final String RETURNS_URL_PARAM="url";
@@ -35,16 +38,17 @@ public class AddressUtils {
     public static void redirectToLogin(HttpServletRequest httpReq, HttpServletResponse httpResp) throws IOException {
         httpResp.sendRedirect("proarclogin?"+RETURNS_URL_PARAM+"="+returnURLParam(httpReq));
     }
-        
+    
     /**
      * Sends forbidden error
      * @param httpResp
      * @throws IOException
      */
-    public static void forbiddenResource(HttpServletResponse httpResp) throws IOException {
-        //httpResp.sendError(HttpServletResponse.SC_FORBIDDEN);
-        //TODO: change ->  loginRequiredMarker
-                
+    public static void forbiddenResource(HttpServletResponse httpResp, String content) throws IOException {
+        // forbidden code with content;
+        httpResp.setContentType("text/html");
+        httpResp.getWriter().println(content);
+        httpResp.setStatus(HttpServletResponse.SC_FORBIDDEN);
     }
 
     /**
@@ -53,11 +57,16 @@ public class AddressUtils {
      */
     public static void redirectToLogin(HttpServletRequest httpReq, HttpServletResponse httpResp, boolean errorOccured) throws IOException {
         String url = httpReq.getParameter("url");
-        if (errorOccured) {
-            httpResp.sendRedirect("proarclogin?"+RETURNS_URL_PARAM+"="+returnURLParam(httpReq)+"&"+ERROR_PARAM+"=login&url="+url);
+        String redirectingURL = "proarclogin?";
+        if (url != null) {
+            redirectingURL = redirectingURL+RETURNS_URL_PARAM+"="+url;
         } else {
-            httpResp.sendRedirect("proarclogin?"+RETURNS_URL_PARAM+"="+returnURLParam(httpReq)+"&url="+url);
+            redirectingURL = redirectingURL+RETURNS_URL_PARAM+"="+returnURLParam(httpReq);
         }
+        if (errorOccured) {
+            redirectingURL = redirectingURL+"&"+ERROR_PARAM+"=login";
+        }
+        httpResp.sendRedirect(redirectingURL);
     }
         
     

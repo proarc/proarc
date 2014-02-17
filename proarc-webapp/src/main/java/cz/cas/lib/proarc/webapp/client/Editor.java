@@ -130,18 +130,19 @@ public class Editor implements EntryPoint {
         return user;
     }
 
-    private void loginRequiredTest() {
-        RPCManager.setCredentialsURL(GWT.getModuleBaseURL() + "login");
+    /**
+     * SmartGWT relogin  
+     * {@link http://www.smartclient.com/docs/6.5.1/a/b/c/go.html#group..relogin}
+     */
+    private void smartGWTLoginRequiredSupport() {
         RPCManager.setLoginRequiredCallback(new LoginRequiredCallback() {
-
-
                 @Override
                 public void loginRequired(int transactionNum,
                         com.smartgwt.client.rpc.RPCRequest rpcRequest,
                         RPCResponse rpcResponse) {
-                    Window.alert("aaa");
+                    // the easiest way -> redirect url
+                    Window.Location.assign("proarclogin?url="+Window.Location.getHref());
                 }
-
         });
     }
     
@@ -150,7 +151,7 @@ public class Editor implements EntryPoint {
         INSTANCE = this;
         initLogging();
         // TODO: Remove
-        this.loginRequiredTest();
+        this.smartGWTLoginRequiredSupport();
         
         ClientUtils.info(LOG, "onModuleLoad:\n module page: %s\n host page: %s"
                 + "\n getModuleName: %s\n getPermutationStrongName: %s\n version: %s"

@@ -20,9 +20,11 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 import org.junit.Test;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
@@ -31,7 +33,13 @@ import org.stringtemplate.v4.STGroupString;
 public class StringTemplateTest {
 
     @Test
-    public void testTemplate() throws IOException {
+    public void testAddressUtils() throws UnsupportedEncodingException, IOException {
+        ST st = ProarcAuthFilter.sessiontimeout();
+        Assert.assertNotNull(st.render());
+    }
+
+    @Test
+    public void testLoginFormTemplate() throws IOException {
         URL urlRes = ProarcHTTPServlet.class.getClassLoader()
                 .getResource("loginfile.stg");
         InputStream isStream = urlRes.openStream();

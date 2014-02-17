@@ -8,7 +8,7 @@ $body(error=error, url=url)$
 
 head() ::=<<
 <head>
- 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Cache-Control" content="no-cache" />
     <meta name="description" content="ProArc editor" />
@@ -20,26 +20,25 @@ head() ::=<<
 body(error, url) ::=<<
 
 <body>
-
-	<script type="text/javascript">
-		// hash parameters in url
-		var AnchorURLRepair = function() {}
-		AnchorURLRepair.prototype = {
-			isEmpty:function(str) {
-	    		return (!str || 0 === str.length);
-			},
-			appendHash:function() {
-				if (!this.isEmpty(window.location.hash)) {
-					var urlval = document.getElementById('url').value;
-					document.getElementById('url').value = urlval + window.location.hash;			
-				}
-			}	
-		}
-		
-		window.onload=function(){
-			(new AnchorURLRepair()).appendHash();
-		}
-	</script>
+    <script type="text/javascript">
+        // hash parameters in url
+        var AnchorURLRepair = function() {}
+        AnchorURLRepair.prototype = {
+            isEmpty:function(str) {
+                return (!str || 0 === str.length);
+            },
+            appendHash:function() {
+                if (!this.isEmpty(window.location.hash)) {
+                    var urlval = document.getElementById('url').value;
+                    document.getElementById('url').value = urlval + window.location.hash;			
+                }
+            }
+        }
+        
+        window.onload=function(){
+            (new AnchorURLRepair()).appendHash();
+        }
+    </script>
 
 <h2>Prihlaseni do systemu proarc</h2>	
 $if(error)$
@@ -50,7 +49,7 @@ $loginform(url=url)$
 >>
 
 loginform(url) ::=<<
-	<form name="login" id="loginForm" action="proarclogin" method="post">
+     <form name="login" id="loginForm" action="proarclogin" method="post">
      <span id="name">Přihlašovací jméno</span><br>
      <input type="text" size="30" name="j_username" style="border:1px solid silver;"><br>
      <span id="password">Heslo</span><br>
