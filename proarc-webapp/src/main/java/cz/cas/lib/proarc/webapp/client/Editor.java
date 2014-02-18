@@ -23,15 +23,11 @@ import com.google.gwt.i18n.client.Dictionary;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.server.rpc.RPCRequest;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.rpc.LoginRequiredCallback;
-import com.smartgwt.client.rpc.RPCManager;
-import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.Autofit;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.SelectionStyle;
@@ -58,7 +54,6 @@ import com.smartgwt.client.widgets.tree.events.FolderClosedEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClosedHandler;
 import com.smartgwt.client.widgets.tree.events.LeafClickEvent;
 import com.smartgwt.client.widgets.tree.events.LeafClickHandler;
-
 import cz.cas.lib.proarc.webapp.client.ClientUtils.SweepTask;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -81,8 +76,8 @@ import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace.Type;
 import cz.cas.lib.proarc.webapp.client.presenter.UserManaging.UsersPlace;
 import cz.cas.lib.proarc.webapp.client.widget.AboutWindow;
+import cz.cas.lib.proarc.webapp.client.widget.LoginWindow;
 import cz.cas.lib.proarc.webapp.client.widget.UsersView;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -130,28 +125,10 @@ public class Editor implements EntryPoint {
         return user;
     }
 
-    /**
-     * SmartGWT relogin  
-     * {@link http://www.smartclient.com/docs/6.5.1/a/b/c/go.html#group..relogin}
-     */
-    private void smartGWTLoginRequiredSupport() {
-        RPCManager.setLoginRequiredCallback(new LoginRequiredCallback() {
-                @Override
-                public void loginRequired(int transactionNum,
-                        com.smartgwt.client.rpc.RPCRequest rpcRequest,
-                        RPCResponse rpcResponse) {
-                    // the easiest way -> redirect url
-                    Window.Location.assign("proarclogin?url="+Window.Location.getHref());
-                }
-        });
-    }
-    
     @Override
     public void onModuleLoad() {
         INSTANCE = this;
         initLogging();
-        // TODO: Remove
-        this.smartGWTLoginRequiredSupport();
         
         ClientUtils.info(LOG, "onModuleLoad:\n module page: %s\n host page: %s"
                 + "\n getModuleName: %s\n getPermutationStrongName: %s\n version: %s"
@@ -170,6 +147,8 @@ public class Editor implements EntryPoint {
 
         errorHandler = new ErrorHandler();
         errorHandler.initTransportErrorHandler();
+
+        LoginWindow.login();
 
         presenterFactory = new PresenterFactory(i18n);
 
