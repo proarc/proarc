@@ -17,14 +17,12 @@
 
 package cz.cas.lib.proarc.desa;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
-import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.logging.FileHandler;
@@ -32,24 +30,13 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.sax.SAXSource;
 import javax.xml.ws.Holder;
-
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 import cz.cas.lib.proarc.desa.pspsip.ObjectFactory;
 import cz.cas.lib.proarc.desa.pspsip.PSPSIP;
@@ -67,6 +54,7 @@ import org.apache.commons.io.FileUtils;
 public final class SIP2DESATransporter {
 
     private static final Logger log = Logger.getLogger(SIP2DESATransporter.class.toString());
+    private static JAXBContext PSPSIP_JAXB;
 
     private final SIPSubmission desaPort;
     private final DesaClient desaClient;
@@ -322,6 +310,16 @@ public final class SIP2DESATransporter {
     }
 
     /**
+     * Gets the cached thread safe JAXB context.
+     */
+    private static JAXBContext getPspipJaxb() throws JAXBException {
+        if (PSPSIP_JAXB == null) {
+            PSPSIP_JAXB = JAXBContext.newInstance(PSPSIP.class);
+        }
+        return PSPSIP_JAXB;
+    }
+
+    /**
      * Initialize JAXB transformers
      *
      * @throws JAXBException
@@ -330,7 +328,7 @@ public final class SIP2DESATransporter {
         if (marshaller != null) {
             return ;
         }
-        JAXBContext jaxbContext = JAXBContext.newInstance(PSPSIP.class);
+        JAXBContext jaxbContext = getPspipJaxb();
         marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
@@ -348,8 +346,7 @@ public final class SIP2DESATransporter {
      * @param writeResults
      */
     private void uploadFile(File file, SipType sipType, boolean writeResults) {
-        Holder<String> sipId = new Holder<String>(file.getName().replace(".zip", ""));
-        // Holder<String> sipId = new Holder<String>(getSipId(file));
+         Holder<String> sipId = new Holder<String>(getSipId(file));
         Holder<String> idSipVersion = new Holder<String>();
         String checksum = getMD5Checksum(file);
         log.info("Transporting file: " + file.getName());
@@ -397,43 +394,7 @@ public final class SIP2DESATransporter {
     }
 
     private String getSipId(File sipFile) {
-        String retval = null;
-        try {
-            ZipFile file = new ZipFile(sipFile);
-            try {
-                final Enumeration<? extends ZipEntry> entries = file.entries();
-                while (entries.hasMoreElements()) {
-                    final ZipEntry entry = entries.nextElement();
-                    if ("mets.xml".equalsIgnoreCase(entry.getName())) {
-                        retval = parseMetsForSipId(file.getInputStream(entry));
-                    }
-                }
-            } finally {
-                file.close();
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException("Cannot read sipId:", ex);
-        }
-        if (retval == null || "".equals(retval)) {
-            throw new RuntimeException("No dc:identifier found in file: " + sipFile.getName());
-        }
-        return retval;
-    }
-
-    private String parseMetsForSipId(InputStream input) throws Exception {
-        String retval = null;
-        XMLInputFactory f = XMLInputFactory.newInstance();
-        XMLStreamReader r = f.createXMLStreamReader(input);
-        while (r.hasNext()) {
-            r.next();
-            if (r.isStartElement()) {
-                if ("identifier".equalsIgnoreCase(r.getName().getLocalPart()) && "dc".equalsIgnoreCase(r.getName().getPrefix())) {
-                    retval = r.getElementText();
-                }
-
-            }
-        }
-        return retval;
+        return sipFile.getName().replace(".zip", "");
     }
 
     /**
@@ -573,15 +534,7 @@ public final class SIP2DESATransporter {
      */
     private void parseResultsFile(File resultsFile) {
         try {
-            XMLReader reader = XMLReaderFactory.createXMLReader();
-            reader.setEntityResolver(new EntityResolver() {
-                @Override
-                public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
-                    return new InputSource(new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes()));
-                }
-            });
-            SAXSource saxSource = new SAXSource(reader, new InputSource(new FileInputStream(resultsFile)));
-            results = (PSPSIP) unmarshaller.unmarshal(saxSource);
+            results = (PSPSIP) unmarshaller.unmarshal(resultsFile);
             packageid = results.getPackageID();
         } catch (Exception e) {
             Handler handler = setupLogHandler(resultsFile.getName());
