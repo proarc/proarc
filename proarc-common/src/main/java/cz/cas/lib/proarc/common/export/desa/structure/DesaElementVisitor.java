@@ -138,8 +138,8 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             try {
                 MetsUtils.validateAgainstXSD(nsessDoc, Spis.class.getResourceAsStream("nsesss2.xsd"));
             } catch (MetsExportException ex) {
-                LOG.warning("Invalid NSESSS document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
-                desaElement.getDesaContext().getMetsExportException().addException(desaElement.getOriginalPid(), "Invalid NSESSS document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", true, ex);
+                LOG.fine("Invalid NSESSS document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
+                throw new MetsExportException(desaElement.getOriginalPid(), "Invalid NSESSS document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, ex);
             }
 
             List<Element> descriptor = desaElement.getDescriptor();
