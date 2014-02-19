@@ -45,9 +45,9 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
  * Java class representing simple Mets element (Title, Volume,..)
- * 
+ *
  * @author Robert Simonovsky
- * 
+ *
  */
 public class MetsElement {
     private final String id;
@@ -55,7 +55,7 @@ public class MetsElement {
 
     /**
      * Return uuid of element
-     * 
+     *
      * @return
      */
     public String getId() {
@@ -74,9 +74,9 @@ public class MetsElement {
     public List<MetsElement> children = new ArrayList<MetsElement>();
 
     /**
-     * 
+     *
      * Collects all identifiers for mods element
-     * 
+     *
      * @return
      */
     public Map<String, String> getModsIdentifiers() throws MetsExportException {
@@ -96,7 +96,7 @@ public class MetsElement {
 
     /**
      * Returns the mets id string for element
-     * 
+     *
      * @return
      */
     public String getElementId() throws MetsExportException {
@@ -109,7 +109,7 @@ public class MetsElement {
 
     /**
      * Inserts the element into a mets div
-     * 
+     *
      * @param parentDiv
      * @return
      */
@@ -133,7 +133,7 @@ public class MetsElement {
 
     /**
      * Returns an element for digital object
-     * 
+     *
      * @param object
      * @param path
      * @param parent
@@ -181,7 +181,7 @@ public class MetsElement {
 
     /**
      * Inits parent tree of the element
-     * 
+     *
      * @param object
      * @return
      */
@@ -221,7 +221,7 @@ public class MetsElement {
 
     /**
      * Constructor of mets element
-     * 
+     *
      * @param object
      * @param path
      * @param parent
@@ -270,7 +270,7 @@ public class MetsElement {
 
     /**
      * Inserts an element into mets
-     * 
+     *
      * @param mets
      * @param withChildren
      * @param outputDirectory
@@ -292,13 +292,17 @@ public class MetsElement {
 
         Document docDC = MetsUtils.getDocumentFromList(DCstream);
         LOG.info("Validating:" + this.originalPID);
-        MetsUtils.validateAgainstXSD(docMods, ModsDefinition.class.getResourceAsStream("mods.xsd"));
-        MetsUtils.validateAgainstXSD(docDC, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
+        try {
+            MetsUtils.validateAgainstXSD(docMods, ModsDefinition.class.getResourceAsStream("mods.xsd"));
+            MetsUtils.validateAgainstXSD(docDC, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
+        } catch (Exception ex) {
+            throw new MetsExportException("Error", false, ex);
+        }
     }
 
     /**
      * Generates children of this element
-     * 
+     *
      */
     protected void fillChildren() throws MetsExportException {
         Node node = MetsUtils.xPathEvaluateNode(RELExtstream, "*[local-name()='RDF']/*[local-name()='Description']");

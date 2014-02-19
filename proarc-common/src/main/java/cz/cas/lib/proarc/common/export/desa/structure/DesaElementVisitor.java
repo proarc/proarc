@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Robert Simonovsky
+ * Copyright (C) 2014 Robert Simonovsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -123,23 +123,37 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         if (Const.DC_URI.equals(desaElement.getDescriptorType())) {
             LOG.log(Level.FINE, "DC variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
             Document dcDoc = MetsUtils.getDocumentFromList(desaElement.getDescriptor());
+            List<String> validationErrors;
             try {
-                MetsUtils.validateAgainstXSD(dcDoc, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
-            } catch (MetsExportException ex) {
-                LOG.severe("Invalid DC document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
-                throw new MetsExportException(desaElement.getOriginalPid(), "Invalid DC document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, ex);
+                validationErrors = MetsUtils.validateAgainstXSD(dcDoc, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
+            } catch (Exception ex) {
+                LOG.severe("Error while validating BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
+                throw new MetsExportException(desaElement.getOriginalPid(), "Error while validating DC document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, ex);
+            }
+
+            if (validationErrors.size() > 0) {
+                MetsExportException metsException = new MetsExportException(desaElement.getOriginalPid(), "Invalid DC in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, null);
+                metsException.setValidationErrors(validationErrors);
+                throw metsException;
             }
             List<Element> descriptor = desaElement.getDescriptor();
             return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='dc']/*[local-name()='identifier']");
         }
+
         if (Const.NSESSS_URI.equals(desaElement.getDescriptorType())) {
             LOG.log(Level.FINE, "NSESS variant descriptor in BIBLIO MODS for " + desaElement.getOriginalPid());
             Document nsessDoc = MetsUtils.getDocumentFromList(desaElement.getDescriptor());
+            List<String> validationErrors;
             try {
-                MetsUtils.validateAgainstXSD(nsessDoc, Spis.class.getResourceAsStream("nsesss2.xsd"));
-            } catch (MetsExportException ex) {
-                LOG.fine("Invalid NSESSS document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
-                throw new MetsExportException(desaElement.getOriginalPid(), "Invalid NSESSS document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, ex);
+                validationErrors = MetsUtils.validateAgainstXSD(nsessDoc, Spis.class.getResourceAsStream("nsesss2.xsd"));
+            } catch (Exception ex) {
+                LOG.severe("Invalid NSESSS document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
+                throw new MetsExportException(desaElement.getOriginalPid(), "Error while validating NSESSS document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, ex);
+            }
+            if (validationErrors.size() > 0) {
+                MetsExportException metsException = new MetsExportException(desaElement.getOriginalPid(), "Invalid NSESSS in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, null);
+                metsException.setValidationErrors(validationErrors);
+                throw metsException;
             }
 
             List<Element> descriptor = desaElement.getDescriptor();
@@ -285,11 +299,17 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             LOG.log(Level.SEVERE, "Unable to save mets file:" + outputFile.getAbsolutePath(), ex);
             throw new MetsExportException(desaElement.getOriginalPid(), "Unable to save mets file:" + outputFile.getAbsolutePath(), false, ex);
         }
+        List<String> validationErrors;
         try {
-            MetsUtils.validateAgainstXSD(outputFile, Mets.class.getResourceAsStream("mets.xsd"));
-        } catch (MetsExportException ex) {
-            LOG.log(Level.SEVERE, "Mets file: " + outputFile + " is not valid");
-            throw ex;
+            validationErrors = MetsUtils.validateAgainstXSD(outputFile, Mets.class.getResourceAsStream("mets.xsd"));
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "Error while validating Mets file: " + outputFile);
+            throw new MetsExportException("Error while validating Mets file: " + outputFile, false, ex);
+        }
+        if (validationErrors.size() > 0) {
+            MetsExportException metsException = new MetsExportException("Error while validating Mets file:" + outputFile, false, null);
+            metsException.setValidationErrors(validationErrors);
+            throw metsException;
         }
         LOG.log(Level.FINE, "Element validated:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
     }

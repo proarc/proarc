@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Robert Simonovsky
+ * Copyright (C) 2014 Robert Simonovsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@ import java.util.List;
 
 /**
  * Class for handling exceptions inside Mets export
- * 
+ *
  * @author eskymo
- * 
+ *
  */
 public class MetsExportException extends Exception {
 
@@ -32,9 +32,9 @@ public class MetsExportException extends Exception {
 
     /**
      * Class containing information about an exception
-     * 
+     *
      * @author eskymo
-     * 
+     *
      */
     public class MetsExportExceptionElement {
         String pid;
@@ -69,6 +69,15 @@ public class MetsExportException extends Exception {
     }
 
     private final List<MetsExportExceptionElement> exceptionList = new ArrayList<MetsExportException.MetsExportExceptionElement>();
+    private List<String> validationErrors;
+
+    public List<String> getValidationErrors() {
+        return validationErrors;
+    }
+
+    public void setValidationErrors(List<String> validationErrors) {
+        this.validationErrors = validationErrors;
+    }
 
     public void addException(String pid, String message, boolean warning, Exception ex) {
         exceptionList.add(new MetsExportExceptionElement(pid, message, warning, ex));

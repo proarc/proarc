@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Robert Simonovsky
+ * Copyright (C) 2014 Robert Simonovsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,9 +71,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
@@ -672,48 +669,27 @@ public class MetsUtils {
      * @param xsd
      * @return
      */
-    public static boolean validateAgainstXSD(Document document, InputStream xsd) throws MetsExportException {
-        try {
-            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            factory.setResourceResolver(MetsLSResolver.getInstance());
-            Schema schema = factory.newSchema(new StreamSource(xsd));
-            TransformerFactory tFactory = TransformerFactory.newInstance();
-            Transformer transformer = tFactory.newTransformer();
-            DOMSource domSource = new DOMSource(document);
-            StreamResult sResult = new StreamResult();
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            sResult.setOutputStream(bos);
-            transformer.transform(domSource, sResult);
-            InputStream is = new ByteArrayInputStream(bos.toByteArray());
-            DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
-            dbfactory.setValidating(false);
-            dbfactory.setNamespaceAware(true);
-            dbfactory.setSchema(schema);
-            DocumentBuilder documentBuilder = dbfactory.newDocumentBuilder();
-            documentBuilder.setErrorHandler(new ErrorHandler() {
-                @Override
-                public void warning(SAXParseException exception) throws SAXException {
-                    LOG.log(Level.WARNING, "Validation error", exception);
-                }
-
-                @Override
-                public void fatalError(SAXParseException exception) throws SAXException {
-                    LOG.log(Level.SEVERE, "Error while parsing document", exception);
-                    throw new SAXException(exception);
-                }
-
-                @Override
-                public void error(SAXParseException exception) throws SAXException {
-                    LOG.log(Level.SEVERE, "Error while parsing document", exception);
-                    throw new SAXException(exception);
-                }
-            });
-            documentBuilder.parse(is);
-            return true;
-        } catch (Exception ex) {
-            LOG.log(Level.WARNING, "Error while validating document", ex);
-            throw new MetsExportException("Error validating document", true, ex);
-        }
+    public static List<String> validateAgainstXSD(Document document, InputStream xsd) throws Exception {
+        SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        factory.setResourceResolver(MetsLSResolver.getInstance());
+        Schema schema = factory.newSchema(new StreamSource(xsd));
+        TransformerFactory tFactory = TransformerFactory.newInstance();
+        Transformer transformer = tFactory.newTransformer();
+        DOMSource domSource = new DOMSource(document);
+        StreamResult sResult = new StreamResult();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        sResult.setOutputStream(bos);
+        transformer.transform(domSource, sResult);
+        InputStream is = new ByteArrayInputStream(bos.toByteArray());
+        DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
+        dbfactory.setValidating(false);
+        dbfactory.setNamespaceAware(true);
+        dbfactory.setSchema(schema);
+        DocumentBuilder documentBuilder = dbfactory.newDocumentBuilder();
+        ValidationErrorHandler errorHandler = new ValidationErrorHandler();
+        documentBuilder.setErrorHandler(errorHandler);
+        documentBuilder.parse(is);
+        return errorHandler.getValidationErrors();
     }
 
     /**
@@ -724,42 +700,19 @@ public class MetsUtils {
      * @param xsd
      * @return
      */
-    public static boolean validateAgainstXSD(File file, InputStream xsd) throws MetsExportException {
-        try {
-            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            factory.setResourceResolver(MetsLSResolver.getInstance());
-            Schema schema = factory.newSchema(new StreamSource(xsd));
-            DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
-            dbfactory.setValidating(false);
-            dbfactory.setNamespaceAware(true);
-            dbfactory.setSchema(schema);
-            DocumentBuilder documentBuilder = dbfactory.newDocumentBuilder();
-            documentBuilder.setErrorHandler(new ErrorHandler() {
-                @Override
-                public void warning(SAXParseException exception) throws SAXException {
-                    LOG.log(Level.WARNING, "Error while validating document", exception);
-                    throw new SAXException(exception);
-                }
-
-                @Override
-                public void fatalError(SAXParseException exception) throws SAXException {
-                    LOG.log(Level.WARNING, "Error while validating document", exception);
-                    throw new SAXException(exception);
-
-                }
-
-                @Override
-                public void error(SAXParseException exception) throws SAXException {
-                    LOG.log(Level.WARNING, "Error while validating document", exception);
-                    throw new SAXException(exception);
-                }
-            });
-            documentBuilder.parse(file);
-            return true;
-        } catch (Exception ex) {
-            LOG.log(Level.WARNING, "Error while validating document", ex);
-            throw new MetsExportException("Error validating document", true, ex);
-        }
+    public static List<String> validateAgainstXSD(File file, InputStream xsd) throws Exception {
+        SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        factory.setResourceResolver(MetsLSResolver.getInstance());
+        Schema schema = factory.newSchema(new StreamSource(xsd));
+        DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
+        dbfactory.setValidating(false);
+        dbfactory.setNamespaceAware(true);
+        dbfactory.setSchema(schema);
+        DocumentBuilder documentBuilder = dbfactory.newDocumentBuilder();
+        ValidationErrorHandler errorHandler = new ValidationErrorHandler();
+        documentBuilder.setErrorHandler(errorHandler);
+        documentBuilder.parse(file);
+        return errorHandler.getValidationErrors();
     }
 
     /**
