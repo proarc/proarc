@@ -130,7 +130,7 @@ public class DesaExportTest {
         assertEquals("record", innerStructType);
         String href = mets.getStructMap().get(0).getDiv().getDiv().get(0).getMptr().get(0).getHref();
         assertEquals("A-37_01", href);
-        outputDir = extractFile(resultDir + File.separator + "A-37_01.zip", "noFileNameDesaTest");
+        outputDir = extractFile(resultDir + File.separator + "A-37_01_0001.zip", "noFileNameDesaTest");
         mets = readMets(outputDir + File.separator + "mets.xml");
         FileType fileType = mets.getFileSec().getFileGrp().get(0).getFile().get(0);
         assertEquals("b5100365bd0c93d1596e29fb8e8969a0", fileType.getCHECKSUM());
@@ -172,7 +172,7 @@ public class DesaExportTest {
         // String href =
         // mets.getStructMap().get(0).getDiv().getDiv().get(0).getMptr().get(0).getHref();
         // assertEquals("A-37_01", href);
-        String outputDir = extractFile(resultDir + File.separator + "A-37_01.zip", "noFileNameDesaTest");
+        String outputDir = extractFile(resultDir + File.separator + "A-37_01_0001.zip", "noFileNameDesaTest");
         Mets mets = readMets(outputDir + File.separator + "mets.xml");
         FileType fileType = mets.getFileSec().getFileGrp().get(0).getFile().get(0);
         assertEquals("b5100365bd0c93d1596e29fb8e8969a0", fileType.getCHECKSUM());
@@ -211,7 +211,7 @@ public class DesaExportTest {
         assertEquals("record", innerStructType);
         String href = mets.getStructMap().get(0).getDiv().getDiv().get(0).getMptr().get(0).getHref();
         assertEquals("A-37_01", href);
-        outputDir = extractFile(resultDir + File.separator + "A-37_01.zip", "noFileNameDesaTest");
+        outputDir = extractFile(resultDir + File.separator + "A-37_01_0001.zip", "noFileNameDesaTest");
         mets = readMets(outputDir + File.separator + "mets.xml");
         FileType fileType = mets.getFileSec().getFileGrp().get(0).getFile().get(0);
         assertEquals("b5100365bd0c93d1596e29fb8e8969a0", fileType.getCHECKSUM());

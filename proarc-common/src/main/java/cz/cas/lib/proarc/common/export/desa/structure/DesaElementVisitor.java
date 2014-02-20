@@ -81,6 +81,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
  */
 public class DesaElementVisitor implements IDesaElementVisitor {
     private final Logger LOG = Logger.getLogger(DesaElementVisitor.class.getName());
+    private int tmpFolderCount = 0;
 
     /**
      * Archives the list of files to a zip archive
@@ -212,7 +213,8 @@ public class DesaElementVisitor implements IDesaElementVisitor {
     private File createTempFolder(IDesaElement desaElement) throws MetsExportException {
         File tmpFileFolder = null;
         try {
-            tmpFileFolder = File.createTempFile("tmp" + MetsUtils.removeNonAlpabetChars(desaElement.getElementID()), ".tmp");
+            tmpFileFolder = File.createTempFile("tmp" + MetsUtils.removeNonAlpabetChars(desaElement.getElementID() + "_" + tmpFolderCount), ".tmp");
+            tmpFolderCount++;
             tmpFileFolder.delete();
             tmpFileFolder = new File(tmpFileFolder.getAbsolutePath());
         } catch (IOException e) {
@@ -493,8 +495,8 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                 addFileGrpToMets(fileGrpMap, fileSec);
             }
             saveMets(mets, outputMets, desaElement);
-            desaElement.setZipName(MetsUtils.removeNonAlpabetChars(getIdentifier(desaElement)));
             fileList.add(outputMets);
+            desaElement.setZipName(MetsUtils.removeNonAlpabetChars(getIdentifier(desaElement) + "_" + suffix));
             String zipFileName = desaElement.getDesaContext().getOutputPath() + File.separator + desaElement.getZipName() + ".zip";
             zip(zipFileName, fileList, desaElement);
         } finally {
