@@ -94,22 +94,23 @@ public class DESAAuthenticator extends AbstractAuthenticator {
     }
 
     @Override
-    public boolean authenticate(Map<String, String> loginProperties,
+    public AuthenticatedState authenticate(Map<String, String> loginProperties,
             HttpServletRequest request, HttpServletResponse response,
             ProarcPrincipal principal) {
 
         String user = loginProperties.get(LOGINNAME);
         String pswd = loginProperties.get(PASSWORD);
         String kod = loginProperties.get(KOD_PUVODCE);
-        if (isNullString(kod) || isNullString(user) || isNullString(pswd)) {
-            return false;
+        if (isNullString(kod)) return AuthenticatedState.IGNORED;
+        if (isNullString(user) || isNullString(pswd)) {
+            return AuthenticatedState.FORBIDDEN;
         }
         UserProfile authenticated = authenticateReq(user, pswd, kod);
         if (authenticated != null) {
             associateUserProfile(principal, authenticated, kod);
         }
         
-        return authenticated != null;
+        return authenticated != null ? AuthenticatedState.AUTHENTICATED : AuthenticatedState.FORBIDDEN;
     }
 
     boolean isNullString(String str) {

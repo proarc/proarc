@@ -37,17 +37,4 @@ public class StringTemplateTest {
         ST st = ProarcAuthFilter.sessiontimeout();
         Assert.assertNotNull(st.render());
     }
-
-    @Test
-    public void testLoginFormTemplate() throws IOException {
-        URL urlRes = ProarcHTTPServlet.class.getClassLoader()
-                .getResource("loginfile.stg");
-        InputStream isStream = urlRes.openStream();
-        String str = IOUtils.toString(isStream, "UTF-8");
-        STGroup stGroup = new STGroupString(str, str, '$', '$');
-        ST html = stGroup.getInstanceOf("html");
-        html.add("error", true);
-        html.add("url", "http://localhost:8080/proarc");
-        assertNotNull(html.render());
-    }
 }

@@ -23,6 +23,10 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.stringtemplate.v4.compiler.CodeGenerator.conditional_return;
+
+import cz.cas.lib.proarc.authentication.Authenticator.AuthenticatedState;
+
 /**
  * This chain collects all implementations of the {@link Authenticator} and tries to authenticate given principal.
  * @author pavels
@@ -40,7 +44,6 @@ public class ChainAuthenticator {
      * Main point of authentication. 
      * 
      * Method iterates over {@link Authenticator} and tries to authenticate given principal. 
-     * (If the first fail, tries second,etc..)
      * 
      * @param loginProperties Login properties map
      * @param request TODO
@@ -50,8 +53,12 @@ public class ChainAuthenticator {
      */
     public boolean authenticate(Map<String, String> loginProperties, HttpServletRequest request, HttpServletResponse response, ProarcPrincipal proarcPrincipal) {
         for (Authenticator auth : this.auths) {
-            if (auth.authenticate(loginProperties, request, response, proarcPrincipal))
-                return true;
+            AuthenticatedState authState = auth.authenticate(loginProperties, request, response, proarcPrincipal);
+            switch(authState) {
+                    case AUTHENTICATED: return true;
+                    case FORBIDDEN: return false;
+                    case IGNORED: break; // ignored -> the next authenticator should continue
+            }
         }
         return false;
     }

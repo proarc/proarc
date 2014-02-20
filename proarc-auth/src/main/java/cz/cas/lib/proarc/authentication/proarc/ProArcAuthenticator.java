@@ -74,7 +74,7 @@ public class ProArcAuthenticator extends AbstractAuthenticator  {
     }
 
     @Override
-    public boolean authenticate(Map<String, String> loginProperties, HttpServletRequest request, HttpServletResponse response, ProarcPrincipal principal) {
+    public AuthenticatedState authenticate(Map<String, String> loginProperties, HttpServletRequest request, HttpServletResponse response, ProarcPrincipal principal) {
         Connection con = null;
         try {
             DataSource datasource = DbUtils.getProarcSource();
@@ -89,17 +89,17 @@ public class ProArcAuthenticator extends AbstractAuthenticator  {
                 if (authenticated) {
                     super.associateUserProfile(principal, loginProperties.get(Authenticator.LOGINNAME));
                 }
-                return authenticated;
+                return authenticated ? AuthenticatedState.AUTHENTICATED : AuthenticatedState.FORBIDDEN;
             } else {
                 // no user found
-                return false;
+                return AuthenticatedState.FORBIDDEN;
             }
         } catch (NamingException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
-            return false;
+            return AuthenticatedState.FORBIDDEN;
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
-            return false;
+            return AuthenticatedState.FORBIDDEN;
         } finally {
             DbUtils.close(con);
         }

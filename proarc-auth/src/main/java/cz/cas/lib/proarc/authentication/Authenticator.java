@@ -46,14 +46,26 @@ public interface Authenticator {
      * @return
      * @see ChainAuthenticator#authenticate(Map, HttpServletRequest, HttpServletResponse, ProarcPrincipal)
      */
-    public boolean authenticate(Map<String, String> loginProperties, HttpServletRequest request, HttpServletResponse response, ProarcPrincipal principal);
+    public AuthenticatedState authenticate(Map<String, String> loginProperties, HttpServletRequest request, HttpServletResponse response, ProarcPrincipal principal);
     
-    static enum State {
-
+    /**
+     * Authenticated states
+     * @author pavels
+     */
+    public static enum AuthenticatedState {
+        /**
+         * Authenticate success 
+         */
         AUTHENTICATED,
 
+        /**
+         * Authentication failed
+         */
         FORBIDDEN,
 
+        /**
+         * The next authenticator should continue
+         */
         IGNORED
     }
     
