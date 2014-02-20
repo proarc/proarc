@@ -30,10 +30,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-import cz.cas.lib.proarc.authentication.AbstractAuthenticator;
 import cz.cas.lib.proarc.authentication.Authenticator;
 import cz.cas.lib.proarc.authentication.ProarcPrincipal;
 import cz.cas.lib.proarc.common.sql.DbUtils;
+import cz.cas.lib.proarc.common.user.UserManager;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 
 
@@ -41,7 +42,7 @@ import cz.cas.lib.proarc.common.user.UserUtil;
  * ProArc authentication
  * @author pavels
  */
-public class ProArcAuthenticator extends AbstractAuthenticator  {
+public class ProArcAuthenticator implements Authenticator  {
 
     public static final Logger LOGGER = Logger
             .getLogger(ProArcAuthenticator.class.getName());
@@ -87,7 +88,7 @@ public class ProArcAuthenticator extends AbstractAuthenticator  {
                 boolean authenticated=  givenPswd != null
                         && hashedPswd.equals(UserUtil.getDigist(givenPswd));
                 if (authenticated) {
-                    super.associateUserProfile(principal, loginProperties.get(Authenticator.LOGINNAME));
+                    this.associateUserProfile(principal, loginProperties.get(Authenticator.LOGINNAME));
                 }
                 return authenticated ? AuthenticatedState.AUTHENTICATED : AuthenticatedState.FORBIDDEN;
             } else {
@@ -105,4 +106,29 @@ public class ProArcAuthenticator extends AbstractAuthenticator  {
         }
 
     }
+    
+    
+    void associateUserProfile(ProarcPrincipal principal, String user) {
+        UserManager userManager = UserUtil.getDefaultManger();
+        // NOTE: UserProfile.validateAsNew(UserProfile.java:197) only lower
+        // case supports but ws
+        String proarcValidUserName = user;
+        UserProfile userProfile = userManager.find(proarcValidUserName);
+//        if (userProfile == null) {
+//            userProfile = new UserProfile();
+//            // not proarc user
+//            userProfile.setProarcuser(false);
+//            userProfile.setUserName(proarcValidUserName);
+//            userProfile.setCreated(new Date());
+//            userProfile.setDisplayName(user);
+//            userProfile.setForename(user);
+//            userProfile.setSurname("-ws user-");
+//            userManager.add(userProfile);
+//        }
+        // this is the reason 
+        if (userProfile != null) {
+            principal.associateUserProfile(userProfile);
+        }
+    }
+
 }

@@ -16,8 +16,18 @@
  */
 package cz.cas.lib.proarc.authentication.desa;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.sun.xml.ws.client.ClientTransportException;
-import cz.cas.lib.proarc.authentication.AbstractAuthenticator;
+
+import cz.cas.lib.proarc.authentication.Authenticator;
 import cz.cas.lib.proarc.authentication.ProarcPrincipal;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
@@ -31,19 +41,12 @@ import cz.cas.lib.proarc.desa.DesaClient;
 import cz.cas.lib.proarc.desa.soap.AuthenticateUserFault;
 import cz.cas.lib.proarc.desa.soap.AuthenticateUserResponse;
 import cz.cas.lib.proarc.desa.soap.Role;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * DESA authentication
  * @author pavels
  */
-public class DESAAuthenticator extends AbstractAuthenticator {
+public class DESAAuthenticator implements Authenticator {
     
     public static Logger LOGGER = Logger.getLogger(DESAAuthenticator.class.getName());
     
