@@ -56,6 +56,7 @@ import javax.xml.ws.BindingProvider;
 public final class DesaClient {
 
     private static final Logger LOG = Logger.getLogger(DesaClient.class.getName());
+    private static JAXBContext NOMEN_JAXB;
     private final String soapUrl;
     private final String restUrl;
     private final String user;
@@ -63,7 +64,6 @@ public final class DesaClient {
     private SIPSubmission sipSubmission;
     private Client httpClient;
     private DatatypeFactory xmlTypeFactory;
-    private Unmarshaller nomenUnmarshaller;
     private boolean debug;
 
     public DesaClient(String soapUrl, String restUrl, String user, String passwd) {
@@ -240,11 +240,17 @@ public final class DesaClient {
      * Initialize JAXB transformers for Nomenclatures
      */
     private Unmarshaller getNomenUnmarshaller() throws JAXBException {
-        if (nomenUnmarshaller == null) {
-            JAXBContext jaxbContext = JAXBContext.newInstance(Nomenclatures.class);
-            nomenUnmarshaller = jaxbContext.createUnmarshaller();
+        return getNomenJaxbContext().createUnmarshaller();
+    }
+
+    /**
+     * Gets the cached thread safe JAXB context.
+     */
+    private static JAXBContext getNomenJaxbContext() throws JAXBException {
+        if (NOMEN_JAXB == null) {
+            NOMEN_JAXB = JAXBContext.newInstance(Nomenclatures.class);
         }
-        return nomenUnmarshaller;
+        return NOMEN_JAXB;
     }
 
 }
