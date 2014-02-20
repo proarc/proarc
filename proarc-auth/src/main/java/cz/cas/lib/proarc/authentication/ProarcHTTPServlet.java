@@ -63,37 +63,9 @@ public class ProarcHTTPServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         resp.setContentType("text/html; charset=utf-8");
-        PrintWriter writer = resp.getWriter();
-        String error = req.getParameter("error");
-        String redirectURLAddress = req.getParameter("url");
-        String render = htmlTemplate(error != null && error.equals("login"), redirectURLAddress).render();
-        writer.write(render);
+        resp.setStatus(HttpServletResponse.SC_OK);
     }
 
-    /**
-     * Render login html
-     * @param error true, if the first login failed
-     * @return Rendered html
-     * @throws IOException
-     * @throws UnsupportedEncodingException
-     */
-    public ST htmlTemplate(boolean error, String redirectURL) throws IOException,
-            UnsupportedEncodingException {
-        URL urlRes = ProarcHTTPServlet.class.getClassLoader()
-                .getResource("loginfile.stg");
-        InputStream isStream = urlRes.openStream();
-        try {
-            String str = IOUtils.toString(isStream, "UTF-8");
-            isStream.close();
-            STGroup stGroup = new STGroupString(str, str, '$', '$');
-            ST html = stGroup.getInstanceOf("html");
-            html.add("error", error);
-            html.add("url", redirectURL);
-            return html;
-        } finally {
-            IOUtils.closeQuietly(isStream);
-        }
-    }
 
     /**
      * Form post method
@@ -115,15 +87,9 @@ public class ProarcHTTPServlet extends HttpServlet {
         if (this.chain.authenticate(loginProperties, req, resp, proarcPrincipal)) {
             // store principal to session    
             req.getSession(true).setAttribute(ProarcAuthFilter.SESSION_KEY,proarcPrincipal);
-            String retUrl = req.getParameter(RETURNS_URL_PARAM);
-            if (retUrl != null) {
-                String decoded = URLDecoder.decode(retUrl, "UTF-8");
-                resp.sendRedirect(decoded);
-            } else {
-                redirectToHome(req, resp);
-            }
+            resp.setStatus(HttpServletResponse.SC_OK);
         } else {
-            redirectToLogin(req, resp, true);
+            resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
         }
     }
 

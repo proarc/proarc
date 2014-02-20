@@ -88,26 +88,27 @@ public class ProarcAuthFilter implements Filter {
                 HttpServletRequest authenticatedRequest = ProarcAuthenticatedHTTPRequest.newInstance(httpReq, p, p.getName());
                 chain.doFilter(authenticatedRequest, httpResp);
             } else {
-                // not logged -> redirect || forbidden
-                if (isRedirectingResource(httpReq.getRequestURL().toString())) {
-                    redirectToLogin(httpReq, httpResp);
-                } else {
+                // not logged -> test forbidden resource ?
+                if (isForbinddenResource(httpReq.getRequestURL().toString())) {
                     forbiddenResource(httpResp, sessiontimeout().render());
+                } else {
+                    // not forbidden resource -> chain
+                    chain.doFilter(httpReq, httpResp);
                 }
             }
         } else {
-            // no session -> not logged -> redirect || forbidden
-            if (isRedirectingResource(httpReq.getRequestURL().toString())) {
-                redirectToLogin(httpReq, httpResp);
-            } else {
+            // no session -> not logged -> forbidden resource ?
+            if (isForbinddenResource(httpReq.getRequestURL().toString())) {
                 forbiddenResource(httpResp,sessiontimeout().render());
+            } else {
+                chain.doFilter(httpReq, httpResp);
             }
         }
     }
         
     
-    private boolean isRedirectingResource(String reqUrl) {
-        return reqUrl != null && reqUrl.endsWith("index.html");
+    private boolean isForbinddenResource(String reqUrl) {
+        return reqUrl != null && reqUrl.contains("/rest/");
     }
 
     @Override

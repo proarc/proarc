@@ -41,6 +41,9 @@ import java.util.Map;
 public final class RestConfig {
 
 //    public static final String URL_ROOT =  "/rest";
+    /** Login servlet dialog */
+    public static final String URL_LOGIN_SERVLET =  GWT.getHostPageBaseURL() + "proarclogin";
+
     public static final String URL_ROOT =  GWT.getHostPageBaseURL() + "rest/v1";
     public static final String URL_IMPORT = path(URL_ROOT, ImportResourceApi.PATH);
     public static final String URL_IMPORT_FOLDER = path(URL_IMPORT, ImportResourceApi.FOLDER_PATH);

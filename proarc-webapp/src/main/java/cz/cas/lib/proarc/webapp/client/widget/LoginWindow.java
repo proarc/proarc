@@ -129,7 +129,7 @@ public final class LoginWindow {
 
     private void finish() {
         window.hide();
-        window.destroy();
+//        window.destroy();
     }
 
     private Canvas createButtons() {
@@ -165,7 +165,7 @@ public final class LoginWindow {
     private void submitCredentials() {
         RPCRequest request = new RPCRequest();
         request.setContainsCredentials(true);
-        request.setActionURL("XXXcredentialsURL");
+        request.setActionURL("proarclogin");
         request.setUseSimpleHttp(true);
         request.setShowPrompt(false);
         request.setParams(getCredentials());
