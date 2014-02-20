@@ -389,13 +389,17 @@ public class DesaElement implements IDesaElement {
     private boolean checkZipFileOK() {
         File file = null;
         try {
-            file = new File(this.getDesaContext().getOutputPath() + "/" + this.getZipName() + ".zip");
+            file = new File(this.getDesaContext().getOutputPath() + File.separator + this.getZipName() + ".zip");
             LOG.fine("Checking if fileName is OK:" + file.getAbsolutePath());
+            if (file.exists()) {
+                LOG.log(Level.SEVERE, "File:" + file.getAbsolutePath() + " already exists !");
+                return false;
+            }
             file.createNewFile();
             file.delete();
             return true;
         } catch (IOException e) {
-            LOG.log(Level.WARNING, "file:" + file.getAbsolutePath() + " is not valid filename");
+            LOG.log(Level.WARNING, "file:" + file.getAbsolutePath() + " is not valid filename", e);
             return false;
         }
 

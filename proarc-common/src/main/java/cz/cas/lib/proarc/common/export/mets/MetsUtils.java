@@ -716,6 +716,39 @@ public class MetsUtils {
     }
 
     /**
+     * Return a valid identifier for mets document removes whitespaces and if an
+     * identifier does not start with a letter it adds a prefix
+     *
+     * @param identifier
+     * @return
+     */
+    public static String validateIdentifier(String identifier) {
+        identifier = removeNonAlpabetChars(identifier);
+        if (!(identifier.toUpperCase().substring(0, 1).matches("[A-Z]"))) {
+            return "FID_" + identifier;
+        } else {
+            return identifier;
+        }
+    }
+
+    /**
+     * Returns a string with alphabetical characters only
+     *
+     * @param inputString
+     * @return
+     */
+    public static String removeNonAlpabetChars(String inputString) {
+        String validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz_-.";
+        String output = "";
+        for (int a = 0; a < inputString.length(); a++) {
+            if (validChars.contains(inputString.substring(a, a + 1))) {
+                output = output + inputString.substring(a, a + 1);
+            }
+        }
+        return output;
+    }
+
+    /**
      *
      * Generates and saves info.xml
      *
@@ -782,7 +815,7 @@ public class MetsUtils {
      * @param mets
      */
     public static void saveMets(String path, MetsInfo mets) throws MetsExportException {
-        String fileName = "/METS_" + mets.getPackageId() + ".xml";
+        String fileName = "/METS_" + MetsUtils.removeNonAlpabetChars(mets.getPackageId()) + ".xml";
         FileMD5Info fileMD5Info = new FileMD5Info("." + fileName);
         mets.addFile(fileMD5Info);
         File file = new File(path + fileName);
@@ -823,7 +856,7 @@ public class MetsUtils {
             }
             byte[] digest = md.digest();
             String result = new String(Hex.encodeHex(digest));
-            String fileMd5Name = "/MD5_" + mets.getPackageId() + ".md5";
+            String fileMd5Name = "/MD5_" + MetsUtils.removeNonAlpabetChars(mets.getPackageId()) + ".md5";
             File fileMd5 = new File(path + fileMd5Name);
             mets.addFile(new FileMD5Info("." + fileMd5Name));
             OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(fileMd5));

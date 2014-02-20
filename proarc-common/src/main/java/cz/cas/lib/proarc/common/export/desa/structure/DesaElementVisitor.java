@@ -212,7 +212,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
     private File createTempFolder(IDesaElement desaElement) throws MetsExportException {
         File tmpFileFolder = null;
         try {
-            tmpFileFolder = File.createTempFile("tmp" + desaElement.getElementID(), ".tmp");
+            tmpFileFolder = File.createTempFile("tmp" + MetsUtils.removeNonAlpabetChars(desaElement.getElementID()), ".tmp");
             tmpFileFolder.delete();
             tmpFileFolder = new File(tmpFileFolder.getAbsolutePath());
         } catch (IOException e) {
@@ -328,6 +328,11 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             LOG.log(Level.SEVERE, "Element type is missing for pid:" + desaElement.getOriginalPid());
             throw new MetsExportException(desaElement.getOriginalPid(), "Element type is missing", false, null);
         }
+
+        if (type.length() == 0) {
+            throw new MetsExportException(desaElement.getOriginalPid(), "Type of component is empty", false, null);
+        }
+
         String fileGrpType = Const.fileGrpMap.get(type);
         if (fileGrpType == null) {
             LOG.log(Level.SEVERE, "Unable to find mapping for file type:" + type);
@@ -385,7 +390,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         }
         File tmpFolder = createTempFolder(desaElement);
         try {
-            File outputMets = new File(tmpFolder.getAbsolutePath() + "/mets.xml");
+            File outputMets = new File(tmpFolder.getAbsolutePath() + File.separator + "mets.xml");
             Mets mets = prepareMets(desaElement);
             DivType divType = new DivType();
             divType.setLabel(getLabel(desaElement));
@@ -443,7 +448,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                         continue;
                     }
                     FileOutputStream fos;
-                    String outputFileName = getFileName(fileElement);
+                    String outputFileName = MetsUtils.removeNonAlpabetChars(getFileName(fileElement));
                     /*
                      * Generates a filename if it's not provided from the
                      * original document
@@ -472,7 +477,8 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                         throw new MetsExportException(fileElement.getOriginalPid(), "Unable to save file", false, e);
                     }
                     FileType fileType = new FileType();
-                    fileType.setID(getIdentifier(desaElement) + "_" + String.format("%04d", fileOrder));
+                    String validIdentifier = MetsUtils.validateIdentifier(getIdentifier(desaElement) + "_" + String.format("%04d", fileOrder));
+                    fileType.setID(validIdentifier);
                     fileType.setCHECKSUMTYPE("MD5");
                     fileType.setCHECKSUM(fileMd5Info.getMd5());
                     FLocat flocat = new FLocat();
@@ -487,9 +493,9 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                 addFileGrpToMets(fileGrpMap, fileSec);
             }
             saveMets(mets, outputMets, desaElement);
-            desaElement.setZipName(getIdentifier(desaElement));
+            desaElement.setZipName(MetsUtils.removeNonAlpabetChars(getIdentifier(desaElement)));
             fileList.add(outputMets);
-            String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getZipName() + ".zip";
+            String zipFileName = desaElement.getDesaContext().getOutputPath() + File.separator + desaElement.getZipName() + ".zip";
             zip(zipFileName, fileList, desaElement);
         } finally {
             deleteFolder(tmpFolder);
@@ -528,10 +534,10 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         }
         File tmpFolder = createTempFolder(desaElement);
         try {
-            File outputMets = new File(tmpFolder.getAbsolutePath() + "/mets.xml");
+            File outputMets = new File(tmpFolder.getAbsolutePath() + File.separator + "mets.xml");
             saveMets(mets, outputMets, desaElement);
-            desaElement.setZipName(getIdentifier(desaElement) + "_FILE");
-            String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getZipName() + ".zip";
+            desaElement.setZipName(MetsUtils.removeNonAlpabetChars(getIdentifier(desaElement)) + "_FILE");
+            String zipFileName = desaElement.getDesaContext().getOutputPath() + File.separator + desaElement.getZipName() + ".zip";
             ArrayList<File> fileList = new ArrayList<File>();
             fileList.add(outputMets);
             zip(zipFileName, fileList, desaElement);
