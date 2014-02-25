@@ -68,7 +68,7 @@ public final class FedoraStorageInitializer {
             if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 try {
                     ingestModel(modelPid);
-                } catch (FedoraClientException fex) {
+                } catch (DigitalObjectException fex) {
                     throw new IllegalStateException(modelPid, fex);
                 }
             } else {
@@ -89,7 +89,7 @@ public final class FedoraStorageInitializer {
         return lobject;
     }
 
-    private void ingestModel(String modelPid) throws FedoraClientException {
+    private void ingestModel(String modelPid) throws DigitalObjectException {
         LocalObject lobject = getModelObjectResource(modelPid);
         storage.ingest(lobject, "proarc", "Install " + modelPid);
     }

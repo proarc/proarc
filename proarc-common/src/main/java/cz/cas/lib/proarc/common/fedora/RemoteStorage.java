@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils.ControlGroup;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
+import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -98,31 +99,36 @@ public final class RemoteStorage {
      * @param pid PID of the digital object
      * @param ingestUser ignored in case the owner is already set for the object
      * @param log message describing the action
-     * @throws FedoraClientException failure
+     * @throws DigitalObjectException failure
      */
-    public void ingest(File foxml, String pid, String ingestUser, String log) throws FedoraClientException {
+    public void ingest(File foxml, String pid, String ingestUser, String log) throws DigitalObjectException, DigitalObjectExistException {
         if (ingestUser == null || ingestUser.isEmpty()) {
             throw new IllegalArgumentException("ingestUser");
         }
-        IngestResponse response = FedoraClient.ingest(pid)
-                .format("info:fedora/fedora-system:FOXML-1.1")
-                .logMessage(log)
-                .content(foxml)
-                .ownerId(ingestUser)
-                .execute(client);
-        if (response.getStatus() != 201) {
-            // XXX
+        try {
+            IngestResponse response = FedoraClient.ingest(pid)
+                    .format("info:fedora/fedora-system:FOXML-1.1")
+                    .logMessage(log)
+                    .content(foxml)
+                    .ownerId(ingestUser)
+                    .execute(client);
+            if (response.getStatus() != 201) {
+                // XXX
+            }
+            LOG.log(Level.FINE, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
+        } catch (FedoraClientException ex) {
+            checkObjectExistException(ex, pid);
+            throw new DigitalObjectException(pid, null, null, null, ex);
         }
-        LOG.log(Level.FINE, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
     }
 
     /**
      * Ingests a digital object with default log message.
      * @param object digital object to ingest
      * @param ingestUser ignored in case the owner is already set for the object
-     * @throws FedoraClientException failure
+     * @throws DigitalObjectException failure
      */
-    public void ingest(LocalObject object, String ingestUser) throws FedoraClientException {
+    public void ingest(LocalObject object, String ingestUser) throws DigitalObjectException, DigitalObjectExistException {
         ingest(object, ingestUser, "Ingested locally");
     }
 
@@ -132,9 +138,9 @@ public final class RemoteStorage {
      * @param object digital object to ingest
      * @param ingestUser ignored in case the owner is already set for the object
      * @param log message describing the action
-     * @throws FedoraClientException failure
+     * @throws DigitalObjectException failure
      */
-    public void ingest(LocalObject object, String ingestUser, String log) throws FedoraClientException {
+    public void ingest(LocalObject object, String ingestUser, String log) throws DigitalObjectException, DigitalObjectExistException {
         if (ingestUser == null || ingestUser.isEmpty()) {
             throw new IllegalArgumentException("ingestUser");
         }
@@ -149,21 +155,36 @@ public final class RemoteStorage {
         DigitalObject digitalObject = object.getDigitalObject();
 
         String xml = FoxmlUtils.toXml(digitalObject, false);
-        IngestResponse response = FedoraClient.ingest(object.getPid())
-                .format("info:fedora/fedora-system:FOXML-1.1")
-                .logMessage(log)
-//                .namespace("")
-//                .xParam("", "")
-                .content(xml)
-                .execute(client);
-        if (response.getStatus() != 201) {
-            // XXX
+        try {
+            IngestResponse response = FedoraClient.ingest(object.getPid())
+                    .format("info:fedora/fedora-system:FOXML-1.1")
+                    .logMessage(log)
+//                    .namespace("")
+//                    .xParam("", "")
+                    .content(xml)
+                    .execute(client);
+//            if (response.getStatus() != 201) {
+//                // XXX
+//            }
+            LOG.log(Level.FINE, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
+        } catch (FedoraClientException ex) {
+            checkObjectExistException(ex, object.getPid());
+            throw new DigitalObjectException(object.getPid(), null, null, null, ex);
         }
-        LOG.log(Level.FINE, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
     }
 
     FedoraClient getClient() {
         return client;
+    }
+
+    private static void checkObjectExistException(FedoraClientException ex, String pid) throws DigitalObjectExistException {
+        // XXX hack: Fedora server does not notify existing object conflict with HTTP 409.
+        // Workaround parses error message.
+        // Check for existence before ingest would be insufficient as Fedora does not yet support transactions.
+        String errMsg = ex.getMessage();
+        if (errMsg != null && errMsg.contains("org.fcrepo.server.errors.ObjectExistsException")) {
+            throw new DigitalObjectExistException(pid, null, "Object already exists!", ex);
+        }
     }
 
     public static final class RemoteObject extends AbstractFedoraObject {

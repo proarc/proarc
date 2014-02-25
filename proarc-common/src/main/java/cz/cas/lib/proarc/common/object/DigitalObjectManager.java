@@ -158,21 +158,12 @@ public class DigitalObjectManager {
             parentRelsExt.write(parentRelsExt.getLastModified(), message);
         }
         doHandler.commit();
-        try {
-            getRemotes().ingest(localObject, user.getUserName(), message);
-            if (parentHandler != null) {
-                parentHandler.commit();
-            }
-        } catch (FedoraClientException ex) {
-            // XXX hack: Fedora server does not notify existing object conflict with HTTP 409.
-            // Workaround parses error message.
-            // Check for existence before ingest would be insufficient as Fedora does not yet support transactions.
-            String errMsg = ex.getMessage();
-            if (errMsg != null && errMsg.contains("org.fcrepo.server.errors.ObjectExistsException")) {
-                throw new DigitalObjectExistException(localObject.getPid(), null, "Object already exists!", ex);
-            }
-            throw new DigitalObjectException(localObject.getPid(), null, null, null, ex);
+
+        getRemotes().ingest(localObject, user.getUserName(), message);
+        if (parentHandler != null) {
+            parentHandler.commit();
         }
+
         Item item = new Item(localObject.getPid());
         item.setLabel(localObject.getLabel());
         item.setModel(modelId);
