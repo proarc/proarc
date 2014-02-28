@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Robert Simonovsky
+ * Copyright (C) 2014 Robert Simonovsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,68 +21,151 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
-import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.mets.DivType;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.MdSecType;
-import cz.cas.lib.proarc.mets.Mets;
-import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
- * Java class representing simple Mets element (Title, Volume,..)
+ * Class that represents the element of Mets export
  *
  * @author Robert Simonovsky
  *
  */
-public class MetsElement {
-    private final String id;
-    private static Logger LOG = Logger.getLogger(MetsElement.class.getName());
+public class MetsElement implements IMetsElement {
+    public final List<Element> descriptor;
+    public final String model;
+    private final MetsContext metsContext;
+    private final String originalPid;
+    private final Logger LOG = Logger.getLogger(MetsElement.class.getName());
+    private MetsElement parent;
+    private final List<MetsElement> children = new ArrayList<MetsElement>();
+    private final List<Element> relsExt;
+    private final DigitalObject sourceObject;
+    public final List<Element> modsStream;
+    public final XMLGregorianCalendar createDate;
+    public final String label;
+    public MdSecType modsMetsElement;
+    private FileType altoFile;
 
-    /**
-     * Return uuid of element
-     *
-     * @return
-     */
-    public String getId() {
-        return id;
+    @Override
+    public FileType getAltoFile() {
+        return altoFile;
     }
 
-    protected String originalPID;
-    protected List<Element> DCstream;
-    protected List<Element> MODSstream;
-    protected List<Element> RELExtstream;
-    public MdSecType modsMetsElement;
-    private final Integer modOrder;
-    public String type;
-    protected MetsElement parent;
-    protected MetsInfo metsInfo;
-    public List<MetsElement> children = new ArrayList<MetsElement>();
+    @Override
+    public void setAltoFile(FileType altoFile) {
+        this.altoFile = altoFile;
+    }
 
-    /**
+    @Override
+    public MdSecType getModsMetsElement() {
+        return modsMetsElement;
+    }
+
+    @Override
+    public void setModsMetsElement(MdSecType modsMetsElement) {
+        this.modsMetsElement = modsMetsElement;
+    }
+
+    /*
+     * (non-Javadoc)
      *
-     * Collects all identifiers for mods element
-     *
-     * @return
+     * @see
+     * cz.cas.lib.proarc.common.export.mets2.structure.IMetsElement#getLabel()
      */
+    @Override
+    public String getLabel() {
+        return label;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets2.structure.IMetsElement#getCreateDate
+     * ()
+     */
+    @Override
+    public XMLGregorianCalendar getCreateDate() {
+        return createDate;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see cz.cas.lib.proarc.common.export.mets2.structure.IMetsElement#
+     * getLastUpdateDate()
+     */
+    @Override
+    public XMLGregorianCalendar getLastUpdateDate() {
+        return lastUpdateDate;
+    }
+
+    public final XMLGregorianCalendar lastUpdateDate;
+
+    private final String elementType;
+    private final String elementID;
+    private final String modsElementID;
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets2.structure.IMetsElement#getModsElementID
+     * ()
+     */
+    @Override
+    public String getModsElementID() {
+        return modsElementID;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getMetsContext
+     * ()
+     */
+    @Override
+    public MetsContext getMetsContext() {
+        return metsContext;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getElementType
+     * ()
+     */
+    @Override
+    public String getElementType() {
+        return elementType;
+    }
+
+    @Override
     public Map<String, String> getModsIdentifiers() throws MetsExportException {
         Map<String, String> result = new HashMap<String, String>();
         String XPATH = "*[local-name()='mods']";
-        Node descNode = MetsUtils.xPathEvaluateNode(MetsUtils.removeModsCollection(MODSstream), XPATH);
+        Node descNode = MetsUtils.xPathEvaluateNode(MetsUtils.removeModsCollection(this.modsStream), XPATH);
         NodeList nodeList = descNode.getChildNodes();
         for (int a = 0; a < nodeList.getLength(); a++) {
             Node node = nodeList.item(a);
@@ -91,221 +174,216 @@ public class MetsElement {
             }
         }
         return result;
-
     }
 
     /**
-     * Returns the mets id string for element
+     * Constructor
      *
-     * @return
-     */
-    public String getElementId() throws MetsExportException {
-        /* monographUnit */
-        if (MetsUtils.isMultiUnitMonograph(this)) {
-            return "TITLE_" + String.format("%04d", modOrder);
-        }
-        return MetsUtils.getModName(type) + "_" + String.format("%04d", modOrder);
-    }
-
-    /**
-     * Inserts the element into a mets div
-     *
-     * @param parentDiv
-     * @return
-     */
-    public DivType insertIntoDiv(DivType parentDiv) throws MetsExportException {
-        DivType elementDivType = new DivType();
-        if (Const.VOLUME.equalsIgnoreCase(this.type) && (MetsUtils.isMultiUnitMonograph(this))) {
-            elementDivType.setTYPE("MONOGRAPH");
-        } else if (Const.MONOGRAPHUNIT.equalsIgnoreCase(this.type)) {
-            elementDivType.setTYPE("VOLUME");
-        } else
-            elementDivType.setTYPE(this.type);
-
-        elementDivType.setID(getElementId());
-        elementDivType.getDMDID().add(this.modsMetsElement);
-        elementDivType.setLabel(metsInfo.getLabel());
-        if (parentDiv != null) {
-            parentDiv.getDiv().add(elementDivType);
-        }
-        return elementDivType;
-    }
-
-    /**
-     * Returns an element for digital object
-     *
-     * @param object
-     * @param path
+     * @param digitalObject
      * @param parent
-     * @param metsInfo
-     * @param withChildren
-     * @return
+     * @param metsContext
+     * @param fillChildren
+     * @throws MetsExportException
      */
-    protected static MetsElement getElement(DigitalObject object, Object parent, MetsInfo metsInfo, boolean withChildren) throws MetsExportException {
-        MetsElement result = null;
-        String type = MetsUtils.getTypeModel(object, metsInfo);
-
-        if (Const.PERIODICAL_TITLE.equalsIgnoreCase(type)) {
-            result = new MetsElement(object, parent, withChildren, metsInfo);
+    public MetsElement(DigitalObject digitalObject, Object parent, MetsContext metsContext, boolean fillChildren) throws MetsExportException {
+        this.metsContext = metsContext;
+        this.sourceObject = digitalObject;
+        this.originalPid = digitalObject.getPID();
+        metsContext.getPidElements().put(this.originalPid, this);
+        try {
+            this.createDate = DatatypeFactory.newInstance().newXMLGregorianCalendar(MetsUtils.getProperty(Const.FEDORA_CREATEDATE, digitalObject.getObjectProperties().getProperty()));
+            this.lastUpdateDate = DatatypeFactory.newInstance().newXMLGregorianCalendar(MetsUtils.getProperty(Const.FEDORA_LASTMODIFIED, digitalObject.getObjectProperties().getProperty()));
+        } catch (DatatypeConfigurationException ex) {
+            LOG.log(Level.SEVERE, "Unable to set create/lastModDate for:" + this.originalPid, ex);
+            throw new MetsExportException(this.getOriginalPid(), "Unable to set create/lastModDate", false, ex);
         }
 
-        if (Const.PERIODICAL_VOLUME.equalsIgnoreCase(type)) {
-            result = new MetsElement(object, parent, withChildren, metsInfo);
+        this.label = MetsUtils.getProperty(Const.FEDORA_LABEL, digitalObject.getObjectProperties().getProperty());
+
+        this.relsExt = FoxmlUtils.findDatastream(digitalObject, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
+        DatastreamVersionType dcVersion = FoxmlUtils.findDatastream(digitalObject, "DC").getDatastreamVersion().get(0);
+        this.descriptor = MetsUtils.removeModsCollection(dcVersion.getXmlContent().getAny());
+        if (FoxmlUtils.findDatastream(digitalObject, "BIBLIO_MODS") != null) {
+            this.modsStream = MetsUtils.removeModsCollection(FoxmlUtils.findDatastream(digitalObject, "BIBLIO_MODS").getDatastreamVersion().get(0).getXmlContent().getAny());
+        } else {
+            this.modsStream = null;
+        }
+        model = MetsUtils.getModel(relsExt);
+        this.elementType = Const.typeMap.get(model);
+        this.elementID = this.elementType + "_" + String.format("%04d", metsContext.addElementId(this.elementType));
+        String modsName = Const.typeNameMap.get(this.elementType);
+        if (modsName == null) {
+            LOG.log(Level.SEVERE, "Unable to find mods name for:" + this.elementType + "(" + this.originalPid + ")");
+            throw new MetsExportException(this.originalPid, "Unable to find mods name for:" + this.elementType, false, null);
+        }
+        this.modsElementID = elementID.replaceAll(this.elementType, modsName);
+        if (parent instanceof MetsElement) {
+            this.parent = (MetsElement) parent;
+        }
+        if (fillChildren) {
+            fillChildren();
+        }
+        if (parent == null) {
+            this.parent = initParent();
         }
 
-        if (Const.ISSUE.equalsIgnoreCase(type)) {
-            result = new MetsElement(object, parent, withChildren, metsInfo);
+        if (this.parent == null) {
+            metsContext.setRootElement(this);
+            LOG.log(Level.FINE, "Root element found:" + getOriginalPid() + "(" + getElementType() + ")");
         }
+    }
 
-        if (Const.PAGE.equalsIgnoreCase(type)) {
-            result = new Page(object, parent, withChildren, metsInfo);
-        }
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getElementID
+     * ()
+     */
+    @Override
+    public String getElementID() {
+        return elementID;
+    }
 
-        if (Const.PICTURE.equalsIgnoreCase(type)) {
-            result = new IntPart(object, parent, withChildren, metsInfo);
-        }
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getParent()
+     */
+    @Override
+    public MetsElement getParent() {
+        return parent;
+    }
 
-        if (Const.ARTICLE.equalsIgnoreCase(type)) {
-            result = new IntPart(object, parent, withChildren, metsInfo);
-        }
-
-        if (Const.VOLUME.equalsIgnoreCase(type)) {
-            result = new MetsElement(object, parent, withChildren, metsInfo);
-
-        }
-        if (Const.MONOGRAPHUNIT.equalsIgnoreCase(type)) {
-            result = new MetsElement(object, parent, withChildren, metsInfo);
-        }
-        return result;
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getChildren()
+     */
+    @Override
+    public List<MetsElement> getChildren() {
+        return children;
     }
 
     /**
-     * Inits parent tree of the element
+     * Inits the parent element of current element
      *
-     * @param object
      * @return
+     * @throws MetsExportException
      */
-    private MetsElement initParent(DigitalObject object) throws MetsExportException {
+    private MetsElement initParent() throws MetsExportException {
         String parentId;
-        if (metsInfo.fedoraClient != null) {
-            parentId = MetsUtils.getParent(id, metsInfo.remoteStorage);
+        if (metsContext.getFedoraClient() != null) {
+            parentId = MetsUtils.getParent(originalPid, metsContext.getRemoteStorage());
             LOG.fine("Parent found from Fedora:" + parentId);
         } else {
-            parentId = MetsUtils.getParent(id, metsInfo.fileSystemParents);
+            parentId = MetsUtils.getParent(originalPid, metsContext.getFsParentMap());
             LOG.fine("Parent found from Local:" + parentId);
         }
 
         if (parentId == null) {
+            LOG.fine("Parent not found - returning null");
             return null;
         }
 
         DigitalObject parentObject = null;
-        if (metsInfo.fedoraClient != null) {
-            parentObject = MetsUtils.readRelatedFoXML(parentId, metsInfo.fedoraClient);
+        if (metsContext.getFedoraClient() != null) {
+            parentObject = MetsUtils.readRelatedFoXML(parentId, metsContext.getFedoraClient());
         } else {
-            parentObject = MetsUtils.readRelatedFoXML(metsInfo.getPath(), parentId);
+            parentObject = MetsUtils.readRelatedFoXML(metsContext.getPath(), parentId);
         }
-        MetsElement parentInit = getElement(parentObject, null, metsInfo, false);
+        MetsElement parentInit = new MetsElement(parentObject, null, metsContext, false);
+        parentInit.children.add(this);
         return parentInit;
     }
 
-    /**
-     * Registers child of the element
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getDescriptor
+     * ()
      */
-    private void registerChild() {
-        this.parent.children.add(this);
-        if (this.parent.metsInfo != null) {
-            this.metsInfo = this.parent.metsInfo;
-        }
+    @Override
+    public List<Element> getDescriptor() {
+        return descriptor;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getModel()
+     */
+    @Override
+    public String getModel() {
+        return model;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getOriginalPid
+     * ()
+     */
+    @Override
+    public String getOriginalPid() {
+        return originalPid;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getRelsExt()
+     */
+    @Override
+    public List<Element> getRelsExt() {
+        return relsExt;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getSourceObject
+     * ()
+     */
+    @Override
+    public DigitalObject getSourceObject() {
+        return sourceObject;
     }
 
     /**
-     * Constructor of mets element
+     * Static method for instantiating an Element
      *
      * @param object
-     * @param path
      * @param parent
+     * @param metsContext
      * @param withChildren
-     * @param metsInfo
+     * @return
+     * @throws MetsExportException
      */
-    public MetsElement(DigitalObject object, Object parent, boolean withChildren, MetsInfo metsInfo) throws MetsExportException {
-        this.metsInfo = metsInfo;
-        originalPID = object.getPID();
-        metsInfo.pidElements.put(originalPID, this);
-        if (metsInfo.fedoraClient != null) {
-            DCstream = MetsUtils.getDataStreams(metsInfo.fedoraClient, object.getPID(), "DC");
-            MODSstream = MetsUtils.getDataStreams(metsInfo.fedoraClient, object.getPID(), "BIBLIO_MODS");
-            RELExtstream = MetsUtils.getDataStreams(metsInfo.fedoraClient, object.getPID(), "RELS-EXT");
-        } else {
-            DCstream = MetsUtils.getDataStreams(object.getDatastream(), "DC");
-            MODSstream = MetsUtils.getDataStreams(object.getDatastream(), "BIBLIO_MODS");
-            RELExtstream = MetsUtils.getDataStreams(object.getDatastream(), "RELS-EXT");
+    public static MetsElement getElement(DigitalObject object, MetsElement parent, MetsContext metsContext, boolean withChildren) throws MetsExportException {
+        List<Element> relsExt = FoxmlUtils.findDatastream(object, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
+        String model = MetsUtils.getModel(relsExt);
+        String type = Const.typeMap.get(model);
+        if (type == null) {
+            throw new MetsExportException(object.getPID(), "Unknown model:" + model, false, null);
         }
-        this.id = MetsUtils.getObjectId(RELExtstream);
-        this.type = MetsUtils.getTypeModel(RELExtstream);
-        this.modOrder = metsInfo.getModOrder(type);
-
-        if (parent == null) {
-            parent = initParent(object);
-        }
-
-        this.parent = (MetsElement) parent;
-
-        if (this.parent != null) {
-            registerChild();
-        } else {
-            metsInfo.rootElement = this;
-            metsInfo.setLabel(MetsUtils.getProperty(Const.FEDORA_LABEL, object.getObjectProperties().getProperty()));
-            try {
-                metsInfo.setCreateDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(MetsUtils.getProperty(Const.FEDORA_CREATEDATE, object.getObjectProperties().getProperty())));
-                metsInfo.setLastModDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(MetsUtils.getProperty(Const.FEDORA_LASTMODIFIED, object.getObjectProperties().getProperty())));
-            } catch (DatatypeConfigurationException e) {
-                throw new MetsExportException("Unable to set dates", false, e);
-            }
-        }
-        if (withChildren) {
-            fillChildren();
-        }
-    }
-
-    /**
-     * Inserts an element into mets
-     *
-     * @param mets
-     * @param withChildren
-     * @param outputDirectory
-     */
-    public void insertIntoMets(Mets mets, boolean withChildren, String outputDirectory) throws MetsExportException {
-        if ((parent != null) && (parent.modsMetsElement == null)) {
-            parent.insertIntoMets(mets, false, outputDirectory);
-        }
-        modsMetsElement = MetsUtils.createMdSec("MODSMD_" + getElementId(), "MODS", "text/xml", MODSstream);
-        mets.getDmdSec().add(MetsUtils.createMdSec("DCMD_" + getElementId(), "DC", "text/xml", DCstream));
-        mets.getDmdSec().add(modsMetsElement);
-        if (withChildren) {
-            for (MetsElement element : children) {
-                element.insertIntoMets(mets, withChildren, outputDirectory);
-            }
-        }
-        Document docMods = MetsUtils.getDocumentFromList(MODSstream);
-        Kramerius4Export.removeNils(docMods.getDocumentElement());
-
-        Document docDC = MetsUtils.getDocumentFromList(DCstream);
-        LOG.info("Validating:" + this.originalPID);
-        try {
-            MetsUtils.validateAgainstXSD(docMods, ModsDefinition.class.getResourceAsStream("mods.xsd"));
-            MetsUtils.validateAgainstXSD(docDC, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
-        } catch (Exception ex) {
-            throw new MetsExportException("Error", false, ex);
-        }
+        return new MetsElement(object, parent, metsContext, withChildren);
     }
 
     /**
      * Generates children of this element
      *
      */
-    protected void fillChildren() throws MetsExportException {
-        Node node = MetsUtils.xPathEvaluateNode(RELExtstream, "*[local-name()='RDF']/*[local-name()='Description']");
+    @Override
+    public void fillChildren() throws MetsExportException {
+        Node node = MetsUtils.xPathEvaluateNode(relsExt, "*[local-name()='RDF']/*[local-name()='Description']");
         NodeList hasPageNodes = node.getChildNodes();
         for (int a = 0; a < hasPageNodes.getLength(); a++) {
             if (MetsUtils.hasReferenceXML(hasPageNodes.item(a).getNodeName())) {
@@ -313,13 +391,32 @@ public class MetsElement {
                 String fileName = rdfResourceNode.getNodeValue();
 
                 DigitalObject object = null;
-                if (metsInfo.fedoraClient != null) {
-                    object = MetsUtils.readRelatedFoXML(fileName, metsInfo.fedoraClient);
+                if (metsContext.getFedoraClient() != null) {
+                    object = MetsUtils.readRelatedFoXML(fileName, metsContext.getFedoraClient());
                 } else {
-                    object = MetsUtils.readRelatedFoXML(metsInfo.getPath(), fileName);
+                    object = MetsUtils.readRelatedFoXML(metsContext.getPath(), fileName);
                 }
-                getElement(object, this, metsInfo, true);
+                MetsElement child = new MetsElement(object, this, metsContext, true);
+                this.children.add(child);
+                LOG.log(Level.FINE, "Child found for:" + getOriginalPid() + "(" + getElementType() + ") - " + child.getOriginalPid() + "(" + child.getElementType() + ")");
             }
         }
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#accept(cz
+     * .cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor)
+     */
+    @Override
+    public void accept(IMetsElementVisitor metsVisitor) throws MetsExportException {
+        metsVisitor.insertIntoMets(this);
+    }
+
+    @Override
+    public List<Element> getModsStream() {
+        return this.modsStream;
     }
 }

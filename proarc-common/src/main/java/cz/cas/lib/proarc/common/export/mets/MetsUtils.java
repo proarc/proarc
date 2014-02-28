@@ -20,13 +20,9 @@ package cz.cas.lib.proarc.common.export.mets;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -81,7 +77,6 @@ import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsInfo;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.mets.DivType;
@@ -96,8 +91,6 @@ import cz.cas.lib.proarc.mets.info.Info;
 import cz.cas.lib.proarc.mets.info.Info.Checksum;
 import cz.cas.lib.proarc.mets.info.Info.Itemlist;
 import cz.cas.lib.proarc.mets.info.Info.Titleid;
-import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
  * @author Robert Simonovsky
@@ -138,13 +131,13 @@ public class MetsUtils {
         typeMap.put("info:fedora/model:picture", Const.PICTURE);
         typeMap.put("info:fedora/model:article", Const.ARTICLE);
         typeMap.put("info:fedora/model:periodicalitem", Const.ISSUE);
-        typeMap.put("info:fedora/model:monographunit", Const.MONOGRAPHUNIT);
+        typeMap.put("info:fedora/model:monographunit", Const.MONOGRAPH_UNIT);
 
         modMap.put(Const.PERIODICAL_VOLUME, "VOLUME");
         modMap.put(Const.PERIODICAL_TITLE, "TITLE");
         modMap.put(Const.ARTICLE, "ART");
         modMap.put(Const.PICTURE, "PICT");
-        modMap.put(Const.MONOGRAPHUNIT, "VOLUME");
+        modMap.put(Const.MONOGRAPH_UNIT, "VOLUME");
         modMap.put(Const.ISSUE, "ISSUE");
         modMap.put(Const.VOLUME, "VOLUME");
         modMap.put(Const.PAGE, "PAGE");
@@ -179,22 +172,6 @@ public class MetsUtils {
         if (result == null) {
             LOG.log(Level.SEVERE, "Unknown mod type:" + type);
             throw new MetsExportException("Unknown mod type:" + type);
-        }
-        return result;
-    }
-
-    /**
-     *
-     * Method used for retrieving a document type from digital object
-     *
-     * @param object
-     * @return
-     */
-    public static String getTypeModel(DigitalObject object, MetsInfo metsInfo) throws MetsExportException {
-        String result = typeMap.get(MetsUtils.getModel(object, metsInfo));
-        if (result == null) {
-            LOG.log(Level.SEVERE, "Unknown model:" + MetsUtils.getModel(object, metsInfo));
-            throw new MetsExportException("Unknown model:" + MetsUtils.getModel(object, metsInfo));
         }
         return result;
     }
@@ -506,24 +483,6 @@ public class MetsUtils {
 
     /**
      *
-     * Returns a model of the document
-     *
-     * @param relExtStream
-     * @return
-     */
-    private static String getModel(DigitalObject object, MetsInfo metsInfo) throws MetsExportException {
-        List<Element> relStream = null;
-        if (metsInfo.fedoraClient != null) {
-            relStream = MetsUtils.getDataStreams(metsInfo.fedoraClient, object.getPID(), "RELS-EXT");
-        } else {
-            relStream = MetsUtils.getDataStreams(object.getDatastream(), "RELS-EXT");
-        }
-
-        return getModel(relStream);
-    }
-
-    /**
-     *
      * Prepares a logical/physical structure divs in mets
      *
      * @param mets
@@ -558,27 +517,27 @@ public class MetsUtils {
         FileGrp MCimagesGRP = new FileGrp();
         MCimagesGRP.setID("MC_IMGGRP");
         MCimagesGRP.setUSE("Images");
-        mets.getFileSec().getFileGrp().add(MCimagesGRP);
+        // mets.getFileSec().getFileGrp().add(MCimagesGRP);
 
         FileGrp UCimageGrp = new FileGrp();
         UCimageGrp.setID("UC_IMGGRP");
         UCimageGrp.setUSE("Images");
-        mets.getFileSec().getFileGrp().add(UCimageGrp);
+        // mets.getFileSec().getFileGrp().add(UCimageGrp);
 
         FileGrp AltoGRP = new FileGrp();
         AltoGRP.setID("ALTOGRP");
         AltoGRP.setUSE("Layout");
-        mets.getFileSec().getFileGrp().add(AltoGRP);
+        // mets.getFileSec().getFileGrp().add(AltoGRP);
 
         FileGrp TxtGRP = new FileGrp();
         TxtGRP.setID("TXTGRP");
         TxtGRP.setUSE("Text");
-        mets.getFileSec().getFileGrp().add(TxtGRP);
+        // mets.getFileSec().getFileGrp().add(TxtGRP);
 
         FileGrp TechMDGrp = new FileGrp();
         TechMDGrp.setID("TECHMDGRP");
         TechMDGrp.setUSE("Technical Metadata");
-        mets.getFileSec().getFileGrp().add(TechMDGrp);
+        // mets.getFileSec().getFileGrp().add(TechMDGrp);
 
         HashMap<String, FileGrp> fileGrpMap = new HashMap<String, FileGrp>();
         fileGrpMap.put("UC_IMGGRP", UCimageGrp);
@@ -716,13 +675,42 @@ public class MetsUtils {
     }
 
     /**
+     * 
+     * Indicates if the "has..." is used for defining children
+     * 
+     * @param name
+     * @return
+     */
+    public static boolean hasReferenceXML(String name) {
+        if (Const.HASINTCOMPPART.equalsIgnoreCase(name)) {
+            return true;
+        }
+        if (Const.HASISSUE.equalsIgnoreCase(name)) {
+            return true;
+        }
+        if (Const.HASMEMBER.equalsIgnoreCase(name)) {
+            return true;
+        }
+        if (Const.HASPAGE.equalsIgnoreCase(name)) {
+            return true;
+        }
+        if (Const.HASUNIT.equalsIgnoreCase(name)) {
+            return true;
+        }
+        if (Const.HASVOLUME.equalsIgnoreCase(name)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      *
      * Generates and saves info.xml
      *
      * @param path
      * @param mets
      */
-    private static void saveInfoFile(String path, MetsInfo mets, String md5, String fileMd5Name, long fileSize) throws MetsExportException {
+    public static void saveInfoFile(String path, MetsContext metsContext, String md5, String fileMd5Name, long fileSize) throws MetsExportException {
         File infoFile = new File(path + File.separator + "info.xml");
         try {
             GregorianCalendar c = new GregorianCalendar();
@@ -733,7 +721,7 @@ public class MetsUtils {
             Checksum checkSum = new Checksum();
             checkSum.setChecksum(md5);
             checkSum.setType("MD5");
-            Map<String, String> identifiers = mets.rootElement.getModsIdentifiers();
+            Map<String, String> identifiers = metsContext.getRootElement().getModsIdentifiers();
             for (String type : identifiers.keySet()) {
                 Titleid titleId = new Titleid();
                 titleId.setType(type);
@@ -743,12 +731,12 @@ public class MetsUtils {
             checkSum.setValue(fileMd5Name);
             infoJaxb.setChecksum(checkSum);
             infoJaxb.setCreator("ProARC");
-            infoJaxb.setPackageid(mets.getPackageId());
+            infoJaxb.setPackageid(metsContext.getPackageID());
             infoJaxb.setMetadataversion("1.1");
             Itemlist itemList = new Itemlist();
             infoJaxb.setItemlist(itemList);
-            itemList.setItemtotal(BigInteger.valueOf(mets.getFileList().size()));
-            List<FileMD5Info> fileList = mets.getFileList();
+            itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size()));
+            List<FileMD5Info> fileList = metsContext.getFileList();
             int size = (int) fileSize;
             for (FileMD5Info fileName : fileList) {
                 itemList.getItem().add(fileName.getFileName());
@@ -776,69 +764,6 @@ public class MetsUtils {
 
     /**
      *
-     * Saves mets file
-     *
-     * @param path
-     * @param mets
-     */
-    public static void saveMets(String path, MetsInfo mets) throws MetsExportException {
-        String fileName = "/METS_" + mets.getPackageId() + ".xml";
-        FileMD5Info fileMD5Info = new FileMD5Info("." + fileName);
-        mets.addFile(fileMD5Info);
-        File file = new File(path + fileName);
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, OaiDcType.class, ModsDefinition.class);
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-            marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd oai_dc.xds");
-            // marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper",
-            // new NamespacePrefixMapperImpl());
-            marshaller.marshal(mets.getMets(), file);
-            MessageDigest md;
-            try {
-                md = MessageDigest.getInstance("MD5");
-            } catch (NoSuchAlgorithmException e) {
-                LOG.log(Level.SEVERE, "Unable to create MD5 hash", e);
-                throw new MetsExportException("Unable to create MD5 hash", false, e);
-            }
-            md.reset();
-            MetsUtils.validateAgainstXSD(file, Mets.class.getResourceAsStream("mets.xsd"));
-            InputStream is;
-            try {
-                is = new FileInputStream(file);
-            } catch (FileNotFoundException e) {
-                LOG.log(Level.SEVERE, "Unable to open file" + file.getAbsolutePath(), e);
-                throw new MetsExportException("Unable to open file" + file.getAbsolutePath(), false, e);
-            }
-            byte[] bytes = new byte[2048];
-            int numBytes;
-            try {
-                while ((numBytes = is.read(bytes)) != -1) {
-                    md.update(bytes, 0, numBytes);
-                }
-            } catch (IOException e) {
-                LOG.log(Level.SEVERE, "Unable to generate MD5 hash", e);
-                throw new MetsExportException("Unable to generate MD5 hash", false, e);
-            }
-            byte[] digest = md.digest();
-            String result = new String(Hex.encodeHex(digest));
-            String fileMd5Name = "/MD5_" + mets.getPackageId() + ".md5";
-            File fileMd5 = new File(path + fileMd5Name);
-            mets.addFile(new FileMD5Info("." + fileMd5Name));
-            OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(fileMd5));
-            osw.write(result);
-            osw.close();
-            is.close();
-            saveInfoFile(path, mets, result, fileMd5Name, file.length());
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Error while saving METS file", e);
-            throw new MetsExportException("Error while saving METS file", false, e);
-        }
-    }
-
-    /**
-     *
      * Returns an ObjectID from the rels-ext stream
      *
      * @param relExtElements
@@ -849,35 +774,6 @@ public class MetsUtils {
         Node descNode = xPathEvaluateNode(relExtElements, XPATH);
         String ID = descNode.getAttributes().getNamedItem("rdf:about").getNodeValue();
         return ID.substring(ID.indexOf("/") + 1);
-    }
-
-    /**
-     *
-     * Indicates if the "has..." is used for defining children
-     *
-     * @param name
-     * @return
-     */
-    public static boolean hasReferenceXML(String name) {
-        if (Const.HASINTCOMPPART.equalsIgnoreCase(name)) {
-            return true;
-        }
-        if (Const.HASISSUE.equalsIgnoreCase(name)) {
-            return true;
-        }
-        if (Const.HASMEMBER.equalsIgnoreCase(name)) {
-            return true;
-        }
-        if (Const.HASPAGE.equalsIgnoreCase(name)) {
-            return true;
-        }
-        if (Const.HASUNIT.equalsIgnoreCase(name)) {
-            return true;
-        }
-        if (Const.HASVOLUME.equalsIgnoreCase(name)) {
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -994,9 +890,9 @@ public class MetsUtils {
      * @return
      */
     public static boolean isMultiUnitMonograph(MetsElement monograph) {
-        if (Const.VOLUME.equals(monograph.type)) {
-            for (MetsElement element : monograph.children) {
-                if (Const.MONOGRAPHUNIT.equalsIgnoreCase(element.type)) {
+        if (Const.VOLUME.equals(monograph.getElementType())) {
+            for (MetsElement element : monograph.getChildren()) {
+                if (Const.MONOGRAPH_UNIT.equalsIgnoreCase(element.getElementType())) {
                     return true;
                 }
             }
