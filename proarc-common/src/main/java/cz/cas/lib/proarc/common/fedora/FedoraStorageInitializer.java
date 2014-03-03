@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
@@ -24,7 +23,6 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.ws.rs.core.Response.Status;
 
 /**
  * Prepares meta model in Fedora Commons Repository.
@@ -53,6 +51,8 @@ public final class FedoraStorageInitializer {
         ArrayList<String> modelPids = new ArrayList<String>();
         modelPids.add("model:proarcobject");
         modelPids.add("proarc:device");
+        modelPids.add("proarc:group");
+        modelPids.add("proarc:user");
         for (MetaModel model : models) {
             modelPids.add(model.getPid());
         }
@@ -63,17 +63,11 @@ public final class FedoraStorageInitializer {
 
     private void checkMetaModel(String modelPid) {
         try {
-            storage.getClient().getLastModifiedDate(modelPid);
-        } catch (FedoraClientException ex) {
-            if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                try {
-                    ingestModel(modelPid);
-                } catch (DigitalObjectException fex) {
-                    throw new IllegalStateException(modelPid, fex);
-                }
-            } else {
-                throw new IllegalStateException(modelPid, ex);
+            if (!storage.exist(modelPid)) {
+                ingestModel(modelPid);
             }
+        } catch (DigitalObjectException ex) {
+            throw new IllegalStateException(modelPid, ex);
         }
     }
 

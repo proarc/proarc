@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset>
+    <proarc_users />
+    <proarc_groups groupid="1" name="group:testgrp" title="GroupTitle" remote_name="DESA_GROUP" remote_type="DESA" created="2013-01-12" timestamp="{$now}" />
+    <proarc_groups groupid="2" name="group:testgrp2" title="GroupTitle2" created="2013-01-12" timestamp="{$now}" />
+
+    <proarc_group_members />
+    <proarc_group_permissions />
+    <proarc_batch />
+    <proarc_batch_item />
+</dataset>

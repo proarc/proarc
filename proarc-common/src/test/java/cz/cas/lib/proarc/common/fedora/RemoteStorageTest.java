@@ -106,16 +106,16 @@ public class RemoteStorageTest {
 //        client.debug(true);
         LocalObject local = new LocalStorage().create();
 //        LocalObject local = new LocalStorage().create(new File("/tmp/failing_ingest.foxml"));
-        ModsStreamEditor modsEditor = new ModsStreamEditor(local);
-        ModsType mods = modsEditor.createPage(local.getPid(), "1", "[1]", "Blank");
-        DcStreamEditor dcEditor = new DcStreamEditor(local);
         String model = "model:page";
-        dcEditor.write(mods, model, 0, null);
-        modsEditor.write(mods, 0, null);
 
         RelationEditor relsExt = new RelationEditor(local);
         relsExt.setModel(model);
         relsExt.write(0, null);
+        ModsStreamEditor modsEditor = new ModsStreamEditor(local);
+        ModsType mods = modsEditor.createPage(local.getPid(), "1", "[1]", "Blank");
+        DcStreamEditor dcEditor = new DcStreamEditor(local);
+        dcEditor.write(mods, model, 0, null);
+        modsEditor.write(mods, 0, null);
 
         StringEditor ocrEditor = StringEditor.ocr(local);
         ocrEditor.write("ocr", 0, null);

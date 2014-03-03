@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
@@ -27,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -50,11 +52,14 @@ public final class UserResource {
     private static final Logger LOG = Logger.getLogger(UserResource.class.getName());
     private final UserManager userManager;
     private final Principal userPrincipal;
+    private final SessionContext session;
 
     public UserResource(
+            @Context HttpServletRequest httpRequest,
             @Context SecurityContext securityCtx
             ) {
         userPrincipal = securityCtx.getUserPrincipal();
+        this.session = SessionContext.from(httpRequest);
         this.userManager = UserUtil.getDefaultManger();
     }
 
@@ -106,7 +111,8 @@ public final class UserResource {
         newProfile.setSurname(surname);
         newProfile.setUserName(userName);
         newProfile.setUserPassword(passwd);
-        newProfile = userManager.add(newProfile);
+        newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
+                session.getUser().getUserName(), session.asFedoraLog());
         return new SmartGwtResponse<UserProfile>(newProfile);
     }
 
@@ -148,7 +154,7 @@ public final class UserResource {
             update.setForename(forename);
         }
 
-        userManager.update(update);
+        userManager.update(update, session.getUser().getUserName(), session.asFedoraLog());
         return new SmartGwtResponse<UserProfile>(update);
     }
 

@@ -59,11 +59,11 @@ public final class EditorServletConfiguration implements ServletContextListener 
         AppConfiguration config = initConfig(sce.getServletContext());
         initProarcModel(config);
         DataSource proarcSource = initProarcDb();
-        initUsers(config, proarcSource);
-        initImport(config);
+        initUsers(config, proarcSource, daoFactory);
+        initImport(config, daoFactory);
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 config, ImportBatchManager.getInstance(), null,
-                MetaModelRepository.getInstance()));
+                MetaModelRepository.getInstance(), UserUtil.getDefaultManger()));
 
     }
 
@@ -121,9 +121,9 @@ public final class EditorServletConfiguration implements ServletContextListener 
         }
     }
 
-    private void initUsers(AppConfiguration config, DataSource source) {
+    private void initUsers(AppConfiguration config, DataSource source, DaoFactory daoFactory) {
         try {
-            UserManager manager = UserUtil.createUserManagerPostgressImpl(config, source);
+            UserManager manager = UserUtil.createUserManagerPostgressImpl(config, source, daoFactory);
             UserUtil.setDefaultManger(manager);
             UserUtil.initDefaultAdmin();
         } catch (IOException ex) {
@@ -131,7 +131,7 @@ public final class EditorServletConfiguration implements ServletContextListener 
         }
     }
 
-    private void initImport(AppConfiguration config) {
+    private void initImport(AppConfiguration config, DaoFactory daoFactory) {
         ImportBatchManager.setInstance(config, daoFactory);
         ImportBatchManager ibm = ImportBatchManager.getInstance();
         ImportDispatcher importDispatcher = new ImportDispatcher();

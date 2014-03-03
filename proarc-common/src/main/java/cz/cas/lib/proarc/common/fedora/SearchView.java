@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -89,7 +90,7 @@ public final class SearchView {
      * @return limited list of objects.
      * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Basic+Search'>Fedora Basic Search</a>
      */
-    public List<Item> findQuery(String title, String label, String identifier, String owner, String model)
+    public List<Item> findQuery(String title, String label, String identifier, String owner, String model, Collection<String> hasOwners)
             throws FedoraClientException, IOException {
         
         final int objectsLimit = 80;
@@ -97,11 +98,16 @@ public final class SearchView {
         if (model != null && !model.isEmpty()) {
             query.append("type~").append(model);
         }
+        for (String hasOwner : hasOwners) {
+            query.append(" rights~").append(hasOwner);
+        }
         buildQuery(query, "title", title);
         buildQuery(query, "label", label);
         buildQuery(query, "identifier", identifier);
         buildQuery(query, "ownerId", owner);
-        FindObjectsResponse response = FedoraClient.findObjects().query(query.toString()).resultFormat("xml")
+        final String queryString = query.toString();
+        LOG.fine(queryString);
+        FindObjectsResponse response = FedoraClient.findObjects().query(queryString).resultFormat("xml")
                 .pid()
                 .maxResults(objectsLimit)
                 .execute(fedora);
@@ -118,7 +124,7 @@ public final class SearchView {
             if (token == null || result.size() + objectsLimit > maxLimit) {
                 break;
             }
-            response = FedoraClient.findObjects().query(query.toString()).resultFormat("xml").pid()
+            response = FedoraClient.findObjects().query(queryString).resultFormat("xml").pid()
                     .maxResults(objectsLimit).sessionToken(token)
                     .execute(fedora);
             pids = response.getPids();
@@ -312,25 +318,31 @@ public final class SearchView {
         return consumeSearch(search.execute(fedora));
     }
 
-    public List<Item> findLastCreated(int offset, String model) throws FedoraClientException, IOException {
-        return findLastCreated(offset, model, 100);
+    public List<Item> findLastCreated(int offset, String model, String user) throws FedoraClientException, IOException {
+        return findLastCreated(offset, model, user, 100);
     }
     
-    public List<Item> findLastCreated(int offset, String model, int limit) throws FedoraClientException, IOException {
-        return findLast(offset, model, limit, "$created desc");
+    public List<Item> findLastCreated(int offset, String model, String user, int limit) throws FedoraClientException, IOException {
+        return findLast(offset, model, user, limit, "$created desc");
     }
 
-    public List<Item> findLastModified(int offset, String model, int limit) throws FedoraClientException, IOException {
-        return findLast(offset, model, limit, "$modified desc");
+    public List<Item> findLastModified(int offset, String model, String user, int limit) throws FedoraClientException, IOException {
+        return findLast(offset, model, user, limit, "$modified desc");
     }
 
-    private List<Item> findLast(int offset, String model, int limit, String orderBy) throws FedoraClientException, IOException {
+    private List<Item> findLast(int offset, String model, String user, int limit, String orderBy) throws FedoraClientException, IOException {
         String modelFilter = "";
+        String ownerFilter = "";
         if (model != null && !model.isEmpty()) {
             modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
         }
+        if (user != null) {
+            ownerFilter = String.format("and        $pid     <http://proarc.lib.cas.cz/relations#hasOwner>        $group\n"
+                    + "and        <info:fedora/%s>     <info:fedora/fedora-system:def/relations-external#isMemberOf>        $group", user);
+        }
         String query = QUERY_LAST_CREATED.replace("${OFFSET}", String.valueOf(offset));
         query = query.replace("${MODEL_FILTER}", modelFilter);
+        query = query.replace("${OWNER_FILTER}", ownerFilter);
         query = query.replace("${ORDERBY}", orderBy);
         LOG.fine(query);
         RiSearch search = buildSearch(query);

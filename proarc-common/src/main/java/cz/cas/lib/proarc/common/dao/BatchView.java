@@ -32,7 +32,7 @@ public class BatchView {
     private Timestamp create;
     private String state;
     private Integer userId;
-    private String username;
+    private String userName;
     private String parentPid;
     private String log;
 
@@ -104,12 +104,12 @@ public class BatchView {
         this.userId = userId;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUserName(String username) {
+        this.userName = username;
     }
 
     public String getParentPid() {
@@ -122,7 +122,7 @@ public class BatchView {
 
     @Override
     public String toString() {
-        return "BatchView{" + "id=" + id + ", folder=" + folder + ", title=" + title + ", timestamp=" + timestamp + ", create=" + create + ", state=" + state + ", userId=" + userId + ", username=" + username + ", parentPid=" + parentPid + '}';
+        return "BatchView{" + "id=" + id + ", folder=" + folder + ", title=" + title + ", timestamp=" + timestamp + ", create=" + create + ", state=" + state + ", userId=" + userId + ", username=" + userName + ", parentPid=" + parentPid + '}';
     }
 
 

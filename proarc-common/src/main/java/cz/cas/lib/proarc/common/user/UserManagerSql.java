@@ -16,197 +16,288 @@
  */
 package cz.cas.lib.proarc.common.user;
 
+import cz.cas.lib.proarc.common.dao.DaoFactory;
+import cz.cas.lib.proarc.common.dao.GroupDao;
+import cz.cas.lib.proarc.common.dao.Transaction;
+import cz.cas.lib.proarc.common.dao.UserDao;
+import cz.cas.lib.proarc.common.dao.empiredb.SqlTransaction;
+import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.sql.DbUtils;
 import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
+import org.apache.commons.io.FileUtils;
 
 /**
- * XXX delete/disable will require to set proarc_users.status="DELETED|DISABLED" + remove tomcat_roles(username, proarc)
+ * Manages user stuff in RDBMS and the Fedora storage.
  *
  * @author Jan Pokorsky
  */
-final class UserManagerSql implements UserManager {
+public final class UserManagerSql implements UserManager {
     
     private static final Logger LOG = Logger.getLogger(UserManagerSql.class.getName());
-    private static final String USERID = "userid";
-    private static final String USERNAME = "username";
-    private static final String USERPASS = "userpass";
-    private static final String FORENAME = "forename";
-    private static final String SURNAME = "surname";
-    private static final String EMAIL = "email";
-    private static final String STATUS = "status";
-    private static final String CREATED = "created";
-    private static final String HOME = "home";
     private final DataSource source;
     private final File defaultHome;
     private final GroupSqlStorage groupStorage;
     private final PermissionSqlStorage permissionStorage;
+    private final RemoteStorage remoteStorage;
+    private final DaoFactory daos;
 
-    public UserManagerSql(DataSource source, File defaultHome) {
+    public UserManagerSql(DataSource source, File defaultHome, RemoteStorage remoteStorage, DaoFactory daos) {
         this.source = source;
         this.defaultHome = defaultHome;
         groupStorage = new GroupSqlStorage(source);
         permissionStorage = new PermissionSqlStorage(source);
+        this.remoteStorage = remoteStorage;
+        this.daos = daos;
+    }
+
+    @Override
+    public UserProfile authenticate(String userName, String passwd) {
+        if (userName == null || passwd == null) {
+            return null;
+        }
+        String digist = UserUtil.getDigist(passwd);
+        Transaction tx = daos.createTransaction();
+        UserDao users = daos.createUser();
+        users.setTransaction(tx);
+        try {
+            List<UserProfile> result = users.find(userName, digist, null, null);
+            return result.isEmpty() ? null : filter(result.get(0));
+        } finally {
+            tx.close();
+        }
     }
 
     @Override
     public UserProfile find(String userName) throws IllegalArgumentException {
+        if (userName == null) {
+            return null;
+        }
+        Transaction tx = daos.createTransaction();
+        UserDao users = daos.createUser();
+        users.setTransaction(tx);
         try {
-            Connection c = getConnection();
-            try {
-                c.setAutoCommit(true);
-                return find(c, userName);
-            } finally {
-                DbUtils.close(c);
-            }
-        } catch (SQLException ex) {
-            throw new IllegalStateException(ex);
+            List<UserProfile> result = users.find(userName, null, null, null);
+            return result.isEmpty() ? null : filter(result.get(0));
+        } finally {
+            tx.close();
+        }
+    }
+
+    @Override
+    public UserProfile find(String remoteName, String remoteType) {
+        if (remoteName == null || remoteType == null) {
+            return null;
+        }
+        Transaction tx = daos.createTransaction();
+        UserDao users = daos.createUser();
+        users.setTransaction(tx);
+        try {
+            List<UserProfile> result = users.find(null, null, remoteName, remoteType);
+            return result.isEmpty() ? null : filter(result.get(0));
+        } finally {
+            tx.close();
         }
     }
 
     @Override
     public UserProfile find(int userId) throws IllegalArgumentException {
+        Transaction tx = daos.createTransaction();
+        UserDao users = daos.createUser();
+        users.setTransaction(tx);
         try {
-            Connection c = getConnection();
-            try {
-                c.setAutoCommit(true);
-                return find(c, userId);
-            } finally {
-                DbUtils.close(c);
-            }
-        } catch (SQLException ex) {
-            throw new IllegalStateException(ex);
+            return filter(users.find(userId));
+        } finally {
+            tx.close();
         }
     }
 
     @Override
     public List<UserProfile> findAll() {
+        Transaction tx = daos.createTransaction();
+        UserDao users = daos.createUser();
+        users.setTransaction(tx);
         try {
-            Connection c = getConnection();
-            try {
-                c.setAutoCommit(true);
-                return findAll(c);
-            } finally {
-                DbUtils.close(c);
-            }
-        } catch (SQLException ex) {
-            throw new IllegalStateException(ex);
+            return filter(users.find(null, null, null, null));
+        } finally {
+            tx.close();
         }
     }
 
     @Override
-    public UserProfile add(UserProfile profile) {
+    public UserProfile add(UserProfile profile, List<Group> groups, String owner, String log) {
         if (profile == null) {
             throw new NullPointerException();
         }
         profile.validateAsNew();
-        String userName = profile.getUserName();
-        String userHomePath = profile.getUserHome();
-        File allUsersHome = defaultHome;
-        File toRollback = null;
-        File userHome;
+        File userHome = null;
+        FedoraTransaction ftx = new FedoraTransaction(remoteStorage);
+        Transaction tx = daos.createTransaction();
+        UserDao userDao = daos.createUser();
+        GroupDao groupDao = daos.createUserGroup();
+        FedoraUserDao fedoraUsers = new FedoraUserDao();
+        FedoraGroupDao fedoraGroups = new FedoraGroupDao();
+        userDao.setTransaction(tx);
+        groupDao.setTransaction(tx);
+        fedoraUsers.setTransaction(ftx);
+        fedoraGroups.setTransaction(ftx);
         try {
-            if (userHomePath == null) {
-                toRollback = userHome = UserUtil.createUserHome(userName, userHomePath, allUsersHome);
-            } else {
-                toRollback = userHome = new File(userHomePath);
-                if (!userHome.mkdir()) { // already exists
-                    toRollback = null;
-                    if (!userHome.isDirectory()) {
-                        throw new IOException(String.format("Not a folder: '%s'!", userHome));
-                    }
-                }
-            }
+            // fedora
+            fedoraUsers.add(profile, owner, log);
+            Group userGroup = createUserGroup(profile);
+            fedoraGroups.addNewGroup(userGroup, owner, log);
+            final List<Group> membership = new ArrayList<Group>(groups.size() + 1);
+            membership.addAll(groups);
+            membership.add(userGroup);
+            fedoraUsers.setMembership(profile, membership, log);
+
+            // rdbms
+            groupDao.update(userGroup);
+
+            userHome = UserUtil.createUserHome(profile.getUserName(), null, defaultHome);
             profile.setUserHome(UserUtil.toUri(userHome));
-        } catch (Throwable ex) {
-            if (toRollback != null) {
-                toRollback.delete();
-            }
-            throw new IllegalStateException(profile.toString(), ex);
-        }
+            profile.setUserGroup(userGroup.getId());
+            userDao.update(profile);
+            // sql membership
+            groupStorage.addMembership(((SqlTransaction) tx).getConnection(), profile.getId(), membership);
 
-        try {
-            Connection c = getConnection();
-            c.setAutoCommit(false);
-            profile = add(c, profile);
+            // filesystem
             UserUtil.createUserSubfolders(userHome);
-            toRollback = null;
-            return profile;
-        } catch (SQLException ex) {
-            throw new IllegalStateException(profile.toString(), ex);
+            userHome = null;
+            tx.commit();
+            ftx.commit();
+            return filter(profile);
+        } catch (Throwable ex) {
+            ftx.rollback();
+            tx.rollback();
+            throw new IllegalStateException(filter(profile).toString(), ex);
         } finally {
-            if (toRollback != null) {
-                toRollback.delete();
+            if (userHome != null) {
+                FileUtils.deleteQuietly(userHome);
             }
+            ftx.close();
+            tx.close();
         }
     }
 
     @Override
-    public void update(UserProfile profile) {
+    public void update(UserProfile profile, String owner, String log) {
+        Transaction tx = daos.createTransaction();
+        UserDao users = daos.createUser();
+        users.setTransaction(tx);
         try {
-            Connection c = getConnection();
-            boolean rollback = true;
-            try {
-                c.setAutoCommit(false);
-                if (profile.getUserPassword() != null) {
-                    profile.setUserPasswordDigest(UserUtil.getDigist(profile.getUserPassword()));
-                    updateTomcatUser(c, profile);
-                    profile.setUserPassword(null);
-                    profile.setUserPasswordDigest(null);
-                }
-                updateProarcUser(c, profile);
-                c.commit();
-                rollback = false;
-            } finally {
-                DbUtils.close(c, rollback);
+            if (profile.getUserPassword() != null) {
+                profile.setUserPasswordDigest(UserUtil.getDigist(profile.getUserPassword()));
             }
-        } catch (SQLException ex) {
-            throw new IllegalStateException(profile.toString(), ex);
+            users.update(profile);
+            filter(profile);
+            tx.commit();
+        } catch (Throwable ex) {
+            tx.rollback();
+            throw new IllegalStateException(String.valueOf(filter(profile)), ex);
+        } finally {
+            tx.close();
         }
     }
 
     @Override
-    public Group addGroup(Group group) {
-        return groupStorage.add(group);
+    public Group addGroup(Group group, List<Permission> permissions, String owner, String log) {
+        if (!UserUtil.isValidGroupPid(group.getName())) {
+            throw new IllegalArgumentException("groupName: " + group.getName());
+        }
+        Transaction tx = daos.createTransaction();
+        GroupDao groupDao = daos.createUserGroup();
+        groupDao.setTransaction(tx);
+        FedoraTransaction ftx = new FedoraTransaction(remoteStorage);
+        FedoraGroupDao fedoraGroups = new FedoraGroupDao();
+        fedoraGroups.setTransaction(ftx);
+        try {
+            fedoraGroups.addGroup(group, owner, log);
+            groupDao.update(group);
+            if (!permissions.isEmpty()) {
+                permissionStorage.set(((SqlTransaction) tx).getConnection(), group.getId(),
+                        permissions.toArray(new Permission[permissions.size()]));
+            }
+            tx.commit();
+            ftx.commit();
+            return group;
+        } catch (Throwable ex) {
+            ftx.rollback();
+            tx.rollback();
+            throw new IllegalStateException(String.valueOf(group), ex);
+        } finally {
+            ftx.close();
+            tx.close();
+        }
     }
 
     @Override
     public List<Group> findGroups() {
-        return groupStorage.find();
+        Transaction tx = daos.createTransaction();
+        GroupDao groupDao = daos.createUserGroup();
+        groupDao.setTransaction(tx);
+        try {
+            return groupDao.find(null, null, null, null);
+        } finally {
+            tx.close();
+        }
     }
 
     @Override
     public Group findGroup(int groupId) {
-        return groupStorage.find(groupId);
+        Transaction tx = daos.createTransaction();
+        GroupDao groupDao = daos.createUserGroup();
+        groupDao.setTransaction(tx);
+        try {
+            return groupDao.find(groupId);
+        } finally {
+            tx.close();
+        }
     }
 
     @Override
-    public void setUserGroups(int userId, Group... groups) {
+    public Group findRemoteGroup(String remoteName, String remoteType) {
+        Transaction tx = daos.createTransaction();
+        GroupDao groupDao = daos.createUserGroup();
+        groupDao.setTransaction(tx);
         try {
+            List<Group> groups = groupDao.find(null, null, remoteName, remoteType);
+            return groups.isEmpty() ? null : groups.get(0);
+        } finally {
+            tx.close();
+        }
+    }
+
+    @Override
+    public void setUserGroups(UserProfile user, List<Group> groups, String owner, String log) {
+        try {
+            FedoraTransaction ftx = new FedoraTransaction(remoteStorage);
+            FedoraUserDao fedoraUsers = new FedoraUserDao();
+            fedoraUsers.setTransaction(ftx);
             Connection c = source.getConnection();
             boolean rollback = true;
             try {
                 c.setAutoCommit(false);
-                groupStorage.removeMembership(c, userId);
-                if (groups != null && groups.length > 0) {
-                    groupStorage.addMembership(c, userId, groups);
+                groupStorage.removeMembership(c, user.getId());
+                if (!groups.isEmpty()) {
+                    groupStorage.addMembership(c, user.getId(), groups);
                 }
+                fedoraUsers.setMembership(user, groups, log);
                 c.commit();
+                ftx.commit();
                 rollback = false;
             } finally {
+                ftx.close();
                 DbUtils.close(c, rollback);
             }
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }
     }
@@ -280,181 +371,23 @@ final class UserManagerSql implements UserManager {
         }
     }
 
-    private void updateTomcatUser(Connection c, UserProfile profile) throws SQLException {
-        String query = "UPDATE tomcat_users SET userpass=? WHERE username=?";
-        PreparedStatement stmt = c.prepareStatement(query);
-        try {
-            stmt.setString(1, profile.getUserPasswordDigest());
-            stmt.setString(2, profile.getUserName());
-            int result = stmt.executeUpdate();
-            if (result != 1) {
-                throw new IllegalArgumentException("User not found: " + profile.getUserName());
-            }
-        } finally {
-            DbUtils.close(stmt);
-        }
+    private static Group createUserGroup(UserProfile user) {
+        return Group.create(user.getUserName(), null);
     }
 
-    private void updateProarcUser(Connection c, UserProfile profile) throws SQLException {
-        String query = "UPDATE proarc_users SET email=?, forename=?, surname=?, home=? WHERE userid=?";
-        PreparedStatement stmt = c.prepareStatement(query);
-        try {
-            int column = 1;
-            stmt.setString(column++, profile.getEmail());
-            stmt.setString(column++, profile.getForename());
-            stmt.setString(column++, profile.getSurname());
-            stmt.setString(column++, profile.getUserHome());
-            stmt.setInt(column++, profile.getId());
-            int result = stmt.executeUpdate();
-            if (result != 1) {
-                throw new IllegalArgumentException("User not found: " + profile.getId());
-            }
-        } finally {
-            DbUtils.close(stmt);
+    private static UserProfile filter(UserProfile user) {
+        if (user != null) {
+            user.setUserPassword(null);
+            user.setUserPasswordDigest(null);
         }
+        return user;
     }
 
-    UserProfile add(Connection c, UserProfile profile) {
-        boolean rollback = true;
-        try {
-            addTomcatUser(c, profile);
-            addTomcatRole(c, profile);
-            profile = addProarcUser(c, profile);
-            c.commit();
-            rollback = false;
-            return profile;
-        } catch (SQLException ex) {
-            // XXX check for unique constraint violation ex.getMessage()
-            throw new IllegalStateException(profile.toString(), ex);
-        } finally {
-            DbUtils.close(c, rollback);
+    private static List<UserProfile> filter(List<UserProfile> users) {
+        for (UserProfile user : users) {
+            filter(user);
         }
-    }
-
-    private void addTomcatUser(Connection c, UserProfile profile) throws SQLException {
-        String query = "INSERT INTO tomcat_users (username, userpass) VALUES (?, ?)";
-        PreparedStatement stmt = c.prepareStatement(query);
-        try {
-            stmt.setString(1, profile.getUserName());
-            stmt.setString(2, profile.getUserPasswordDigest());
-            stmt.executeUpdate();
-        } finally {
-            stmt.close();
-        }
-    }
-
-    private void addTomcatRole(Connection c, UserProfile profile) throws SQLException {
-        String query = "INSERT INTO tomcat_roles (username, rolename) VALUES (?, 'proarc')";
-        PreparedStatement stmt = c.prepareStatement(query);
-        try {
-            stmt.setString(1, profile.getUserName());
-            stmt.executeUpdate();
-        } finally {
-            stmt.close();
-        }
-    }
-
-    private UserProfile addProarcUser(Connection c, UserProfile profile) throws SQLException {
-        String query = "INSERT INTO proarc_users (email, forename, surname, home, username) VALUES (?, ?, ?, ?, ?)";
-        PreparedStatement stmt = c.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-        try {
-            int column = 1;
-            stmt.setString(column++, profile.getEmail());
-            stmt.setString(column++, profile.getForename());
-            stmt.setString(column++, profile.getSurname());
-            stmt.setString(column++, profile.getUserHome());
-            stmt.setString(column++, profile.getUserName());
-            stmt.executeUpdate();
-            ResultSet rs = stmt.getGeneratedKeys();
-            try {
-                if (rs.next()) {
-                    profile.setId(rs.getInt(USERID));
-                    profile.setCreated(rs.getDate(CREATED));
-                    profile.setUserPassword(null);
-                    profile.setUserPasswordDigest(null);
-                    return profile;
-                } else {
-                    throw new SQLException("no autogenerated field");
-                }
-            } finally {
-                DbUtils.close(rs);
-            }
-        } finally {
-            DbUtils.close(stmt);
-        }
-    }
-
-    UserProfile find(Connection c, int userId) throws SQLException {
-        String query = "SELECT * FROM proarc_users WHERE userid=?";
-        PreparedStatement stmt = c.prepareStatement(query);
-        try {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            try {
-                UserProfile up = null;
-                if (rs.next()) {
-                    up = readUser(rs);
-                }
-                return up;
-            } finally {
-                DbUtils.close(rs);
-            }
-        } finally {
-            DbUtils.close(stmt);
-        }
-    }
-
-    UserProfile find(Connection c, String userName) throws SQLException {
-        String query = "SELECT * FROM proarc_users WHERE username=?";
-        PreparedStatement stmt = c.prepareStatement(query);
-        try {
-            stmt.setString(1, userName);
-            ResultSet rs = stmt.executeQuery();
-            try {
-                UserProfile up = null;
-                if (rs.next()) {
-                    up = readUser(rs);
-                }
-                return up;
-            } finally {
-                DbUtils.close(rs);
-            }
-        } finally {
-            DbUtils.close(stmt);
-        }
-    }
-
-    List<UserProfile> findAll(Connection c) throws SQLException {
-        String query = "SELECT * FROM proarc_users ORDER BY surname";
-        PreparedStatement stmt = c.prepareStatement(query);
-        try {
-            ResultSet rs = stmt.executeQuery();
-            LinkedList<UserProfile> profiles = new LinkedList<UserProfile>();
-            try {
-                while (rs.next()) {
-                    profiles.add(readUser(rs));
-                }
-                return profiles;
-            } finally {
-                DbUtils.close(rs);
-            }
-        } finally {
-            DbUtils.close(stmt);
-        }
-    }
-
-    private UserProfile readUser(ResultSet rs) throws SQLException {
-        // ignore password
-        UserProfile up = new UserProfile();
-        up.setCreated(rs.getDate(CREATED));
-        up.setEmail(rs.getString(EMAIL));
-        up.setForename(rs.getString(FORENAME));
-        up.setId(rs.getInt(USERID));
-        up.setSurname(rs.getString(SURNAME));
-        String home = rs.getString(HOME);
-        up.setUserHome(home);
-        up.setUserName(rs.getString(USERNAME));
-        return up;
+        return users;
     }
 
     private Connection getConnection() throws SQLException {

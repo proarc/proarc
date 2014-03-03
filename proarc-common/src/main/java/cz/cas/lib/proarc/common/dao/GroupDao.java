@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Jan Pokorsky
+ * Copyright (C) 2014 Jan Pokorsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,22 +16,22 @@
  */
 package cz.cas.lib.proarc.common.dao;
 
+import cz.cas.lib.proarc.common.user.Group;
+import java.util.List;
+
 /**
+ * DAO for {@link Group}.
  *
  * @author Jan Pokorsky
  */
-public interface DaoFactory {
+public interface GroupDao extends Dao {
 
-    Transaction createTransaction();
+    Group create();
 
-    BatchDao createBatch();
+    List<Group> find(Integer userId, String grpName, String grpRemoteName, String grpRemoteType);
 
-    BatchItemDao createBatchItem();
+    Group find(int id);
 
-    UserDao createUser();
-
-    GroupDao createUserGroup();
-
-    void init();
+    void update(Group group);
 
 }

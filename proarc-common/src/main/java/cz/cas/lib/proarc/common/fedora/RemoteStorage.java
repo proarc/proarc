@@ -81,6 +81,18 @@ public final class RemoteStorage {
         return new RemoteObject(pid, client);
     }
 
+    public boolean exist(String pid) throws DigitalObjectException {
+        try {
+            getClient().getLastModifiedDate(pid);
+            return true;
+        } catch (FedoraClientException ex) {
+            if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                return false;
+            }
+            throw new DigitalObjectException(pid, ex);
+        }
+    }
+
     public SearchView getSearch(Locale locale) {
         SearchView sv = new SearchView(this);
         if (locale != null) {

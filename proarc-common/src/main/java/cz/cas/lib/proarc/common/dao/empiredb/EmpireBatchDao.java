@@ -71,6 +71,8 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         Connection c = getConnection();
         if (batch.getId() == null) {
             record.create(table);
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            batch.setTimestamp(now);
         } else {
             record.read(table, batch.getId(), c);
         }

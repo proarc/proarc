@@ -75,7 +75,11 @@ public class FedoraTestSupport {
             ingestFromUrl(u);
         }
     }
-    
+
+    public String getTestUser() {
+        return "junit";
+    }
+
     private void ingestFromUrl(URL foxml) throws Exception {
         assertNotNull(foxml);
         DigitalObject dobj = FoxmlUtils.unmarshal(new StreamSource(foxml.toExternalForm()), DigitalObject.class);

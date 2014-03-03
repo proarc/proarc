@@ -36,6 +36,7 @@ public final class Permissions {
     public static final Permission USERS_CREATE = new Permission("proarc.permission.users.create", "Vytvořit uživatele");
     public static final Permission USERS_READ = new Permission("proarc.permission.users.read", "Zobrazit uživatele");
     public static final Permission USER_LOGIN = new Permission("proarc.permission.user.login", "Přihlášení uživatele");
+    public static final Permission REPO_SEARCH_GROUPOWNER = new Permission("proarc.permission.repository.search.groupOwner", "Hledat pouze objekty patřící uživatelské skupině.");
     
     private final HashSet<Permission> all = new HashSet<Permission>();
 
