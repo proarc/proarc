@@ -98,14 +98,15 @@ public final class SearchView {
         if (model != null && !model.isEmpty()) {
             query.append("type~").append(model);
         }
-        for (String hasOwner : hasOwners) {
-            query.append(" rights~").append(hasOwner);
+        // FedoraClient.findObjects() does not support OR operator!
+        if (!hasOwners.isEmpty()) {
+            query.append(" rights~").append(hasOwners.iterator().next());
         }
         buildQuery(query, "title", title);
         buildQuery(query, "label", label);
         buildQuery(query, "identifier", identifier);
         buildQuery(query, "ownerId", owner);
-        final String queryString = query.toString();
+        final String queryString = query.toString().trim();
         LOG.fine(queryString);
         FindObjectsResponse response = FedoraClient.findObjects().query(queryString).resultFormat("xml")
                 .pid()

@@ -287,10 +287,16 @@ public class DigitalObjectResource {
 
     private Collection<String> filterGroups(UserProfile user) {
         boolean checkPermission = session.checkPermission(Permissions.REPO_SEARCH_GROUPOWNER);
-        if (checkPermission) {
+        if (checkPermission && user.getDefaultGroup() != null) {
             UserManager userManager = UserUtil.getDefaultManger();
-            List<Group> groups = userManager.findUserGroups(user.getId());
-            return UserUtil.toGroupPid(groups);
+            // FedoraClient.findObjects() does not support OR operator!
+            // Filter just the default group.
+            Group defGroup = userManager.findGroup(user.getDefaultGroup());
+            if (defGroup != null) {
+                return Collections.singletonList(UserUtil.toGroupPid(defGroup));
+            }
+//            List<Group> groups = userManager.findUserGroups(user.getId());
+//            return UserUtil.toGroupPid(groups);
         }
         return Collections.emptyList();
     }
