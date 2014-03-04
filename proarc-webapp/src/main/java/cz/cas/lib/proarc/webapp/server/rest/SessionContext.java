@@ -49,21 +49,14 @@ public final class SessionContext {
     public static SessionContext from(HttpServletRequest request) throws WebApplicationException{
         Principal userPrincipal = request.getUserPrincipal();
         String remoteAddr = request.getRemoteAddr();
-        if (userPrincipal == null) {
-            throw new WebApplicationException(Status.FORBIDDEN);
-        }
-        ProarcPrincipal proarcPrincipal = (ProarcPrincipal) userPrincipal;
-        // if proarc princial has no association -> associate
-        if (proarcPrincipal.getAssociatedUserProfile() == null) {
-            UserManager userManager = UserUtil.getDefaultManger();
-            UserProfile user = userManager.find(userPrincipal.getName());
-            if (user == null) {
-                throw new WebApplicationException(Status.FORBIDDEN);
+        if (userPrincipal != null && userPrincipal instanceof ProarcPrincipal) {
+            ProarcPrincipal proarcPrincipal = (ProarcPrincipal) userPrincipal;
+            UserProfile user = proarcPrincipal.getAssociatedUserProfile();
+            if (user != null) {
+                return new SessionContext(user, remoteAddr);
             }
-            proarcPrincipal.associateUserProfile(user);
         }
-        
-        return new SessionContext(proarcPrincipal.getAssociatedUserProfile(), remoteAddr);
+        throw new WebApplicationException(Status.FORBIDDEN);
     }
 
     public static SessionContext from(UserProfile user, String clientIp) {
