@@ -16,30 +16,25 @@
  */
 package cz.cas.lib.proarc.common.imports;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-
-import org.easymock.EasyMock;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.imports.ImportFileScanner.Folder;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import org.easymock.EasyMock;
+import org.junit.After;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  *
@@ -112,21 +107,16 @@ public class ImportFileScannerTest {
     }
 
     private boolean isWindows() {
-	System.out.println("System:"+System.getProperty("os.name"));
-	System.out.println(tmpFolder.getRoot().getAbsolutePath());
-	if (System.getProperty("os.name").toLowerCase().contains("win")) {
-	    return true;
-	}
-	return false;
+        return System.getProperty("os.name").toLowerCase().contains("win");
     }
 
     @Test
     public void testFolderSort() throws Exception {
 //        tmpFolder.setDeleteOnExit(false);
-	if (!isWindows()) {
-	    tmpFolder.newFolder("B");
-	    tmpFolder.newFolder("Na Návrší");
-	}
+        if (!isWindows()) {
+            tmpFolder.newFolder("B");
+            tmpFolder.newFolder("Na Návrší");
+        }
         tmpFolder.newFolder("AAA");
         tmpFolder.newFolder("A");
         tmpFolder.newFile("AA");

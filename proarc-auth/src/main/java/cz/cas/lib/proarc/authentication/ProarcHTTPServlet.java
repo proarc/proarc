@@ -16,30 +16,16 @@
  */
 package cz.cas.lib.proarc.authentication;
 
+import cz.cas.lib.proarc.authentication.desa.DESAAuthenticator;
+import cz.cas.lib.proarc.authentication.proarc.ProArcAuthenticator;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringTokenizer;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.io.IOUtils;
-import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroup;
-import org.stringtemplate.v4.STGroupString;
-
-import cz.cas.lib.proarc.authentication.desa.DESAAuthenticator;
-import cz.cas.lib.proarc.authentication.proarc.ProArcAuthenticator;
-import static cz.cas.lib.proarc.authentication.utils.AddressUtils.*;
 
 /**
  * Login servlet
