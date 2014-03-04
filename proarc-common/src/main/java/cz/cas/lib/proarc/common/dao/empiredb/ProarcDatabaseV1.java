@@ -31,6 +31,7 @@ import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRelation;
+import org.apache.empire.db.DBRelation.DBReference;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
@@ -59,7 +60,9 @@ public class ProarcDatabaseV1 extends DBDatabase {
     public final TomcatUserTable tableTomcatUser = new TomcatUserTable(this);
     public final TomcatRoleTable tableTomcatRole = new TomcatRoleTable(this);
     public final DBRelation relUsername2TomcatUser;
+    public final DBRelation relUsername2TomcatUserAlias;
     public final DBRelation relTomcatRoleUser2TomcatUser;
+    public final DBRelation relTomcatRoleUser2TomcatUserAlias;
 
     public static int upgradeVersion1(ProarcDatabase schema, Connection conn) throws SQLException {
         ProarcDatabaseV1 schemaV1 = new ProarcDatabaseV1();
@@ -92,6 +95,7 @@ public class ProarcDatabaseV1 extends DBDatabase {
 
     private static void upgradeDdl(ProarcDatabase schema, ProarcDatabaseV1 schemaV1, Connection conn) throws SQLException {
         try {
+            conn.setAutoCommit(true);
             DBDatabaseDriver driver = schema.getDriver();
             DBSQLScript script = new DBSQLScript();
             // add UserTable columns
@@ -109,11 +113,14 @@ public class ProarcDatabaseV1 extends DBDatabase {
             driver.getDDLScript(DBCmdType.CREATE, schema.tableUserGroup.timestamp, script);
             // add GroupPermissionTable columns
             driver.getDDLScript(DBCmdType.CREATE, schema.tableGroupPermission.type, script);
-            // drop table references
-            schema.dropRelation(script, schemaV1.relUsername2TomcatUser);
-            schema.dropRelation(script, schemaV1.relTomcatRoleUser2TomcatUser);
-            conn.setAutoCommit(true);
             script.run(driver, conn);
+            // drop table references
+            script.clear();
+            schema.dropRelation(script, schemaV1.relUsername2TomcatUser);
+            schema.dropRelation(script, schemaV1.relUsername2TomcatUserAlias);
+            schema.dropRelation(script, schemaV1.relTomcatRoleUser2TomcatUser);
+            schema.dropRelation(script, schemaV1.relTomcatRoleUser2TomcatUserAlias);
+            script.run(driver, conn, true);
         } finally {
             conn.setAutoCommit(false);
         }
@@ -352,10 +359,16 @@ public class ProarcDatabaseV1 extends DBDatabase {
         addRelation(tableBatch.userId.referenceOn(tableUser.id));
         addRelation(tableBatchItem.batchId.referenceOn(tableBatch.id));
         relUsername2TomcatUser = addRelation(tableUser.username.referenceOn(tableTomcatUser.username));
+        // define duplicate foreign key with alias to match the pre-EmpireDB declaration
+        relUsername2TomcatUserAlias = addRelation("proarc_users_username_fkey",
+                new DBReference[] {tableUser.username.referenceOn(tableTomcatUser.username)});
         addRelation(tableGroupMember.groupid.referenceOn(tableUserGroup.id));
         addRelation(tableGroupMember.userid.referenceOn(tableUser.id));
         addRelation(tableGroupPermission.groupid.referenceOn(tableUserGroup.id));
         relTomcatRoleUser2TomcatUser = addRelation(tableTomcatRole.username.referenceOn(tableTomcatUser.username));
+        // define duplicate foreign key with alias to match the pre-EmpireDB declaration
+        relTomcatRoleUser2TomcatUserAlias = addRelation("tomcat_roles_username_fkey",
+                new DBReference[] {tableTomcatRole.username.referenceOn(tableTomcatUser.username)});
     }
 
     void init(EmpireConfiguration conf) throws SQLException {
