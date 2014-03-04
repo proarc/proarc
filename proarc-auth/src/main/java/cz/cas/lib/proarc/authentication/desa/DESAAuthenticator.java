@@ -81,7 +81,7 @@ public class DESAAuthenticator implements Authenticator {
                 return createLocalUser(desaUser, tUser, code);
             }
         } catch (AuthenticateUserFault e) {
-            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+            LOGGER.log(Level.FINE, e.getMessage(), e);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
         }
@@ -106,6 +106,8 @@ public class DESAAuthenticator implements Authenticator {
             proarcUser.setUserName(UserUtil.toUserName(USER_PREFIX, desaUserName));
             proarcUser.setEmail(desaUser.getEmail());
             proarcUser.setForename(desaUser.getName());
+            // set default ownership
+            proarcUser.setDefaultGroup(remoteGroup.getId());
             userManger.add(proarcUser, Arrays.asList(remoteGroup), "proarc", "Add remote DESA user.");
         }
         return proarcUser;
