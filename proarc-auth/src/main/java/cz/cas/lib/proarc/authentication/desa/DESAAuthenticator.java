@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.authentication.desa;
 
-import java.util.Date;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -25,8 +25,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sun.xml.ws.client.ClientTransportException;
-
 import cz.cas.lib.proarc.authentication.Authenticator;
 import cz.cas.lib.proarc.authentication.ProarcPrincipal;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -34,6 +32,8 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.export.desa.DesaServices.DesaConfiguration;
+import cz.cas.lib.proarc.common.user.Group;
+import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -51,6 +51,8 @@ public class DESAAuthenticator implements Authenticator {
     public static Logger LOGGER = Logger.getLogger(DESAAuthenticator.class.getName());
     
     public static final String KOD_PUVODCE = "kod";
+    public static final String REMOTE_TYPE = "desa";
+    public static final String USER_PREFIX = "desa";
 
     public DESAAuthenticator() {
     }
@@ -75,25 +77,49 @@ public class DESAAuthenticator implements Authenticator {
     UserProfile authenticateReq(String tUser, String tPass, String code) {
         try {
             AuthenticateUserResponse desaUser = getDesaClient().authenticateUser(tUser, tPass, code);
-            if (desaUser != null && desaUser.getRoles() != null) {
-                for (Role role : desaUser.getRoles().getItem()) {
-                    if ("producer_submit".equals(role.getRoleAcr())) {
-                        UserProfile proarcUser = new UserProfile();
-                        proarcUser.setEmail(desaUser.getEmail());
-                        proarcUser.setForename(desaUser.getName());
-                        proarcUser.setProarcuser(false);
-                        proarcUser.setSurname(desaUser.getSurname());
-                        proarcUser.setUserName(tUser);
-                        return proarcUser;
-                    }
-                }
+            if (isAuthorized(desaUser)) {
+                return createLocalUser(desaUser, tUser, code);
             }
         } catch (AuthenticateUserFault e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
-        } catch (ClientTransportException e) {
+        } catch (Exception e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
         }
         return null;
+    }
+
+    private UserProfile createLocalUser(AuthenticateUserResponse desaUser, String desaUserName, String producerCode) {
+        UserManager userManger = UserUtil.getDefaultManger();
+        Group remoteGroup = userManger.findRemoteGroup(producerCode, REMOTE_TYPE);
+        if (remoteGroup == null) {
+            remoteGroup = Group.createRemote(
+                    UserUtil.toUserName(USER_PREFIX, producerCode),
+                    "DESA " + producerCode,
+                    producerCode, REMOTE_TYPE);
+            userManger.addGroup(remoteGroup, Arrays.asList(Permissions.REPO_SEARCH_GROUPOWNER),
+                    "proarc", "Add remote DESA group.");
+        }
+        UserProfile proarcUser = userManger.find(desaUserName, REMOTE_TYPE);
+        if (proarcUser == null) {
+            String surname = isNullString(desaUser.getSurname()) ? desaUserName : desaUser.getSurname();
+            proarcUser = UserProfile.createRemote(desaUserName, REMOTE_TYPE, surname);
+            proarcUser.setUserName(UserUtil.toUserName(USER_PREFIX, desaUserName));
+            proarcUser.setEmail(desaUser.getEmail());
+            proarcUser.setForename(desaUser.getName());
+            userManger.add(proarcUser, Arrays.asList(remoteGroup), "proarc", "Add remote DESA user.");
+        }
+        return proarcUser;
+    }
+
+    boolean isAuthorized(AuthenticateUserResponse desaUser) {
+        if (desaUser != null && desaUser.getRoles() != null) {
+            for (Role role : desaUser.getRoles().getItem()) {
+                if ("producer_submit".equals(role.getRoleAcr())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -110,7 +136,7 @@ public class DESAAuthenticator implements Authenticator {
         }
         UserProfile authenticated = authenticateReq(user, pswd, kod);
         if (authenticated != null) {
-            associateUserProfile(principal, authenticated, kod);
+            principal.associateUserProfile(authenticated);
         }
         
         return authenticated != null ? AuthenticatedState.AUTHENTICATED : AuthenticatedState.FORBIDDEN;
@@ -118,21 +144,6 @@ public class DESAAuthenticator implements Authenticator {
 
     boolean isNullString(String str) {
         return str == null || str.trim().equals("");
-    }
-
-    public void associateUserProfile(ProarcPrincipal principal, UserProfile user, String producerCode) {
-        UserManager userManager = UserUtil.getDefaultManger();
-        // NOTE: UserProfile.validateAsNew(UserProfile.java:197) only lower
-        // case supports but ws
-        String proarcValidUserName = user.getUserName();
-        UserProfile userProfile = userManager.find(proarcValidUserName);
-        if (userProfile == null) {
-            user.setCreated(new Date());
-            user.setProarcuser(false);
-            userProfile = userManager.add(user);
-        }
-        // XXX create group with producerCode as group name and set is as a user default group
-        principal.associateUserProfile(userProfile);
     }
 
 }

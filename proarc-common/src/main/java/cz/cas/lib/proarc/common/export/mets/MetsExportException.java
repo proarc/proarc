@@ -87,18 +87,22 @@ public class MetsExportException extends Exception {
     }
 
     public MetsExportException(String pid, String message, boolean warning, Exception ex) {
+        super(message, ex);
         this.addException(pid, message, warning, ex);
     }
 
     public MetsExportException(String message, boolean warning, Exception ex) {
+        super(message, ex);
         this.addException(message, warning, ex);
     }
 
     public MetsExportException(String message, boolean warning) {
+        super(message);
         this.addException(message, warning);
     }
 
     public MetsExportException(String message) {
+        super(message);
         this.addException(message, false);
     }
 

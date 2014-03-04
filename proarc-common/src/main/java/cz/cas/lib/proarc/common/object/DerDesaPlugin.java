@@ -29,7 +29,6 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
@@ -280,17 +279,10 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
             object.setLabel(objLabel.isEmpty() ? "?" : objLabel);
 
             // DC
-            RelationEditor relationEditor = handler.relations();
-            String model = relationEditor.getModel();
-            String importFile = relationEditor.getImportFile();
-            // XXX replace with OaiDacHandler
-            // XXX write helper for DC/DC mapping
             DcStreamEditor dcEditor = handler.objectMetadata();
             DublinCoreRecord dcr = dcEditor.read();
-            addPid(dc, object.getPid());
-            addModel(dc, model);
             dcr.setDc(dc);
-            dcEditor.write(dcr, message);
+            dcEditor.write(handler, dcr, message);
         }
 
         @Override
@@ -351,36 +343,6 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
                 }
             }
             return null;
-        }
-
-        static void addPid(OaiDcType dc, String pid) {
-            List<ElementType> elms = dc.getIdentifiers();
-            for (ElementType elm : elms) {
-                if (pid.equals(elm.getValue())) {
-                    return;
-                }
-            }
-            elms.add(new ElementType(pid, null));
-        }
-
-        static void addModel(OaiDcType dc, String modelId) {
-            List<ElementType> elms = dc.getTypes();
-            for (ElementType elm : elms) {
-                if (modelId.equals(elm.getValue())) {
-                    return;
-                }
-            }
-            elms.add(new ElementType(modelId, null));
-        }
-
-        private void addTitle(OaiDcType dc, String title) {
-            List<ElementType> elms = dc.getTitles();
-            for (ElementType elm : elms) {
-                if (title.equals(elm.getValue())) {
-                    return;
-                }
-            }
-            elms.add(new ElementType(title, null));
         }
 
     }

@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.user;
 
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.sql.Timestamp;
 import java.util.Date;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -40,35 +40,37 @@ public final class UserProfile {
     private transient URI exportFolder;
     private transient URI importFolder;
     private String userName;
+    private String remoteName;
+    private String remoteType;
     private transient String userPassword;
     private transient String userPasswordDigest;
-    private transient String displayName; // XXX remove
     private String surname;
     private String forename;
     private String email;
     private Date created;
     private Date lastLogin;
+    private String status;
+    private Integer defaultGroup;
+    private Integer userGroup;
+    private Timestamp timestamp;
 
-    private boolean proarcuser=true;
-    
+    public static UserProfile create(String userName, String passwd, String surname) {
+        UserProfile user = new UserProfile();
+        user.setUserName(userName);
+        user.setUserPassword(passwd);
+        user.setSurname(surname);
+        return user;
+    }
+
+    public static UserProfile createRemote(String remoteName, String remoteType, String surname) {
+        UserProfile user = new UserProfile();
+        user.setRemoteName(remoteName);
+        user.setRemoteType(remoteType);
+        user.setSurname(surname);
+        return user;
+    }
+
     public UserProfile() {
-    }
-
-    UserProfile(Integer id, URI userHomeUri, String userName, String displayName) throws URISyntaxException {
-        this.userId = id;
-        this.userHomeUri = userHomeUri;
-        this.userHome = userHomeUri.toASCIIString();
-        this.userName = userName;
-        this.displayName = displayName;
-
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
     }
 
     public Integer getId() {
@@ -127,6 +129,10 @@ public final class UserProfile {
         return userName;
     }
 
+    public String getUserNameAsPid() {
+        return userName == null ? null : UserUtil.toUserPid(this);
+    }
+
     public void setUserName(String userName) {
         this.userName = userName;
     }
@@ -145,6 +151,22 @@ public final class UserProfile {
 
     public void setUserPasswordDigest(String userPasswordDigest) {
         this.userPasswordDigest = userPasswordDigest;
+    }
+
+    public String getRemoteName() {
+        return remoteName;
+    }
+
+    public void setRemoteName(String remoteName) {
+        this.remoteName = remoteName;
+    }
+
+    public String getRemoteType() {
+        return remoteType;
+    }
+
+    public void setRemoteType(String remoteType) {
+        this.remoteType = remoteType;
     }
 
     public Date getCreated() {
@@ -187,36 +209,60 @@ public final class UserProfile {
         this.lastLogin = lastLogin;
     }
 
-    
-    
-    public boolean isProarcuser() {
-		return proarcuser;
-	}
+    public String getStatus() {
+        return status;
+    }
 
-	public void setProarcuser(boolean proarcuser) {
-		this.proarcuser = proarcuser;
-	}
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
-	@Override
+    public Integer getDefaultGroup() {
+        return defaultGroup;
+    }
+
+    public void setDefaultGroup(Integer defaultGroup) {
+        this.defaultGroup = defaultGroup;
+    }
+
+    public Integer getUserGroup() {
+        return userGroup;
+    }
+
+    public void setUserGroup(Integer userGroup) {
+        this.userGroup = userGroup;
+    }
+
+    public Timestamp getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    @Override
     public String toString() {
         return String.format("UserProfile[id:%s, username:%s, created:%s, lastLogin:%s, email:%s,"
+                + " remoteName:%s, remoteType:%s"
                 + " forename:%s, surname:%s, userHome:%s, userHomeUri:%s, userPasswordDigest:%s]",
-                userId, userName, created, lastLogin, email, forename, surname, userHome, userHomeUri, userPasswordDigest);
+                userId, userName, created, lastLogin, email,
+                remoteName, remoteType,
+                forename, surname, userHome, userHomeUri, userPasswordDigest);
     }
 
     void validateAsNew () {
-    	// validation only for proarc users
-    	if (this.proarcuser) {
-        	if (userName == null || !UserUtil.USERNAME_PATTERN.matcher(userName).matches()) {
-                throw new IllegalArgumentException("Invalid user name: " + userName);
-            }
+        if (userName == null || !UserUtil.isValidUserName(userName)) {
+            throw new IllegalArgumentException("Invalid user name: " + userName);
+        }
 
+        if (remoteName == null) {
             if (userPassword == null || userPassword.length() < 6) {
                 throw new IllegalArgumentException("Invalid password");
             }
 
             userPasswordDigest = UserUtil.getDigist(userPassword);
-    	}
+        }
     }
 
 }

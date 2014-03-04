@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 import cz.cas.lib.proarc.common.dao.BatchItemDao;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.BatchItemTable;
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import org.apache.empire.data.bean.BeanResult;
@@ -49,6 +50,8 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
         try {
             if (item.getId() == null) {
                 dbr.create(table);
+                Timestamp now = new Timestamp(System.currentTimeMillis());
+                item.setTimestamp(now);
             } else {
                 dbr.read(table, item.getId(), getConnection());
             }

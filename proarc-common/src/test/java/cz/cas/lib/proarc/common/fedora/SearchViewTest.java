@@ -16,18 +16,29 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
+import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import static cz.cas.lib.proarc.common.fedora.FedoraTestSupport.assertItem;
+import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.SearchView.Result;
-import cz.cas.lib.proarc.common.json.JsonUtils;
+import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.user.FedoraGroupDao;
+import cz.cas.lib.proarc.common.user.FedoraUserDao;
+import cz.cas.lib.proarc.common.user.Group;
+import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserUtil;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 /**
  *
@@ -35,6 +46,8 @@ import org.junit.Test;
  */
 public class SearchViewTest {
 
+    @Rule
+    public TestName testName = new TestName();
     private RemoteStorage storage;
     private FedoraTestSupport fedora;
 
@@ -105,8 +118,55 @@ public class SearchViewTest {
         String user = "model:periodical";
 //        String user = null;
         SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findLastCreated(0, user);
+        List<Item> result = instance.findLastCreated(0, user, null);
         System.out.println(result);
+    }
+
+    @Test
+    public void testFind_HasOwner() throws Exception {
+        String modelId = "model:periodical";
+        UserProfile user = UserProfile.create(testName.getMethodName(), testName.getMethodName(), testName.getMethodName());
+        fedora.cleanUp();
+        // prepare fedora user and group
+        FedoraTransaction tx = new FedoraTransaction(storage);
+        FedoraGroupDao groups = new FedoraGroupDao();
+        groups.setTransaction(tx);
+        Group group = Group.create(testName.getMethodName(), null);
+        groups.addNewGroup(group, fedora.getTestUser(), testName.getMethodName());
+        FedoraUserDao users = new FedoraUserDao();
+        users.setTransaction(tx);
+        users.add(user, fedora.getTestUser(), testName.getMethodName());
+        users.addMembership(user, Arrays.asList(group), testName.getMethodName());
+        tx.commit();
+
+        // prepare digital object
+        LocalObject lobject = new LocalStorage().create();
+        DigitalObjectHandler handler = new DigitalObjectHandler(lobject, null);
+        lobject.setLabel(testName.getMethodName());
+        lobject.setOwner(fedora.getTestUser());
+        RelationEditor relations = handler.relations();
+        relations.setModel(modelId);
+        relations.setOwners(Arrays.asList(group.getName()));
+        relations.write(relations.getLastModified(), testName.getMethodName());
+        DcStreamEditor adminEditor = handler.objectMetadata();
+        DublinCoreRecord dcr = adminEditor.read();
+        adminEditor.write(handler, dcr, testName.getMethodName());
+        handler.commit();
+        storage.ingest(lobject, fedora.getTestUser(), testName.getMethodName());
+
+//        fedora.getClient().debug(true);
+        SearchView instance = new SearchView(storage);
+        List<Item> result = instance.findLastCreated(0, modelId, user.getUserNameAsPid());
+        System.out.println(result);
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        final String pid = lobject.getPid();
+        FedoraTestSupport.assertItem(result, pid);
+
+        result = instance.findQuery(null, null, null, null, modelId, Arrays.asList(UserUtil.toGroupPid(group)));
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        FedoraTestSupport.assertItem(result, pid);
     }
 
     @Test
@@ -124,7 +184,7 @@ public class SearchViewTest {
     public void testFindQuery() throws Exception {
 //        client.debug(true);
         SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findQuery("p", "p", "u", "p", "model:periodical");
+        List<Item> result = instance.findQuery("p", "p", "u", "p", "model:periodical", Collections.<String>emptyList());
         assertFalse(result.isEmpty());
     }
 
@@ -132,7 +192,7 @@ public class SearchViewTest {
     public void testFindModelQuery() throws Exception {
 //        client.debug(true);
         SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findQuery(null, null, null, null, "model:periodical");
+        List<Item> result = instance.findQuery(null, null, null, null, "model:periodical", Collections.<String>emptyList());
         assertFalse(result.isEmpty());
     }
 

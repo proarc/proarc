@@ -16,26 +16,16 @@
  */
 package cz.cas.lib.proarc.authentication.proarc;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.naming.NamingException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
-
 import cz.cas.lib.proarc.authentication.Authenticator;
 import cz.cas.lib.proarc.authentication.ProarcPrincipal;
-import cz.cas.lib.proarc.common.sql.DbUtils;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 
 /**
@@ -47,87 +37,24 @@ public class ProArcAuthenticator implements Authenticator  {
     public static final Logger LOGGER = Logger
             .getLogger(ProArcAuthenticator.class.getName());
 
-    private Map<String, String> dbUserProperties(Connection con, String userName)
-            throws SQLException {
-
-        String sql = "select * from tomcat_users where username= ?";
-        Map<String, String> properties = new HashMap<String, String>();
-        PreparedStatement pstm = null;
-        ResultSet rs = null;
-        try {
-            // TODO: Change it -> empire DB
-            pstm = con.prepareStatement(sql);
-            pstm.setString(1, userName);
-            rs = pstm.executeQuery();
-            while (rs.next()) {
-                String uname = rs.getString("username");
-                String pswd = rs.getString("userpass");
-                properties.put(Authenticator.LOGINNAME, uname);
-                properties.put(Authenticator.PASSWORD, pswd);
-            }
-            return properties;
-        } finally {
-            if (rs != null)
-                DbUtils.close(rs);
-            if (pstm != null)
-                DbUtils.close(pstm);
-        }
-    }
-
     @Override
-    public AuthenticatedState authenticate(Map<String, String> loginProperties, HttpServletRequest request, HttpServletResponse response, ProarcPrincipal principal) {
-        Connection con = null;
+    public AuthenticatedState authenticate(Map<String, String> loginProperties,
+            HttpServletRequest request, HttpServletResponse response, ProarcPrincipal principal) {
+
+        String login = loginProperties.get(Authenticator.LOGINNAME);
+        String passwd = loginProperties.get(Authenticator.PASSWORD);
         try {
-            DataSource datasource = DbUtils.getProarcSource();
-            con = datasource.getConnection();
-            Map<String, String> dbProps = dbUserProperties(con,
-                    loginProperties.get(Authenticator.LOGINNAME));
-            if (!dbProps.isEmpty()) {
-                String hashedPswd = dbProps.get(Authenticator.PASSWORD);
-                String givenPswd = loginProperties.get(Authenticator.PASSWORD);
-                boolean authenticated=  givenPswd != null
-                        && hashedPswd.equals(UserUtil.getDigist(givenPswd));
-                if (authenticated) {
-                    this.associateUserProfile(principal, loginProperties.get(Authenticator.LOGINNAME));
-                }
-                return authenticated ? AuthenticatedState.AUTHENTICATED : AuthenticatedState.FORBIDDEN;
+            UserManager userManger = UserUtil.getDefaultManger();
+            UserProfile authenticated = userManger.authenticate(login, passwd);
+            if (authenticated != null) {
+                principal.associateUserProfile(authenticated);
+                return AuthenticatedState.AUTHENTICATED;
             } else {
-                // no user found
                 return AuthenticatedState.FORBIDDEN;
             }
-        } catch (NamingException e) {
-            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, login, e);
             return AuthenticatedState.FORBIDDEN;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, e.getMessage(), e);
-            return AuthenticatedState.FORBIDDEN;
-        } finally {
-            DbUtils.close(con);
-        }
-
-    }
-    
-    
-    void associateUserProfile(ProarcPrincipal principal, String user) {
-        UserManager userManager = UserUtil.getDefaultManger();
-        // NOTE: UserProfile.validateAsNew(UserProfile.java:197) only lower
-        // case supports but ws
-        String proarcValidUserName = user;
-        UserProfile userProfile = userManager.find(proarcValidUserName);
-//        if (userProfile == null) {
-//            userProfile = new UserProfile();
-//            // not proarc user
-//            userProfile.setProarcuser(false);
-//            userProfile.setUserName(proarcValidUserName);
-//            userProfile.setCreated(new Date());
-//            userProfile.setDisplayName(user);
-//            userProfile.setForename(user);
-//            userProfile.setSurname("-ws user-");
-//            userManager.add(userProfile);
-//        }
-        // this is the reason 
-        if (userProfile != null) {
-            principal.associateUserProfile(userProfile);
         }
     }
 

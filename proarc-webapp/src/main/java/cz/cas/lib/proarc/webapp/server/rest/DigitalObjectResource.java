@@ -55,7 +55,11 @@ import cz.cas.lib.proarc.common.object.DisseminationInput;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.user.Group;
+import cz.cas.lib.proarc.common.user.Permissions;
+import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.io.File;
@@ -84,6 +88,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -244,10 +249,10 @@ public class DigitalObjectResource {
         int page = 20;
         switch (type) {
             case LAST_MODIFIED:
-                items = search.findLastModified(startRow, queryModel, 100);
+                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), 100);
                 break;
             case QUERY:
-                items = search.findQuery(queryTitle, queryLabel, queryIdentifier, owner, queryModel);
+                items = search.findQuery(queryTitle, queryLabel, queryIdentifier, owner, queryModel, filterGroups(user));
                 page = 1;
                 break;
             case PIDS:
@@ -255,6 +260,10 @@ public class DigitalObjectResource {
                 page = 1;
                 break;
             case PHRASE:
+                if (session.checkPermission(Permissions.REPO_SEARCH_GROUPOWNER)) {
+                    // unsupported type
+                    throw new WebApplicationException(Status.FORBIDDEN);
+                }
                 items = search.findPhrase(phrase);
                 page = 1;
                 break;
@@ -263,12 +272,27 @@ public class DigitalObjectResource {
                 page = 1;
                 break;
             default:
-                items = search.findLastCreated(startRow, queryModel);
+                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user));
         }
         int count = items.size();
         int endRow = startRow + count - 1;
         int total = count == 0 ? startRow : endRow + page;
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
+    }
+
+    private String filterOwnObjects(UserProfile user) {
+        boolean checkPermission = session.checkPermission(Permissions.REPO_SEARCH_GROUPOWNER);
+        return checkPermission ? user.getUserNameAsPid() : null;
+    }
+
+    private Collection<String> filterGroups(UserProfile user) {
+        boolean checkPermission = session.checkPermission(Permissions.REPO_SEARCH_GROUPOWNER);
+        if (checkPermission) {
+            UserManager userManager = UserUtil.getDefaultManger();
+            List<Group> groups = userManager.findUserGroups(user.getId());
+            return UserUtil.toGroupPid(groups);
+        }
+        return Collections.emptyList();
     }
 
     private List<Item> searchParent(Integer batchId, List<String> pids, SearchView search)

@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import javax.sql.DataSource;
 import org.apache.empire.data.DataType;
 import org.apache.empire.db.DBCmdType;
@@ -160,6 +161,21 @@ public final class EmpireConfiguration {
             }
             // forward request
             ddlGenerator.getDDLScript(type, dbo, script);
+        }
+
+        @Override
+        protected String getSQLDateTimeString(Object value, int sqlTemplate, int sqlPattern, int sqlCurrentDate) {
+            if (value instanceof Timestamp && sqlPattern == SQL_DATETIME_PATTERN) {
+                // gets timestamp in full precision
+                // Postgres default timestamp precision is microseconds!
+                return '\'' +((Timestamp) value).toString() + '\'';
+            }
+            return super.getSQLDateTimeString(value, sqlTemplate, sqlPattern, sqlCurrentDate);
+        }
+
+        @Override
+        public Timestamp getUpdateTimestamp(Connection conn) {
+            return new Timestamp(System.currentTimeMillis());
         }
 
     }

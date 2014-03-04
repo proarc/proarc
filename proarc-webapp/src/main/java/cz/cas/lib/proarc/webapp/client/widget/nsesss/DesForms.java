@@ -194,12 +194,15 @@ public class DesForms {
                         .createField()) // JednoduchySpisovyZnak
                         .addField(new FieldBuilder("PlneUrcenySpisovyZnak").setTitle("Plný kód").setMaxOccurrences(1).setType(TEXT).setLength(255).setRequired(true).createField())
                         .addField(new FieldBuilder("TypDokumentu").setMaxOccurrences(1).setRequired(true)
+                            .addField(new FieldBuilder("Nazev").setTitle("Název").setMaxOccurrences(1).setType(SELECT).setRequired(true).setWidth("400")
+                                .setOptionDataSource(new FieldBuilder("desa-des.rec-type").setWidth("500")
+                                        .addField(new FieldBuilder("title").setTitle("Identifikátor").createField())
+                                        .addField(new FieldBuilder("descr").setTitle("Název").createField())
+                                    .createField() // desa-des.rec-type
+                                    , "descr", new HashMap<String, String>() {{put("descr", "Nazev"); put("title", "Identifikator/value");}})
+                            .createField())
                             .addField(new FieldBuilder("Identifikator").setMaxOccurrences(1)
-                                .addField(new FieldBuilder("value").setTitle("Typ dokumentu").setMaxOccurrences(1).setType(SELECT).setRequired(true).setLength(50).setWidth("400")
-                                    .setOptionDataSource(new FieldBuilder("desa-des.rec-type")
-                                        .addField(new FieldBuilder("title").createField())
-                                    .createField(), "title")
-                                .createField()) // value
+                                .addField(new FieldBuilder("value").setTitle("Identifikátor").setMaxOccurrences(1).setType(TEXT).setRequired(true).setLength(50).setWidth("400").setReadOnly(true).createField())
                             .createField()) // Identifikator
                         .createField()) // TypDokumentu
                     .createField()) // Trideni
@@ -346,12 +349,15 @@ public class DesForms {
                         .createField()) // JednoduchySpisovyZnak
                         .addField(new FieldBuilder("PlneUrcenySpisovyZnak").setTitle("Plný kód").setMaxOccurrences(1).setType(TEXT).setLength(255).setRequired(true).createField())
                         .addField(new FieldBuilder("TypDokumentu").setMaxOccurrences(1).setRequired(true)
+                            .addField(new FieldBuilder("Nazev").setTitle("Název").setMaxOccurrences(1).setType(SELECT).setRequired(true).setWidth("400")
+                                .setOptionDataSource(new FieldBuilder("desa-des.rec-type").setWidth("500")
+                                        .addField(new FieldBuilder("title").setTitle("Identifikátor").createField())
+                                        .addField(new FieldBuilder("descr").setTitle("Název").createField())
+                                    .createField() // desa-des.rec-type
+                                    , "descr", new HashMap<String, String>() {{put("descr", "Nazev"); put("title", "Identifikator/value");}})
+                            .createField())
                             .addField(new FieldBuilder("Identifikator").setMaxOccurrences(1)
-                                .addField(new FieldBuilder("value").setTitle("Typ dokumentu").setMaxOccurrences(1).setType(SELECT).setRequired(true).setLength(50).setWidth("400")
-                                    .setOptionDataSource(new FieldBuilder("desa-des.rec-type")
-                                        .addField(new FieldBuilder("title").createField())
-                                    .createField(), "title")
-                                .createField()) // value
+                                .addField(new FieldBuilder("value").setTitle("Identifikátor").setMaxOccurrences(1).setType(TEXT).setRequired(true).setLength(50).setWidth("400").setReadOnly(true).createField())
                             .createField()) // Identifikator
                         .createField()) // TypDokumentu
                     .createField()) // Trideni

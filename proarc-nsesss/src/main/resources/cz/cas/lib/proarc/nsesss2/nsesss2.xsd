@@ -1363,7 +1363,7 @@
         <xs:complexContent>
             <xs:extension base="nsesss:tTrideni">
                 <xs:sequence>
-                    <xs:element name="MaterskaEntita" type="nsesss:tMaterskaEntitaSpisu"/>
+                    <xs:element name="MaterskaEntita" type="nsesss:tMaterskaEntitaSpisu" minOccurs="0"/>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>

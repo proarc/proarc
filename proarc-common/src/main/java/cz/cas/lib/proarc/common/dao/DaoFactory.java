@@ -28,6 +28,10 @@ public interface DaoFactory {
 
     BatchItemDao createBatchItem();
 
+    UserDao createUser();
+
+    GroupDao createUserGroup();
+
     void init();
 
 }
