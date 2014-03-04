@@ -40,13 +40,8 @@ public class ProarcPrincipal implements Principal {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj);
-    }
-
-    @Override
     public String toString() {
-        return this.uname;
+        return "ProarcPrincipal{" + "uname=" + uname + ", associatedUserProfile=" + associatedUserProfile + '}';
     }
     
     /**
@@ -63,6 +58,7 @@ public class ProarcPrincipal implements Principal {
      */
     public void associateUserProfile(UserProfile uProfile) {
         this.associatedUserProfile = uProfile;
+        this.uname = uProfile.getUserName();
     }
     
     /**
