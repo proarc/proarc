@@ -67,12 +67,17 @@ public final class RemoteStorage {
         this.client = client;
     }
 
+    public static RemoteStorage getInstance() {
+        if (INSTANCE == null) {
+            throw new IllegalStateException("RemoteStorage not initialized!");
+        }
+        return INSTANCE;
+    }
+
     public static RemoteStorage getInstance(AppConfiguration conf) throws IOException {
         if (INSTANCE == null) {
             INSTANCE = new RemoteStorage(new FedoraClient(new FedoraCredentials(
                     conf.getFedoraUrl(), conf.getFedoraUsername(), conf.getFedoraPassword())));
-            FedoraStorageInitializer rsi = new FedoraStorageInitializer(INSTANCE);
-            rsi.init();
         }
         return INSTANCE;
     }
