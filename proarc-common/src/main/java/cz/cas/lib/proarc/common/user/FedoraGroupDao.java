@@ -57,6 +57,9 @@ public final class FedoraGroupDao extends FedoraDao {
         String pid = group.getName();
         LocalObject lobject = newGroup(pid, group, findFreePid, owner, logMessage);
         group.setName(lobject.getPid());
+        if (group.getTitle() == null) {
+            group.setTitle(lobject.getLabel());
+        }
         return lobject.getPid();
     }
 
