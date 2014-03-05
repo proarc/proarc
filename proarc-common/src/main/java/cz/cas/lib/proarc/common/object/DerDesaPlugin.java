@@ -32,6 +32,9 @@ import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.user.Group;
+import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
@@ -223,16 +226,12 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
         }
 
         private OaiDcType createDefautDc() throws DigitalObjectException {
-            // XXX create default DC from template
-            // XXX update with parent info
             OaiDcType dc = new OaiDcType();
-            // XXX user -> organization -> identifier
-            handler.getParameterUser();
             DigitalObjectHandler parent = handler.getParameterParent();
             String modelId = handler.relations().getModel();
 
             if (MODEL_FOLDER.equals(modelId)) {
-                String identifier = "_";
+                String identifier = getProducerCode() + "_";
                 dc.getIdentifiers().add(new ElementType(identifier, null));
                 dc.getTitles().add(new ElementType(identifier + '-', null));
             } else if (MODEL_DOCUMENT.equals(modelId)) {
@@ -343,6 +342,22 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
                 }
             }
             return null;
+        }
+
+        private String getProducerCode() {
+            String producerCode = "";
+            UserProfile user = handler.getParameterUser();
+            if (user == null) {
+                return producerCode;
+            }
+            Integer defaultGroupId = user.getDefaultGroup();
+            if (defaultGroupId != null) {
+                Group group = UserUtil.getDefaultManger().findGroup(defaultGroupId);
+                if (group != null && group.getRemoteName() != null) {
+                    producerCode = group.getRemoteName();
+                }
+            }
+            return producerCode;
         }
 
     }
