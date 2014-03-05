@@ -202,7 +202,7 @@ public class DesForms {
                                     , "descr", new HashMap<String, String>() {{put("descr", "Nazev"); put("title", "Identifikator/value");}})
                             .createField())
                             .addField(new FieldBuilder("Identifikator").setMaxOccurrences(1)
-                                .addField(new FieldBuilder("value").setTitle("Identifikátor").setMaxOccurrences(1).setType(TEXT).setRequired(true).setLength(50).setWidth("400").setReadOnly(true).createField())
+                                .addField(new FieldBuilder("value").setTitle("Typ dokumentu").setMaxOccurrences(1).setType(TEXT).setRequired(true).setLength(50).setWidth("400").setReadOnly(true).createField())
                             .createField()) // Identifikator
                         .createField()) // TypDokumentu
                     .createField()) // Trideni
@@ -357,7 +357,7 @@ public class DesForms {
                                     , "descr", new HashMap<String, String>() {{put("descr", "Nazev"); put("title", "Identifikator/value");}})
                             .createField())
                             .addField(new FieldBuilder("Identifikator").setMaxOccurrences(1)
-                                .addField(new FieldBuilder("value").setTitle("Identifikátor").setMaxOccurrences(1).setType(TEXT).setRequired(true).setLength(50).setWidth("400").setReadOnly(true).createField())
+                                .addField(new FieldBuilder("value").setTitle("Typ dokumentu").setMaxOccurrences(1).setType(TEXT).setRequired(true).setLength(50).setWidth("400").setReadOnly(true).createField())
                             .createField()) // Identifikator
                         .createField()) // TypDokumentu
                     .createField()) // Trideni
