@@ -97,10 +97,9 @@ public class DesaExportAction extends AbstractAction {
         boolean accept = false;
         if (selection != null && selection instanceof Record[]) {
             Record[] records = (Record[]) selection;
-            if (ExportType.DOWNLOAD == type && records.length == 1 && acceptDesa(records)) {
-                accept = true;
-            }
-            if (!accept && records.length > 0 && acceptDesa(records)) {
+            if (ExportType.DOWNLOAD == type) {
+                accept = records.length == 1 && acceptDesa(records);
+            } else if (records.length > 0 && acceptDesa(records)) {
                 accept = true;
             }
         }
