@@ -22,12 +22,16 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
+import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.util.JAXBResult;
 import javax.xml.bind.util.JAXBSource;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -75,6 +79,11 @@ public final class DcStreamEditor {
         return new DublinCoreRecord(dc, editor.getLastModified(), object.getPid());
     }
 
+    public void write(DigitalObjectHandler handler, DublinCoreRecord record, String message) throws DigitalObjectException {
+        addDigitalObjectMetadata(handler, record.getDc());
+        write(record, message);
+    }
+
     public void write(DublinCoreRecord record, String message) throws DigitalObjectException {
         EditorResult result = editor.createResult();
         // DO NOT include schemaLocation. Fedora validator does not accept it.
@@ -83,18 +92,36 @@ public final class DcStreamEditor {
     }
 
     public void write(ModsType mods, String model, long timestamp, String message) throws DigitalObjectException {
+        write(null, mods, model, timestamp, message);
+    }
+
+    public void write(DigitalObjectHandler handler, ModsType mods, String model, long timestamp, String message) throws DigitalObjectException {
         try {
             JAXBSource jaxbSource = new JAXBSource(ModsUtils.defaultMarshaller(false),
                     new ObjectFactory().createMods(mods));
             // DO NOT include schemaLocation. Fedora validator does not accept it.
             Transformer t = DcUtils.modsTransformer(model);
             EditorResult result = editor.createResult();
-            t.transform(jaxbSource, result);
+            JAXBResult jaxbResult = new JAXBResult(DcUtils.defaultUnmarshaller());
+            t.transform(jaxbSource, jaxbResult);
+            JAXBElement<OaiDcType> elm = (JAXBElement<OaiDcType>) jaxbResult.getResult();
+            OaiDcType dc = elm.getValue();
+            addDigitalObjectMetadata(handler, dc);
+            DcUtils.marshal(result, dc, false);
             editor.write(result, timestamp, message);
         } catch (TransformerException ex) {
             throw new DigitalObjectException(object.getPid(), ex);
         } catch (JAXBException ex) {
             throw new DigitalObjectException(object.getPid(), ex);
+        }
+    }
+
+    static void addDigitalObjectMetadata(DigitalObjectHandler handler, OaiDcType dc) throws DigitalObjectException {
+        if (handler != null) {
+            RelationEditor relations = handler.relations();
+            DcUtils.addPid(dc, handler.getFedoraObject().getPid());
+            DcUtils.addModel(dc, relations.getModel());
+            DcUtils.addOwner(dc, relations.getOwners());
         }
     }
 

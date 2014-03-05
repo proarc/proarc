@@ -242,7 +242,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTy
 
             // DC
             DcStreamEditor dcEditor = handler.objectMetadata();
-            dcEditor.write(mods, modelId, dcEditor.getLastModified(), message);
+            dcEditor.write(handler, mods, modelId, dcEditor.getLastModified(), message);
 
             // Label
             String label = ModsUtils.getLabel(mods, modelId);

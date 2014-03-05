@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <dataset>
-    <tomcat_users username="test" userpass="" />
-    <tomcat_roles username="test" rolename="test" />
-    <proarc_users userid="1" username="test" surname="TestSurname" home="{$user.home}" created="2013-01-12" />
+    <proarc_users userid="1" username="test" surname="TestSurname" home="{$user.home}" created="2013-01-12" timestamp="{$now}" />
+
+    <proarc_groups />
+    <proarc_group_members />
+    <proarc_group_permissions />
+    <proarc_batch />
+    <proarc_batch_item />
 </dataset>

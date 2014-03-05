@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.xml.transform.Source;
 import org.w3c.dom.Element;
@@ -124,16 +125,11 @@ public final class RelationEditor {
     /**
      * Relations defining object hierarchy graph.
      *
-     * @return list of PIDs or {@code null} if Fedora object not found.
+     * @return list of PIDs.
      */
     public List<String> getMembers() throws DigitalObjectException {
         Rdf rdf = getRdf();
-        List<RdfRelation> members = rdf.getDescription().getMemberRelations();
-        ArrayList<String> result = new ArrayList<String>(members.size());
-        for (RdfRelation hasMember : members) {
-            result.add(RdfRelation.toPid(hasMember));
-        }
-        return result;
+        return relationAsPid(rdf.getDescription().getMemberRelations());
     }
 
     /**
@@ -144,13 +140,53 @@ public final class RelationEditor {
      */
     public void setMembers(List<String> members) throws DigitalObjectException {
         Rdf rdf = getRdf();
-        ArrayList<RdfRelation> relations = new ArrayList<RdfRelation>(members.size());
-        for (String member : members) {
-            relations.add(RdfRelation.fromPid(member));
-        }
         List<RdfRelation> oldies = rdf.getDescription().getMemberRelations();
         oldies.clear();
-        oldies.addAll(relations);
+        oldies.addAll(pidAsRelation(members));
+    }
+
+    /**
+     * Relations defining the reverse object hierarchy graph (isMemberOf).
+     *
+     * @return list of PIDs of objects, where the object is a member.
+     */
+    public Collection<String> getMembership() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        return relationAsPid(rdf.getDescription().getMembershipRelations());
+    }
+
+    /**
+     * Sets relations defining the reverse object hierarchy graph (isMemberOf).
+     *
+     * @param subjects list of PIDs of objects, where the object is a member.
+     */
+    public void setMembership(Collection<String> subjects) throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        List<RdfRelation> oldies = rdf.getDescription().getMembershipRelations();
+        oldies.clear();
+        oldies.addAll(pidAsRelation(subjects));
+    }
+
+    /**
+     * Relations defining ownership of the object.
+     *
+     * @return list of PIDs of owners
+     */
+    public Collection<String> getOwners() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        return relationAsPid(rdf.getDescription().getOwners());
+    }
+
+    /**
+     * Sets relations defining the reverse object hierarchy graph (isMemberOf).
+     *
+     * @param owners list of PIDs of objects, where the object is a member.
+     */
+    public void setOwners(Collection<String> owners) throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        List<RdfRelation> oldies = rdf.getDescription().getOwners();
+        oldies.clear();
+        oldies.addAll(pidAsRelation(owners));
     }
 
     /**
@@ -203,6 +239,22 @@ public final class RelationEditor {
         }
 
         return relsExt;
+    }
+
+    private static List<String> relationAsPid(List<RdfRelation> relations) {
+        ArrayList<String> result = new ArrayList<String>(relations.size());
+        for (RdfRelation relation : relations) {
+            result.add(RdfRelation.toPid(relation));
+        }
+        return result;
+    }
+
+    private static List<RdfRelation> pidAsRelation(Collection<String> pids) {
+        ArrayList<RdfRelation> relations = new ArrayList<RdfRelation>(pids.size());
+        for (String pid : pids) {
+            relations.add(RdfRelation.fromPid(pid));
+        }
+        return relations;
     }
 
 }

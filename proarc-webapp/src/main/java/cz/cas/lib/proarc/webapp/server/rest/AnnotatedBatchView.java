@@ -69,7 +69,7 @@ public abstract class AnnotatedBatchView extends BatchView {
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_USER)
     @Override
-    public abstract String getUsername();
+    public abstract String getUserName();
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PARENTPID)
     @Override

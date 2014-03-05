@@ -82,7 +82,26 @@ public class RdfDescription {
      */
     @XmlElement(name = "hasMember", namespace = Relations.FEDORA_EXTERNALS_NS)
     private List<RdfRelation> hasMembers;
-    
+
+    /**
+     * RDF relation defines a membership of the digital object.
+     *
+     * <p/>{@code <fedora-rels-ext:isMemberOf rdf:resource="info:fedora/group:user_group"/>}
+     *
+     * @see <a href='http://www.fedora.info/definitions/1/0/fedora-relsext-ontology.rdfs'>
+     *      Fedora Relationships</a>
+     */
+    @XmlElement(name = "isMemberOf", namespace = Relations.FEDORA_EXTERNALS_NS)
+    private List<RdfRelation> memberships;
+
+    /**
+     * RDF relation referencing members of the digital object.
+     *
+     * <p/>{@code <proarc-rels:hasOwner rdf:resource="info:fedora/group:owner"/>}
+     */
+    @XmlElement(name = "hasOwner", namespace = Relations.PROARC_RELS_NS)
+    private List<RdfRelation> owners;
+
     @XmlAnyElement
     private List<Element> relations;
 
@@ -132,6 +151,28 @@ public class RdfDescription {
             hasMembers = new ArrayList<RdfRelation>();
         }
         return hasMembers;
+    }
+
+    /**
+     * Relations defining the reverse object hierarchy graph (isMemberOf).
+     * @return list of objects, where the object is a member.
+     */
+    public List<RdfRelation> getMembershipRelations() {
+        if (memberships == null) {
+            memberships = new ArrayList<RdfRelation>();
+        }
+        return memberships;
+    }
+
+    /**
+     * Relations defining ownership of the object.
+     * @return list of owners
+     */
+    public List<RdfRelation> getOwners() {
+        if (owners == null) {
+            owners = new ArrayList<RdfRelation>();
+        }
+        return owners;
     }
 
     public RdfRelation getModel() {

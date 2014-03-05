@@ -375,12 +375,9 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
             DcStreamEditor dcEditor = handler.objectMetadata();
             DublinCoreRecord dcr = dcEditor.read();
             OaiDcType dc = new OaiDcType();
-            dc.getIdentifiers().add(new ElementType(fobject.getPid(), null));
             if (objectId != null) {
                 dc.getIdentifiers().add(new ElementType(objectId, null));
             }
-
-            dc.getTypes().add(new ElementType(MODEL_FOLDER, null));
 
             String title = findSpisNazev(record);
             if (title != null && title.isEmpty()) {
@@ -388,7 +385,7 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
             }
 
             dcr.setDc(dc);
-            dcEditor.write(dcr, message);
+            dcEditor.write(handler, dcr, message);
         }
 
         private void writeDokument(Dokument document, String message) throws DigitalObjectException {
@@ -410,13 +407,9 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
             DcStreamEditor dcEditor = handler.objectMetadata();
             DublinCoreRecord dcr = dcEditor.read();
             OaiDcType dc = new OaiDcType();
-            dc.getIdentifiers().add(new ElementType(fobject.getPid(), null));
             if (objectId != null) {
                 dc.getIdentifiers().add(new ElementType(objectId, null));
             }
-
-            String modelId = handler.relations().getModel();
-            dc.getTypes().add(new ElementType(modelId, null));
 
             String title = findDokumentNazev(document);
             if (title != null && title.isEmpty()) {
@@ -424,7 +417,7 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
             }
 
             dcr.setDc(dc);
-            dcEditor.write(dcr, message);
+            dcEditor.write(handler, dcr, message);
         }
 
         private static String findSpisNazev(Spis spis) {

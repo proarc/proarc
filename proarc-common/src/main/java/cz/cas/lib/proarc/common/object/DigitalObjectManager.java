@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -31,8 +30,11 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.user.Group;
+import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -59,14 +61,16 @@ public class DigitalObjectManager {
     private final ImportBatchManager ibm;
     private RemoteStorage remotes;
     private final MetaModelRepository models;
+    private final UserManager userManager;
 
     public DigitalObjectManager(AppConfiguration appConfig, ImportBatchManager ibm,
-            RemoteStorage remotes, MetaModelRepository models) {
+            RemoteStorage remotes, MetaModelRepository models, UserManager userManager) {
 
         this.appConfig = appConfig;
         this.ibm = ibm;
         this.remotes = remotes;
         this.models = models;
+        this.userManager = userManager;
     }
 
     /**
@@ -144,8 +148,17 @@ public class DigitalObjectManager {
         DigitalObjectHandler doHandler = DigitalObjectManager.getDefault().createHandler(localObject);
         doHandler.setParameterParent(parentHandler);
         doHandler.setParameterUser(user);
-        doHandler.relations().setModel(modelId);
-        doHandler.relations().write(0, message);
+
+        RelationEditor relations = doHandler.relations();
+        relations.setModel(modelId);
+        Integer defaultGroupId = user.getDefaultGroup();
+        if (defaultGroupId != null) {
+            Group group = userManager.findGroup(defaultGroupId);
+            String grpPid = group.getName();
+            relations.setOwners(Collections.singletonList(grpPid));
+        }
+        relations.write(0, message);
+
         DescriptionMetadata<String> descMetadata = new DescriptionMetadata<String>();
         descMetadata.setData(xml);
         doHandler.metadata().setMetadataAsXml(descMetadata, message);
@@ -158,21 +171,12 @@ public class DigitalObjectManager {
             parentRelsExt.write(parentRelsExt.getLastModified(), message);
         }
         doHandler.commit();
-        try {
-            getRemotes().ingest(localObject, user.getUserName(), message);
-            if (parentHandler != null) {
-                parentHandler.commit();
-            }
-        } catch (FedoraClientException ex) {
-            // XXX hack: Fedora server does not notify existing object conflict with HTTP 409.
-            // Workaround parses error message.
-            // Check for existence before ingest would be insufficient as Fedora does not yet support transactions.
-            String errMsg = ex.getMessage();
-            if (errMsg != null && errMsg.contains("org.fcrepo.server.errors.ObjectExistsException")) {
-                throw new DigitalObjectExistException(localObject.getPid(), null, "Object already exists!", ex);
-            }
-            throw new DigitalObjectException(localObject.getPid(), null, null, null, ex);
+
+        getRemotes().ingest(localObject, user.getUserName(), message);
+        if (parentHandler != null) {
+            parentHandler.commit();
         }
+
         Item item = new Item(localObject.getPid());
         item.setLabel(localObject.getLabel());
         item.setModel(modelId);

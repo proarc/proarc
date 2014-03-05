@@ -7,6 +7,41 @@
         <listener-class>cz.cas.lib.proarc.webapp.server.EditorServletConfiguration</listener-class>
     </listener>
 
+    <!--  Authenticate filter -->
+    <filter>
+        <filter-name>auth</filter-name>
+        <filter-class>cz.cas.lib.proarc.authentication.ProarcAuthFilter</filter-class>
+        <init-param>
+            <param-name>realm</param-name>
+            <param-value>Protected</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>auth</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!--  Cache control filter -->
+    <filter>
+        <filter-name>cache</filter-name>
+        <filter-class>cz.cas.lib.proarc.authentication.CacheControlFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>cache</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!--  login servlet -->
+    <servlet>
+        <servlet-name>proarcservlet</servlet-name>
+        <servlet-class>cz.cas.lib.proarc.authentication.ProarcHTTPServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>proarcservlet</servlet-name>
+        <url-pattern>/proarclogin</url-pattern>
+    </servlet-mapping>
+
     <!--REST-->
     <servlet>
         <servlet-name>Jersey Web Application</servlet-name>
@@ -52,31 +87,6 @@
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>
 
-    <security-constraint>
-        <display-name>Constraint1</display-name>
-        <web-resource-collection>
-            <web-resource-name>ProArc webapp</web-resource-name>
-            <description/>
-            <url-pattern>/*</url-pattern>
-        </web-resource-collection>
-        <auth-constraint>
-            <description/>
-            <role-name>proarc</role-name>
-        </auth-constraint>
-<!--        <user-data-constraint>
-            <description/>
-            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
-        </user-data-constraint>-->
-    </security-constraint>
-    <login-config>
-        <auth-method>BASIC</auth-method>
-        <realm-name>ProArc secured area</realm-name>
-    </login-config>
-    <security-role>
-        <description/>
-        <role-name>proarc</role-name>
-    </security-role>
-    
     <resource-ref>
         <res-ref-name>jdbc/proarc</res-ref-name>
         <res-type>javax.sql.DataSource</res-type>

@@ -20,54 +20,58 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Manages users, groups and their permissions in ProArc.
  *
  * @author Jan Pokorsky
  */
 public interface UserManager {
 
-    // XXX change before release!!!
-    public static final String GUEST_ID = "admin";
-
+    /**
+     * Authenticates a local user.
+     * @return {@code null} or the authenticated user
+     */
+    UserProfile authenticate(String userName, String passwd);
     UserProfile find(String userName) throws IllegalArgumentException;
     UserProfile find(int userId) throws IllegalArgumentException;
+    UserProfile find(String remoteName, String remoteType);
 
     List<UserProfile> findAll();
 
     /**
-     * Adds a new user.
+     * Adds a new user. It creates also the user group ({@link UserProfile#getUserGroup() })
+     * that can define permissions or override permissions inherited from other user groups.
      *
-     * @param profile required properties:
-     * <br><b>username</b> cannot be {@code null} or empty. Valid content is {@code "[a-z][a-z0-9]*"}.
-     *      The name is used as user home folder when {@code userHomePath} is {@code null}
-     * <br><b>userHomePath</b> - platform specific absolute path or {@code null}. The path cannot be used by other profile.
-     *      <pre>UNIX: /tmp/imports/</pre> or <pre>MS Win: c:\imports</pre>
-     *      or <pre>UNC MS Win: \\laptop\My Documents\</pre> are valid options.
-     * <br><b>password</b> - length must be >= 6
-     * @return new profile
+     * @param profile user properties
+     * @param groups groups for the user membership
+     * @param owner who adds the user
+     * @param log message
+     * @return the profile with updated properties (id, userName, home, ...)
      * @throws IllegalArgumentException for invalid parameters
      */
-    UserProfile add(UserProfile profile);
+    UserProfile add(UserProfile profile, List<Group> groups, String owner, String log);
 
     /**
      * Updates user profile.
      * @param profile to change password set password not digest
      */
-    void update(UserProfile profile);
+    void update(UserProfile profile, String owner, String log);
 
-    Group addGroup(Group group);
+    Group addGroup(Group group, List<Permission> permissions, String owner, String log);
 
     Group findGroup(int groupId);
+
+    Group findRemoteGroup(String remoteName, String remoteType);
 
     List<Group> findGroups();
 
     List<Group> findUserGroups(int userId);
+
+    void setUserGroups(UserProfile user, List<Group> groups, String owner, String log);
 
     void removePermissions(int groupId);
 
     void setPermissions(int groupId, Permission... permissions);
 
     Set<Permission> findUserPermissions(int userId);
-
-    void setUserGroups(int userId, Group... groups);
 
 }

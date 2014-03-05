@@ -76,6 +76,7 @@ import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace.Type;
 import cz.cas.lib.proarc.webapp.client.presenter.UserManaging.UsersPlace;
 import cz.cas.lib.proarc.webapp.client.widget.AboutWindow;
+import cz.cas.lib.proarc.webapp.client.widget.LoginWindow;
 import cz.cas.lib.proarc.webapp.client.widget.UsersView;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -146,6 +147,8 @@ public class Editor implements EntryPoint {
 
         errorHandler = new ErrorHandler();
         errorHandler.initTransportErrorHandler();
+
+        LoginWindow.login();
 
         presenterFactory = new PresenterFactory(i18n);
 
