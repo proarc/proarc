@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client;
 
+import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Node;
@@ -324,6 +325,22 @@ public final class ClientUtils {
             // no op
         }
     };
+
+    private static final Callback<?,?> EMPTY_CALLBACK = new Callback<Object, Object>() {
+
+        @Override
+        public void onFailure(Object reason) {
+        }
+
+        @Override
+        public void onSuccess(Object result) {
+        }
+    };
+
+    @SuppressWarnings("unchecked")
+    public static <T,F> Callback<T,F> emptyCallback() {
+        return (Callback<T, F>) EMPTY_CALLBACK;
+    }
 
     /**
      * Copies given attribute from each record to standalone array.

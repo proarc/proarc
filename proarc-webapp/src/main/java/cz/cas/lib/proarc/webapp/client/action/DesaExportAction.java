@@ -282,6 +282,13 @@ public class DesaExportAction extends AbstractAction {
                 window.setShowMinimizeButton(false);
                 window.setKeepInParentRect(true);
                 window.setShowModalMask(true);
+                window.addCloseClickHandler(new CloseClickHandler() {
+
+                    @Override
+                    public void onCloseClick(CloseClickEvent event) {
+                        finish().onFailure(null);
+                    }
+                });
             }
             window.show();
             form.clearValues();
@@ -290,20 +297,13 @@ public class DesaExportAction extends AbstractAction {
             String[] pids = init.getAttributeAsStringArray(ExportResourceApi.DESA_PID_PARAM);
             label.setContents(i18n.ExportOptionsWidget_Selection_Title(String.valueOf(pids.length)));
             form.editRecord(init);
-            this.callback = callback;
-            window.addCloseClickHandler(new CloseClickHandler() {
-
-                @Override
-                public void onCloseClick(CloseClickEvent event) {
-                    finish().onFailure(null);
-                }
-            });
+            this.callback = callback != null ? callback : ClientUtils.<Record, Void>emptyCallback();
         }
 
         private Callback<Record, Void> finish() {
             window.hide();
             Callback<Record, Void> c = callback;
-            callback = null;
+            callback = ClientUtils.emptyCallback();
             return c;
         }
 
