@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.export.DesaExport;
 import cz.cas.lib.proarc.common.export.DesaExport.Result;
 import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
@@ -152,19 +153,19 @@ public class ExportResource {
         if (forDownload) {
             Result r = export.exportDownload(exportFolder, pids.get(0));
             result.add(r.getValidationError() != null
-                    ? new ExportResult(r.getValidationError().getExceptions())
+                    ? new ExportResult(r.getValidationError())
                     : new ExportResult(r.getDownloadToken()));
         } else {
             if (dryRun) {
                 for (String pid : pids) {
-                    List<MetsExportExceptionElement> errors = export.validate(exportFolder, pid, hierarchy);
+                    MetsExportException errors = export.validate(exportFolder, pid, hierarchy);
                     result.add(new ExportResult(errors));
                 }
             } else {
                 for (String pid : pids) {
                     Result r = export.export(exportFolder, pid, null, false, hierarchy, false, session.asFedoraLog());
                     if (r.getValidationError() != null) {
-                        result.add(new ExportResult(r.getValidationError().getExceptions()));
+                        result.add(new ExportResult(r.getValidationError()));
                     } else {
                         // XXX not used for now
                         result.add(new ExportResult((Integer) null, "done"));
@@ -246,11 +247,16 @@ public class ExportResource {
             this.target = target;
         }
 
-        public ExportResult(List<MetsExportExceptionElement> validations) {
-            if (validations != null) {
+        public ExportResult(MetsExportException error) {
+            if (error != null) {
                 errors = new ArrayList<ExportError>();
-                for (MetsExportExceptionElement me : validations) {
-                    errors.add(new ExportError(me));
+                List<String> validations = error.getValidationErrors();
+                if (validations == null || validations.isEmpty()) {
+                    for (MetsExportExceptionElement me : error.getExceptions()) {
+                        errors.add(new ExportError(me));
+                    }
+                } else {
+                    errors.add(new ExportError(error));
                 }
             }
         }
@@ -306,6 +312,25 @@ public class ExportResource {
 
         @XmlElement(name = ExportResourceApi.RESULT_ERROR_LOG)
         private String log;
+
+        public ExportError(MetsExportException error) {
+            List<MetsExportExceptionElement> exceptions = error.getExceptions();
+            List<String> validations = error.getValidationErrors();
+            if (!exceptions.isEmpty()) {
+                MetsExportExceptionElement me = exceptions.get(0);
+                this.pid = me.getPid();
+                this.message = me.getMessage();
+                this.warning = me.isWarning();
+            }
+            StringBuilder sb = new StringBuilder();
+            for (String validation : validations) {
+                if (message == null) {
+                    message = validation;
+                }
+                sb.append(validation).append('\n');
+            }
+            this.log = sb.toString();
+        }
 
         public ExportError(MetsExportExceptionElement me) {
             this.pid = me.getPid();
