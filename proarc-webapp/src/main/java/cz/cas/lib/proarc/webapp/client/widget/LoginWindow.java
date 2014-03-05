@@ -24,6 +24,7 @@ import com.smartgwt.client.rpc.RPCManager;
 import com.smartgwt.client.rpc.RPCRequest;
 import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.Alignment;
+import com.smartgwt.client.types.ReadOnlyDisplayAppearance;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
@@ -40,6 +41,7 @@ import com.smartgwt.client.widgets.layout.HStack;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,6 +54,10 @@ import java.util.Map;
 public final class LoginWindow {
 
     private static LoginWindow INSTANCE;
+    private static final String USERNAME = "j_username";
+    private static final String PASSWORD = "j_password";
+    private static final String PRODUCER_CODE = "j_code";
+    private static final String ERROR = "error";
     private final DynamicForm form;
     private final ClientMessages i18n;
     private final SmartGwtMessages i18nSgwt;
@@ -61,7 +67,6 @@ public final class LoginWindow {
         if (INSTANCE == null) {
             INSTANCE = new LoginWindow();
         }
-        INSTANCE.showWindow();
         return INSTANCE;
     }
 
@@ -76,7 +81,7 @@ public final class LoginWindow {
         if (window == null) {
             VLayout container = new VLayout();
             container.setMembers(form, createButtons());
-            container.setMargin(5);
+            container.setMargin(15);
             window = new Window();
             window.setAutoCenter(true);
             window.setAutoSize(true);
@@ -87,36 +92,49 @@ public final class LoginWindow {
             window.setShowMinimizeButton(false);
             window.setKeepInParentRect(true);
             window.setShowModalMask(true);
+            window.setCanDragReposition(false);
+            form.focusInItem(USERNAME);
         }
         window.show();
-        form.clearValues();
+        form.clearErrors(true);
         form.focus();
+        if (form.getValueAsString(USERNAME) != null) {
+            // relogin
+            form.getField(USERNAME).setCanEdit(false);
+            form.getField(USERNAME).setCanFocus(false);
+            form.getField(PRODUCER_CODE).setCanEdit(false);
+            form.getField(PRODUCER_CODE).setCanFocus(false);
+            form.clearValue(PASSWORD);
+            form.focusInItem(PASSWORD);
+        }
     }
 
     private DynamicForm createForm() {
         DynamicForm f = new DynamicForm();
-        f.setWidth(300);
+        f.setWidth(400);
         f.setBrowserSpellCheck(false);
         f.setNumCols(1);
         f.setTitleOrientation(TitleOrientation.TOP);
         f.setSaveOnEnter(true);
 
-        TextItem user = new TextItem("j_username", i18nSgwt.dialog_UserNameTitle());
+        TextItem user = new TextItem(USERNAME, i18nSgwt.dialog_UserNameTitle());
         user.setRequired(true);
         user.setWidth("*");
+        user.setReadOnlyDisplay(ReadOnlyDisplayAppearance.STATIC);
 
-        PasswordItem passwd = new PasswordItem("j_password", i18nSgwt.dialog_PasswordTitle());
+        PasswordItem passwd = new PasswordItem(PASSWORD, i18nSgwt.dialog_PasswordTitle());
         passwd.setRequired(true);
         passwd.setWidth("*");
 
-        TextItem producerCode = new TextItem("j_code", i18n.LoginWindow_ProducerCode());
+        TextItem producerCode = new TextItem(PRODUCER_CODE, i18n.LoginWindow_ProducerCode());
         producerCode.setWidth("*");
+        producerCode.setReadOnlyDisplay(ReadOnlyDisplayAppearance.STATIC);
 
-        StaticTextItem error = new StaticTextItem("error");
+        StaticTextItem error = new StaticTextItem(ERROR);
         error.setShowTitle(false);
         error.setShowErrorText(true);
 
-        f.setItems(user, passwd, producerCode, error);
+        f.setItems(user, producerCode, passwd, error);
         f.addSubmitValuesHandler(new SubmitValuesHandler() {
 
             @Override
@@ -129,7 +147,6 @@ public final class LoginWindow {
 
     private void finish() {
         window.hide();
-//        window.destroy();
     }
 
     private Canvas createButtons() {
@@ -151,21 +168,24 @@ public final class LoginWindow {
 
     private Map<?,?> getCredentials() {
         Map<?,?> values = form.getValues();
-        values.remove("error");
+        values.remove(ERROR);
+        if (values.get(PRODUCER_CODE) == null) {
+            values.remove(PRODUCER_CODE);
+        }
         return values;
     }
 
     private void showErrors() {
         i18nSgwt.dialog_LoginErrorMessage();
         HashMap<String, String> errors = new HashMap<String, String>();
-        errors.put("error", i18nSgwt.dialog_LoginErrorMessage());
+        errors.put(ERROR, i18nSgwt.dialog_LoginErrorMessage());
         form.setErrors(errors, true);
     }
 
     private void submitCredentials() {
         RPCRequest request = new RPCRequest();
         request.setContainsCredentials(true);
-        request.setActionURL("proarclogin");
+        request.setActionURL(RestConfig.URL_LOGIN_SERVLET);
         request.setUseSimpleHttp(true);
         request.setShowPrompt(false);
         request.setParams(getCredentials());
