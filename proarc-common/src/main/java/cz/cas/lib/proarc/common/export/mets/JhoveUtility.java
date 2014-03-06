@@ -122,7 +122,6 @@ public class JhoveUtility {
             outputFile.delete();
             return getMixRecursive(jHoveDoc);
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Error inspecting file '" + targetFile + "' - " + e.getMessage(), e);
             metsinfo.metsExportException.addException("Error inspecting file '" + targetFile + "' - " + e.getMessage(), true, e);
         }
         return null;
