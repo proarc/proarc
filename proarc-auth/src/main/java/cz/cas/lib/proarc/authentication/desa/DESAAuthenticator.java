@@ -51,7 +51,7 @@ public class DESAAuthenticator implements Authenticator {
     public static Logger LOGGER = Logger.getLogger(DESAAuthenticator.class.getName());
     
     public static final String KOD_PUVODCE = "kod";
-    public static final String REMOTE_TYPE = "desa";
+    public static final String REMOTE_TYPE = DesaServices.REMOTE_USER_TYPE;
     public static final String USER_PREFIX = "desa";
 
     public DESAAuthenticator() {

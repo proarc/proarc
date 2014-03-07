@@ -55,6 +55,10 @@ public final class DesaServices {
      * The prefix of properties of the given service.
      */
     public static final String PREFIX_DESA = "desa";
+    /**
+     * The type of remote DESA users and groups.
+     */
+    public static final String REMOTE_USER_TYPE = "desa";
 
     private static final Logger LOG = Logger.getLogger(DesaServices.class.getName());
     private final Configuration config;
