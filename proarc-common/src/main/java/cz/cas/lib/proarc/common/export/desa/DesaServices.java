@@ -22,7 +22,6 @@ import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.desa.DesaClient;
-import cz.cas.lib.proarc.desa.SIP2DESATransporter;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.ACollects.ACollect;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.AFunds.AFund;
@@ -36,7 +35,6 @@ import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecTypes.RecType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -365,32 +363,13 @@ public final class DesaServices {
             return properties.getInt(PROPERTY_NOMENCLATUREEXPIRATION, 0) * 60 * 1000;
         }
 
-        /**
-         * Properties required by the {@link SIP2DESATransporter}.
-         * @return map of properties
-         */
-        @Deprecated
-        public HashMap<String, String> toTransporterConfig() {
-            HashMap<String, String> tcfg = new HashMap<String, String>();
-            putProperty(tcfg, PROPERTY_USER, PROPERTY_PASSWD, PROPERTY_PRODUCER,
-                    PROPERTY_OPERATOR, PROPERTY_RESTAPI, PROPERTY_WEBSERVICE);
-            // enforce REST file upload
-            tcfg.put("desa.rest", Boolean.TRUE.toString());
-            tcfg.put("checkMTDPSP", "false");
-            return tcfg;
-        }
-
-        private void putProperty(HashMap<String, String> tcfg, String... names) {
-            for (String name : names) {
-                tcfg.put("desa." + name, properties.getString(name));
-            }
-        }
-
         @Override
         public String toString() {
             return "DesaConfiguration{" + "serviceId=" + serviceId + ", models=" + getExportModels()
                     + ", acronyms=" + getNomenclatureAcronyms()
-                    + ", properties=" + toTransporterConfig() + '}';
+                    + ", producerCode=" + getProducer()
+                    + ", operator=" + getOperator()
+                    + '}';
         }
 
     }
