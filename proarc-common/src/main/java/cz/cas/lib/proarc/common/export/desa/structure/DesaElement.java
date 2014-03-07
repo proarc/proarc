@@ -119,7 +119,6 @@ public class DesaElement implements IDesaElement {
     public void setZipName(String zipName) throws MetsExportException {
         this.zipName = zipName;
         if (!checkZipFileOK()) {
-            LOG.severe("Invalid identifier for " + this.getOriginalPid() + " filename is not valid:" + zipName);
             throw new MetsExportException(this.getOriginalPid(), "Identifier is not valid - generated output file name is:" + zipName, false, null);
         }
     }

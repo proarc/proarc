@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.export.desa.DesaServices.DesaConfiguration;
 import cz.cas.lib.proarc.common.export.desa.structure.DesaElement;
 import cz.cas.lib.proarc.common.export.desa.structure.DesaElementVisitor;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
@@ -37,6 +38,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 
@@ -67,11 +69,15 @@ public final class DesaExport {
      * @return validation report
      * @throws ExportException unexpected failure
      */
-    public MetsExportException validate(File exportsFolder, String pid,
+    public List<MetsExportExceptionElement> validate(File exportsFolder, String pid,
             boolean hierarchy) throws ExportException {
 
         Result export = export(exportsFolder, pid, null, true, hierarchy, false, null);
-        return export.getValidationError();
+        if (export.getValidationError() != null) {
+            return export.getValidationError().getExceptions();
+        } else {
+            return null;
+        }
     }
 
     /**
