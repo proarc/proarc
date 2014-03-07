@@ -43,7 +43,9 @@ import cz.cas.lib.proarc.desa.soap.AuthenticateUserResponse;
 import cz.cas.lib.proarc.desa.soap.Role;
 
 /**
- * DESA authentication
+ * DESA authentication.
+ * It authenticates credentials in all registered DESA services. At least one
+ * authentication response must contain required role to pass.
  * @author pavels
  */
 public class DESAAuthenticator implements Authenticator {
@@ -53,37 +55,41 @@ public class DESAAuthenticator implements Authenticator {
     public static final String KOD_PUVODCE = "kod";
     public static final String REMOTE_TYPE = DesaServices.REMOTE_USER_TYPE;
     public static final String USER_PREFIX = "desa";
+    private static final String ROLE = "producer_submit";
 
     public DESAAuthenticator() {
     }
 
-    DesaClient getDesaClient() {
+    /**
+     * @return the authenticated user or {@code null}
+     */
+    private UserProfile authenticateDesaUser(String tUser, String tPass, String code) {
         try {
             AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
             DesaServices desaServices = appConfig.getDesaServices();
             List<DesaConfiguration> configurations = desaServices.getConfigurations();
-            if (!configurations.isEmpty()) {
-                DesaConfiguration desConf = configurations.get(0);
-                return desaServices.getDesaClient(desConf);
-            } else {
-                throw new IllegalStateException("Missing DESA configuration!");
+            AuthenticateUserResponse authorizedUser = null;
+            for (DesaConfiguration desConf : configurations) {
+                if (authorizedUser != null && Boolean.getBoolean("desa.oneAuthIsEnough")) {
+                    break;
+                }
+                DesaClient client = desaServices.getDesaClient(desConf);
+                AuthenticateUserResponse desaUser = client.authenticateUser(tUser, tPass, code);
+                if (desaUser == null) {
+                    return null;
+                }
+                if (isAuthorized(desaUser)) {
+                    authorizedUser = desaUser;
+                }
+            }
+            if (authorizedUser != null) {
+                return createLocalUser(authorizedUser, tUser, code);
             }
         } catch (AppConfigurationException e) {
             LOGGER.log(Level.SEVERE,e.getMessage(),e);
             throw new IllegalStateException("Cannot initialize configuration! See server log.");
-        }
-    }
-
-    UserProfile authenticateReq(String tUser, String tPass, String code) {
-        try {
-            AuthenticateUserResponse desaUser = getDesaClient().authenticateUser(tUser, tPass, code);
-            if (isAuthorized(desaUser)) {
-                return createLocalUser(desaUser, tUser, code);
-            }
         } catch (AuthenticateUserFault e) {
             LOGGER.log(Level.FINE, e.getMessage(), e);
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, e.getMessage(), e);
         }
         return null;
     }
@@ -116,7 +122,7 @@ public class DESAAuthenticator implements Authenticator {
     boolean isAuthorized(AuthenticateUserResponse desaUser) {
         if (desaUser != null && desaUser.getRoles() != null) {
             for (Role role : desaUser.getRoles().getItem()) {
-                if ("producer_submit".equals(role.getRoleAcr())) {
+                if (ROLE.equals(role.getRoleAcr())) {
                     return true;
                 }
             }
@@ -136,7 +142,7 @@ public class DESAAuthenticator implements Authenticator {
         if (isNullString(user) || isNullString(pswd)) {
             return AuthenticatedState.FORBIDDEN;
         }
-        UserProfile authenticated = authenticateReq(user, pswd, kod);
+        UserProfile authenticated = authenticateDesaUser(user, pswd, kod);
         if (authenticated != null) {
             principal.associateUserProfile(authenticated);
         }
