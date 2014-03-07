@@ -162,7 +162,7 @@ public class ExportResource {
                 }
             } else {
                 for (String pid : pids) {
-                    Result r = export.export(exportFolder, pid, null, false, hierarchy, false, session.asFedoraLog());
+                    Result r = export.export(exportFolder, pid, null, false, hierarchy, false, session.asFedoraLog(), user);
                     if (r.getValidationError() != null) {
                         result.add(new ExportResult(r.getValidationError().getExceptions()));
                     } else {
