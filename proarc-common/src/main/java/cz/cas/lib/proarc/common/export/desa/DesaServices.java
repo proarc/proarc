@@ -136,7 +136,7 @@ public final class DesaServices {
         if (dc.getNomenclatureExpiration() > 0) {
             synchronized(DesaServices.this) {
                 // ensure the filename is platform safe and unique for each producer
-                String codeAsFilename = String.valueOf(producerCode.hashCode());
+                String codeAsFilename = String.valueOf(producerCode.hashCode() & 0x00000000ffffffffL);
                 cache = new File(tmpFolder, String.format("%s.%s.nomenclatures.cache", dc.getServiceId(), codeAsFilename));
                 int expiration = dc.getNomenclatureExpiration();
                 if (cache.exists() && (System.currentTimeMillis() - cache.lastModified() < expiration)) {

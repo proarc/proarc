@@ -148,8 +148,8 @@ public final class UserUtil {
         name = name.replaceFirst("^_+", ""); // remove heading '_'
         name = name.toLowerCase();
         if (name.length() == 0 || name.isEmpty()) {
-            // replace unfriendly name with hash code
-            name = 'u' + String.valueOf(remoteName.hashCode());
+            // replace unfriendly name with unsigned hash code
+            name = 'u' + String.valueOf(remoteName.hashCode() & 0x00000000ffffffffL);
         }
         if (remotePrefix != null && !remotePrefix.isEmpty()) {
             name = remotePrefix + '_' + name;
