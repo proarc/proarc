@@ -29,6 +29,7 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.util.ArrayList;
@@ -128,7 +129,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTy
     }
 
     @Override
-    public List<ValueMap> getValueMaps() {
+    public List<ValueMap> getValueMaps(UserProfile user) {
         return Collections.emptyList();
     }
 

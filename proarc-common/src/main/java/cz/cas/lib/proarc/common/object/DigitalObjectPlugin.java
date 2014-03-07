@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.object;
 
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import java.util.Collection;
 import java.util.List;
 
@@ -51,6 +52,6 @@ public interface DigitalObjectPlugin {
      * Gets value maps specific to provided models.
      * @return the list of value maps
      */
-    List<ValueMap> getValueMaps();
+    List<ValueMap> getValueMaps(UserProfile user);
 
 }

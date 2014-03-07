@@ -24,9 +24,11 @@ import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -37,8 +39,12 @@ import javax.ws.rs.core.MediaType;
 @Path(ValueMapResourceApi.PATH)
 public class ValueMapResource {
 
+    private final SessionContext session;
 
-    public ValueMapResource() {
+    public ValueMapResource(
+            @Context HttpServletRequest httpRequest
+            ) {
+        session = SessionContext.from(httpRequest);
     }
 
     @GET
@@ -57,7 +63,7 @@ public class ValueMapResource {
             pluginCache.put(plugin.getId(), plugin);
         }
         for (DigitalObjectPlugin plugin : pluginCache.values()) {
-            List<ValueMap> vms = plugin.getValueMaps();
+            List<ValueMap> vms = plugin.getValueMaps(session.getUser());
             result.addAll(vms);
         }
         return result;

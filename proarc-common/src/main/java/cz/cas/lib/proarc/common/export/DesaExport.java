@@ -36,14 +36,10 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
-import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.desa.SIP2DESATransporter;
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 
@@ -180,31 +176,8 @@ public final class DesaExport {
     }
 
     private SIP2DESATransporter getSipTransporter(DesaConfiguration desaCfg, UserProfile operator) throws ExportException {
-        String operatorName = null;
-        String producerCode = null;
-        if (operator != null) {
-            String remoteType = operator.getRemoteType();
-            Group group = null;
-            if ("desa".equals(remoteType)) {
-                operatorName = operator.getRemoteName();
-                if (operator.getDefaultGroup() != null) {
-                    group = UserUtil.getDefaultManger().findGroup(operator.getDefaultGroup());
-                    if (group != null && "desa".equals(group.getRemoteType())) {
-                        producerCode = group.getRemoteName();
-                    }
-                }
-            }
-            if (LOG.isLoggable(Level.FINE)) {
-                LOG.fine(String.format("Operator: userName: %s, name: %s, producerCode: %s, remoteType: %s, group: %s",
-                        operator.getUserName(), operatorName, producerCode, remoteType, group));
-            }
-        }
-        if (operatorName == null) {
-            // set default operator for non DESA user
-            HashMap<String, String> tProps = desaCfg.toTransporterConfig();
-            operatorName = tProps.get("desa." + DesaConfiguration.PROPERTY_OPERATOR);
-            producerCode = tProps.get("desa." + DesaConfiguration.PROPERTY_PRODUCER);
-        }
+        String operatorName = desaServices.getOperatorName(operator, desaCfg);
+        String producerCode = desaServices.getProducerCode(operator, desaCfg);
         if (operatorName == null || producerCode == null) {
             throw new ExportException("Requires operator name and producer code!");
         }

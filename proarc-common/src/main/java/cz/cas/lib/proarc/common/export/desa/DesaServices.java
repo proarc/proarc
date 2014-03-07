@@ -18,6 +18,9 @@ package cz.cas.lib.proarc.common.export.desa;
 
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.user.Group;
+import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.desa.DesaClient;
 import cz.cas.lib.proarc.desa.SIP2DESATransporter;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
@@ -35,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXB;
 import org.apache.commons.configuration.Configuration;
@@ -114,21 +118,28 @@ public final class DesaServices {
      * @param dc configuration to query
      * @return nomenclatures or {@code null}
      */
-    public Nomenclatures getNomenclatures(DesaConfiguration dc) {
+    public Nomenclatures getNomenclatures(DesaConfiguration dc, UserProfile user) {
         List<String> acronyms = dc.getNomenclatureAcronyms();
         if (acronyms.isEmpty()) {
             return null;
         } else {
-            return getNomenclaturesCache(dc);
+            return getNomenclaturesCache(dc, user);
         }
     }
 
-    private Nomenclatures getNomenclaturesCache(DesaConfiguration dc) {
+    private Nomenclatures getNomenclaturesCache(DesaConfiguration dc, UserProfile user) {
         File tmpFolder = FileUtils.getTempDirectory();
         File cache = null;
+        String producerCode = getProducerCode(user, dc);
+        if (producerCode == null || producerCode.isEmpty()) {
+            throw new IllegalStateException("Missing producer code! id: "
+                    + dc.getServiceId() + ", user: " + (user == null ? null : user.getUserName()));
+        }
         if (dc.getNomenclatureExpiration() > 0) {
             synchronized(DesaServices.this) {
-                cache = new File(tmpFolder, String.format("%s.nomenclatures.cache", dc.getServiceId()));
+                // ensure the filename is platform safe and unique for each producer
+                String codeAsFilename = String.valueOf(producerCode.hashCode());
+                cache = new File(tmpFolder, String.format("%s.%s.nomenclatures.cache", dc.getServiceId(), codeAsFilename));
                 int expiration = dc.getNomenclatureExpiration();
                 if (cache.exists() && (System.currentTimeMillis() - cache.lastModified() < expiration)) {
                     return JAXB.unmarshal(cache, Nomenclatures.class);
@@ -137,8 +148,7 @@ public final class DesaServices {
         }
         DesaClient desaClient = getDesaClient(dc);
         Nomenclatures nomenclatures = desaClient.getNomenclatures(
-                // XXX replace with real producer code from http request
-                dc.toTransporterConfig().get("desa." + DesaConfiguration.PROPERTY_PRODUCER),
+                producerCode,
                 dc.getNomenclatureAcronyms());
         if (cache != null) {
             synchronized (DesaServices.this) {
@@ -152,6 +162,46 @@ public final class DesaServices {
         DesaClient desaClient = new DesaClient(dc.getSoapServiceUrl(),
                 dc.getRestServiceUrl(), dc.getUsername(), dc.getPassword());
         return desaClient;
+    }
+
+    public String getOperatorName(UserProfile operator, DesaConfiguration dc) {
+        String operatorName = null;
+        if (operator != null) {
+            String remoteType = operator.getRemoteType();
+            if (REMOTE_USER_TYPE.equals(remoteType)) {
+                operatorName = operator.getRemoteName();
+            }
+        }
+        if (operatorName == null && dc != null) {
+            operatorName = dc.getOperator();
+        }
+        return operatorName;
+    }
+
+    public String getProducerCode(UserProfile operator, DesaConfiguration dc) {
+        String operatorName = null;
+        String producerCode = null;
+        if (operator != null) {
+            String remoteType = operator.getRemoteType();
+            Group group = null;
+            if (REMOTE_USER_TYPE.equals(remoteType)) {
+                operatorName = operator.getRemoteName();
+                if (operator.getDefaultGroup() != null) {
+                    group = UserUtil.getDefaultManger().findGroup(operator.getDefaultGroup());
+                    if (group != null && REMOTE_USER_TYPE.equals(group.getRemoteType())) {
+                        producerCode = group.getRemoteName();
+                    }
+                }
+            }
+            if (LOG.isLoggable(Level.FINE)) {
+                LOG.fine(String.format("Operator: userName: %s, name: %s, producerCode: %s, remoteType: %s, group: %s",
+                        operator.getUserName(), operatorName, producerCode, remoteType, group));
+            }
+        }
+        if (producerCode == null && dc != null) {
+            producerCode = dc.getProducer();
+        }
+        return producerCode;
     }
 
     /**
@@ -273,6 +323,22 @@ public final class DesaServices {
 
         public String getPassword() {
             return properties.getString(PROPERTY_PASSWD);
+        }
+
+        /**
+         * Gets a default operator name. Use for non DESA users.
+         * @return the operator name
+         */
+        public String getOperator() {
+            return properties.getString(PROPERTY_OPERATOR);
+        }
+
+        /**
+         * Gets a default producer code. Use for non DESA users.
+         * @return the producer code
+         */
+        public String getProducer() {
+            return properties.getString(PROPERTY_PRODUCER);
         }
 
         /**

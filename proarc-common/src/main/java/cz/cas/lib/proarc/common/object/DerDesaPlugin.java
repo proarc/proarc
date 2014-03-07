@@ -124,13 +124,13 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
     }
 
     @Override
-    public List<ValueMap> getValueMaps() {
+    public List<ValueMap> getValueMaps(UserProfile user) {
         try {
             AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
             DesaServices desaServices = appConfig.getDesaServices();
             DesaConfiguration dc = desaServices.findConfigurationWithModel(MODEL_DOCUMENT, MODEL_FILE, MODEL_FOLDER);
             if (dc != null) {
-                Nomenclatures nomenclatures = desaServices.getNomenclatures(dc);
+                Nomenclatures nomenclatures = desaServices.getNomenclatures(dc, user);
                 return desaServices.getValueMap(nomenclatures, ID);
             } else {
                 return Collections.emptyList();
