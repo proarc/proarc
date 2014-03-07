@@ -16,16 +16,12 @@
  */
 package cz.cas.lib.proarc.authentication;
 
+import cz.cas.lib.proarc.authentication.Authenticator.AuthenticatedState;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.stringtemplate.v4.compiler.CodeGenerator.conditional_return;
-
-import cz.cas.lib.proarc.authentication.Authenticator.AuthenticatedState;
 
 /**
  * This chain collects all implementations of the {@link Authenticator} and tries to authenticate given principal.

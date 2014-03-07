@@ -29,13 +29,6 @@
             <version>2.3</version>
         </dependency>
 
-        <!-- template login dialog -->
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>stringtemplate</artifactId>
-            <version>4.0.2</version>
-        </dependency>
-
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-desa</artifactId>

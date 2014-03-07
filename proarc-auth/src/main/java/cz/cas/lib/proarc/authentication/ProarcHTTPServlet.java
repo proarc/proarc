@@ -18,11 +18,13 @@ package cz.cas.lib.proarc.authentication;
 
 import cz.cas.lib.proarc.authentication.desa.DESAAuthenticator;
 import cz.cas.lib.proarc.authentication.proarc.ProArcAuthenticator;
+import cz.cas.lib.proarc.authentication.utils.AuthUtils;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -43,17 +45,6 @@ public class ProarcHTTPServlet extends HttpServlet {
     }
 
     /**
-     * Form get method
-     */
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        resp.setContentType("text/html; charset=utf-8");
-        resp.setStatus(HttpServletResponse.SC_OK);
-    }
-
-
-    /**
      * Form post method
      */
     @Override
@@ -70,13 +61,15 @@ public class ProarcHTTPServlet extends HttpServlet {
         }
         
         ProarcPrincipal proarcPrincipal = new ProarcPrincipal(username);
+        ServletOutputStream outputStream = resp.getOutputStream();
         if (this.chain.authenticate(loginProperties, req, resp, proarcPrincipal)) {
             // store principal to session    
             req.getSession(true).setAttribute(ProarcAuthFilter.SESSION_KEY,proarcPrincipal);
-            resp.setStatus(HttpServletResponse.SC_OK);
+            AuthUtils.setLoginSuccesResponse(resp);
         } else {
-            resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            AuthUtils.setLoginRequiredResponse(resp);
         }
+        outputStream.flush();
     }
 
 }
