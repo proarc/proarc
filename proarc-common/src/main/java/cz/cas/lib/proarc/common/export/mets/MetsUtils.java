@@ -675,9 +675,9 @@ public class MetsUtils {
     }
 
     /**
-     * 
+     *
      * Indicates if the "has..." is used for defining children
-     * 
+     *
      * @param name
      * @return
      */
@@ -701,6 +701,38 @@ public class MetsUtils {
             return true;
         }
         return false;
+    }
+
+     /* Return a valid identifier for mets document removes whitespaces and if an
+     * identifier does not start with a letter it adds a prefix
+     *
+     * @param identifier
+     * @return
+     */
+    public static String validateIdentifier(String identifier) {
+        identifier = removeNonAlpabetChars(identifier);
+        if (!(identifier.toUpperCase().substring(0, 1).matches("[A-Z]"))) {
+            return "FID_" + identifier;
+        } else {
+            return identifier;
+        }
+    }
+
+    /**
+     * Returns a string with alphabetical characters only
+     *
+     * @param inputString
+     * @return
+     */
+    public static String removeNonAlpabetChars(String inputString) {
+        String validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz_-.";
+        String output = "";
+        for (int a = 0; a < inputString.length(); a++) {
+            if (validChars.contains(inputString.substring(a, a + 1))) {
+                output = output + inputString.substring(a, a + 1);
+            }
+        }
+        return output;
     }
 
     /**
@@ -761,6 +793,7 @@ public class MetsUtils {
             throw new MetsExportException("Error while creating info.xml", false, e);
         }
     }
+
 
     /**
      *

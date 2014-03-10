@@ -81,6 +81,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
  */
 public class DesaElementVisitor implements IDesaElementVisitor {
     private final Logger LOG = Logger.getLogger(DesaElementVisitor.class.getName());
+    private int tmpFolderCount = 0;
 
     /**
      * Archives the list of files to a zip archive
@@ -105,7 +106,6 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             zipFile.addFiles(fileList, zip4jZipParameters);
             LOG.log(Level.FINE, "Zip archive created:" + zipFileName + " for " + desaElement.getElementType());
         } catch (ZipException e) {
-            LOG.log(Level.SEVERE, "Unable to create a zip file:" + zipFileName, e);
             throw new MetsExportException(desaElement.getOriginalPid(), "Unable to create a zip file:" + zipFileName, false, e);
         }
 
@@ -127,13 +127,12 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             try {
                 validationErrors = MetsUtils.validateAgainstXSD(dcDoc, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
             } catch (Exception ex) {
-                LOG.severe("Error while validating BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
                 throw new MetsExportException(desaElement.getOriginalPid(), "Error while validating DC document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, ex);
             }
 
             if (validationErrors.size() > 0) {
                 MetsExportException metsException = new MetsExportException(desaElement.getOriginalPid(), "Invalid DC in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, null);
-                metsException.setValidationErrors(validationErrors);
+                metsException.getExceptions().get(0).setValidationErrors(validationErrors);
                 throw metsException;
             }
             List<Element> descriptor = desaElement.getDescriptor();
@@ -147,12 +146,11 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             try {
                 validationErrors = MetsUtils.validateAgainstXSD(nsessDoc, Spis.class.getResourceAsStream("nsesss2.xsd"));
             } catch (Exception ex) {
-                LOG.severe("Invalid NSESSS document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
                 throw new MetsExportException(desaElement.getOriginalPid(), "Error while validating NSESSS document in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, ex);
             }
             if (validationErrors.size() > 0) {
                 MetsExportException metsException = new MetsExportException(desaElement.getOriginalPid(), "Invalid NSESSS in BIBLIO_MODS for:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")", false, null);
-                metsException.setValidationErrors(validationErrors);
+                metsException.getExceptions().get(0).setValidationErrors(validationErrors);
                 throw metsException;
             }
 
@@ -163,11 +161,8 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             if (Const.DOCUMENT.equalsIgnoreCase(desaElement.getElementType())) {
                 return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Dokument']/*[local-name()='EvidencniUdaje']/*[local-name()='Identifikace']/*[local-name()='Identifikator']");
             }
-            LOG.log(Level.SEVERE, "Element nit DOCUMENT or FOLDER" + desaElement.getElementType());
             throw new MetsExportException(desaElement.getOriginalPid(), "Element not DOCUMENT or FOLDER:" + desaElement.getElementType(), false, null);
         }
-
-        LOG.log(Level.SEVERE, "Unable to get Identifier - DER/DES descriptor missing - " + desaElement.getModel());
         throw new MetsExportException(desaElement.getOriginalPid(), "Unable to get Identifier - DER/DES descriptor missing - " + desaElement.getModel(), false, null);
     }
 
@@ -194,11 +189,8 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             if (Const.DOCUMENT.equalsIgnoreCase(desaElement.getElementType())) {
                 return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='Dokument']/*[local-name()='EvidencniUdaje']/*[local-name()='Identifikace']/*[local-name()='Identifikator']");
             }
-            LOG.log(Level.SEVERE, "Element nit DOCUMENT or FOLDER" + desaElement.getElementType());
             throw new MetsExportException(desaElement.getOriginalPid(), "Element not DOCUMENT or FOLDER:" + desaElement.getElementType(), false, null);
         }
-
-        LOG.log(Level.SEVERE, "Unable to get Label - DER/DES descriptor missing - " + desaElement.getModel());
         throw new MetsExportException(desaElement.getOriginalPid(), "Unable to get Label - DER/DES descriptor missing - " + desaElement.getModel(), false, null);
     }
 
@@ -212,11 +204,11 @@ public class DesaElementVisitor implements IDesaElementVisitor {
     private File createTempFolder(IDesaElement desaElement) throws MetsExportException {
         File tmpFileFolder = null;
         try {
-            tmpFileFolder = File.createTempFile("tmp" + desaElement.getElementID(), ".tmp");
+            tmpFileFolder = File.createTempFile("tmp" + MetsUtils.removeNonAlpabetChars(desaElement.getElementID() + "_" + tmpFolderCount), ".tmp");
+            tmpFolderCount++;
             tmpFileFolder.delete();
             tmpFileFolder = new File(tmpFileFolder.getAbsolutePath());
         } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Unable to create a temp file for:" + desaElement.getElementID());
             throw new MetsExportException(desaElement.getOriginalPid(), "Unable to create a temp folder", false, e);
         }
         tmpFileFolder.mkdir();
@@ -296,19 +288,17 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd");
             marshaller.marshal(mets, outputFile);
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Unable to save mets file:" + outputFile.getAbsolutePath(), ex);
             throw new MetsExportException(desaElement.getOriginalPid(), "Unable to save mets file:" + outputFile.getAbsolutePath(), false, ex);
         }
         List<String> validationErrors;
         try {
             validationErrors = MetsUtils.validateAgainstXSD(outputFile, Mets.class.getResourceAsStream("mets.xsd"));
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Error while validating Mets file: " + outputFile);
             throw new MetsExportException("Error while validating Mets file: " + outputFile, false, ex);
         }
         if (validationErrors.size() > 0) {
             MetsExportException metsException = new MetsExportException("Error while validating Mets file:" + outputFile, false, null);
-            metsException.setValidationErrors(validationErrors);
+            metsException.getExceptions().get(0).setValidationErrors(validationErrors);
             throw metsException;
         }
         LOG.log(Level.FINE, "Element validated:" + desaElement.getOriginalPid() + "(" + desaElement.getElementType() + ")");
@@ -325,12 +315,15 @@ public class DesaElementVisitor implements IDesaElementVisitor {
     private void addFiletoFileGrp(Map<String, FileGrp> fileGrpMap, IDesaElement desaElement, FileType fileType) throws MetsExportException {
         String type = MetsUtils.xPathEvaluateString(desaElement.getDescriptor(), "*[local-name()='dc']/*[local-name()='type']");
         if (type == null) {
-            LOG.log(Level.SEVERE, "Element type is missing for pid:" + desaElement.getOriginalPid());
             throw new MetsExportException(desaElement.getOriginalPid(), "Element type is missing", false, null);
         }
+
+        if (type.length() == 0) {
+            throw new MetsExportException(desaElement.getOriginalPid(), "Type of component is empty", false, null);
+        }
+
         String fileGrpType = Const.fileGrpMap.get(type);
         if (fileGrpType == null) {
-            LOG.log(Level.SEVERE, "Unable to find mapping for file type:" + type);
             throw new MetsExportException(desaElement.getOriginalPid(), "Unable to find mapping for file type:" + type, false, null);
         }
         fileGrpMap.get(fileGrpType).getFile().add(fileType);
@@ -385,7 +378,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         }
         File tmpFolder = createTempFolder(desaElement);
         try {
-            File outputMets = new File(tmpFolder.getAbsolutePath() + "/mets.xml");
+            File outputMets = new File(tmpFolder.getAbsolutePath() + File.separator + "mets.xml");
             Mets mets = prepareMets(desaElement);
             DivType divType = new DivType();
             divType.setLabel(getLabel(desaElement));
@@ -409,7 +402,6 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                         if (rawDS.getDatastreamVersion().get(0).getContentLocation() != null) {
                             if ("INTERNAL_ID".equals(rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE())) {
                                 if (desaElement.getDesaContext().getFedoraClient() == null) {
-                                    LOG.log(Level.SEVERE, "Datastream dissemination allowed only for Fedora storage - for filesystem only binary content is allowed");
                                     throw new MetsExportException(fileElement.getOriginalPid(), "Datastream dissemination allowed only for Fedora storage", false, null);
                                 }
                                 desaElement.getDesaContext().getFedoraClient();
@@ -422,15 +414,12 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                                         bos.close();
                                         fileContent = bos.toByteArray();
                                     } catch (IOException e) {
-                                        LOG.log(Level.SEVERE, "Unable to copy raw datastream content", e);
                                         throw new MetsExportException(desaElement.getOriginalPid(), "Unable to copy raw datastream content", false, e);
                                     }
                                 } catch (FedoraClientException e) {
-                                    LOG.log(Level.SEVERE, "Unable to read raw datastream content", e);
                                     throw new MetsExportException(desaElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                                 }
                             } else {
-                                LOG.log(Level.SEVERE, "Expecting INTERNAL_ID type in ContentLocation - found:" + rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE());
                                 throw new MetsExportException(fileElement.getOriginalPid(), "Expecting INTERNAL_ID type in ContentLocation - found:" + rawDS.getDatastreamVersion().get(0).getContentLocation().getTYPE(), false, null);
                             }
                         } else {
@@ -438,12 +427,11 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                         }
                         mimeType = rawDS.getDatastreamVersion().get(0).getMIMETYPE();
                     } else {
-                        LOG.log(Level.WARNING, "RAW datastream is null for:" + desaElement.getOriginalPid() + " - skipping");
                         desaElement.getDesaContext().getMetsExportException().addException(fileElement.getOriginalPid(), "RAW datastream is missing", false, null);
                         continue;
                     }
                     FileOutputStream fos;
-                    String outputFileName = getFileName(fileElement);
+                    String outputFileName = MetsUtils.removeNonAlpabetChars(getFileName(fileElement));
                     /*
                      * Generates a filename if it's not provided from the
                      * original document
@@ -458,21 +446,19 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                         fos = new FileOutputStream(outputFile);
                         fileList.add(outputFile);
                     } catch (FileNotFoundException e) {
-                        LOG.log(Level.SEVERE, "Unable to create a temp file:" + fullOutputFileName);
                         throw new MetsExportException(fileElement.getOriginalPid(), "Unable to create a temp file:" + fullOutputFileName, false, e);
                     }
                     FileMD5Info fileMd5Info;
                     try {
                         fileMd5Info = MetsUtils.getDigestAndCopy(new ByteArrayInputStream(fileContent), fos);
                     } catch (NoSuchAlgorithmException e) {
-                        LOG.log(Level.SEVERE, "Unable to generate MD5 digest", e);
                         throw new MetsExportException(fileElement.getOriginalPid(), "Unable to generate MD5 digest", false, e);
                     } catch (IOException e) {
-                        LOG.log(Level.SEVERE, "Unable to save file", e);
                         throw new MetsExportException(fileElement.getOriginalPid(), "Unable to save file", false, e);
                     }
                     FileType fileType = new FileType();
-                    fileType.setID(getIdentifier(desaElement) + "_" + String.format("%04d", fileOrder));
+                    String validIdentifier = MetsUtils.validateIdentifier(getIdentifier(desaElement) + "_" + String.format("%04d", fileOrder));
+                    fileType.setID(validIdentifier);
                     fileType.setCHECKSUMTYPE("MD5");
                     fileType.setCHECKSUM(fileMd5Info.getMd5());
                     FLocat flocat = new FLocat();
@@ -487,9 +473,9 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                 addFileGrpToMets(fileGrpMap, fileSec);
             }
             saveMets(mets, outputMets, desaElement);
-            desaElement.setZipName(getIdentifier(desaElement));
             fileList.add(outputMets);
-            String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getZipName() + ".zip";
+            desaElement.setZipName(MetsUtils.removeNonAlpabetChars(getIdentifier(desaElement) + "_" + suffix));
+            String zipFileName = desaElement.getDesaContext().getOutputPath() + File.separator + desaElement.getZipName() + ".zip";
             zip(zipFileName, fileList, desaElement);
         } finally {
             deleteFolder(tmpFolder);
@@ -528,10 +514,10 @@ public class DesaElementVisitor implements IDesaElementVisitor {
         }
         File tmpFolder = createTempFolder(desaElement);
         try {
-            File outputMets = new File(tmpFolder.getAbsolutePath() + "/mets.xml");
+            File outputMets = new File(tmpFolder.getAbsolutePath() + File.separator + "mets.xml");
             saveMets(mets, outputMets, desaElement);
-            desaElement.setZipName(getIdentifier(desaElement) + "_FILE");
-            String zipFileName = desaElement.getDesaContext().getOutputPath() + "/" + desaElement.getZipName() + ".zip";
+            desaElement.setZipName(MetsUtils.removeNonAlpabetChars(getIdentifier(desaElement)) + "_FILE");
+            String zipFileName = desaElement.getDesaContext().getOutputPath() + File.separator + desaElement.getZipName() + ".zip";
             ArrayList<File> fileList = new ArrayList<File>();
             fileList.add(outputMets);
             zip(zipFileName, fileList, desaElement);

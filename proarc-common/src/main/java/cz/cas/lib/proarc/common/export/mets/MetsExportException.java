@@ -41,6 +41,15 @@ public class MetsExportException extends Exception {
         String message;
         boolean warning;
         Exception ex;
+        private List<String> validationErrors;
+
+        public List<String> getValidationErrors() {
+            return validationErrors;
+        }
+
+        public void setValidationErrors(List<String> validationErrors) {
+            this.validationErrors = validationErrors;
+        }
 
         public MetsExportExceptionElement(String pid, String message, boolean warning, Exception ex) {
             super();
@@ -69,15 +78,6 @@ public class MetsExportException extends Exception {
     }
 
     private final List<MetsExportExceptionElement> exceptionList = new ArrayList<MetsExportException.MetsExportExceptionElement>();
-    private List<String> validationErrors;
-
-    public List<String> getValidationErrors() {
-        return validationErrors;
-    }
-
-    public void setValidationErrors(List<String> validationErrors) {
-        this.validationErrors = validationErrors;
-    }
 
     public void addException(String pid, String message, boolean warning, Exception ex) {
         exceptionList.add(new MetsExportExceptionElement(pid, message, warning, ex));
