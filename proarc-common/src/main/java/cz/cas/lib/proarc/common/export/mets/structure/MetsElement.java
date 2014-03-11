@@ -194,7 +194,6 @@ public class MetsElement implements IMetsElement {
             this.createDate = DatatypeFactory.newInstance().newXMLGregorianCalendar(MetsUtils.getProperty(Const.FEDORA_CREATEDATE, digitalObject.getObjectProperties().getProperty()));
             this.lastUpdateDate = DatatypeFactory.newInstance().newXMLGregorianCalendar(MetsUtils.getProperty(Const.FEDORA_LASTMODIFIED, digitalObject.getObjectProperties().getProperty()));
         } catch (DatatypeConfigurationException ex) {
-            LOG.log(Level.SEVERE, "Unable to set create/lastModDate for:" + this.originalPid, ex);
             throw new MetsExportException(this.getOriginalPid(), "Unable to set create/lastModDate", false, ex);
         }
 
@@ -210,13 +209,18 @@ public class MetsElement implements IMetsElement {
         }
         model = MetsUtils.getModel(relsExt);
         this.elementType = Const.typeMap.get(model);
-        this.elementID = this.elementType + "_" + String.format("%04d", metsContext.addElementId(this.elementType));
         String modsName = Const.typeNameMap.get(this.elementType);
         if (modsName == null) {
-            LOG.log(Level.SEVERE, "Unable to find mods name for:" + this.elementType + "(" + this.originalPid + ")");
             throw new MetsExportException(this.originalPid, "Unable to find mods name for:" + this.elementType, false, null);
         }
-        this.modsElementID = elementID.replaceAll(this.elementType, modsName);
+        if (!Const.MONOGRAPH.equals(elementType)) {
+            this.elementID = this.elementType + "_" + String.format("%04d", metsContext.addElementId(this.elementType));
+            this.modsElementID = elementID.replaceAll(this.elementType, modsName);
+        } else {
+            this.elementID = Const.VOLUME + "_" + String.format("%04d", metsContext.addElementId(this.elementType));
+            this.modsElementID = this.elementID;
+        }
+
         if (parent instanceof MetsElement) {
             this.parent = (MetsElement) parent;
         }

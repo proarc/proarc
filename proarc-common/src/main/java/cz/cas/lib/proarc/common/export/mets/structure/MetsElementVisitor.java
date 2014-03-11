@@ -122,7 +122,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             List<Element> descriptor = metsElement.getDescriptor();
             return MetsUtils.xPathEvaluateString(descriptor, "*[local-name()='dc']/*[local-name()='title']");
         }
-        LOG.log(Level.SEVERE, "Unable to get Label- DC descriptor missing - " + metsElement.getModel());
         throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get Label - DC descriptor missing - " + metsElement.getModel(), false, null);
     }
 
@@ -185,6 +184,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @throws MetsExportException
      */
     private void saveMets(Mets mets, File outputFile, IMetsElement metsElement) throws MetsExportException {
+        String fileMd5Name;
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, OaiDcType.class, ModsDefinition.class);
             Marshaller marshaller = jaxbContext.createMarshaller();
@@ -192,12 +192,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
             marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd");
             marshaller.marshal(mets, outputFile);
-
             MessageDigest md;
             try {
                 md = MessageDigest.getInstance("MD5");
             } catch (NoSuchAlgorithmException e) {
-                LOG.log(Level.SEVERE, "Unable to create MD5 hash", e);
                 throw new MetsExportException("Unable to create MD5 hash", false, e);
             }
             md.reset();
@@ -205,7 +203,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             try {
                 is = new FileInputStream(outputFile);
             } catch (FileNotFoundException e) {
-                LOG.log(Level.SEVERE, "Unable to open file:" + outputFile.getAbsolutePath(), e);
                 throw new MetsExportException("Unable to open file:" + outputFile.getAbsolutePath(), false, e);
             }
             byte[] bytes = new byte[2048];
@@ -218,35 +215,31 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     md.update(bytes, 0, numBytes);
                 }
             } catch (IOException e) {
-                LOG.log(Level.SEVERE, "Unable to generate MD5 hash", e);
                 throw new MetsExportException("Unable to generate MD5 hash", false, e);
             }
             byte[] digest = md.digest();
             String result = new String(Hex.encodeHex(digest));
             metsElement.getMetsContext().getFileList().add(new FileMD5Info("." + File.separator + "mets.xml", result, totalBytes));
-            String fileMd5Name = "MD5_" + metsElement.getMetsContext().getPackageID() + ".md5";
+            fileMd5Name = "MD5_" + metsElement.getMetsContext().getPackageID() + ".md5";
             File fileMd5 = new File(metsElement.getMetsContext().getOutputPath() + File.separator + fileMd5Name);
             metsElement.getMetsContext().getFileList().add(new FileMD5Info("." + File.separator + fileMd5Name, (int) fileMd5.length()));
             OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(fileMd5));
             osw.write(result);
             osw.close();
             is.close();
-            // MetsUtils.saveInfoFile(metsElement, result, fileMd5Name,
-            // outputFile.length());
+            MetsUtils.saveInfoFile(metsElement.getMetsContext().getOutputPath(), metsElement.getMetsContext(), result, fileMd5Name, outputFile.length());
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Unable to save mets file:" + outputFile.getAbsolutePath(), ex);
             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to save mets file:" + outputFile.getAbsolutePath(), false, ex);
         }
         List<String> validationErrors;
         try {
             validationErrors = MetsUtils.validateAgainstXSD(outputFile, Mets.class.getResourceAsStream("mets.xsd"));
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Mets file: " + outputFile + " is not valid");
             throw new MetsExportException("Error while validation document:" + outputFile, false, ex);
         }
         if (validationErrors.size() > 0) {
             MetsExportException metsException = new MetsExportException("Invalid mets file:" + outputFile, false, null);
-            metsException.setValidationErrors(validationErrors);
+            metsException.getExceptions().get(0).setValidationErrors(validationErrors);
             for (String error : validationErrors) {
                 LOG.info(error);
             }
@@ -365,7 +358,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             fileType.setCHECKSUM(fileMD5Info.getMd5());
             metsContext.getFileList().add(fileMD5Info);
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Unable to process file " + fullOutputFileName, e);
             throw new MetsExportException("Unable to process file " + fullOutputFileName, false, e);
         }
         FLocat flocat = new FLocat();
@@ -388,14 +380,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                 InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
                                 fileNames.put(streamName, is);
                             } catch (FedoraClientException e) {
-                                LOG.log(Level.SEVERE, "Unable to read raw datastream content", e);
                                 throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                             }
                             mimeTypes.put(streamName, profile.getDsMIME());
                         }
                     }
                 } catch (Exception ex) {
-                    LOG.log(Level.SEVERE, "Error while getting file datastreams for " + metsElement.getOriginalPid(), ex);
                     throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting file datastreams for " + metsElement.getOriginalPid(), false, ex);
                 }
             } else {
@@ -419,7 +409,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
     }
 
-    private void generateTechMetadata(IMetsElement metsElement, HashMap<String, Object> fileNames, int seq, List<FileType> fileTypes, HashMap<String, String> mimeTypes) throws MetsExportException {
+    private void generateTechMetadata(IMetsElement metsElement, HashMap<String, Object> fileNames, int seq, List<FileType> fileTypes, HashMap<String, String> mimeTypes, DivType pageDiv) throws MetsExportException {
         if (fileNames.get(Const.streamMapping.get("TECHMDGRP")) == null) {
             LOG.log(Level.INFO, "Generating tech");
             Mets amdSecMets = new Mets();
@@ -427,7 +417,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             mapType.setID(Const.DIV_PHYSICAL_ID);
             amdSecMets.getStructMap().add(mapType);
             AmdSecType amdSec = new AmdSecType();
-            mets.getAmdSec().add(amdSec);
+            amdSecMets.getAmdSec().add(amdSec);
             DivType divType = new DivType();
             if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsElement.getMetsContext().getRootElement().getElementType())) {
                 divType.setTYPE("PERIODICAL_PAGE");
@@ -440,7 +430,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     continue;
                 }
                 if (fileNames.get(Const.streamMapping.get(name)) != null) {
-                    seq++;
                     String outputFileName = outputFileNames.get(name);
                     MdSecType mdSec = new MdSecType();
                     mdSec.setID("MIX_" + String.format("%03d", seq));
@@ -473,6 +462,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             FileType fileType = prepareFileType(seq, "TECHMDGRP", fileNames, mimeTypes, metsElement.getMetsContext());
             fileTypes.add(fileType);
             this.fileGrpMap.get("TECHMDGRP").getFile().add(fileType);
+            Fptr fptr = new Fptr();
+            fptr.setFILEID(fileType);
+            pageDiv.getFptr().add(fptr);
         }
     }
 
@@ -541,7 +533,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             Document document = MetsUtils.getDocumentFromBytes(byteArray);
             MetsUtils.validateAgainstXSD(document, Mets.class.getResourceAsStream("mets.xsd"));
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Error while saving AMDSec file for " + metsElement.getOriginalPid(), ex);
             throw new MetsExportException(metsElement.getOriginalPid(), "Error while saving AMDSec file", false, ex);
         }
     }
@@ -550,33 +541,23 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         addDmdSec(metsElement);
         DivType divType = new DivType();
         divType.setID(metsElement.getElementID());
-        // Label for volume is inherited from the parent monograph
         divType.setLabel(metsElement.getMetsContext().getRootElement().getLabel());
         divType.setTYPE(metsElement.getElementType());
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
-        StructLink structLink = mets.getStructLink();
-        if (structLink == null) {
-            structLink = new StructLink();
-            mets.setStructLink(structLink);
-        }
+
         int pageCounter = 0;
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.PAGE.equals(element.getElementType())) {
-                String pageID = insertPage(physicalDiv, element, pageCounter);
-                SmLink smLink = new SmLink();
-                smLink.setFrom(metsElement.getElementID());
-                smLink.setTo(pageID);
-                structLink.getSmLinkOrSmLinkGrp().add(smLink);
+                insertPage(physicalDiv, element, pageCounter, metsElement);
                 pageCounter++;
             }
         }
     }
 
-    private String insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter) throws MetsExportException {
-        System.out.println(metsElement.getElementType());
+    private void insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter, IMetsElement sourceElement) throws MetsExportException {
         outputFileNames.clear();
-        if (!Const.PAGE.equals(metsElement.getElementType())) {
+        if (!Const.PAGE.equals(metsElement.getElementType()) && !Const.MONOGRAPH_UNIT.equals(metsElement.getElementType())) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Expected page, got " + metsElement.getElementType(), false, null);
         }
         List<FileType> fileTypes = new ArrayList<FileType>();
@@ -589,6 +570,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         HashMap<String, String> mimeTypes = new HashMap<String, String>();
         processPageFiles(metsElement, pageCounter, fileNames, mimeTypes);
         for (String streamName : Const.streamMapping.keySet()) {
+            if (fileNames.containsKey(Const.streamMapping.get(streamName))) {
             FileType fileType = prepareFileType(pageCounter, streamName, fileNames, mimeTypes, metsElement.getMetsContext());
             fileTypes.add(fileType);
             fileGrpMap.get(streamName).getFile().add(fileType);
@@ -598,31 +580,49 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if ("ALTOGRP".equals(streamName)) {
                 metsElement.setAltoFile(fileType);
             }
+            }
         }
-        generateTechMetadata(metsElement, fileNames, pageCounter, fileTypes, mimeTypes);
-        return ID;
+        generateTechMetadata(metsElement, fileNames, pageCounter, fileTypes, mimeTypes, pageDiv);
+        StructLink structLink = mets.getStructLink();
+        if (structLink == null) {
+            structLink = new StructLink();
+            mets.setStructLink(structLink);
+        }
+        SmLink smLink = new SmLink();
+        smLink.setFrom(sourceElement.getElementID());
+        smLink.setTo(ID);
+        structLink.getSmLinkOrSmLinkGrp().add(smLink);
     }
 
     private void insertVolume(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement, int volumeCounter) throws MetsExportException {
-        System.out.println(metsElement.getElementType());
         addDmdSec(metsElement);
         DivType divType = new DivType();
         divType.setID(metsElement.getElementID());
         // Label for volume is inherited from the parent monograph
         divType.setLabel(metsElement.getMetsContext().getRootElement().getLabel());
-        divType.setTYPE(metsElement.getElementType());
+        if (Const.MONOGRAPH.equals(metsElement.getElementType())) {
+            divType.setTYPE(Const.VOLUME);
+        } else {
+            divType.setTYPE(metsElement.getElementType());
+        }
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
+        int pageCounter=0;
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.ISSUE.equals(element.getElementType())) {
                 insertIssue(physicalDiv, divType, element);
+                continue;
+            }
+            if (Const.PAGE.equals(element.getElementType())) {
+                insertPage(physicalDiv, element, pageCounter, metsElement);
+                pageCounter++;
                 continue;
             }
         }
     }
 
     private void insertMonograph(IMetsElement metsElement) throws MetsExportException {
-        addDmdSec(metsElement);
+        // addDmdSec(metsElement);
         DivType logicalDiv = new DivType();
         logicalStruct.setDiv(logicalDiv);
         DivType physicalDiv = new DivType();
@@ -631,11 +631,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         logicalDiv.setLabel(metsElement.getLabel());
         logicalDiv.setTYPE("MONOGRAPH");
         logicalDiv.setID("MONOGRAPH_0001");
-        int volumeCounter = 0;
-        for (IMetsElement childMetsElement : metsElement.getChildren()) {
-            insertVolume(logicalDiv, physicalDiv, childMetsElement, volumeCounter);
-            volumeCounter++;
-        }
+        insertVolume(logicalDiv, physicalDiv, metsElement, 1);
     }
 
     /**
