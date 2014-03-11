@@ -128,15 +128,15 @@ public final class DesaServices {
     private Nomenclatures getNomenclaturesCache(DesaConfiguration dc, UserProfile user) {
         File tmpFolder = FileUtils.getTempDirectory();
         File cache = null;
-        String producerCode = getProducerCode(user, dc);
-        if (producerCode == null || producerCode.isEmpty()) {
-            throw new IllegalStateException("Missing producer code! id: "
+        String operator = getOperatorName(user, dc);
+        if (operator == null || operator.isEmpty()) {
+            throw new IllegalStateException("Missing operator! id: "
                     + dc.getServiceId() + ", user: " + (user == null ? null : user.getUserName()));
         }
         if (dc.getNomenclatureExpiration() > 0) {
             synchronized(DesaServices.this) {
-                // ensure the filename is platform safe and unique for each producer
-                String codeAsFilename = String.valueOf(producerCode.hashCode() & 0x00000000ffffffffL);
+                // ensure the filename is platform safe and unique for each operator
+                String codeAsFilename = String.valueOf(operator.hashCode() & 0x00000000ffffffffL);
                 cache = new File(tmpFolder, String.format("%s.%s.nomenclatures.cache", dc.getServiceId(), codeAsFilename));
                 int expiration = dc.getNomenclatureExpiration();
                 if (cache.exists() && (System.currentTimeMillis() - cache.lastModified() < expiration)) {
@@ -144,10 +144,14 @@ public final class DesaServices {
                 }
             }
         }
+        String producerCode = getProducerCode(user, dc);
+        if (producerCode == null || producerCode.isEmpty()) {
+            throw new IllegalStateException("Missing producer code! id: "
+                    + dc.getServiceId() + ", user: " + (user == null ? null : user.getUserName()));
+        }
         DesaClient desaClient = getDesaClient(dc);
         Nomenclatures nomenclatures = desaClient.getNomenclatures(
-                producerCode,
-                dc.getNomenclatureAcronyms());
+                operator, producerCode, dc.getNomenclatureAcronyms());
         if (cache != null) {
             synchronized (DesaServices.this) {
                 JAXB.marshal(nomenclatures, cache);

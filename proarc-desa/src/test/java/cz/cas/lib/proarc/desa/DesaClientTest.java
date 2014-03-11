@@ -37,6 +37,8 @@ import org.junit.Assume;
 public class DesaClientTest {
 
     private DesaClient client;
+    private String producerCode;
+    private String operator;
 
     public DesaClientTest() {
     }
@@ -47,7 +49,9 @@ public class DesaClientTest {
         String restUrl = System.getProperty("proarc-desa.DesaClient.restUrl");
         String user = System.getProperty("proarc-desa.DesaClient.user");
         String passwd = System.getProperty("proarc-desa.DesaClient.passwd");
-        Assume.assumeNotNull(soapUrl, restUrl, user, passwd);
+        producerCode = System.getProperty("proarc-desa.DesaClient.producerCode");
+        operator = System.getProperty("proarc-desa.DesaClient.operator");
+        Assume.assumeNotNull(soapUrl, restUrl, user, passwd, producerCode, operator);
         client = new DesaClient(soapUrl, restUrl, user, passwd);
     }
 
@@ -57,17 +61,15 @@ public class DesaClientTest {
 
     @Test
     public void testGetNomenclatures() {
-        String producerCode = "PROARC";
         List<String> nomenclatureAcronyms = Arrays.asList("RecCl");
-        Nomenclatures result = client.getNomenclatures(producerCode, nomenclatureAcronyms);
+        Nomenclatures result = client.getNomenclatures(operator, producerCode, nomenclatureAcronyms);
         assertNotNull(result);
     }
 
 //    @Test
     public void testGetNomenclaturesSource() throws Exception {
-        String producerCode = "PROARC";
         List<String> nomenclatureAcronyms = Arrays.asList("RecCl");
-        Source result = client.getNomenclaturesSource(producerCode, nomenclatureAcronyms);
+        Source result = client.getNomenclaturesSource(operator, producerCode, nomenclatureAcronyms);
         assertNotNull(result);
         TransformerFactory.newInstance().newTransformer().transform(result, new StreamResult(System.out));
     }

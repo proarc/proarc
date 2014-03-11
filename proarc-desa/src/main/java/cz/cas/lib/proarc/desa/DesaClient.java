@@ -86,12 +86,13 @@ public final class DesaClient {
 
     /**
      * Gets nomenclatures from the remote registry.
+     * @param operator operator login name
      * @param nomenclatureAcronyms acronyms to query
      * @return nomenclatures
      */
-    public Nomenclatures getNomenclatures(String producerCode, List<String> nomenclatureAcronyms) {
+    public Nomenclatures getNomenclatures(String operator, String producerCode, List<String> nomenclatureAcronyms) {
         try {
-            Source src = getNomenclaturesSource(producerCode, nomenclatureAcronyms);
+            Source src = getNomenclaturesSource(operator, producerCode, nomenclatureAcronyms);
             return getNomenUnmarshaller().unmarshal(src, Nomenclatures.class).getValue();
         } catch (JAXBException ex) {
             String msg = String.format("producer: %s, acronyms: %s", producerCode, nomenclatureAcronyms);
@@ -102,15 +103,16 @@ public final class DesaClient {
     /**
      * Gets nomenclatures.
      *
+     * @param operator operator login name
      * @param nomenclatureAcronyms acronyms to query
      * @return nomenclature list as XML
      */
-    public Source getNomenclaturesSource(String producerCode, List<String> nomenclatureAcronyms) {
+    public Source getNomenclaturesSource(String operator, String producerCode, List<String> nomenclatureAcronyms) {
         XMLGregorianCalendar currentDate = getXmlTypes().newXMLGregorianCalendar(new GregorianCalendar());
         NomenclatureListType nsType = new NomenclatureListType();
         nsType.getNomenclatureAcronyme().addAll(nomenclatureAcronyms);
         try {
-            byte[] result = getSoapClient().getNomenclatures(null, producerCode, user, nsType, currentDate);
+            byte[] result = getSoapClient().getNomenclatures(null, producerCode, operator, nsType, currentDate);
             ByteArrayInputStream bis = new ByteArrayInputStream(result);
             return new StreamSource(bis);
         } catch (SIPSubmissionFault e) {
