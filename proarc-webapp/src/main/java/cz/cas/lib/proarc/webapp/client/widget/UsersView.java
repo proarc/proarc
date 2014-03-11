@@ -20,7 +20,6 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.types.ListGridComponent;
-import com.smartgwt.client.types.ListGridEditEvent;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IconButton;
@@ -128,10 +127,11 @@ public final class UsersView implements RefreshAction.Refreshable {
         grid.setDataSource(UserDataSource.getInstance());
         grid.setUseAllDataSourceFields(true);
         grid.setSelectionType(SelectionStyle.SINGLE);
-        grid.setEditEvent(ListGridEditEvent.DOUBLECLICK);
         grid.setCanExpandRecords(true);
         grid.setCanExpandMultipleRecords(false);
         grid.setGridComponents(gridEditControls, ListGridComponent.HEADER, ListGridComponent.BODY);
+        // Since SmartGWT 4.0; disable auto-save to post updates of nested forms just on the submit actions.
+        grid.setAutoSaveEdits(false);
         return grid;
     }
 
