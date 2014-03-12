@@ -24,7 +24,6 @@ import java.util.List;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
-import org.dbunit.operation.DatabaseOperation;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -115,6 +114,7 @@ public class EmpireUserDaoTest {
     @Test
     public void testCreate() throws Exception {
         IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "group.xml"),
                 support.loadFlatXmlDataStream(getClass(), "user.xml")
                 );
         support.cleanInsert(support.getConnection(tx), db);
@@ -122,26 +122,45 @@ public class EmpireUserDaoTest {
         support.initSequences(tx, 10, schema.tableUser.id.getSequenceName());
 
         UserProfile create = dao.create();
+        create.setDefaultGroup(1);
         create.setEmail("email");
         create.setForename("forename");
         create.setUserHome("home");
         create.setRemoteName("remoteName");
         create.setRemoteType("remoteType");
         create.setSurname("surname");
+        create.setUserGroup(1);
         create.setUserName("create");
-        create.setUserPasswordDigest("digist");
+        create.setUserPasswordDigest("digest");
         dao.update(create);
+
+        assertNotNull(create.getCreated());
+        assertEquals((Integer) 1, create.getDefaultGroup());
+        assertEquals((Integer) 1, create.getUserGroup());
+        assertEquals("email", create.getEmail());
+        assertEquals("forename", create.getForename());
+        assertNotNull(create.getId());
+        assertEquals("remoteName", create.getRemoteName());
+        assertEquals("remoteType", create.getRemoteType());
+        assertEquals("surname", create.getSurname());
+        assertEquals("home", create.getUserHome());
+        assertEquals("create", create.getUserName());
+        assertEquals("digest", create.getUserPasswordDigest());
+
         List<UserProfile> find = dao.find(create.getUserName(), null, create.getRemoteName(), create.getRemoteType());
         assertEquals(1, find.size());
         UserProfile result = find.get(0);
         assertNotNull(result.getCreated());
+        assertEquals(create.getDefaultGroup(), result.getDefaultGroup());
         assertEquals(create.getEmail(), result.getEmail());
         assertEquals(create.getForename(), result.getForename());
         assertEquals(create.getId(), result.getId());
         assertEquals(create.getRemoteName(), result.getRemoteName());
         assertEquals(create.getRemoteType(), result.getRemoteType());
         assertEquals(create.getSurname(), result.getSurname());
+        assertEquals(create.getUserGroup(), result.getUserGroup());
         assertEquals(create.getUserHome(), result.getUserHome());
+        assertEquals(create.getUserName(), result.getUserName());
         assertEquals(create.getUserPasswordDigest(), result.getUserPasswordDigest());
     }
 
@@ -155,15 +174,31 @@ public class EmpireUserDaoTest {
         tx.commit();
 
         UserProfile user = dao.find(1);
+        String userName = user.getUserName();
+        assertNotNull(userName);
         user.setDefaultGroup(1);
         user.setEmail("email2");
         user.setForename("forename2");
         user.setRemoteName("remotename2");
         user.setRemoteType("remotetype2");
         user.setSurname("surname2");
+        user.setUserGroup(1);
         user.setUserHome("home2");
         user.setUserPasswordDigest("digest2");
         dao.update(user);
+
+        assertNotNull(user.getCreated());
+        assertEquals((Integer) 1, user.getDefaultGroup());
+        assertEquals("email2", user.getEmail());
+        assertEquals("forename2", user.getForename());
+        assertEquals((Integer) 1, user.getId());
+        assertEquals("remotename2", user.getRemoteName());
+        assertEquals("remotetype2", user.getRemoteType());
+        assertEquals("surname2", user.getSurname());
+        assertEquals((Integer) 1, user.getUserGroup());
+        assertEquals(userName, user.getUserName());
+        assertEquals("home2", user.getUserHome());
+        assertEquals("digest2", user.getUserPasswordDigest());
 
         UserProfile result = dao.find(1);
         assertNotNull(result.getCreated());
@@ -174,6 +209,8 @@ public class EmpireUserDaoTest {
         assertEquals("remotename2", result.getRemoteName());
         assertEquals("remotetype2", result.getRemoteType());
         assertEquals("surname2", result.getSurname());
+        assertEquals((Integer) 1, result.getUserGroup());
+        assertEquals(userName, result.getUserName());
         assertEquals("home2", result.getUserHome());
         assertEquals("digest2", result.getUserPasswordDigest());
     }
