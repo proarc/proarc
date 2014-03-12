@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.dao.empiredb;
 
+import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.GroupDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.UserGroupTable;
 import cz.cas.lib.proarc.common.user.Group;
@@ -26,6 +27,7 @@ import org.apache.empire.data.bean.BeanResult;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
+import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 
 /**
  * Manages user groups stored in RDBMS.
@@ -58,10 +60,14 @@ public final class EmpireGroupDao extends EmpireDao implements GroupDao {
                 }
                 group.setTimestamp(now);
             } else {
-                dbr.init(table, new Object[] {group.getId()}, false);
+                dbr.read(table, new Object[] {group.getId()}, getConnection());
             }
             dbr.setBeanValues(group);
-            dbr.update(getConnection());
+            try {
+                dbr.update(getConnection());
+            } catch (RecordUpdateInvalidException ex) {
+                throw new ConcurrentModificationException(ex);
+            }
             dbr.getBeanProperties(group);
         } finally {
             dbr.close();

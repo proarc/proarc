@@ -32,6 +32,6 @@ public interface UserDao extends Dao {
 
     UserProfile create();
 
-    void update(UserProfile user);
+    void update(UserProfile user) throws ConcurrentModificationException;
 
 }

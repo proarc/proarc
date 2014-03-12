@@ -32,6 +32,6 @@ public interface GroupDao extends Dao {
 
     Group find(int id);
 
-    void update(Group group);
+    void update(Group group) throws ConcurrentModificationException;
 
 }

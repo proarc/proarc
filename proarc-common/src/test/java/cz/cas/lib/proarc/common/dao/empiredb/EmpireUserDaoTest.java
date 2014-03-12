@@ -213,6 +213,12 @@ public class EmpireUserDaoTest {
         assertEquals(userName, result.getUserName());
         assertEquals("home2", result.getUserHome());
         assertEquals("digest2", result.getUserPasswordDigest());
+
+        user.setForename(null);
+        dao.update(user);
+        assertNull(user.getForename());
+        result = dao.find(1);
+        assertNull(result.getForename());
     }
 
 }
