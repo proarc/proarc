@@ -24,7 +24,6 @@ import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecCls;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecCls.RecCl;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -100,18 +99,12 @@ public class DesaServicesTest {
         assertEquals("ds1", ds1.getServiceId());
         assertEquals(Arrays.asList("model:id1", "model:id2"), ds1.getExportModels());
         assertEquals(Arrays.asList("acr1", "acr2"), ds1.getNomenclatureAcronyms());
-        Map<String, String> tc = ds1.toTransporterConfig();
         assertEquals("ds1user", ds1.getUsername());
         assertEquals("ds1passwd", ds1.getPassword());
         assertEquals("https://SERVER/dea-frontend/rest/sipsubmission", ds1.getRestServiceUrl());
         assertEquals("https://SERVER/dea-frontend/ws/SIPSubmissionService", ds1.getSoapServiceUrl());
-        assertEquals("ds1user", tc.get("desa.user"));
-        assertEquals("ds1passwd", tc.get("desa.password"));
-        assertEquals("ds1producer", tc.get("desa.producer"));
-        assertEquals("ds1operator", tc.get("desa.operator"));
-        assertEquals(ds1.toString(), "https://SERVER/dea-frontend/rest/sipsubmission", tc.get("desa.restapi"));
-        assertEquals("https://SERVER/dea-frontend/ws/SIPSubmissionService", tc.get("desa.webservice"));
-        assertEquals("true", tc.get("desa.rest"));
+        assertEquals("ds1producer", ds1.getProducer());
+        assertEquals("ds1operator", ds1.getOperator());
     }
 
     @Test
@@ -121,10 +114,8 @@ public class DesaServicesTest {
         assertEquals("dsNulls", ds.getServiceId());
         assertEquals(Arrays.asList(), ds.getExportModels());
         assertEquals(Arrays.asList(), ds.getNomenclatureAcronyms());
-        Map<String, String> tc = ds.toTransporterConfig();
-        assertEquals(null, tc.get("desa.user"));
-        assertEquals("", tc.get("desa.password"));
-        assertEquals("true", tc.get("desa.rest"));
+        assertEquals(null, ds.getUsername());
+        assertEquals("", ds.getPassword());
     }
 
     @Test

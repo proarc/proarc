@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.imports;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -96,7 +95,7 @@ public final class FedoraImport {
         }
     }
 
-    private BatchItemObject importItemImpl(BatchItemObject item, String importer) throws FedoraClientException {
+    private BatchItemObject importItemImpl(BatchItemObject item, String importer) throws DigitalObjectException {
         ObjectState state = item.getState();
         if (state != ObjectState.LOADED) {
             return null;

@@ -18,11 +18,15 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 
 import java.sql.Connection;
 import org.apache.empire.db.DBCmdType;
+import org.apache.empire.db.DBDatabase;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBExpr;
 import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
+import org.dbunit.database.IDatabaseConnection;
+import org.dbunit.dataset.IDataSet;
+import org.dbunit.operation.DatabaseOperation;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -94,8 +98,35 @@ public class ProarcDatabaseTest {
     @Test
     public void testInit() throws Exception {
         // clear DB
-        dropSchema();
+        dropSchema(schema);
         schema.init(emireCfg);
+    }
+
+    @Test
+    public void testUpgrade() throws Exception {
+        ProarcDatabaseV1 v1 = new ProarcDatabaseV1();
+        final IDatabaseConnection con = support.getConnection();
+        try {
+            // clear DB
+            dropSchema(schema);
+            dropSchema(v1);
+            v1.init(emireCfg);
+            assertEquals(1, ProarcDatabase.schemaExists(schema, con.getConnection()));
+
+            IDataSet db = support.loadFlatXmlDataStream(getClass(), "proarc_v1.xml", true);
+            try {
+                DatabaseOperation.INSERT.execute(con, db);
+                con.getConnection().commit();
+            } finally {
+                support.clearDtdSchema();
+            }
+            schema.init(emireCfg);
+            assertEquals(2, ProarcDatabase.schemaExists(schema, con.getConnection()));
+        } finally {
+            con.close();
+            dropSchema(schema);
+            dropSchema(v1);
+        }
     }
 
     @Test
@@ -103,7 +134,7 @@ public class ProarcDatabaseTest {
         schema.init(emireCfg);
         Connection c = emireCfg.getConnection();
         try {
-            boolean result = ProarcDatabase.schemaExists(schema, c);
+            boolean result = ProarcDatabase.schemaExists(schema, c) > 0;
             assertTrue(result);
         } finally {
             c.close();
@@ -112,17 +143,17 @@ public class ProarcDatabaseTest {
 
     @Test
     public void testSchemaNotExists() throws Exception {
-        dropSchema();
+        dropSchema(schema);
         Connection c = emireCfg.getConnection();
         try {
-            boolean result = ProarcDatabase.schemaExists(schema, c);
+            boolean result = ProarcDatabase.schemaExists(schema, c) > 0;
             assertFalse(result);
         } finally {
             c.close();
         }
     }
 
-    private void dropSchema() throws Exception {
+    private void dropSchema(DBDatabase schema) throws Exception {
         Connection conn = emireCfg.getConnection();
         try {
             schema.open(driver, conn);
@@ -141,18 +172,18 @@ public class ProarcDatabaseTest {
         }
     }
 
-    private void dropTables(ProarcDatabase schema, DBSQLScript script) {
+    private void dropTables(DBDatabase schema, DBSQLScript script) {
         for (DBTable table : schema.getTables()) {
             driver.getDDLScript(DBCmdType.DROP, table, script);
         }
     }
 
-    private void dropConstraint(ProarcDatabase schema, DBSQLScript script) {
+    private void dropConstraint(DBDatabase schema, DBSQLScript script) {
         StringBuilder sql = new StringBuilder();
         DBSQLScript helper = new DBSQLScript();
         for (DBRelation relation : schema.getRelations()) {
             DBTable sourceTable = (DBTable) relation.getReferences()[0].getSourceColumn().getRowSet();
-            sql.append("-- creating foreign key constraint ");
+            sql.append("-- drop foreign key constraint ");
             sql.append(relation.getName());
             sql.append(" --\r\n");
             sql.append("ALTER TABLE ");

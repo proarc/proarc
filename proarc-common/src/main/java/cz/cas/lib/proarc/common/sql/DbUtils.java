@@ -41,19 +41,6 @@ public final class DbUtils {
         }
         return source;
     }
-    
-    public static int getProarcSchemaVersion(Connection c) throws SQLException {
-        Statement stmt = c.createStatement();
-        try {
-            // XXX dummy query for now
-            ResultSet rs = stmt.executeQuery("select count(*) proarc_users");
-            rs.next();
-            return rs.getInt(1);
-            
-        } finally {
-            close(stmt);
-        }
-    }
 
     public static void close(Connection c) {
         close(c, false);

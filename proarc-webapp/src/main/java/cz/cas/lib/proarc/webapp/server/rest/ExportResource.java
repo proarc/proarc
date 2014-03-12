@@ -162,7 +162,7 @@ public class ExportResource {
                 }
             } else {
                 for (String pid : pids) {
-                    Result r = export.export(exportFolder, pid, null, false, hierarchy, false, session.asFedoraLog());
+                    Result r = export.export(exportFolder, pid, null, false, hierarchy, false, session.asFedoraLog(), user);
                     if (r.getValidationError() != null) {
                         result.add(new ExportResult(r.getValidationError().getExceptions()));
                     } else {
@@ -311,8 +311,18 @@ public class ExportResource {
             this.pid = me.getPid();
             this.message = me.getMessage();
             this.warning = me.isWarning();
+            List<String> validations = me.getValidationErrors();
             Exception ex = me.getEx();
-            if (ex != null) {
+            if (validations != null && !validations.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (String validation : validations) {
+                    if (message == null) {
+                        message = validation;
+                    }
+                    sb.append(validation).append('\n');
+                }
+                this.log = sb.toString();
+            } else if (ex != null) {
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 ex.printStackTrace(pw);

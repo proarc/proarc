@@ -16,12 +16,16 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.authentication.ProarcPrincipal;
+import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
@@ -45,15 +49,14 @@ public final class SessionContext {
     public static SessionContext from(HttpServletRequest request) throws WebApplicationException{
         Principal userPrincipal = request.getUserPrincipal();
         String remoteAddr = request.getRemoteAddr();
-        if (userPrincipal == null) {
-            throw new WebApplicationException(Status.FORBIDDEN);
+        if (userPrincipal != null && userPrincipal instanceof ProarcPrincipal) {
+            ProarcPrincipal proarcPrincipal = (ProarcPrincipal) userPrincipal;
+            UserProfile user = proarcPrincipal.getAssociatedUserProfile();
+            if (user != null) {
+                return new SessionContext(user, remoteAddr);
+            }
         }
-        UserManager userManager = UserUtil.getDefaultManger();
-        UserProfile user = userManager.find(userPrincipal.getName());
-        if (user == null) {
-            throw new WebApplicationException(Status.FORBIDDEN);
-        }
-        return new SessionContext(user, remoteAddr);
+        throw new WebApplicationException(Status.FORBIDDEN);
     }
 
     public static SessionContext from(UserProfile user, String clientIp) {
@@ -77,6 +80,18 @@ public final class SessionContext {
 
     public UserProfile getUser() {
         return user;
+    }
+
+    public boolean checkPermission(Permission... permissions) {
+        UserManager userManager = UserUtil.getDefaultManger();
+        Set<Permission> grants = userManager.findUserPermissions(user.getId());
+        return grants.containsAll(Arrays.asList(permissions));
+    }
+
+    public void requirePermission(Permission... permissions) {
+        if (checkPermission(permissions)) {
+            throw new WebApplicationException(Status.FORBIDDEN);
+        }
     }
 
 }

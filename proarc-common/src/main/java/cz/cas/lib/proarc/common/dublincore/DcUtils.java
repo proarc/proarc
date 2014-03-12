@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.common.dublincore;
 
-import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.oaidublincore.ObjectFactory;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
+import java.util.Collection;
 import java.util.List;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
@@ -151,6 +151,80 @@ public final class DcUtils {
     public static String getLabel(OaiDcType dc) {
         List<ElementType> titles = dc.getTitles();
         return titles.isEmpty() ? "?" : titles.get(0).getValue();
+    }
+
+    public static OaiDcType merge(OaiDcType dc, OaiDcType add) {
+        merge(dc.getContributors(), add.getContributors());
+        merge(dc.getCoverages(), add.getCoverages());
+        merge(dc.getCreators(), add.getCreators());
+        merge(dc.getDates(), add.getDates());
+        merge(dc.getDescriptions(), add.getDescriptions());
+        merge(dc.getFormats(), add.getFormats());
+        merge(dc.getIdentifiers(), add.getIdentifiers());
+        merge(dc.getLanguages(), add.getLanguages());
+        merge(dc.getPublishers(), add.getPublishers());
+        merge(dc.getRelations(), add.getRelations());
+        merge(dc.getRights(), add.getRights());
+        merge(dc.getSources(), add.getSources());
+        merge(dc.getSubjects(), add.getSubjects());
+        merge(dc.getTitles(), add.getTitles());
+        merge(dc.getTypes(), add.getTypes());
+        return dc;
+    }
+
+    public static void merge(List<ElementType> elms, List<ElementType> add) {
+        if (elms == null) {
+            throw new NullPointerException();
+        }
+        for (ElementType elm : add) {
+            merge(elms, elm);
+        }
+    }
+
+    public static void merge(List<ElementType> elms, ElementType add) {
+        for (ElementType elm : elms) {
+            String value = elm.getValue();
+            String addValue = add.getValue();
+            if (value == null ? addValue == null : value.equals(addValue)) {
+                String lang = elm.getLang();
+                String addLang = add.getLang();
+                if (lang == null ? addLang == null : lang.equals(addLang)) {
+                    return;
+                }
+            }
+        }
+        elms.add(add);
+    }
+
+    public static void addPid(OaiDcType dc, String pid) {
+        addElementType(dc.getIdentifiers(), pid);
+    }
+
+    public static void addModel(OaiDcType dc, String modelId) {
+        addElementType(dc.getTypes(), modelId);
+    }
+
+    public static void addTitle(OaiDcType dc, String title) {
+        addElementType(dc.getTitles(), title);
+    }
+
+    public static void addOwner(OaiDcType dc, Collection<String> owners) {
+        for (String owner : owners) {
+            addOwner(dc, owner);
+        }
+    }
+
+    public static void addOwner(OaiDcType dc, String owner) {
+        addElementType(dc.getRights(), owner);
+    }
+
+    static void addElementType(List<ElementType> elms, String value) {
+        for (ElementType elm : elms) {
+            if (value.equals(elm.getValue())) {
+                return;
+            }
+        }
+        elms.add(new ElementType(value, null));
     }
 
     private static Templates createMods2dcTemplate() {

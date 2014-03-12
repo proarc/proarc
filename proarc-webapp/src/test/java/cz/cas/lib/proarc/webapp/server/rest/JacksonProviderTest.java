@@ -247,7 +247,7 @@ public class JacksonProviderTest {
         b.setTimestamp(new Timestamp(System.currentTimeMillis()));
         b.setTitle("title");
         b.setUserId(10);
-        b.setUsername("username");
+        b.setUserName("username");
         String json = toJson(b);
         assertTrue(json, json.contains("\"description\":\"title\""));
         assertTrue(json, json.contains("\"create\":\"1991-01"));

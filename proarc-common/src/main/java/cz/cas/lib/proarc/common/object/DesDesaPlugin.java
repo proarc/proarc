@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.object.DerDesaPlugin.DerMetadataHandler;
 import cz.cas.lib.proarc.common.object.DerDesaPlugin.DerRawDisseminationHandler;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.nsesss2.Dokument;
 import cz.cas.lib.proarc.nsesss2.NsesssConstants;
@@ -133,14 +134,14 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
     }
 
     @Override
-    public List<ValueMap> getValueMaps() {
+    public List<ValueMap> getValueMaps(UserProfile user) {
         try {
             AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
             DesaServices desaServices = appConfig.getDesaServices();
             DesaConfiguration dc = desaServices.findConfigurationWithModel(
                     MODEL_EXTERNAL_RECORD, MODEL_FILE, MODEL_FOLDER, MODEL_INTERNAL_RECORD);
             if (dc != null) {
-                Nomenclatures nomenclatures = desaServices.getNomenclatures(dc);
+                Nomenclatures nomenclatures = desaServices.getNomenclatures(dc, user);
                 return desaServices.getValueMap(nomenclatures, ID);
             } else {
                 return Collections.emptyList();
@@ -375,12 +376,9 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
             DcStreamEditor dcEditor = handler.objectMetadata();
             DublinCoreRecord dcr = dcEditor.read();
             OaiDcType dc = new OaiDcType();
-            dc.getIdentifiers().add(new ElementType(fobject.getPid(), null));
             if (objectId != null) {
                 dc.getIdentifiers().add(new ElementType(objectId, null));
             }
-
-            dc.getTypes().add(new ElementType(MODEL_FOLDER, null));
 
             String title = findSpisNazev(record);
             if (title != null && title.isEmpty()) {
@@ -388,7 +386,7 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
             }
 
             dcr.setDc(dc);
-            dcEditor.write(dcr, message);
+            dcEditor.write(handler, dcr, message);
         }
 
         private void writeDokument(Dokument document, String message) throws DigitalObjectException {
@@ -410,13 +408,9 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
             DcStreamEditor dcEditor = handler.objectMetadata();
             DublinCoreRecord dcr = dcEditor.read();
             OaiDcType dc = new OaiDcType();
-            dc.getIdentifiers().add(new ElementType(fobject.getPid(), null));
             if (objectId != null) {
                 dc.getIdentifiers().add(new ElementType(objectId, null));
             }
-
-            String modelId = handler.relations().getModel();
-            dc.getTypes().add(new ElementType(modelId, null));
 
             String title = findDokumentNazev(document);
             if (title != null && title.isEmpty()) {
@@ -424,7 +418,7 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
             }
 
             dcr.setDc(dc);
-            dcEditor.write(dcr, message);
+            dcEditor.write(handler, dcr, message);
         }
 
         private static String findSpisNazev(Spis spis) {

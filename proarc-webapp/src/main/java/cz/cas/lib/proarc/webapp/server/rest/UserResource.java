@@ -16,17 +16,18 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -49,12 +50,13 @@ public final class UserResource {
 
     private static final Logger LOG = Logger.getLogger(UserResource.class.getName());
     private final UserManager userManager;
-    private final Principal userPrincipal;
+    private final SessionContext session;
 
     public UserResource(
+            @Context HttpServletRequest httpRequest,
             @Context SecurityContext securityCtx
             ) {
-        userPrincipal = securityCtx.getUserPrincipal();
+        this.session = SessionContext.from(httpRequest);
         this.userManager = UserUtil.getDefaultManger();
     }
 
@@ -68,7 +70,7 @@ public final class UserResource {
 
         if (whoAmI != null && whoAmI) {
             userId = null;
-            userName = userPrincipal.getName();
+            userName = session.getUser().getUserName();
         }
         if (userId != null) {
             UserProfile found = userManager.find(userId);
@@ -92,7 +94,7 @@ public final class UserResource {
 //            @FormParam("userHome") String home
             ) {
 
-        checkAccess(userPrincipal, Permissions.ADMIN, Permissions.USERS_CREATE);
+        checkAccess(session.getUser(), Permissions.ADMIN, Permissions.USERS_CREATE);
         if (userName == null) {
             return SmartGwtResponse.<UserProfile>asError().error("userName", "missing").build();
         }
@@ -106,7 +108,8 @@ public final class UserResource {
         newProfile.setSurname(surname);
         newProfile.setUserName(userName);
         newProfile.setUserPassword(passwd);
-        newProfile = userManager.add(newProfile);
+        newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
+                session.getUser().getUserName(), session.asFedoraLog());
         return new SmartGwtResponse<UserProfile>(newProfile);
     }
 
@@ -122,20 +125,21 @@ public final class UserResource {
 //            @FormParam("userHome") String home
             ) {
 
+        UserProfile sessionUser = session.getUser();
         // check for admin or the same user
         UserProfile update = userId == null ? null : userManager.find(userId);
         boolean fullUpdate;
-        if (userPrincipal != null && update != null && update.getUserName().equals(userPrincipal.getName())) {
-            Set<Permission> grants = checkAccess(userPrincipal, (Permission) null);
+        if (update != null && update.getUserName().equals(sessionUser.getUserName())) {
+            Set<Permission> grants = checkAccess(sessionUser, (Permission) null);
             fullUpdate = grants.contains(Permissions.ADMIN);
         } else {
-            checkAccess(userPrincipal, Permissions.ADMIN);
+            checkAccess(sessionUser, Permissions.ADMIN);
             fullUpdate = true;
         }
         if (update == null) {
             return SmartGwtResponse.<UserProfile>asError().error("userId", "not found").build();
         }
-        if (passwd != null) {
+        if (passwd != null && update.getRemoteType() == null) {
             update.setUserPassword(passwd);
         }
         if (fullUpdate && surname != null) {
@@ -148,7 +152,7 @@ public final class UserResource {
             update.setForename(forename);
         }
 
-        userManager.update(update);
+        userManager.update(update, sessionUser.getUserName(), session.asFedoraLog());
         return new SmartGwtResponse<UserProfile>(update);
     }
 
@@ -161,8 +165,7 @@ public final class UserResource {
 
         List<Permission> result = Collections.emptyList();
         if (userId == null) {
-            UserProfile actual = userManager.find(userPrincipal.getName());
-            userId = actual.getId();
+            userId = session.getUser().getId();
         }
         if (userId != null) {
             Set<Permission> permissions = userManager.findUserPermissions(userId);
@@ -171,16 +174,12 @@ public final class UserResource {
         return new SmartGwtResponse<Permission>(result);
     }
 
-    Set<Permission> checkAccess(Principal p, Permission... permissions) {
-        if (p != null) {
-            String name = p.getName();
-            UserProfile user = userManager.find(name);
-            if (user != null) {
-                Set<Permission> grants = userManager.findUserPermissions(user.getId());
-                for (Permission permission : permissions) {
-                    if (permission == null || grants.contains(permission)) {
-                        return grants;
-                    }
+    Set<Permission> checkAccess(UserProfile user, Permission... permissions) {
+        if (user != null) {
+            Set<Permission> grants = userManager.findUserPermissions(user.getId());
+            for (Permission permission : permissions) {
+                if (permission == null || grants.contains(permission)) {
+                    return grants;
                 }
             }
         }

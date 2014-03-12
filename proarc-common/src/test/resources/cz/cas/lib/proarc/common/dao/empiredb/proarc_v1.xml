@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset>
+    <tomcat_users username="proarc" userpass="123" />
+    <tomcat_roles username="proarc" rolename="proarc" />
+    <tomcat_roles username="proarc" rolename="manager" />
+    <tomcat_roles username="proarc" rolename="admin" />
+    <proarc_users userid="1" username="proarc" surname="Administrátor" home="file:/tmp/home" created="2013-01-12" />
+    <proarc_groups groupid="1" name="Administrátoři" />
+    <proarc_group_members groupid="1" userid="1" />
+    <proarc_group_permissions groupid="1" permissionid="proarc.permission.admin" objectid="SYSTEM" />
+</dataset>

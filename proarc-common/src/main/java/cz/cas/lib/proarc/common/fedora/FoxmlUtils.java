@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
@@ -75,6 +76,8 @@ public final class FoxmlUtils {
     private static JAXBContext defaultJaxbContext;
     private static ThreadLocal<Marshaller> defaultMarshaller = new ThreadLocal<Marshaller>();
     private static ThreadLocal<Unmarshaller> defaultUnmarshaller = new ThreadLocal<Unmarshaller>();
+    private static final Pattern PID_PATTERN = Pattern.compile(
+            "^([A-Za-z0-9]|-|\\.)+:(([A-Za-z0-9])|-|\\.|~|_|(%[0-9A-F]{2}))+$");
 
     /**
      * Default FOXML context. Oracle JAXB RI's context should be thread safe.
@@ -285,6 +288,14 @@ public final class FoxmlUtils {
             throw new IllegalArgumentException("Invalid PID format: '" + pid + "'!");
         }
         return pid.substring(PID_PREFIX.length());
+    }
+
+    /**
+     * Is a valid Fedora PID?
+     * @see <a href='https://wiki.duraspace.org/display/FEDORA37/Fedora+Identifiers#FedoraIdentifiers-PIDspids'>Fedora PID</a>
+     */
+    public static boolean isValidPid(String pid) {
+        return pid != null && pid.length() <= 64 && PID_PATTERN.matcher(pid).matches();
     }
 
     /**

@@ -73,8 +73,6 @@ public final class DeviceRepository {
             return addDevice(pid, owner, label, log);
         } catch (DigitalObjectException ex) {
             throw new DeviceException(pid, ex);
-        } catch (FedoraClientException ex) {
-            throw new DeviceException(pid, ex);
         }
     }
 
@@ -157,7 +155,7 @@ public final class DeviceRepository {
     }
 
     private Device addDevice(String pid, String owner, String label, String log)
-            throws DigitalObjectException, FedoraClientException {
+            throws DigitalObjectException {
 
         LocalObject lobject = new LocalStorage().create(pid);
         lobject.setLabel(label);

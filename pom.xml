@@ -26,6 +26,7 @@
 
     <modules>
         <module>proarc-common</module>
+        <module>proarc-auth</module>
         <module>proarc-desa</module>
         <module>proarc-mets</module>
         <module>proarc-mods</module>
@@ -45,6 +46,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- JAX-WS 2.2 JDK 1.6 support-->
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
+        <slf4j.version>1.7.6</slf4j.version>
     </properties>
 
     <repositories>
@@ -91,6 +93,24 @@
     <dependencyManagement>
 
         <dependencies>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>log4j-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-jdk14</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
 
             <!-- tests -->
             <dependency>

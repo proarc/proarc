@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import org.hamcrest.core.Is;
 import static org.junit.Assert.*;
@@ -74,12 +75,16 @@ public class RelationEditorTest {
         RelationEditor instance = new RelationEditor(lobject);
         String model = "mode:page";
         List<String> members = Arrays.asList("test:member1", "test:member2");
+        Collection<String> memberships = Arrays.asList("test:group1", "test:group2");
+        Collection<String> owners = Arrays.asList("group:group1", "group:group2");
         instance.setModel(model);
         String device = "device:scanner";
         instance.setDevice(device);
         String filename = "file.name";
         instance.setImportFile(filename);
         instance.setMembers(members);
+        instance.setMembership(memberships);
+        instance.setOwners(owners);
         instance.write(0, null);
         lobject.flush();
 
@@ -89,6 +94,8 @@ public class RelationEditorTest {
         assertEquals(device, instance.getDevice());
         assertEquals(filename, instance.getImportFile());
         assertThat(instance.getMembers(), Is.is(members));
+        assertThat(instance.getMembership(), Is.is(memberships));
+        assertThat(instance.getOwners(), Is.is(owners));
         long timestamp = instance.getLastModified();
         assertTrue(timestamp > 0);
 
@@ -98,9 +105,11 @@ public class RelationEditorTest {
         model = "model:update";
         device = "device:update";
         members = Arrays.asList("test:member1", "test:member3");
+        memberships = Arrays.asList("test:group3", "test:group1");
         instance.setModel(model);
         instance.setDevice(device);
         instance.setMembers(members);
+        instance.setMembership(memberships);
         instance.write(timestamp, null);
         lobject.flush();
 
@@ -109,6 +118,7 @@ public class RelationEditorTest {
         assertEquals(model, instance.getModel());
         assertEquals(device, instance.getDevice());
         assertThat(instance.getMembers(), Is.is(members));
+        assertThat(instance.getMembership(), Is.is(memberships));
         assertTrue(timestamp < instance.getLastModified());
     }
 }

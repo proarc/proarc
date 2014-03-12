@@ -29,10 +29,12 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.user.Group;
+import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
@@ -122,13 +124,13 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
     }
 
     @Override
-    public List<ValueMap> getValueMaps() {
+    public List<ValueMap> getValueMaps(UserProfile user) {
         try {
             AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
             DesaServices desaServices = appConfig.getDesaServices();
             DesaConfiguration dc = desaServices.findConfigurationWithModel(MODEL_DOCUMENT, MODEL_FILE, MODEL_FOLDER);
             if (dc != null) {
-                Nomenclatures nomenclatures = desaServices.getNomenclatures(dc);
+                Nomenclatures nomenclatures = desaServices.getNomenclatures(dc, user);
                 return desaServices.getValueMap(nomenclatures, ID);
             } else {
                 return Collections.emptyList();
@@ -224,16 +226,12 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
         }
 
         private OaiDcType createDefautDc() throws DigitalObjectException {
-            // XXX create default DC from template
-            // XXX update with parent info
             OaiDcType dc = new OaiDcType();
-            // XXX user -> organization -> identifier
-            handler.getParameterUser();
             DigitalObjectHandler parent = handler.getParameterParent();
             String modelId = handler.relations().getModel();
 
             if (MODEL_FOLDER.equals(modelId)) {
-                String identifier = "_";
+                String identifier = getProducerCode() + "_";
                 dc.getIdentifiers().add(new ElementType(identifier, null));
                 dc.getTitles().add(new ElementType(identifier + '-', null));
             } else if (MODEL_DOCUMENT.equals(modelId)) {
@@ -280,17 +278,10 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
             object.setLabel(objLabel.isEmpty() ? "?" : objLabel);
 
             // DC
-            RelationEditor relationEditor = handler.relations();
-            String model = relationEditor.getModel();
-            String importFile = relationEditor.getImportFile();
-            // XXX replace with OaiDacHandler
-            // XXX write helper for DC/DC mapping
             DcStreamEditor dcEditor = handler.objectMetadata();
             DublinCoreRecord dcr = dcEditor.read();
-            addPid(dc, object.getPid());
-            addModel(dc, model);
             dcr.setDc(dc);
-            dcEditor.write(dcr, message);
+            dcEditor.write(handler, dcr, message);
         }
 
         @Override
@@ -353,34 +344,20 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
             return null;
         }
 
-        static void addPid(OaiDcType dc, String pid) {
-            List<ElementType> elms = dc.getIdentifiers();
-            for (ElementType elm : elms) {
-                if (pid.equals(elm.getValue())) {
-                    return;
+        private String getProducerCode() {
+            String producerCode = "";
+            UserProfile user = handler.getParameterUser();
+            if (user == null) {
+                return producerCode;
+            }
+            Integer defaultGroupId = user.getDefaultGroup();
+            if (defaultGroupId != null) {
+                Group group = UserUtil.getDefaultManger().findGroup(defaultGroupId);
+                if (group != null && group.getRemoteName() != null) {
+                    producerCode = group.getRemoteName();
                 }
             }
-            elms.add(new ElementType(pid, null));
-        }
-
-        static void addModel(OaiDcType dc, String modelId) {
-            List<ElementType> elms = dc.getTypes();
-            for (ElementType elm : elms) {
-                if (modelId.equals(elm.getValue())) {
-                    return;
-                }
-            }
-            elms.add(new ElementType(modelId, null));
-        }
-
-        private void addTitle(OaiDcType dc, String title) {
-            List<ElementType> elms = dc.getTitles();
-            for (ElementType elm : elms) {
-                if (title.equals(elm.getValue())) {
-                    return;
-                }
-            }
-            elms.add(new ElementType(title, null));
+            return producerCode;
         }
 
     }

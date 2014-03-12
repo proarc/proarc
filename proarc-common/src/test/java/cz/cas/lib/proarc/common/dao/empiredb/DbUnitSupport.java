@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.dao.empiredb;
 
 import cz.cas.lib.proarc.common.dao.Transaction;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -25,6 +24,7 @@ import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.apache.empire.db.DBCommand;
 import org.dbunit.DatabaseUnitException;
 import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
@@ -34,6 +34,7 @@ import org.dbunit.dataset.xml.FlatDtdDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.ext.postgresql.PostgresqlDataTypeFactory;
+import org.dbunit.operation.DatabaseOperation;
 import org.junit.Assert;
 import org.junit.Assume;
 
@@ -44,7 +45,6 @@ import org.junit.Assume;
 public class DbUnitSupport {
 
     private final EmpireConfiguration emireCfg;
-    private IDatabaseConnection dbuConnection;
     private static String dtdSchema;
 
     public DbUnitSupport() {
@@ -72,10 +72,7 @@ public class DbUnitSupport {
     }
 
     public IDatabaseConnection getConnection(Connection c) throws DatabaseUnitException, SQLException {
-        if (dbuConnection == null) {
-            dbuConnection = createProgresConnection(c);
-        }
-        return dbuConnection;
+        return createProgresConnection(c);
     }
 
     public Connection getSqlConnection(Transaction tx) {
@@ -93,14 +90,12 @@ public class DbUnitSupport {
     }
     
     public IDataSet loadFlatXmlDataStream(Class<?> c, String resource) throws Exception {
-        return loadFlatXmlDataStream(c, resource, true);
+        return loadFlatXmlDataStream(c, resource, false);
     }
 
-    public IDataSet loadFlatXmlDataStream(Class<?> c, String resource, boolean usedtd) throws Exception {
+    public IDataSet loadFlatXmlDataStream(Class<?> c, String resource, boolean resetDtdSchema) throws Exception {
         FlatXmlDataSetBuilder builder = new FlatXmlDataSetBuilder();
-        if (usedtd) {
-            builder.setMetaDataSetFromDtd(getDtdSchema());
-        }
+        builder.setMetaDataSetFromDtd(getDtdSchema(resetDtdSchema));
 //        builder.setMetaDataSet(getConnection().createDataSet());
         FlatXmlDataSet fds = builder.build(getResourceStream(c, resource));
         return fds;
@@ -120,29 +115,47 @@ public class DbUnitSupport {
         }
     }
 
+    public void cleanInsert(IDatabaseConnection c, IDataSet dataset) throws Exception {
+        prepareForDelete(c.getConnection());
+        DatabaseOperation.CLEAN_INSERT.execute(c, dataset);
+    }
+
+    /**
+     * Removes all constrained values that cannot be resolved with proper delete table order.
+     */
+    public void prepareForDelete(Connection c) {
+        ProarcDatabase schema = getEmireCfg().getSchema();
+        DBCommand cmd = schema.createCommand();
+        cmd.set(schema.tableUser.defaultGroup.to(null));
+        cmd.set(schema.tableUser.userGroup.to(null));
+        schema.executeUpdate(cmd, c);
+    }
+
     private InputStream getResourceStream(Class<?> c, String resource) {
         InputStream stream = c.getResourceAsStream(resource);
         Assert.assertNotNull("stream.name: " + resource + ", class: " + c, stream);
         return stream;
     }
 
-    private Reader getDtdSchema() throws Exception {
-        if (dtdSchema != null) {
-            return new StringReader(dtdSchema);
-        }
-        Connection c = getEmireCfg().getConnection();
-        try {
+    public void clearDtdSchema() {
+        dtdSchema = null;
+    }
 
-            IDatabaseConnection dc = createProgresConnection(c);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            StringWriter sw = new StringWriter();
-            FlatDtdDataSet.write(dc.createDataSet(), sw);
-            dtdSchema = sw.toString();
-//            System.out.println(dtdSchema);
-            return new StringReader(dtdSchema);
-        } finally {
-            c.close();
+    private Reader getDtdSchema(boolean resetDtdSchema) throws Exception {
+        if (resetDtdSchema || dtdSchema == null) {
+            Connection c = getEmireCfg().getConnection();
+            try {
+
+                IDatabaseConnection dc = createProgresConnection(c);
+                StringWriter sw = new StringWriter();
+                FlatDtdDataSet.write(dc.createDataSet(), sw);
+                dtdSchema = sw.toString();
+//                System.out.println(dtdSchema);
+            } finally {
+                c.close();
+            }
         }
+        return new StringReader(dtdSchema);
     }
 
 }

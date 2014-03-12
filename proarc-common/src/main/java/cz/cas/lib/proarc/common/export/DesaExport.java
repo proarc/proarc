@@ -36,8 +36,9 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.desa.SIP2DESATransporter;
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
@@ -72,7 +73,7 @@ public final class DesaExport {
     public List<MetsExportExceptionElement> validate(File exportsFolder, String pid,
             boolean hierarchy) throws ExportException {
 
-        Result export = export(exportsFolder, pid, null, true, hierarchy, false, null);
+        Result export = export(exportsFolder, pid, null, true, hierarchy, false, null, null);
         if (export.getValidationError() != null) {
             return export.getValidationError().getExceptions();
         } else {
@@ -88,7 +89,7 @@ public final class DesaExport {
      * @throws ExportException unexpected failure
      */
     public Result exportDownload(File exportsFolder, String pid) throws ExportException {
-        return export(exportsFolder, pid, null, true, false, true, null);
+        return export(exportsFolder, pid, null, true, false, true, null, null);
     }
 
     /**
@@ -127,7 +128,8 @@ public final class DesaExport {
      * @throws ExportException unexpected failure
      */
     public Result export(File exportsFolder, String pid, String packageId,
-            boolean dryRun, boolean hierarchy, boolean keepResult, String log
+            boolean dryRun, boolean hierarchy, boolean keepResult, String log,
+            UserProfile user
             ) throws ExportException {
 
         File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pid));
@@ -142,15 +144,10 @@ public final class DesaExport {
                 DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
                 DesaElement dElm = DesaElement.getElement(dobj, null, dc, hierarchy);
                 DesaConfiguration desaCfg = transporterProperties(dryRun, dElm);
-                HashMap<String, String> tProps = null;
                 if (desaCfg != null) {
-                    tProps = desaCfg.toTransporterConfig();
-                    dc.setTransporter(desaServices.getDesaClient(desaCfg).getSipTransporter(
-                            // XXX replace with real operator and producer code from http request
-                            tProps.get("desa." + DesaConfiguration.PROPERTY_OPERATOR),
-                            tProps.get("desa." + DesaConfiguration.PROPERTY_PRODUCER)));
+                    dc.setTransporter(getSipTransporter(desaCfg, user));
                 }
-                dElm.accept(new DesaElementVisitor(), tProps);
+                dElm.accept(new DesaElementVisitor(), null);
                 // dc.getMetsExportException() should be ignored now; validation warnings are always thrown
                 // result.setValidationError(dc.getMetsExportException());
                 if (!dryRun) {
@@ -176,6 +173,15 @@ public final class DesaExport {
                 }
             }
         }
+    }
+
+    private SIP2DESATransporter getSipTransporter(DesaConfiguration desaCfg, UserProfile operator) throws ExportException {
+        String operatorName = desaServices.getOperatorName(operator, desaCfg);
+        String producerCode = desaServices.getProducerCode(operator, desaCfg);
+        if (operatorName == null || producerCode == null) {
+            throw new ExportException("Requires operator name and producer code!");
+        }
+        return desaServices.getDesaClient(desaCfg).getSipTransporter(operatorName, producerCode);
     }
 
     private DesaContext buildContext(RemoteObject fo, String packageId, File targetFolder) {
