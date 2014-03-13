@@ -22,6 +22,7 @@ import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.DateDisplayFormat;
+import com.smartgwt.client.types.ReadOnlyDisplayAppearance;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.util.JSOHelper;
 import com.smartgwt.client.widgets.form.DynamicForm;
@@ -189,6 +190,7 @@ public class FormGenerator {
         TextItem item = new TextItem(f.getName(), f.getTitle(activeLocale));
         item.setLength(f.getLength() != null ? f.getLength() : defaultTextLength);
         item.setWidth(defaultWidth);
+        item.setReadOnlyDisplay(ReadOnlyDisplayAppearance.STATIC);
         return item;
     }
 
