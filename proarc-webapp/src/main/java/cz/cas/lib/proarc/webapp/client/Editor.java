@@ -23,12 +23,14 @@ import com.google.gwt.i18n.client.Dictionary;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.Window;
+import com.smartgwt.client.core.Function;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.Autofit;
+import com.smartgwt.client.types.ClickMaskMode;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.util.DateUtil;
@@ -95,6 +97,7 @@ public class Editor implements EntryPoint {
     /** {@link TreeNode } attribute to associate the node with {@link Place}. */
     private static final String PLACE_ATTRIBUTE = "GoToPlace";
     private static final String LOCALE_ATTRIBUTE = "locale";
+    private static final String GLOBAL_MENU_CONTAINER_ID = "proarcGlobalMenuContainer";
     private static Editor INSTANCE;
 
     private ClientMessages i18n;
@@ -326,27 +329,26 @@ public class Editor implements EntryPoint {
     }
 
     private Canvas createGlobalMenuButton(final TreeGrid menu) {
-        final com.smartgwt.client.widgets.Window menuWindow = new com.smartgwt.client.widgets.Window();
-        menuWindow.setCanDragReposition(false);
-        menuWindow.setAutoSize(true);
-        menuWindow.setDismissOnEscape(true);
-        menuWindow.setDismissOnOutsideClick(true);
-        menuWindow.setShowFooter(false);
-        menuWindow.setShowHeader(false);
-        // XXX SmartGWT 4.0 fix: replace .windowBackground with .normal to get rid of window edges
-        menuWindow.setStyleName("normal");
-        menuWindow.setShowEdges(false);
-        menuWindow.setIsModal(true);
-        menuWindow.addItem(menu);
-        menuWindow.setDefaultWidth(200);
+        // Render the menu as HLayout instead of Window to get rid of edges introduced by SmartGWT 4.0
+        final HLayout menuWindow = new HLayout();
+        menuWindow.setID(GLOBAL_MENU_CONTAINER_ID);
         menuWindow.setShowShadow(true);
+        menuWindow.setWidth(200);
+        menuWindow.setMembers(menu);
         final IconMenuButton[] globalMenuButton = new IconMenuButton[1];
         globalMenuButton[0] = Actions.asIconMenuButton(new AbstractAction(
                 i18n.MainMenu_Title(), null, null) {
 
             @Override
             public void performAction(ActionEvent event) {
-                menuWindow.showNextTo(globalMenuButton[0], "bottom");
+                menuWindow.showNextTo(globalMenuButton[0], "bottom", true);
+                menuWindow.showClickMask(new Function() {
+
+                    @Override
+                    public void execute() {
+                        menuWindow.hide();
+                    }
+                }, ClickMaskMode.SOFT, new Canvas[] {menuWindow});
                 menu.focus();
             }
         }, new Object());
@@ -400,8 +402,8 @@ public class Editor implements EntryPoint {
             @Override
             public void onLeafClick(LeafClickEvent event) {
                 for (Canvas parent = menu.getParentElement(); parent != null; parent = parent.getParentElement()) {
-                    if (parent instanceof com.smartgwt.client.widgets.Window) {
-                        ((com.smartgwt.client.widgets.Window) parent).hide();
+                    if (GLOBAL_MENU_CONTAINER_ID.equals(parent.getID())) {
+                        parent.hide();
                         break;
                     }
                 }
