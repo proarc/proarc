@@ -30,6 +30,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,7 +75,7 @@ public final class RestConfig {
     public static final String URL_BIBLIOCATALOG =  path(URL_ROOT, BibliographicCatalogResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG_QUERY =  path(
             URL_BIBLIOCATALOG, BibliographicCatalogResourceApi.FIND_PATH);
-    public static final String URL_USER =  URL_ROOT + "/user";
+    public static final String URL_USER =  path(URL_ROOT, UserResourceApi.PATH);
     public static final String URL_USER_PERMISSIONS =  URL_USER + "/permissions";
     public static final String URL_EXPORT = path(URL_ROOT, ExportResourceApi.PATH);
     public static final String URL_EXPORT_DATASTREAM = path(

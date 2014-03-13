@@ -57,6 +57,7 @@ public final class JacksonProvider extends JacksonJaxbJsonProvider {
         registerAnnotatedSuperclass(AnnotatedPageViewItem.class);
         registerAnnotatedSuperclass(AnnotatedSearchViewItem.class);
         registerAnnotatedSuperclass(AnnotatedStringRecord.class);
+        registerAnnotatedSuperclass(AnnotatedUser.class);
         registerAnnotatedSuperclass(AnnotatedValueMap.class);
         JsonUtils.setDefaultObjectMapper(mapper);
     }

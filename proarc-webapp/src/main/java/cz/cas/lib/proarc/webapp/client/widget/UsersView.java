@@ -20,14 +20,17 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.types.ListGridComponent;
+import com.smartgwt.client.types.ReadOnlyDisplayAppearance;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.Window;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.FormItemIfFunction;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.form.fields.CancelItem;
+import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.PasswordItem;
 import com.smartgwt.client.widgets.form.fields.RowSpacerItem;
 import com.smartgwt.client.widgets.form.fields.SubmitItem;
@@ -45,6 +48,7 @@ import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
+import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import java.util.logging.Logger;
 
 /**
@@ -132,6 +136,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         grid.setGridComponents(gridEditControls, ListGridComponent.HEADER, ListGridComponent.BODY);
         // Since SmartGWT 4.0; disable auto-save to post updates of nested forms just on the submit actions.
         grid.setAutoSaveEdits(false);
+        grid.setShowClippedValuesOnHover(true);
         return grid;
     }
 
@@ -159,39 +164,9 @@ public final class UsersView implements RefreshAction.Refreshable {
     }
 
     private DynamicForm getProfileEditor(ListGridRecord record) {
-        final boolean isNew = record == null;
-        final DynamicForm form = new DynamicForm();
-        form.setMargin(15);
-        form.setDataSource(userGrid.getDataSource());
-        form.setAutoWidth();
-        form.setNumCols(4);
-        form.setAutoFocus(true);
-        TextItem username = new TextItem(UserDataSource.FIELD_USERNAME);
-        username.setValidators(new RegExpValidator("[a-z][a-z0-9]{4,}"));
-        username.setTooltip(i18n.UsersView_UserForm_Username_Hint());
-        PasswordItem password = new PasswordItem(UserDataSource.FIELD_PASSWORD);
-        password.setRequired(isNew);
-        password.setPrompt(i18n.UsersView_UserForm_Password_Hint());
-        LengthRangeValidator pswdLengthValidator = new LengthRangeValidator();
-        pswdLengthValidator.setMin(6);
-        pswdLengthValidator.setMax(20);
-        password.setValidators(pswdLengthValidator);
-        TextItem surname = new TextItem(UserDataSource.FIELD_SURNAME);
-        TextItem forename = new TextItem(UserDataSource.FIELD_FORENAME);
-        TextItem email = new TextItem(UserDataSource.FIELD_EMAIL);
-        email.setColSpan("*");
-        email.setWidth(300);
-        email.setEndRow(true);
-        TextItem home = new TextItem(UserDataSource.FIELD_HOME);
-        home.setColSpan("*");
-        home.setWidth(300);
-        home.setEndRow(true);
-        form.setCanSubmit(false);
-        SubmitItem submit = new SubmitItem();
-        submit.setEndRow(false);
-        submit.setStartRow(false);
-        CancelItem cancel = new CancelItem();
-        cancel.setStartRow(false);
+        final DynamicForm form = createUserEditor(record == null, i18n);
+
+        FormItem cancel = form.getField("cancel");
         cancel.addClickHandler(new com.smartgwt.client.widgets.form.fields.events.ClickHandler() {
 
             @Override
@@ -200,8 +175,6 @@ public final class UsersView implements RefreshAction.Refreshable {
                 closeEditor();
             }
         });
-
-        form.setFields(username, password, forename, surname, email, home, new RowSpacerItem(), submit, cancel);
 
         form.addSubmitValuesHandler(new SubmitValuesHandler() {
 
@@ -218,8 +191,78 @@ public final class UsersView implements RefreshAction.Refreshable {
                 });
             }
         });
-        
-        form.getField(UserDataSource.FIELD_USERNAME).setCanEdit(isNew);
+        return form;
+    }
+
+    static DynamicForm createUserEditor(final boolean isNewUser, ClientMessages i18n) {
+        final DynamicForm form = new DynamicForm();
+        form.setMargin(15);
+        form.setDataSource(UserDataSource.getInstance());
+        form.setAutoWidth();
+        form.setNumCols(4);
+        form.setAutoFocus(true);
+        form.setBrowserSpellCheck(false);
+        TextItem username = new TextItem(UserDataSource.FIELD_USERNAME);
+        if (isNewUser) {
+            username.setValidators(new RegExpValidator("[a-z][a-z0-9]{4,}"));
+            username.setTooltip(i18n.UsersView_UserForm_Username_Hint());
+        }
+        username.setCanEdit(isNewUser);
+        username.setEndRow(true);
+        final PasswordItem password = new PasswordItem(UserDataSource.FIELD_PASSWORD);
+        password.setRequired(isNewUser);
+        password.setPrompt(i18n.UsersView_UserForm_Password_Hint());
+        LengthRangeValidator pswdLengthValidator = new LengthRangeValidator();
+        pswdLengthValidator.setMin(6);
+        pswdLengthValidator.setMax(20);
+        password.setValidators(pswdLengthValidator);
+        TextItem surname = new TextItem(UserResourceApi.USER_SURNAME);
+        TextItem forename = new TextItem(UserResourceApi.USER_FORENAME);
+        forename.setStartRow(true);
+        TextItem email = new TextItem(UserResourceApi.USER_EMAIL);
+        email.setColSpan("*");
+        email.setWidth(300);
+        email.setEndRow(true);
+        TextItem remoteName = new TextItem(UserResourceApi.USER_REMOTENAME);
+        remoteName.setReadOnlyDisplay(ReadOnlyDisplayAppearance.STATIC);
+        remoteName.setShowIfCondition(new FormItemIfFunction() {
+
+            @Override
+            public boolean execute(FormItem item, Object value, DynamicForm form) {
+                boolean isLocal = value == null;
+                password.setVisible(isLocal);
+                if (form.getFocusItem() == password) {
+                    form.focusInNextTabElement();
+                }
+                password.setCanFocus(isLocal);
+                return !isLocal;
+            }
+        });
+        TextItem remoteType = new TextItem(UserResourceApi.USER_REMOTETYPE);
+        remoteType.setReadOnlyDisplay(ReadOnlyDisplayAppearance.STATIC);
+        remoteType.setShowIfCondition(new FormItemIfFunction() {
+
+            @Override
+            public boolean execute(FormItem item, Object value, DynamicForm form) {
+                return value != null;
+            }
+        });
+        TextItem home = new TextItem(UserResourceApi.USER_HOME);
+        home.setColSpan("*");
+        home.setWidth(300);
+        home.setEndRow(true);
+        form.setCanSubmit(false);
+        SubmitItem submit = new SubmitItem();
+        submit.setTitle(i18n.UsersView_UserForm_Submit_Title());
+        submit.setEndRow(false);
+        submit.setStartRow(false);
+        CancelItem cancel = new CancelItem("cancel", i18n.UsersView_UserForm_Cancel_Title());
+        cancel.setStartRow(false);
+
+        form.setFields(username, password, forename, surname, email,
+                remoteName, remoteType, home,
+                new RowSpacerItem(), submit, cancel);
+
         return form;
     }
 
@@ -242,6 +285,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         }
 
         window.show();
+        form.focusInItem(0);
     }
 
     private void closeEditor() {
