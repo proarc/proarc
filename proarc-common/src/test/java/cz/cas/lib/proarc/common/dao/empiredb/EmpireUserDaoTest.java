@@ -215,10 +215,19 @@ public class EmpireUserDaoTest {
         assertEquals("digest2", result.getUserPasswordDigest());
 
         user.setForename(null);
+        // null passwd digest does not change password
+        user.setUserPasswordDigest(null);
         dao.update(user);
         assertNull(user.getForename());
+        assertEquals("digest2", user.getUserPasswordDigest());
         result = dao.find(1);
         assertNull(result.getForename());
+        assertEquals("digest2", result.getUserPasswordDigest());
+
+        // "" passwd digest does change password
+        user.setUserPasswordDigest("");
+        dao.update(user);
+        assertNull(user.getUserPasswordDigest());
     }
 
 }

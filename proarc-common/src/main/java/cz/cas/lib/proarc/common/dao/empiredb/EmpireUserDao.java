@@ -21,8 +21,11 @@ import cz.cas.lib.proarc.common.dao.UserDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.UserTable;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.apache.empire.data.Column;
 import org.apache.empire.data.bean.BeanResult;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBRecord;
@@ -60,10 +63,15 @@ public class EmpireUserDao extends EmpireDao implements UserDao {
                 }
                 user.setTimestamp(now);
                 dbr.setValue(table.timestamp, now);
+                dbr.setBeanValues(user);
             } else {
                 dbr.read(table, new Object[] {user.getId()}, getConnection());
+                // null passwd digest cannot replace existing value; use "" to clear passwd
+                Collection<Column> ignore = user.getUserPasswordDigest() == null
+                        ? Arrays.<Column>asList(table.passwd) : null;
+                dbr.setBeanValues(user, ignore);
             }
-            dbr.setBeanValues(user);
+
             try {
                 dbr.update(getConnection());
             } catch (RecordUpdateInvalidException ex) {
