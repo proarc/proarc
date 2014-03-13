@@ -77,6 +77,7 @@ import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace.Type;
 import cz.cas.lib.proarc.webapp.client.presenter.UserManaging.UsersPlace;
 import cz.cas.lib.proarc.webapp.client.widget.AboutWindow;
 import cz.cas.lib.proarc.webapp.client.widget.LoginWindow;
+import cz.cas.lib.proarc.webapp.client.widget.UserInfoView;
 import cz.cas.lib.proarc.webapp.client.widget.UsersView;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -294,12 +295,15 @@ public class Editor implements EntryPoint {
     }
 
     private Canvas createUserLink(final ToolStrip mainHeader, final int index) {
+        final UserInfoView userInfoView = new UserInfoView(i18n);
+        final IconButton userButtonRef[] = new IconButton[1];
         final IconButton userButton = Actions.asIconButton(new AbstractAction(null, null, null) {
             @Override
             public void performAction(ActionEvent event) {
-                // XXX show profile, change password?, logout
+                userInfoView.show(userButtonRef[0], "bottom", true);
             }
         }, this);
+        userButtonRef[0] = userButton;
         userButton.setCanFocus(Boolean.FALSE);
 
         UserDataSource.getInstance().fetchData(new Criteria(UserDataSource.FIELD_WHOAMI, "true"), new DSCallback() {
