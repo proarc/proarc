@@ -41,6 +41,8 @@ import org.junit.rules.TemporaryFolder;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.info.Info;
 
@@ -69,11 +71,11 @@ public class MetsUtilsTest {
      *
      */
     private void initTestElements() {
-        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph.zip", "monograph", 6, 15, 5, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
+        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph.zip", "monograph", 6, 23, 4, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
         this.testElements.add(monografieTestElement);
-        MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum.zip", "periodikum", 42, 323, 5, "periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
+        MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum.zip", "periodikum", 42, 348, 5, "periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
         this.testElements.add(periodikumTestElement);
-        MetsExportTestElement periodikumPageTestElement = new MetsExportTestElement("periodikum.zip", "periodikumPage", 7, 39, 5, "periodical", "b46aff0e-26af-11e3-88e3-001b63bd97ba.xml");
+        MetsExportTestElement periodikumPageTestElement = new MetsExportTestElement("periodikum.zip", "periodikumPage", 7, 50, 5, "periodical", "b46aff0e-26af-11e3-88e3-001b63bd97ba.xml");
         this.testElements.add(periodikumPageTestElement);
     }
 
@@ -93,8 +95,8 @@ public class MetsUtilsTest {
      */
     @Test
     public void getModNameTest() throws Exception {
-        String modName = MetsUtils.getModName(Const.PERIODICAL_VOLUME);
-        assertEquals(modName, "VOLUME");
+        String modName = Const.typeNameMap.get(Const.PERIODICAL_VOLUME);
+        assertEquals(modName, Const.VOLUME);
     }
 
     /**
@@ -115,6 +117,7 @@ public class MetsUtilsTest {
         try {
             FileOutputStream fos = new FileOutputStream(zipFile);
             MetsUtils.copyStream(is, fos);
+            fos.close();
             ZipFile zip = new ZipFile(zipFile);
             zip.extractAll(destination.getAbsolutePath());
         } catch (Exception ex) {
@@ -146,35 +149,39 @@ public class MetsUtilsTest {
      *
      * @throws Exception
      */
-    // @Test
-    // public void saveMetsTest() throws Exception {
-    // for (MetsExportTestElement testElement : testElements) {
-    // copyFiles(testElement);
-    // String sourceDirPath = tmp.getRoot().getAbsolutePath() + File.separator +
-    // testElement.getDirectory() + File.separator;
-    // File resultDir = tmp.newFolder("result" + testElement.getDirectory());
-    // String path = sourceDirPath + testElement.getInitialDocument();
-    // DigitalObject dbObj = MetsUtils.readFoXML(path);
-    // MetsInfo metsInfo = new MetsEntity(dbObj, sourceDirPath, "SAMPLE",
-    // parents);
-    // metsInfo.insertIntoMets(resultDir.getAbsolutePath(), true);
-    // metsInfo.save();
-    // File infoFile = new File(resultDir.getAbsolutePath() + File.separator +
-    // "info.xml");
-    // JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
-    // Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-    // Info info = (Info) unmarshaller.unmarshal(infoFile);
-    // assertEquals(testElement.getTotalItems(),
-    // info.getItemlist().getItemtotal().intValue());
-    // assertEquals(testElement.getSize(), info.getSize());
-    // File metsFile = new File(resultDir.getAbsolutePath() + File.separator +
-    // "METS_SAMPLE.xml");
-    // JAXBContext jaxbContextMets = JAXBContext.newInstance(Mets.class);
-    // Unmarshaller unmarshallerMets = jaxbContextMets.createUnmarshaller();
-    // Mets mets = (Mets) unmarshallerMets.unmarshal(metsFile);
-    // assertEquals(testElement.getNumberOfFiles(),
-    // mets.getFileSec().getFileGrp().size());
-    // assertEquals(testElement.getType(), mets.getTYPE());
-    // }
-    // }
+    @Test
+    public void saveMetsTest() throws Exception {
+        for (MetsExportTestElement testElement : testElements) {
+            copyFiles(testElement);
+            String sourceDirPath = tmp.getRoot().getAbsolutePath() + File.separator +
+                    testElement.getDirectory() + File.separator;
+            File resultDir = tmp.newFolder("result" + testElement.getDirectory());
+            String path = sourceDirPath + testElement.getInitialDocument();
+            DigitalObject dbObj = MetsUtils.readFoXML(path);
+            MetsContext context = new MetsContext();
+            context.setPath(sourceDirPath);
+            context.setFsParentMap(parents);
+            context.setOutputPath(resultDir.getAbsolutePath());
+            context.setPackageID("SAMPLE");
+            MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
+            MetsElementVisitor visitor = new MetsElementVisitor();
+            metsElement.accept(visitor);
+            File infoFile = new File(resultDir.getAbsolutePath() + File.separator +
+                    "info.xml");
+            JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
+            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            Info info = (Info) unmarshaller.unmarshal(infoFile);
+            assertEquals(testElement.getTotalItems(),
+                    info.getItemlist().getItemtotal().intValue());
+            assertEquals(testElement.getSize(), info.getSize());
+            File metsFile = new File(resultDir.getAbsolutePath() + File.separator +
+                    "METS_SAMPLE.xml");
+            JAXBContext jaxbContextMets = JAXBContext.newInstance(Mets.class);
+            Unmarshaller unmarshallerMets = jaxbContextMets.createUnmarshaller();
+            Mets mets = (Mets) unmarshallerMets.unmarshal(metsFile);
+            assertEquals(testElement.getNumberOfFiles(),
+                    mets.getFileSec().getFileGrp().size());
+            assertEquals(testElement.getType(), mets.getTYPE());
+        }
+    }
 }

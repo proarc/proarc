@@ -28,7 +28,6 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -80,9 +79,6 @@ import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.mets.DivType;
-import cz.cas.lib.proarc.mets.MdSecType;
-import cz.cas.lib.proarc.mets.MdSecType.MdWrap;
-import cz.cas.lib.proarc.mets.MdSecType.MdWrap.XmlData;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsType.FileSec;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
@@ -101,8 +97,6 @@ import cz.cas.lib.proarc.mets.info.Info.Titleid;
 public class MetsUtils {
 
     private static Logger LOG = Logger.getLogger(MetsUtils.class.getName());
-    private static HashMap<String, String> typeMap = new HashMap<String, String>();
-    private static HashMap<String, String> modMap = new HashMap<String, String>();
     private static Properties mimeToExtension = new Properties();
 
     /**
@@ -120,57 +114,6 @@ public class MetsUtils {
             }
         }
         return mimeToExtension;
-    }
-
-    static {
-        typeMap.put("info:fedora/model:periodicalvolume", Const.PERIODICAL_VOLUME);
-        typeMap.put("info:fedora/model:page", Const.PAGE);
-        typeMap.put("info:fedora/model:periodical", Const.PERIODICAL_TITLE);
-        typeMap.put("info:fedora/model:monograph", Const.VOLUME);
-        typeMap.put("info:fedora/model:picture", Const.PICTURE);
-        typeMap.put("info:fedora/model:article", Const.ARTICLE);
-        typeMap.put("info:fedora/model:periodicalitem", Const.ISSUE);
-        typeMap.put("info:fedora/model:monographunit", Const.MONOGRAPH_UNIT);
-
-        modMap.put(Const.PERIODICAL_VOLUME, "VOLUME");
-        modMap.put(Const.PERIODICAL_TITLE, "TITLE");
-        modMap.put(Const.ARTICLE, "ART");
-        modMap.put(Const.PICTURE, "PICT");
-        modMap.put(Const.MONOGRAPH_UNIT, "VOLUME");
-        modMap.put(Const.ISSUE, "ISSUE");
-        modMap.put(Const.VOLUME, "VOLUME");
-        modMap.put(Const.PAGE, "PAGE");
-    }
-
-    /**
-     *
-     * Method used for retrieving a document type from the rels-ext stream
-     *
-     * @param relExtStream
-     * @return
-     */
-    public static String getTypeModel(List<Element> relExtStream) throws MetsExportException {
-        String result = typeMap.get(MetsUtils.getModel(relExtStream));
-        if (result == null) {
-            throw new MetsExportException("Unknown model:" + MetsUtils.getModel(relExtStream));
-        }
-        return result;
-    }
-
-    /**
-     *
-     * Method used for retrieving the name of the mod element for selected
-     * document type
-     *
-     * @param type
-     * @return
-     */
-    public static String getModName(String type) throws MetsExportException {
-        String result = modMap.get(type);
-        if (result == null) {
-            throw new MetsExportException("Unknown mod type:" + type);
-        }
-        return result;
     }
 
     /**
@@ -456,6 +399,16 @@ public class MetsUtils {
         is.close();
     }
 
+    /**
+     *
+     * Returns the byteArray of the specified datastream from fedora
+     *
+     * @param fedoraClient
+     * @param pid
+     * @param streamName
+     * @return
+     * @throws MetsExportException
+     */
     public static byte[] getBinaryDataStreams(FedoraClient fedoraClient, String pid, String streamName) throws MetsExportException {
         try {
             FedoraResponse response = FedoraClient.getDatastreamDissemination(pid, streamName).execute(fedoraClient);
@@ -765,8 +718,6 @@ public class MetsUtils {
                 Marshaller marshaller = jaxbContext.createMarshaller();
                 marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
                 marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-                // marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper",
-                // new NamespacePrefixMapperImpl());
                 marshaller.marshal(infoJaxb, infoFile);
             } catch (Exception ex) {
                 throw new MetsExportException("Error while generating info.xml", false, ex);
@@ -816,19 +767,6 @@ public class MetsUtils {
         String fileNameInternal = path + fileName.substring(fileName.lastIndexOf(":") + 1) + ".xml";
         DigitalObject object = readFoXML(fileNameInternal);
         return object;
-    }
-
-    public static MdSecType createMdSec(String ID, String type, String mime, Collection<? extends Object> xmlData) {
-        MdSecType typeMods = new MdSecType();
-        typeMods.setID(ID);
-        MdWrap mdWrap = new MdWrap();
-        mdWrap.setMDTYPE(type);
-        mdWrap.setMIMETYPE(mime);
-        typeMods.setMdWrap(mdWrap);
-        XmlData xmlDataElement = new XmlData();
-        xmlDataElement.getAny().addAll(xmlData);
-        mdWrap.setXmlData(xmlDataElement);
-        return typeMods;
     }
 
     /**

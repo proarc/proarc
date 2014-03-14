@@ -88,7 +88,7 @@ public class Const {
         typeNameMap.put(PERIODICAL_TITLE, TITLE);
         typeNameMap.put(PAGE, PAGE);
         typeNameMap.put(MONOGRAPH, VOLUME);
-        typeNameMap.put(MONOGRAPH_UNIT, MONOGRAPH_UNIT);
+        typeNameMap.put(MONOGRAPH_UNIT, VOLUME);
         typeNameMap.put(PICTURE, PICTURE);
         typeNameMap.put(ARTICLE, ARTICLE);
 

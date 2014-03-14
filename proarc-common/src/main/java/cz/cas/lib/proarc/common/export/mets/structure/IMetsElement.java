@@ -40,6 +40,13 @@ import cz.cas.lib.proarc.mets.MdSecType;
 public interface IMetsElement {
 
     /**
+     * Sets the modsElementID
+     *
+     * @param modsElementID
+     */
+    public void setModsElementID(String modsElementID);
+
+    /**
      * Returns the altoFile
      *
      * @return

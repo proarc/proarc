@@ -123,7 +123,12 @@ public class MetsElement implements IMetsElement {
 
     private final String elementType;
     private final String elementID;
-    private final String modsElementID;
+    private String modsElementID;
+
+    @Override
+    public void setModsElementID(String modsElementID) {
+        this.modsElementID = modsElementID;
+    }
 
     /*
      * (non-Javadoc)
