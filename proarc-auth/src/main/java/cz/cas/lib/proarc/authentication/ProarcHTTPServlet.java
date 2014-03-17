@@ -17,10 +17,8 @@
 package cz.cas.lib.proarc.authentication;
 
 import cz.cas.lib.proarc.authentication.desa.DESAAuthenticator;
-import cz.cas.lib.proarc.authentication.proarc.ProArcAuthenticator;
 import cz.cas.lib.proarc.authentication.utils.AuthUtils;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -36,15 +34,6 @@ import javax.servlet.http.HttpSession;
  * @author pavels
  */
 public class ProarcHTTPServlet extends HttpServlet {
-
-    protected ChainAuthenticator chain;
-
-    @Override
-    public void init() throws ServletException {
-        super.init();
-        this.chain = new ChainAuthenticator(Arrays.asList(
-                new DESAAuthenticator(), new ProArcAuthenticator()));
-    }
 
     /**
      * The login post method.
@@ -64,7 +53,8 @@ public class ProarcHTTPServlet extends HttpServlet {
         
         ProarcPrincipal proarcPrincipal = new ProarcPrincipal(username);
         ServletOutputStream outputStream = resp.getOutputStream();
-        if (this.chain.authenticate(loginProperties, req, resp, proarcPrincipal)) {
+        ChainAuthenticator chain = new ChainAuthenticator(Authenticators.getInstance().getAuthenticators());
+        if (chain.authenticate(loginProperties, req, resp, proarcPrincipal)) {
             // store principal to session    
             req.getSession(true).setAttribute(ProarcAuthFilter.SESSION_KEY,proarcPrincipal);
             AuthUtils.setLoginSuccesResponse(resp);

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.authentication.utils;
 
+import cz.cas.lib.proarc.authentication.Authenticators;
 import cz.cas.lib.proarc.authentication.ProarcAuthFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,12 +31,20 @@ import org.apache.commons.io.IOUtils;
 public final class AuthUtils {
 
     /**
-     * Writes authentication required status to the HTTP response.
+     * The HTTP header in unauthorized response to choose a login form/type on client.
+     * Expect values like proarc, desa, ....
+     */
+    public static final String HEADER_AUTHENTICATE_TYPE = "ProArc-Authenticate";
+
+    /**
+     * Writes the authentication required status to the HTTP response.
      * @param response response
      * @throws IOException failure
+     * @see #HEADER_AUTHENTICATE_TYPE
      * @see <a href='http://www.smartclient.com/smartgwt/javadoc/com/smartgwt/client/docs/Relogin.html'>SmartGWT Relogin</a>
      */
     public static void setLoginRequiredResponse(HttpServletResponse response) throws IOException {
+        response.setHeader(HEADER_AUTHENTICATE_TYPE, Authenticators.getInstance().getLoginType());
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.TEXT_HTML);
         InputStream res = ProarcAuthFilter.class.getResourceAsStream("loginRequiredMarker.html");
@@ -48,7 +57,7 @@ public final class AuthUtils {
     }
 
     /**
-     * Writes authentication OK status to the HTTP response.
+     * Writes the authentication OK status to the HTTP response.
      * @param response response
      * @throws IOException failure
      * @see <a href='http://www.smartclient.com/smartgwt/javadoc/com/smartgwt/client/docs/Relogin.html'>SmartGWT Relogin</a>
@@ -64,4 +73,5 @@ public final class AuthUtils {
             IOUtils.closeQuietly(res);
         }
     }
+
 }

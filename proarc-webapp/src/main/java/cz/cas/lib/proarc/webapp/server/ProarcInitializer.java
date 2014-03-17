@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server;
 
+import cz.cas.lib.proarc.authentication.Authenticators;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -94,6 +95,7 @@ public final class ProarcInitializer {
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 config, ImportBatchManager.getInstance(), null,
                 MetaModelRepository.getInstance(), UserUtil.getDefaultManger()));
+        Authenticators.setInstance(new Authenticators(config.getAuthenticators()));
         asyncTask = executor.submit(new Callable<Void>() {
 
             @Override

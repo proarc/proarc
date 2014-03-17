@@ -118,6 +118,10 @@ public final class AppConfiguration {
         return Kramerius4ExportOptions.from(config);
     }
 
+    public Configuration getAuthenticators() {
+        return config;
+    }
+
     public DesaServices getDesaServices() {
         return new DesaServices(config);
     }

@@ -77,23 +77,13 @@ public final class LoginWindow {
         reloginCallback();
     }
 
-    private void showWindow() {
+    private void showWindow(Object loginType) {
         if (window == null) {
-            VLayout container = new VLayout();
-            container.setMembers(form, createButtons());
-            container.setMargin(15);
-            window = new Window();
-            window.setAutoCenter(true);
-            window.setAutoSize(true);
-            window.setIsModal(true);
-            window.addItem(container);
-            window.setTitle(i18nSgwt.dialog_LoginTitle());
-            window.setShowCloseButton(false);
-            window.setShowMinimizeButton(false);
-            window.setKeepInParentRect(true);
-            window.setShowModalMask(true);
-            window.setCanDragReposition(false);
+            window = createWindow(form);
             form.focusInItem(USERNAME);
+        } else if (window.isVisible()) {
+            // ignore subsequent requests after the session timeout detection
+            return ;
         }
         window.show();
         form.clearErrors(true);
@@ -107,6 +97,30 @@ public final class LoginWindow {
             form.clearValue(PASSWORD);
             form.focusInItem(PASSWORD);
         }
+        if ("desa".equals(loginType)) {
+            form.getField(PRODUCER_CODE).setVisible(true);
+        } else {
+            form.getField(PRODUCER_CODE).clearValue();
+            form.getField(PRODUCER_CODE).setVisible(false);
+        }
+    }
+
+    private Window createWindow(DynamicForm form) {
+        VLayout container = new VLayout();
+        container.setMembers(form, createButtons());
+        container.setMargin(15);
+        Window window = new Window();
+        window.setAutoCenter(true);
+        window.setAutoSize(true);
+        window.setIsModal(true);
+        window.addItem(container);
+        window.setTitle(i18nSgwt.dialog_LoginTitle());
+        window.setShowCloseButton(false);
+        window.setShowMinimizeButton(false);
+        window.setKeepInParentRect(true);
+        window.setShowModalMask(true);
+        window.setCanDragReposition(false);
+        return window;
     }
 
     private DynamicForm createForm() {
@@ -193,7 +207,6 @@ public final class LoginWindow {
 
             @Override
             public void execute(RPCResponse response, Object rawData, RPCRequest request) {
-                response.getHttpResponseCode();
                 if (response.getHttpResponseCode() == 200) {
                     finish();
                     RPCManager.resendTransaction();
@@ -216,7 +229,9 @@ public final class LoginWindow {
                         com.smartgwt.client.rpc.RPCRequest rpcRequest,
                         RPCResponse rpcResponse) {
 
-                    showWindow();
+                    Map httpHeaders = rpcResponse.getHttpHeaders();
+                    Object loginType = httpHeaders.get("ProArc-Authenticate");
+                    showWindow(loginType);
                 }
         });
     }
