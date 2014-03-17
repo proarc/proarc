@@ -49,9 +49,14 @@ import org.codehaus.jackson.map.ObjectMapper;
  */
 public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsType> {
 
+    /**
+     * The plugin ID.
+     */
+    public static final String ID = "ndk";
+
     @Override
     public String getId() {
-        return "ndk";
+        return ID;
     }
 
     @Override

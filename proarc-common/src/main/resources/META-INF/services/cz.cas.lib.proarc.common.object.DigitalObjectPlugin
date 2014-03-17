@@ -1,0 +1,5 @@
+# Registrations of digital object plugins
+
+cz.cas.lib.proarc.common.object.DerDesaPlugin
+cz.cas.lib.proarc.common.object.DesDesaPlugin
+cz.cas.lib.proarc.common.object.NdkPlugin

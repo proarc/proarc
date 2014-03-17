@@ -17,10 +17,11 @@
 package cz.cas.lib.proarc.common.object.model;
 
 import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
-import cz.cas.lib.proarc.common.object.NdkPlugin;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,27 +34,36 @@ import java.util.logging.Logger;
  */
 public final class MetaModelRepository {
 
+    private static final Logger LOG = Logger.getLogger(MetaModelRepository.class.getName());
     private static MetaModelRepository INSTANCE;
 
     private final Collection<MetaModel> repository;
 
-    public static void setInstance(String[] plugins) {
+    /**
+     * Creates the repository for digital object plugins.
+     * @param pluginIds
+     */
+    public static void setInstance(String[] pluginIds) {
         MetaModelRepository mmr = new MetaModelRepository();
-        for (String pluginClass : plugins) {
-            try {
-                Class<?> clazz = mmr.getClass().getClassLoader().loadClass(pluginClass);
-                DigitalObjectPlugin plugin = (DigitalObjectPlugin) clazz.newInstance();
-                mmr.registerModels(plugin.getModel());
-            } catch (Exception ex) {
-                Logger.getLogger(MetaModelRepository.class.getName()).log(Level.SEVERE, pluginClass, ex);
+        ServiceLoader<DigitalObjectPlugin> pluginLoader = ServiceLoader.load(DigitalObjectPlugin.class);
+        HashMap<String, DigitalObjectPlugin> pluginMap = new HashMap<String, DigitalObjectPlugin>();
+        for (DigitalObjectPlugin plugin : pluginLoader) {
+            LOG.log(Level.FINE, "ID: {0}, class: {1}", new Object[]{plugin.getId(), plugin.getClass()});
+            DigitalObjectPlugin duplicate = pluginMap.put(plugin.getId(), plugin);
+            if (duplicate != null) {
+                LOG.warning(String.format("Duplicate plugin ID: %s, %s, %s", plugin.getId(), duplicate.getClass(), plugin.getClass()));
             }
+        }
+        for (String pluginId : pluginIds) {
+            DigitalObjectPlugin plugin = pluginMap.get(pluginId);
+            mmr.registerModels(plugin.getModel());
         }
         INSTANCE = mmr;
     }
 
     public static MetaModelRepository getInstance() {
         if (INSTANCE == null) {
-            setInstance(new String[] {NdkPlugin.class.getName()});
+            throw new IllegalStateException("set instance first!");
         }
         return INSTANCE;
     }
