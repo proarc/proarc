@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<xs:schema targetNamespace="http://www.w3.org/XML/1998/namespace" xmlns:xs="http://www.w3.org/2001/XMLSchema" xml:lang="en">
+<xs:schema targetNamespace="http://www.w3.org/XML/1998/namespace" xmlns:xs="http://www.w3.org/2001/XMLSchema" xml:lang="en"
+        xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="2.0">
 
  <xs:annotation>
   <xs:documentation>
@@ -93,6 +94,9 @@
 
  <xs:attribute name="lang">
   <xs:annotation>
+                <xs:appinfo>
+                    <jxb:property name="xmlLang"/>
+                </xs:appinfo>
    <xs:documentation>Attempting to install the relevant ISO 2- and 3-letter
          codes as the enumerated possible values is probably never
          going to be a realistic possibility.  See
