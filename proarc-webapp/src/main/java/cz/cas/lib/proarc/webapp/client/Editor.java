@@ -341,7 +341,9 @@ public class Editor implements EntryPoint {
 
             @Override
             public void performAction(ActionEvent event) {
-                menuWindow.showNextTo(globalMenuButton[0], "bottom", true);
+                // canOcclude not fully supported in SmartGWT 4.0; introduce by patch 4.0-p; do not use yet
+//                menuWindow.showNextTo(globalMenuButton[0], "bottom", true);
+                menuWindow.showNextTo(globalMenuButton[0], "bottom");
                 menuWindow.showClickMask(new Function() {
 
                     @Override

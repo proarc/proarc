@@ -84,7 +84,9 @@ public class UserInfoView {
 
     public void show(Canvas otherWidget, String side, boolean canOcclude) {
         form.clearErrors(true);
-        widget.showNextTo(otherWidget, side, canOcclude);
+        // canOcclude not fully supported in SmartGWT 4.0; introduce by patch 4.0-p; do not use yet
+//        widget.showNextTo(otherWidget, side, canOcclude);
+        widget.showNextTo(otherWidget, side);
         widget.showClickMask(new Function() {
 
             @Override
