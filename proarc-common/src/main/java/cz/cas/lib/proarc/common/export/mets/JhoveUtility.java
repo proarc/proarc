@@ -86,7 +86,6 @@ public class JhoveUtility {
             metsContext.jhoveApp = app;
             metsContext.jhoveConfig = jhoveConfigFile.getParent();
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Error while initialising jHove", ex);
             throw new MetsExportException("Error while initialising jHove", false, ex);
         }
     }
