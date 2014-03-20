@@ -431,6 +431,10 @@ public class Editor implements EntryPoint {
         return menu;
     }
 
+    public boolean hasPermission(String permission) {
+        return permissions.contains(permission);
+    }
+
     private boolean checkCredentials(List<String> requires) {
         if (requires != null && !permissions.containsAll(requires)) {
             return true;
