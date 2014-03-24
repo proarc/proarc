@@ -73,6 +73,9 @@ public class FormGenerator {
     public FormGenerator(Form f, String activeLocale) {
         this.formDeclaration = f;
         this.activeLocale = activeLocale;
+        if (f.getItemWidth() != null) {
+            defaultWidth = f.getItemWidth();
+        }
     }
 
     /**
@@ -197,7 +200,7 @@ public class FormGenerator {
     public AutoFitTextAreaItem getTextAreaFormItem(Field f, String lang) {
         AutoFitTextAreaItem item = new AutoFitTextAreaItem(f.getName(), f.getTitle(activeLocale));
         item.setLength(f.getLength());
-        item.setWidth("*");
+        item.setWidth(defaultWidth);
         return item;
     }
 
