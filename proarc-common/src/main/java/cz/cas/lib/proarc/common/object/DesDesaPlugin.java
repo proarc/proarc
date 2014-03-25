@@ -335,7 +335,7 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
             } else if (MODEL_INTERNAL_RECORD.equals(modelId)) {
                 return mapper.fillDefaults(NsesssUtils.defaultInternalDokument(), true, nsesssId());
             } else if (MODEL_EXTERNAL_RECORD.equals(modelId)) {
-                return mapper.fillDefaults(NsesssUtils.defaultExternalDocument(), true, nsesssId());
+                return mapper.fillDefaults(NsesssUtils.defaultExternalDocument(), false, nsesssId());
             }
             throw new DigitalObjectException(fobject.getPid(), null,
                     DESCRIPTION_DATASTREAM_ID, "Unknown model: " + modelId, null);
