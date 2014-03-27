@@ -124,7 +124,7 @@ public class DesForms {
                             .addField(new FieldBuilder("value").setTitle("Datum otevření spisu").setMaxOccurrences(1).setType(DATE).setRequired(true).createField())
                         .createField()) // DatumOtevreni
                         .addField(new FieldBuilder("DatumUzavreni").setMaxOccurrences(1)
-                            .addField(new FieldBuilder("value").setTitle("Datum uzavření spisu").setMaxOccurrences(1).setType(DATE).createField())
+                            .addField(new FieldBuilder("value").setTitle("Datum uzavření spisu").setMaxOccurrences(1).setType(DATE).setRequired(true).createField())
                         .createField()) // DatumUzavreni
                     .createField()) // Manipulace
 
