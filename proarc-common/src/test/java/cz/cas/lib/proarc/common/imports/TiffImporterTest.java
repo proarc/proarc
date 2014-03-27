@@ -33,9 +33,8 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +43,7 @@ import javax.xml.XMLConstants;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import org.apache.commons.io.FileUtils;
 import org.custommonkey.xmlunit.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
@@ -69,6 +69,7 @@ public class TiffImporterTest {
     
     private File tiff1;
     private File ocr1;
+    private File alto1;
     private AppConfiguration config;
     private ArrayList<Object> toVerify = new ArrayList<Object>();;
 
@@ -89,25 +90,17 @@ public class TiffImporterTest {
         System.out.println("root: " + root.toString());
         tiff1 = new File(root, "img1.tiff");
 
-        FileOutputStream os = new FileOutputStream(tiff1);
-        InputStream is = TiffImporterTest.class.getResourceAsStream("testscan-lzw.tiff");
-//        InputStream is = TiffImporterTest.class.getResourceAsStream("testscan.tiff");
-        try {
-            byte[] buf = new byte[2048];
-            for (int i = is.read(buf); i >= 0; i = is.read(buf)) {
-                os.write(buf, 0, i);
-            }
-        } finally {
-            os.flush();
-            os.close();
-            is.close();
-        }
+        URL resource = TiffImporterTest.class.getResource("testscan-lzw.tiff");
+        FileUtils.copyURLToFile(resource, tiff1);
         assertTrue(tiff1.length() > 0);
 
         ocr1 = new File(root, "img1.ocr.txt");
-        FileOutputStream fosOcr = new FileOutputStream(ocr1);
-        fosOcr.write("test".getBytes());
-        fosOcr.close();
+        FileUtils.writeStringToFile(ocr1, "test", "UTF-8");
+
+        alto1 = new File(root, "img1.ocr.xml");
+        FileUtils.writeStringToFile(alto1,
+                "<alto xmlns=\"http://www.loc.gov/standards/alto/ns-v2#\"></alto>",
+                "UTF-8");
 
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
@@ -137,7 +130,7 @@ public class TiffImporterTest {
         batch.setId(1);
         batch.setFolder(ibm.relativizeBatchFile(tiff1.getParentFile()));
         ctx.setBatch(batch);
-        FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1, ocr1)).get(0);
+        FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1, ocr1, alto1)).get(0);
 
         TiffImporter instance = new TiffImporter(ibm);
         BatchItemObject result = instance.consume(fileSet, ctx);
@@ -169,13 +162,14 @@ public class TiffImporterTest {
         foxmlXsd.newValidator().validate(new StreamSource(foxml));
 
         // check datastreams with xpath
-        HashMap namespaces = new HashMap();
+        HashMap<String, String> namespaces = new HashMap<String, String>();
         namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
         XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
         String foxmlSystemId = foxml.toURI().toASCIIString();
         XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(DcStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(StringEditor.OCR_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(AltoDatastream.ALTO_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(RelationEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.FULL_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.PREVIEW_ID), new InputSource(foxmlSystemId));

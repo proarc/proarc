@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
@@ -42,6 +43,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.channels.FileChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -160,6 +162,7 @@ public final class TiffImporter {
             throws IOException, DigitalObjectException {
 
         // XXX find filename.ocr.txt or generate OCR or nothing
+        // plain text OCR
         File tempBatchFolder = options.getTargetFolder();
         String originalFilename = fileSet.getName();
         ImportProfile config = options.getConfig();
@@ -169,6 +172,12 @@ public final class TiffImporter {
             StringEditor.copy(ocrEntry.getFile(), config.getPlainOcrCharset(), ocrFile, "UTF-8");
             XmlStreamEditor ocrEditor = fo.getEditor(StringEditor.ocrProfile());
             ocrEditor.write(ocrFile.toURI(), 0, null);
+        }
+        // ALTO OCR
+        FileEntry altoEntry = findOcr(fileSet, config.getAltoFileSuffix());
+        if (altoEntry != null) {
+            URI altoUri = altoEntry.getFile().toURI();
+            AltoDatastream.importAlto(fo, altoUri, null);
         }
     }
 

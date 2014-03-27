@@ -38,6 +38,7 @@ public final class ImportProfile {
     public static final String THUMBNAIL_JAVA_SCALING = "import.image.thumbnail.java.scalingMethod";
     public static final String PLAIN_OCR_CHARSET = "import.text_ocr.file.charset";
     public static final String PLAIN_OCR_SUFFIX = "import.text_ocr.file.suffix";
+    public static final String ALTO_SUFFIX = "import.alto.file.suffix";
 
     private final Configuration config;
 
@@ -52,6 +53,11 @@ public final class ImportProfile {
 
     public String getPlainOcrFileSuffix() {
         String suffix = config.getString(PLAIN_OCR_SUFFIX, ".ocr.txt");
+        return suffix.toLowerCase();
+    }
+
+    public String getAltoFileSuffix() {
+        String suffix = config.getString(ALTO_SUFFIX, ".ocr.xml");
         return suffix.toLowerCase();
     }
 
