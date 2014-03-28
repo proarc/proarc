@@ -9,21 +9,21 @@
   <attribute name="show">
     <simpleType>
       <restriction base="string">
-	<enumeration value="new" /> 
-	<enumeration value="replace" /> 
-	<enumeration value="embed" /> 
-	<enumeration value="other" /> 
-	<enumeration value="none" /> 
+        <enumeration value="new" />
+        <enumeration value="replace" />
+        <enumeration value="embed" />
+        <enumeration value="other" />
+        <enumeration value="none" />
       </restriction>
     </simpleType>
   </attribute>
   <attribute name="actuate">
     <simpleType>
       <restriction base="string">
-	<enumeration value="onLoad" /> 
-	<enumeration value="onRequest" /> 
-	<enumeration value="other" /> 
-	<enumeration value="none" /> 
+        <enumeration value="onLoad" />
+        <enumeration value="onRequest" />
+        <enumeration value="other" />
+        <enumeration value="none" />
       </restriction>
     </simpleType>
   </attribute>
