@@ -217,25 +217,6 @@ public class DesaElementVisitor implements IDesaElementVisitor {
     }
 
     /**
-     * Deletes a folder
-     *
-     * @param folder
-     */
-    private static void deleteFolder(File folder) {
-        File[] files = folder.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                if (f.isDirectory()) {
-                    deleteFolder(f);
-                } else {
-                    f.delete();
-                }
-            }
-        }
-        folder.delete();
-    }
-
-    /**
      * Prepares the generic mets information
      *
      * @param desaElement
@@ -478,7 +459,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             String zipFileName = desaElement.getDesaContext().getOutputPath() + File.separator + desaElement.getZipName() + ".zip";
             zip(zipFileName, fileList, desaElement);
         } finally {
-            deleteFolder(tmpFolder);
+            MetsUtils.deleteFolder(tmpFolder);
         }
         LOG.fine("Document successfuly exported");
     }
@@ -522,7 +503,7 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             fileList.add(outputMets);
             zip(zipFileName, fileList, desaElement);
         } finally {
-            deleteFolder(tmpFolder);
+            MetsUtils.deleteFolder(tmpFolder);
         }
 
         LOG.fine("Folder successfuly exported");

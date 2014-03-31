@@ -673,6 +673,7 @@ public class MetsUtils {
         return output;
     }
 
+
     /**
      *
      * Generates and saves info.xml
@@ -681,7 +682,7 @@ public class MetsUtils {
      * @param mets
      */
     public static void saveInfoFile(String path, MetsContext metsContext, String md5, String fileMd5Name, long fileSize) throws MetsExportException {
-        File infoFile = new File(path + File.separator + "info.xml");
+        File infoFile = new File(path + File.separator + metsContext.getPackageID() + File.separator + "info.xml");
         try {
             GregorianCalendar c = new GregorianCalendar();
             c.setTime(new Date());
@@ -793,6 +794,32 @@ public class MetsUtils {
         }
         byte[] digest = md.digest();
         os.close();
+        is.close();
+        String result = new String(Hex.encodeHex(digest));
+        return new FileMD5Info(result, totalBytes);
+    }
+
+    /**
+     *
+     * Generates an MD5 checksum OutputStream
+     *
+     * @param is
+     * @param os
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws IOException
+     */
+    public static FileMD5Info getDigest(InputStream is) throws NoSuchAlgorithmException, IOException {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        md.reset();
+        byte[] bytes = new byte[2048];
+        int numBytes;
+        int totalBytes = 0;
+        while ((numBytes = is.read(bytes)) > 0) {
+            totalBytes += numBytes;
+            md.update(bytes, 0, numBytes);
+        }
+        byte[] digest = md.digest();
         String result = new String(Hex.encodeHex(digest));
         return new FileMD5Info(result, totalBytes);
     }
@@ -876,5 +903,24 @@ public class MetsUtils {
             throw new MetsExportException("Error while parsing document", false, e);
         }
         return document;
+    }
+
+    /**
+     * Deletes a folder
+     *
+     * @param folder
+     */
+    public static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    f.delete();
+                }
+            }
+        }
+        folder.delete();
     }
 }

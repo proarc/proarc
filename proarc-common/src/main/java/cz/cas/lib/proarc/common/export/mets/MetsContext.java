@@ -42,9 +42,7 @@ import edu.harvard.hul.ois.jhove.JhoveBase;
  * empty and fsParentMap must contain parent mappings and path is an absolute
  * path to the directory with FoXML documents
  *
- * outputPath is an absolute path where ZIP files are stored ZIP files (minimum
- * 2) - 1 descriptor for files ([PACKAGE_ID]_FILE.ZIP) and then the documents
- * ([PACKAGE_ID]_XXXX.ZIP)
+ * outputPath is an absolute path where PSP packages are stored
  *
  * @author Robert Simonovsky
  *
@@ -56,6 +54,12 @@ public class MetsContext {
     private MetsElement rootElement;
     private Map<String, String> fsParentMap;
     private String path;
+    private final List<String> generatedPSP = new ArrayList<String>();
+
+    public List<String> getGeneratedPSP() {
+        return generatedPSP;
+    }
+
     private String outputPath;
     private String packageID;
     private final MetsExportException metsExportException = new MetsExportException();

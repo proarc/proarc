@@ -135,7 +135,7 @@ public class JhoveUtility {
         URL jhoveConf = JhoveUtility.class.getResource("jhove.conf");
         URL jhoveConfXsd = JhoveUtility.class.getResource("jhoveConfig.xsd");
         try {
-            File jhoveConfFile = new File(metsContext.getOutputPath(), "jhove.conf");
+            File jhoveConfFile = new File(metsContext.getOutputPath() + File.separator + metsContext.getPackageID(), "jhove.conf");
             LOG.log(Level.FINE, "JHOVE configuration file " + jhoveConfFile);
             if (!jhoveConfFile.exists()) {
                 FileUtils.copyURLToFile(jhoveConf, jhoveConfFile);

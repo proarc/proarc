@@ -175,7 +175,7 @@ public class MetsElement implements IMetsElement {
         for (int a = 0; a < nodeList.getLength(); a++) {
             Node node = nodeList.item(a);
             if ("identifier".equalsIgnoreCase(node.getLocalName())) {
-                result.put(node.getAttributes().getNamedItem("type").getNodeValue(), node.getNodeValue());
+                result.put(node.getAttributes().getNamedItem("type").getNodeValue(), node.getTextContent());
             }
         }
         return result;

@@ -52,6 +52,11 @@ public class Const {
 
     public final static String DC_URI = "http://www.openarchives.org/OAI/2.0/oai_dc/";
     public final static String NSESSS_URI = "http://www.mvcr.cz/nsesss/v2";
+    public final static String URNNBN = "urnnbn";
+    public final static String UUID = "uuid";
+    public final static String CCNB = "ccnb";
+    public final static String ISSN = "issn";
+    public final static String ISBN = "isbn";
 
     public final static String ISSUE = "ISSUE";
     public final static String PERIODICAL_VOLUME = "PERIODICAL_VOLUME";
@@ -107,7 +112,7 @@ public class Const {
         streamMappingFile.put("MC_IMGGRP", "masterCopy");
         streamMappingFile.put("UC_IMGGRP", "userCopy");
         streamMappingFile.put("ALTOGRP", "ALTO");
-        streamMappingFile.put("TXTGRP", "txt");
+        streamMappingFile.put("TXTGRP", "TXT");
         streamMappingFile.put("TECHMDGRP", "amdSec");
     }
 }
