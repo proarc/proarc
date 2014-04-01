@@ -194,6 +194,7 @@ public class FormGenerator {
         item.setLength(f.getLength() != null ? f.getLength() : defaultTextLength);
         item.setWidth(defaultWidth);
         item.setReadOnlyDisplay(ReadOnlyDisplayAppearance.STATIC);
+        item.setDefaultValue(f.getDefaultValue());
         return item;
     }
 
@@ -238,6 +239,7 @@ public class FormGenerator {
         } else {
             item.setValueMap(f.getValueMap());
         }
+        item.setDefaultValue(f.getDefaultValue());
         return item;
     }
 
@@ -485,6 +487,7 @@ public class FormGenerator {
                 return createNestedForm(f, lang);
             }
         });
+        rfi.setPrompt(f.getHint(lang));
         oneRow(rfi);
         return rfi;
     }
