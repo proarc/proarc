@@ -17,20 +17,28 @@
 package cz.cas.lib.proarc.webapp.server;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Initializes and destroys web application
  *
  * @author Jan Pokorsky
  */
-public final class EditorServletConfiguration implements ServletContextListener {
+public final class EditorServletConfiguration implements ServletContextListener, Filter {
 
     private static final Logger LOG = Logger.getLogger(EditorServletConfiguration.class.getName());
 
@@ -60,6 +68,36 @@ public final class EditorServletConfiguration implements ServletContextListener 
             env.put(name, val);
         }
         return val;
+    }
+
+    // filter methods
+
+    @Override
+    public void init(FilterConfig fc) throws ServletException {
+    }
+
+    /**
+     * Checks whether the asynchronous initialization is done or not.
+     * @see #contextInitialized
+     */
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        // do not share fields with the servlet listener as it is another instance
+        try {
+            ProarcInitializer.getInstance().isReady();
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            HttpServletResponse httpResponse = (HttpServletResponse) response;
+            httpResponse.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Service Unavailable. See server log.");
+            return ;
+        }
+
+        // ProArc is up and ready
+        chain.doFilter(request, response);
+    }
+
+    @Override
+    public void destroy() {
     }
 
 }
