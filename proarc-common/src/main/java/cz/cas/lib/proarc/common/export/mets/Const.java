@@ -46,7 +46,10 @@ public class Const {
     public final static String PAGE_MODEL = "model:page";
     public final static String MONOGRAPH_UNIT_MODEL = "model:monographunit";
     public final static String MONOGRAPH_MODEL = "model:monograph";
-    public final static String PICTURE_MODEL = "mode:picture";
+    public final static String PICTURE_MODEL = "model:picture";
+    public final static String CHAPTER_MODEL = "model:chapter";
+    public final static String SUPPLEMENT_MODEL = "model:supplement";
+
     public static final String VOLUME = "VOLUME";
     public static final String TITLE = "TITLE";
 

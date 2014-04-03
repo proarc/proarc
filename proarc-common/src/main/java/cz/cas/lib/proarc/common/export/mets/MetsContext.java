@@ -55,6 +55,15 @@ public class MetsContext {
     private Map<String, String> fsParentMap;
     private String path;
     private final List<String> generatedPSP = new ArrayList<String>();
+    private boolean allowNonCompleteStreams = false;
+
+    public boolean isAllowNonCompleteStreams() {
+        return allowNonCompleteStreams;
+    }
+
+    public void setAllowNonCompleteStreams(boolean allowNonCompleteStreams) {
+        this.allowNonCompleteStreams = allowNonCompleteStreams;
+    }
 
     public List<String> getGeneratedPSP() {
         return generatedPSP;

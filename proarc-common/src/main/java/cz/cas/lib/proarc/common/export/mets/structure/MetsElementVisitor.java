@@ -663,6 +663,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if ("ALTOGRP".equals(streamName)) {
                 metsElement.setAltoFile(fileType);
             }
+            } else {
+                if (!metsElement.getMetsContext().isAllowNonCompleteStreams()) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Stream:" + streamName + " is missing", false, null);
+                }
             }
         }
         generateTechMetadata(metsElement, fileNames, pageCounter, fileTypes, mimeTypes, pageDiv, outputFileNames);
@@ -791,6 +795,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         for (IMetsElement childMetsElement : metsElement.getChildren()) {
             if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
                 containsUnit = true;
+                break;
             }
         }
         logicalDiv.setLabel3(metsElement.getLabel());

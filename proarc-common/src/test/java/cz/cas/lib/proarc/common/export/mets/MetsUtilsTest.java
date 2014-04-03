@@ -162,6 +162,7 @@ public class MetsUtilsTest {
             context.setPath(sourceDirPath);
             context.setFsParentMap(parents);
             context.setOutputPath(resultDir.getAbsolutePath());
+            context.setAllowNonCompleteStreams(true);
             MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
             MetsElementVisitor visitor = new MetsElementVisitor();
             metsElement.accept(visitor);
