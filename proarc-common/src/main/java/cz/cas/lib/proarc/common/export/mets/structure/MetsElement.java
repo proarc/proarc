@@ -122,7 +122,7 @@ public class MetsElement implements IMetsElement {
     public final XMLGregorianCalendar lastUpdateDate;
 
     private final String elementType;
-    private final String elementID;
+    private String elementID;
     private String modsElementID;
 
     @Override
@@ -224,6 +224,10 @@ public class MetsElement implements IMetsElement {
         } else {
             this.elementID = Const.VOLUME + "_" + String.format("%04d", metsContext.addElementId(this.elementType));
             this.modsElementID = this.elementID;
+        }
+
+        if (Const.ARTICLE.equals(elementType)) {
+            this.elementID = elementID.replaceAll(this.elementType, modsName);
         }
 
         if (parent instanceof MetsElement) {

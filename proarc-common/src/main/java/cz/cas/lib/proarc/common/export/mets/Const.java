@@ -47,6 +47,7 @@ public class Const {
     public final static String MONOGRAPH_UNIT_MODEL = "model:monographunit";
     public final static String MONOGRAPH_MODEL = "model:monograph";
     public final static String PICTURE_MODEL = "model:picture";
+    public final static String ARTICLE_MODEL = "model:article";
     public final static String CHAPTER_MODEL = "model:chapter";
     public final static String SUPPLEMENT_MODEL = "model:supplement";
 
@@ -90,6 +91,7 @@ public class Const {
         typeMap.put(FEDORAPREFIX + MONOGRAPH_UNIT_MODEL, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + MONOGRAPH_MODEL, MONOGRAPH);
         typeMap.put(FEDORAPREFIX + PICTURE_MODEL, PICTURE);
+        typeMap.put(FEDORAPREFIX + ARTICLE_MODEL, ARTICLE);
 
         typeNameMap.put(ISSUE, ISSUE);
         typeNameMap.put(PERIODICAL_VOLUME, VOLUME);
@@ -98,7 +100,7 @@ public class Const {
         typeNameMap.put(MONOGRAPH, VOLUME);
         typeNameMap.put(MONOGRAPH_UNIT, VOLUME);
         typeNameMap.put(PICTURE, PICTURE);
-        typeNameMap.put(ARTICLE, ARTICLE);
+        typeNameMap.put(ARTICLE, "ART");
 
         streamMapping.put("MC_IMGGRP", "FULL");
         streamMapping.put("UC_IMGGRP", "PREVIEW");

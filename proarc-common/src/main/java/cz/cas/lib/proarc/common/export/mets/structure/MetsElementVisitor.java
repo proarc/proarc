@@ -100,6 +100,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     private StructMapType physicalStruct;
     private HashMap<String, FileGrp> fileGrpMap;
     int pageCounter = 0;
+    int articleCounter = 0;
 
     /**
      * creates directory structure for mets elements
@@ -624,6 +625,21 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (Const.PAGE.equals(element.getElementType())) {
                 insertPage(physicalDiv, element, pageCounter, metsElement);
                 pageCounter++;
+                continue;
+            }
+            if (Const.ARTICLE.equals(element.getElementType())) {
+                continue;
+            }
+            throw new MetsExportException(element.getOriginalPid(),
+                    "This type is not accepted in Issue:" +
+                            metsElement.getElementType(), false, null);
+        }
+
+        for (IMetsElement element : metsElement.getChildren()) {
+            if (Const.ARTICLE.equals(element.getElementType())) {
+                insertArticle(divType, physicalDiv, element, articleCounter);
+                articleCounter++;
+                continue;
             }
         }
     }
@@ -655,14 +671,14 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         for (String streamName : Const.streamMapping.keySet()) {
             if (fileNames.containsKey(Const.streamMapping.get(streamName))) {
                 FileType fileType = prepareFileType(pageCounter, streamName, fileNames, mimeTypes, metsElement.getMetsContext(), outputFileNames);
-            fileTypes.add(fileType);
-            fileGrpMap.get(streamName).getFile().add(fileType);
-            Fptr fptr = new Fptr();
-            fptr.setFILEID(fileType);
-            pageDiv.getFptr().add(fptr);
-            if ("ALTOGRP".equals(streamName)) {
-                metsElement.setAltoFile(fileType);
-            }
+                fileTypes.add(fileType);
+                fileGrpMap.get(streamName).getFile().add(fileType);
+                Fptr fptr = new Fptr();
+                fptr.setFILEID(fileType);
+                pageDiv.getFptr().add(fptr);
+                if ("ALTOGRP".equals(streamName)) {
+                    metsElement.setAltoFile(fileType);
+                }
             } else {
                 if (!metsElement.getMetsContext().isAllowNonCompleteStreams()) {
                     throw new MetsExportException(metsElement.getOriginalPid(), "Stream:" + streamName + " is missing", false, null);
@@ -837,7 +853,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      *
      * @param parentType
      */
-    private void addInternalElements(DivType parentType, IMetsElement metsElement) throws MetsExportException {
+    private int addInternalElements(DivType parentType, IMetsElement metsElement, int lastCounter) throws MetsExportException {
+        int numberIntPart = 0;
+        if (lastCounter > 0) {
+            numberIntPart = lastCounter;
+        }
         byte[] structStream;
         if (metsElement.getMetsContext().getFedoraClient() != null) {
             structStream = MetsUtils.getBinaryDataStreams(metsElement.getMetsContext().getFedoraClient(), metsElement.getOriginalPid(), "STRUCT_MAP");
@@ -848,12 +868,19 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         for (IntPartInfo partInfo : partInfoList) {
             DivType divType = new DivType();
             divType.setTYPE(partInfo.getType());
+            if ((partInfo.getOrder() != null) && (!("null".equalsIgnoreCase(partInfo.getOrder())))) {
             try {
                 divType.setORDER(new BigInteger(partInfo.getOrder()));
             } catch (NumberFormatException ex) {
                 LOG.log(Level.WARNING, partInfo.getOrder() + " is not a number in  object " + metsElement.getOriginalPid(), ex);
             }
-            String number = String.format("%04d", metsElement.getMetsContext().addElementId(metsElement.getElementType()));
+            }
+            String number = "";
+            if (Const.ARTICLE.equals(metsElement.getParent().getElementType())) {
+                number = String.format("%04d", metsElement.getMetsContext().addElementId(metsElement.getParent().getElementType()));
+            } else {
+                number = String.format("%04d", metsElement.getMetsContext().addElementId(metsElement.getElementType()));
+            }
 
             /**
              * if an internal element is part of article, then the ID is
@@ -862,7 +889,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if ("ARTICLE".equalsIgnoreCase(metsElement.getParent().getElementType())) {
                 divType.setID(metsElement.getParent().getElementID() + "_" + number);
             } else {
-                divType.setID(metsElement + "_" + number);
+                divType.setID(metsElement.getElementID() + "_" + number);
             }
             Fptr fptr = new Fptr();
             AreaType area = new AreaType();
@@ -874,6 +901,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             divType.getFptr().add(fptr);
             parentType.getDiv().add(divType);
         }
+        return numberIntPart;
     }
 
 
@@ -905,8 +933,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     }
 
     /**
-     * Inserts Internal element structure into mets - currently unused, prepared
-     * for future release
+     * Inserts Internal element structure into mets for future release
      *
      * @param logicalDiv
      * @param physicalDiv
@@ -914,8 +941,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param counterIntPart
      * @throws MetsExportException
      */
-    @SuppressWarnings("unused")
-    private void insertInternalElement(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement, int counterIntPart) throws MetsExportException {
+    private void insertArticle(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement, int counterIntPart) throws MetsExportException {
         addDmdSec(metsElement);
         DivType elementDivType = new DivType();
         if (Const.ARTICLE.equalsIgnoreCase(metsElement.getParent().getElementType())) {
@@ -934,7 +960,19 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         elementDivType.getDMDID().add(metsElement.getModsMetsElement());
 
         logicalDiv.getDiv().add(elementDivType);
-        addInternalElements(elementDivType, metsElement);
+        int pictureCounter = 0;
+        if (Const.PICTURE.equals(metsElement.getElementType())) {
+            pictureCounter = addInternalElements(elementDivType, metsElement, counterIntPart + 1);
+        } else {
+            pictureCounter = addInternalElements(elementDivType, metsElement, 0);
+        }
+
+        for (MetsElement element : metsElement.getChildren()) {
+            if (Const.PICTURE.equals(element.getElementType())) {
+                insertArticle(elementDivType, physicalDiv, element, pictureCounter);
+                pictureCounter++;
+            }
+        }
     }
 
     /*
