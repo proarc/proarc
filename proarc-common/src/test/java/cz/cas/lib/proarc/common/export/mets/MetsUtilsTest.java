@@ -73,7 +73,7 @@ public class MetsUtilsTest {
     private void initTestElements() {
         MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph.zip", "monograph", 6, 25, 4, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
         this.testElements.add(monografieTestElement);
-        MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum.zip", "periodikum", 42, 353, 5, "periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
+        MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum.zip", "periodikum", 42, 349, 5, "periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
         this.testElements.add(periodikumTestElement);
         MetsExportTestElement periodikumPageTestElement = new MetsExportTestElement("periodikum.zip", "periodikumPage", 7, 51, 5, "periodical", "b46aff0e-26af-11e3-88e3-001b63bd97ba.xml");
         this.testElements.add(periodikumPageTestElement);
@@ -168,7 +168,7 @@ public class MetsUtilsTest {
             metsElement.accept(visitor);
             String packageId = context.getGeneratedPSP().get(0);
             File infoFile = new File(resultDir.getAbsolutePath() + File.separator + packageId + File.separator +
-                    "info.xml");
+                    "info_" + packageId + ".xml");
             JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             Info info = (Info) unmarshaller.unmarshal(infoFile);

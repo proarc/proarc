@@ -70,6 +70,8 @@ public class Const {
     public final static String MONOGRAPH_UNIT = "MONOGRAPH_UNIT";
     public final static String PICTURE = "PICTURE";
     public final static String ARTICLE = "ARTICLE";
+    public final static String SUPPLEMENT = "SUPPLEMENT";
+    public final static String CHAPTER = "CHAPTER";
 
     public static final String HASPAGE = "kramerius:hasPage";
     public static final String HASMODEL = "fedora-model:hasModel";
@@ -92,6 +94,8 @@ public class Const {
         typeMap.put(FEDORAPREFIX + MONOGRAPH_MODEL, MONOGRAPH);
         typeMap.put(FEDORAPREFIX + PICTURE_MODEL, PICTURE);
         typeMap.put(FEDORAPREFIX + ARTICLE_MODEL, ARTICLE);
+        typeMap.put(FEDORAPREFIX + SUPPLEMENT_MODEL, SUPPLEMENT);
+        typeMap.put(FEDORAPREFIX + CHAPTER_MODEL, CHAPTER);
 
         typeNameMap.put(ISSUE, ISSUE);
         typeNameMap.put(PERIODICAL_VOLUME, VOLUME);
@@ -101,6 +105,8 @@ public class Const {
         typeNameMap.put(MONOGRAPH_UNIT, VOLUME);
         typeNameMap.put(PICTURE, PICTURE);
         typeNameMap.put(ARTICLE, "ART");
+        typeNameMap.put(SUPPLEMENT, "SUPPL");
+        typeNameMap.put(CHAPTER, CHAPTER);
 
         streamMapping.put("MC_IMGGRP", "FULL");
         streamMapping.put("UC_IMGGRP", "PREVIEW");

@@ -682,7 +682,7 @@ public class MetsUtils {
      * @param mets
      */
     public static void saveInfoFile(String path, MetsContext metsContext, String md5, String fileMd5Name, long fileSize) throws MetsExportException {
-        File infoFile = new File(path + File.separator + metsContext.getPackageID() + File.separator + "info.xml");
+        File infoFile = new File(path + File.separator + metsContext.getPackageID() + File.separator + "info_" + metsContext.getPackageID() + ".xml");
         try {
             GregorianCalendar c = new GregorianCalendar();
             c.setTime(new Date());

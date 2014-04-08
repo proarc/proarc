@@ -230,6 +230,10 @@ public class MetsElement implements IMetsElement {
             this.elementID = elementID.replaceAll(this.elementType, modsName);
         }
 
+        if (Const.SUPPLEMENT.equals(elementType)) {
+            this.elementID = elementID.replaceAll(this.elementType, modsName);
+        }
+
         if (parent instanceof MetsElement) {
             this.parent = (MetsElement) parent;
         }
@@ -428,6 +432,13 @@ public class MetsElement implements IMetsElement {
         metsVisitor.insertIntoMets(this);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getModsStream
+     * ()
+     */
     @Override
     public List<Element> getModsStream() {
         return this.modsStream;
