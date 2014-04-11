@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.client.widget.mods;
 
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.types.VerticalAlignment;
@@ -259,6 +260,11 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
             vm = form.getValuesManager();
             if (vm == null) {
                 vm = new ValuesManager();
+                DataSource dataSource = form.getDataSource();
+                if (dataSource != null) {
+                    // SmartGWT requires existing form DataSource to be set to ValuesManager
+                    vm.setDataSource(dataSource);
+                }
                 vm.addMember(form);
             }
             FormWidget formWidget = new FormWidget(form, vm);
