@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -46,7 +45,6 @@ import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -826,10 +824,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (Const.PAGE.equals(element.getElementType())) {
                 insertPage(physicalDiv, element, pageCounter, metsElement);
                 pageCounter++;
+            } else if (Const.PICTURE.equals(element.getElementType())) {
+                insertPicture(divType, physicalDiv, element);
             } else
                 throw new MetsExportException(element.getOriginalPid(), "Expected Page, got:" + element.getElementType(), false, null);
         }
-
     }
 
     /**
@@ -848,7 +847,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.setID(metsElement.getElementID());
         // Label for volume is inherited from the parent monograph
         divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
-        divType.setTYPE(Const.typeNameMap.get(metsElement.getElementType()));
+        if (Const.PERIODICAL_VOLUME.equals(metsElement.getElementType())) {
+            divType.setTYPE(metsElement.getElementType());
+        } else {
+            divType.setTYPE(Const.typeNameMap.get(metsElement.getElementType()));
+        }
 
         if (Const.MONOGRAPH.equals(metsElement.getElementType())) {
             if (isMultiPartMonograph) {
@@ -1091,7 +1094,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         for (MetsElement element : metsElement.getChildren()) {
             if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(elementDivType, physicalDiv, element);
-            }
+            } else
+                throw new MetsExportException(element.getOriginalPid(), "Expected Picture got:" + element.getElementType(), false, null);
         }
     }
 
