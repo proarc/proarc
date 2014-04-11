@@ -68,6 +68,20 @@ public final class PageMapper implements Mapping.Mapper<Page> {
         return mods;
     }
 
+    public void updatePage(ModsType mods, String pageIndex, String pageNumber, String pageType) {
+        Page page = map(mods);
+        if (pageIndex != null) {
+            page.setIndex(pageIndex.isEmpty() ? null : pageIndex);
+        }
+        if (pageNumber != null) {
+            page.setNumber(pageNumber.isEmpty() ? null : pageNumber);
+        }
+        if (pageType != null) {
+            page.setType(pageType.isEmpty() ? null : pageType);
+        }
+        map(mods, page);
+    }
+
     private static void updateNote(Page page, NodeLookup nlookup) {
         if (page.getNote() != null) {
             nlookup.getNote(true).setValue(page.getNote());

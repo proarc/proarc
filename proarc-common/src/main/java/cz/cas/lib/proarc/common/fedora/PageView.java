@@ -16,15 +16,16 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
-import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper.Page;
+import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.io.File;
 import java.util.ArrayList;
@@ -43,20 +44,20 @@ public final class PageView {
     public List<Item> list(int batchId, Collection<BatchItemObject> imports) throws DigitalObjectException {
         ArrayList<Item> result = new ArrayList<Item>(imports.size());
         LocalStorage storage = new LocalStorage();
-//        Mapping mapping = new Mapping();
         PageMapper mapper = new PageMapper();
         for (BatchItemObject imp : imports) {
             File foxml = imp.getFile();
             LocalObject local = storage.load(imp.getPid(), foxml);
-            ModsStreamEditor editor = new ModsStreamEditor(local);
-            Page page = mapper.map(editor.read());
-//            Object custom = mapping.read(record.getMods(), MetaModelDataSource.EDITOR_PAGE);
-            RelationEditor relsExt = new RelationEditor(local);
+            DigitalObjectHandler doHandler = DigitalObjectManager.getDefault().createHandler(local);
+            DescriptionMetadata<ModsType> metadata = doHandler.<ModsType>metadata().getMetadata();
+            ModsType mods = metadata.getData();
+            Page page = mapper.map(mods);
+            RelationEditor relsExt = doHandler.relations();
             String model = relsExt.getModel();
             String filename = relsExt.getImportFile();
             result.add(new Item(batchId, filename, imp.getPid(),
                     model, page.getIndex(), page.getNumber(), page.getType(),
-                    editor.getLastModified(), local.getOwner(), local.getLabel()));
+                    metadata.getTimestamp(), local.getOwner(), local.getLabel()));
         }
         return result;
     }
@@ -66,29 +67,34 @@ public final class PageView {
             throws DigitalObjectException {
         
         LocalStorage storage = new LocalStorage();
-//        PageMapper mapper = new PageMapper();
         LocalObject local = storage.load(item.getPid(), item.getFile());
+        DigitalObjectHandler doHandler = DigitalObjectManager.getDefault().createHandler(local);
 
         // MODS
-        ModsStreamEditor editor = new ModsStreamEditor(local);
-        ModsType mods = editor.read();
-        editor.updatePage(mods, pageIndex, pageNumber, pageType);
-        editor.write(mods, timestamp, message);
+        MetadataHandler<Object> metadataHandler = doHandler.metadata();
+        DescriptionMetadata<Object> metadata = metadataHandler.getMetadata();
+        Object data = metadata.getData();
+        if (data instanceof ModsType) {
+            ModsType mods = (ModsType) data;
+            PageMapper pageMapper = new PageMapper();
+            pageMapper.updatePage(mods, pageIndex, pageNumber, pageType);
+            metadata.setData(mods);
+            metadataHandler.setMetadata(metadata, message);
+        } else {
+            throw new DigitalObjectException(local.getPid(), batchId, null,
+                    "Unsupported metadata type: " + data.getClass(), null);
+        }
 
-        RelationEditor relsExt = new RelationEditor(local);
+        // RELS-EXT
+        RelationEditor relsExt = doHandler.relations();
         String model = relsExt.getModel();
         String filename = relsExt.getImportFile();
 
-        // DC
-        DcStreamEditor dcEditor = new DcStreamEditor(local);
-        dcEditor.write(mods, model, dcEditor.getLastModified(), message);
-
-        local.setLabel(ModsUtils.getLabel(mods, model));
-
-        local.flush();
+        doHandler.commit();
+        metadata = metadataHandler.getMetadata();
         Item update = new Item(batchId, filename, item.getPid(), model,
                 pageIndex, pageNumber, pageType,
-                editor.getLastModified(), local.getOwner(), local.getLabel());
+                metadata.getTimestamp(), local.getOwner(), local.getLabel());
         return update;
     }
 
