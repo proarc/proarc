@@ -32,7 +32,6 @@ import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.events.FormItemInitHandler;
 import com.smartgwt.client.widgets.form.fields.events.ShowValueEvent;
 import com.smartgwt.client.widgets.form.fields.events.ShowValueHandler;
-import com.smartgwt.client.widgets.form.validator.CustomValidator;
 import com.smartgwt.client.widgets.form.validator.Validator;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
@@ -358,17 +357,7 @@ public final class RepeatableFormItem extends CanvasItem {
                 canvasItem.storeValue(JSOHelper.arrayConvert(values));
                 return ;
             }
-            Field profile = getProfile(canvasItem);
-            if (profile != null && profile.getMaxOccurrences() != null && profile.getMaxOccurrences() == 1) {
-                Record dataAsRecord = dataAsRecordList.isEmpty() ? null : dataAsRecordList.get(0);
-                if (dataAsRecord != null) {
-                    // or put it to RepeatableForm.onItemChanged?
-                    dataAsRecord = ClientUtils.removeNulls(dataAsRecord);
-                }
-                canvasItem.storeValue(dataAsRecord);
-            } else {
-                canvasItem.storeValue(new RecordList(dataAsRecordList.duplicate()));
-            }
+            canvasItem.storeValue(dataAsRecordList);
         }
     }
 
@@ -523,28 +512,21 @@ public final class RepeatableFormItem extends CanvasItem {
     /**
      * Validates inner forms.
      */
-    private static final class DefaultValidator extends CustomValidator {
+    private static final class DefaultValidator extends RepeatableItemValidator {
 
         private final SmartGwtMessages i18SmartGwt = ClientUtils.createSmartGwtMessages();
 
         @Override
-        protected boolean condition(Object value) {
+        protected boolean condition(RecordList recordList) {
             RepeatableFormItem rfItem = (RepeatableFormItem) formItem;
-            boolean valid = rfItem.validateInnerForms(true);
-            Object validatedValue = rfItem.getValue();
-            setResultingValue(validatedValue);
-
-//            ClientUtils.severe(LOG, "DefaultValidator.name: %s, class: %s, JSO: %s",
-//                    rfItem.getName(), ClientUtils.safeGetClass(validatedValue), ClientUtils.dump(validatedValue));
-            JavaScriptObject jso = (JavaScriptObject) validatedValue;
-            RecordList recordList = null;
-            if (JSOHelper.isArray(jso)) {
-                recordList = new RecordList(jso);
-            } else if (jso != null) {
-                recordList = new RecordList(new Record[] {new Record(jso)});
+            boolean innerFormValid = rfItem.validateInnerForms(true);
+            if (innerFormValid) {
+                Object newValue = rfItem.getValue();
+                setResultingValue(newValue);
+                return conditionRequired(recordList);
+            } else {
+                return false;
             }
-            valid &= conditionRequired(recordList);
-            return valid;
         }
 
         private boolean conditionRequired(RecordList recordList) {
@@ -561,6 +543,5 @@ public final class RepeatableFormItem extends CanvasItem {
         }
 
     }
-
 
 }

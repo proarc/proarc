@@ -182,6 +182,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
         if (LOG.isLoggable(Level.FINE)) {
             ClientUtils.fine(LOG, "saveCustomData: %s", ClientUtils.dump(r.getJsObj()));
         }
+        r = ClientUtils.normalizeData(r);
         final Record toSave = editedCustomRecord;
         toSave.setAttribute(ModsCustomDataSource.FIELD_DATA, r);
         if (LOG.isLoggable(Level.FINE)) {
