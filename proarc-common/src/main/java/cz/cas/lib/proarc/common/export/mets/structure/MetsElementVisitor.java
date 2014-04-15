@@ -912,6 +912,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         physicalStruct.setDiv(physicalDiv);
 
         boolean containsUnit = false;
+        if (Const.MONOGRAPH_MULTIPART.equalsIgnoreCase(metsElement.getElementType())) {
+            containsUnit = true;
+        }
         for (IMetsElement childMetsElement : metsElement.getChildren()) {
             if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
                 containsUnit = true;
@@ -1152,6 +1155,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 insertPeriodical(rootElement);
             } else if (Const.MONOGRAPH.equalsIgnoreCase(rootElement.getElementType())) {
                 insertMonograph(rootElement);
+            } else if (Const.MONOGRAPH_MULTIPART.equalsIgnoreCase(rootElement.getElementType())) {
+                insertMonograph(metsElement);
             } else
                 throw new MetsExportException(rootElement.getOriginalPid(), "Unknown type:" + rootElement.getElementType() + " model:" + rootElement.getModel(), false, null);
             if (metsElement.getMetsContext().getGeneratedPSP().size() == 0) {
