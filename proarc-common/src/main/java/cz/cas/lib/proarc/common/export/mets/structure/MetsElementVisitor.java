@@ -63,6 +63,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 
+import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
@@ -292,6 +293,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             modsMdWrap.setMIMETYPE("text/xml");
             XmlData modsxmlData = new XmlData();
             metsElement.getModsStream().get(0).setAttribute("ID", "MODS_" + metsElement.getModsElementID());
+            Kramerius4Export.removeNils(metsElement.getModsStream().get(0));
             modsxmlData.getAny().addAll(metsElement.getModsStream());
             modsMdWrap.setXmlData(modsxmlData);
             modsMdSecType.setMdWrap(modsMdWrap);
@@ -306,6 +308,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             dcMdWrap.setMDTYPE("DC");
             dcMdWrap.setMIMETYPE("text/xml");
             XmlData dcxmlData = new XmlData();
+            Kramerius4Export.removeNils(metsElement.getDescriptor().get(0));
             dcxmlData.getAny().addAll(metsElement.getDescriptor());
             dcMdWrap.setXmlData(dcxmlData);
             dcMdSecType.setMdWrap(dcMdWrap);
