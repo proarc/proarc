@@ -256,7 +256,8 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM, title);
         item.setAllowEmptyValue(true);
         item.setEmptyDisplayValue("<i>" + i18nSmartGwt.filterBuilder_matchAllTitle() + "</i>");
-        item.setValue("model:periodical");
+//        item.setValue("model:periodical");
+        item.setDefaultToFirstOption(true);
         if (showIf != null) {
             item.setShowIfCondition(showIf);
         }
