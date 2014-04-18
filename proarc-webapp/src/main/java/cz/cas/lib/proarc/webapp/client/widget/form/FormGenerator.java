@@ -229,6 +229,7 @@ public class FormGenerator {
         } else {
             item.setValueMap(f.getValueMap());
         }
+        item.setDefaultValue(f.getDefaultValue());
         return item;
     }
 
