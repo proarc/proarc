@@ -56,11 +56,41 @@ public class MetsContext {
     private String path;
     private final List<String> generatedPSP = new ArrayList<String>();
     private boolean allowNonCompleteStreams = false;
+    private boolean allowMissingURNNBN = false;
 
+    /**
+     * returns true if URNNBN is not mandatory
+     *
+     * @return
+     */
+    public boolean isAllowMissingURNNBN() {
+        return allowMissingURNNBN;
+    }
+
+    /**
+     * Allows/disallows missing URNNBN in mods for logical units (Issue,
+     * Monograph Unit)
+     *
+     * @param allowMissingURNNBN
+     */
+    public void setAllowMissingURNNBN(boolean allowMissingURNNBN) {
+        this.allowMissingURNNBN = allowMissingURNNBN;
+    }
+
+    /**
+     * returns true, if datastream presence is not mandatory
+     *
+     * @return
+     */
     public boolean isAllowNonCompleteStreams() {
         return allowNonCompleteStreams;
     }
 
+    /**
+     * Allows/disallows optional/mandatory datastreams
+     *
+     * @param allowNonCompleteStreams
+     */
     public void setAllowNonCompleteStreams(boolean allowNonCompleteStreams) {
         this.allowNonCompleteStreams = allowNonCompleteStreams;
     }

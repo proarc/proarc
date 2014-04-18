@@ -778,10 +778,18 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         if (identifiersMap.containsKey(Const.URNNBN)) {
             String urnnbn = identifiersMap.get(Const.URNNBN);
             return urnnbn.substring(urnnbn.lastIndexOf(":") + 1);
-        } else if (identifiersMap.containsKey(Const.UUID)) {
-            return identifiersMap.get(Const.UUID);
+        } else if (element.getMetsContext().isAllowMissingURNNBN()) {
+            // if missing URNNBN is allowed, then try to use UUID - otherwise
+            // throw an exception
+            element.getMetsContext().getMetsExportException().addException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
+            if (identifiersMap.containsKey(Const.UUID)) {
+                return identifiersMap.get(Const.UUID);
+            } else {
+                throw new MetsExportException(element.getOriginalPid(), "Unable to find identifier URNNBN and UUID is missing", false, null);
+            }
         } else {
-            throw new MetsExportException(element.getOriginalPid(), "Unable to find identifier URNNBN and UUID is missing", false, null);
+            // URNNBN is mandatory
+            throw new MetsExportException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
         }
     }
 
