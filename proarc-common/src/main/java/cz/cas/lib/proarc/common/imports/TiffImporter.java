@@ -30,8 +30,8 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
+import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.imgsupport.ImageMimeType;
@@ -131,7 +131,7 @@ public final class TiffImporter {
         DcStreamEditor dcEditor = new DcStreamEditor(localObj);
         dcEditor.write(mods, fedoraModel, 0, null);
 
-        localObj.setLabel(ModsUtils.getLabel(mods, fedoraModel));
+        localObj.setLabel(Mods33Utils.getLabel(mods, fedoraModel));
     }
 
     private void createRelsExt(LocalObject localObj, File f, ImportOptions ctx) throws DigitalObjectException {

@@ -67,7 +67,29 @@ The schema has three parts:
     <xs:element name="mods" type="modsDefinition"/>
     <!--  -->
     <xs:complexType name="modsDefinition">
-        <xs:group ref="modsGroup" maxOccurs="unbounded"/>
+        <!--<xs:group ref="modsGroup" maxOccurs="unbounded"/>-->
+        <xs:sequence>
+            <xs:element ref="abstract" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="accessCondition" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="classification" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="extension" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="genre" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="identifier" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="language" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="location" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="name" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="note" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="originInfo" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="part" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="physicalDescription" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="recordInfo" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="relatedItem" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="subject" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="tableOfContents" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="targetAudience" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="titleInfo" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="typeOfResource" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
         <xs:attribute name="ID" type="xs:ID"/>
         <xs:attribute name="version">
             <xs:simpleType>
@@ -468,11 +490,11 @@ End list of "top level" MODS elements
     <xs:element name="name" type="nameDefinition"/>
     <!-- -->
     <xs:complexType name="nameDefinition">
-        <xs:choice>
-            <!--  this choice is introduced in version 3.5, with the introduction of <etal>.  There are two "choices", one without <etal> (the old way) and one with <etal>.
+<!--        <xs:choice>
+              this choice is introduced in version 3.5, with the introduction of <etal>.  There are two "choices", one without <etal> (the old way) and one with <etal>.
 
 Choice one. The old way.
--->
+
             <xs:choice minOccurs="0" maxOccurs="unbounded">
                 <xs:element ref="namePart"/>
                 <xs:element ref="displayForm"/>
@@ -480,18 +502,18 @@ Choice one. The old way.
                 <xs:element ref="role"/>
                 <xs:element ref="description"/>
             </xs:choice>
-            <!--
+            
 Choice two.    With <etal>.
 The presence of <etal> Indicates that there are names that cannot be explicitily included. It may be empty, or it may have simple content
   - e.g. <etal>et al.</etal>.  In the latter case the content is what is suggested for display. When <etal> occurs, <namePart> MAY NOT occur,
 <displayForm> MAY NOT occur, <affiliation>, <role>, <description>   MAY occur (but are not repeatable).
 (<etal> is not repeatable within a given <name>, however there may be mutilple <etal> elements, each within in a separate <name> element.)
--->
+
             <xs:sequence>
-                <!--
+                
              <etal> is mandatory, nonrepeatable, and must occur first.
             After that <affiliation>, <role>, and <description> may occur, in any order or number.
--->
+
                 <xs:element ref="etal"/>
                 <xs:choice minOccurs="0" maxOccurs="unbounded">
                     <xs:element ref="affiliation"/>
@@ -499,8 +521,19 @@ The presence of <etal> Indicates that there are names that cannot be explicitily
                     <xs:element ref="description"/>
                 </xs:choice>
             </xs:sequence>
-            <!-- -->
-        </xs:choice>
+             
+        </xs:choice>-->
+        <xs:sequence>
+            <xs:element ref="namePart" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="displayForm" minOccurs="0" maxOccurs="unbounded" />
+            <!--<xs:element ref="affiliation" minOccurs="0" maxOccurs="unbounded" />-->
+            <!--<xs:element ref="role" minOccurs="0" maxOccurs="unbounded" />-->
+            <!--<xs:element ref="description" minOccurs="0" maxOccurs="unbounded" />-->
+            <xs:element ref="etal"/>
+            <xs:element ref="affiliation" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="role" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="description" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
         <xs:attribute name="ID" type="xs:ID"/>
         <xs:attributeGroup ref="authorityAttributeGroup"/>
         <xs:attributeGroup ref="xlink:simpleLink"/>
@@ -604,7 +637,7 @@ The presence of <etal> Indicates that there are names that cannot be explicitily
     <xs:element name="originInfo" type="originInfoDefinition"/>
     <!-- -->
     <xs:complexType name="originInfoDefinition">
-        <xs:choice maxOccurs="unbounded">
+<!--        <xs:choice maxOccurs="unbounded">
             <xs:element ref="place"/>
             <xs:element ref="publisher"/>
             <xs:element ref="dateIssued"/>
@@ -617,7 +650,21 @@ The presence of <etal> Indicates that there are names that cannot be explicitily
             <xs:element ref="edition"/>
             <xs:element ref="issuance"/>
             <xs:element ref="frequency"/>
-        </xs:choice>
+        </xs:choice>-->
+        <xs:sequence>
+            <xs:element ref="place" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="publisher" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="dateIssued" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="dateCreated" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="dateCaptured" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="dateValid" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="dateModified" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="copyrightDate" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="dateOther" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="edition" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="issuance" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="frequency" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
         <xs:attributeGroup ref="languageAttributeGroup"/>
         <xs:attribute name="displayLabel" type="xs:string"/>
         <xs:attribute name="altRepGroup" type="xs:string"/>
@@ -763,12 +810,18 @@ Detailed usage rules are supplied in the guidelines.
     <xs:element name="part" type="partDefinition"/>
     <!-- -->
     <xs:complexType name="partDefinition">
-        <xs:choice minOccurs="0" maxOccurs="unbounded">
+<!--        <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element ref="detail"/>
             <xs:element name="extent" type="extentDefinition"/>
             <xs:element ref="date"/>
             <xs:element ref="text"/>
-        </xs:choice>
+        </xs:choice>-->
+        <xs:sequence>
+            <xs:element ref="detail" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="extent" type="extentDefinition" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="date" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="text" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
         <xs:attribute name="ID" type="xs:ID"/>
         <xs:attribute name="type" type="xs:string"/>
         <xs:attribute name="order" type="xs:integer"/>
@@ -786,11 +839,16 @@ Detailed usage rules are supplied in the guidelines.
     <xs:element name="detail" type="detailDefinition"/>
     <!-- -->
     <xs:complexType name="detailDefinition">
-        <xs:choice maxOccurs="unbounded">
+<!--        <xs:choice maxOccurs="unbounded">
             <xs:element ref="number"/>
             <xs:element ref="caption"/>
             <xs:element ref="title"/>
-        </xs:choice>
+        </xs:choice>-->
+        <xs:sequence>
+            <xs:element ref="number" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="caption" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="title" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
         <xs:attribute name="type" type="xs:string"/>
         <xs:attribute name="level" type="xs:positiveInteger"/>
     </xs:complexType>
@@ -841,15 +899,24 @@ Detailed usage rules are supplied in the guidelines.
     <xs:element name="physicalDescription" type="physicalDescriptionDefinition"/>
     <!-- -->
     <xs:complexType name="physicalDescriptionDefinition">
-        <xs:choice maxOccurs="unbounded">
+<!--        <xs:choice maxOccurs="unbounded">
             <xs:element ref="form"/>
-            <!-- same definition as is used in copyInformation -->
+             same definition as is used in copyInformation 
             <xs:element ref="reformattingQuality"/>
             <xs:element ref="internetMediaType"/>
             <xs:element ref="extent"/>
             <xs:element ref="digitalOrigin"/>
             <xs:element name="note" type="physicalDescriptionNote"/>
-        </xs:choice>
+        </xs:choice>-->
+        <xs:sequence>
+            <xs:element ref="form" minOccurs="0" maxOccurs="unbounded" />
+            <!-- same definition as is used in copyInformation -->
+            <xs:element ref="reformattingQuality" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="internetMediaType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="extent" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="digitalOrigin" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="note" type="physicalDescriptionNote" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
         <xs:attributeGroup ref="languageAttributeGroup"/>
         <xs:attribute name="displayLabel" type="xs:string"/>
         <xs:attribute name="altRepGroup" type="xs:string"/>
@@ -928,7 +995,7 @@ Detailed usage rules are supplied in the guidelines.
     <xs:element name="recordInfo" type="recordInfoDefinition"/>
     <!-- -->
     <xs:complexType name="recordInfoDefinition">
-        <xs:choice maxOccurs="unbounded">
+<!--        <xs:choice maxOccurs="unbounded">
             <xs:element ref="recordContentSource"/>
             <xs:element ref="recordCreationDate"/>
             <xs:element ref="recordChangeDate"/>
@@ -936,7 +1003,16 @@ Detailed usage rules are supplied in the guidelines.
             <xs:element ref="languageOfCataloging"/>
             <xs:element ref="recordOrigin"/>
             <xs:element ref="descriptionStandard"/>
-        </xs:choice>
+        </xs:choice>-->
+        <xs:sequence>
+            <xs:element ref="recordContentSource" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="recordCreationDate" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="recordChangeDate" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="recordIdentifier" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="languageOfCataloging" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="recordOrigin" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="descriptionStandard" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
         <xs:attributeGroup ref="languageAttributeGroup"/>
         <xs:attribute name="displayLabel" type="xs:string"/>
         <xs:attribute name="altRepGroup" type="xs:string"/>
@@ -1006,7 +1082,7 @@ Detailed usage rules are supplied in the guidelines.
     <xs:element name="subject" type="subjectDefinition"/>
     <!-- -->
     <xs:complexType name="subjectDefinition">
-        <xs:choice minOccurs="0" maxOccurs="unbounded">
+<!--        <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element ref="topic"/>
             <xs:element ref="geographic"/>
             <xs:element ref="temporal"/>
@@ -1017,8 +1093,21 @@ Detailed usage rules are supplied in the guidelines.
             <xs:element ref="cartographics"/>
             <xs:element ref="occupation"/>
             <xs:element ref="genre"/>
+             uses top-level genre definition 
+        </xs:choice>-->
+        <xs:sequence>
+            <xs:element ref="topic" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="geographic" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="temporal" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="titleInfo" type="subjectTitleInfoDefinition" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="name" type="subjectNameDefinition" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="geographicCode" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="hierarchicalGeographic" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="cartographics" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="occupation" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="genre" minOccurs="0" maxOccurs="unbounded" />
             <!-- uses top-level genre definition -->
-        </xs:choice>
+        </xs:sequence>
         <xs:attribute name="ID" type="xs:ID"/>
         <xs:attributeGroup ref="authorityAttributeGroup"/>
         <xs:attributeGroup ref="languageAttributeGroup"/>
@@ -1050,13 +1139,20 @@ Detailed usage rules are supplied in the guidelines.
 *****************subjectTitleInfo ************************
 -->
     <xs:complexType name="subjectTitleInfoDefinition">
-        <xs:choice minOccurs="0" maxOccurs="unbounded">
+<!--        <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element ref="title"/>
             <xs:element ref="subTitle"/>
             <xs:element ref="partNumber"/>
             <xs:element ref="partName"/>
             <xs:element ref="nonSort"/>
-        </xs:choice>
+        </xs:choice>-->
+        <xs:sequence>
+            <xs:element ref="title" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="subTitle" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="partNumber" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="partName" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="nonSort" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
         <xs:attribute name="ID" type="xs:ID"/>
         <xs:attributeGroup ref="authorityAttributeGroup"/>
         <xs:attributeGroup ref="xlink:simpleLink"/>
@@ -1077,13 +1173,20 @@ Detailed usage rules are supplied in the guidelines.
 *****************subjectName ************************
 -->
     <xs:complexType name="subjectNameDefinition">
-        <xs:choice minOccurs="0" maxOccurs="unbounded">
+<!--        <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element ref="namePart"/>
             <xs:element ref="displayForm"/>
             <xs:element ref="affiliation"/>
             <xs:element ref="role"/>
             <xs:element ref="description"/>
-        </xs:choice>
+        </xs:choice>-->
+        <xs:sequence>
+            <xs:element ref="namePart" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="displayForm" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="affiliation" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="role" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="description" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
         <xs:attribute name="type">
             <xs:simpleType>
                 <xs:restriction base="xs:string">
@@ -1128,7 +1231,7 @@ Detailed usage rules are supplied in the guidelines.
     <xs:element name="hierarchicalGeographic" type="hierarchicalGeographicDefinition"/>
     <!-- -->
     <xs:complexType name="hierarchicalGeographicDefinition">
-        <xs:choice maxOccurs="unbounded">
+<!--        <xs:choice maxOccurs="unbounded">
             <xs:element ref="extraterrestrialArea"/>
             <xs:element ref="continent"/>
             <xs:element ref="country"/>
@@ -1141,7 +1244,21 @@ Detailed usage rules are supplied in the guidelines.
             <xs:element ref="citySection"/>
             <xs:element ref="island"/>
             <xs:element ref="area"/>
-        </xs:choice>
+        </xs:choice>-->
+        <xs:sequence>
+            <xs:element ref="extraterrestrialArea" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="continent" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="country" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="province" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="region" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="state" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="territory" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="county" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="city" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="citySection" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="island" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="area" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
         <xs:attributeGroup ref="authorityAttributeGroup"/>
     </xs:complexType>
     <!-- -->
@@ -1223,13 +1340,20 @@ Detailed usage rules are supplied in the guidelines.
     <xs:element name="titleInfo" type="titleInfoDefinition"/>
     <!-- -->
     <xs:complexType name="titleInfoDefinition">
-        <xs:choice minOccurs="0" maxOccurs="unbounded">
+<!--        <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element ref="title"/>
             <xs:element ref="subTitle"/>
             <xs:element ref="partNumber"/>
             <xs:element ref="partName"/>
             <xs:element ref="nonSort"/>
-        </xs:choice>
+        </xs:choice>-->
+        <xs:sequence>
+            <xs:element ref="title" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="subTitle" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="partNumber" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="partName" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="nonSort" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
         <xs:attribute name="type">
             <xs:simpleType>
                 <xs:restriction base="xs:string">

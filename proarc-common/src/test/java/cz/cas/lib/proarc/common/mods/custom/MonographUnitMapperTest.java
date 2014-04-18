@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.cas.lib.proarc.common.mods.custom.MonographUnitMapper.MonographUnit;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
@@ -32,7 +32,7 @@ public class MonographUnitMapperTest {
 
     @Test
     public void testRead() {
-        ModsType mods = ModsUtils.unmarshal(MonographUnitMapperTest.class.getResource("monograph_unit_mods.xml"), ModsType.class);
+        ModsType mods = Mods33Utils.unmarshal(MonographUnitMapperTest.class.getResource("monograph_unit_mods.xml"), ModsType.class);
         MonographUnitMapper instance = new MonographUnitMapper();
         MonographUnit result = instance.map(mods);
         assertEquals("Zbirka 1", result.getNumber());
@@ -49,9 +49,9 @@ public class MonographUnitMapperTest {
         
         MonographUnitMapper instance = new MonographUnitMapper();
         instance.map(mods, munit);
-        String toXml = ModsUtils.toXml(mods, true);
+        String toXml = Mods33Utils.toXml(mods, true);
         System.out.println(toXml);
-        MonographUnit result = instance.map(ModsUtils.unmarshal(toXml, ModsType.class));
+        MonographUnit result = instance.map(Mods33Utils.unmarshal(toXml, ModsType.class));
         assertNotNull(result);
         assertEquals(Arrays.asList(new IdentifierItem(0, "type", "IDENTIFIER")), result.getIdentifiers());
         assertEquals("NUMBER", result.getNumber());

@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,7 +45,7 @@ public class TitleInfoMapperTest {
         List<String> newSubtitles = Arrays.asList("STITLE[1][new[0]]", "STITLE[1][0]", "STITLE[1][new[2]]");
         List<String> newAltTitles = Arrays.asList("ATITLE[0][new[0]]");
         List<String> newKeyTitles = Arrays.asList("KTITLE[2][0]-update", "KTITLE[2][new[1]]");
-        ModsType mods = ModsUtils.unmarshal(XML, ModsType.class);
+        ModsType mods = Mods33Utils.unmarshal(XML, ModsType.class);
         TitleInfoMapper instance = new TitleInfoMapper(mods);
 
         instance.setTitles(newTitles, newSubtitles);
@@ -67,12 +67,12 @@ public class TitleInfoMapperTest {
         assertThat(subtitleResult, Is.is(subtitleExpected));
         assertThat(alternativeResult, Is.is(alternativeExpected));
         assertThat(keyResult, Is.is(keyExpected));
-        System.out.println(ModsUtils.toXml(mods, true));
+        System.out.println(Mods33Utils.toXml(mods, true));
     }
 
     @Test
     public void testGetTitles() {
-        ModsType mods = ModsUtils.unmarshal(XML, ModsType.class);
+        ModsType mods = Mods33Utils.unmarshal(XML, ModsType.class);
         TitleInfoMapper instance = new TitleInfoMapper(mods);
 
         List<String> titleResult = instance.getTitles();

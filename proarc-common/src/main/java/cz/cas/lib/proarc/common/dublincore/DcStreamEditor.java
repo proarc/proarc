@@ -23,12 +23,11 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.util.JAXBResult;
@@ -91,14 +90,16 @@ public final class DcStreamEditor {
         editor.write(result, record.getTimestamp(), message);
     }
 
+    @Deprecated
     public void write(ModsType mods, String model, long timestamp, String message) throws DigitalObjectException {
         write(null, mods, model, timestamp, message);
     }
 
+    @Deprecated
     public void write(DigitalObjectHandler handler, ModsType mods, String model, long timestamp, String message) throws DigitalObjectException {
         try {
-            JAXBSource jaxbSource = new JAXBSource(ModsUtils.defaultMarshaller(false),
-                    new ObjectFactory().createMods(mods));
+            JAXBSource jaxbSource = new JAXBSource(Mods33Utils.defaultMarshaller(false),
+                    new cz.fi.muni.xkremser.editor.server.mods.ObjectFactory().createMods(mods));
             // DO NOT include schemaLocation. Fedora validator does not accept it.
             Transformer t = DcUtils.modsTransformer(model);
             EditorResult result = editor.createResult();

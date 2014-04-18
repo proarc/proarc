@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.custom.MonographMapper.Monograph;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.util.Arrays;
@@ -34,7 +34,7 @@ public class MonographMapperTest {
 
     @Test
     public void testRead() {
-        ModsType mods = ModsUtils.unmarshal(MonographMapperTest.class.getResource("monograph_mods.xml"), ModsType.class);
+        ModsType mods = Mods33Utils.unmarshal(MonographMapperTest.class.getResource("monograph_mods.xml"), ModsType.class);
         MonographMapper instance = new MonographMapper();
         Monograph result = instance.map(mods);
         assertNotNull(result);
@@ -69,7 +69,7 @@ public class MonographMapperTest {
 
         MonographMapper instance = new MonographMapper();
         instance.map(mods, m);
-        System.out.println(ModsUtils.toXml(mods, true));
+        System.out.println(Mods33Utils.toXml(mods, true));
         // XXX missing asserts
     }
 

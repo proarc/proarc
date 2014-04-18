@@ -33,6 +33,7 @@ import com.smartgwt.client.util.JSONEncoder;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.tile.TileGrid;
+import cz.cas.lib.proarc.webapp.client.widget.mods.NdkFormGenerator;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -317,7 +318,7 @@ public final class ClientUtils {
             if ("__ref".equals(entry.getKey())) {
                 // ignore GWT attributes
                 it.remove();
-            } else if ("_hiddenFields".equals(entry.getKey())) {
+            } else if (NdkFormGenerator.HIDDEN_FIELDS_NAME.equals(entry.getKey())) {
                 it.remove();
             } else if (value instanceof List) {
                 List list = (List) value;

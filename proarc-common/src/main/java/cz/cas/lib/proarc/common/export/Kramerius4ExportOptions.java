@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export;
 
+import cz.cas.lib.proarc.common.object.NdkPlugin;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,6 +69,33 @@ public final class Kramerius4ExportOptions {
             put("model:monographunit", "hasUnit");
             put("model:periodicalvolume", "hasVolume");
             put("model:periodicalitem", "hasItem");
+            put(NdkPlugin.MODEL_ARTICLE, "hasIntCompPart");
+            put(NdkPlugin.MODEL_CARTOGRAPHIC, "hasUnit");
+            put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "hasIntCompPart");
+            put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "hasUnit");
+            put(NdkPlugin.MODEL_PERIODICALISSUE, "hasItem");
+            put(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, "hasIntCompPart");
+            put(NdkPlugin.MODEL_PERIODICALVOLUME, "hasVolume");
+            put(NdkPlugin.MODEL_PICTURE, "hasIntCompPart");
+            put(NdkPlugin.MODEL_SHEETMUSIC, "hasUnit");
+        }
+    };
+
+    // NDK to K4 model mapping
+    private Map<String, String> modelMap = new HashMap<String, String>() {
+        {
+            put(NdkPlugin.MODEL_ARTICLE, "model:article");
+            put(NdkPlugin.MODEL_CARTOGRAPHIC, "model:map");
+            put(NdkPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
+            put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
+            // XXX should be model:monographunit in case the parent is monograph
+            put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monograph");
+            put(NdkPlugin.MODEL_PERIODICAL, "model:periodical");
+            put(NdkPlugin.MODEL_PERIODICALISSUE, "model:periodicalitem");
+            put(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, "model:supplement");
+            put(NdkPlugin.MODEL_PERIODICALVOLUME, "model:periodicalvolume");
+            put(NdkPlugin.MODEL_PICTURE, "model:picture");
+            put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
         }
     };
 
@@ -101,6 +129,10 @@ public final class Kramerius4ExportOptions {
 
     public void setRelationMap(Map<String, String> relationMap) {
         this.relationMap = relationMap;
+    }
+
+    public Map<String, String> getModelMap() {
+        return modelMap;
     }
 
 }

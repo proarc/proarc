@@ -18,9 +18,9 @@ package cz.cas.lib.proarc.common.mods;
 
 import cz.cas.lib.proarc.common.xml.Transformers;
 import cz.cas.lib.proarc.common.xml.Transformers.Format;
-import cz.fi.muni.xkremser.editor.server.mods.ModsCollection;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -49,10 +49,16 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 /**
+ * Utilities fro MODS version 3.4 and later.
  *
  * @author Jan Pokorsky
  */
 public final class ModsUtils {
+
+    /**
+     * The actual MODS version.
+     */
+    public static final String VERSION = "3.5";
 
     private static JAXBContext defaultJaxbContext;
     private static ThreadLocal<Marshaller> defaultMarshaller = new ThreadLocal<Marshaller>();
@@ -97,16 +103,16 @@ public final class ModsUtils {
     /**
      * Dumps MODS object to XML string.
      */
-    public static String toXml(ModsType mods, boolean indent) {
+    public static String toXml(ModsDefinition mods, boolean indent) {
         StringWriter dump = new StringWriter();
         marshal(new StreamResult(dump), mods, indent);
         return dump.toString();
     }
 
     /**
-     * @see cz.fi.muni.xkremser.editor.server.mods package-info.java contains name space prefix mapping.
+     * @see cz.cas.lib.proarc.mods.package-info.java contains name space prefix mapping.
      */
-    public static void marshal(Result target, ModsType mods, boolean indent) {
+    public static void marshal(Result target, ModsDefinition mods, boolean indent) {
         try {
             Marshaller m = defaultMarshaller(indent);
             m.marshal(new ObjectFactory().createMods(mods), target);
@@ -155,18 +161,18 @@ public final class ModsUtils {
         }
     }
 
-    public static ModsType unmarshalModsType(Source source) {
+    public static ModsDefinition unmarshalModsType(Source source) {
         try {
             Object unmarshaled = defaultUnmarshaller().unmarshal(source);
             if (unmarshaled instanceof JAXBElement) {
                 unmarshaled = ((JAXBElement) unmarshaled).getValue();
             }
-            ModsType mods;
-            if (unmarshaled instanceof ModsCollection) {
-                ModsCollection mc = (ModsCollection) unmarshaled;
+            ModsDefinition mods;
+            if (unmarshaled instanceof ModsCollectionDefinition) {
+                ModsCollectionDefinition mc = (ModsCollectionDefinition) unmarshaled;
                 mods = mc.getMods().get(0);
-            } else if (unmarshaled instanceof ModsType) {
-                mods = (ModsType) unmarshaled;
+            } else if (unmarshaled instanceof ModsDefinition) {
+                mods = (ModsDefinition) unmarshaled;
             } else {
                 throw new IllegalStateException(String.valueOf(unmarshaled));
             }
@@ -201,7 +207,7 @@ public final class ModsUtils {
         return params;
     }
 
-    public static String getLabel(ModsType mods, String model) {
+    public static String getLabel(ModsDefinition mods, String model) {
         try {
             JAXBSource src = new JAXBSource(
                     defaultMarshaller(false), new ObjectFactory().createMods(mods));

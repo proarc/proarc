@@ -46,6 +46,7 @@ import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.dc.DcEditor;
 import cz.cas.lib.proarc.webapp.client.widget.mods.MonographForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.MonographUnitForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PageForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalIssueForm;
@@ -195,6 +196,11 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                 boolean status = RestConfig.isStatusOk(response);
                 if (status) {
                     editedCustomRecord = response.getData()[0];
+                    Record customModsRecord = editedCustomRecord.getAttributeAsRecord(ModsCustomDataSource.FIELD_DATA);
+                    if (customModsRecord != null) {
+                        // refresh editor with server values
+                        activeEditor.editRecord(customModsRecord);
+                    }
                 }
                 callback.execute(status);
                 activeEditor.focus();
@@ -244,7 +250,11 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
         String metadataFormat = model.getMetadataFormat();
         DynamicForm form = null;
         if (ModsConstants.NS.equals(metadataFormat)) {
-            form = createModsForm(model.getEditorId());
+            form = new NdkForms(i18n).getForm(model);
+            if (form == null) {
+                // obsolete K4 forms as a fallback
+                form = createModsForm(model.getEditorId());
+            }
         } else if (DcConstants.NS_OAIDC.equals(metadataFormat)) {
             form = new DcEditor(i18n, model).getForm();
         } else if ("http://www.mvcr.cz/nsesss/v2".equals(metadataFormat)) {

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.xml;
 
+import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.PageMapperTest;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
@@ -202,7 +203,7 @@ public class TransformersTest {
 
     @Test
     public void testModsAsFedoraLabel_Empty() throws Exception {
-        String label = ModsUtils.getLabel(new ModsType(), "model:page");
+        String label = Mods33Utils.getLabel(new ModsType(), "model:page");
         assertEquals("?", label);
     }
 

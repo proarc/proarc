@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalMapper.Periodical;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.util.Arrays;
@@ -78,7 +78,7 @@ public class PeriodicalMapperTest {
 
     @Test
     public void testRead() {
-        ModsType mods = ModsUtils.unmarshal(XML, ModsType.class);
+        ModsType mods = Mods33Utils.unmarshal(XML, ModsType.class);
         PeriodicalMapper instance = new PeriodicalMapper();
         Periodical result = instance.map(mods);
         Periodical expected = new Periodical();
@@ -161,10 +161,10 @@ public class PeriodicalMapperTest {
         p.setRecordOrigin("RECORDORIGIN");
         p.setNote("NOTE");
         instance.map(mods, p);
-        String toXml = ModsUtils.toXml(mods, true);
+        String toXml = Mods33Utils.toXml(mods, true);
         System.out.println(toXml);
 //        XMLUnit.setIgnoreWhitespace(true);
-////        String expected = ModsUtils.unmarshal(PeriodicalMapperTest.class.getResource("periodical_mods.xml"), ModsType.class);
+////        String expected = Mods33Utils.unmarshal(PeriodicalMapperTest.class.getResource("periodical_mods.xml"), ModsType.class);
 ////        XMLAssert.assertXMLEqual(
 ////                new InputSource(PeriodicalMapperTest.class.getResource("periodical_mods.xml").toExternalForm()),
 ////                new InputSource(new StringReader(toXml)));

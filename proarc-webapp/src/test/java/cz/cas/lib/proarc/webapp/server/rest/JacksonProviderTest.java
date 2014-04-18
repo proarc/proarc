@@ -23,12 +23,17 @@ import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.json.JsonUtils;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DesDesaPlugin.DesMetadataHandler;
 import cz.cas.lib.proarc.common.object.DesDesaPlugin.DesObjectWrapper;
+import cz.cas.lib.proarc.common.object.NdkPlugin.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecCls;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecCls.RecCl;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.nsesss2.Dokument;
 import cz.cas.lib.proarc.nsesss2.NsesssUtils;
 import cz.cas.lib.proarc.nsesss2.Spis;
@@ -113,6 +118,25 @@ public class JacksonProviderTest {
     }
 
     @Test
+    public void testModsDefinition() throws Exception {
+        ObjectMapper om = new JacksonProvider().locateMapper(ModsWrapper.class, MediaType.APPLICATION_JSON_TYPE);
+        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        ModsDefinition mods = ModsStreamEditor.defaultMods("uuid:test");
+        String toJson = om.writeValueAsString(new ModsWrapper(mods));
+//        System.out.println(toJson);
+
+        ModsWrapper result = om.readValue(toJson, ModsWrapper.class);
+        assertNotNull(result);
+        ModsDefinition resultMods = result.getMods();
+        assertNotNull(resultMods);
+        IdentifierDefinition resultPid = resultMods.getIdentifier().get(0);
+        assertEquals("uuid", resultPid.getType());
+        assertEquals("test", resultPid.getValue());
+//        System.out.println("---");
+//        System.out.println(ModsUtils.toXml(resultMods, true));
+    }
+
+    @Test
     public void testNsesss2WrappedInternalDocument() throws Exception {
         ObjectMapper om = new JacksonProvider().locateMapper(DesObjectWrapper.class, MediaType.APPLICATION_JSON_TYPE);
         om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
@@ -178,10 +202,9 @@ public class JacksonProviderTest {
 
     /**
      * Tests read without mix in annotations and write with them.
-     * @throws Exception
      */
     @Test
-    public void testMapSearcViewItemToJson() throws Exception {
+    public void testMapSearchViewItemToJson() throws Exception {
         ObjectMapper om = new JacksonProvider().locateMapper(Item.class, MediaType.APPLICATION_JSON_TYPE);
         String input = "{\"pid\":\"pid\",\"model\":\"model:test\",\"k0\":1}";
         Item item = JsonUtils.createObjectMapper().readValue(input, Item.class);

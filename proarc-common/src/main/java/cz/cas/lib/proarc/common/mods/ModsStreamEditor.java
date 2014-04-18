@@ -29,6 +29,8 @@ import cz.cas.lib.proarc.common.mods.custom.PageMapper;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper.Page;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.fi.muni.xkremser.editor.server.mods.IdentifierType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.io.StringReader;
@@ -65,7 +67,17 @@ public final class ModsStreamEditor {
         this.object = object;
     }
 
-    public ModsType read() throws DigitalObjectException {
+    @Deprecated
+    public ModsType read33() throws DigitalObjectException {
+        Source src = editor.read();
+        if (src == null) {
+            // it should never arise; it would need to create datastream again with default data
+            throw new DigitalObjectException(object.getPid(), "MODS not initialized!");
+        }
+        return Mods33Utils.unmarshalModsType(src);
+    }
+
+    public ModsDefinition read() throws DigitalObjectException {
         Source src = editor.read();
         if (src == null) {
             // it should never arise; it would need to create datastream again with default data
@@ -75,7 +87,7 @@ public final class ModsStreamEditor {
     }
 
     public String readAsString() throws DigitalObjectException {
-        ModsType mods = read();
+        ModsDefinition mods = read();
         if (mods != null) {
             return ModsUtils.toXml(mods, true);
         }
@@ -86,15 +98,23 @@ public final class ModsStreamEditor {
         return editor.getLastModified();
     }
 
-    public void write(ModsType mods, long timestamp, String message) throws DigitalObjectException {
+    public void write(ModsDefinition mods, long timestamp, String message) throws DigitalObjectException {
         EditorResult marshaled = editor.createResult();
         ModsUtils.marshal(marshaled, mods, true);
         editor.write(marshaled, timestamp, message);
     }
 
-    public static ModsType defaultMods(String pid) {
+    @Deprecated
+    public void write(ModsType mods, long timestamp, String message) throws DigitalObjectException {
+        EditorResult marshaled = editor.createResult();
+        Mods33Utils.marshal(marshaled, mods, true);
+        editor.write(marshaled, timestamp, message);
+    }
+
+    @Deprecated
+    public static ModsType defaultMods33(String pid) {
         ModsType mods = new ModsType();
-        mods.setVersion("3.4");
+        mods.setVersion(ModsUtils.VERSION);
         IdentifierType identifierType = new IdentifierType();
         identifierType.setType("uuid");
         String uuid = FoxmlUtils.pidAsUuid(pid);
@@ -103,6 +123,23 @@ public final class ModsStreamEditor {
         return mods;
     }
 
+    public static ModsDefinition defaultMods(String pid) {
+        ModsDefinition mods = new ModsDefinition();
+        mods.setVersion(ModsUtils.VERSION);
+        addPid(mods, pid);
+        return mods;
+    }
+
+    private static ModsDefinition addPid(ModsDefinition mods, String pid) {
+        String uuid = FoxmlUtils.pidAsUuid(pid);
+        IdentifierDefinition id = new IdentifierDefinition();
+        id.setValue(uuid);
+        id.setType("uuid");
+        mods.getIdentifier().add(0, id);
+        return mods;
+    }
+
+    @Deprecated
     private static ModsType addPid(ModsType mods, String pid) {
         IdentifierMapper identMapper = new IdentifierMapper();
         List<IdentifierItem> identifierItems = identMapper.map(mods);
@@ -113,7 +150,7 @@ public final class ModsStreamEditor {
     }
 
     public ModsType createPage(String pid, String pageIndex, String pageNumber, String pageType) {
-        ModsType mods = defaultMods(pid);
+        ModsType mods = defaultMods33(pid);
         PageMapper mapper = new PageMapper();
         Page page = mapper.map(mods);
         page.setType(pageType);
@@ -123,33 +160,20 @@ public final class ModsStreamEditor {
         return mods;
     }
 
-    public void updatePage(ModsType mods, String pageIndex, String pageNumber, String pageType) {
-        PageMapper mapper = new PageMapper();
-        Page page = mapper.map(mods);
-        if (pageIndex != null) {
-            page.setIndex(pageIndex.isEmpty() ? null : pageIndex);
-        }
-        if (pageNumber != null) {
-            page.setNumber(pageNumber.isEmpty() ? null : pageNumber);
-        }
-        if (pageType != null) {
-            page.setType(pageType.isEmpty() ? null : pageType);
-        }
-        mapper.map(mods, page);
-    }
-
     public static ModsType create(String pid, String model) {
-        ModsType mods = defaultMods(pid);
+        ModsType mods = defaultMods33(pid);
         return create(pid, model, mods);
     }
-    
-    public static ModsType create(String pid, String model, String xml) {
-        ModsType mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xml)));
+
+    @Deprecated
+    public static ModsType create33(String pid, String model, String xml) {
+        ModsType mods = Mods33Utils.unmarshalModsType(new StreamSource(new StringReader(xml)));
         // XXX normalize MODS?
         addPid(mods, pid);
         return create(pid, model, mods);
     }
 
+    @Deprecated
     public static ModsType create(String pid, String model, ModsType mods) {
         MetaModel metaModel = MetaModelRepository.getInstance().find(model);
         if (metaModel != null) {
