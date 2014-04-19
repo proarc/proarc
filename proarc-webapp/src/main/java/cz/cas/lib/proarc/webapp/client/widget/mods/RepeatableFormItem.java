@@ -329,6 +329,8 @@ public final class RepeatableFormItem extends CanvasItem {
         RepeatableForm editor = (RepeatableForm) getCanvas();
         boolean valid = true;
         if (editor != null) {
+//            ClientUtils.severe(LOG, "validateInnerForms: field.name: %s, JSO: %s",
+//                    getName(), ClientUtils.dump(editor.getDataAsRecordList().getJsObj()));
             valid &= editor.validate(showErrors);
             // call storeValue to propagate values changed by validators
             storeValue(editor, this);
@@ -347,6 +349,9 @@ public final class RepeatableFormItem extends CanvasItem {
     private static void storeValue(RepeatableForm editor, CanvasItem canvasItem) {
         if (editor != null) {
             RecordList dataAsRecordList = editor.getDataAsRecordList();
+//            ClientUtils.severe(LOG, "storeValue: field.name: %s, class: %s, JSO: %s",
+//                    canvasItem.getName(), ClientUtils.safeGetClass(dataAsRecordList),
+//                    ClientUtils.dump(dataAsRecordList.getJsObj()));
             if (isSimpleArrayItemField(canvasItem)) {
                 Object[] values = new Object[dataAsRecordList.getLength()];
                 String name = canvasItem.getName();
@@ -357,6 +362,9 @@ public final class RepeatableFormItem extends CanvasItem {
                 canvasItem.storeValue(JSOHelper.arrayConvert(values));
                 return ;
             }
+            // duplicate the RecordList instance to rewrite the CanvasItem cache
+            // and propagate new list values to enclosing forms
+            dataAsRecordList = new RecordList(dataAsRecordList.duplicate());
             canvasItem.storeValue(dataAsRecordList);
         }
     }
