@@ -62,6 +62,7 @@ public class NdkFormGenerator extends FormGenerator {
                     .setTitle("Hodnoty mimo NDK - " + f.getName())
                     .setMaxOccurrences(1).setType(Field.TEXT)
                     .setReadOnly(true)
+                    .setHidden(true)
                     .createField());
         }
         RepeatableFormItem rfi = new RepeatableFormItem(f, new FormWidgetFactory() {
