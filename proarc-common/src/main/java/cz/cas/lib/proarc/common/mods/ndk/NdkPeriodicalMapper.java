@@ -111,19 +111,18 @@ public class NdkPeriodicalMapper extends NdkMapper {
             reqPhysicalDescription = pd;
             List<FormDefinition> forms = pd.getForm();
             for (FormDefinition form : forms) {
-                if (reqForm == null && form.getValue() == null) {
+                if ("print".equals(form.getValue())) {
+                    if (!"marcform".equals(form.getAuthority())) {
+                        form.setAuthority("marcform");
+                    }
                     reqForm = form;
-                    form.setValue("print");
-                }
-                if (form.getAuthority() == null) {
-                    form.setAuthority("marcform");
                 }
             }
             if (reqForm == null) {
                 reqForm = new FormDefinition();
                 reqForm.setAuthority("marcform");
                 reqForm.setValue("print");
-                forms.add(reqForm);
+                forms.add(0, reqForm);
             }
         }
         if (reqPhysicalDescription == null) {
