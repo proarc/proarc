@@ -16,12 +16,14 @@
  */
 package cz.cas.lib.proarc.common.imports;
 
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
@@ -94,6 +96,8 @@ public final class TiffImporter {
             createMetadata(localObj, ctx);
             createRelsExt(localObj, f, ctx);
             createImages(ctx.getTargetFolder(), f, originalFilename, localObj, config);
+            importArchivalCopy(fileSet, localObj, ctx);
+            importUserCopy(fileSet, localObj, ctx);
             importOcr(fileSet, localObj, ctx);
             // XXX generate ATM
             // writes FOXML
@@ -166,7 +170,7 @@ public final class TiffImporter {
         File tempBatchFolder = options.getTargetFolder();
         String originalFilename = fileSet.getName();
         ImportProfile config = options.getConfig();
-        FileEntry ocrEntry = findOcr(fileSet, config.getPlainOcrFileSuffix());
+        FileEntry ocrEntry = findSibling(fileSet, config.getPlainOcrFileSuffix());
         if (ocrEntry != null) {
             File ocrFile = new File(tempBatchFolder, originalFilename + '.' + StringEditor.OCR_ID + ".txt");
             StringEditor.copy(ocrEntry.getFile(), config.getPlainOcrCharset(), ocrFile, "UTF-8");
@@ -174,14 +178,14 @@ public final class TiffImporter {
             ocrEditor.write(ocrFile.toURI(), 0, null);
         }
         // ALTO OCR
-        FileEntry altoEntry = findOcr(fileSet, config.getAltoFileSuffix());
+        FileEntry altoEntry = findSibling(fileSet, config.getAltoFileSuffix());
         if (altoEntry != null) {
             URI altoUri = altoEntry.getFile().toURI();
             AltoDatastream.importAlto(fo, altoUri, null);
         }
     }
 
-    private FileEntry findOcr(FileSet fileSet, String filenameSuffix) {
+    private FileEntry findSibling(FileSet fileSet, String filenameSuffix) {
         for (FileEntry entry : fileSet.getFiles()) {
             String filename = entry.getFile().getName().toLowerCase();
             if (filename.endsWith(filenameSuffix)) {
@@ -189,6 +193,30 @@ public final class TiffImporter {
             }
         }
         return null;
+    }
+
+    private void importArchivalCopy(FileSet fileSet, FedoraObject fo, ImportOptions options) throws DigitalObjectException {
+        ImportProfile config = options.getConfig();
+        FileEntry entry = findSibling(fileSet, config.getNdkArchivalFileSuffix());
+        if (entry != null) {
+            // do not use entry.getMimeType. JDK 1.6 does not recognize JPEG2000
+            DatastreamProfile p = FoxmlUtils.managedProfile(
+                    BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.IMAGE_JP2, BinaryEditor.NDK_ARCHIVAL_LABEL);
+            BinaryEditor binaryEditor = new BinaryEditor(fo, p);
+            binaryEditor.write(entry.getFile(), 0, null);
+        }
+    }
+
+    private void importUserCopy(FileSet fileSet, FedoraObject fo, ImportOptions options) throws DigitalObjectException {
+        ImportProfile config = options.getConfig();
+        FileEntry entry = findSibling(fileSet, config.getNdkUserFileSuffix());
+        if (entry != null) {
+            // do not use entry.getMimeType. JDK 1.6 does not recognize JPEG2000
+            DatastreamProfile p = FoxmlUtils.managedProfile(
+                    BinaryEditor.NDK_USER_ID, BinaryEditor.IMAGE_JP2, BinaryEditor.NDK_USER_LABEL);
+            BinaryEditor binaryEditor = new BinaryEditor(fo, p);
+            binaryEditor.write(entry.getFile(), 0, null);
+        }
     }
 
     private void createImages(File tempBatchFolder, File original,

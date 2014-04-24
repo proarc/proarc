@@ -70,6 +70,8 @@ public class TiffImporterTest {
     private File tiff1;
     private File ocr1;
     private File alto1;
+    private File ac1;
+    private File uc1;
     private AppConfiguration config;
     private ArrayList<Object> toVerify = new ArrayList<Object>();;
 
@@ -101,6 +103,11 @@ public class TiffImporterTest {
         FileUtils.writeStringToFile(alto1,
                 "<alto xmlns=\"http://www.loc.gov/standards/alto/ns-v2#\"></alto>",
                 "UTF-8");
+
+        ac1 = new File(root, "img1.ac.jp2");
+        ac1.createNewFile();
+        uc1 = new File(root, "img1.uc.jp2");
+        uc1.createNewFile();
 
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
@@ -175,6 +182,8 @@ public class TiffImporterTest {
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.PREVIEW_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.THUMB_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.RAW_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.NDK_ARCHIVAL_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.NDK_USER_ID), new InputSource(foxmlSystemId));
 
         String rootSystemId = rootFoxml.toURI().toASCIIString();
         XMLAssert.assertXpathExists(streamXPath(RelationEditor.DATASTREAM_ID), new InputSource(rootSystemId));
