@@ -133,6 +133,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
     @Override
     public List<MetadataItem> find(String fieldId, String value, Locale locale) throws TransformerException, IOException {
         String query = buildQuery(fieldId, value);
+        LOG.fine(query);
         if (query == null) {
             return Collections.emptyList();
         }
@@ -141,7 +142,17 @@ public final class Z3950Catalog implements BibliographicCatalog {
         try {
             for (byte[] content : client.search(query)) {
                 String charset = recordCharset == null ? null : recordCharset.name();
+                if (LOG.isLoggable(Level.FINE)) {
+                    String marc21 = new String(content, charset == null ? "UTF-8" : charset);
+                    LOG.fine(marc21);
+                }
+
                 Document marcXml = Z3950Client.toMarcXml(content, charset);
+                if (LOG.isLoggable(Level.FINE)) {
+                    StringBuilder sb = new StringBuilder();
+                    transformers.dump(new DOMSource(marcXml), sb);
+                    LOG.fine(sb.toString());
+                }
                 MetadataItem item = createResponse(index++, new DOMSource(marcXml), locale);
                 result.add(item);
             }
