@@ -8,6 +8,7 @@
 <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
     MARC21slim2MODS3-4 (Revision 1.94) 20140221
 
+Revision 1.94.2 - ProArc patch to fix <frequency authority="marcfrequency"> for fields 310a and 008/18
 Revision 1.94.1 - ProArc patch to include cCNB as <identifier type="ccnb"> from 015a,z
 Revision 1.94 - Leader 07 b mapping changed from "continuing" to "serial" tmee 2014/02/21
 Revision 1.93 - Fixed personal name transform for ind1=0 tmee 2014/01/31
@@ -875,7 +876,9 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </issuance>
             </xsl:for-each>
             <xsl:for-each select="marc:datafield[@tag=310]|marc:datafield[@tag=321]">
-                <frequency authority="marcfrequency">
+                <!-- 1.94.2 patch -->
+                <frequency>
+                <!--<frequency authority="marcfrequency">-->
                     <xsl:call-template name="subfieldSelect">
                         <xsl:with-param name="codes">ab</xsl:with-param>
                     </xsl:call-template>
@@ -888,7 +891,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="marc:controlfield[@tag=008]">
                     <xsl:variable name="controlField008-18" select="substring($controlField008,19,1)"/>
                     <xsl:variable name="frequency">
-                        <frequency>
+                        <!-- 1.94.2 patch -->
+                        <frequency authority="marcfrequency">
                             <xsl:choose>
                                 <xsl:when test="$controlField008-18='a'">Annual</xsl:when>
                                 <xsl:when test="$controlField008-18='b'">Bimonthly</xsl:when>
