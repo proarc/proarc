@@ -8,6 +8,7 @@
 <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
     MARC21slim2MODS3-4 (Revision 1.94) 20140221
 
+Revision 1.94.1 - ProArc patch to include cCNB as <identifier type="ccnb"> from 015a,z
 Revision 1.94 - Leader 07 b mapping changed from "continuing" to "serial" tmee 2014/02/21
 Revision 1.93 - Fixed personal name transform for ind1=0 tmee 2014/01/31
 Revision 1.92 - Removed duplicate code for 856 1.51 tmee tmee 2014/01/31
@@ -2386,6 +2387,22 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:apply-templates select="self::*" mode="trans880"/>
         </xsl:for-each>
 
+        <!-- 1.94.1 ProArc cCNB patch -->
+        <xsl:for-each select="marc:datafield[@tag='015']/marc:subfield[@code='a']">
+            <xsl:if test="starts-with(current(), 'cnb')">
+                <identifier type="ccnb">
+                    <xsl:value-of select="current()"/>
+                </identifier>
+            </xsl:if>
+        </xsl:for-each>
+        <xsl:for-each select="marc:datafield[@tag='015']/marc:subfield[@code='z']">
+            <xsl:if test="starts-with(current(), 'cnb')">
+                <identifier type="ccnb" invalid="yes">
+                    <xsl:value-of select="current()"/>
+                </identifier>
+            </xsl:if>
+        </xsl:for-each>
+        <!-- 1.94.1 ProArc cCNB patch -->
 
         <!-- 856, 020, 024, 022, 028, 010, 035, 037 -->
 
