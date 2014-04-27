@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.xml;
 
 import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.PageMapperTest;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.io.ByteArrayInputStream;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
+import org.custommonkey.xmlunit.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.After;
@@ -112,6 +114,35 @@ public class TransformersTest {
         } finally {
             close(xmlIS);
             close(goldenIS);
+        }
+    }
+
+    /**
+     * Tests mapping of 910a(sigla) as {@code <physicalLocation>} and 910b(signatura) as {@code <shelfLocator>}.
+     */
+    @Test
+    public void testMarcAsMods_Issue32() throws Exception {
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods34);
+            assertNotNull(contents);
+            String xmlResult = new String(contents, "UTF-8");
+            System.out.println(xmlResult);
+            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
+                put("m", ModsConstants.NS);
+            }}));
+            XMLAssert.assertXpathEvaluatesTo("HKA001", "/m:mods/m:location/m:physicalLocation[1]", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("test sigla", "/m:mods/m:location/m:physicalLocation[2]", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("2", "count(/m:mods/m:location/m:physicalLocation)", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("54 487", "/m:mods/m:location/m:shelfLocator[1]", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("test signatura", "/m:mods/m:location/m:shelfLocator[2]", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("2", "count(/m:mods/m:location/m:shelfLocator)", xmlResult);
+        } finally {
+            close(xmlIS);
         }
     }
 

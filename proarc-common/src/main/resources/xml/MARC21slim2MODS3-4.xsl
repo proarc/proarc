@@ -8,6 +8,7 @@
 <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
     MARC21slim2MODS3-4 (Revision 1.94) 20140221
 
+Revision 1.94.3 - ProArc patch to map 910a(sigla) as <physicalLocation> and 910b(signatura) as <shelfLocator>. Issue 32.
 Revision 1.94.2 - ProArc patch to fix <frequency authority="marcfrequency"> for fields 310a and 008/18
 Revision 1.94.1 - ProArc patch to include cCNB as <identifier type="ccnb"> from 015a,z
 Revision 1.94 - Leader 07 b mapping changed from "continuing" to "serial" tmee 2014/02/21
@@ -1971,6 +1972,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 
         <xsl:for-each select="marc:datafield[@tag=856]">
             <xsl:call-template name="createLocationFrom856"/>
+        </xsl:for-each>
+
+        <!--location: 1.94.3 -->
+        <xsl:for-each select="marc:datafield[@tag=910]">
+            <xsl:call-template name="createLocationFrom910"/>
         </xsl:for-each>
 
         <xsl:for-each select="marc:datafield[@tag=490][@ind1=0]">
@@ -5490,6 +5496,23 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </url>
             </location>
         </xsl:if>
+    </xsl:template>
+
+    <!--location: 1.94.3 -->
+
+    <xsl:template name="createLocationFrom910">
+        <location>
+            <xsl:for-each select="marc:subfield[@code='a']">
+                <physicalLocation>
+                    <xsl:value-of select="text()" />
+                </physicalLocation>
+            </xsl:for-each>
+            <xsl:for-each select="marc:subfield[@code='b']">
+                <shelfLocator>
+                    <xsl:value-of select="text()" />
+                </shelfLocator>
+            </xsl:for-each>
+        </location>
     </xsl:template>
 
     <!-- accessCondition 506 540 1.87 20130829-->
