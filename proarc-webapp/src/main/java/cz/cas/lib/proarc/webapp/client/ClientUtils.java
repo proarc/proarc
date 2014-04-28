@@ -25,6 +25,7 @@ import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.regexp.shared.SplitResult;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.OperatorId;
@@ -215,6 +216,11 @@ public final class ClientUtils {
     public static String dump(Object jso) {
         String dump;
         if (jso != null) {
+            if (jso instanceof Record) {
+                jso = ((Record) jso).getJsObj();
+            } else if (jso instanceof RecordList) {
+                jso = ((RecordList) jso).getJsObj();
+            }
             try {
                 dump = new JSONEncoder().encode(jso);
             } catch (Exception ex) {
