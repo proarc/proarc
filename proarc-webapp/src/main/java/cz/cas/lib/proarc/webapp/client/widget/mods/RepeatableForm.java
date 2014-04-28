@@ -190,14 +190,18 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
      * for now it uses ResultSet as a plain static array of records
      */
     public void setData(RecordList data) {
-        dataModel = data;
         if (data.isEmpty()) {
-            data.add(new Record());
+            dataModel = new RecordList();
+            dataModel.add(new Record());
+        } else {
+            // issue 123: make own copy to ensure modified data are not propagated
+            // to RepeatableFormItem before firing an event
+            dataModel = new RecordList(data.duplicate());
         }
 
         int rowIndex = 0;
-        for (; rowIndex < data.getLength(); rowIndex++) {
-            Record record = data.get(rowIndex);
+        for (; rowIndex < dataModel.getLength(); rowIndex++) {
+            Record record = dataModel.get(rowIndex);
             ValuesManager form;
             Row row;
             if (rowIndex < activeRows.size()) {
