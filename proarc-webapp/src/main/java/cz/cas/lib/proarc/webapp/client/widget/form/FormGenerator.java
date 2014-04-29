@@ -513,7 +513,8 @@ public class FormGenerator {
         df.setWrapItemTitles(false);
         df.setWidth100();
         df.setHoverWrap(false);
-//        df.setHoverWidth(200);
+        df.setItemHoverWidth(200);
+        df.setHoverWidth(200);
         return df;
     }
 
