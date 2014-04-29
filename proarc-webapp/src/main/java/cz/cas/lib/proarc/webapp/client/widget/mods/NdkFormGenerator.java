@@ -80,6 +80,7 @@ public class NdkFormGenerator extends FormGenerator {
                 return customizeNestedForm(new FormWidget(df, vm), f);
             }
         });
+        rfi.setPrompt(f.getHint(lang));
         oneRow(rfi);
         return rfi;
     }
