@@ -257,8 +257,9 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         item.setWidth(300);
         item.setAllowEmptyValue(true);
         item.setEmptyDisplayValue("<i>" + i18nSmartGwt.filterBuilder_matchAllTitle() + "</i>");
+        // see setFilterModel
 //        item.setValue("model:periodical");
-        item.setDefaultToFirstOption(true);
+//        item.setDefaultToFirstOption(true);
         if (showIf != null) {
             item.setShowIfCondition(showIf);
         }
@@ -278,8 +279,12 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     }
 
     public void onShow() {
-        foundGrid.invalidateCache();
-        filter();
+        // fetch values after fetching models (setFilterModel, setModels).
+    }
+
+    public void setFilterModel(Object modelId) {
+        FormItem filterModel = filters.getField(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM);
+        filterModel.setValue(modelId);
     }
 
     public void setModels(LinkedHashMap<?, ?> valueMap) {
@@ -297,7 +302,8 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     @Override
     public void refresh() {
-        onShow();
+        foundGrid.invalidateCache();
+        filter();
     }
 
     private void filter() {
