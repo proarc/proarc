@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.mods.UrlDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -78,7 +79,13 @@ public class NdkPeriodicalMapper extends NdkMapper {
             reqOriginInfo = oi;
             List<IssuanceDefinition> issuances = oi.getIssuance();
             IssuanceDefinition reqIssuance = null;
-            for (IssuanceDefinition issuance : issuances) {
+            for (Iterator<IssuanceDefinition> it = issuances.iterator(); it.hasNext();) {
+                IssuanceDefinition issuance = it.next();
+                if (IssuanceDefinition.SERIAL == issuance) {
+                    // replace SERIAL with CONTINUING to comply with NDK spec
+                    it.remove();
+                    continue;
+                }
                 if (IssuanceDefinition.CONTINUING == issuance) {
                     reqIssuance = issuance;
                     break;

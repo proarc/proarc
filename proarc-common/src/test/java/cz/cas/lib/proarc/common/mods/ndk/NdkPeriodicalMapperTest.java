@@ -21,8 +21,10 @@ import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.IssuanceDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import java.util.Arrays;
 import java.util.List;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -101,7 +103,6 @@ public class NdkPeriodicalMapperTest {
 
         mapper.createMods(mods, ctx);
 
-
         List<IdentifierDefinition> identifiersResult = mods.getIdentifier();
         assertEquals(1, identifiersResult.size());
         IdentifierDefinition idResult = identifiersResult.get(0);
@@ -120,7 +121,23 @@ public class NdkPeriodicalMapperTest {
         assertEquals(1, mods.getOriginInfo().get(0).getPlace().size());
         assertEquals(1, mods.getOriginInfo().get(0).getPlace().get(0).getPlaceTerm().size());
         assertEquals(CodeOrText.TEXT, mods.getOriginInfo().get(0).getPlace().get(0).getPlaceTerm().get(0).getType());
+    }
 
+    @Test
+    public void testCreateMods_FixIssuance() {
+        ModsDefinition mods = new ModsDefinition();
+        NdkPeriodicalMapper mapper = new NdkPeriodicalMapper();
+        Context ctx = EasyMock.createMock(Context.class);
+        EasyMock.expect(ctx.getPid()).andReturn("uuid:testId").anyTimes();
+        EasyMock.replay(ctx);
+
+        OriginInfoDefinition oi = new OriginInfoDefinition();
+        oi.getIssuance().add(IssuanceDefinition.SERIAL);
+        mods.getOriginInfo().add(oi);
+
+        mapper.createMods(mods, ctx);
+
+        assertEquals(Arrays.asList(IssuanceDefinition.CONTINUING), mods.getOriginInfo().get(0).getIssuance());
     }
 
 }
