@@ -37,17 +37,26 @@ public final class NdkMonographTitleForm {
         List<Field> modsFields = f.getFields().get(0).getFields();
 
         // titleInfo, titleInfoDefinition
-        modsFields.add(new FieldBuilder("titleInfo").setTitle("Název").setMaxOccurrences(10)
+        modsFields.add(new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
+                .setHint("Název titulu, souborný název.<p>Pro plnění použít katalogizační záznam.")
                 // titleInfo@type, enum
-    //            .addField(new FieldBuilder("type").setTitle("Typ").setMaxOccurrences(1).setType(Field.SELECT)
-    //                .addMapValue("abbreviated", "Abbreviated")
-    //                .addMapValue("alternative", "Alternative")
-    //                .addMapValue("translated", "Translated")
-    //                .addMapValue("uniform", "Uniform")
-    //            .createField())
+                .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
+                    .setHint("Hlavní název bez type.<dl>Hodnoty:"
+                        + "<dt>abbreviated</dt><dd>zkrácený název</dd>"
+                        + "<dt>alternative</dt><dd>alternativní název</dd>"
+                        + "<dt>translated</dt><dd>přeložený název</dd>"
+                        + "<dt>uniform</dt><dd>stejný/jednotný název</dd>"
+                        + "</dl>")
+                    .addMapValue("abbreviated", "Abbreviated")
+                    .addMapValue("alternative", "Alternative")
+                    .addMapValue("translated", "Translated")
+                    .addMapValue("uniform", "Uniform")
+                .createField()) // type
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Titul").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
+                    .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                        .setHint("Názvová informace - název monografického dokumentu.")
+                    .createField()) // value
                     // lang, String
                     // xmlLang, lang
                     // script, String
@@ -55,25 +64,31 @@ public final class NdkMonographTitleForm {
                 .createField()) // title
                 // subTitle, type="stringPlusLanguage"
                 .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Podnázev").setMaxOccurrences(1).setType(Field.TEXT).createField())
+                    .addField(new FieldBuilder("value").setTitle("Subtitle - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Podnázev svazku monografie.")
+                    .createField()) // value
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 .createField()) // subTitle
                 // partNumber, type="stringPlusLanguage"
-    //            .addField(new FieldBuilder("partNumber").setMaxOccurrences(1)
-    //                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-    //                .addField(new FieldBuilder("value").setTitle("partNumber").setMaxOccurrences(1).setType(Field.TEXT).createField())
-    //            .createField()) // partNumber
+                .addField(new FieldBuilder("partNumber").setMaxOccurrences(1)
+                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                    .addField(new FieldBuilder("value").setTitle("Part Number - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Číslo svazku souborného záznamu.")
+                    .createField()) // value
+                .createField()) // partNumber
                 // partName, type="stringPlusLanguage"
-    //            .addField(new FieldBuilder("partName").setMaxOccurrences(1)
-    //                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-    //                .addField(new FieldBuilder("value").setTitle("partName").setMaxOccurrences(1).setType(Field.TEXT).createField())
-    //            .createField()) // partName
+                .addField(new FieldBuilder("partName").setMaxOccurrences(1)
+                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                    .addField(new FieldBuilder("value").setTitle("Part Name - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Název svazku souborného záznamu.")
+                    .createField()) // value
+                .createField()) // partName
                 // nonSort, type="stringPlusLanguage"
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
         .createField()); // titleInfo
 
         // originInfo, originInfoDefinition
-        modsFields.add(new FieldBuilder("originInfo").setTitle("OriginInfo").setMaxOccurrences(10)
+        modsFields.add(new FieldBuilder("originInfo").setTitle("Origin Info - MA").setMaxOccurrences(10)
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 // @displayLabel
                 // @altRepGroup
@@ -83,7 +98,7 @@ public final class NdkMonographTitleForm {
                 .addField(new FieldBuilder("publisher").setMaxOccurrences(1)
                     // stringPlusLanguagePlusSupplied: @supplied
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Publisher").setMaxOccurrences(1).setType(Field.TEXT).createField())
+                    .addField(new FieldBuilder("value").setTitle("Publisher - MA").setMaxOccurrences(1).setType(Field.TEXT).createField())
                 .createField()) // publisher
                 // dateIssued, dateDefinition extends stringPlusLanguage
                 // dateCreated, dateDefinition extends stringPlusLanguage
@@ -96,29 +111,39 @@ public final class NdkMonographTitleForm {
                 .addField(new FieldBuilder("edition").setMaxOccurrences(1)
                     // stringPlusLanguagePlusSupplied: @supplied
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Pořadí vydání").setMaxOccurrences(1).setType(Field.TEXT).setHint("&lt;edition>").createField())
+                    .addField(new FieldBuilder("value").setTitle("Edition - MA").setMaxOccurrences(1).setType(Field.TEXT).setHint("Pořadí vydání").createField())
                 .createField()) // edition
                 // issuance, issuanceDefinition, enum
                 // frequency, stringPlusLanguagePlusAuthority
         .createField()); // originInfo
 
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("genre").setTitle("Genre").setMaxOccurrences(1)
+        modsFields.add(new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(1)
+                .setHint("Bližší údaje o typu dokumentu.<p>Pro vícesvazkovou monografii “title”.")
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("title").setRequired(true).createField())
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
         .createField()); // genre
 
         // identifier, identifierDefinition, [0,*]
-        modsFields.add(new FieldBuilder("identifier").setTitle("Identifikátory").setMaxOccurrences(10)
+        modsFields.add(new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
+                .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
+                    + " mezinárodní nebo lokální."
+                    + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
                 // stringPlusLanguage@languageAttributeGroup
                 //   lang, xs:string
                 //   xml:lang
                 //   script, xs:string
                 //   transliteration, xs:string
                 //   type, xs:string
-                .addField(new FieldBuilder("type").setTitle("Typ").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+                    .setHint("UUID - M - vygeneruje dodavatel"
+                            + "<br>čČNB - MA - převzít z katalogizačního záznamu z pole 015, podpole „a“, „z“"
+                            + "<br>ISBN - MA - převzít z katalogizačního záznamu z pole 020, podpole „a“, „z“"
+                            + "<br>ISMN - MA - převzít z katalogizačního záznamu z pole 024 (1. ind.=“2“), podpole „a“, „z“"
+                            + "<br>URN:NBN - O - zápis ve tvaru urn:nbn:cz:ndk-123456 pro projekt NDK"
+                            + "<br>jiný interní identifikátor - R - type = barcode, oclc, sysno, permalink apod.")
                     // XXX use ValueMap
                     .addMapValue("barcode", "Čárový kód")
                     .addMapValue("ccnb", "čČNB")
@@ -134,15 +159,15 @@ public final class NdkMonographTitleForm {
                     .addMapValue("uuid", "UUID")
                 .createField())
                 // stringPlusLanguage/value
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).createField())
+                .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
                 // identifierDefinition
                 //   displayLabel, xs:string
                 //   typeURI, xs:anyURI
                 //   invalid, fixed="yes"
-//                .addField(new FieldBuilder("invalid").setTitle("Neplatný").setMaxOccurrences(1).setType(Field.SELECT)
-//                    .addMapValue("", "Platný")
-//                    .addMapValue("yes", "Neplatný")
-//                .createField())
+                .addField(new FieldBuilder("invalid").setTitle("Invalid - MA").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
+                    .addMapValue("", "Platný")
+                    .addMapValue("yes", "Neplatný")
+                .createField()) // invalid
                 //   altRepGroup, xs:string
         .createField()); // identifier
 

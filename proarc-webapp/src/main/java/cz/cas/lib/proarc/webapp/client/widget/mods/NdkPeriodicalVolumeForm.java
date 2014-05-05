@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * The NDK Periodical Volume.
  *
- * Version 1.4
+ * Version 1.5
  *
  * @author Jan Pokorsky
  */
@@ -44,7 +44,9 @@ public class NdkPeriodicalVolumeForm {
                 // partNumber, type="stringPlusLanguage"
                 .addField(new FieldBuilder("partNumber").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Pořadové číslo vydání ročníku").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
+                    .addField(new FieldBuilder("value").setTitle("Part Number - MA").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                        .setHint("Pořadové číslo vydání ročníku, např. 40")
+                    .createField()) // value
                 .createField()) // partNumber
                 // partName, type="stringPlusLanguage"
                 // nonSort, type="stringPlusLanguage"
@@ -57,7 +59,9 @@ public class NdkPeriodicalVolumeForm {
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // XXX auto fill with "volume"
-                .addField(new FieldBuilder("value").setTitle("Genre").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
+                .addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                    .setHint("bližší údaje o typu dokumentu\n hodnota “volume”")
+                .createField()) // value
         .createField()); // genre
 
         // originInfo, originInfoDefinition
@@ -69,15 +73,24 @@ public class NdkPeriodicalVolumeForm {
                 // place, placeDefinition
                 // publisher, stringPlusLanguagePlusSupplied
                 // dateIssued, dateDefinition extends stringPlusLanguage
-                .addField(new FieldBuilder("dateIssued").setTitle("Datum vydání").setMaxOccurrences(1)
+                .addField(new FieldBuilder("dateIssued").setTitle("Date Issued - M").setMaxOccurrences(1)
+                    .setHint("Datum vydání předlohy, rok nebo rozsah let, kdy ročník vycházel.")
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @encoding, @qualifier, @point, @keyDate
-                    .addField(new FieldBuilder("qualifier").setMaxOccurrences(1).setType(Field.SELECT)
+                    .addField(new FieldBuilder("point").setTitle("Point - O").setMaxOccurrences(1).setType(Field.SELECT)
+                        .setHint("Hodnoty „start“ resp. „end“ jen u údaje z pole 008, pro rozmezí dat.")
+                        .addMapValue("start", "Začátek")
+                        .addMapValue("end", "Konec")
+                    .createField()) // @point
+                    .addField(new FieldBuilder("qualifier").setTitle("Qualifier - O").setMaxOccurrences(1).setType(Field.SELECT)
+                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
                         .addMapValue("approximate", "Approximate")
                         .addMapValue("inferred", "Inferred")
                         .addMapValue("questionable", "Questionable")
                     .createField()) // qualifier
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setWidth("200").createField())
+                    .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setWidth("200")
+                        .setHint("Datum vydání předlohy, rok nebo rozsah let, kdy ročník vycházel.")
+                    .createField()) // value
                 .createField()) // dateIssued
                 // dateCreated, dateDefinition extends stringPlusLanguage
                 // dateCaptured
@@ -98,37 +111,50 @@ public class NdkPeriodicalVolumeForm {
                 // digitalOrigin
                 // extent, stringPlusLanguagePlusSupplied
                 // note, physicalDescriptionNote extends stringPlusLanguage
-                .addField(new FieldBuilder("note").setTitle("Poznámka o fyzickém stavu dokumentu").setMaxOccurrences(5)
+                .addField(new FieldBuilder("note").setTitle("Note - O").setMaxOccurrences(5)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @displayLabel, @type, @typeURI, @xlinkSimpleLink, @ID
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA).setWidth("400").createField())
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA).setWidth("400")
+                        .setHint("Poznámka o fyzickém stavu dokumentu."
+                            + "<p>Pro každou poznámku je nutno vytvořit nový &lt;note> element."
+                            + "<p>Zde se zapíší defekty zjištěné při digitalizaci pro"
+                            + " úroveň ročníku (např. chybějící čísla apod.)")
+                    .createField()) // value
                 .createField()) // note
         .createField()); // physicalDescription
 
         // identifier, identifierDefinition, [0,*]
-        modsFields.add(new FieldBuilder("identifier").setTitle("Identifikátory").setMaxOccurrences(10)
+        modsFields.add(new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
+                .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
+                    + " mezinárodní nebo lokální."
+                    + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
                 // stringPlusLanguage@languageAttributeGroup
                 //   lang, xs:string
                 //   xml:lang
                 //   script, xs:string
                 //   transliteration, xs:string
                 //   type, xs:string
-                .addField(new FieldBuilder("type").setTitle("Typ").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
-                    // XXX use ValueMap
+                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+                    .setHint("UUID - M - vygeneruje dodavatel"
+                            + "<br>URN:NBN - O - zápis ve tvaru urn:nbn:cz:ndk-123456 pro projekt NDK"
+                            + "<br>jiný interní identifikátor - R - type = barcode, oclc, sysno, permalink apod.")
                     .addMapValue("uuid", "UUID")
                     .addMapValue("urnnbn", "URN:NBN")
                     .addMapValue("barcode", "Čárový kód")
+                    .addMapValue("oclc", "OCLC")
+                    .addMapValue("permalink", "Permalink")
+                    .addMapValue("sysno", "Sysno")
                 .createField())
                 // stringPlusLanguage/value
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).createField())
+                .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setHint("Hodnota identifikátoru.").createField())
                 // identifierDefinition
                 //   displayLabel, xs:string
                 //   typeURI, xs:anyURI
                 //   invalid, fixed="yes"
-//                .addField(new FieldBuilder("invalid").setTitle("Neplatný").setMaxOccurrences(1).setType(Field.SELECT)
-//                    .addMapValue("", "Platný")
-//                    .addMapValue("yes", "Neplatný")
-//                .createField())
+                .addField(new FieldBuilder("invalid").setTitle("Invalid - MA").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
+                    .addMapValue("", "Platný")
+                    .addMapValue("yes", "Neplatný")
+                .createField()) // invalid
                 //   altRepGroup, xs:string
         .createField()); // identifier
 
