@@ -17,10 +17,8 @@
 package cz.cas.lib.proarc.authentication;
 
 import cz.cas.lib.proarc.authentication.desa.DESAAuthenticator;
-import cz.cas.lib.proarc.authentication.proarc.ProArcAuthenticator;
 import cz.cas.lib.proarc.authentication.utils.AuthUtils;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -28,24 +26,17 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
- * Login servlet
+ * Login/logout servlet.
+ *
  * @author pavels
  */
 public class ProarcHTTPServlet extends HttpServlet {
 
-    protected ChainAuthenticator chain;
-
-    @Override
-    public void init() throws ServletException {
-        super.init();
-        this.chain = new ChainAuthenticator(Arrays.asList(
-                new DESAAuthenticator(), new ProArcAuthenticator()));
-    }
-
     /**
-     * Form post method
+     * The login post method.
      */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -62,7 +53,8 @@ public class ProarcHTTPServlet extends HttpServlet {
         
         ProarcPrincipal proarcPrincipal = new ProarcPrincipal(username);
         ServletOutputStream outputStream = resp.getOutputStream();
-        if (this.chain.authenticate(loginProperties, req, resp, proarcPrincipal)) {
+        ChainAuthenticator chain = new ChainAuthenticator(Authenticators.getInstance().getAuthenticators());
+        if (chain.authenticate(loginProperties, req, resp, proarcPrincipal)) {
             // store principal to session    
             req.getSession(true).setAttribute(ProarcAuthFilter.SESSION_KEY,proarcPrincipal);
             AuthUtils.setLoginSuccesResponse(resp);
@@ -70,6 +62,18 @@ public class ProarcHTTPServlet extends HttpServlet {
             AuthUtils.setLoginRequiredResponse(resp);
         }
         outputStream.flush();
+    }
+
+    /**
+     * Logout the session.
+     */
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 
 }

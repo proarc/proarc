@@ -50,6 +50,7 @@ public class Field {
     private final Field optionDataSource;
     private final String[] valueFieldNames;
     private Map<String, String> valueFieldMap;
+    private String defaultValue;
     private List<Field> fields;
     private transient Field parent;
 
@@ -57,7 +58,7 @@ public class Field {
             List<Localized> hint, Integer maxOccurrences,
             Boolean required, Boolean hidden, Boolean readOnly,
             Integer length, String width,
-            LinkedHashMap<String, String> valueMap,
+            LinkedHashMap<String, String> valueMap, String defaultValue,
             Field optionDataSource, String[] valueFieldNames, Map<String, String> valueFieldMap,
             List<Field> fields) {
 
@@ -72,6 +73,7 @@ public class Field {
         this.length = length;
         this.width = width;
         this.valueMap = valueMap;
+        this.defaultValue = defaultValue;
         this.optionDataSource = optionDataSource;
         this.valueFieldNames = valueFieldNames;
         this.valueFieldMap = valueFieldMap;
@@ -127,6 +129,10 @@ public class Field {
 
     public String getWidth() {
         return width;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
     }
 
     public LinkedHashMap<String, String> getValueMap() {
@@ -188,7 +194,7 @@ public class Field {
                 + ", hint=" + hint + ", maxOccurrences=" + maxOccurrences
                 + ", required=" + required + ", hidden=" + hidden + ", readOnly=" + readOnly
                 + ", width=" + width + ", length=" + length
-                + ", valueMap=" + valueMap
+                + ", defaultValue=" + defaultValue + ", valueMap=" + valueMap
                 + ", optionDataSource=" + optionDataSource + ", valueFields=" + Arrays.toString(valueFieldNames)
                 + '}';
     }

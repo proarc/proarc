@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalIssueMapper.PeriodicalIssue;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
@@ -55,7 +55,7 @@ public class PeriodicalIssueMapperTest {
 
     @Test
     public void testRead() throws Exception {
-        ModsType mods = ModsUtils.unmarshal(PeriodicalIssueMapperTest.class.getResource("issue_mods.xml"), ModsType.class);
+        ModsType mods = Mods33Utils.unmarshal(PeriodicalIssueMapperTest.class.getResource("issue_mods.xml"), ModsType.class);
         PeriodicalIssueMapper instance = new PeriodicalIssueMapper();
         PeriodicalIssue result = instance.map(mods);
         assertNotNull(result);
@@ -78,10 +78,10 @@ public class PeriodicalIssueMapperTest {
         PeriodicalIssueMapper instance = new PeriodicalIssueMapper();
         instance.map(mods, value);
 
-        String dump = ModsUtils.toXml(mods, true);
+        String dump = Mods33Utils.toXml(mods, true);
 //        System.out.println(dump);
 
-        PeriodicalIssue result = instance.map(ModsUtils.unmarshal(dump, ModsType.class));
+        PeriodicalIssue result = instance.map(Mods33Utils.unmarshal(dump, ModsType.class));
         assertNotNull(result);
         // XXX issue 43: sotingNumber == number
         assertEquals(value.getIssueSortingNumber(), result.getIssueNumber());

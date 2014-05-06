@@ -41,8 +41,8 @@ import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
-import com.smartgwt.client.widgets.grid.events.SelectionChangedHandler;
-import com.smartgwt.client.widgets.grid.events.SelectionEvent;
+import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
+import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HStack;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
@@ -388,10 +388,10 @@ public class DesaExportAction extends AbstractAction {
             ListGridField errorField = new ListGridField(ExportResourceApi.RESULT_ERROR_MESSAGE,
                     i18n.ExportResultWidget_Message_Title());
             grid.setFields(pidField, errorField);
-            grid.addSelectionChangedHandler(new SelectionChangedHandler() {
+            grid.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
                 @Override
-                public void onSelectionChanged(SelectionEvent event) {
+                public void onSelectionUpdated(SelectionUpdatedEvent event) {
                     logForm.editSelectedData(grid);
                 }
             });

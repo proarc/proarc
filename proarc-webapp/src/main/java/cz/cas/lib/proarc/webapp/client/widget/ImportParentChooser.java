@@ -150,7 +150,7 @@ public final class ImportParentChooser {
         foundView.onShow();
     }
 
-    private void fetchModels(boolean reload) {
+    private void fetchModels(final boolean reload) {
         MetaModelDataSource.getModels(reload, new Callback<ResultSet, Void>() {
 
             @Override
@@ -164,6 +164,14 @@ public final class ImportParentChooser {
                 treeView.setModels(valueMap);
                 foundView.setModels(valueMap);
                 selectionView.setModels(valueMap);
+                if (!reload) {
+                    // init the view filter with the first modelId on first show
+                    if (!valueMap.isEmpty()) {
+                        Object firstModel = valueMap.keySet().iterator().next();
+                        foundView.setFilterModel(firstModel);
+                    }
+                    foundView.refresh();
+                }
             }
         });
     }

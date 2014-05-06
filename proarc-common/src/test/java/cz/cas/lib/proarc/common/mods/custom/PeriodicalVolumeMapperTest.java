@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalVolumeMapper.PeriodicalVolume;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
@@ -55,7 +55,7 @@ public class PeriodicalVolumeMapperTest {
 
     @Test
     public void testRead() throws Exception {
-        ModsType mods = ModsUtils.unmarshal(PeriodicalVolumeMapperTest.class.getResource("volume_mods.xml"), ModsType.class);
+        ModsType mods = Mods33Utils.unmarshal(PeriodicalVolumeMapperTest.class.getResource("volume_mods.xml"), ModsType.class);
         PeriodicalVolumeMapper instance = new PeriodicalVolumeMapper();
         PeriodicalVolume result = instance.map(mods);
         assertNotNull(result);
@@ -75,10 +75,10 @@ public class PeriodicalVolumeMapperTest {
 
         PeriodicalVolumeMapper instance = new PeriodicalVolumeMapper();
         instance.map(mods, value);
-        String dump = ModsUtils.toXml(mods, true);
+        String dump = Mods33Utils.toXml(mods, true);
 //        System.out.println(dump);
 
-        PeriodicalVolume result = instance.map(ModsUtils.unmarshal(dump, ModsType.class));
+        PeriodicalVolume result = instance.map(Mods33Utils.unmarshal(dump, ModsType.class));
         assertNotNull(result);
         assertEquals(value.getVolumeNumber(), result.getVolumeNumber());
         assertEquals(value.getYear(), result.getYear());

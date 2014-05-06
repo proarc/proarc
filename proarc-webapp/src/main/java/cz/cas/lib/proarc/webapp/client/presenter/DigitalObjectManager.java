@@ -145,7 +145,7 @@ public final class DigitalObjectManager {
         treeView.setRoot(null);
     }
 
-    private void fetchModels(boolean reload) {
+    private void fetchModels(final boolean reload) {
         MetaModelDataSource.getModels(reload, new Callback<ResultSet, Void>() {
 
             @Override
@@ -158,6 +158,14 @@ public final class DigitalObjectManager {
                         MetaModelDataSource.FIELD_PID, MetaModelDataSource.FIELD_DISPLAY_NAME);
                 treeView.setModels(valueMap);
                 foundView.setModels(valueMap);
+                if (!reload) {
+                    // init the view filter with the first modelId on first show
+                    if (!valueMap.isEmpty()) {
+                        Object firstModel = valueMap.keySet().iterator().next();
+                        foundView.setFilterModel(firstModel);
+                    }
+                    foundView.refresh();
+                }
             }
         });
     }

@@ -22,6 +22,7 @@ import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.DateDisplayFormat;
+import com.smartgwt.client.types.ReadOnlyDisplayAppearance;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.util.JSOHelper;
 import com.smartgwt.client.widgets.form.DynamicForm;
@@ -72,6 +73,9 @@ public class FormGenerator {
     public FormGenerator(Form f, String activeLocale) {
         this.formDeclaration = f;
         this.activeLocale = activeLocale;
+        if (f.getItemWidth() != null) {
+            defaultWidth = f.getItemWidth();
+        }
     }
 
     /**
@@ -189,13 +193,15 @@ public class FormGenerator {
         TextItem item = new TextItem(f.getName(), f.getTitle(activeLocale));
         item.setLength(f.getLength() != null ? f.getLength() : defaultTextLength);
         item.setWidth(defaultWidth);
+        item.setReadOnlyDisplay(ReadOnlyDisplayAppearance.STATIC);
+        item.setDefaultValue(f.getDefaultValue());
         return item;
     }
 
     public AutoFitTextAreaItem getTextAreaFormItem(Field f, String lang) {
         AutoFitTextAreaItem item = new AutoFitTextAreaItem(f.getName(), f.getTitle(activeLocale));
         item.setLength(f.getLength());
-        item.setWidth("*");
+        item.setWidth(defaultWidth);
         return item;
     }
 
@@ -223,6 +229,7 @@ public class FormGenerator {
         } else {
             item.setValueMap(f.getValueMap());
         }
+        item.setDefaultValue(f.getDefaultValue());
         return item;
     }
 
@@ -233,6 +240,7 @@ public class FormGenerator {
         } else {
             item.setValueMap(f.getValueMap());
         }
+        item.setDefaultValue(f.getDefaultValue());
         return item;
     }
 
@@ -480,6 +488,7 @@ public class FormGenerator {
                 return createNestedForm(f, lang);
             }
         });
+        rfi.setPrompt(f.getHint(lang));
         oneRow(rfi);
         return rfi;
     }
@@ -504,7 +513,8 @@ public class FormGenerator {
         df.setWrapItemTitles(false);
         df.setWidth100();
         df.setHoverWrap(false);
-//        df.setHoverWidth(200);
+        df.setItemHoverWidth(200);
+        df.setHoverWidth(200);
         return df;
     }
 

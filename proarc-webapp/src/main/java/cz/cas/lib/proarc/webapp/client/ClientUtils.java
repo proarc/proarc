@@ -25,6 +25,7 @@ import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.regexp.shared.SplitResult;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.OperatorId;
@@ -33,11 +34,15 @@ import com.smartgwt.client.util.JSONEncoder;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.tile.TileGrid;
+import cz.cas.lib.proarc.webapp.client.widget.mods.NdkFormGenerator;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -211,6 +216,11 @@ public final class ClientUtils {
     public static String dump(Object jso) {
         String dump;
         if (jso != null) {
+            if (jso instanceof Record) {
+                jso = ((Record) jso).getJsObj();
+            } else if (jso instanceof RecordList) {
+                jso = ((RecordList) jso).getJsObj();
+            }
             try {
                 dump = new JSONEncoder().encode(jso);
             } catch (Exception ex) {
@@ -273,7 +283,12 @@ public final class ClientUtils {
         Map<?, ?> recordMap = r.toMap();
         for (Map.Entry<?, ?> entry : recordMap.entrySet()) {
             Object value = entry.getValue();
-            if (value instanceof Map && ((Map) value).isEmpty()) {
+            if (value instanceof Collection && ((Collection) value).isEmpty()) {
+                hasNull = true;
+            } else if (value instanceof String && ((String) value).isEmpty()) {
+                hasNull = true;
+            } else if ("__ref".equals(entry.getKey())) {
+                // ignore GWT attributes
                 hasNull = true;
             } else if (value != null) {
                 nonNunlls.put(entry.getKey(), value);
@@ -282,6 +297,102 @@ public final class ClientUtils {
             }
         }
         return hasNull ? new Record(nonNunlls) : r;
+    }
+
+    /**
+     * Removes empty and unrelated nodes from the data tree.
+     * It skips empty collections, strings, synthetic GWT/SmartGWT/ProArc attributes.
+     * @param r data to normalize
+     * @return the reduced data tree or {@code null} if none value remains
+     */
+    public static Record normalizeData(Record r) {
+        Map<?,?> m = r.toMap();
+        m = normalizeData(m);
+        return m == null ? null : new Record(m);
+    }
+
+    /**
+     * Normalizes a map of values. It skips empty collections, strings, synthetic
+     * GWT/SmartGWT/ProArc attributes.
+     * @param m the map to normalize
+     * @return the normalized map or {@code null} if none value remains
+     */
+    private static Map<?,?> normalizeData(Map m) {
+        for (Iterator<Map.Entry> it = m.entrySet().iterator(); it.hasNext();) {
+            Entry entry = it.next();
+            Object value = entry.getValue();
+            if ("__ref".equals(entry.getKey())) {
+                // ignore GWT attributes
+                it.remove();
+            } else if (NdkFormGenerator.HIDDEN_FIELDS_NAME.equals(entry.getKey())) {
+                it.remove();
+            } else if (value instanceof List) {
+                List list = (List) value;
+                Object data = normalizeData(list);
+                if (data == null || value instanceof Collection && ((Collection) value).isEmpty()) {
+                    it.remove();
+                } else {
+                    entry.setValue(data);
+                }
+            } else if (value instanceof Collection) {
+                value = normalizeObjectData(value);
+                if (value instanceof Collection && ((Collection) value).isEmpty()) {
+                it.remove();
+                }
+            } else if (value instanceof String && ((String) value).isEmpty()) {
+                it.remove();
+            } else if (value != null) {
+                // no-op
+            } else {
+                it.remove();
+            }
+        }
+        if (m.isEmpty()) {
+            return null;
+        }
+        return m;
+    }
+
+    /**
+     * Normalizes a list of items. It it skips empty collections, strings, ....
+     * @param l the list to normalize
+     * @return the list of normalized items or the normalized item
+     *      or {@code null} if none value remains
+     */
+    private static Object normalizeData(List l) {
+        for (Iterator it = l.iterator(); it.hasNext();) {
+            Object value = it.next();
+            value = normalizeObjectData(value);
+            if (value instanceof Collection && ((Collection) value).isEmpty()) {
+                it.remove();
+            } else if (value instanceof String && ((String) value).isEmpty()) {
+                it.remove();
+            } else if (value != null) {
+                // no-op
+            } else {
+                it.remove();
+            }
+        }
+        if (l.isEmpty()) {
+            return null;
+        } else if (l.size() == 1) {
+            return l.get(0);
+        }
+        return l;
+    }
+
+    private static Object normalizeObjectData(Object obj) {
+        Object result;
+        if (obj instanceof Record) {
+            result = normalizeData((Record) obj);
+        } else if (obj instanceof Map) {
+            result = normalizeData((Map) obj);
+        } else if (obj instanceof List) {
+            result = normalizeData((List) obj);
+        } else {
+            result = obj;
+        }
+        return result;
     }
 
     /**

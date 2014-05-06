@@ -20,9 +20,10 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
 import java.io.StringWriter;
 import java.util.HashMap;
 import javax.xml.bind.util.JAXBSource;
@@ -82,7 +83,7 @@ public class DcStreamEditorTest {
         assertNotNull(result.getDc());
         assertEquals(local.getPid(), result.getPid());
 
-        HashMap namespaces = new HashMap();
+        HashMap<String, String> namespaces = new HashMap<String, String>();
         namespaces.put("oai_dc", DcStreamEditor.DATASTREAM_FORMAT_URI);
         namespaces.put("dc", "http://purl.org/dc/elements/1.1/");
         XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
@@ -94,7 +95,7 @@ public class DcStreamEditorTest {
 
     @Test
     public void testTransformation() throws Exception {
-        ModsType mods = ModsUtils.unmarshalModsType(new StreamSource(DcStreamEditorTest.class.getResource("periodical.xml").toExternalForm()));
+        ModsDefinition mods = ModsUtils.unmarshalModsType(new StreamSource(DcStreamEditorTest.class.getResource("periodical.xml").toExternalForm()));
         Transformer t = DcUtils.modsTransformer("model:periodical");
         JAXBSource jaxbSource = new JAXBSource(ModsUtils.defaultMarshaller(false),
                 new ObjectFactory().createMods(mods));
@@ -103,7 +104,7 @@ public class DcStreamEditorTest {
         String toXml = dump.toString();
 //        System.out.println(toXml);
 
-        HashMap namespaces = new HashMap();
+        HashMap<String, String> namespaces = new HashMap<String, String>();
         namespaces.put("oai_dc", DcStreamEditor.DATASTREAM_FORMAT_URI);
         namespaces.put("dc", "http://purl.org/dc/elements/1.1/");
         XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));

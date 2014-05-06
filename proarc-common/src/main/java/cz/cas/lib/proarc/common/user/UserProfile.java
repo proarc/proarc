@@ -19,8 +19,6 @@ package cz.cas.lib.proarc.common.user;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.Date;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 
 /**
  * User settings.
@@ -30,8 +28,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
  *
  * @author Jan Pokorsky
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-public final class UserProfile {
+public class UserProfile {
 
     private Integer userId;
     /** holds folder path in platform independent form */

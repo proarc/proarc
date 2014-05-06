@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +46,7 @@ import javax.ws.rs.core.SecurityContext;
  *
  * @author Jan Pokorsky
  */
-@Path("user")
+@Path(UserResourceApi.PATH)
 public final class UserResource {
 
     private static final Logger LOG = Logger.getLogger(UserResource.class.getName());
@@ -63,9 +64,9 @@ public final class UserResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<UserProfile> find(
-            @QueryParam("userId") Integer userId,
-            @QueryParam("userName") String userName,
-            @QueryParam("whoAmI") Boolean whoAmI
+            @QueryParam(UserResourceApi.USER_ID) Integer userId,
+            @QueryParam(UserResourceApi.USER_NAME) String userName,
+            @QueryParam(UserResourceApi.USER_WHOAMI_PARAM) Boolean whoAmI
             ) {
 
         if (whoAmI != null && whoAmI) {
@@ -86,21 +87,24 @@ public final class UserResource {
     @POST
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<UserProfile> add(
-            @FormParam("userName") String userName,
-            @FormParam("userPassword") String passwd,
-            @FormParam("surname") String surname,
-            @FormParam("forename") String forename,
-            @FormParam("email") String email
-//            @FormParam("userHome") String home
+            @FormParam(UserResourceApi.USER_NAME) String userName,
+            @FormParam(UserResourceApi.USER_PASSWORD) String passwd,
+            @FormParam(UserResourceApi.USER_SURNAME) String surname,
+            @FormParam(UserResourceApi.USER_FORENAME) String forename,
+            @FormParam(UserResourceApi.USER_EMAIL) String email
             ) {
 
         checkAccess(session.getUser(), Permissions.ADMIN, Permissions.USERS_CREATE);
         if (userName == null) {
-            return SmartGwtResponse.<UserProfile>asError().error("userName", "missing").build();
+            return SmartGwtResponse.<UserProfile>asError()
+                    .error(UserResourceApi.USER_NAME, "missing")
+                    .build();
         }
         UserProfile found = userManager.find(userName);
         if (found != null) {
-            return SmartGwtResponse.<UserProfile>asError().error("userName", "already exists").build();
+            return SmartGwtResponse.<UserProfile>asError()
+                    .error(UserResourceApi.USER_NAME, "already exists")
+                    .build();
         }
         UserProfile newProfile = new UserProfile();
         newProfile.setEmail(email);
@@ -116,13 +120,11 @@ public final class UserResource {
     @PUT
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<UserProfile> update(
-            @FormParam("userId") Integer userId,
-//            @FormParam("userName") String userName,
-            @FormParam("userPassword") String passwd,
-            @FormParam("surname") String surname,
-            @FormParam("forename") String forename,
-            @FormParam("email") String email
-//            @FormParam("userHome") String home
+            @FormParam(UserResourceApi.USER_ID) Integer userId,
+            @FormParam(UserResourceApi.USER_PASSWORD) String passwd,
+            @FormParam(UserResourceApi.USER_SURNAME) String surname,
+            @FormParam(UserResourceApi.USER_FORENAME) String forename,
+            @FormParam(UserResourceApi.USER_EMAIL) String email
             ) {
 
         UserProfile sessionUser = session.getUser();
@@ -131,25 +133,27 @@ public final class UserResource {
         boolean fullUpdate;
         if (update != null && update.getUserName().equals(sessionUser.getUserName())) {
             Set<Permission> grants = checkAccess(sessionUser, (Permission) null);
-            fullUpdate = grants.contains(Permissions.ADMIN);
+//            fullUpdate = grants.contains(Permissions.ADMIN);
+            fullUpdate = true;
         } else {
             checkAccess(sessionUser, Permissions.ADMIN);
             fullUpdate = true;
         }
         if (update == null) {
-            return SmartGwtResponse.<UserProfile>asError().error("userId", "not found").build();
+            return SmartGwtResponse.<UserProfile>asError()
+                    .error(UserResourceApi.USER_ID, "not found").build();
         }
         if (passwd != null && update.getRemoteType() == null) {
             update.setUserPassword(passwd);
         }
-        if (fullUpdate && surname != null) {
+        if (fullUpdate) {
+            update.setEmail(email);
+            update.setForename(forename);
+            if (surname == null || surname.isEmpty()) {
+                return SmartGwtResponse.<UserProfile>asError()
+                        .error(UserResourceApi.USER_SURNAME, "Required!").build();
+            }
             update.setSurname(surname);
-        }
-        if (fullUpdate && forename != null) {
-            update.setForename(forename);
-        }
-        if (fullUpdate && email != null) {
-            update.setForename(forename);
         }
 
         userManager.update(update, sessionUser.getUserName(), session.asFedoraLog());

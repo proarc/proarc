@@ -40,6 +40,7 @@ public final class FieldBuilder {
     private Field optionDataSource;
     private String[] valueFieldNames;
     private Map<String, String> valueFieldMap;
+    private String defaultValue;
 
     public FieldBuilder(String name) {
         this.name = name;
@@ -102,6 +103,11 @@ public final class FieldBuilder {
         return this;
     }
 
+    public FieldBuilder setDefaultValue(String value) {
+        this.defaultValue = value;
+        return this;
+    }
+
     public FieldBuilder addMapValue(String key, String value) {
         this.valueMap.put(key, value);
         return this;
@@ -125,7 +131,7 @@ public final class FieldBuilder {
     public Field createField() {
         return new Field(name, type, title, hint, maxOccurrences,
                 required, hidden, readOnly, length, width,
-                valueMap,
+                valueMap, defaultValue,
                 optionDataSource, valueFieldNames, valueFieldMap,
                 fields);
     }

@@ -56,7 +56,16 @@ form: {
  */
 public class Form {
 
+    private String itemWidth = "400";
     private List<Field> fields;
+
+    public String getItemWidth() {
+        return itemWidth;
+    }
+
+    public void setItemWidth(String itemWidth) {
+        this.itemWidth = itemWidth;
+    }
 
     public List<Field> getFields() {
         if (fields == null) {

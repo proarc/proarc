@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- METS XLink Schema, v. 2, Nov. 15, 2004 -->
-<schema targetNamespace="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" elementFormDefault="qualified">
+<schema targetNamespace="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" elementFormDefault="qualified"
+        xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="2.0">
   <!--  global attributes  --> 
   <attribute name="href"  type="anyURI"/>
   <attribute name="role" type="string"/>
@@ -9,21 +10,21 @@
   <attribute name="show">
     <simpleType>
       <restriction base="string">
-	<enumeration value="new" /> 
-	<enumeration value="replace" /> 
-	<enumeration value="embed" /> 
-	<enumeration value="other" /> 
-	<enumeration value="none" /> 
+        <enumeration value="new" />
+        <enumeration value="replace" />
+        <enumeration value="embed" />
+        <enumeration value="other" />
+        <enumeration value="none" />
       </restriction>
     </simpleType>
   </attribute>
   <attribute name="actuate">
     <simpleType>
       <restriction base="string">
-	<enumeration value="onLoad" /> 
-	<enumeration value="onRequest" /> 
-	<enumeration value="other" /> 
-	<enumeration value="none" /> 
+        <enumeration value="onLoad" />
+        <enumeration value="onRequest" />
+        <enumeration value="other" />
+        <enumeration value="none" />
       </restriction>
     </simpleType>
   </attribute>
@@ -31,11 +32,29 @@
   <attribute name="from" type="string" /> 
   <attribute name="to" type="string" /> 
   <attributeGroup name="simpleLink">
-    <attribute name="type" type="string" fixed="simple" form="qualified" /> 
+      <attribute name="type" type="string" fixed="simple" form="qualified">
+            <annotation>
+                <appinfo>
+                    <jxb:property name="xlinkType"/>
+                </appinfo>
+            </annotation>
+      </attribute>
     <attribute ref="xlink:href" use="optional" /> 
-    <attribute ref="xlink:role" use="optional" /> 
+    <attribute ref="xlink:role" use="optional">
+        <annotation>
+            <appinfo>
+                <jxb:property name="xlinkRole"/>
+            </appinfo>
+        </annotation>
+    </attribute>
     <attribute ref="xlink:arcrole" use="optional" /> 
-    <attribute ref="xlink:title" use="optional" /> 
+    <attribute ref="xlink:title" use="optional">
+        <annotation>
+            <appinfo>
+                <jxb:property name="xlinkTitle"/>
+            </appinfo>
+        </annotation>
+    </attribute>
     <attribute ref="xlink:show" use="optional" /> 
     <attribute ref="xlink:actuate" use="optional" /> 
   </attributeGroup>

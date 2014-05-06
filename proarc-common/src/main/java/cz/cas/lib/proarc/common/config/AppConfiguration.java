@@ -19,8 +19,6 @@ package cz.cas.lib.proarc.common.config;
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
-import cz.cas.lib.proarc.common.object.DerDesaPlugin;
-import cz.cas.lib.proarc.common.object.DesDesaPlugin;
 import cz.cas.lib.proarc.common.object.NdkPlugin;
 import java.io.BufferedReader;
 import java.io.File;
@@ -58,6 +56,7 @@ public final class AppConfiguration {
      * Accessible as {@code ${proarc.home}} in properties files.
      */
     public static final String PROPERTY_APP_HOME = "proarc.home";
+    private static final String PROPERTY_DIGOBJECT_PLUGINS = "digobject.plugins";
     private static final String PROPERTY_FEDORA_CLIENT_PASSWORD = "fedora.client.password";
     private static final String PROPERTY_FEDORA_CLIENT_URL = "fedora.client.url";
     private static final String PROPERTY_FEDORA_CLIENT_USERNAME = "fedora.client.username";
@@ -118,17 +117,19 @@ public final class AppConfiguration {
         return Kramerius4ExportOptions.from(config);
     }
 
+    public Configuration getAuthenticators() {
+        return config;
+    }
+
     public DesaServices getDesaServices() {
         return new DesaServices(config);
     }
 
     public String[] getPlugins() {
-        String[] plugins = config.getStringArray("digital_object.plugins");
+        String[] plugins = config.getStringArray(PROPERTY_DIGOBJECT_PLUGINS);
         if (plugins.length == 0) {
             plugins = new String[] {
-                NdkPlugin.class.getName(),
-                DerDesaPlugin.class.getName(),
-                DesDesaPlugin.class.getName(),
+                NdkPlugin.ID,
             };
         }
         return plugins;

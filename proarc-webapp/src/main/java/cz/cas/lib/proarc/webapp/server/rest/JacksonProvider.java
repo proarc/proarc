@@ -57,7 +57,31 @@ public final class JacksonProvider extends JacksonJaxbJsonProvider {
         registerAnnotatedSuperclass(AnnotatedPageViewItem.class);
         registerAnnotatedSuperclass(AnnotatedSearchViewItem.class);
         registerAnnotatedSuperclass(AnnotatedStringRecord.class);
+        registerAnnotatedSuperclass(AnnotatedUser.class);
         registerAnnotatedSuperclass(AnnotatedValueMap.class);
+
+        registerAnnotatedSuperclass(AnnotatedMods.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedAbstractDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedAccessConditionDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedCopyInformationDefinitionNote.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedLanguageDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedLocationDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedNameDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedNoteDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedOriginInfoDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedPartDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedPhysicalDescriptionDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedPhysicalDescriptionNote.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedPhysicalLocationDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedRecordInfoDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedRelatedItemDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedStringPlusLanguage.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedSubjectDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedSubjectNameDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedSubjectTitleInfoDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedTableOfContentsDefinition.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedText.class);
+        registerAnnotatedSuperclass(AnnotatedMods.AnnotatedTitleInfoDefinition.class);
         JsonUtils.setDefaultObjectMapper(mapper);
     }
 

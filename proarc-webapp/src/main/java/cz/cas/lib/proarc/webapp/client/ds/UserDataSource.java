@@ -17,34 +17,35 @@
 package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.google.gwt.core.client.GWT;
-import com.smartgwt.client.data.DataSource;
+import com.google.gwt.core.client.JavaScriptObject;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourcePasswordField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.widgets.form.fields.StaticTextItem;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 
 /**
+ * Manages application users.
  *
  * @author Jan Pokorsky
  */
 public final class UserDataSource extends RestDataSource {
 
     public static final String ID = "UserDataSource";
-    public static final String FIELD_ID = "userId";
-    public static final String FIELD_USERNAME = "userName";
-    public static final String FIELD_PASSWORD = "userPassword";
-    public static final String FIELD_SURNAME = "surname";
-    public static final String FIELD_FORENAME = "forename";
-    public static final String FIELD_EMAIL = "email";
-    public static final String FIELD_HOME = "userHome";
-    public static final String FIELD_CREATED = "created";
-    public static final String FIELD_LASTLOGIN = "lastLogin";
-    public static final String FIELD_WHOAMI = "whoAmI";
+    public static final String FIELD_ID = UserResourceApi.USER_ID;
+    public static final String FIELD_USERNAME = UserResourceApi.USER_NAME;
+    public static final String FIELD_PASSWORD = UserResourceApi.USER_PASSWORD;
+    public static final String FIELD_WHOAMI = UserResourceApi.USER_WHOAMI_PARAM;
+    private static UserDataSource INSTANCE;
 
     public UserDataSource() {
         setID(ID);
@@ -63,7 +64,7 @@ public final class UserDataSource extends RestDataSource {
         DataSourceTextField userName = new DataSourceTextField(FIELD_USERNAME);
         userName.setCanEdit(false);
         userName.setRequired(true);
-        userName.setReadOnlyEditorType(new StaticTextItem());
+        userName.setReadOnlyEditorProperties(new StaticTextItem());
         userName.setTitle(i18n.UsersView_ListHeader_Username_Title());
         userName.setPrompt(i18n.UsersView_ListHeader_Username_Hint());
 
@@ -71,37 +72,59 @@ public final class UserDataSource extends RestDataSource {
         passwd.setHidden(true);
         passwd.setTitle(i18n.UsersView_ListHeader_Password_Title());
 
-        DataSourceTextField surname = new DataSourceTextField(FIELD_SURNAME);
+        DataSourceTextField surname = new DataSourceTextField(UserResourceApi.USER_SURNAME);
         surname.setRequired(true);
         surname.setTitle(i18n.UsersView_ListHeader_Surname_Title());
 
-        DataSourceTextField forename = new DataSourceTextField(FIELD_FORENAME);
+        DataSourceTextField forename = new DataSourceTextField(UserResourceApi.USER_FORENAME);
         forename.setTitle(i18n.UsersView_ListHeader_Forename_Title());
 
-        DataSourceTextField email = new DataSourceTextField(FIELD_EMAIL);
+        DataSourceTextField email = new DataSourceTextField(UserResourceApi.USER_EMAIL);
         email.setTitle(i18n.UsersView_ListHeader_Email_Title());
 
-        DataSourceTextField home = new DataSourceTextField(FIELD_HOME);
+        DataSourceTextField home = new DataSourceTextField(UserResourceApi.USER_HOME);
         home.setCanEdit(false);
-        home.setReadOnlyEditorType(new StaticTextItem());
+        home.setReadOnlyEditorProperties(new StaticTextItem());
         home.setHidden(true);
         home.setTitle(i18n.UsersView_ListHeader_Home_Title());
 
-        DataSourceDateTimeField created = new DataSourceDateTimeField(FIELD_CREATED);
+        DataSourceDateTimeField created = new DataSourceDateTimeField(UserResourceApi.USER_CREATED);
         created.setCanEdit(false);
         created.setTitle(i18n.UsersView_ListHeader_Created_Title());
         created.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
-        setFields(userId, userName, passwd, surname, forename, email, created, home);
+        DataSourceTextField remoteName = new DataSourceTextField(UserResourceApi.USER_REMOTENAME);
+        remoteName.setTitle(i18n.UsersView_ListHeader_RemoteName_Title());
+        remoteName.setCanEdit(false);
+        remoteName.setHidden(true);
+
+        DataSourceTextField remoteType = new DataSourceTextField(UserResourceApi.USER_REMOTETYPE);
+        remoteType.setTitle(i18n.UsersView_ListHeader_RemoteType_Title());
+        remoteType.setCanEdit(false);
+        remoteType.setHidden(true);
+
+        setFields(userId, userName, passwd, surname, forename, email, created, remoteName, remoteType, home);
 
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
 
+    @Override
+    protected Object transformRequest(DSRequest dsRequest) {
+        DSOperationType op = dsRequest.getOperationType();
+        if (op == DSOperationType.ADD || op == DSOperationType.UPDATE) {
+            JavaScriptObject data = dsRequest.getData();
+            Record nonNulls = ClientUtils.removeNulls(new Record(data));
+            dsRequest.setData(nonNulls);
+        }
+        return super.transformRequest(dsRequest);
+    }
+
     public static UserDataSource getInstance() {
-        UserDataSource ds = (UserDataSource) DataSource.get(ID);
-        ds = ds != null ? ds : new UserDataSource();
-        return ds;
+        if (INSTANCE == null) {
+            INSTANCE = new UserDataSource();
+        }
+        return INSTANCE;
     }
 
 }

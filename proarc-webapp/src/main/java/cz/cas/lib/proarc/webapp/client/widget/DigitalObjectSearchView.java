@@ -49,6 +49,7 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
@@ -191,7 +192,9 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         final LinkedHashMap<String, String> filterMap = new LinkedHashMap<String, String>();
         filterMap.put(FILTER_LAST_CREATED, i18n.DigitalObjectSearchView_FilterGroupLastCreated_Title());
         filterMap.put(FILTER_LAST_MODIFIED, i18n.DigitalObjectSearchView_FilterGroupLastModified_Title());
-        filterMap.put(FILTER_PHRASE, i18n.DigitalObjectSearchView_FilterGroupPhrase_Title());
+        if (!Editor.getInstance().hasPermission("proarc.permission.repository.search.groupOwner")) {
+            filterMap.put(FILTER_PHRASE, i18n.DigitalObjectSearchView_FilterGroupPhrase_Title());
+        }
         filterMap.put(FILTER_QUERY, i18n.DigitalObjectSearchView_FilterGroupAdvanced_Title());
         filterType.setValueMap(filterMap);
         filterType.setValue(FILTER_LAST_CREATED);
@@ -251,9 +254,12 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     private SelectItem createModelItem(String title, FormItemIfFunction showIf) {
         SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM, title);
+        item.setWidth(300);
         item.setAllowEmptyValue(true);
         item.setEmptyDisplayValue("<i>" + i18nSmartGwt.filterBuilder_matchAllTitle() + "</i>");
-        item.setValue("model:periodical");
+        // see setFilterModel
+//        item.setValue("model:periodical");
+//        item.setDefaultToFirstOption(true);
         if (showIf != null) {
             item.setShowIfCondition(showIf);
         }
@@ -273,8 +279,12 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     }
 
     public void onShow() {
-        foundGrid.invalidateCache();
-        filter();
+        // fetch values after fetching models (setFilterModel, setModels).
+    }
+
+    public void setFilterModel(Object modelId) {
+        FormItem filterModel = filters.getField(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM);
+        filterModel.setValue(modelId);
     }
 
     public void setModels(LinkedHashMap<?, ?> valueMap) {
@@ -292,7 +302,8 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     @Override
     public void refresh() {
-        onShow();
+        foundGrid.invalidateCache();
+        filter();
     }
 
     private void filter() {

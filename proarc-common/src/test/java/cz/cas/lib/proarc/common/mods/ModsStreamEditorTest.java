@@ -18,6 +18,8 @@ package cz.cas.lib.proarc.common.mods;
 
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -34,8 +36,24 @@ public class ModsStreamEditorTest {
         LocalObject local = storage.create();
         ModsStreamEditor editor = new ModsStreamEditor(local);
         editor.write(new ModsType(), 0, null);
-        ModsType result = editor.read();
+        ModsType result = editor.read33();
         assertNotNull(result);
+    }
+
+    @Test
+    public void testReadWrite() throws Exception {
+        LocalStorage storage = new LocalStorage();
+        LocalObject local = storage.create();
+        ModsStreamEditor editor = new ModsStreamEditor(local);
+        String uuid = "test";
+        ModsDefinition mods = ModsStreamEditor.defaultMods("uuid:" + uuid);
+        editor.write(mods, 0, null);
+        ModsDefinition result = editor.read();
+        assertNotNull(result);
+        assertEquals(ModsUtils.VERSION, result.getVersion());
+        IdentifierDefinition resultUuid = result.getIdentifier().get(0);
+        assertEquals("uuid", resultUuid.getType());
+        assertEquals(uuid, resultUuid.getValue());
     }
     
 }

@@ -289,7 +289,16 @@ public final class Kramerius4Export {
                     DcConstants.NS_PURL, DcConstants.PREFIX_NS_PURL + ':' + DcConstants.RIGHTS);
             elmRights.setTextContent(policy);
             dcElm.appendChild(elmRights);
-
+        }
+        // map proarc/K4 models
+        NodeList typeNodes = dcElm.getElementsByTagNameNS(DcConstants.NS_PURL, DcConstants.TYPE);
+        for (int i = 0; i < typeNodes.getLength(); i++) {
+            Element typeElm = (Element) typeNodes.item(i);
+            String type = typeElm.getTextContent();
+            String k4ModelId = options.getModelMap().get(type);
+            if (k4ModelId != null) {
+                typeElm.setTextContent(k4ModelId);
+            }
         }
     }
 
@@ -386,6 +395,14 @@ public final class Kramerius4Export {
             setPolicy(options.getPolicy(), relations, doc);
 
             editor.setDevice(null);
+            editor.setExportResult(null);
+            editor.setOwners(Collections.<String>emptyList());
+            editor.setMembership(Collections.<String>emptyList());
+
+            String modelId = editor.getModel();
+            String k4ModelId = options.getModelMap().get(modelId);
+            k4ModelId = k4ModelId == null ? modelId : k4ModelId;
+            editor.setModel(k4ModelId);
 
             editor.setMembers(Collections.<String>emptyList());
             for (String childPid : children) {

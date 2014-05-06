@@ -40,6 +40,14 @@ public final class BinaryEditor {
     public static final String FULL_LABEL = "Presentable version of RAW";
     public static final String RAW_ID = "RAW";
     public static final String RAW_LABEL = "Original digital content of this object";
+    /** ID of the optional data stream to hold a NDK archive copy of RAW. E.g. lossless JPEG 2000. */
+    public static final String NDK_ARCHIVAL_ID = "NDK_ARCHIVAL";
+    public static final String NDK_ARCHIVAL_LABEL = "NDK archive copy of RAW";
+    /** ID of the optional data stream to hold a NDK production copy of RAW. E.g. lossy JPEG 2000. */
+    public static final String NDK_USER_ID = "NDK_USER";
+    public static final String NDK_USER_LABEL = "NDK user copy of RAW";
+
+    public static final MediaType IMAGE_JP2 = new MediaType("image", "jp2");
     public static final MediaType IMAGE_JPEG = new MediaType("image", "jpeg");
     public static final MediaType IMAGE_TIFF = new MediaType("image", "tiff");
 

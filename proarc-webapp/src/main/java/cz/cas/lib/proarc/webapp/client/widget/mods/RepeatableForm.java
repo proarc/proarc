@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.client.widget.mods;
 
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.types.VerticalAlignment;
@@ -189,14 +190,18 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
      * for now it uses ResultSet as a plain static array of records
      */
     public void setData(RecordList data) {
-        dataModel = data;
         if (data.isEmpty()) {
-            data.add(new Record());
+            dataModel = new RecordList();
+            dataModel.add(new Record());
+        } else {
+            // issue 123: make own copy to ensure modified data are not propagated
+            // to RepeatableFormItem before firing an event
+            dataModel = new RecordList(data.duplicate());
         }
 
         int rowIndex = 0;
-        for (; rowIndex < data.getLength(); rowIndex++) {
-            Record record = data.get(rowIndex);
+        for (; rowIndex < dataModel.getLength(); rowIndex++) {
+            Record record = dataModel.get(rowIndex);
             ValuesManager form;
             Row row;
             if (rowIndex < activeRows.size()) {
@@ -259,6 +264,11 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
             vm = form.getValuesManager();
             if (vm == null) {
                 vm = new ValuesManager();
+                DataSource dataSource = form.getDataSource();
+                if (dataSource != null) {
+                    // SmartGWT requires existing form DataSource to be set to ValuesManager
+                    vm.setDataSource(dataSource);
+                }
                 vm.addMember(form);
             }
             FormWidget formWidget = new FormWidget(form, vm);

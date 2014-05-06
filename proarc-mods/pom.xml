@@ -35,6 +35,11 @@
                     <generatePackage>cz.cas.lib.proarc.mods</generatePackage>
                     <schemaLanguage>XMLSCHEMA</schemaLanguage>
                     <schemaDirectory>src/main/resources/cz/cas/lib/proarc/mods</schemaDirectory>
+                    <schemaIncludes>
+                        <schemaInclude>mods-jaxb.xsd</schemaInclude>
+                        <schemaInclude>xlink.xsd</schemaInclude>
+                        <schemaInclude>xml.xsd</schemaInclude>
+                    </schemaIncludes>
                     <catalog>src/main/resources/cz/cas/lib/proarc/mods/catalog.cat</catalog>
                     <args>
                         <!--

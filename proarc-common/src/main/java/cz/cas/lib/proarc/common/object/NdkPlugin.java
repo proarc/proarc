@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.object;
 
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -24,14 +25,16 @@ import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
-import cz.cas.lib.proarc.common.mods.custom.Mapping;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
-import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,6 +43,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.transform.stream.StreamSource;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -47,11 +51,28 @@ import org.codehaus.jackson.map.ObjectMapper;
  *
  * @author Jan Pokorsky
  */
-public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsType> {
+public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDefinition> {
+
+    /**
+     * The plugin ID.
+     */
+    public static final String ID = "ndk";
+    public static final String MODEL_PERIODICAL = "model:ndkperiodical";
+    public static final String MODEL_PERIODICALVOLUME = "model:ndkperiodicalvolume";
+    public static final String MODEL_PERIODICALISSUE = "model:ndkperiodicalissue";
+    public static final String MODEL_PERIODICALSUPPLEMENT = "model:ndkperiodicalsupplement";
+    public static final String MODEL_MONOGRAPHTITLE = "model:ndkmonographtitle";
+    public static final String MODEL_MONOGRAPHVOLUME = "model:ndkmonographvolume";
+    public static final String MODEL_MONOGRAPHSUPPLEMENT = "model:ndkmonographsupplement";
+    public static final String MODEL_CARTOGRAPHIC = "model:ndkmap";
+    public static final String MODEL_SHEETMUSIC = "model:ndksheetmusic";
+    public static final String MODEL_ARTICLE = "model:ndkarticle";
+    public static final String MODEL_CHAPTER = "model:ndkchapter";
+    public static final String MODEL_PICTURE = "model:ndkpicture";
 
     @Override
     public String getId() {
-        return "ndk";
+        return ID;
     }
 
     @Override
@@ -64,67 +85,131 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTy
         // for now it is read only repository
         List<MetaModel> models = new ArrayList<MetaModel>();
         models.add(new MetaModel(
-                "model:periodical", true, null,
-                Arrays.asList(new ElementType("Periodical", "en"), new ElementType("Periodikum", "cs")),
+                MODEL_PERIODICAL, true, null,
+                Arrays.asList(new ElementType("NDK Periodical", "en"), new ElementType("NDK Periodikum", "cs")),
                 ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_PERIODICAL,
+                MODEL_PERIODICAL,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                "model:periodicalvolume", null, null,
-                Arrays.asList(new ElementType("Periodical Volume", "en"), new ElementType("Ročník", "cs")),
+                MODEL_PERIODICALVOLUME, null, null,
+                Arrays.asList(new ElementType("NDK Periodical Volume", "en"), new ElementType("NDK Ročník", "cs")),
                 ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_PERIODICAL_VOLUME,
+                MODEL_PERIODICALVOLUME,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                "model:periodicalitem", null, null,
-                Arrays.asList(new ElementType("Periodical Item", "en"), new ElementType("Výtisk", "cs")),
+                MODEL_PERIODICALISSUE, null, null,
+                Arrays.asList(new ElementType("NDK Periodical Issue", "en"), new ElementType("NDK Výtisk", "cs")),
                 ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_PERIODICAL_ISSUE,
+                MODEL_PERIODICALISSUE,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                "model:monograph", true, null,
-                Arrays.asList(new ElementType("Monograph", "en"), new ElementType("Monografie", "cs")),
+                MODEL_MONOGRAPHSUPPLEMENT, null, null,
+                Arrays.asList(new ElementType("NDK Monograph Supplement", "en"), new ElementType("NDK Příloha Monografie", "cs")),
                 ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_MONOGRAPH,
+                MODEL_MONOGRAPHSUPPLEMENT,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_PERIODICALSUPPLEMENT, null, null,
+                Arrays.asList(new ElementType("NDK Periodical Supplement", "en"), new ElementType("NDK Příloha Periodika", "cs")),
+                ModsConstants.NS,
+                MODEL_PERIODICALSUPPLEMENT,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_ARTICLE, null, null,
+                Arrays.asList(new ElementType("NDK Article", "en"), new ElementType("NDK Článek", "cs")),
+                ModsConstants.NS,
+                MODEL_ARTICLE,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.OCR, DatastreamEditorType.MEDIA,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_PICTURE, null, null,
+                Arrays.asList(new ElementType("NDK Picture/Map - internal part", "en"), new ElementType("NDK Obrázek/Mapa - vnitřní část", "cs")),
+                ModsConstants.NS,
+                MODEL_PICTURE,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.OCR, DatastreamEditorType.MEDIA,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_MONOGRAPHTITLE, true, null,
+                Arrays.asList(new ElementType("NDK Multipart Monograph", "en"), new ElementType("NDK Vícedílná monografie", "cs")),
+                ModsConstants.NS,
+                MODEL_MONOGRAPHTITLE,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                "model:monographunit", null, null,
-                Arrays.asList(new ElementType("Monograph Unit", "en"), new ElementType("Monografie - volná část", "cs")),
+                MODEL_MONOGRAPHVOLUME, true, null,
+                Arrays.asList(new ElementType("NDK Monograph Volume", "en"), new ElementType("NDK Svazek monografie", "cs")),
                 ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_MONOGRAPH_UNIT,
+                MODEL_MONOGRAPHVOLUME,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                "model:page", null, true,
-                Arrays.asList(new ElementType("Page", "en"), new ElementType("Strana", "cs")),
+                MODEL_CHAPTER, null, null,
+                Arrays.asList(new ElementType("NDK Chapter", "en"), new ElementType("NDK Kapitola", "cs")),
                 ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_PAGE,
+                MODEL_CHAPTER,
                 this,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_CARTOGRAPHIC, true, null,
+                Arrays.asList(new ElementType("NDK Cartographic Document", "en"), new ElementType("NDK Kartografický dokument", "cs")),
+                ModsConstants.NS,
+                MODEL_CARTOGRAPHIC,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_SHEETMUSIC, true, null,
+                Arrays.asList(new ElementType("NDK Sheet Music", "en"), new ElementType("NDK Hudebnina", "cs")),
+                ModsConstants.NS,
+                MODEL_SHEETMUSIC,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
                 ));
 
         return models;
     }
 
     @Override
-    public MetadataHandler<ModsType> createMetadataHandler(DigitalObjectHandler handler) {
+    public MetadataHandler<ModsDefinition> createMetadataHandler(DigitalObjectHandler handler) {
         return new NdkMetadataHandler(handler);
     }
 
@@ -133,7 +218,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTy
         return Collections.emptyList();
     }
 
-    static class NdkMetadataHandler implements MetadataHandler<ModsType> {
+    static class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
 
         private static final Logger LOG = Logger.getLogger(NdkMetadataHandler.class.getName());
         private final DigitalObjectHandler handler;
@@ -149,8 +234,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTy
         }
 
         @Override
-        public void setMetadata(DescriptionMetadata<ModsType> data, String message) throws DigitalObjectException {
-            ModsType mods = data.getData();
+        public void setMetadata(DescriptionMetadata<ModsDefinition> data, String message) throws DigitalObjectException {
+            ModsDefinition mods = data.getData();
             String modelId = handler.relations().getModel();
             if (mods == null) {
                 mods = createDefault(modelId);
@@ -158,8 +243,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTy
             write(modelId, mods, data.getTimestamp(), message);
         }
 
-        private ModsType createDefault(String modelId) throws DigitalObjectException {
-            return ModsStreamEditor.create(fobject.getPid(), modelId);
+        private ModsDefinition createDefault(String modelId) throws DigitalObjectException {
+            return ModsStreamEditor.defaultMods(fobject.getPid());
         }
 
         @Override
@@ -167,31 +252,32 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTy
             String json = jsonData.getData();
             String editorId = jsonData.getEditor();
             String modelId = handler.relations().getModel();
-            ModsType mods = json == null ? createDefault(modelId)
-                    : editor.read();
-            Mapping mapping = new Mapping();
-            Class<?> type = mapping.getType(editorId);
-            ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
-            Object customData;
-            try {
-                customData = jsMapper.readValue(json, type);
-            } catch (Exception ex) {
-                throw new DigitalObjectException(fobject.getPid(), null, ModsStreamEditor.DATASTREAM_ID, null, ex);
-            }
-            mapping.update(mods, customData, editorId);
-            if (LOG.isLoggable(Level.FINE)) {
-                String toXml = ModsUtils.toXml(mods, true);
-                LOG.fine(toXml);
+            ModsDefinition mods;
+            if (json == null) {
+                mods = createDefault(modelId);
+            } else {
+                ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
+                try {
+                    mods = jsMapper.readValue(json, ModsWrapper.class).getMods();
+                } catch (Exception ex) {
+                    throw new DigitalObjectException(fobject.getPid(), null, ModsStreamEditor.DATASTREAM_ID, null, ex);
+                }
             }
             write(modelId, mods, jsonData.getTimestamp(), message);
         }
 
+        void fillNdkConstants_(ModsDefinition mods, String modelId) {
+            NdkMapper mapper = NdkMapper.get(modelId);
+            Context context = new Context(handler);
+            mapper.createMods(mods, context);
+        }
+
         @Override
         public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message) throws DigitalObjectException {
-            ModsType mods;
+            ModsDefinition mods;
             String modelId = handler.relations().getModel();
             if (xmlData.getData() != null) {
-                mods = ModsStreamEditor.create(fobject.getPid(), modelId, xmlData.getData());
+                mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xmlData.getData())));
             } else {
                 mods = createDefault(modelId);
             }
@@ -199,9 +285,9 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTy
         }
 
         @Override
-        public DescriptionMetadata<ModsType> getMetadata() throws DigitalObjectException {
-            ModsType mods = editor.read();
-            DescriptionMetadata<ModsType> dm = new DescriptionMetadata<ModsType>();
+        public DescriptionMetadata<ModsDefinition> getMetadata() throws DigitalObjectException {
+            ModsDefinition mods = editor.read();
+            DescriptionMetadata<ModsDefinition> dm = new DescriptionMetadata<ModsDefinition>();
             dm.setPid(fobject.getPid());
             dm.setTimestamp(editor.getLastModified());
 //            dm.setEditor(editorId);
@@ -210,21 +296,12 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTy
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public <O> DescriptionMetadata<O> getMetadataAsJsonObject(String mappingId) throws DigitalObjectException {
-            if (mappingId == null) {
-                throw new NullPointerException("mappingId");
-            }
-            ModsType mods = editor.read();
-            Mapping mapping = new Mapping();
-            @SuppressWarnings("unchecked")
-            O customMods = (O) mapping.read(mods, mappingId);
-
-            DescriptionMetadata<O> dm = new DescriptionMetadata<O>();
-            dm.setPid(fobject.getPid());
-            dm.setTimestamp(editor.getLastModified());
-            dm.setEditor(mappingId);
-            dm.setData(customMods);
-            return dm;
+            DescriptionMetadata<ModsDefinition> dm = getMetadata();
+            DescriptionMetadata json = dm;
+            json.setData(new ModsWrapper(dm.getData()));
+            return json;
         }
 
         @Override
@@ -238,16 +315,46 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTy
             return dm;
         }
 
-        private void write(String modelId, ModsType mods, long timestamp, String message) throws DigitalObjectException {
+        private void write(String modelId, ModsDefinition mods, long timestamp, String message) throws DigitalObjectException {
+            NdkMapper mapper = NdkMapper.get(modelId);
+            Context context = new Context(handler);
+            mapper.createMods(mods, context);
+            if (LOG.isLoggable(Level.FINE)) {
+                String toXml = ModsUtils.toXml(mods, true);
+                LOG.fine(toXml);
+            }
             editor.write(mods, timestamp, message);
 
             // DC
+            OaiDcType dc = mapper.toDc(mods, context);
             DcStreamEditor dcEditor = handler.objectMetadata();
-            dcEditor.write(handler, mods, modelId, dcEditor.getLastModified(), message);
+            DublinCoreRecord dcr = dcEditor.read();
+            dcr.setDc(dc);
+            dcEditor.write(handler, dcr, message);
 
             // Label
-            String label = ModsUtils.getLabel(mods, modelId);
+            String label = mapper.toLabel(mods);
             fobject.setLabel(label);
+        }
+    }
+
+    public static class ModsWrapper {
+
+        private ModsDefinition mods;
+
+        public ModsWrapper() {
+        }
+
+        public ModsWrapper(ModsDefinition mods) {
+            this.mods = mods;
+        }
+
+        public ModsDefinition getMods() {
+            return mods;
+        }
+
+        public void setMods(ModsDefinition mods) {
+            this.mods = mods;
         }
     }
 

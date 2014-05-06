@@ -252,6 +252,9 @@
                     <noserver>true</noserver>
                     <noServer>true</noServer>
                     <port>8080</port>
+                    <extraJvmArgs>-XX:MaxPermSize=128m</extraJvmArgs>
+<!--                    <style>DETAILED</style>
+                    <optimizationLevel>0</optimizationLevel>-->
                 </configuration>
             </plugin>
 

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server;
 
+import cz.cas.lib.proarc.authentication.Authenticators;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -39,12 +40,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response.Status;
 
 /**
  * Initializes the application.
@@ -69,15 +67,11 @@ public final class ProarcInitializer {
     }
 
     /**
-     * Is the initialization done?
+     * Passes when the initialization is done.
+     * @throws init failure
      */
-    public void isReady() {
-        try {
-            asyncTask.get(2, TimeUnit.MINUTES);
-        } catch (Exception ex) {
-            LOG.log(Level.SEVERE, null, ex);
-            throw new WebApplicationException(Status.SERVICE_UNAVAILABLE);
-        }
+    public void isReady() throws Exception {
+        asyncTask.get(2, TimeUnit.MINUTES);
     }
 
     /**
@@ -94,6 +88,7 @@ public final class ProarcInitializer {
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 config, ImportBatchManager.getInstance(), null,
                 MetaModelRepository.getInstance(), UserUtil.getDefaultManger()));
+        Authenticators.setInstance(new Authenticators(config.getAuthenticators()));
         asyncTask = executor.submit(new Callable<Void>() {
 
             @Override

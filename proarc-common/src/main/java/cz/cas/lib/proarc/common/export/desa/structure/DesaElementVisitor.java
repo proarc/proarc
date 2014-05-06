@@ -488,7 +488,12 @@ public class DesaElementVisitor implements IDesaElementVisitor {
             documentDiv.setORDER(BigInteger.valueOf(documentOrder));
             Mptr mptr = new Mptr();
             mptr.setLOCTYPE("OTHER");
-            mptr.setOTHERLOCTYPE("internal_reference");
+            if (Const.NSESSS_URI.equals(documentElement.getDescriptorType())) {
+                mptr.setOTHERLOCTYPE("ERMS_ID");
+            } else {
+                mptr.setOTHERLOCTYPE("internal_reference");
+            }
+
             mptr.setHref(getIdentifier(documentElement));
             documentDiv.getMptr().add(mptr);
             divType.getDiv().add(documentDiv);

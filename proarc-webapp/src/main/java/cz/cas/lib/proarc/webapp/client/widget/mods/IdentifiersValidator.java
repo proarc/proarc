@@ -44,7 +44,6 @@ final class IdentifiersValidator extends RepeatableItemValidator {
      * @param requiredIdentifiers required identifier types
      */
     public IdentifiersValidator(ClientMessages i18n, Collection<String> requiredIdentifiers) {
-        super(i18n);
         this.requiredIdentifiers = (requiredIdentifiers == null)
                 ? new HashSet<String>() : new HashSet<String>(requiredIdentifiers);
         this.requiredIdentifiers.add(IdentifierDataSource.TYPE_UUID);
@@ -54,7 +53,7 @@ final class IdentifiersValidator extends RepeatableItemValidator {
     protected boolean condition(RecordList recordList) {
         boolean valid = true;
         StringBuilder typesMsg = new StringBuilder();
-        LinkedHashMap<String, String> typeMap = IdentifierDataSource.getTypeValueMap(i18n);
+        LinkedHashMap<String, String> typeMap = IdentifierDataSource.getTypeValueMap(getI18n());
         for (String type : requiredIdentifiers) {
             Record r = recordList.find(IdentifierDataSource.FIELD_TYPE, type);
             if (r == null) {
@@ -64,7 +63,7 @@ final class IdentifiersValidator extends RepeatableItemValidator {
             }
         }
         if (typesMsg.length() > 0) {
-            setErrorMessage(i18n.Validation_RequiredIdentifiers_Msg(typesMsg.substring(2)));
+            setErrorMessage(getI18n().Validation_RequiredIdentifiers_Msg(typesMsg.substring(2)));
         }
         return valid;
     }

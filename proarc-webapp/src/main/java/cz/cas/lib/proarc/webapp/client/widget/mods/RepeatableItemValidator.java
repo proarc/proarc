@@ -16,8 +16,11 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
+import com.smartgwt.client.util.JSOHelper;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.validator.CustomValidator;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
@@ -33,27 +36,39 @@ import java.util.logging.Logger;
 abstract class RepeatableItemValidator extends CustomValidator {
 
     private static final Logger LOG = Logger.getLogger(RepeatableItemValidator.class.getName());
-    protected final ClientMessages i18n;
-
-    protected RepeatableItemValidator(ClientMessages i18n) {
-        this.i18n = i18n;
-    }
+    private ClientMessages i18n;
 
     @Override
     protected final boolean condition(Object value) {
         FormItem formItem = getFormItem();
-        boolean isJSO = value instanceof JavaScriptObject;
-        RecordList recordList = new RecordList((JavaScriptObject) value);
         if (LOG.isLoggable(Level.FINE)) {
-            ClientUtils.fine(LOG, "CONDITION: value: %s,\nclass: %s\nformItem: %s"
-                    + ",\nisJSO: %s,\ndump: %s",
-                    value, ClientUtils.safeGetClass(value), formItem,
-                    isJSO, ClientUtils.dump(value));
+            ClientUtils.severe(LOG, "field.name: %s, class: %s, JSO: %s",
+                    formItem.getName(), ClientUtils.safeGetClass(value), ClientUtils.dump(value));
+        }
+        RecordList recordList = null;
+        if (value instanceof RecordList || value == null) {
+            recordList = (RecordList) value;
+        } else if (value instanceof JavaScriptObject) {
+            JavaScriptObject jso = (JavaScriptObject) value;
+            if (JSOHelper.isArray(jso)) {
+                recordList = new RecordList(jso);
+            } else {
+                recordList = new RecordList(new Record[] {new Record(jso)});
+            }
+        } else {
+            throw new UnsupportedOperationException(ClientUtils.format("field.name: %s, class: %s, JSO: %s",
+                    formItem.getName(), ClientUtils.safeGetClass(value), ClientUtils.dump(value)));
         }
         return condition(recordList);
     }
 
     protected abstract boolean condition(RecordList recordList);
-    
+
+    public ClientMessages getI18n() {
+        if (i18n == null) {
+            i18n = GWT.create(ClientMessages.class);
+        }
+        return i18n;
+    }
 
 }
