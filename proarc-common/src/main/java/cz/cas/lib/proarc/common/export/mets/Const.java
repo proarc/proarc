@@ -17,6 +17,7 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
+import cz.cas.lib.proarc.common.object.NdkPlugin;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,16 +41,16 @@ public class Const {
     public static final String DIV_LOGICAL_ID = "LOGICAL";
     public static final String DIV_LOGICAL_LABEL = "Logical_structure";
 
-    public final static String PERIODICAL_ITEM_MODEL = "model:periodicalitem";
-    public final static String PERIODICAL_MODEL = "model:periodical";
-    public final static String PERIODICAL_VOLUME_MODEL = "model:periodicalvolume";
-    public final static String PAGE_MODEL = "model:page";
+    public final static String PERIODICAL_ITEM_MODEL = NdkPlugin.MODEL_PERIODICALISSUE;
+    public final static String PERIODICAL_MODEL = NdkPlugin.MODEL_PERIODICAL;
+    public final static String PERIODICAL_VOLUME_MODEL = NdkPlugin.MODEL_PERIODICALVOLUME;
+    public final static String PAGE_MODEL = NdkPlugin.MODEL_PAGE;
     public final static String MONOGRAPH_UNIT_MODEL = "model:monographunit";
-    public final static String MONOGRAPH_TITLE_MODEL = "model:monographtitle";
-    public final static String MONOGRAPH_MODEL = "model:monograph";
-    public final static String PICTURE_MODEL = "model:picture";
-    public final static String ARTICLE_MODEL = "model:article";
-    public final static String CHAPTER_MODEL = "model:chapter";
+    public final static String MONOGRAPH_TITLE_MODEL = NdkPlugin.MODEL_MONOGRAPHTITLE;
+    public final static String MONOGRAPH_MODEL = NdkPlugin.MODEL_MONOGRAPHVOLUME;
+    public final static String PICTURE_MODEL = NdkPlugin.MODEL_PICTURE;
+    public final static String ARTICLE_MODEL = NdkPlugin.MODEL_ARTICLE;
+    public final static String CHAPTER_MODEL = NdkPlugin.MODEL_CHAPTER;
     public final static String SUPPLEMENT_MODEL = "model:supplement";
 
     public static final String VOLUME = "VOLUME";

@@ -40,6 +40,9 @@ public final class ExportResourceApi {
     public static final String DESA_FORDOWNLOAD_PARAM = "forDownload";
     public static final String DESA_PID_PARAM = "pid";
     public static final String DESA_HIERARCHY_PARAM = "hierarchy";
+
+    public static final String NDK_PATH = "ndk";
+    public static final String NDK_PID_PARAM = "pid";
     
     public static final String RESULT_TARGET = "target";
     public static final String RESULT_ID = "exportId";

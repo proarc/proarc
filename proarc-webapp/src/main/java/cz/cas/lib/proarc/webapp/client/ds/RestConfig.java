@@ -84,6 +84,8 @@ public final class RestConfig {
             URL_EXPORT, ExportResourceApi.DESA_PATH);
     public static final String URL_EXPORT_KRAMERIUS4 = path(
             URL_EXPORT, ExportResourceApi.KRAMERIUS4_PATH);
+    public static final String URL_EXPORT_NDK = path(
+            URL_EXPORT, ExportResourceApi.NDK_PATH);
     public static final String URL_DEVICE = path(URL_ROOT, DeviceResourceApi.PATH);
     public static final String URL_VALUEMAP = path(URL_ROOT, ValueMapResourceApi.PATH);
 

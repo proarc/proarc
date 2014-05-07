@@ -69,6 +69,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
     public static final String MODEL_ARTICLE = "model:ndkarticle";
     public static final String MODEL_CHAPTER = "model:ndkchapter";
     public static final String MODEL_PICTURE = "model:ndkpicture";
+    public static final String MODEL_PAGE = "model:page";
 
     @Override
     public String getId() {

@@ -56,4 +56,8 @@ public final class ExportDataSource extends RestDataSource {
         return new ExportDataSource(RestConfig.URL_EXPORT_KRAMERIUS4);
     }
 
+    public static ExportDataSource getNdk() {
+        return new ExportDataSource(RestConfig.URL_EXPORT_NDK);
+    }
+
 }

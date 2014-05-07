@@ -40,16 +40,17 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 
 /**
- * The exporter of digital objects.
+ * Exports digital object and transforms its data streams to NDK format.
  *
- * @author Jan Pokorsky, Robert Simonovsky
+ * @author Jan Pokorsky
+ * @see <a href='http://ndk.cz/digitalizace/nove-standardy-digitalizace-od-roku-2011'>NDK</a>
  */
-public final class MetsExport {
+public final class NdkExport {
 
-    private static final Logger LOG = Logger.getLogger(MetsExport.class.getName());
+    private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
     private final RemoteStorage rstorage;
 
-    public MetsExport(RemoteStorage rstorage) {
+    public NdkExport(RemoteStorage rstorage) {
         this.rstorage = rstorage;
     }
 
@@ -115,7 +116,8 @@ public final class MetsExport {
                 DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
                 MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
                 mElm.accept(new MetsElementVisitor());
-                storeExportResult(mElm, log);
+                // XXX use relative path to users folder?
+                storeExportResult(mElm, target.toURI().toASCIIString(), log);
                 return result;
             } catch (MetsExportException ex) {
                 keepResult = false;
@@ -155,20 +157,21 @@ public final class MetsExport {
      * @throws MetsExportException
      *             write failure
      */
-    void storeExportResult(MetsElement mElm, String log) throws MetsExportException {
+    void storeExportResult(MetsElement mElm, String target, String log) throws MetsExportException {
         for (MetsElement childElm : mElm.getChildren()) {
-            storeExportResult(childElm, log);
+            storeExportResult(childElm, target, log);
         }
         String pid = mElm.getOriginalPid();
-        storeObjectExportResult(pid, log);
+        storeObjectExportResult(pid, target, log);
     }
 
-    void storeObjectExportResult(String pid, String log) throws MetsExportException {
+    void storeObjectExportResult(String pid, String target, String log) throws MetsExportException {
         try {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
             FedoraObject fo = dom.find(pid, null);
             DigitalObjectHandler doh = dom.createHandler(fo);
             RelationEditor relations = doh.relations();
+            relations.setExportResult(target);
             relations.write(relations.getLastModified(), log);
             doh.commit();
         } catch (DigitalObjectException ex) {
