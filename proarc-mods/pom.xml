@@ -16,7 +16,7 @@
     <artifactId>proarc-mods</artifactId>
     <packaging>jar</packaging>
 
-    <name>Proarc MODS JAXB Model</name>
+    <name>ProArc MODS JAXB Model</name>
 
     <dependencies>
     </dependencies>
