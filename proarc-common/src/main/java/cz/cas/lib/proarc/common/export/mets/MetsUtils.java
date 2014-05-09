@@ -450,11 +450,6 @@ public class MetsUtils {
      * @return
      */
     public static HashMap<String, FileGrp> initFileGroups(Mets mets) {
-        if (mets.getFileSec() == null) {
-            FileSec fileSec = new FileSec();
-            mets.setFileSec(fileSec);
-        }
-
         FileGrp MCimagesGRP = new FileGrp();
         MCimagesGRP.setID("MC_IMGGRP");
         MCimagesGRP.setUSE("Images");

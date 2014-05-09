@@ -71,6 +71,7 @@ import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.AreaType;
 import cz.cas.lib.proarc.mets.DivType;
@@ -188,7 +189,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     private void saveMets(Mets mets, File outputFile, IMetsElement metsElement) throws MetsExportException {
         String fileMd5Name;
         try {
-            addFileGrpToMets(fileGrpMap, mets.getFileSec());
+            addFileGrpToMets(fileGrpMap);
             try {
                 JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, OaiDcType.class, ModsDefinition.class);
                 Marshaller marshaller = jaxbContext.createMarshaller();
@@ -247,7 +248,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 MetsExportException metsException = new MetsExportException("Invalid mets file:" + outputFile, false, null);
                 metsException.getExceptions().get(0).setValidationErrors(validationErrors);
                 for (String error : validationErrors) {
-                    LOG.info(error);
+                    LOG.fine(error);
                 }
                 throw metsException;
             }
@@ -266,11 +267,14 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param fileGrpMap
      * @param fileSec
      */
-    private void addFileGrpToMets(Map<String, FileGrp> fileGrpMap, FileSec fileSec) {
+    private void addFileGrpToMets(Map<String, FileGrp> fileGrpMap) {
         for (String key : fileGrpMap.keySet()) {
             FileGrp fileGrp = fileGrpMap.get(key);
             if (fileGrp.getFile().size() > 0) {
-                fileSec.getFileGrp().add(fileGrp);
+                if (mets.getFileSec() == null) {
+                    mets.setFileSec(new FileSec());
+                }
+                mets.getFileSec().getFileGrp().add(fileGrp);
             }
         }
     }
@@ -451,19 +455,24 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         for (String streamName : Const.streamMapping.values()) {
             if (metsElement.getMetsContext().getFedoraClient() != null) {
                 try {
-                    GetDatastreamsResponse streams = FedoraClient.getDatastreams(metsElement.getOriginalPid()).execute(metsElement.getMetsContext().getFedoraClient());
-                    List<DatastreamProfile> profiles = streams.getDatastreamProfiles();
-                    for (DatastreamProfile profile : profiles) {
-                        if (profile.getDsID().contains(streamName)) {
-                            GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), streamName);
-                            try {
-                                InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                                fileNames.put(streamName, is);
-                            } catch (FedoraClientException e) {
-                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
-                            }
-                            mimeTypes.put(streamName, profile.getDsMIME());
+                    // GetDatastreamsResponse streams =
+                    // FedoraClient.getDatastreams(metsElement.getOriginalPid()).execute(metsElement.getMetsContext().getFedoraClient());
+                    // List<DatastreamProfile> profiles =
+                    // streams.getDatastreamProfiles();
+                    // for (DatastreamProfile profile : profiles) {
+                    // if (profile.getDsID().contains(streamName)) {
+                    DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), streamName);
+                    if (rawDS != null) {
+                        GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), streamName);
+                        try {
+                            InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                            fileNames.put(streamName, is);
+                        } catch (FedoraClientException e) {
+                            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                         }
+                        // mimeTypes.put(streamName, profile.getDsMIME());
+                        mimeTypes.put(streamName, rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+                        //
                     }
                 } catch (Exception ex) {
                     throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting file datastreams for " + metsElement.getOriginalPid(), false, ex);
@@ -1173,7 +1182,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (metsElement.getMetsContext().getGeneratedPSP().size() == 0) {
                 // no PSP was generated
                 // createDirectoryStructure(metsElement.getMetsContext());
-                addFileGrpToMets(fileGrpMap, mets.getFileSec());
+                addFileGrpToMets(fileGrpMap);
                 File packageDirFile = createPackageDir(metsElement);
                 saveMets(mets, new File(packageDirFile + File.separator + "METS_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
             }
