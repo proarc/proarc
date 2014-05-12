@@ -218,13 +218,8 @@ public class MetsElement implements IMetsElement {
         if (modsName == null) {
             throw new MetsExportException(this.originalPid, "Unable to find mods name for:" + this.elementType, false, null);
         }
-        if (!Const.MONOGRAPH.equals(elementType)) {
-            this.elementID = this.elementType + "_" + String.format("%04d", metsContext.addElementId(this.elementType));
-            this.modsElementID = elementID.replaceAll(this.elementType, modsName);
-        } else {
-            this.elementID = Const.VOLUME + "_" + String.format("%04d", metsContext.addElementId(this.elementType));
-            this.modsElementID = this.elementID;
-        }
+        this.elementID = this.elementType + "_" + String.format("%04d", metsContext.addElementId(this.elementType));
+        this.modsElementID = elementID.replaceAll(this.elementType, modsName);
 
         if (Const.ARTICLE.equals(elementType)) {
             this.elementID = elementID.replaceAll(this.elementType, modsName);
@@ -434,7 +429,7 @@ public class MetsElement implements IMetsElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getModsStream
      * ()

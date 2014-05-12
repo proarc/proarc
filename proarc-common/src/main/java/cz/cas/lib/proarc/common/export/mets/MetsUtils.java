@@ -449,7 +449,7 @@ public class MetsUtils {
      * @param mets
      * @return
      */
-    public static HashMap<String, FileGrp> initFileGroups(Mets mets) {
+    public static HashMap<String, FileGrp> initFileGroups() {
         FileGrp MCimagesGRP = new FileGrp();
         MCimagesGRP.setID("MC_IMGGRP");
         MCimagesGRP.setUSE("Images");

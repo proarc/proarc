@@ -93,8 +93,7 @@ public class Const {
         typeMap.put(FEDORAPREFIX + PERIODICAL_MODEL, PERIODICAL_TITLE);
         typeMap.put(FEDORAPREFIX + PERIODICAL_VOLUME_MODEL, PERIODICAL_VOLUME);
         typeMap.put(FEDORAPREFIX + PAGE_MODEL, PAGE);
-        typeMap.put(FEDORAPREFIX + MONOGRAPH_UNIT_MODEL, MONOGRAPH_UNIT);
-        typeMap.put(FEDORAPREFIX + MONOGRAPH_MODEL, MONOGRAPH);
+        typeMap.put(FEDORAPREFIX + MONOGRAPH_MODEL, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + MONOGRAPH_TITLE_MODEL, MONOGRAPH_MULTIPART);
         typeMap.put(FEDORAPREFIX + PICTURE_MODEL, PICTURE);
         typeMap.put(FEDORAPREFIX + ARTICLE_MODEL, ARTICLE);
@@ -105,7 +104,6 @@ public class Const {
         typeNameMap.put(PERIODICAL_VOLUME, VOLUME);
         typeNameMap.put(PERIODICAL_TITLE, TITLE);
         typeNameMap.put(PAGE, PAGE);
-        typeNameMap.put(MONOGRAPH, VOLUME);
         typeNameMap.put(MONOGRAPH_UNIT, VOLUME);
         typeNameMap.put(PICTURE, PICTURE);
         typeNameMap.put(ARTICLE, "ART");
