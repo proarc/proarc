@@ -1052,8 +1052,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         for (IMetsElement childMetsElement : metsElement.getChildren()) {
             if (Const.PERIODICAL_VOLUME.equals(childMetsElement.getElementType())) {
                 insertVolume(divType, physicalDiv, childMetsElement, false);
+            } else if (Const.ISSUE.equals(childMetsElement.getElementType())) {
+                insertIssue(physicalDiv, divType, childMetsElement);
             } else
-                throw new MetsExportException(childMetsElement.getOriginalPid(), "Expected Volume, got:" + childMetsElement.getElementType(), false, null);
+                throw new MetsExportException(childMetsElement.getOriginalPid(), "Expected Volume or Issue, got:" + childMetsElement.getElementType(), false, null);
         }
     }
 

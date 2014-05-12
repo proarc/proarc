@@ -45,7 +45,6 @@ public class Const {
     public final static String PERIODICAL_MODEL = NdkPlugin.MODEL_PERIODICAL;
     public final static String PERIODICAL_VOLUME_MODEL = NdkPlugin.MODEL_PERIODICALVOLUME;
     public final static String PAGE_MODEL = NdkPlugin.MODEL_PAGE;
-    public final static String MONOGRAPH_UNIT_MODEL = "model:monographunit";
     public final static String MONOGRAPH_TITLE_MODEL = NdkPlugin.MODEL_MONOGRAPHTITLE;
     public final static String MONOGRAPH_MODEL = NdkPlugin.MODEL_MONOGRAPHVOLUME;
     public final static String PICTURE_MODEL = NdkPlugin.MODEL_PICTURE;
@@ -98,6 +97,9 @@ public class Const {
         typeMap.put(FEDORAPREFIX + PICTURE_MODEL, PICTURE);
         typeMap.put(FEDORAPREFIX + ARTICLE_MODEL, ARTICLE);
         typeMap.put(FEDORAPREFIX + SUPPLEMENT_MODEL, SUPPLEMENT);
+        typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, SUPPLEMENT);
+        typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_PERIODICALSUPPLEMENT, SUPPLEMENT);
+
         typeMap.put(FEDORAPREFIX + CHAPTER_MODEL, CHAPTER);
 
         typeNameMap.put(ISSUE, ISSUE);
