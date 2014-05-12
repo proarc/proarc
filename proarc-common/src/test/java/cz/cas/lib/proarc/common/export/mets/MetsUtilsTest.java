@@ -20,9 +20,7 @@ package cz.cas.lib.proarc.common.export.mets;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,8 +29,6 @@ import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
-
-import net.lingala.zip4j.core.ZipFile;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -71,11 +67,11 @@ public class MetsUtilsTest {
      *
      */
     private void initTestElements() {
-        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph.zip", "monograph", 6, 25, 4, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
+        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph", "monograph", 6, 25, 4, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
         this.testElements.add(monografieTestElement);
-        MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum.zip", "periodikum", 42, 349, 5, "periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
+        MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum", "periodikum", 42, 349, 5, "periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
         this.testElements.add(periodikumTestElement);
-        MetsExportTestElement periodikumPageTestElement = new MetsExportTestElement("periodikum.zip", "periodikumPage", 7, 51, 5, "periodical", "b46aff0e-26af-11e3-88e3-001b63bd97ba.xml");
+        MetsExportTestElement periodikumPageTestElement = new MetsExportTestElement("periodikumPage", "periodikum", 7, 51, 5, "periodical", "b46aff0e-26af-11e3-88e3-001b63bd97ba.xml");
         this.testElements.add(periodikumPageTestElement);
     }
 
@@ -100,29 +96,14 @@ public class MetsUtilsTest {
     }
 
     /**
-     * Copies the files for a test from jar file to a temporary file system
+     * Returns the source path for input documents
      *
-     * @param testElement
+     * @return
      */
-    private void copyFiles(MetsExportTestElement testElement) {
-        File destination = null;
-        try {
-            destination = tmp.newFolder(testElement.getDirectory());
-        } catch (IOException ex) {
-            throw new RuntimeException("Unable to create folder: " + testElement.getDirectory());
-        }
-        InputStream is = this.getClass().getResourceAsStream(testElement.getZipFile());
-        String zipFileLocation = tmp.getRoot().getAbsolutePath() + File.separator + testElement.getZipFile();
-        File zipFile = new File(zipFileLocation);
-        try {
-            FileOutputStream fos = new FileOutputStream(zipFile);
-            MetsUtils.copyStream(is, fos);
-            fos.close();
-            ZipFile zip = new ZipFile(zipFile);
-            zip.extractAll(destination.getAbsolutePath());
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
+    private String getTargetPath() {
+        URL res = this.getClass().getResource(this.getClass().getSimpleName() + ".class");
+        File fileName = new File(res.getFile());
+        return fileName.getParent();
     }
 
     /**
@@ -133,8 +114,8 @@ public class MetsUtilsTest {
     @Test
     public void readFoXMLTest() throws Exception {
         for (MetsExportTestElement element : testElements) {
-            copyFiles(element);
-            String path = tmp.getRoot().getAbsolutePath() + File.separator + element.getDirectory() + File.separator + element.getInitialDocument();
+            // copyFiles(element);
+            String path = getTargetPath() + File.separator + element.getDirectory() + File.separator + element.getInitialDocument();
             DigitalObject dbObj = MetsUtils.readFoXML(path);
             LOG.log(Level.INFO, dbObj.getPID());
             String fileName = element.getInitialDocument();
@@ -152,10 +133,10 @@ public class MetsUtilsTest {
     @Test
     public void saveMetsTest() throws Exception {
         for (MetsExportTestElement testElement : testElements) {
-            copyFiles(testElement);
-            String sourceDirPath = tmp.getRoot().getAbsolutePath() + File.separator +
+            // copyFiles(testElement);
+            String sourceDirPath = getTargetPath() + File.separator +
                     testElement.getDirectory() + File.separator;
-            File resultDir = tmp.newFolder("result" + testElement.getDirectory());
+            File resultDir = tmp.newFolder("result" + testElement.getResultFolder());
             String path = sourceDirPath + testElement.getInitialDocument();
             DigitalObject dbObj = MetsUtils.readFoXML(path);
             MetsContext context = new MetsContext();

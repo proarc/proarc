@@ -19,7 +19,7 @@ package cz.cas.lib.proarc.common.export.mets;
 
 
 public class MetsExportTestElement {
-    private final String zipFile;
+    private final String resultFolder;
     private final String directory;
     private final int totalItems;
     private final int size;
@@ -31,8 +31,8 @@ public class MetsExportTestElement {
         return initialDocument;
     }
 
-    public String getZipFile() {
-        return zipFile;
+    public String getResultFolder() {
+        return resultFolder;
     }
 
     public String getDirectory() {
@@ -55,9 +55,9 @@ public class MetsExportTestElement {
         return type;
     }
 
-    public MetsExportTestElement(String zipFile, String directory, int totalItems, int size, int numberOfFiles, String type, String initialDocument) {
+    public MetsExportTestElement(String resultFolder, String directory, int totalItems, int size, int numberOfFiles, String type, String initialDocument) {
         super();
-        this.zipFile = zipFile;
+        this.resultFolder = resultFolder;
         this.directory = directory;
         this.totalItems = totalItems;
         this.size = size;

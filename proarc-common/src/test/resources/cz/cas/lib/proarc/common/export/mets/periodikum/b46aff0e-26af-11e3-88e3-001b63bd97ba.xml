@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<foxml:digitalObject VERSION="1.1" PID="uuid:b46aff0e-26af-11e3-88e3-001b63bd97ba" xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd" xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mets="http://www.loc.gov/METS/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <foxml:objectProperties>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="12"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#ownerId" VALUE="fedoraAdmin"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#createdDate" VALUE="2013-09-26T15:30:05.738Z"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="2013-09-26T15:30:05.738Z"/>
+    </foxml:objectProperties>
+    <foxml:datastream ID="DC" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="DC.0" LABEL="Dublin Core Record for this object" CREATED="2013-09-26T15:30:05" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/">
+            <foxml:xmlContent>
+                <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+                    <dc:identifier>uuid:b46aff0e-26af-11e3-88e3-001b63bd97ba</dc:identifier>
+                    <dc:title>12</dc:title>
+                    <dc:type>model:page</dc:type>
+                    <dc:rights>policy:public</dc:rights>
+                </oai_dc:dc>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="IMG_FULL" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="IMG_FULL.0" CREATED="2013-09-26T15:30:13" MIMETYPE="image/jp2">
+            <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/img/UC_aba009-000029_0004.jp2"/>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="IMG_THUMB" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="IMG_THUMB.0" CREATED="2013-09-26T15:30:13" MIMETYPE="image/jpeg">
+            <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/thumbnail/UC_aba009-000029_0004.jpg"/>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="IMG_PREVIEW" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="IMG_PREVIEW.0" CREATED="2013-09-26T15:30:13" MIMETYPE="image/jpeg">
+            <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/preview/UC_aba009-000029_0004.jpg"/>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="ALTO" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="ALTO.0" CREATED="2013-09-26T15:30:14" MIMETYPE="text/xml">
+            <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/txt/ALTO_aba009-000029_0004.xml"/>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="TEXT_OCR" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="TEXT_OCR.0" CREATED="2013-09-26T15:30:14" MIMETYPE="text/plain">
+            <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/txt/TXT_aba009-000029_0004.txt"/>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="IMG_FULL_AMD" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="IMG_FULL_AMD.0" CREATED="2013-09-26T15:30:14" MIMETYPE="text/xml">
+            <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/amd/AMD_METS_aba009-000029_0004.xml"/>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="BIBLIO_MODS" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="BIBLIO_MODS.0" LABEL="BIBLIO_MODS description of current object" CREATED="2013-09-26T15:30:14" MIMETYPE="text/xml" FORMAT_URI="http://www.loc.gov/mods/v3">
+            <foxml:xmlContent>
+                <mods:modsCollection xmlns:mods="http://www.loc.gov/mods/v3">
+                    <mods:mods>
+                        <mods:part type="normalPage">
+                            <mods:detail type="pageNumber">
+                                <mods:number>12</mods:number>
+                            </mods:detail>
+                            <mods:detail type="pageIndex">
+                                <mods:number>3</mods:number>
+                            </mods:detail>
+                        </mods:part>
+                    </mods:mods>
+                </mods:modsCollection>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="POLICY" CONTROL_GROUP="E" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="POLICY.0" CREATED="2013-09-26T15:30:14" MIMETYPE="application/rdf+xml">
+            <foxml:contentLocation TYPE="URL" REF="http://local.fedora.server/fedora/get/policy:public/POLICYDEF"/>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="RELS-EXT" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="RELS-EXT.0" LABEL="RDF Statements about this object" CREATED="2013-09-26T15:30:14" MIMETYPE="application/rdf+xml" FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0">
+            <foxml:xmlContent>
+                <rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:oai="http://www.openarchives.org/OAI/2.0/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:kramerius="http://www.nsdl.org/ontologies/relationships#">
+                    <rdf:Description rdf:about="info:fedora/uuid:b46aff0e-26af-11e3-88e3-001b63bd97ba">
+                        <fedora-model:hasModel rdf:resource="info:fedora/model:page"/>
+                        <oai:itemID>uuid:b46aff0e-26af-11e3-88e3-001b63bd97ba</oai:itemID>
+                        <kramerius:policy>policy:public</kramerius:policy>
+                    </rdf:Description>
+                </rdf:RDF>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+</foxml:digitalObject>

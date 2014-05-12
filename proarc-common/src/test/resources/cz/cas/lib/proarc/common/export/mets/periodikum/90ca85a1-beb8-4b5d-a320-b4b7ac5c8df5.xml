@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<foxml:digitalObject VERSION="1.1" PID="uuid:90ca85a1-beb8-4b5d-a320-b4b7ac5c8df5" xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd" xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mets="http://www.loc.gov/METS/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <foxml:objectProperties>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="6"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#ownerId" VALUE="fedoraAdmin"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#createdDate" VALUE="2013-09-26T15:29:56.859Z"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="2013-09-26T15:29:56.859Z"/>
+    </foxml:objectProperties>
+    <foxml:datastream ID="DC" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="DC.0" LABEL="Dublin Core Record for this object" CREATED="2013-09-26T15:29:56" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/">
+            <foxml:xmlContent>
+                <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+                    <dc:title>
+          </dc:title>
+                    <dc:description>6</dc:description>
+                    <dc:date>1872</dc:date>
+                    <dc:type>volume</dc:type>
+                    <dc:identifier>uuid: 90ca85a1-beb8-4b5d-a320-b4b7ac5c8df5</dc:identifier>
+                    <dc:rights>policy:public</dc:rights>
+                </oai_dc:dc>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="BIBLIO_MODS" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="BIBLIO_MODS.0" LABEL="BIBLIO_MODS description of current object" CREATED="2013-09-26T15:29:56" MIMETYPE="text/xml" FORMAT_URI="http://www.loc.gov/mods/v3">
+            <foxml:xmlContent>
+                <mods:modsCollection xmlns:mods="http://www.loc.gov/mods/v3">
+                    <mods:mods ID="MODS_VOLUME_0001">
+                        <mods:titleInfo>
+                            <mods:partNumber>6</mods:partNumber>
+                        </mods:titleInfo>
+                        <mods:originInfo>
+                            <mods:dateIssued>1872</mods:dateIssued>
+                        </mods:originInfo>
+                        <mods:genre>volume</mods:genre>
+                        <mods:identifier type="uuid">90ca85a1-beb8-4b5d-a320-b4b7ac5c8df5</mods:identifier>
+                    </mods:mods>
+                </mods:modsCollection>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="POLICY" CONTROL_GROUP="E" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="POLICY.0" CREATED="2013-09-26T15:29:56" MIMETYPE="application/rdf+xml">
+            <foxml:contentLocation TYPE="URL" REF="http://local.fedora.server/fedora/get/policy:public/POLICYDEF"/>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="RELS-EXT" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="RELS-EXT.0" LABEL="RDF Statements about this object" CREATED="2013-09-26T15:29:56" MIMETYPE="application/rdf+xml" FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0">
+            <foxml:xmlContent>
+                <rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:oai="http://www.openarchives.org/OAI/2.0/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:kramerius="http://www.nsdl.org/ontologies/relationships#">
+                    <rdf:Description rdf:about="info:fedora/uuid:90ca85a1-beb8-4b5d-a320-b4b7ac5c8df5">
+                        <fedora-model:hasModel rdf:resource="info:fedora/model:ndkperiodicalvolume"/>
+                        <oai:itemID>uuid:90ca85a1-beb8-4b5d-a320-b4b7ac5c8df5</oai:itemID>
+                        <kramerius:policy>policy:public</kramerius:policy>
+                        <kramerius:hasItem rdf:resource="info:fedora/uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317"/>
+                    </rdf:Description>
+                </rdf:RDF>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+</foxml:digitalObject>

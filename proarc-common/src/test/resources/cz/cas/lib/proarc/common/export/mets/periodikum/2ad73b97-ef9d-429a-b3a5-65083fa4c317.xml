@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<foxml:digitalObject VERSION="1.1" PID="uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317" xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd" xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mets="http://www.loc.gov/METS/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <foxml:objectProperties>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="Včelař časopis věnovaný zájmům a pokroku českého včelařství 2"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#ownerId" VALUE="fedoraAdmin"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#createdDate" VALUE="2013-09-26T15:30:05.733Z"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="2013-09-26T15:30:05.733Z"/>
+    </foxml:objectProperties>
+    <foxml:datastream ID="DC" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="DC.0" LABEL="Dublin Core Record for this object" CREATED="2013-09-26T15:30:05" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/">
+            <foxml:xmlContent>
+                <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+                    <dc:type>issue</dc:type>
+                    <dc:identifier>uuid: 2ad73b97-ef9d-429a-b3a5-65083fa4c317</dc:identifier>
+                    <dc:identifier>urnnbn: urn:nbn:cz:aba009-000029</dc:identifier>
+                    <dc:language>cze</dc:language>
+                    <dc:date>10.2.1872</dc:date>
+                    <dc:title>Včelař: časopis věnovaný zájmům a pokroku českého včelařství</dc:title>
+                    <dc:description>2</dc:description>
+                    <dc:rights>policy:public</dc:rights>
+                </oai_dc:dc>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="BIBLIO_MODS" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="BIBLIO_MODS.0" LABEL="BIBLIO_MODS description of current object" CREATED="2013-09-26T15:30:05" MIMETYPE="text/xml" FORMAT_URI="http://www.loc.gov/mods/v3">
+            <foxml:xmlContent>
+                <mods:modsCollection xmlns:mods="http://www.loc.gov/mods/v3">
+                    <mods:mods ID="MODS_ISSUE_0001">
+                        <mods:genre type="normal">issue</mods:genre>
+                        <mods:identifier type="uuid">2ad73b97-ef9d-429a-b3a5-65083fa4c317</mods:identifier>
+                        <mods:identifier type="urnnbn">urn:nbn:cz:aba009-000029</mods:identifier>
+                        <mods:language>
+                            <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+                        </mods:language>
+                        <mods:originInfo>
+                            <mods:dateIssued>10.2.1872</mods:dateIssued>
+                        </mods:originInfo>
+                        <mods:titleInfo>
+                            <mods:title>Včelař</mods:title>
+                            <mods:subTitle>časopis věnovaný zájmům a pokroku českého včelařství</mods:subTitle>
+                            <mods:partNumber>2</mods:partNumber>
+                        </mods:titleInfo>
+                    </mods:mods>
+                </mods:modsCollection>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="POLICY" CONTROL_GROUP="E" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="POLICY.0" CREATED="2013-09-26T15:30:05" MIMETYPE="application/rdf+xml">
+            <foxml:contentLocation TYPE="URL" REF="http://local.fedora.server/fedora/get/policy:public/POLICYDEF"/>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="RELS-EXT" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="RELS-EXT.0" LABEL="RDF Statements about this object" CREATED="2013-09-26T15:30:05" MIMETYPE="application/rdf+xml" FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0">
+            <foxml:xmlContent>
+                <rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:oai="http://www.openarchives.org/OAI/2.0/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:kramerius="http://www.nsdl.org/ontologies/relationships#">
+                    <rdf:Description rdf:about="info:fedora/uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317">
+                        <fedora-model:hasModel rdf:resource="info:fedora/model:ndkperiodicalissue"/>
+                        <oai:itemID>uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317</oai:itemID>
+                        <kramerius:policy>policy:public</kramerius:policy>
+                        <kramerius:hasPage rdf:resource="info:fedora/uuid:b46ab0eb-26af-11e3-88e3-001b63bd97ba"/>
+                        <kramerius:hasPage rdf:resource="info:fedora/uuid:b46aff0c-26af-11e3-88e3-001b63bd97ba"/>
+                        <kramerius:hasPage rdf:resource="info:fedora/uuid:b46aff0d-26af-11e3-88e3-001b63bd97ba"/>
+                        <kramerius:hasPage rdf:resource="info:fedora/uuid:b46aff0e-26af-11e3-88e3-001b63bd97ba"/>
+                        <kramerius:hasPage rdf:resource="info:fedora/uuid:b46aff0f-26af-11e3-88e3-001b63bd97ba"/>
+                        <kramerius:hasPage rdf:resource="info:fedora/uuid:b46b2620-26af-11e3-88e3-001b63bd97ba"/>
+                        <kramerius:hasPage rdf:resource="info:fedora/uuid:b46b2621-26af-11e3-88e3-001b63bd97ba"/>
+                        <kramerius:hasPage rdf:resource="info:fedora/uuid:b46b2622-26af-11e3-88e3-001b63bd97ba"/>
+                    </rdf:Description>
+                </rdf:RDF>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+</foxml:digitalObject>
