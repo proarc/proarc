@@ -64,12 +64,12 @@ public final class ImportProfile {
     }
 
     public String getNdkArchivalFileSuffix() {
-        String suffix = config.getString(ALTO_SUFFIX, ".ac.jp2");
+        String suffix = config.getString(NDK_ARCHIVAL_SUFFIX, ".ac.jp2");
         return suffix.toLowerCase();
     }
 
     public String getNdkUserFileSuffix() {
-        String suffix = config.getString(ALTO_SUFFIX, ".uc.jp2");
+        String suffix = config.getString(NDK_USER_SUFFIX, ".uc.jp2");
         return suffix.toLowerCase();
     }
 
