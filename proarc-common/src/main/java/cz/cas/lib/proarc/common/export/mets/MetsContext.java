@@ -17,6 +17,7 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,14 +51,32 @@ import edu.harvard.hul.ois.jhove.JhoveBase;
 public class MetsContext {
     private FedoraClient fedoraClient;
     private RemoteStorage remoteStorage;
-    private final Map<String, Integer> elementIds = new HashMap<String, Integer>();
+    private Map<String, Integer> elementIds = new HashMap<String, Integer>();
     private MetsElement rootElement;
     private Map<String, String> fsParentMap;
     private String path;
     private final List<String> generatedPSP = new ArrayList<String>();
     private boolean allowNonCompleteStreams = false;
     private boolean allowMissingURNNBN = false;
+    private File packageDir;
 
+    public File getPackageDir() {
+        return packageDir;
+    }
+
+    public void setPackageDir(File packageDir) {
+        this.packageDir = packageDir;
+    }
+    /**
+     * Resets the element Id counter
+     *
+     */
+    public void resetContext() {
+        elementIds = new HashMap<String, Integer>();
+        packageDir = null;
+        packageID = null;
+        rootElement = null;
+    }
     /**
      * returns true if URNNBN is not mandatory
      *

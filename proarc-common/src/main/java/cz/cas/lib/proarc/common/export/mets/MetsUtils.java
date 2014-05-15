@@ -75,12 +75,13 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.Mets;
-import cz.cas.lib.proarc.mets.MetsType.FileSec;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.StructMapType;
 import cz.cas.lib.proarc.mets.info.Info;
@@ -114,6 +115,92 @@ public class MetsUtils {
             }
         }
         return mimeToExtension;
+    }
+
+    private static void findChildPSPs(DigitalObject dObj, MetsContext ctx, List<String> psps) throws MetsExportException {
+        List<Element> relsExt = FoxmlUtils.findDatastream(dObj, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
+        Node node = MetsUtils.xPathEvaluateNode(relsExt, "*[local-name()='RDF']/*[local-name()='Description']");
+
+        NodeList hasPageNodes = node.getChildNodes();
+        for (int a = 0; a < hasPageNodes.getLength(); a++) {
+            if (MetsUtils.hasReferenceXML(hasPageNodes.item(a).getNodeName())) {
+                Node rdfResourceNode = hasPageNodes.item(a).getAttributes().getNamedItem("rdf:resource");
+                String fileName = rdfResourceNode.getNodeValue();
+
+                DigitalObject object = null;
+                if (ctx.getFedoraClient() != null) {
+                    object = MetsUtils.readRelatedFoXML(fileName, ctx.getFedoraClient());
+                } else {
+                    object = MetsUtils.readRelatedFoXML(ctx.getPath(), fileName);
+                }
+                relsExt = FoxmlUtils.findDatastream(object, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
+                String model = MetsUtils.getModel(relsExt);
+                String elementType = Const.typeMap.get(model);
+
+                if (Const.PSPElements.contains(elementType)) {
+                    psps.add(object.getPID());
+                } else {
+                    findChildPSPs(object, ctx, psps);
+                }
+            }
+        }
+    }
+
+    public static List<String> findPSPPIDs(String pid, MetsContext ctx, boolean fillChildren) throws MetsExportException {
+        List<String> result = new ArrayList<String>();
+        DigitalObject dObj;
+        if (ctx.getFedoraClient() != null) {
+            dObj = readFoXML(pid, ctx.getFedoraClient());
+        } else {
+            dObj = readFoXML(ctx.getPath() + File.separator + pid + ".xml");
+        }
+        List<Element> relsExt = FoxmlUtils.findDatastream(dObj, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
+        String model = MetsUtils.getModel(relsExt);
+        String elementType = Const.typeMap.get(model);
+
+        String parentId = null;
+        String parentModel = null;
+        String parentType = null;
+        List<Element> parentRels = null;
+        DigitalObject parentdbObj = null;
+        if (ctx.getFedoraClient() != null) {
+            parentId = MetsUtils.getParent(pid, ctx.getRemoteStorage());
+        } else {
+            parentId = MetsUtils.getParent(pid, ctx.getFsParentMap());
+        }
+        while (parentId != null) {
+            if (ctx.getFedoraClient() != null) {
+                parentdbObj = readFoXML(parentId, ctx.getFedoraClient());
+            } else {
+                parentdbObj = readFoXML(ctx.getPath() + File.separator + parentId + ".xml");
+            }
+            parentRels = FoxmlUtils.findDatastream(parentdbObj, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
+            parentModel = MetsUtils.getModel(parentRels);
+            parentType = Const.typeMap.get(parentModel);
+
+
+            if (Const.PSPElements.contains(parentType)) {
+                result.add(parentId);
+                return result;
+            }
+
+            if (ctx.getFedoraClient() != null) {
+                parentId = MetsUtils.getParent(parentId, ctx.getRemoteStorage());
+            } else {
+                parentId = MetsUtils.getParent(parentId, ctx.getFsParentMap());
+            }
+        }
+
+        if (Const.PSPElements.contains(elementType)) {
+            result.add(pid);
+            return result;
+        }
+
+        if (fillChildren) {
+            findChildPSPs(dObj, ctx, result);
+        }
+
+        return result;
     }
 
     /**
@@ -409,16 +496,21 @@ public class MetsUtils {
      * @return
      * @throws MetsExportException
      */
-    public static byte[] getBinaryDataStreams(FedoraClient fedoraClient, String pid, String streamName) throws MetsExportException {
+    public static byte[] getBinaryDataStreams(FedoraClient fedoraClient, IMetsElement metsElement, String streamName) throws MetsExportException {
         try {
-            FedoraResponse response = FedoraClient.getDatastreamDissemination(pid, streamName).execute(fedoraClient);
-            InputStream is = response.getEntityInputStream();
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            copyStream(is, bos);
-            bos.close();
-            return bos.toByteArray();
+            DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), streamName);
+            if (rawDS != null) {
+                FedoraResponse response = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), streamName).execute(fedoraClient);
+                InputStream is = response.getEntityInputStream();
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                copyStream(is, bos);
+                bos.close();
+                return bos.toByteArray();
+            } else {
+                return null;
+            }
         } catch (Exception ex) {
-            throw new MetsExportException("Error while getting stream " + streamName + " from " + pid, false, ex);
+            throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting stream " + streamName + " from " + metsElement.getElementType(), false, ex);
         }
     }
 

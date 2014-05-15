@@ -17,8 +17,12 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.object.NdkPlugin;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,7 +34,8 @@ import java.util.Map;
  */
 public class Const {
     public final static String FEDORAPREFIX = "info:fedora/";
-    public static HashMap<String, String> streamMapping = new HashMap<String, String>();
+    public static HashMap<String, List<String>> streamMapping;
+    public static ArrayList<String> mandatoryStreams = new ArrayList<String>();
     public static HashMap<String, String> streamMappingFile = new HashMap<String, String>();
     public static HashMap<String, String> streamMappingPrefix = new HashMap<String, String>();
     public static final String FEDORA_CREATEDATE = "info:fedora/fedora-system:def/model#createdDate";
@@ -84,10 +89,16 @@ public class Const {
     public static final String HASMEMBER = "fedora-rels-ext:hasMember";
     public static final String ISONPAGE = "kramerius:isOnPage";
 
+    public static final List<String> PSPElements = new ArrayList<String>();
+
     public final static Map<String, String> typeMap = new HashMap<String, String>();
     public final static Map<String, String> typeNameMap = new HashMap<String, String>();
 
     static {
+        PSPElements.add(Const.MONOGRAPH_UNIT);
+        PSPElements.add(Const.ISSUE);
+        PSPElements.add(Const.SUPPLEMENT);
+
         typeMap.put(FEDORAPREFIX + PERIODICAL_ITEM_MODEL, ISSUE);
         typeMap.put(FEDORAPREFIX + PERIODICAL_MODEL, PERIODICAL_TITLE);
         typeMap.put(FEDORAPREFIX + PERIODICAL_VOLUME_MODEL, PERIODICAL_VOLUME);
@@ -109,15 +120,30 @@ public class Const {
         typeNameMap.put(MONOGRAPH_UNIT, VOLUME);
         typeNameMap.put(PICTURE, PICTURE);
         typeNameMap.put(ARTICLE, "ART");
-        typeNameMap.put(SUPPLEMENT, "SUPPL");
+        typeNameMap.put(SUPPLEMENT, "SUPPLEMENT");
         typeNameMap.put(CHAPTER, CHAPTER);
         typeNameMap.put(MONOGRAPH_MULTIPART, MONOGRAPH);
 
-        streamMapping.put("MC_IMGGRP", "FULL");
-        streamMapping.put("UC_IMGGRP", "PREVIEW");
-        streamMapping.put("ALTOGRP", "ALTO");
-        streamMapping.put("TXTGRP", "TEXT_OCR");
-        streamMapping.put("TECHMDGRP", "FULL_AMD");
+        mandatoryStreams.add("MC_IMGGRP");
+        mandatoryStreams.add("UC_IMGGRP");
+
+        streamMapping = new HashMap<String, List<String>>();
+        streamMapping.put("MC_IMGGRP", new ArrayList<String>());
+        streamMapping.get("MC_IMGGRP").add(BinaryEditor.NDK_ARCHIVAL_ID);
+        streamMapping.get("MC_IMGGRP").add("RAW");
+
+        streamMapping.put("UC_IMGGRP", new ArrayList<String>());
+        streamMapping.get("UC_IMGGRP").add(BinaryEditor.NDK_USER_ID);
+        streamMapping.get("UC_IMGGRP").add("FULL");
+
+        streamMapping.put("ALTOGRP", new ArrayList<String>());
+        streamMapping.get("ALTOGRP").add("ALTO");
+
+        streamMapping.put("TXTGRP", new ArrayList<String>());
+        streamMapping.get("TXTGRP").add("TEXT_OCR");
+
+        streamMapping.put("TECHMDGRP", new ArrayList<String>());
+        streamMapping.get("TECHMDGRP").add("FULL_AMD");
 
         streamMappingPrefix.put("MC_IMGGRP", "MC");
         streamMappingPrefix.put("UC_IMGGRP", "UC");

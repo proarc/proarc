@@ -113,11 +113,15 @@ public final class NdkExport {
             RemoteObject fo = rstorage.find(pid);
             MetsContext dc = buildContext(fo, packageId, target);
             try {
-                DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
-                MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
-                mElm.accept(new MetsElementVisitor());
-                // XXX use relative path to users folder?
-                storeExportResult(mElm, target.toURI().toASCIIString(), log);
+                List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
+                for (String pspPid : PSPs) {
+                    dc.resetContext();
+                    DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
+                    MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
+                    mElm.accept(new MetsElementVisitor());
+                    // XXX use relative path to users folder?
+                }
+                storeExportResult(dc, target.toURI().toASCIIString(), log);
                 return result;
             } catch (MetsExportException ex) {
                 keepResult = false;
@@ -146,6 +150,8 @@ public final class NdkExport {
         mc.setRemoteStorage(rstorage);
         mc.setPackageID(packageId);
         mc.setOutputPath(targetFolder.getAbsolutePath());
+        mc.setAllowNonCompleteStreams(false);
+        mc.setAllowMissingURNNBN(false);
         return mc;
     }
 
@@ -157,12 +163,10 @@ public final class NdkExport {
      * @throws MetsExportException
      *             write failure
      */
-    void storeExportResult(MetsElement mElm, String target, String log) throws MetsExportException {
-        for (MetsElement childElm : mElm.getChildren()) {
-            storeExportResult(childElm, target, log);
+    void storeExportResult(MetsContext metsContext, String target, String log) throws MetsExportException {
+        for (String pid : metsContext.getPidElements().keySet()) {
+            storeObjectExportResult(pid, target, log);
         }
-        String pid = mElm.getOriginalPid();
-        storeObjectExportResult(pid, target, log);
     }
 
     void storeObjectExportResult(String pid, String target, String log) throws MetsExportException {
