@@ -19,8 +19,8 @@
             </foxml:xmlContent>
         </foxml:datastreamVersion>
     </foxml:datastream>
-    <foxml:datastream ID="IMG_FULL" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
-        <foxml:datastreamVersion ID="IMG_FULL.0" CREATED="2013-09-26T15:30:04" MIMETYPE="image/jp2">
+    <foxml:datastream ID="RAW" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="RAW.0" CREATED="2013-09-26T15:30:04" MIMETYPE="image/jp2">
             <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/img/UC_aba009-000029_0005.jp2"/>
         </foxml:datastreamVersion>
     </foxml:datastream>
@@ -29,8 +29,8 @@
             <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/thumbnail/UC_aba009-000029_0005.jpg"/>
         </foxml:datastreamVersion>
     </foxml:datastream>
-    <foxml:datastream ID="IMG_PREVIEW" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
-        <foxml:datastreamVersion ID="IMG_PREVIEW.0" CREATED="2013-09-26T15:30:05" MIMETYPE="image/jpeg">
+    <foxml:datastream ID="FULL" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="FULL.0" CREATED="2013-09-26T15:30:05" MIMETYPE="image/jpeg">
             <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/preview/UC_aba009-000029_0005.jpg"/>
         </foxml:datastreamVersion>
     </foxml:datastream>

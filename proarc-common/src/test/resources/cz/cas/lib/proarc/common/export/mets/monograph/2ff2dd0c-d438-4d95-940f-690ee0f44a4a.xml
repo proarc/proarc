@@ -18,8 +18,8 @@
 </foxml:xmlContent>
 </foxml:datastreamVersion>
 </foxml:datastream>
-<foxml:datastream ID="FULL" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">
-<foxml:datastreamVersion ID="FULL.0" LABEL="Presentable version of RAW" CREATED="2012-07-30T16:05:12.208Z" MIMETYPE="image/jpeg" SIZE="608270">
+<foxml:datastream ID="RAW" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">
+<foxml:datastreamVersion ID="RAW.0" LABEL="Presentable version of RAW" CREATED="2012-07-30T16:05:12.208Z" MIMETYPE="image/jpeg" SIZE="608270">
 <foxml:binaryContent> 
            /9j/4AAQSkZJRgABAQEASABIAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkz
 ODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2Nj
@@ -30,8 +30,8 @@ DAMBAAIRAxEAPwCOhyq7nb1KVU0ClRBcreqi9QREMxWUXvY5da78LfwADwa//9k=
 </foxml:binaryContent> 
 </foxml:datastreamVersion>
 </foxml:datastream>
-<foxml:datastream ID="PREVIEW" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">
-<foxml:datastreamVersion ID="PREVIEW.0" LABEL="Preview of this object" CREATED="2012-07-30T16:05:12.208Z" MIMETYPE="image/jpeg" SIZE="40208">
+<foxml:datastream ID="FULL" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">
+<foxml:datastreamVersion ID="FULL.0" LABEL="Preview of this object" CREATED="2012-07-30T16:05:12.208Z" MIMETYPE="image/jpeg" SIZE="40208">
 <foxml:binaryContent> 
 /9j/4AAQSkZJRgABAQEASABIAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkz
 ODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2Nj
