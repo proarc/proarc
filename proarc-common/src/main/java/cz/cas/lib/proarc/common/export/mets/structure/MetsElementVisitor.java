@@ -1181,8 +1181,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (metsElement.getMetsContext().getPackageID()==null) {
                 throw new MetsExportException(metsElement.getOriginalPid(),"Package ID is null",false,null);
             }
-            File packageDirFile = createPackageDir(metsElement);
-            saveMets(mets, new File(packageDirFile + File.separator + "METS_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
+
+            if (metsElement.getMetsContext().getPackageDir() == null) {
+                File packageDirFile = createPackageDir(metsElement);
+                metsElement.getMetsContext().setPackageDir(packageDirFile);
+            }
+
+            saveMets(mets, new File(metsElement.getMetsContext().getPackageDir().getAbsolutePath() + File.separator + "METS_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
         } finally {
             if (metsElement.getMetsContext().jhoveConfig != null) {
                 JhoveUtility.destroyConfigFiles(metsElement.getMetsContext().jhoveConfig);
