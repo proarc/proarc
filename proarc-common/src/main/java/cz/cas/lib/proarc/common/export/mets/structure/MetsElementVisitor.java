@@ -50,6 +50,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -521,7 +522,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @throws MetsExportException
      */
     private void generateTechMetadata(IMetsElement metsElement, HashMap<String, Object> fileNames, int seq, HashMap<String, FileGrp> fileGrpPage, HashMap<String, String> mimeTypes, DivType pageDiv, HashMap<String, String> outputFileNames) throws MetsExportException {
-        int counter = 1;
         if (fileNames.get("TECHMDGRP") == null) {
             LOG.log(Level.FINE, "Generating tech");
             Mets amdSecMets = new Mets();
@@ -539,14 +539,47 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 divType.setTYPE("MONOGRAPH_PAGE");
             }
 
-            for (String name : Const.streamMapping.keySet()) {
-                if (("ALTOGRP".equalsIgnoreCase(name)) || ("TXTGRP".equalsIgnoreCase(name))) {
-                    continue;
+            HashMap<String, String> toGenerate = new HashMap<String, String>();
+            File rawFile = null;
+
+            //RAW datastream for MIX_001 - only for Fedora
+            if (metsElement.getMetsContext().getFedoraClient() != null) {
+                try {
+                        DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
+                        if (rawDS != null) {
+                            GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
+                            try {
+                                InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                                String rawExtendsion = MimeType.getExtension(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+                                rawFile = new File(metsElement.getMetsContext().getOutputPath()+File.separator+metsElement.getMetsContext().getPackageID()+File.separator+"raw"+"."+rawExtendsion);
+                                FileUtils.copyInputStreamToFile(is, rawFile);
+                            is.close();
+                            outputFileNames.put("RAW", rawFile.getAbsolutePath());
+                            toGenerate.put("MIX_001", "RAW");
+                            } catch (FedoraClientException e) {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                            }
+                        }
+                } catch (Exception ex) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting RAW datastream " + metsElement.getOriginalPid(), false, ex);
                 }
-                if (fileNames.get(name) != null) {
-                    String outputFileName = outputFileNames.get(name);
+            }
+
+            if (fileNames.get("MC_IMGGRP")!=null) {
+                toGenerate.put("MIX_002", "MC_IMGGRP");
+            }
+
+            if (fileNames.get("UC_IMGGRP")!=null) {
+                toGenerate.put("MIX_003", "UC_IMGGRP");
+            }
+
+            for (String name : toGenerate.keySet()) {
+                String streamName = toGenerate.get(name);
+
+                if (streamName != null) {
+                    String outputFileName = outputFileNames.get(streamName);
                     MdSecType mdSec = new MdSecType();
-                    mdSec.setID("MIX_" + String.format("%03d", counter));
+                    mdSec.setID(name);
                     MdWrap mdWrap = new MdWrap();
                     mdWrap.setMIMETYPE("text/xml");
                     mdWrap.setMDTYPE("NISOIMG");
@@ -556,8 +589,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     xmlData.getAny().add(mixNode);
                     mdSec.setMdWrap(mdWrap);
                     amdSec.getTechMD().add(mdSec);
-                    counter++;
                 }
+            }
+
+            if (rawFile != null) {
+                outputFileNames.remove("RAW");
+                rawFile.delete();
             }
 
             FileSec fileSec = new FileSec();
