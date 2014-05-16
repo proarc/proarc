@@ -137,7 +137,7 @@ public class TiffImporterTest {
         batch.setId(1);
         batch.setFolder(ibm.relativizeBatchFile(tiff1.getParentFile()));
         ctx.setBatch(batch);
-        FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1, ocr1, alto1)).get(0);
+        FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1, ocr1, alto1, ac1, uc1)).get(0);
 
         TiffImporter instance = new TiffImporter(ibm);
         BatchItemObject result = instance.consume(fileSet, ctx);
