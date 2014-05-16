@@ -531,6 +531,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             mapType.setID(Const.DIV_PHYSICAL_ID);
             amdSecMets.getStructMap().add(mapType);
             AmdSecType amdSec = new AmdSecType();
+            amdSec.setID(metsElement.getElementID());
             amdSecMets.getAmdSec().add(amdSec);
             DivType divType = new DivType();
             if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsElement.getMetsContext().getRootElement().getElementType())) {
@@ -875,6 +876,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.setID(metsElement.getElementID());
         divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
         divType.setTYPE(Const.typeNameMap.get(metsElement.getElementType()));
+        divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.PAGE.equals(element.getElementType())) {
@@ -904,7 +906,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         // Label for volume is inherited from the parent monograph
         divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
         if (Const.PERIODICAL_VOLUME.equals(metsElement.getElementType())) {
-            divType.setTYPE(metsElement.getElementType());
+            divType.setTYPE("VOLUME");
         } else
         if (Const.MONOGRAPH_MULTIPART.equals(metsElement.getElementType())) {
             divType.setTYPE(Const.MONOGRAPH);
@@ -1214,6 +1216,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 insertMonograph(rootElement);
             } else
                 throw new MetsExportException(rootElement.getOriginalPid(), "Unknown type:" + rootElement.getElementType() + " model:" + rootElement.getModel(), false, null);
+
 
             if (metsElement.getMetsContext().getPackageID()==null) {
                 throw new MetsExportException(metsElement.getOriginalPid(),"Package ID is null",false,null);
