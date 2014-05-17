@@ -93,7 +93,9 @@ public final class ImportParentChooser {
         });
 
         widget.addMember(selectionView);
-        widget.addMember(foundView.asWidget());
+        Canvas foundViewWidget = foundView.asWidget();
+        foundViewWidget.setShowResizeBar(true);
+        widget.addMember(foundViewWidget);
         widget.addMember(treeView.asWidget());
         createActions();
         initToolbar(foundView.getToolbar(), foundView);

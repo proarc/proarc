@@ -122,6 +122,7 @@ public final class DigitalObjectChildrenEditor
         VLayout childrenLayout = new VLayout();
         childrenLayout.setMembers(childrenListGrid);
         childrenLayout.setWidth("40%");
+        childrenLayout.setShowResizeBar(true);
 
         SimpleEventBus eventBus = new SimpleEventBus();
         childPlaces = new PlaceController(eventBus);

@@ -20,6 +20,7 @@ import com.google.gwt.core.client.Callback;
 import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.SelectionStyle;
+import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
@@ -126,7 +127,9 @@ public final class DigitalObjectManager {
         });
 
         widget.addMember(lblHeader);
-        widget.addMember(foundView.asWidget());
+        Canvas foundViewWidget = foundView.asWidget();
+        foundViewWidget.setShowResizeBar(true);
+        widget.addMember(foundViewWidget);
         widget.addMember(treeView.asWidget());
         createActions();
         initToolbar(foundView.getToolbar(), listSource);
