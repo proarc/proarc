@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.device;
 
+import cz.cas.lib.proarc.mix.Mix;
+
 /**
  * A device referenced by a digital object.
  *
@@ -25,6 +27,8 @@ public class Device {
 
     private String id;
     private String label;
+    private Mix description;
+    private Long timestamp;
 
     public Device() {
     }
@@ -45,9 +49,27 @@ public class Device {
         this.label = label;
     }
 
+    public Mix getDescription() {
+        return description;
+    }
+
+    public void setDescription(Mix description) {
+        this.description = description;
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
+    }
+
     @Override
     public String toString() {
-        return "Device{" + "id=" + id + ", label=" + label + '}';
+        return "Device{" + "id=" + id + ", label=" + label
+                 + ", timestamp=" + timestamp+ ", description=" + description + '}';
     }
+
 
 }

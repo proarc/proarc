@@ -28,5 +28,7 @@ public final class DeviceResourceApi {
 
     public static final String DEVICE_ITEM_ID = "id";
     public static final String DEVICE_ITEM_LABEL = "label";
+    public static final String DEVICE_ITEM_DESCRIPTION = "description";
+    public static final String DEVICE_ITEM_TIMESTAMP = "timestamp";
 
 }

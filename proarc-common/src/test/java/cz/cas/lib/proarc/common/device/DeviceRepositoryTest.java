@@ -18,6 +18,10 @@ package cz.cas.lib.proarc.common.device;
 
 import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.mix.ImageCaptureMetadataType;
+import cz.cas.lib.proarc.mix.ImageCaptureMetadataType.ScannerCapture;
+import cz.cas.lib.proarc.mix.Mix;
+import cz.cas.lib.proarc.mix.MixUtils;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;
@@ -115,15 +119,28 @@ public class DeviceRepositoryTest {
 //        fedora.cleanUp();
         Device device = addTestDevice("testUpdate");
         String expectedLabel = "updated label";
-        Device update = repository.update(device.getId(), expectedLabel, "testUpdate");
+        device.setLabel(expectedLabel);
+
+        Mix mix = new Mix();
+        ScannerCapture scanner = new ScannerCapture();
+        scanner.setScannerManufacturer(MixUtils.stringType("ScannerManufacturer"));
+        ImageCaptureMetadataType imageCaptureMetadata = new ImageCaptureMetadataType();
+        imageCaptureMetadata.setScannerCapture(scanner);
+        mix.setImageCaptureMetadata(imageCaptureMetadata);
+        device.setDescription(mix);
+
+        Device update = repository.update(device, "testUpdate");
 
         // test update result
-        device.setLabel(expectedLabel);
         assertDeviceEquals(device, update);
+        Mix resultDescription = update.getDescription();
+        assertEquals("ScannerManufacturer", resultDescription.getImageCaptureMetadata().getScannerCapture().getScannerManufacturer().getValue());
 
         // test storage content
-        List<Device> found = repository.find(update.getId());
+        List<Device> found = repository.find(update.getId(), true);
         assertDeviceEquals(update, found);
+        resultDescription = found.get(0).getDescription();
+        assertEquals(device.getId(), "ScannerManufacturer", resultDescription.getImageCaptureMetadata().getScannerCapture().getScannerManufacturer().getValue());
     }
 
     private Device addTestDevice(String label) throws Exception {
