@@ -1,0 +1,2575 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- MIX Version 2.0 -->
+<!-- created by Morgan Cundiff -->
+<!-- Library of Congress -->
+<!-- Network Development and MARC Standards Office -->
+<!-- May 12, 2008 -->
+
+<!-- Change History Version 1.0 to Version 2.0 -->
+<!-- changed abbreviation of millemetre from "mm." to "mm" and centimetre from "cm." to "cm"  -->
+<!-- Fixed typo: SHA512 to SHA-512  (5-5-08) -->
+<!-- Fixed typo: removed trailing space from LightSourceType value "Standard light A" (5-5-08) -->
+<!-- Changed cardinality requirements so all elements (except for <mix>) are optional -->
+<!-- added "unknown" to list of permitted values for messageDigestAlgorithm element -->
+<!-- Changed  yCbCrCoefficients a container element, YCbCrCoefficients, with three sub-elements, lumaRed, lumaGreen, lumaBlue, each of type rational.  -->
+<!-- referenceBlackWhite a container element, ReferenceBlackWhite, with a repeatable container sub-element, Component, each with three sub-elements, componentPhotometricInterpretation, of a restricted enumerated type with values "R", "G", "B", "Y", "Cb", "Cr", and footroom and headroom, both of type rational.   -->
+<!--  Added MonochromeArea, OneChipColourArea, TwoChipColorArea, ThreeChipColorArea, and ColorSequentialArea to list of allowable values for scannerSensor element (8.3.4) -->
+<!-- exifVersion (8.4.4.1.7) element allowable value "0220" changed to xs:string datatype  -->
+<!-- subjectDistance (8.4.4.1.13) element has been changed to a container element, SubjectDistance, that contains distance, MinMaxDistance, or both as follows:
+
+   <SubjectDistance>
+     <distance>5</distance>
+     <MinMaxDistance>
+       <minDistance>4.9</minDistance>
+       <maxDistance>5.3</maxDistance>
+     </MinMaxDistance>
+   </SubjectDistance>
+-->
+<!-- gpsLatitude (8.4.4.2.3), gpsLongitude (8.4.4.2.5), gpsDestLatitude (8.4.4.2.21) and gpsDestLongitude (8.4.4.2.23) elements have been changed to container elements (GpsLatitude, GpsLongitude, GpsDestLatitude, and GpsDestLongitude respectively) , with three sub-elements, degrees, minutes, seconds, each of type rational.  -->
+<!-- added wrapper element GrayResponse to contain GrayResponseCurve and grayResponseUnit -->
+<!-- The grayResponseCurve (9.2.5) element has been made repeatable and the datatype for value has been changed to nonNegativeInteger. -->
+<!-- whitePointXValue (9.2.7.1),  whitePointYValue (9.2.7.2), primaryChromaticitiesRedX (9.2.8.1) , primaryChromaticitiesRedY (9.2.8.2) , primaryChromaticitiesGreenX (9.2.8.3) , primaryChromaticitiesGreenY (9.2.8.4) , primaryChromaticitiesBlueX (9.2.8.5) , and primaryChromaticitiesBlueY (9.2.8.6) elements have been changed to rationalType. -->
+<!-- targetType (9.3.1) element allowable enumerated type values changed to 0 and 1. -->
+<!-- fileSize (6.2) element has been changed to nonNegativeIntegertype -->
+<!-- byteOrder (6.5) element allowable values have been changed to "big endian" and "little endian". -->
+<!-- compressionRatio (6.6.4) element has been changed to rationalType -->
+<!-- tiles (7.2.1.2.1) element has been made a container element, Tiles, with two sub-elements, tileWidth and tileHeight, each of type positiveIntegerType -->
+<!-- ·    sourceDimensionUnit (8.1.3.1.2) element allowable values changed to "in." and "mm" -->
+<!-- ·    maximumOpticalResolution (8.3.3) changed to container element, MaximumOpticalResolution, with three sub-elements, xOpticalResolution and yOpticalResolution, both of type positiveInteger, and opticalResolutionUnit, a restricted enumerated type with values 1 (no absolute unit), 2 (in.), 3 (cm),   -->
+<!-- exposureProgram (8.4.4.1.3) is defined in the DD with integral enumeration values.  The schema has been changed to use the equivalent text values  -->
+<!-- sensingMethod (8.4.4.1.21) is defined in the DD with integral enumeration values.  The schema has been changed to use the equivalent text values  -->
+<!-- gpsAltitudeRef (8.4.4.2.6) is defined in the DD with integral enumeration values.  The schema has been changed to use the equivalent text values  -->
+<!-- gpsMeasureMode (8.4.4.2.11) is defined in the DD with integral enumeration values.  The schema has been changed to use the equivalent text values  -->
+<!-- gpsDifferential (8.4.4.2.31) is defined in the DD with integral enumeration values.  The schema has been changed to use the equivalent text values  -->
+<!-- orientation (8.5) is defined in the DD with integral enumeration values.  The schema has been changed to use the equivalent text values  -->
+<!-- samplingFrequencyPlane (9.1.1) is defined in the DD with integral enumeration values.  The schema has been changed to use the equivalent text values  -->
+<!-- samplingFrequencyUnit (9.1.2) is defined in the DD with integral enumeration values.  The schema has been changed to use the equivalent text values  -->
+<!-- extraSamples (9.2.3) is defined in the DD with integral enumeration values.  The schema has been changed to use the equivalent text values  -->
+<!-- grayResponseUnit (9.2.6) is defined in the DD with integral enumeration values.  The schema has been changed to use the equivalent text values  -->
+<!-- targetType (9.3.1) is defined in the DD with integral enumeration values.  The schema has been changed to use the equivalent text values  -->
+<!-- is defined in the DD with integral enumeration values.  The schema has been changed to use the equivalent text values  -->
+<!-- flash (8.4.4.1.16) is defined in the DD with trailing periods after the first four enumerated values, e.g. "Flash did not fire.".  These periods have been removed in the schema.  -->
+<!-- backLight (8.4.4.1.19) is defined in the DD with the first enumerated value without an underscore, i.e. "Front light", but with the second and third values with underscores, e.g. "Backlight_1". The underscore characters have been removed from "Backlight 1" and "Backlight 2").  -->
+<!-- exposureIndex (8.4.4.1.20) value has been changed to type positiveReal  -->
+<!-- gpsDateStamp (8.4.4.2.30) value has been changed to xsd:date -->
+<!-- bitsPerSample (9.2.1.1) has been changed to a container element, BitsPerSample, with a repeatable sub-element, bitsPerSampleValue of type positiveInteger.  -->
+<!-- extraSamples (9.2.3) element has been made repeatable  -->
+<!-- referenceType has been changed to URIType. It is assumed that the reference type defined by the DD is always intended to indicate a URI  -->
+<!-- iccProfileURL (7.1.3.2.1.3) element name changed to iccProfileURI  -->
+<!-- localProfileURL (7.1.3.2.2.2) element name changed to localProfileURI  -->
+<!-- Added enumerated value of '0230' to exifVersionType for handling EXIF 2.3 metadata  -->
+<!-- end of Change History Version 1.0 to Version 2.0 -->
+
+<xsd:schema targetNamespace="http://www.loc.gov/mix/v20"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns="http://www.loc.gov/mix/v20"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified"
+>
+
+    <xsd:element name="mix">
+        <xsd:annotation>
+            <xsd:documentation>NISO Data Dictionary Technical Metadata for Digital Still Images (May 1, 2006)</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="mixType"/>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+
+
+    <xsd:complexType name="mixType">
+        <xsd:sequence>
+            <xsd:element name="BasicDigitalObjectInformation" type="BasicDigitalObjectInformationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="6"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="BasicImageInformation" type="BasicImageInformationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="7"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ImageCaptureMetadata" type="ImageCaptureMetadataType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="8"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ImageAssessmentMetadata" type="ImageAssessmentMetadataType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="9"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ChangeHistory" type="ChangeHistoryType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="10"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Extension" type="extensionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>MIX extension element (does not appear in Data Dictionary)</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- BasicDigitalObjectInformationType -->
+    <xsd:complexType name="BasicDigitalObjectInformationType">
+        <xsd:sequence>
+            <xsd:element name="ObjectIdentifier" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="6.1"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="objectIdentifierType" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.1.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="objectIdentifierValue" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.1.2"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="fileSize" type="nonNegativeIntegerType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="6.2"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="FormatDesignation" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="6.3"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="formatName" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.3.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="formatVersion" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.3.2"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="FormatRegistry" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="6.4"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="formatRegistryName" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.4.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="formatRegistryKey" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.4.2"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="byteOrder" type="typeOfByteOrderType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="6.5"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Compression" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="6.6"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="compressionScheme" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.6.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="compressionSchemeLocalList" type="URIType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.6.2"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="compressionSchemeLocalValue" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.6.3"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="compressionRatio" type="rationalType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.6.4"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Fixity" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="6.7"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="messageDigestAlgorithm" type="typeOfMessageDigestAlgorithmType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.7.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="messageDigest" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.7.2"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="messageDigestOriginator" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="6.7.3"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- end of BasicDigitalObjectInformationType -->
+
+    <!-- BasicImageInformationType -->
+    <xsd:complexType name="BasicImageInformationType">
+        <xsd:sequence>
+            <xsd:element name="BasicImageCharacteristics" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="7.1"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="imageWidth" type="positiveIntegerType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="7.1.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="imageHeight" type="positiveIntegerType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="7.1.2"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="PhotometricInterpretation" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="7.1.3"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="colorSpace" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="7.1.3.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="ColorProfile" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="7.1.3.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="IccProfile" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.1.3.2.1"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="iccProfileName" type="stringType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>NDD id="7.1.3.2.1.1"</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                            <xsd:element name="iccProfileVersion" type="stringType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>NDD id="7.1.3.2.1.2"</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                            <xsd:element name="iccProfileURI" type="URIType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>NDD id="7.1.3.2.1.3"</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="LocalProfile" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.1.3.2.2"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="localProfileName" type="stringType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>NDD id="7.1.3.2.2.1"</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                            <xsd:element name="localProfileURL" type="URIType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>NDD id="7.1.3.2.2.2"</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="embeddedProfile" type="base64BinaryType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.1.3.2.3"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                            </xsd:sequence>
+
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="YCbCr" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="7.1.3.3"</xsd:documentation>
+                                        </xsd:annotation>
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="YCbCrSubSampling" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.1.3.3.1"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="yCbCrSubsampleHoriz" type="typeOfYCbCrSubsampleHorizType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>NDD id="not specified"</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                            <xsd:element name="yCbCrSubsampleVert" type="typeOfYCbCrSubsampleVertType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>NDD id="not specified"</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="yCbCrPositioning" type="typeOfYCbCrPositioningType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.1.3.3.2"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="YCbCrCoefficients" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.1.3.3.3"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="lumaRed" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>Not specified in NDD</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                            <xsd:element name="lumaGreen" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>Not specified in NDD</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                            <xsd:element name="lumaBlue" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>Not specified in NDD</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+
+                                    <xsd:element name="ReferenceBlackWhite" minOccurs="0" maxOccurs="unbounded">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="7.1.3.4"</xsd:documentation>
+                                        </xsd:annotation>
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="Component"  minOccurs="0" maxOccurs="unbounded">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="componentPhotometricInterpretation" type="typeOfComponentPhotometricInterpretationType">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>Not in NDD</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                            <xsd:element name="footroom" type="rationalType">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>Not in NDD</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                            <xsd:element name="headroom" type="rationalType">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>Not in NDD</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+
+
+
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+
+            <xsd:element name="SpecialFormatCharacteristics" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="7.2"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="JPEG2000" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="7.2.1"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="CodecCompliance" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="7.2.1.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="codec" type="stringType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.2.1.1.1"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="codecVersion" type="stringType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.2.1.1.2"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="codestreamProfile" type="stringType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.2.1.1.3"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="complianceClass" type="stringType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.2.1.1.4"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="EncodingOptions" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="7.2.1.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="Tiles" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.2.1.2.1"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="tileWidth" type="positiveIntegerType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>not in NDD</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                            <xsd:element name="tileHeight" type="positiveIntegerType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>not in NDD</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="qualityLayers" type="positiveIntegerType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.2.1.2.2"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="resolutionLevels" type="positiveIntegerType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="7.2.1.2.3"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+
+                        <xsd:element name="MrSID" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="7.2.2"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="zoomLevels" type="positiveIntegerType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="7.2.2.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="Djvu" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="7.2.3"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="djvuFormat" type="typeOfDjvuFormatType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="7.2.3.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- end of BasicImageInformationType -->
+
+
+
+
+
+    <!-- ImageCaptureMetadataType -->
+    <xsd:complexType name="ImageCaptureMetadataType">
+        <xsd:sequence>
+            <xsd:element name="SourceInformation" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="8.1"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="sourceType" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.1.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="SourceID" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.1.2"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="sourceIDType" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.1.2.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="sourceIDValue" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.1.2.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="SourceSize" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.1.3"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="SourceXDimension" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.1.3.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="sourceXDimensionValue" type="typeOfNonNegativeRealType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.1.3.1.1"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="sourceXDimensionUnit" type="typeOfsourceDimensionUnitType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.1.3.1.1"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="SourceYDimension" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.1.3.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="sourceYDimensionValue" type="typeOfNonNegativeRealType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.1.3.2.1"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="sourceYDimensionUnit" type="typeOfsourceDimensionUnitType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.1.3.2.2"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="SourceZDimension" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.1.3.3"</xsd:documentation>
+                                        </xsd:annotation>
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="sourceZDimensionValue" type="typeOfNonNegativeRealType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.1.3.3.1"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="sourceZDimensionUnit" type="typeOfsourceDimensionUnitType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.1.3.3.2"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="GeneralCaptureInformation" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="8.2"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="dateTimeCreated" type="typeOfDateType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.2.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="imageProducer" type="stringType" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.2.2"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="captureDevice" type="typeOfCaptureDeviceType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.2.3"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="ScannerCapture" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="8.3"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="scannerManufacturer" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.3.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="ScannerModel" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.3.2"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="scannerModelName" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.3.2.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="scannerModelNumber" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.3.2.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="scannerModelSerialNo" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.3.2.3"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+
+
+                        <xsd:element name="MaximumOpticalResolution" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.3.3"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="xOpticalResolution" type="positiveIntegerType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>not in NDD</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="yOpticalResolution" type="positiveIntegerType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>not in NDD</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="opticalResolutionUnit" type="typeOfOpticalResolutionUnitType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>not in NDD</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+
+
+
+
+                        <xsd:element name="scannerSensor" type="typeOfScannerSensorType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.3.4"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="ScanningSystemSoftware" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.3.5"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="scanningSoftwareName" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.3.5.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="scanningSoftwareVersionNo" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.3.5.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="DigitalCameraCapture" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="8.4"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="digitalCameraManufacturer" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.4.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="DigitalCameraModel" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.4.2"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="digitalCameraModelName" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.4.2.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="digitalCameraModelNumber" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.4.2.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="digitalCameraModelSerialNo" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.4.2.3"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="cameraSensor" type="typeOfCameraSensorType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.4.3"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="CameraCaptureSettings" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="8.4.4"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="ImageData" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.4.4.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="fNumber" type="typeOfNonNegativeRealType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.1"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="exposureTime" type="typeOfNonNegativeRealType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.2"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="exposureProgram" type="typeOfExposureProgramType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.3"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="spectralSensitivity" type="stringType" minOccurs="0" maxOccurs="unbounded">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.4"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="isoSpeedRatings" type="positiveIntegerType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.5"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="oECF" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.6"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="exifVersion" type="typeOfExifVersionType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.7"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="shutterSpeedValue" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.8"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="apertureValue" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.9"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="brightnessValue" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.10"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="exposureBiasValue" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.11"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+
+                                                <xsd:element name="maxApertureValue" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.12"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+
+                                                <xsd:element name="SubjectDistance" minOccurs="0" maxOccurs="1">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="distance" type="typeOfNonNegativeDecimalType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>NDD id="8.4.4.1.13"</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                            <xsd:element name="MinMaxDistance" minOccurs="0" maxOccurs="1">
+                                                                <xsd:complexType>
+                                                                    <xsd:sequence>
+                                                                        <xsd:element name="minDistance" type="typeOfNonNegativeDecimalType" minOccurs="0" maxOccurs="1">
+                                                                            <xsd:annotation>
+                                                                                <xsd:documentation>NDD id="8.4.4.1.13"</xsd:documentation>
+                                                                            </xsd:annotation>
+                                                                        </xsd:element>
+                                                                        <xsd:element name="maxDistance" type="typeOfNonNegativeDecimalType" minOccurs="0" maxOccurs="1">
+                                                                            <xsd:annotation>
+                                                                                <xsd:documentation>NDD id="8.4.4.1.13"</xsd:documentation>
+                                                                            </xsd:annotation>
+                                                                        </xsd:element>
+                                                                    </xsd:sequence>
+                                                                </xsd:complexType>
+                                                            </xsd:element>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+
+
+
+                                                <xsd:element name="meteringMode" type="typeOfMeteringModeType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.14"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="lightSource" type="typeOfLightSourceType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.15"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="flash" type="typeOfFlashType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.16"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="focalLength" type="typeOfNonNegativeDecimalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.17"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="flashEnergy" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.18"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="backLight" type="typeOfBackLightType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.19"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="exposureIndex" type="typeOfPositiveRealType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.20"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="sensingMethod" type="typeOfSensingMethodType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.21"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="cfaPattern" type="integerType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.22"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="autoFocus" type="typeOfAutoFocusType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.23"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="PrintAspectRatio" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.1.24"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="xPrintAspectRatio" type="typeOfNonNegativeRealType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>NDD id="8.4.4.1.24.1"</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                            <xsd:element name="yPrintAspectRatio" type="typeOfNonNegativeRealType" minOccurs="0" maxOccurs="1">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation>NDD id="8.4.4.1.24.2"</xsd:documentation>
+                                                                </xsd:annotation>
+                                                            </xsd:element>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+
+                                    <xsd:element name="GPSData" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="8.4.4.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="gpsVersionID" type="stringType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.1"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsLatitudeRef" type="typeOfgpsLatitudeRefType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.2"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="GPSLatitude" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.3"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:group ref="gpsGroup"/>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="gpsLongitudeRef" type="typeOfgpsLongitudeRefType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.4"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="GPSLongitude" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.5"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:group ref="gpsGroup"/>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="gpsAltitudeRef" type="typeOfgpsAltitudeRefType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.6"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsAltitude" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.7"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsTimeStamp" type="stringType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.8"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsSatellites" type="stringType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.9"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsStatus" type="typeOfgpsStatusType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.10"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsMeasureMode" type="typeOfgpsMeasureModeType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.11"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsDOP" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.12"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsSpeedRef" type="typeOfgpsSpeedRefType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.13"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsSpeed" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.14"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsTrackRef" type="typeOfgpsTrackRefType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.15"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsTrack" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.16"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsImgDirectionRef" type="typeOfgpsImgDirectionRefType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.17"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsImgDirection" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.18"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsMapDatum" type="stringType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.19"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsDestLatitudeRef" type="typeOfgpsDestLatitudeRefType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.20"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="GPSDestLatitude" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.21"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:group ref="gpsGroup"/>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="gpsDestLongitudeRef" type="typeOfgpsDestLongitudeRefType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.22"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="GPSDestLongitude" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.23"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:group ref="gpsGroup"/>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="gpsDestBearingRef" type="typeOfgpsDestBearingRefType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.24"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsDestBearing" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.25"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsDestDistanceRef" type="typeOfgpsDestDistanceRefType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.26"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsDestDistance" type="rationalType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.27"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsProcessingMethod" type="stringType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.28"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsAreaInformation" type="stringType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.29"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsDateStamp" type="dateType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.30"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                                <xsd:element name="gpsDifferential" type="typeOfgpsDifferentialType" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>NDD id="8.4.4.2.31"</xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="orientation" type="typeOfOrientationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="8.5"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="methodology" type="stringType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="8.6"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- end of ImageCaptureMetadataType -->
+
+    <!-- ImageAssessmentMetadataType  -->
+    <xsd:complexType name="ImageAssessmentMetadataType">
+        <xsd:sequence>
+            <xsd:element name="SpatialMetrics" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="9.1"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="samplingFrequencyPlane" type="typeOfSamplingFrequencyPlaneType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.1.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="samplingFrequencyUnit" type="typeOfSamplingFrequencyUnitType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.1.2"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="xSamplingFrequency" type="rationalType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.1.2.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="ySamplingFrequency" type="rationalType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.1.2.2"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="ImageColorEncoding" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="9.2"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="BitsPerSample" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.2.1"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="bitsPerSampleValue" type="positiveIntegerType" minOccurs="0" maxOccurs="unbounded">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.1.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="bitsPerSampleUnit" type="typeOfBitsPerSampleUnitType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.1.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="samplesPerPixel" type="positiveIntegerType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.2.2"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="extraSamples" type="typeOfExtraSamplesType" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.2.3"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+
+
+                        <xsd:element name="Colormap" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.2.4"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="colormapReference" type="URIType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.4.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="embeddedColormap" type="base64BinaryType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.4.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+
+                        <xsd:element name="GrayResponse" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>GrayResponse does not appear in NDD.</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="grayResponseCurve" type="nonNegativeIntegerType" minOccurs="0" maxOccurs="unbounded">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.5"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="grayResponseUnit" type="typeOfGrayResponseUnitType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.6"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+
+                        <xsd:element name="WhitePoint" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.2.7"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="whitePointXValue" type="rationalType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.7.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="whitePointYValue" type="rationalType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.7.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="PrimaryChromaticities" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.2.8"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="primaryChromaticitiesRedX" type="rationalType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.8.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="primaryChromaticitiesRedY" type="rationalType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.8.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="primaryChromaticitiesGreenX" type="rationalType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.8.3"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="primaryChromaticitiesGreenY" type="rationalType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.8.4"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="primaryChromaticitiesBlueX" type="rationalType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.8.5"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="primaryChromaticitiesBlueY" type="rationalType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.2.8.6"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="TargetData" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="9.3"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="targetType" type="typeOfTargetTypeType" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.3.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="TargetID" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.3.2"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="targetManufacturer" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.3.2.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="targetName" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.3.2.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="targetNo" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.3.2.3"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="targetMedia" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="9.3.2.4"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="externalTarget" type="URIType" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.3.3"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="performanceData" type="URIType" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="9.3.4"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- end of ImageAssessmentMetadataType -->
+
+    <!-- ChangeHistoryType -->
+    <xsd:complexType name="ChangeHistoryType">
+        <xsd:sequence>
+            <xsd:element name="ImageProcessing" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="10.1"</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="dateTimeProcessed" type="typeOfDateType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="10.1.1"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="sourceData" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="10.1.2"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="processingAgency" type="stringType" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="10.1.3"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="processingRationale" type="stringType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="10.1.4"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="ProcessingSoftware" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="10.1.5"</xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="processingSoftwareName" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="10.1.5.1"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="processingSoftwareVersion" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="10.1.5.2"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="processingOperatingSystemName" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="10.1.5.3"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                    <xsd:element name="processingOperatingSystemVersion" type="stringType" minOccurs="0" maxOccurs="1">
+                                        <xsd:annotation>
+                                            <xsd:documentation>NDD id="10.1.5.4"</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="processingActions" type="stringType" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>NDD id="10.1.6"</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="PreviousImageMetadata"  type="typeOfPreviousImageMetadataType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="10.2"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- end of ChangeHistoryType -->
+
+
+    <!-- use attribute -->
+    <!--  <xsd:attribute name="use" type="xsd:string"/> -->
+
+
+    <!-- generic dataTypes -->
+
+    <!-- typeOfStringType -->
+    <xsd:complexType name="stringType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <!-- end of typeOfStringType -->
+
+    <!-- integerType -->
+    <xsd:complexType  name="integerType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:integer">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <!-- end of integerType -->
+
+    <!-- positiveIntegerType -->
+    <xsd:complexType  name="positiveIntegerType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:positiveInteger">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <!-- end of positiveIntegerType -->
+
+
+    <!-- URIType -->
+    <xsd:complexType name="URIType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:anyURI">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <!-- end of URIType -->
+
+
+
+
+
+    <!-- realType -->
+    <xsd:complexType name="realType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:float">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <!-- end of realType -->
+
+    <!-- typeOfNonNegativeRealType -->
+    <xsd:complexType name="typeOfNonNegativeRealType">
+        <xsd:simpleContent>
+            <xsd:extension base="nonNegativeRealType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="nonNegativeRealType">
+        <xsd:restriction base="xsd:float">
+            <xsd:minInclusive value="0"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfNonNegativeRealType -->
+
+
+    <!-- nonNegativeIntegerType -->
+    <xsd:complexType name="nonNegativeIntegerType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:nonNegativeInteger">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <!-- end of nonNegativeIntegerType -->
+
+    <!-- typeOfPositiveRealType -->
+    <xsd:complexType name="typeOfPositiveRealType">
+        <xsd:simpleContent>
+            <xsd:extension base="positiveRealType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="positiveRealType">
+        <xsd:restriction base="xsd:float">
+            <xsd:minExclusive value="0"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfPositiveRealType -->
+
+
+    <!-- decimalType -->
+    <xsd:complexType name="decimalType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:decimal">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <!-- end of decimalType -->
+
+    <!-- typeOfNonNegativeDecimalType -->
+    <xsd:complexType name="typeOfNonNegativeDecimalType">
+        <xsd:simpleContent>
+            <xsd:extension base="nonNegativeDecimalType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="nonNegativeDecimalType">
+        <xsd:restriction base="xsd:decimal">
+            <xsd:minInclusive value="0"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfNonNegativeRealType -->
+
+
+
+
+    <!-- typeOfDateType -->
+    <xsd:complexType name="typeOfDateType">
+        <xsd:simpleContent>
+            <xsd:extension base="DateType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:simpleType name="DateType">
+        <xsd:union memberTypes="xsd:date xsd:dateTime xsd:gYear xsd:gYearMonth"></xsd:union>
+    </xsd:simpleType>
+    <!-- end of typeOfDateType -->
+
+
+    <!-- dateType -->
+    <xsd:complexType name="dateType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:date">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <!-- end of dateType -->
+
+
+
+    <!-- base64BinaryType -->
+    <xsd:complexType name="base64BinaryType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:base64Binary">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <!-- end of base64BinaryType -->
+
+
+    <!-- rationalType -->
+    <xsd:complexType name="rationalType">
+        <xsd:sequence>
+            <xsd:element name="numerator" type="xsd:integer" minOccurs="0" maxOccurs="1">
+            </xsd:element>
+            <xsd:element name="denominator" type="xsd:integer" minOccurs="0" maxOccurs="1">
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="use" type="xsd:string"/>
+    </xsd:complexType>
+    <!-- end of rationalType  -->
+
+
+    <!-- end of generic dataTypes -->
+
+
+    <!-- enumerated lists -->
+
+    <!-- typeOfEnumType template (xsd:string base) -->
+    <xsd:complexType name="typeOfEnumType">
+        <xsd:simpleContent>
+            <xsd:extension base="enumType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="enumType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="value1"/>
+            <xsd:enumeration value="value2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfEnumType -->
+
+
+    <!-- typeOfByteOrderType -->
+    <xsd:complexType name="typeOfByteOrderType">
+        <xsd:simpleContent>
+            <xsd:extension base="byteOrderType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="byteOrderType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="big endian"/>
+            <xsd:enumeration value="little endian"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfByteOrderType -->
+
+
+    <!-- typeOfMessageDigestAlgorithmType -->
+    <xsd:complexType name="typeOfMessageDigestAlgorithmType">
+        <xsd:simpleContent>
+            <xsd:extension base="messageDigestAlgorithmType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="messageDigestAlgorithmType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Adler-32"/>
+            <xsd:enumeration value="CRC32"/>
+            <xsd:enumeration value="HAVAL"/>
+            <xsd:enumeration value="MD5"/>
+            <xsd:enumeration value="MNP"/>
+            <xsd:enumeration value="SHA-1"/>
+            <xsd:enumeration value="SHA-256"/>
+            <xsd:enumeration value="SHA-384"/>
+            <xsd:enumeration value="SHA-512"/>
+            <xsd:enumeration value="TIGER"/>
+            <xsd:enumeration value="WHIRLPOOL"/>
+            <xsd:enumeration value="unknown"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfMessageDigestAlgorithmType -->
+
+
+    <!-- typeOfDjvuFormatType -->
+    <xsd:complexType name="typeOfDjvuFormatType">
+        <xsd:simpleContent>
+            <xsd:extension base="djvuFormatType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="djvuFormatType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="indirect"/>
+            <xsd:enumeration value="bundled"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfDjvuFormatType -->
+
+
+
+    <!-- typeOfCaptureDeviceType -->
+    <xsd:complexType name="typeOfCaptureDeviceType">
+        <xsd:simpleContent>
+            <xsd:extension base="captureDeviceType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="captureDeviceType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="transmission scanner"/>
+            <xsd:enumeration value="reflection print scanner"/>
+            <xsd:enumeration value="digital still camera"/>
+            <xsd:enumeration value="still from video"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfCaptureDeviceType -->
+
+
+    <!-- typeOfScannerSensorType template -->
+    <xsd:complexType name="typeOfScannerSensorType">
+        <xsd:simpleContent>
+            <xsd:extension base="scannerSensorType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="scannerSensorType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="undefined"/>
+            <xsd:enumeration value="MonochromeLinear"/>
+            <xsd:enumeration value="ColorTriLinear"/>
+            <xsd:enumeration value="ColorSequentialLinear"/>
+            <xsd:enumeration value="MonochromeArea"/>
+            <xsd:enumeration value="OneChipColourArea"/>
+            <xsd:enumeration value="TwoChipColorArea"/>
+            <xsd:enumeration value="ThreeChipColorArea"/>
+            <xsd:enumeration value="ColorSequentialArea"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfScannerSensorType -->
+
+    <!-- typeOfCameraSensorType template -->
+    <xsd:complexType name="typeOfCameraSensorType">
+        <xsd:simpleContent>
+            <xsd:extension base="cameraSensorType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="cameraSensorType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="undefined"/>
+            <xsd:enumeration value="MonochromeArea"/>
+            <xsd:enumeration value="OneChipColorArea"/>
+            <xsd:enumeration value="TwoChipColorArea"/>
+            <xsd:enumeration value="ThreeChipColorArea"/>
+            <xsd:enumeration value="MonochromeLinear"/>
+            <xsd:enumeration value="ColorTriLinear"/>
+            <xsd:enumeration value="ColorSequentialLinear"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfCameraSensorType -->
+
+
+
+
+    <!-- typeOfBitsPerSampleUnitType template (xsd:string base) -->
+    <xsd:complexType name="typeOfBitsPerSampleUnitType">
+        <xsd:simpleContent>
+            <xsd:extension base="bitsPerSampleUnit">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="bitsPerSampleUnit">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="integer"/>
+            <xsd:enumeration value="floating point"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfBitsPerSampleUnitType-->
+
+
+    <!--  typeOfComponentUnitType -->
+    <xsd:complexType name="typeOfComponentUnitType">
+        <xsd:simpleContent>
+            <xsd:extension base="componentUnitType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="componentUnitType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="integer"/>
+            <xsd:enumeration value="floating point"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfComponentUnitType-->
+
+    <!--  typeOfComponentUseType -->
+    <xsd:complexType name="typeOfComponentUseType">
+        <xsd:simpleContent>
+            <xsd:extension base="componentUseType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="componentUseType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="image data"/>
+            <xsd:enumeration value="associated alpha data"/>
+            <xsd:enumeration value="unassociated alpha data"/>
+            <xsd:enumeration value="range data"/>
+            <xsd:enumeration value="unspecified data"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfComponentUseType-->
+
+
+    <!-- typeOfGrayResponseUnitType template (xsd:positiveInteger) -->
+    <xsd:complexType name="typeOfGrayResponseUnitType">
+        <xsd:simpleContent>
+            <xsd:extension base="grayResponseUnitType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="grayResponseUnitType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Number represents tenths of a unit"/>
+            <xsd:enumeration value="Number represents hundredths of a unit"/>
+            <xsd:enumeration value="Number represents thousandths of a unit"/>
+            <xsd:enumeration value="Number represents ten-thousandths of a unit"/>
+            <xsd:enumeration value="Number represents hundred-thousandths of a unit"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfGrayResponseUnitType   -->
+
+
+    <!-- typeOfTargetTypeType template (xsd:positiveInteger) -->
+    <xsd:complexType name="typeOfTargetTypeType">
+        <xsd:simpleContent>
+            <xsd:extension base="targetTypeType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="targetTypeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="external"/>
+            <xsd:enumeration value="internal"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of  typeOfTargetTypeType -->
+
+    <!-- typeOfExtraSamplesType template (xsd:positiveInteger) -->
+    <xsd:complexType name="typeOfExtraSamplesType">
+        <xsd:simpleContent>
+            <xsd:extension base="extraSamplesType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="extraSamplesType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="unspecified data"/>
+            <xsd:enumeration value="associated alpha data (with pre-multiplied color)"/>
+            <xsd:enumeration value="unassociated alpha data"/>
+            <xsd:enumeration value="range or depth data"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfExtraSamplesType -->
+
+    <!-- typeOfExposureProgramType -->
+    <xsd:complexType name="typeOfExposureProgramType">
+        <xsd:simpleContent>
+            <xsd:extension base="exposureProgramType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="exposureProgramType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Not defined"/>
+            <xsd:enumeration value="Manual"/>
+            <xsd:enumeration value="Normal program"/>
+            <xsd:enumeration value="Aperture priority"/>
+            <xsd:enumeration value="Shutter priority"/>
+            <xsd:enumeration value="Creative program (biased toward depth of field)"/>
+            <xsd:enumeration value="Action program (biased toward fast shutter speed)"/>
+            <xsd:enumeration value="Portrait mode (for closeup photos with the background out of focus)"/>
+            <xsd:enumeration value="Landscape mode (for landscape photos with the background in focus)"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfExtraSamplesType  -->
+
+    <!-- typeOfMeteringModeType -->
+    <xsd:complexType name="typeOfMeteringModeType">
+        <xsd:simpleContent>
+            <xsd:extension base="meteringModeType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="meteringModeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Average"/>
+            <xsd:enumeration value="Center weighted average"/>
+            <xsd:enumeration value="Spot"/>
+            <xsd:enumeration value="Multispot"/>
+            <xsd:enumeration value="Pattern"/>
+            <xsd:enumeration value="Partial"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfMeteringModeType  -->
+
+
+    <!-- typeOfLightSourceType -->
+    <xsd:complexType name="typeOfLightSourceType">
+        <xsd:simpleContent>
+            <xsd:extension base="lightSourceType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="lightSourceType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Daylight"/>
+            <xsd:enumeration value="Fluorescent"/>
+            <xsd:enumeration value="Tungsten (incandescent light)"/>
+            <xsd:enumeration value="Flash"/>
+            <xsd:enumeration value="Fine weather"/>
+            <xsd:enumeration value="Cloudy weather"/>
+            <xsd:enumeration value="Shade"/>
+            <xsd:enumeration value="Daylight fluorescent (D 5700 - 7100K)"/>
+            <xsd:enumeration value="Day white fluorescent (N 4600 - 5400K)"/>
+            <xsd:enumeration value="Cool white fluorescent (W 3900 - 4500K)"/>
+            <xsd:enumeration value="White fluorescent (WW 3200 - 3700K)"/>
+            <xsd:enumeration value="Standard light A"/>
+            <xsd:enumeration value="Standard light B"/>
+            <xsd:enumeration value="Standard light C"/>
+            <xsd:enumeration value="D55"/>
+            <xsd:enumeration value="D65"/>
+            <xsd:enumeration value="D75"/>
+            <xsd:enumeration value="D50"/>
+            <xsd:enumeration value="ISO studio tungsten"/>
+            <xsd:enumeration value="other light source"/>
+            <xsd:enumeration value="unknown"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfLightSourceType  -->
+
+    <!-- typeOfFlashType -->
+    <xsd:complexType name="typeOfFlashType">
+        <xsd:simpleContent>
+            <xsd:extension base="flashType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="flashType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Flash did not fire"/>
+            <xsd:enumeration value="Flash fired"/>
+            <xsd:enumeration value="Strobe return light not detected"/>
+            <xsd:enumeration value="Strobe return light detected"/>
+            <xsd:enumeration value="Flash fired, compulsory flash mode"/>
+            <xsd:enumeration value="Flash fired, compulsory flash mode, return light not detected"/>
+            <xsd:enumeration value="Flash fired, compulsory flash mode, return light detected"/>
+            <xsd:enumeration value="Flash did not fire, compulsory flash mode"/>
+            <xsd:enumeration value="Flash did not fire, auto mode"/>
+            <xsd:enumeration value="Flash fired, auto mode"/>
+            <xsd:enumeration value="Flash fired, auto mode, return light not detected"/>
+            <xsd:enumeration value="Flash fired, auto mode, return light detected"/>
+            <xsd:enumeration value="No flash function"/>
+            <xsd:enumeration value="Flash fired, red-eye reduction mode"/>
+            <xsd:enumeration value="Flash fired, red-eye reduction mode, return light not detected"/>
+            <xsd:enumeration value="Flash fired, red-eye reduction mode, return light detected"/>
+            <xsd:enumeration value="Flash fired, compulsory flash mode, red-eye reduction mode"/>
+            <xsd:enumeration value="Flash fired, compulsory flash mode, red-eye reduction mode, return light not detected"/>
+            <xsd:enumeration value="Flash fired, compulsory flash mode, red-eye reduction mode, return light detected"/>
+            <xsd:enumeration value="Flash fired, auto mode, red-eye reduction mode"/>
+            <xsd:enumeration value="Flash fired, auto mode, return light not detected, red-eye reduction mode"/>
+            <xsd:enumeration value="Flash fired, auto mode, return light detected, red-eye reduction mode"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfFlashType  -->
+
+
+
+
+    <!-- typeOfBackLightType -->
+    <xsd:complexType name="typeOfBackLightType">
+        <xsd:simpleContent>
+            <xsd:extension base="backLightType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="backLightType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Front light"/>
+            <xsd:enumeration value="Backlight 1"/>
+            <xsd:enumeration value="Backlight 2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfBackLightType   -->
+
+    <!--  typeOfSensingMethodType -->
+    <xsd:complexType name="typeOfSensingMethodType">
+        <xsd:simpleContent>
+            <xsd:extension base="sensingMethodType">
+                <xsd:attribute name="use" type="xsd:string" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="sensingMethodType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Not defined" />
+            <xsd:enumeration value="One-chip color area sensor" />
+            <xsd:enumeration value="Two-chip color area sensor" />
+            <xsd:enumeration value="Three-chip color area sensor" />
+            <xsd:enumeration value="Color sequential area sensor" />
+            <xsd:enumeration value="Trilinear sensor" />
+            <xsd:enumeration value="Color sequential linear sensor" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!--  end of typeOfSensingMethodType -->
+
+
+    <!-- typeOfOpticalResolutionUnitType -->
+    <xsd:complexType name="typeOfOpticalResolutionUnitType">
+        <xsd:simpleContent>
+            <xsd:extension base="opticalResolutionUnitType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="opticalResolutionUnitType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="no absolute unit"/>
+            <xsd:enumeration value="in."/>
+            <xsd:enumeration value="cm"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfOpticalResolutionUnitType   -->
+
+
+
+
+    <!-- typeOfAutoFocusType -->
+    <xsd:complexType name="typeOfAutoFocusType">
+        <xsd:simpleContent>
+            <xsd:extension base="autoFocusType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="autoFocusType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Auto Focus Used"/>
+            <xsd:enumeration value="Auto Focus Interrupted"/>
+            <xsd:enumeration value="Near Focused"/>
+            <xsd:enumeration value="Soft Focused"/>
+            <xsd:enumeration value="Manual"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfAutoFocusType   -->
+
+    <!-- typeOfgpsLatitudeRefType -->
+    <xsd:complexType name="typeOfgpsLatitudeRefType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsLatitudeRefType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsLatitudeRefType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="N"/>
+            <xsd:enumeration value="S"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsLatitudeRefType   -->
+
+    <!-- typeOfgpsLongitudeRefType -->
+    <xsd:complexType name="typeOfgpsLongitudeRefType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsLongitudeRefType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsLongitudeRefType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="E"/>
+            <xsd:enumeration value="W"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsLongitudeRefType   -->
+
+    <!-- typeOfgpsAltitudeRefType -->
+    <xsd:complexType name="typeOfgpsAltitudeRefType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsAltitudeRefType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsAltitudeRefType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Sea level"/>
+            <xsd:enumeration value="Sea level reference (negative value)"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsAltitudeRefType   -->
+
+
+    <!-- typeOfgpsStatusType -->
+    <xsd:complexType name="typeOfgpsStatusType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsStatusType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsStatusType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="A"/>
+            <xsd:enumeration value="V"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsStatusType   -->
+
+
+    <!-- typeOfgpsMeasureModeType -->
+    <xsd:complexType name="typeOfgpsMeasureModeType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsMeasureModeType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsMeasureModeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="2-dimensional measurement"/>
+            <xsd:enumeration value="3-dimensional measurement"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsMeasureModeType   -->
+
+
+    <!-- typeOfgpsSpeedRefType -->
+    <xsd:complexType name="typeOfgpsSpeedRefType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsSpeedRefType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsSpeedRefType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="K"/>
+            <xsd:enumeration value="M"/>
+            <xsd:enumeration value="N"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsSpeedRefType   -->
+
+    <!-- typeOfgpsTrackRefType -->
+    <xsd:complexType name="typeOfgpsTrackRefType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsTrackRefType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsTrackRefType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="T"/>
+            <xsd:enumeration value="M"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsTrackRefType   -->
+
+    <!-- typeOfgpsImgDirectionRefType -->
+    <xsd:complexType name="typeOfgpsImgDirectionRefType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsImgDirectionRefType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsImgDirectionRefType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="T"/>
+            <xsd:enumeration value="M"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsImgDirectionRefType   -->
+
+
+    <!-- typeOfgpsDestLatitudeRefType -->
+    <xsd:complexType name="typeOfgpsDestLatitudeRefType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsDestLatitudeRefType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsDestLatitudeRefType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="N"/>
+            <xsd:enumeration value="S"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsDestLatitudeRefType   -->
+
+    <!-- typeOfgpsDestLongitudeRefType -->
+    <xsd:complexType name="typeOfgpsDestLongitudeRefType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsDestLongitudeRefType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsDestLongitudeRefType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="E"/>
+            <xsd:enumeration value="W"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsDestLongitudeRefType   -->
+
+
+    <!-- typeOfgpsDestBearingRefType -->
+    <xsd:complexType name="typeOfgpsDestBearingRefType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsDestBearingRefType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsDestBearingRefType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="T"/>
+            <xsd:enumeration value="M"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsDestBearingRefType   -->
+
+    <!-- typeOfgpsDestDistanceRefType -->
+    <xsd:complexType name="typeOfgpsDestDistanceRefType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsDestDistanceRefType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsDestDistanceRefType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="K"/>
+            <xsd:enumeration value="M"/>
+            <xsd:enumeration value="N"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsDestDistanceRefType   -->
+
+
+    <!-- typeOfgpsDifferentialType -->
+    <xsd:complexType name="typeOfgpsDifferentialType">
+        <xsd:simpleContent>
+            <xsd:extension base="gpsDifferentialType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="gpsDifferentialType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Measurement without differential correction"/>
+            <xsd:enumeration value="Differential correction applied"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfgpsDifferentialType   -->
+
+
+    <!-- typeOfOrientationType -->
+    <xsd:complexType name="typeOfOrientationType">
+        <xsd:simpleContent>
+            <xsd:extension base="orientationType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="orientationType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="normal*"/>
+            <xsd:enumeration value="normal, image flipped"/>
+            <xsd:enumeration value="normal, rotated 180°"/>
+            <xsd:enumeration value="normal, image flipped, rotated 180°"/>
+            <xsd:enumeration value="normal, image flipped, rotated cw 90°"/>
+            <xsd:enumeration value="normal, rotated ccw 90°"/>
+            <xsd:enumeration value="normal, image flipped, rotated ccw 90°"/>
+            <xsd:enumeration value="normal, rotated cw 90°"/>
+            <xsd:enumeration value="unknown"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfOrientationType   -->
+
+    <!-- typeOfSamplingFrequencyPlaneType -->
+    <xsd:complexType name="typeOfSamplingFrequencyPlaneType">
+        <xsd:simpleContent>
+            <xsd:extension base="samplingFrequencyPlaneType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="samplingFrequencyPlaneType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="camera/scanner focal plane"/>
+            <xsd:enumeration value="object plane"/>
+            <xsd:enumeration value="source object plane"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfSamplingFrequencyPlaneType   -->
+
+    <!-- typeOfSamplingFrequencyUnitType -->
+    <xsd:complexType name="typeOfSamplingFrequencyUnitType">
+        <xsd:simpleContent>
+            <xsd:extension base="samplingFrequencyUnitType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="samplingFrequencyUnitType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="no absolute unit of measurement"/>
+            <xsd:enumeration value="in."/>
+            <xsd:enumeration value="cm"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfSamplingFrequencyUnitType   -->
+
+
+
+    <!-- typeOfsourceDimensionUnitType -->
+    <xsd:complexType name="typeOfsourceDimensionUnitType">
+        <xsd:simpleContent>
+            <xsd:extension base="sourceDimensionUnitType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="sourceDimensionUnitType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="in."/>
+            <xsd:enumeration value="mm"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfsourceDimensionUnitType   -->
+
+
+    <!--  typeOfGrayResponseCurveType -->
+    <xsd:complexType name="typeOfGrayResponseCurveType">
+        <xsd:simpleContent>
+            <xsd:extension base="grayResponseCurveType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="grayResponseCurveType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="N"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfGrayResponseCurveType   -->
+
+
+
+    <!-- typeOfExifVersionType -->
+    <xsd:complexType name="typeOfExifVersionType">
+        <xsd:simpleContent>
+            <xsd:extension base="exifVersionType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="exifVersionType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="0220"/>
+            <xsd:enumeration value="0221"/>
+            <xsd:enumeration value="0230"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfExifVersionType   -->
+
+
+    <!-- typeOfYCbCrPositioningType -->
+    <xsd:complexType name="typeOfYCbCrPositioningType">
+        <xsd:simpleContent>
+            <xsd:extension base="yCbCrPositioningType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="yCbCrPositioningType">
+        <xsd:restriction base="xsd:integer">
+            <xsd:enumeration value="1"/>
+            <xsd:enumeration value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfExifVersionType   -->
+
+
+    <!-- typeOfYCbCrSubsampleHorizType -->
+    <xsd:complexType name="typeOfYCbCrSubsampleHorizType">
+        <xsd:simpleContent>
+            <xsd:extension base="yCbCrSubsampleHorizType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="yCbCrSubsampleHorizType">
+        <xsd:restriction base="xsd:integer">
+            <xsd:enumeration value="1"/>
+            <xsd:enumeration value="2"/>
+            <xsd:enumeration value="4"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfYCbCrSubsampleHorizType   -->
+
+
+    <!-- typeOfYCbCrSubsampleVertType -->
+    <xsd:complexType name="typeOfYCbCrSubsampleVertType">
+        <xsd:simpleContent>
+            <xsd:extension base="yCbCrSubsampleVertType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="yCbCrSubsampleVertType">
+        <xsd:restriction base="xsd:integer">
+            <xsd:enumeration value="1"/>
+            <xsd:enumeration value="2"/>
+            <xsd:enumeration value="4"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfYCbCrSubsampleVertType   -->
+
+
+
+
+
+    <!-- typeOfPreviousImageMetadataType -->
+    <xsd:complexType name="typeOfPreviousImageMetadataType" mixed="false">
+        <xsd:sequence>
+            <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <!--  end of typeOfPreviousImageMetadataType   -->
+
+
+    <!--  typeOfComponentPhotometricInterpretationType-->
+    <xsd:complexType name="typeOfComponentPhotometricInterpretationType">
+        <xsd:simpleContent>
+            <xsd:extension base="componentPhotometricInterpretationType">
+                <xsd:attribute name="use" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="componentPhotometricInterpretationType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="R"/>
+            <xsd:enumeration value="G"/>
+            <xsd:enumeration value="B"/>
+            <xsd:enumeration value="Y"/>
+            <xsd:enumeration value="Cb"/>
+            <xsd:enumeration value="Cr"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- end of typeOfComponentPhotometricInterpretationType   -->
+
+
+
+
+
+
+
+    <!-- extensionType -->
+    <xsd:complexType name="extensionType" mixed="true">
+        <xsd:sequence>
+            <xsd:any processContents="skip" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- end of extensionType -->
+
+    <xsd:group name="gpsGroup">
+        <xsd:sequence>
+            <xsd:element name="degrees" type="rationalType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="8.4.4.2.3"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minutes" type="rationalType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="8.4.4.2.3"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="seconds" type="rationalType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>NDD id="8.4.4.2.3"</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+
+
+
+</xsd:schema>
