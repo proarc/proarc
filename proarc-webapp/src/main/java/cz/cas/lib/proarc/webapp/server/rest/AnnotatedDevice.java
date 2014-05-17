@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.device.Device;
+import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -43,5 +44,13 @@ public abstract class AnnotatedDevice extends Device {
     public String getLabel() {
         return super.getLabel();
     }
+
+    @XmlElement(name = DeviceResourceApi.DEVICE_ITEM_DESCRIPTION)
+    @Override
+    public abstract Mix getDescription();
+
+    @XmlElement(name = DeviceResourceApi.DEVICE_ITEM_TIMESTAMP)
+    @Override
+    public abstract Long getTimestamp();
 
 }

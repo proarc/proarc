@@ -29,6 +29,7 @@
         <module>proarc-auth</module>
         <module>proarc-desa</module>
         <module>proarc-mets</module>
+        <module>proarc-mix</module>
         <module>proarc-mods</module>
         <module>proarc-nsesss</module>
         <module>proarc-oaidublincore</module>

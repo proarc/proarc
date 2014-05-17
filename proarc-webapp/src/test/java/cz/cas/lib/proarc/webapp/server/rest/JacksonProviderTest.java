@@ -24,7 +24,6 @@ import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DesDesaPlugin.DesMetadataHandler;
 import cz.cas.lib.proarc.common.object.DesDesaPlugin.DesObjectWrapper;
 import cz.cas.lib.proarc.common.object.NdkPlugin.ModsWrapper;
@@ -32,6 +31,11 @@ import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecCls;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecCls.RecCl;
+import cz.cas.lib.proarc.mix.ImageCaptureMetadataType;
+import cz.cas.lib.proarc.mix.ImageCaptureMetadataType.ScannerCapture;
+import cz.cas.lib.proarc.mix.Mix;
+import cz.cas.lib.proarc.mix.MixType;
+import cz.cas.lib.proarc.mix.MixUtils;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.nsesss2.Dokument;
@@ -115,6 +119,25 @@ public class JacksonProviderTest {
         toXml.flush();
 //        System.out.println("---");
 //        System.out.println(toXml);
+    }
+
+    @Test
+    public void testMix() throws Exception {
+        ObjectMapper om = new JacksonProvider().locateMapper(MixType.class, MediaType.APPLICATION_JSON_TYPE);
+        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        Mix mix = new Mix();
+        ScannerCapture scanner = new ScannerCapture();
+        scanner.setScannerManufacturer(MixUtils.stringType("ScannerManufacturer"));
+        ImageCaptureMetadataType imageCaptureMetadata = new ImageCaptureMetadataType();
+        imageCaptureMetadata.setScannerCapture(scanner);
+        mix.setImageCaptureMetadata(imageCaptureMetadata);
+        String toJson = om.writeValueAsString(mix);
+//        System.out.println(toJson);
+
+        Mix result = om.readValue(toJson, Mix.class);
+        assertNotNull(result);
+        assertEquals("ScannerManufacturer", result.getImageCaptureMetadata().getScannerCapture().getScannerManufacturer().getValue());
+//        System.out.println(MixUtils.toXml(result, true));
     }
 
     @Test

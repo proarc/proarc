@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Jan Pokorsky
+ * Copyright (C) 2014 Jan Pokorsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -8,27 +8,24 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.shared.rest;
 
 /**
- * API to share constants between client and server code.
- *
- * @author Jan Pokorsky
+ * Defines name space/prefix mapping for MIX.
  */
-public final class DeviceResourceApi {
+@XmlSchema(
+        namespace = MixUtils.NS,
+        elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
+        xmlns = {
+            @XmlNs(namespaceURI = MixUtils.NS, prefix = "mix"),
+        })
+package cz.cas.lib.proarc.mix;
 
-    // resource /device
-    public static final String PATH = "device";
+import javax.xml.bind.annotation.XmlNs;
+import javax.xml.bind.annotation.XmlSchema;
 
-    public static final String DEVICE_ITEM_ID = "id";
-    public static final String DEVICE_ITEM_LABEL = "label";
-    public static final String DEVICE_ITEM_DESCRIPTION = "description";
-    public static final String DEVICE_ITEM_TIMESTAMP = "timestamp";
-
-}

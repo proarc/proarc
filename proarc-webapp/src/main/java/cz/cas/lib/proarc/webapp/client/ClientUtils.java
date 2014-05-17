@@ -334,10 +334,11 @@ public final class ClientUtils {
                 } else {
                     entry.setValue(data);
                 }
-            } else if (value instanceof Collection) {
+            } else if (value instanceof Collection || value instanceof Map) {
+                // GWT 2.5.1: fix instanceof to handle Map together with Collection here
                 value = normalizeObjectData(value);
                 if (value instanceof Collection && ((Collection) value).isEmpty()) {
-                it.remove();
+                    it.remove();
                 }
             } else if (value instanceof String && ((String) value).isEmpty()) {
                 it.remove();

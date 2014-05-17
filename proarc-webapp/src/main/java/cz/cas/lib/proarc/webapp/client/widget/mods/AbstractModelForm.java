@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.webapp.client.widget.mods;
 
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.FormItem;
-import java.util.Map;
 
 /**
  * DynamicForm supporting {@link RepeatableFormItem}s.
@@ -31,6 +30,12 @@ public abstract class AbstractModelForm extends DynamicForm {
     public void clearErrors(boolean show) {
         RepeatableFormItem.clearErrors(this, show);
         super.clearErrors(show);
+    }
+
+    @Override
+    public void clearValues() {
+        RepeatableFormItem.clearErrors(this, true);
+        super.clearValues();
     }
 
     @Override
