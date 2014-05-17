@@ -112,6 +112,11 @@ public class DcStreamEditorTest {
         XMLAssert.assertXpathExists("/oai_dc:dc/dc:title[text()='key']", toXml);
         XMLAssert.assertXpathExists("/oai_dc:dc/dc:title[text()='alternative']", toXml);
         XMLAssert.assertXpathEvaluatesTo("3", "count(/oai_dc:dc/dc:title)", toXml);
+        XMLAssert.assertXpathExists("/oai_dc:dc/dc:identifier[text()='uuid:40d13cb2-811f-468c-a6d3-1ad6b01f06f7']", toXml);
+        XMLAssert.assertXpathExists("/oai_dc:dc/dc:identifier[text()='isbn:0eaa6730']", toXml);
+        XMLAssert.assertXpathExists("/oai_dc:dc/dc:identifier[text()='issn-l:idIssn-l']", toXml);
+        XMLAssert.assertXpathExists("/oai_dc:dc/dc:identifier[text()='idWitEmptyType']", toXml);
+        XMLAssert.assertXpathExists("/oai_dc:dc/dc:identifier[text()='idWithoutType']", toXml);
         // XXX needs more test
     }
 }

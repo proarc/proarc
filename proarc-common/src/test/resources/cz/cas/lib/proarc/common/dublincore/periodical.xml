@@ -42,4 +42,7 @@
     <mods:classification authority="udc"/>
     <mods:identifier type="uuid">40d13cb2-811f-468c-a6d3-1ad6b01f06f7</mods:identifier>
     <mods:identifier type="isbn">0eaa6730</mods:identifier>
+    <mods:identifier type="issn-l">idIssn-l</mods:identifier>
+    <mods:identifier type="  ">idWitEmptyType</mods:identifier>
+    <mods:identifier>idWithoutType</mods:identifier>
 </mods:mods>

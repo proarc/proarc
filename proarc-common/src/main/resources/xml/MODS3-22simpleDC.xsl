@@ -316,7 +316,9 @@ Version 1.0    2007-05-04 Tracy Meehleib <tmee@loc.gov>
     <xsl:template match="mods:identifier">
         <xsl:variable name="type" select="translate(@type,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"/>
         <xsl:choose>
-            <xsl:when test="contains ('isbn issn uri doi lccn uri uuid', $type)">
+            <!--issue 111-->
+            <!--<xsl:when test="contains ('isbn issn uri doi lccn uri uuid', $type)">-->
+            <xsl:when test="normalize-space($type)">
                 <dc:identifier>
                     <xsl:value-of select="$type"/>:<xsl:value-of select="."/>
                 </dc:identifier>
