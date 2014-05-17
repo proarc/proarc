@@ -107,7 +107,7 @@ public final class PageMetadataEditor {
         formPageNumber.setItems(allowPageNumbers, prefix, numberStart,
                 numberIncrement, suffix, seriesType, numberExample);
         formPageType.setItems(allowPageTypes, pageType);
-        formPanel.setMembers(formPageIndex, formPageNumber, formPageType);
+        formPanel.setMembers(formPageType, formPageIndex, formPageNumber);
 
         initAll();
 
