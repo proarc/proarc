@@ -18,29 +18,22 @@ package cz.cas.lib.proarc.webapp.client.widget;
 
 import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.Criterion;
-import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.ExpansionMode;
-import com.smartgwt.client.types.FieldType;
-import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.types.SelectionStyle;
-import com.smartgwt.client.types.TopOperatorAppearance;
-import com.smartgwt.client.types.ValueItemType;
+import com.smartgwt.client.types.TitleOrientation;
+import com.smartgwt.client.types.VerticalAlignment;
 import com.smartgwt.client.types.VisibilityMode;
-import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.IButton;
-import com.smartgwt.client.widgets.events.ClickEvent;
-import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.FilterBuilder;
-import com.smartgwt.client.widgets.form.events.FilterSearchEvent;
-import com.smartgwt.client.widgets.form.events.SearchHandler;
+import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
+import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
+import com.smartgwt.client.widgets.form.fields.ButtonItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.fields.events.ChangedEvent;
+import com.smartgwt.client.widgets.form.fields.events.ChangedHandler;
 import com.smartgwt.client.widgets.form.validator.CustomValidator;
 import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import com.smartgwt.client.widgets.grid.ListGrid;
@@ -48,14 +41,12 @@ import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
 import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
-import com.smartgwt.client.widgets.layout.HStack;
 import com.smartgwt.client.widgets.layout.SectionStack;
 import com.smartgwt.client.widgets.layout.SectionStackSection;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import cz.cas.lib.proarc.webapp.client.ClientUtils.DataSourceFieldBuilder;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.Action;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -66,6 +57,8 @@ import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -78,7 +71,12 @@ public final class NewDigObject extends VLayout {
 
     private static final Logger LOG = Logger.getLogger(NewDigObject.class.getName());
 
-    private FilterBuilder filter;
+    /**
+     * Titles of common field types. Used when the server config does not declare
+     * any field title. It ensures backward compatibility.
+     */
+    private static final HashMap<String, String> FIELD_TYPE_TITLES = new HashMap<String, String>();
+
     private final SectionStack sections;
     private final DynamicForm optionsForm;
     private DynamicForm formCatalog;
@@ -88,6 +86,7 @@ public final class NewDigObject extends VLayout {
 
     public NewDigObject(ClientMessages i18n) {
         this.i18n = i18n;
+        initFields(i18n);
         setHeight100();
         setWidth100();
 
@@ -118,15 +117,14 @@ public final class NewDigObject extends VLayout {
         if (model != null) {
             optionsForm.setValue(DigitalObjectDataSource.FIELD_MODEL, model);
         }
+        formCatalog.clearErrors(true);
         fixExpandedListGrid();
         lgResult.setData(new Record[0]);
         if (criteria == null) {
 //            sections.collapseSection(1);
             sections.expandSection(1);
-            filter.setCriteria(new AdvancedCriteria());
         } else {
             sections.expandSection(1);
-            filter.setCriteria(criteria);
         }
 
     }
@@ -223,67 +221,6 @@ public final class NewDigObject extends VLayout {
 
     private Canvas createAdvancedOptions() {
         formCatalog = createCatalogForm();
-        DataSource ds = new DataSource();
-        ds.setFields(
-                DataSourceFieldBuilder.field(new DataSourceTextField(
-                            "issn", i18n.NewDigObject_CatalogFieldIssn_Title()))
-                        .validOperators(OperatorId.ICONTAINS).build(),
-                DataSourceFieldBuilder.field(new DataSourceTextField(
-                            "isbn", i18n.NewDigObject_CatalogFieldIsbn_Title()))
-                        .validOperators(OperatorId.ICONTAINS).build(),
-                DataSourceFieldBuilder.field(new DataSourceTextField(
-                            "ccnb", i18n.NewDigObject_CatalogFieldCcnb_Title()))
-                        .validOperators(OperatorId.ICONTAINS).build(),
-                DataSourceFieldBuilder.field(new DataSourceTextField(
-                            "barcode", i18n.NewDigObject_CatalogFieldBarcode_Title()))
-                        .validOperators(OperatorId.ICONTAINS).build(),
-                DataSourceFieldBuilder.field(new DataSourceTextField(
-                            "signature", i18n.NewDigObject_CatalogFieldSignature_Title()))
-                        .validOperators(OperatorId.ICONTAINS).build()
-                );
-        
-        ds.setClientOnly(true);
-
-        filter = new FilterBuilder() {
-
-            @Override
-            public FormItem getValueFieldProperties(FieldType type, String fieldName, OperatorId operatorId, ValueItemType itemType, String fieldType) {
-                FormItem fi = super.getValueFieldProperties(type, fieldName, operatorId, itemType, fieldType);
-                if (type == FieldType.TEXT && itemType == ValueItemType.VALUE) {
-                    fi = new TextItem(fieldName);
-                    fi.setWidth(300);
-                }
-                return fi;
-            }
-
-        };
-        filter.setDataSource(ds);
-        // now does not support operators; later use RADIO
-        filter.setTopOperatorAppearance(TopOperatorAppearance.NONE);
-        filter.setShowAddButton(false);
-        filter.setShowSubClauseButton(false);
-        filter.setShowRemoveButton(false);
-        filter.setSaveOnEnter(true);
-
-        filter.addSearchHandler(new SearchHandler() {
-
-            @Override
-            public void onSearch(FilterSearchEvent event) {
-                queryCatalog();
-            }
-        });
-
-        IButton find = new IButton(i18n.NewDigObject_CatalogFind_Title(), new ClickHandler() {
-
-            @Override
-            public void onClick(ClickEvent event) {
-                queryCatalog();
-            }
-        });
-
-        HStack filterLayout = new HStack();
-        filterLayout.setMembers(filter, find);
-        filterLayout.setMembersMargin(4);
 
         lgResult = new ListGrid();
         lgResult.setDataSource(BibliographyQueryDataSource.getInstance());
@@ -315,21 +252,15 @@ public final class NewDigObject extends VLayout {
         });
 
         VLayout layout = new VLayout();
-        layout.setMembers(formCatalog, filterLayout, lgResult);
+        layout.setMembers(formCatalog, lgResult);
         layout.setMargin(4);
         layout.setMembersMargin(4);
         return layout;
     }
 
     private void queryCatalog() {
-        AdvancedCriteria criteria = filter.getCriteria(false);
-        Criterion[] criterions = criteria.getCriteria();
-        if (criterions == null || criterions.length == 0) {
-            SC.warn(i18n.NewDigObject_CatalogFind_MissingParam_Msg());
-        } else {
+        if (formCatalog.validate()) {
             Criteria plain = formCatalog.getValuesAsCriteria();
-            plain.addCriteria(criterions[0]);
-            // for AdvancedCriteria it will require to parse its format on server side
             lgResult.invalidateCache();
             lgResult.fetchData(plain);
         }
@@ -347,11 +278,44 @@ public final class NewDigObject extends VLayout {
         selection.setDefaultToFirstOption(true);
         selection.setWidth(250);
 
+        SelectItem selectField = new SelectItem(BibliographicCatalogResourceApi.FIND_FIELDNAME_PARAM, "Pole");
+        selectField.setRequired(true);
+        selectField.setAllowEmptyValue(false);
+        selectField.setDefaultToFirstOption(true);
+        CatalogChangedHandler catalogHandler = new CatalogChangedHandler(selection, selectField);
+        selection.addDataArrivedHandler(catalogHandler);
+        selection.addChangedHandler(catalogHandler);
+
+        TextItem value = new TextItem(BibliographicCatalogResourceApi.FIND_VALUE_PARAM, "Dotaz");
+        value.setWidth(300);
+        value.setRequired(true);
+
+        ButtonItem findBtn = new ButtonItem("findBtn", i18n.NewDigObject_CatalogFind_Title());
+        findBtn.setStartRow(false);
+        findBtn.setVAlign(VerticalAlignment.BOTTOM);
+        findBtn.addClickHandler(new com.smartgwt.client.widgets.form.fields.events.ClickHandler() {
+
+            @Override
+            public void onClick(com.smartgwt.client.widgets.form.fields.events.ClickEvent event) {
+                queryCatalog();
+            }
+        });
+
         DynamicForm form = new DynamicForm();
-        form.setFields(selection);
+        form.setFields(selection, selectField, value, findBtn);
         form.setBrowserSpellCheck(false);
         form.setAutoWidth();
         form.setWrapItemTitles(false);
+        form.setTitleOrientation(TitleOrientation.TOP);
+        form.setNumCols(4);
+        form.setSaveOnEnter(true);
+        form.addSubmitValuesHandler(new SubmitValuesHandler() {
+
+            @Override
+            public void onSubmitValues(SubmitValuesEvent event) {
+                queryCatalog();
+            }
+        });
         return form;
     }
 
@@ -374,8 +338,60 @@ public final class NewDigObject extends VLayout {
         }
     }
 
+    private static void initFields(ClientMessages i18n) {
+        if (FIELD_TYPE_TITLES.isEmpty()) {
+            FIELD_TYPE_TITLES.put("issn", i18n.NewDigObject_CatalogFieldIssn_Title());
+            FIELD_TYPE_TITLES.put("isbn", i18n.NewDigObject_CatalogFieldIsbn_Title());
+            FIELD_TYPE_TITLES.put("ccnb", i18n.NewDigObject_CatalogFieldCcnb_Title());
+            FIELD_TYPE_TITLES.put("barcode", i18n.NewDigObject_CatalogFieldBarcode_Title());
+            FIELD_TYPE_TITLES.put("signature", i18n.NewDigObject_CatalogFieldSignature_Title());
+            FIELD_TYPE_TITLES.put("title", i18n.NewDigObject_CatalogHeaderTitle_Title());
+        }
+    }
+
     public interface Handler {
         void onCreateObject();
+    }
+
+    private static class CatalogChangedHandler implements ChangedHandler,
+            com.smartgwt.client.widgets.form.fields.events.DataArrivedHandler {
+
+        private final SelectItem selectCatalog;
+        private final SelectItem selectField;
+
+        public CatalogChangedHandler(SelectItem selection, SelectItem selectField) {
+            this.selectCatalog = selection;
+            this.selectField = selectField;
+        }
+
+        @Override
+        public void onChanged(ChangedEvent event) {
+            ListGridRecord r = selectCatalog.getSelectedRecord();
+            String lastFieldSelection = selectField.getValueAsString();
+            Record[] fields = r.getAttributeAsRecordArray(BibliographicCatalogResourceApi.CATALOG_FIELDS);
+            LinkedHashMap<String, String> fieldMap = new LinkedHashMap<String, String>();
+            for (Record field : fields) {
+                String fId = field.getAttribute(BibliographicCatalogResourceApi.CATALOG_FIELD_ID);
+                String fTitle = field.getAttribute(BibliographicCatalogResourceApi.CATALOG_FIELD_TITLE);
+                fTitle = fTitle == null || fId.equals(fTitle) ? FIELD_TYPE_TITLES.get(fId) : fTitle;
+                fTitle = fTitle == null ? fId : fTitle;
+                fieldMap.put(fId, fTitle);
+            }
+            if (!fieldMap.containsKey(lastFieldSelection)) {
+                if (fieldMap.isEmpty()) {
+                    lastFieldSelection = null;
+                } else {
+                    lastFieldSelection = fieldMap.keySet().iterator().next();
+                }
+            }
+            selectField.setValueMap(fieldMap);
+            selectField.setValue(lastFieldSelection);
+        }
+
+        @Override
+        public void onDataArrived(com.smartgwt.client.widgets.form.fields.events.DataArrivedEvent event) {
+            onChanged(null);
+        }
     }
     
 }

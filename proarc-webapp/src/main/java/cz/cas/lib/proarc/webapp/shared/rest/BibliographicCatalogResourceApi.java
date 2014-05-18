@@ -31,5 +31,8 @@ public final class BibliographicCatalogResourceApi {
 
     public static final String CATALOG_ID = "id";
     public static final String CATALOG_NAME = "name";
+    public static final String CATALOG_FIELDS = "fields";
+    public static final String CATALOG_FIELD_ID = "fieldId";
+    public static final String CATALOG_FIELD_TITLE = "fieldTitle";
 
 }

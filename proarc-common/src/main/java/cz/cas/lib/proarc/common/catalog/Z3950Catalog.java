@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.catalog;
 
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.config.CatalogQueryField;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.xml.Transformers;
 import cz.cas.lib.proarc.z3950.Z3950Client;
@@ -53,10 +54,6 @@ public final class Z3950Catalog implements BibliographicCatalog {
     static final String PROPERTY_BASE = "base";
     /** Configuration property name to override char set of returned records. */
     static final String PROPERTY_RECORD_CHARSET = "recordCharset";
-    /** Configuration property name to list field IDs. */
-    static final String PROPERTY_FIELDS = "fields";
-    /** Configuration property prefix of field's properties. */
-    static final String PROPERTY_FIELD = "field";
     /** Configuration property name to define field's query. */
     static final String PROPERTY_FIELD_QUERY = "query";
     
@@ -68,7 +65,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
     private final int port;
     private final Charset recordCharset;
     /** fieldId -> field */
-    private final Map<String, Field> fields;
+    private final Map<String, Z3950Field> fields;
 
     public static Z3950Catalog get(CatalogConfiguration c) {
         if (c == null || !TYPE.equals(c.getType())) {
@@ -106,22 +103,20 @@ public final class Z3950Catalog implements BibliographicCatalog {
             }
         }
 
-        Map<String, Field> fields = readFields(c);
+        Map<String, Z3950Field> fields = readFields(c);
         return new Z3950Catalog(host, port, base, charset, fields);
     }
 
-    static Map<String, Field> readFields(CatalogConfiguration c) {
-        String[] fieldIds = c.getProperties().getStringArray(PROPERTY_FIELDS);
-        Map<String, Field> fields = new HashMap<String, Field>();
-        for (String fieldId : fieldIds) {
-            String query = c.getProperty(PROPERTY_FIELD + '.' + fieldId + '.' + PROPERTY_FIELD_QUERY);
-            Field field = new Field(fieldId, query);
-            fields.put(fieldId, field);
+    static Map<String, Z3950Field> readFields(CatalogConfiguration c) {
+        Map<String, Z3950Field> fields = new HashMap<String, Z3950Field>();
+        List<CatalogQueryField> queryFields = c.getQueryFields();
+        for (CatalogQueryField queryField : queryFields) {
+            fields.put(queryField.getName(), new Z3950Field(queryField));
         }
         return fields;
     }
 
-    public Z3950Catalog(String host, int port, String base, Charset recordCharset, Map<String, Field> fields) {
+    public Z3950Catalog(String host, int port, String base, Charset recordCharset, Map<String, Z3950Field> fields) {
         this.host = host;
         this.port = port;
         this.base = base;
@@ -182,9 +177,9 @@ public final class Z3950Catalog implements BibliographicCatalog {
 
     private String buildQuery(String fieldId, String value) {
         String query = null;
-        Field field = fields.get(fieldId);
+        Z3950Field field = fields.get(fieldId);
         if (field != null && field.getQuery() != null) {
-            return field.query.replace("%s", value);
+            return field.getQuery().replace("%s", value);
         }
         // default queries
         if ("issn".equals(fieldId)) {
@@ -214,21 +209,14 @@ public final class Z3950Catalog implements BibliographicCatalog {
         return modsHtmlBytes;
     }
 
-    public static final class Field {
-        private String id;
-        private String query;
+    public static final class Z3950Field extends CatalogQueryField {
 
-        public Field(String id, String query) {
-            this.id = id;
-            this.query = query;
-        }
-
-        public String getId() {
-            return id;
+        public Z3950Field(CatalogQueryField cqField) {
+            super(cqField.getName(), cqField.getProperties());
         }
 
         public String getQuery() {
-            return query;
+            return getProperties().getString(PROPERTY_FIELD_QUERY);
         }
     }
 

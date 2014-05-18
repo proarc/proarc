@@ -22,13 +22,16 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.config.CatalogQueryField;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -37,6 +40,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -104,7 +108,12 @@ public class BibliographicCatalogResource {
         List<MetadataItem> result;
         BibliographicCatalog bCatalog = appConfig.getCatalogs().findCatalog(catalog);
         if (bCatalog != null) {
-            result = bCatalog.find(fieldName, value, locale);
+            try {
+                result = bCatalog.find(fieldName, value, locale);
+            } catch (ConnectException ex) {
+                LOG.log(Level.FINE, catalog, ex);
+                throw RestException.plainText(Status.SERVICE_UNAVAILABLE, ex.getLocalizedMessage());
+            }
         } else {
             throw RestException.plainNotFound(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM, catalog);
         }
@@ -115,20 +124,46 @@ public class BibliographicCatalogResource {
     public static class CatalogDescriptor {
 
         public static CatalogDescriptor create(CatalogConfiguration cp) {
-            return new CatalogDescriptor(cp.getId(), cp.getName());
+            List<CatalogQueryField> fields = cp.getQueryFields();
+            ArrayList<FieldDescriptor> fieldDescriptors = new ArrayList<FieldDescriptor>(fields.size());
+            for (CatalogQueryField field : fields) {
+                fieldDescriptors.add(new FieldDescriptor(field.getName(), field.getTitle()));
+            }
+            return new CatalogDescriptor(cp.getId(), cp.getName(), fieldDescriptors);
         }
 
         @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_ID)
         private String id;
         @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_NAME)
         private String name;
+        @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_FIELDS)
+        private List<FieldDescriptor> fields;
 
-        public CatalogDescriptor(String id, String name) {
+        public CatalogDescriptor(String id, String name, List<FieldDescriptor> fields) {
             this.id = id;
             this.name = name;
+            this.fields = fields;
         }
 
         public CatalogDescriptor() {
+        }
+
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class FieldDescriptor {
+
+        @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_FIELD_ID)
+        private String id;
+        @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_FIELD_TITLE)
+        private String title;
+
+        public FieldDescriptor() {
+        }
+
+        public FieldDescriptor(String id, String title) {
+            this.id = id;
+            this.title = title;
         }
 
     }

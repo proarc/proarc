@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.catalog;
 
-import cz.cas.lib.proarc.common.catalog.Z3950Catalog.Field;
+import cz.cas.lib.proarc.common.catalog.Z3950Catalog.Z3950Field;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -93,7 +93,7 @@ public class Z3950CatalogTest {
         Locale locale = null;
         Z3950Catalog instance = new Z3950Catalog(host, Integer.parseInt(port), base,
                 recordCharset == null ? null : Charset.forName(recordCharset),
-                new HashMap<String, Field>()
+                new HashMap<String, Z3950Field>()
                 );
         List<MetadataItem> result = instance.find(fieldName, value, locale);
         assertFalse(result.isEmpty());
@@ -103,20 +103,20 @@ public class Z3950CatalogTest {
     public void testReadFields() {
         final String catalogId = "catalogId";
         CatalogConfiguration c = new CatalogConfiguration(catalogId, "", new BaseConfiguration() {{
-            addProperty(Z3950Catalog.PROPERTY_FIELDS, "field1,field2 , field3  ");
-            addProperty(Z3950Catalog.PROPERTY_FIELD + '.' + "field1" + '.' + Z3950Catalog.PROPERTY_FIELD_QUERY, "query1");
-            addProperty(Z3950Catalog.PROPERTY_FIELD + '.' + "field2" + '.' + Z3950Catalog.PROPERTY_FIELD_QUERY, "query2");
+            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "field1,field2 , field3  ");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + '.' + "field1" + '.' + Z3950Catalog.PROPERTY_FIELD_QUERY, "query1");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + '.' + "field2" + '.' + Z3950Catalog.PROPERTY_FIELD_QUERY, "query2");
         }});
-        Map<String, Field> result = Z3950Catalog.readFields(c);
+        Map<String, Z3950Field> result = Z3950Catalog.readFields(c);
         assertNotNull(result);
         assertEquals(3, result.size());
-        Field field1 = result.get("field1");
+        Z3950Field field1 = result.get("field1");
         assertNotNull("field1", field1);
         assertEquals("query1", field1.getQuery());
-        Field field2 = result.get("field2");
+        Z3950Field field2 = result.get("field2");
         assertNotNull("field2", field2);
         assertEquals("query2", field2.getQuery());
-        Field field3 = result.get("field3");
+        Z3950Field field3 = result.get("field3");
         assertNotNull("field3", field3);
         assertNull(field3.getQuery());
     }

@@ -92,6 +92,8 @@ public final class DigitizationRegistryCatalog implements BibliographicCatalog {
             query.setCcnb(value);
         } else if ("signature".equals(fieldName)) {
             query.setSignature(value);
+        } else if ("title".equals(fieldName)) {
+            query.setTitle(value);
         }
         return query;
     }

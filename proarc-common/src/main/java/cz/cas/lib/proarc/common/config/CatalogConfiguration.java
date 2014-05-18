@@ -16,9 +16,14 @@
  */
 package cz.cas.lib.proarc.common.config;
 
+import cz.cas.lib.proarc.common.catalog.AlephXServer;
+import cz.cas.lib.proarc.common.catalog.DigitizationRegistryCatalog;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
+import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationUtils;
 
@@ -36,6 +41,10 @@ public final class CatalogConfiguration {
     public static final String PROPERTY_PASSWD = "password";
     public static final String PROPERTY_URL = "url";
     public static final String PROPERTY_TYPE = "type";
+    /** The configuration property name to list field IDs. */
+    public static final String PROPERTY_FIELDS = "fields";
+    /** The configuration property prefix of field's properties. */
+    public static final String FIELD_PREFIX = "field";
 
     private final String id;
     private final String prefix;
@@ -61,6 +70,44 @@ public final class CatalogConfiguration {
 
     public String getUrl() {
         return fixUrlProtocol(properties.getString(PROPERTY_URL));
+    }
+
+    public List<CatalogQueryField> getQueryFields() {
+        String[] fieldIds = properties.getStringArray(PROPERTY_FIELDS);
+        if (fieldIds.length == 0) {
+            return getDefaultQueryFields();
+        }
+        ArrayList<CatalogQueryField> fields = new ArrayList<CatalogQueryField>(fieldIds.length);
+        for (String fieldId : fieldIds) {
+            CatalogQueryField field = new CatalogQueryField(fieldId, properties.subset(FIELD_PREFIX + '.' + fieldId));
+            fields.add(field);
+        }
+        return fields;
+    }
+
+    /**
+     * Fills fields for existing configurations to ensure backward compatibility.
+     */
+    private List<CatalogQueryField> getDefaultQueryFields() {
+        String type = getType();
+        ArrayList<CatalogQueryField> fields = new ArrayList<CatalogQueryField>();
+        if (AlephXServer.TYPE.equals(type)) {
+            BaseConfiguration emptyConfiguration = new BaseConfiguration();
+            fields.add(new CatalogQueryField("barcode", emptyConfiguration));
+            fields.add(new CatalogQueryField("ccnb", emptyConfiguration));
+            fields.add(new CatalogQueryField("isbn", emptyConfiguration));
+            fields.add(new CatalogQueryField("issn", emptyConfiguration));
+            fields.add(new CatalogQueryField("signature", emptyConfiguration));
+        } else if (DigitizationRegistryCatalog.TYPE.equals(type)) {
+            BaseConfiguration emptyConfiguration = new BaseConfiguration();
+            fields.add(new CatalogQueryField("barcode", emptyConfiguration));
+            fields.add(new CatalogQueryField("ccnb", emptyConfiguration));
+            fields.add(new CatalogQueryField("isbn", emptyConfiguration));
+            fields.add(new CatalogQueryField("issn", emptyConfiguration));
+            fields.add(new CatalogQueryField("signature", emptyConfiguration));
+            fields.add(new CatalogQueryField("title", emptyConfiguration));
+        }
+        return fields;
     }
 
     public Configuration getProperties() {

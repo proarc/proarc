@@ -46,8 +46,9 @@ public final class BibliographyDataSource extends RestDataSource {
         fieldId.setPrimaryKey(true);
 
         DataSourceField fieldTitle = new DataSourceField(BibliographicCatalogResourceApi.CATALOG_NAME, FieldType.TEXT);
+        DataSourceField fieldQueryFields = new DataSourceField(BibliographicCatalogResourceApi.CATALOG_FIELDS, FieldType.ANY);
 
-        setFields(fieldId, fieldTitle);
+        setFields(fieldId, fieldTitle, fieldQueryFields);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
 
