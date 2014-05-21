@@ -42,6 +42,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
@@ -99,6 +100,27 @@ public class MetsUtils {
 
     private static Logger LOG = Logger.getLogger(MetsUtils.class.getName());
     private static Properties mimeToExtension = new Properties();
+
+    /**
+     * Retuns an XMLGregorianCalendar representation of current date
+     *
+     * @return
+     * @throws MetsExportException
+     */
+    public static XMLGregorianCalendar getCurrentDate() throws MetsExportException {
+        GregorianCalendar gregory = new GregorianCalendar();
+        gregory.setTime(new Date());
+
+        XMLGregorianCalendar calendar;
+        try {
+            calendar = DatatypeFactory.newInstance()
+                    .newXMLGregorianCalendar(
+                            gregory);
+        } catch (DatatypeConfigurationException e1) {
+            throw new MetsExportException("Unable to create XMLGregorianDate", false, e1);
+        }
+        return calendar;
+    }
 
     /**
      * Returns the properties for mapping Mime type to file extension
