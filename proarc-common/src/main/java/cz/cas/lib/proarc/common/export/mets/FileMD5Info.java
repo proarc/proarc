@@ -19,12 +19,21 @@ package cz.cas.lib.proarc.common.export.mets;
 
 /**
  * @author Robert Simonovsky
- * 
+ *
  *         Class is used to store md5 info and file size
- * 
+ *
  */
 public class FileMD5Info {
     private String fileName;
+    private String mimeType;
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
+    }
 
     public String getFileName() {
         return fileName;
