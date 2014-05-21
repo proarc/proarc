@@ -328,4 +328,18 @@ public final class DeviceRepository {
         return editor;
     }
 
+    /**
+     * Gets a datastream editor for MIX format.
+     *
+     * @param id
+     *
+     * @return
+     * @throws DeviceException
+     */
+    public XmlStreamEditor getDescriptionEditor(String id) throws DeviceException {
+        checkDeviceId(id);
+        RemoteObject robj = remoteStorage.find(id);
+        return getMixDescriptionEditor(robj);
+    }
+
 }
