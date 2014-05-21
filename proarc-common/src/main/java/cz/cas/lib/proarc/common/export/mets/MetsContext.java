@@ -59,6 +59,44 @@ public class MetsContext {
     private boolean allowNonCompleteStreams = false;
     private boolean allowMissingURNNBN = false;
     private File packageDir;
+    private String creatorOrganization = "ProArc";
+    private String proarcVersion = "1.0";
+
+    /**
+     * Returns the version of ProArc
+     *
+     * @return
+     */
+    public String getProarcVersion() {
+        return proarcVersion;
+    }
+
+    /**
+     * Sets the ProArc version - default 1.0
+     * 
+     * @param proarcVersion
+     */
+    public void setProarcVersion(String proarcVersion) {
+        this.proarcVersion = proarcVersion;
+    }
+
+    /**
+     * Returns the creator organization - used for mets header
+     *
+     * @return
+     */
+    public String getCreatorOrganization() {
+        return creatorOrganization;
+    }
+
+    /**
+     * Sets the creator organization - default ProArc
+     * 
+     * @param creatorOrganization
+     */
+    public void setCreatorOrganization(String creatorOrganization) {
+        this.creatorOrganization = creatorOrganization;
+    }
 
     public File getPackageDir() {
         return packageDir;
