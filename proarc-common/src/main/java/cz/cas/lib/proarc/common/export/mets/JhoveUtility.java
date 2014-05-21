@@ -24,11 +24,15 @@ import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -46,6 +50,30 @@ import edu.harvard.hul.ois.jhove.OutputHandler;
 public class JhoveUtility {
 
     private static final Logger LOG = Logger.getLogger(JhoveUtility.class.getName());
+
+    /**
+     * Returns a node with MIX info - helper
+     *
+     * @param node
+     * @return
+     */
+    public static Node getGeneralCaptureInformationRecursive(Node node) {
+        if (node.getLocalName() == null) {
+            return null;
+        }
+        if ((node.getLocalName().startsWith("GeneralCaptureInformation"))) {
+            return node;
+        } else {
+            NodeList nl = node.getChildNodes();
+            for (int a = 0; a < nl.getLength(); a++) {
+                Node mix = getGeneralCaptureInformationRecursive(nl.item(a));
+                if (mix != null) {
+                    return mix;
+                }
+            }
+        }
+        return null;
+    }
 
     /**
      * Returns a node with MIX info - helper
@@ -90,6 +118,16 @@ public class JhoveUtility {
         }
     }
 
+    private static void mergeMix(Node source, Document document, Node deviceMix) {
+        NodeList nl = deviceMix.getChildNodes();
+        for (int a = 0; a < nl.getLength(); a++) {
+            Node child = nl.item(a);
+            Node adoptedNode = child.cloneNode(true);
+            document.adoptNode(adoptedNode);
+            source.appendChild(adoptedNode);
+        }
+    }
+
     /**
      *
      * Returns a MIX node
@@ -98,7 +136,9 @@ public class JhoveUtility {
      * @param metsinfo
      * @return
      */
-    public static Node getMixNode(File targetFile, MetsContext metsContext) throws MetsExportException {
+    public static JHoveOutput getMixNode(File targetFile, MetsContext metsContext, Node deviceMix, XMLGregorianCalendar dateCreated) throws MetsExportException {
+        JHoveOutput jhoveOutput = new JHoveOutput();
+
         if (targetFile == null || !targetFile.isFile() || !targetFile.exists()) {
             LOG.log(Level.SEVERE, "target file '" + targetFile + "' cannot be found.");
             throw new MetsExportException("target file '" + targetFile + "' cannot be found.", false, null);
@@ -115,14 +155,35 @@ public class JhoveUtility {
             LOG.log(Level.FINE, "Calling JHOVE dispatch(...) on file " + targetFile);
             metsContext.jhoveBase.dispatch(metsContext.jhoveApp, module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[] { targetFile.getAbsolutePath() });
             DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+            builderFactory.setNamespaceAware(true);
             DocumentBuilder builder = builderFactory.newDocumentBuilder();
             Document jHoveDoc = builder.parse(outputFile);
+
             outputFile.delete();
-            return getMixRecursive(jHoveDoc);
+            Node node = getMixRecursive(jHoveDoc);
+            if ((deviceMix != null) && (node != null)) {
+                mergeMix(node, jHoveDoc, deviceMix);
+            }
+            if ((dateCreated != null) && (node != null)) {
+                Element elm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "dateTimeCreated");
+                Node generalInfo = getGeneralCaptureInformationRecursive(node);
+                if (generalInfo != null) {
+                    generalInfo.appendChild(elm);
+                    elm.setTextContent(dateCreated.toXMLFormat());
+                }
+            }
+            jhoveOutput.setMixNode(node);
+            XPath xpath =  XPathFactory.newInstance().newXPath();
+            String formatVersion = xpath.compile("*[local-name()='jhove']/*[local-name()='repInfo']/*[local-name()='version']").evaluate(jHoveDoc);
+            if ((formatVersion == null) || ("0".equals(formatVersion))) {
+                formatVersion = "1.0";
+            }
+            jhoveOutput.setFormatVersion(formatVersion);
+            return jhoveOutput;
         } catch (Exception e) {
             metsContext.getMetsExportException().addException("Error inspecting file '" + targetFile + "' - " + e.getMessage(), true, e);
         }
-        return null;
+        return jhoveOutput;
     }
 
     /**
