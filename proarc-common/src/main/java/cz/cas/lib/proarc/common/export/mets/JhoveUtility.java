@@ -42,7 +42,7 @@ import edu.harvard.hul.ois.jhove.Module;
 import edu.harvard.hul.ois.jhove.OutputHandler;
 
 /**
- * @author eskymo
+ * @author Robert Simonovsky
  *
  *         Utility class for jHove application
  *
@@ -51,45 +51,18 @@ public class JhoveUtility {
 
     private static final Logger LOG = Logger.getLogger(JhoveUtility.class.getName());
 
-    /**
-     * Returns a node with MIX info - helper
-     *
-     * @param node
-     * @return
-     */
-    public static Node getGeneralCaptureInformationRecursive(Node node) {
-        if (node.getLocalName() == null) {
-            return null;
-        }
-        if ((node.getLocalName().startsWith("GeneralCaptureInformation"))) {
+    public static Node getNodeRecursive(Node node, String localName) {
+        if ((node.getLocalName() != null) && (node.getLocalName().startsWith(localName))) {
             return node;
         } else {
             NodeList nl = node.getChildNodes();
-            for (int a = 0; a < nl.getLength(); a++) {
-                Node mix = getGeneralCaptureInformationRecursive(nl.item(a));
-                if (mix != null) {
-                    return mix;
-                }
+            if (nl == null) {
+                return null;
             }
-        }
-        return null;
-    }
-
-    /**
-     * Returns a node with MIX info - helper
-     *
-     * @param node
-     * @return
-     */
-    private static Node getMixRecursive(Node node) {
-        if ((node.getNodeName().startsWith("mix"))) {
-            return node;
-        } else {
-            NodeList nl = node.getChildNodes();
             for (int a = 0; a < nl.getLength(); a++) {
-                Node mix = getMixRecursive(nl.item(a));
-                if (mix != null) {
-                    return mix;
+                Node found = getNodeRecursive(nl.item(a), localName);
+                if (found != null) {
+                    return found;
                 }
             }
         }
@@ -118,6 +91,13 @@ public class JhoveUtility {
         }
     }
 
+    /**
+     * Merges the MIX info from Scanner and JHove
+     *
+     * @param source
+     * @param document
+     * @param deviceMix
+     */
     private static void mergeMix(Node source, Document document, Node deviceMix) {
         NodeList nl = deviceMix.getChildNodes();
         for (int a = 0; a < nl.getLength(); a++) {
@@ -160,26 +140,48 @@ public class JhoveUtility {
             Document jHoveDoc = builder.parse(outputFile);
 
             outputFile.delete();
-            Node node = getMixRecursive(jHoveDoc);
+            Node node = getNodeRecursive(jHoveDoc, "mix");
             if ((deviceMix != null) && (node != null)) {
                 mergeMix(node, jHoveDoc, deviceMix);
             }
+
+            // add dateTimeCreated to GeneralCaptureInformation
             if ((dateCreated != null) && (node != null)) {
                 Element elm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "dateTimeCreated");
-                Node generalInfo = getGeneralCaptureInformationRecursive(node);
+                Node generalInfo = getNodeRecursive(node, "GeneralCaptureInformation");
                 if (generalInfo != null) {
                     generalInfo.appendChild(elm);
                     elm.setTextContent(dateCreated.toXMLFormat());
                 }
             }
+
             jhoveOutput.setMixNode(node);
             XPath xpath =  XPathFactory.newInstance().newXPath();
             String formatVersion = xpath.compile("*[local-name()='jhove']/*[local-name()='repInfo']/*[local-name()='version']").evaluate(jHoveDoc);
-            if ((formatVersion == null) || ("0".equals(formatVersion))) {
+            if ((formatVersion == null) || ("0".equals(formatVersion)) || (formatVersion.trim().length() == 0)) {
                 formatVersion = "1.0";
             }
+            String formatName = xpath.compile("*[local-name()='jhove']/*[local-name()='repInfo']/*[local-name()='mimeType']").evaluate(jHoveDoc);
+            if ((formatName == null) || (formatName.trim().length() == 0)) {
+                formatName = "unknown";
+            }
+
+            // add format to BasicDigitalObjectInformation
+            if (node != null) {
+                Element formatElm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "FormatDesignation");
+                Element formatNameElm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:formatName");
+                Element formatVersionElm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:formatVersion");
+                Node basicInfo = getNodeRecursive(node, "BasicDigitalObjectInformation");
+                if (basicInfo != null) {
+                    basicInfo.appendChild(formatElm);
+                    formatElm.appendChild(formatNameElm);
+                    formatElm.appendChild(formatVersionElm);
+                    formatNameElm.setTextContent(formatName);
+                    formatVersionElm.setTextContent(formatVersion);
+                }
+            }
+
             jhoveOutput.setFormatVersion(formatVersion);
-            return jhoveOutput;
         } catch (Exception e) {
             metsContext.getMetsExportException().addException("Error inspecting file '" + targetFile + "' - " + e.getMessage(), true, e);
         }
