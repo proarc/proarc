@@ -41,16 +41,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -62,15 +67,20 @@ import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 
+import cz.cas.lib.proarc.common.device.DeviceException;
+import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.export.mets.JHoveOutput;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.AreaType;
 import cz.cas.lib.proarc.mets.DivType;
@@ -91,6 +101,17 @@ import cz.cas.lib.proarc.mets.StructLinkType.SmLink;
 import cz.cas.lib.proarc.mets.StructMapType;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import cz.cas.lib.proarc.premis.CreatingApplicationComplexType;
+import cz.cas.lib.proarc.premis.FixityComplexType;
+import cz.cas.lib.proarc.premis.FormatComplexType;
+import cz.cas.lib.proarc.premis.FormatDesignationComplexType;
+import cz.cas.lib.proarc.premis.FormatRegistryComplexType;
+import cz.cas.lib.proarc.premis.ObjectCharacteristicsComplexType;
+import cz.cas.lib.proarc.premis.ObjectFactory;
+import cz.cas.lib.proarc.premis.ObjectIdentifierComplexType;
+import cz.cas.lib.proarc.premis.OriginalNameComplexType;
+import cz.cas.lib.proarc.premis.PremisComplexType;
+import cz.cas.lib.proarc.premis.PreservationLevelComplexType;
 
 /**
  * Visitor class for creating mets document out of Mets objects
@@ -150,7 +171,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         metsHdr.setCREATEDATE(metsElement.getCreateDate());
         metsHdr.setLASTMODDATE(metsElement.getLastUpdateDate());
         Agent agent = new Agent();
-        agent.setName("PROARC");
+        agent.setName(metsElement.getMetsContext().getCreatorOrganization());
         agent.setROLE("CREATOR");
         agent.setTYPE("ORGANIZATION");
         metsHdr.getAgent().add(agent);
@@ -433,6 +454,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             FileMD5Info fileMD5Info = MetsUtils.getDigestAndCopy(is, new FileOutputStream(fullOutputFileName));
             fileType.setSIZE(Long.valueOf(fileMD5Info.getSize()));
             fileMD5Info.setFileName("." + File.separator + Const.streamMappingFile.get(metsStreamName) + File.separator + outputFileName);
+            fileMD5Info.setMimeType(fileType.getMIMETYPE());
             fileType.setCHECKSUM(fileMD5Info.getMd5());
             metsContext.getFileList().add(fileMD5Info);
         } catch (Exception e) {
@@ -454,7 +476,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param mimeTypes
      * @throws MetsExportException
      */
-    private void processPageFiles(IMetsElement metsElement, int seq, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes) throws MetsExportException {
+    private void processPageFiles(IMetsElement metsElement, int seq, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, HashMap<String, XMLGregorianCalendar> createDates) throws MetsExportException {
         for (String streamName : Const.streamMapping.keySet()) {
             if (metsElement.getMetsContext().getFedoraClient() != null) {
                 try {
@@ -468,6 +490,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), dataStream);
                         if (rawDS != null) {
                             GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), dataStream);
+                            createDates.put(streamName, rawDS.getDatastreamVersion().get(0).getCREATED());
                             try {
                                 InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
                                 fileNames.put(streamName, is);
@@ -511,6 +534,129 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     }
 
     /**
+     * Returns the description of scanner
+     *
+     * @param metsElement
+     * @return
+     * @throws MetsExportException
+     */
+    private Node getScannerMix(IMetsElement metsElement) throws MetsExportException {
+        if (metsElement.getMetsContext().getRemoteStorage()!=null) {
+            Node deviceNode = MetsUtils.xPathEvaluateNode(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasDevice']");
+            if (deviceNode == null) {
+                return null;
+            }
+            Node attrNode = deviceNode.getAttributes().getNamedItem("rdf:resource");
+            if (attrNode==null) {
+                return null;
+            }
+            DeviceRepository deviceRepository = new DeviceRepository(metsElement.getMetsContext().getRemoteStorage());
+            XmlStreamEditor editor = null;
+            try {
+                editor = deviceRepository.getDescriptionEditor(attrNode.getNodeValue().replaceAll("info:fedora/", ""));
+            } catch (DeviceException ex) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Bad device", false, ex);
+            }
+
+            DOMResult domResult = new DOMResult();
+            try {
+                TransformerFactory factory = TransformerFactory.newInstance();
+                try {
+                    Transformer transformer = factory.newTransformer();
+                    transformer.transform(editor.read(), domResult);
+                    if (domResult != null) {
+                        if (domResult.getNode() != null) {
+                            return domResult.getNode().getFirstChild();
+                        }
+                    }
+                } catch (TransformerException e) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to process device description", false, e);
+                }
+            } catch (DigitalObjectException e) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read device description", false, e);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Generates the premis for amdSec
+     *
+     * @param metsElement
+     * @param datastream
+     * @param md5Info
+     * @param created
+     * @param formatVersion
+     * @return
+     * @throws MetsExportException
+     */
+    private Node getPremis(IMetsElement metsElement, String datastream, FileMD5Info md5Info, XMLGregorianCalendar created, String formatVersion) throws MetsExportException {
+        PremisComplexType premis = new PremisComplexType();
+        ObjectFactory factory = new ObjectFactory();
+        cz.cas.lib.proarc.premis.File file = factory.createFile();
+        premis.getObject().add(file);
+        ObjectIdentifierComplexType objectIdentifier = new ObjectIdentifierComplexType();
+        objectIdentifier.setObjectIdentifierType("UUID");
+        objectIdentifier.setObjectIdentifierValue(metsElement.getOriginalPid() + "." + datastream);
+        file.getObjectIdentifier().add(objectIdentifier);
+        PreservationLevelComplexType preservation = new PreservationLevelComplexType();
+        if ("RAW".equals(datastream)) {
+            preservation.setPreservationLevelValue("deleted");
+        } else {
+            preservation.setPreservationLevelValue("preservation");
+        }
+        file.getPreservationLevel().add(preservation);
+        ObjectCharacteristicsComplexType characteristics = new ObjectCharacteristicsComplexType();
+        characteristics.setCompositionLevel(BigInteger.ZERO);
+        file.getObjectCharacteristics().add(characteristics);
+        FixityComplexType fixity = new FixityComplexType();
+        fixity.setMessageDigest(md5Info.getMd5());
+        fixity.setMessageDigestAlgorithm("MD5");
+        fixity.setMessageDigestOriginator("ProArc");
+        characteristics.getFixity().add(fixity);
+        characteristics.setSize((long) md5Info.getSize());
+        FormatComplexType format = new FormatComplexType();
+        characteristics.getFormat().add(format);
+        FormatDesignationComplexType formatDesignation = new FormatDesignationComplexType();
+        formatDesignation.setFormatName(md5Info.getMimeType());
+        formatDesignation.setFormatName(formatVersion);
+        JAXBElement<FormatDesignationComplexType> jaxbDesignation = factory.createFormatDesignation(formatDesignation);
+        format.getContent().add(jaxbDesignation);
+        FormatRegistryComplexType formatRegistry = new FormatRegistryComplexType();
+        formatRegistry.setFormatRegistryName("PRONOM");
+        formatRegistry.setFormatRegistryKey(Const.mimeToFmtMap.get(md5Info.getMimeType()));
+        JAXBElement<FormatRegistryComplexType> jaxbRegistry = factory.createFormatRegistry(formatRegistry);
+        format.getContent().add(jaxbRegistry);
+
+        CreatingApplicationComplexType creatingApplication = new CreatingApplicationComplexType();
+        characteristics.getCreatingApplication().add(creatingApplication);
+        creatingApplication.getContent().add(factory.createCreatingApplicationName("ProArc"));
+
+        creatingApplication.getContent().add(factory.createCreatingApplicationVersion(metsElement.getMetsContext().getProarcVersion()));
+        creatingApplication.getContent().add(factory.createDateCreatedByApplication(MetsUtils.getCurrentDate().toXMLFormat()));
+
+        String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
+        OriginalNameComplexType originalName = factory.createOriginalNameComplexType();
+        originalName.setValue(originalFile);
+        file.setOriginalName(originalName);
+
+        JAXBContext jc;
+        try {
+            jc = JAXBContext.newInstance(PremisComplexType.class);
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document document = db.newDocument();
+
+            // Marshal the Object to a Document
+            Marshaller marshaller = jc.createMarshaller();
+            marshaller.marshal(premis, document);
+        } catch (Exception e) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
+        }
+        return null;
+    }
+
+    /**
      * Generates technical metadata using JHOVE
      *
      * @param metsElement
@@ -542,7 +688,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
             HashMap<String, String> toGenerate = new HashMap<String, String>();
             File rawFile = null;
-
+            FileMD5Info fileMD5InfoRaw = null;
+            XMLGregorianCalendar rawCreated = null;
+            Node mixNodeDevice = getScannerMix(metsElement);
             //RAW datastream for MIX_001 - only for Fedora
             if (metsElement.getMetsContext().getFedoraClient() != null) {
                 try {
@@ -550,11 +698,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         if (rawDS != null) {
                             GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
                             try {
+                            rawCreated = rawDS.getDatastreamVersion().get(0).getCREATED();
                                 InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
                                 String rawExtendsion = MimeType.getExtension(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
                                 rawFile = new File(metsElement.getMetsContext().getOutputPath()+File.separator+metsElement.getMetsContext().getPackageID()+File.separator+"raw"+"."+rawExtendsion);
-                                FileUtils.copyInputStreamToFile(is, rawFile);
-                            is.close();
+                            fileMD5InfoRaw = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
                             outputFileNames.put("RAW", rawFile.getAbsolutePath());
                             toGenerate.put("MIX_001", "RAW");
                             } catch (FedoraClientException e) {
@@ -570,9 +718,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 toGenerate.put("MIX_002", "MC_IMGGRP");
             }
 
-            if (fileNames.get("UC_IMGGRP")!=null) {
-                toGenerate.put("MIX_003", "UC_IMGGRP");
-            }
+            HashMap<String, String> streamVersions = new HashMap<String, String>();
 
             for (String name : toGenerate.keySet()) {
                 String streamName = toGenerate.get(name);
@@ -585,9 +731,21 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     mdWrap.setMIMETYPE("text/xml");
                     mdWrap.setMDTYPE("NISOIMG");
                     XmlData xmlData = new XmlData();
-                    Node mixNode = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext());
+
+                    JHoveOutput jHoveOutput;
+                    if ("RAW".equals(streamName)) {
+                        jHoveOutput = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext(), mixNodeDevice, rawCreated);
+                        // getPremis(metsElement, "RAW", fileMD5InfoRaw,
+                        // rawCreated, streamVersions.get("RAW"));
+                    } else {
+                        jHoveOutput = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext(), null, null);
+                    }
+                    if (jHoveOutput.getMixNode() != null) {
+                        Node mixNode = jHoveOutput.getMixNode();
+                        xmlData.getAny().add(mixNode);
+                    }
+                    streamVersions.put(streamName, jHoveOutput.getFormatVersion());
                     mdWrap.setXmlData(xmlData);
-                    xmlData.getAny().add(mixNode);
                     mdSec.setMdWrap(mdWrap);
                     amdSec.getTechMD().add(mdSec);
                 }
@@ -779,7 +937,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         pageDiv.setID(ID);
         HashMap<String, Object> fileNames = new HashMap<String, Object>();
         HashMap<String, String> mimeTypes = new HashMap<String, String>();
-        processPageFiles(metsElement, pageCounter, fileNames, mimeTypes);
+        HashMap<String, XMLGregorianCalendar> createDates = new HashMap<String, XMLGregorianCalendar>();
+        processPageFiles(metsElement, pageCounter, fileNames, mimeTypes, createDates);
         for (String streamName : Const.streamMapping.keySet()) {
             if (fileNames.containsKey(streamName)) {
                 FileType fileType = prepareFileType(pageCounter, streamName, fileNames, mimeTypes, metsElement.getMetsContext(), outputFileNames);
