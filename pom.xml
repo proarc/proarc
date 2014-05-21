@@ -35,6 +35,7 @@
         <module>proarc-oaidublincore</module>
         <module>proarc-webapp</module>
         <module>proarc-z3950</module>
+        <module>proarc-premis</module>        
     </modules>
 
     <properties>

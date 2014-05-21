@@ -41,6 +41,11 @@
         </dependency>
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-premis</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-mods</artifactId>
             <version>${project.version}</version>
         </dependency>
