@@ -93,8 +93,13 @@ public class Const {
 
     public final static Map<String, String> typeMap = new HashMap<String, String>();
     public final static Map<String, String> typeNameMap = new HashMap<String, String>();
+    public final static Map<String, String> mimeToFmtMap = new HashMap<String, String>();
 
     static {
+        mimeToFmtMap.put("image/tiff", "fmt/353");
+        mimeToFmtMap.put("image/jp2", "x-fmt/392");
+        mimeToFmtMap.put("text/xml", "fmt/101");
+
         PSPElements.add(Const.MONOGRAPH_UNIT);
         PSPElements.add(Const.ISSUE);
         PSPElements.add(Const.SUPPLEMENT);
@@ -110,6 +115,8 @@ public class Const {
         typeMap.put(FEDORAPREFIX + SUPPLEMENT_MODEL, SUPPLEMENT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, SUPPLEMENT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_PERIODICALSUPPLEMENT, SUPPLEMENT);
+        typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_CARTOGRAPHIC, MONOGRAPH_UNIT);
+        typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_SHEETMUSIC, MONOGRAPH_UNIT);
 
         typeMap.put(FEDORAPREFIX + CHAPTER_MODEL, CHAPTER);
 
