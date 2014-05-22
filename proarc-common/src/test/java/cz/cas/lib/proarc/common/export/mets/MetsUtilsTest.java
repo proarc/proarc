@@ -67,7 +67,7 @@ public class MetsUtilsTest {
      *
      */
     private void initTestElements() {
-        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph", "monograph", 6, 23, 4, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
+        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph", "monograph", 6, 29, 4, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
         this.testElements.add(monografieTestElement);
         MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum", "periodikum", 42, 349, 5, "periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
         this.testElements.add(periodikumTestElement);

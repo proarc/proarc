@@ -54,6 +54,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.codec.binary.Hex;
 import org.w3c.dom.Document;
@@ -101,17 +104,28 @@ import cz.cas.lib.proarc.mets.StructLinkType.SmLink;
 import cz.cas.lib.proarc.mets.StructMapType;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import cz.cas.lib.proarc.premis.AgentComplexType;
+import cz.cas.lib.proarc.premis.AgentIdentifierComplexType;
 import cz.cas.lib.proarc.premis.CreatingApplicationComplexType;
+import cz.cas.lib.proarc.premis.EventComplexType;
+import cz.cas.lib.proarc.premis.EventIdentifierComplexType;
+import cz.cas.lib.proarc.premis.EventOutcomeInformationComplexType;
 import cz.cas.lib.proarc.premis.FixityComplexType;
 import cz.cas.lib.proarc.premis.FormatComplexType;
 import cz.cas.lib.proarc.premis.FormatDesignationComplexType;
 import cz.cas.lib.proarc.premis.FormatRegistryComplexType;
+import cz.cas.lib.proarc.premis.LinkingAgentIdentifierComplexType;
+import cz.cas.lib.proarc.premis.LinkingEventIdentifierComplexType;
+import cz.cas.lib.proarc.premis.LinkingObjectIdentifierComplexType;
 import cz.cas.lib.proarc.premis.ObjectCharacteristicsComplexType;
 import cz.cas.lib.proarc.premis.ObjectFactory;
 import cz.cas.lib.proarc.premis.ObjectIdentifierComplexType;
 import cz.cas.lib.proarc.premis.OriginalNameComplexType;
 import cz.cas.lib.proarc.premis.PremisComplexType;
 import cz.cas.lib.proarc.premis.PreservationLevelComplexType;
+import cz.cas.lib.proarc.premis.RelatedEventIdentificationComplexType;
+import cz.cas.lib.proarc.premis.RelatedObjectIdentificationComplexType;
+import cz.cas.lib.proarc.premis.RelationshipComplexType;
 
 /**
  * Visitor class for creating mets document out of Mets objects
@@ -402,7 +416,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsStreamName
      * @return
      */
-    private FileType prepareFileType(int seq, String metsStreamName, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, MetsContext metsContext, HashMap<String, String> outputFileNames) throws MetsExportException {
+    private FileType prepareFileType(int seq, String metsStreamName, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, MetsContext metsContext, HashMap<String, String> outputFileNames, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
         // String streamName = Const.streamMapping.get(metsStreamName);
         FileType fileType = new FileType();
         fileType.setCHECKSUMTYPE("MD5");
@@ -451,7 +465,16 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         String fullOutputFileName = metsContext.getPackageDir().getAbsolutePath() + File.separator + Const.streamMappingFile.get(metsStreamName) + File.separator + outputFileName;
         outputFileNames.put(metsStreamName, fullOutputFileName);
         try {
-            FileMD5Info fileMD5Info = MetsUtils.getDigestAndCopy(is, new FileOutputStream(fullOutputFileName));
+            FileMD5Info fileMD5Info;
+            if (md5InfosMap.get(metsStreamName) == null) {
+                fileMD5Info = MetsUtils.getDigestAndCopy(is, new FileOutputStream(fullOutputFileName));
+                md5InfosMap.put(metsStreamName, fileMD5Info);
+            } else {
+                FileMD5Info tempMd5 = MetsUtils.getDigestAndCopy(is, new FileOutputStream(fullOutputFileName));
+                fileMD5Info = md5InfosMap.get(metsStreamName);
+                fileMD5Info.setSize(tempMd5.getSize());
+                fileMD5Info.setMd5(tempMd5.getMd5());
+            }
             fileType.setSIZE(Long.valueOf(fileMD5Info.getSize()));
             fileMD5Info.setFileName("." + File.separator + Const.streamMappingFile.get(metsStreamName) + File.separator + outputFileName);
             fileMD5Info.setMimeType(fileType.getMIMETYPE());
@@ -476,7 +499,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param mimeTypes
      * @throws MetsExportException
      */
-    private void processPageFiles(IMetsElement metsElement, int seq, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, HashMap<String, XMLGregorianCalendar> createDates) throws MetsExportException {
+    private void processPageFiles(IMetsElement metsElement, int seq, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, HashMap<String, XMLGregorianCalendar> createDates, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
         for (String streamName : Const.streamMapping.keySet()) {
             if (metsElement.getMetsContext().getFedoraClient() != null) {
                 try {
@@ -489,6 +512,15 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     for (String dataStream : Const.streamMapping.get(streamName)) {
                         DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), dataStream);
                         if (rawDS != null) {
+                            FileMD5Info fileMd5Info;
+                            if (md5InfosMap.get(streamName) == null) {
+                                fileMd5Info = new FileMD5Info();
+                                md5InfosMap.put(streamName, fileMd5Info);
+                            } else {
+                                fileMd5Info = md5InfosMap.get(streamName);
+                            }
+                            fileMd5Info.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
+
                             GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), dataStream);
                             createDates.put(streamName, rawDS.getDatastreamVersion().get(0).getCREATED());
                             try {
@@ -520,9 +552,25 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                 mimeTypes.put(streamName, dv.getMIMETYPE());
                                 if (dv.getContentLocation() != null) {
                                     fileNames.put(streamName, dv.getContentLocation().getREF());
+                                    FileMD5Info fileMd5Info;
+                                    if (md5InfosMap.get(streamName) == null) {
+                                        fileMd5Info = new FileMD5Info();
+                                        md5InfosMap.put(streamName, fileMd5Info);
+                                    } else {
+                                        fileMd5Info = md5InfosMap.get(streamName);
+                                    }
+                                    fileMd5Info.setCreated(dv.getCREATED());
                                 }
                                 if (dv.getBinaryContent() != null) {
                                     fileNames.put(streamName, dv.getBinaryContent());
+                                    FileMD5Info fileMd5Info;
+                                    if (md5InfosMap.get(streamName) == null) {
+                                        fileMd5Info = new FileMD5Info();
+                                        md5InfosMap.put(streamName, fileMd5Info);
+                                    } else {
+                                        fileMd5Info = md5InfosMap.get(streamName);
+                                    }
+                                    fileMd5Info.setCreated(dv.getCREATED());
                                 }
                             }
                             break;
@@ -579,6 +627,79 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         return null;
     }
 
+    private Node getAgent(IMetsElement metsElement) throws MetsExportException {
+        AgentComplexType agent = new AgentComplexType();
+        ObjectFactory factory = new ObjectFactory();
+        JAXBElement<AgentComplexType> jaxbPremix = factory.createAgent(agent);
+        AgentIdentifierComplexType agentIdentifier = new AgentIdentifierComplexType();
+        agent.getAgentIdentifier().add(agentIdentifier);
+        agentIdentifier.setAgentIdentifierType("EE_App_Name");
+        agentIdentifier.setAgentIdentifierValue("ProArc");
+        agent.setAgentType("software");
+        agent.getAgentName().add("ProArc");
+
+        JAXBContext jc;
+        try {
+            jc = JAXBContext.newInstance(AgentComplexType.class);
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document document = db.newDocument();
+
+            // Marshal the Object to a Document
+            Marshaller marshaller = jc.createMarshaller();
+            marshaller.marshal(jaxbPremix, document);
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            Node agentNode = (Node) xpath.compile("*[local-name()='agent']").evaluate(document, XPathConstants.NODE);
+            return agentNode;
+        } catch (Exception e) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
+        }
+
+    }
+
+    private Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws MetsExportException {
+        PremisComplexType premis = new PremisComplexType();
+        ObjectFactory factory = new ObjectFactory();
+        JAXBElement<PremisComplexType> jaxbPremix = factory.createPremis(premis);
+        EventComplexType event = factory.createEventComplexType();
+        premis.getEvent().add(event);
+        event.setEventDateTime(md5Info.getCreated().toXMLFormat());
+        event.setEventDetail(eventDetail);
+        EventIdentifierComplexType eventIdentifier = new EventIdentifierComplexType();
+        event.setEventIdentifier(eventIdentifier);
+        event.setEventType("derivation");
+        eventIdentifier.setEventIdentifierType("UUID");
+        eventIdentifier.setEventIdentifierValue(metsElement.getOriginalPid() + "." + datastream + ".event");
+        EventOutcomeInformationComplexType eventInformation = new EventOutcomeInformationComplexType();
+        event.getEventOutcomeInformation().add(eventInformation);
+        eventInformation.getContent().add(factory.createEventOutcome("successful"));
+        LinkingAgentIdentifierComplexType linkingAgentIdentifier = new LinkingAgentIdentifierComplexType();
+        linkingAgentIdentifier.setLinkingAgentIdentifierType("EE_App_Name");
+        linkingAgentIdentifier.setLinkingAgentIdentifierValue("ProArc");
+        linkingAgentIdentifier.setRole("software");
+        LinkingObjectIdentifierComplexType linkingObject = new LinkingObjectIdentifierComplexType();
+        linkingObject.setLinkingObjectIdentifierType("UUID");
+        linkingObject.setLinkingObjectIdentifierValue(metsElement.getOriginalPid() + "." + datastream);
+        event.getLinkingObjectIdentifier().add(linkingObject);
+        event.getLinkingAgentIdentifier().add(linkingAgentIdentifier);
+        JAXBContext jc;
+        try {
+            jc = JAXBContext.newInstance(PremisComplexType.class);
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document document = db.newDocument();
+
+            // Marshal the Object to a Document
+            Marshaller marshaller = jc.createMarshaller();
+            marshaller.marshal(jaxbPremix, document);
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            Node premisNode = (Node) xpath.compile("*[local-name()='premis']/*[local-name()='event']").evaluate(document, XPathConstants.NODE);
+            return premisNode;
+        } catch (Exception e) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
+        }
+    }
+
     /**
      * Generates the premis for amdSec
      *
@@ -590,9 +711,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @return
      * @throws MetsExportException
      */
-    private Node getPremis(IMetsElement metsElement, String datastream, FileMD5Info md5Info, XMLGregorianCalendar created, String formatVersion) throws MetsExportException {
+    private Node getPremisFile(IMetsElement metsElement, String datastream, FileMD5Info md5Info) throws MetsExportException {
         PremisComplexType premis = new PremisComplexType();
         ObjectFactory factory = new ObjectFactory();
+        JAXBElement<PremisComplexType> jaxbPremix = factory.createPremis(premis);
         cz.cas.lib.proarc.premis.File file = factory.createFile();
         premis.getObject().add(file);
         ObjectIdentifierComplexType objectIdentifier = new ObjectIdentifierComplexType();
@@ -619,7 +741,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         characteristics.getFormat().add(format);
         FormatDesignationComplexType formatDesignation = new FormatDesignationComplexType();
         formatDesignation.setFormatName(md5Info.getMimeType());
-        formatDesignation.setFormatName(formatVersion);
+        formatDesignation.setFormatVersion(md5Info.getFormatVersion());
         JAXBElement<FormatDesignationComplexType> jaxbDesignation = factory.createFormatDesignation(formatDesignation);
         format.getContent().add(jaxbDesignation);
         FormatRegistryComplexType formatRegistry = new FormatRegistryComplexType();
@@ -635,6 +757,30 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         creatingApplication.getContent().add(factory.createCreatingApplicationVersion(metsElement.getMetsContext().getProarcVersion()));
         creatingApplication.getContent().add(factory.createDateCreatedByApplication(MetsUtils.getCurrentDate().toXMLFormat()));
 
+        RelationshipComplexType relationShip = new RelationshipComplexType();
+
+        if (!("RAW").equals(datastream)) {
+            relationShip.setRelationshipType("derivation");
+            relationShip.setRelationshipSubType("created from");
+            RelatedObjectIdentificationComplexType relatedObject = new RelatedObjectIdentificationComplexType();
+            relationShip.getRelatedObjectIdentification().add(relatedObject);
+            relatedObject.setRelatedObjectIdentifierType("UUID");
+            relatedObject.setRelatedObjectIdentifierValue(metsElement.getOriginalPid() + "." + datastream);
+            RelatedEventIdentificationComplexType eventObject = new RelatedEventIdentificationComplexType();
+            relationShip.getRelatedEventIdentification().add(eventObject);
+            eventObject.setRelatedEventIdentifierType("UUID");
+            eventObject.setRelatedEventIdentifierValue(metsElement.getOriginalPid() + "." + datastream + ".event");
+            eventObject.setRelatedEventSequence(BigInteger.ONE);
+            file.getRelationship().add(relationShip);
+        } else {
+            relationShip.setRelationshipType("creation");
+            relationShip.setRelationshipSubType("created from");
+            LinkingEventIdentifierComplexType eventIdentifier = new LinkingEventIdentifierComplexType();
+            file.getLinkingEventIdentifier().add(eventIdentifier);
+            eventIdentifier.setLinkingEventIdentifierType("UUID");
+            eventIdentifier.setLinkingEventIdentifierValue(metsElement.getOriginalPid() + "." + datastream + ".event");
+        }
+
         String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
         OriginalNameComplexType originalName = factory.createOriginalNameComplexType();
         originalName.setValue(originalFile);
@@ -649,12 +795,65 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
             // Marshal the Object to a Document
             Marshaller marshaller = jc.createMarshaller();
-            marshaller.marshal(premis, document);
+            marshaller.marshal(jaxbPremix, document);
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            Node premisNode = (Node) xpath.compile("*[local-name()='premis']/*[local-name()='object']").evaluate(document, XPathConstants.NODE);
+            return premisNode;
         } catch (Exception e) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
         }
-        return null;
     }
+
+    private void addPremisNodeToMets(Node premisNode, AmdSecType amdSec, String Id, boolean isDigiprov) {
+        MdSecType mdSec = new MdSecType();
+        mdSec.setID(Id);
+        MdWrap mdWrap = new MdWrap();
+        mdWrap.setMIMETYPE("text/xml");
+        mdWrap.setMDTYPE("PREMIS");
+        XmlData xmlData = new XmlData();
+        xmlData.getAny().add(premisNode);
+        mdWrap.setXmlData(xmlData);
+        mdSec.setMdWrap(mdWrap);
+        if (isDigiprov) {
+            amdSec.getDigiprovMD().add(mdSec);
+        } else {
+            amdSec.getTechMD().add(mdSec);
+        }
+    }
+
+    private void addPremisToAmdSec(AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, IMetsElement metsElement) throws MetsExportException {
+        HashMap<String, String> toGenerate = new HashMap<String, String>();
+        toGenerate.put("OBJ_001", "RAW");
+        toGenerate.put("OBJ_002", "MC_IMGGRP");
+        toGenerate.put("OBJ_003", "ALTOGRP");
+
+        if (md5InfosMap.get("ALTOGRP") != null) {
+            md5InfosMap.get("ALTOGRP").setFormatVersion("2.0");
+        }
+
+        for (String obj : toGenerate.keySet()) {
+            String stream = toGenerate.get(obj);
+            if (md5InfosMap.get(stream) == null) {
+                continue;
+            }
+            addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream)), amdSec, obj, false);
+        }
+
+        if (md5InfosMap.get("RAW") != null) {
+            addPremisNodeToMets(getPremisEvent(metsElement, "RAW", md5InfosMap.get("RAW"), "capture/digitization"), amdSec, "EVT_001", true);
+        }
+
+        if (md5InfosMap.get("MC_IMGGRP") != null) {
+            addPremisNodeToMets(getPremisEvent(metsElement, "MC_IMGGRP", md5InfosMap.get("MC_IMGGRP"), "migration/MC_creation"), amdSec, "EVT_002", true);
+        }
+        if (md5InfosMap.get("ALTOGRP") != null) {
+            addPremisNodeToMets(getPremisEvent(metsElement, "ALTOGRP", md5InfosMap.get("ALTOGRP"), "capture/XML_creation"), amdSec, "EVT_003", true);
+        }
+
+        addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_001", true);
+    }
+
+
 
     /**
      * Generates technical metadata using JHOVE
@@ -667,7 +866,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param pageDiv
      * @throws MetsExportException
      */
-    private void generateTechMetadata(IMetsElement metsElement, HashMap<String, Object> fileNames, int seq, HashMap<String, FileGrp> fileGrpPage, HashMap<String, String> mimeTypes, DivType pageDiv, HashMap<String, String> outputFileNames) throws MetsExportException {
+    private void generateTechMetadata(IMetsElement metsElement, HashMap<String, Object> fileNames, int seq, HashMap<String, FileGrp> fileGrpPage, HashMap<String, String> mimeTypes, DivType pageDiv, HashMap<String, String> outputFileNames, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
         if (fileNames.get("TECHMDGRP") == null) {
             LOG.log(Level.FINE, "Generating tech");
             Mets amdSecMets = new Mets();
@@ -688,7 +887,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
             HashMap<String, String> toGenerate = new HashMap<String, String>();
             File rawFile = null;
-            FileMD5Info fileMD5InfoRaw = null;
             XMLGregorianCalendar rawCreated = null;
             Node mixNodeDevice = getScannerMix(metsElement);
             //RAW datastream for MIX_001 - only for Fedora
@@ -699,10 +897,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
                             try {
                             rawCreated = rawDS.getDatastreamVersion().get(0).getCREATED();
-                                InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                                String rawExtendsion = MimeType.getExtension(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
-                                rawFile = new File(metsElement.getMetsContext().getOutputPath()+File.separator+metsElement.getMetsContext().getPackageID()+File.separator+"raw"+"."+rawExtendsion);
-                            fileMD5InfoRaw = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
+                            InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                            String rawExtendsion = MimeType.getExtension(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+                            rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "raw" + "." + rawExtendsion);
+                            FileMD5Info rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
+                            rawinfo.setMimeType(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+                            rawinfo.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
+                            md5InfosMap.put("RAW", rawinfo);
                             outputFileNames.put("RAW", rawFile.getAbsolutePath());
                             toGenerate.put("MIX_001", "RAW");
                             } catch (FedoraClientException e) {
@@ -717,8 +918,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (fileNames.get("MC_IMGGRP")!=null) {
                 toGenerate.put("MIX_002", "MC_IMGGRP");
             }
-
-            HashMap<String, String> streamVersions = new HashMap<String, String>();
 
             for (String name : toGenerate.keySet()) {
                 String streamName = toGenerate.get(name);
@@ -735,8 +934,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     JHoveOutput jHoveOutput;
                     if ("RAW".equals(streamName)) {
                         jHoveOutput = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext(), mixNodeDevice, rawCreated);
-                        // getPremis(metsElement, "RAW", fileMD5InfoRaw,
-                        // rawCreated, streamVersions.get("RAW"));
                     } else {
                         jHoveOutput = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext(), null, null);
                     }
@@ -744,7 +941,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         Node mixNode = jHoveOutput.getMixNode();
                         xmlData.getAny().add(mixNode);
                     }
-                    streamVersions.put(streamName, jHoveOutput.getFormatVersion());
+
+                    if (md5InfosMap.get(streamName) != null) {
+                        md5InfosMap.get(streamName).setFormatVersion(jHoveOutput.getFormatVersion());
+                    }
+
                     mdWrap.setXmlData(xmlData);
                     mdSec.setMdWrap(mdWrap);
                     amdSec.getTechMD().add(mdSec);
@@ -771,10 +972,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
             }
 
-
+            addPremisToAmdSec(amdSec, md5InfosMap, metsElement);
             mapType.setDiv(divType);
             saveAmdSec(metsElement, amdSecMets, fileNames, mimeTypes);
-            FileType fileType = prepareFileType(seq, "TECHMDGRP", fileNames, mimeTypes, metsElement.getMetsContext(), outputFileNames);
+            FileType fileType = prepareFileType(seq, "TECHMDGRP", fileNames, mimeTypes, metsElement.getMetsContext(), outputFileNames, md5InfosMap);
             this.fileGrpMap.get("TECHMDGRP").getFile().add(fileType);
             Fptr fptr = new Fptr();
             fptr.setFILEID(fileType);
@@ -938,10 +1139,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         HashMap<String, Object> fileNames = new HashMap<String, Object>();
         HashMap<String, String> mimeTypes = new HashMap<String, String>();
         HashMap<String, XMLGregorianCalendar> createDates = new HashMap<String, XMLGregorianCalendar>();
-        processPageFiles(metsElement, pageCounter, fileNames, mimeTypes, createDates);
+        HashMap<String, FileMD5Info> md5InfosMap = new HashMap<String, FileMD5Info>();
+        processPageFiles(metsElement, pageCounter, fileNames, mimeTypes, createDates, md5InfosMap);
         for (String streamName : Const.streamMapping.keySet()) {
             if (fileNames.containsKey(streamName)) {
-                FileType fileType = prepareFileType(pageCounter, streamName, fileNames, mimeTypes, metsElement.getMetsContext(), outputFileNames);
+                FileType fileType = prepareFileType(pageCounter, streamName, fileNames, mimeTypes, metsElement.getMetsContext(), outputFileNames, md5InfosMap);
                 fileGrpPage.get(streamName).getFile().add(fileType);
                 fileGrpMap.get(streamName).getFile().add(fileType);
                 Fptr fptr = new Fptr();
@@ -956,7 +1158,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
             }
         }
-        generateTechMetadata(metsElement, fileNames, pageCounter, fileGrpPage, mimeTypes, pageDiv, outputFileNames);
+        generateTechMetadata(metsElement, fileNames, pageCounter, fileGrpPage, mimeTypes, pageDiv, outputFileNames, md5InfosMap);
         StructLink structLink = mets.getStructLink();
         if (structLink == null) {
             structLink = new StructLink();

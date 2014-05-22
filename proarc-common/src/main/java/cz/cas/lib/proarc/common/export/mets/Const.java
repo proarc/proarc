@@ -97,8 +97,12 @@ public class Const {
 
     static {
         mimeToFmtMap.put("image/tiff", "fmt/353");
-        mimeToFmtMap.put("image/jp2", "x-fmt/392");
+        mimeToFmtMap.put("image/jp2", "fmt/151");
         mimeToFmtMap.put("text/xml", "fmt/101");
+        mimeToFmtMap.put("application/pdf", "fmt/18");
+        mimeToFmtMap.put("image/jpeg", "fmt/44");
+        mimeToFmtMap.put("audio/wav", "fmt/141");
+        mimeToFmtMap.put("audio/mpeg", "fmt/134");
 
         PSPElements.add(Const.MONOGRAPH_UNIT);
         PSPElements.add(Const.ISSUE);

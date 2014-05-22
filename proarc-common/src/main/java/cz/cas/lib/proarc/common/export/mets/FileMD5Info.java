@@ -17,6 +17,8 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
  * @author Robert Simonovsky
  *
@@ -26,6 +28,44 @@ package cz.cas.lib.proarc.common.export.mets;
 public class FileMD5Info {
     private String fileName;
     private String mimeType;
+    private XMLGregorianCalendar created;
+    private String formatVersion;
+
+    /**
+     * Return the formatVersion
+     *
+     * @return
+     */
+    public String getFormatVersion() {
+        return formatVersion;
+    }
+
+    /**
+     * Sets the formatVersion
+     *
+     * @param formatVersion
+     */
+    public void setFormatVersion(String formatVersion) {
+        this.formatVersion = formatVersion;
+    }
+
+    /**
+     * Returns the date of creation
+     *
+     * @return
+     */
+    public XMLGregorianCalendar getCreated() {
+        return created;
+    }
+
+    /**
+     * Sets the date of creation
+     *
+     * @param created
+     */
+    public void setCreated(XMLGregorianCalendar created) {
+        this.created = created;
+    }
 
     public String getMimeType() {
         return mimeType;
@@ -67,6 +107,10 @@ public class FileMD5Info {
         this.fileName = fileName;
         this.md5 = md5;
         this.size = size;
+    }
+
+    public FileMD5Info() {
+        super();
     }
 
     public FileMD5Info(String fileName) {

@@ -100,11 +100,31 @@ public class JhoveUtility {
      */
     private static void mergeMix(Node source, Document document, Node deviceMix) {
         NodeList nl = deviceMix.getChildNodes();
+        boolean processed = false;
         for (int a = 0; a < nl.getLength(); a++) {
             Node child = nl.item(a);
-            Node adoptedNode = child.cloneNode(true);
-            document.adoptNode(adoptedNode);
-            source.appendChild(adoptedNode);
+            NodeList nodelistchild = source.getChildNodes();
+            for (int i = 0; i < nodelistchild.getLength(); i++) {
+                if ((nodelistchild.item(i).getLocalName() != null) && (nodelistchild.item(i).getLocalName().equals(child.getLocalName()))) {
+                    // node already exists
+                    Node firstChild = nodelistchild.item(i).getFirstChild();
+                    NodeList nlExisting = child.getChildNodes();
+                    for (int b = 0; b < nlExisting.getLength(); b++) {
+                        Node adoptedNodeExisting = nlExisting.item(b).cloneNode(true);
+                        document.adoptNode(adoptedNodeExisting);
+                        nodelistchild.item(i).insertBefore(adoptedNodeExisting, firstChild);
+                    }
+                    processed = true;
+                    break;
+                }
+            }
+            if (!processed) {
+                Node adoptedNode = child.cloneNode(true);
+                document.adoptNode(adoptedNode);
+                source.appendChild(adoptedNode);
+            } else {
+                processed = false;
+            }
         }
     }
 
@@ -150,7 +170,7 @@ public class JhoveUtility {
                 Element elm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "dateTimeCreated");
                 Node generalInfo = getNodeRecursive(node, "GeneralCaptureInformation");
                 if (generalInfo != null) {
-                    generalInfo.appendChild(elm);
+                    generalInfo.insertBefore(elm, generalInfo.getFirstChild());
                     elm.setTextContent(dateCreated.toXMLFormat());
                 }
             }
@@ -168,12 +188,25 @@ public class JhoveUtility {
 
             // add format to BasicDigitalObjectInformation
             if (node != null) {
-                Element formatElm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "FormatDesignation");
+                Element formatElm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:FormatDesignation");
                 Element formatNameElm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:formatName");
                 Element formatVersionElm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:formatVersion");
                 Node basicInfo = getNodeRecursive(node, "BasicDigitalObjectInformation");
                 if (basicInfo != null) {
-                    basicInfo.appendChild(formatElm);
+                    // find byteOrder
+                    Node byteOrderNode = null;
+                    NodeList nl = basicInfo.getChildNodes();
+                    for (int i = 0; i < nl.getLength(); i++) {
+                        if ("byteOrder".equals(nl.item(i).getLocalName())) {
+                            byteOrderNode = nl.item(i);
+                            break;
+                        }
+                    }
+                    if (byteOrderNode != null) {
+                        basicInfo.insertBefore(formatElm, byteOrderNode);
+                    } else {
+                        basicInfo.insertBefore(formatElm, basicInfo.getFirstChild().getNextSibling());
+                    }
                     formatElm.appendChild(formatNameElm);
                     formatElm.appendChild(formatVersionElm);
                     formatNameElm.setTextContent(formatName);

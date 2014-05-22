@@ -86,7 +86,7 @@ public final class PremisUtils {
     /**
      * Dumps object to XML string.
      */
-    public static String toXml(PremisComplexType premis, boolean indent) {
+    public static String toXml(JAXBElement<PremisComplexType> premis, boolean indent) {
         StringWriter dump = new StringWriter();
         marshal(new StreamResult(dump), premis, indent);
         return dump.toString();
