@@ -24,6 +24,7 @@ import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.sound.sampled.SourceDataLine;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -136,7 +137,7 @@ public class JhoveUtility {
      * @param metsinfo
      * @return
      */
-    public static JHoveOutput getMixNode(File targetFile, MetsContext metsContext, Node deviceMix, XMLGregorianCalendar dateCreated) throws MetsExportException {
+    public static JHoveOutput getMixNode(File targetFile, MetsContext metsContext, Node deviceMix, XMLGregorianCalendar dateCreated, String originalFileName) throws MetsExportException {
         JHoveOutput jhoveOutput = new JHoveOutput();
 
         if (targetFile == null || !targetFile.isFile() || !targetFile.exists()) {
@@ -173,6 +174,20 @@ public class JhoveUtility {
                     generalInfo.insertBefore(elm, generalInfo.getFirstChild());
                     elm.setTextContent(dateCreated.toXMLFormat());
                 }
+            }
+
+            // add ChangeHistory
+            if ((dateCreated != null) && (originalFileName != null)) {
+            Element changeHistory = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:ChangeHistory");
+            Element ImageProcessing = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:ImageProcessing");
+            Element dateTimeProcessed = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:dateTimeProcessed");
+            Element sourceData = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:sourceData");
+            node.appendChild(changeHistory);
+            changeHistory.appendChild(ImageProcessing);
+            ImageProcessing.appendChild(dateTimeProcessed);
+            ImageProcessing.appendChild(sourceData);
+            dateTimeProcessed.setTextContent(dateCreated.toXMLFormat());
+            sourceData.setTextContent(originalFileName);
             }
 
             jhoveOutput.setMixNode(node);

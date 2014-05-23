@@ -933,9 +933,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
                     JHoveOutput jHoveOutput;
                     if ("RAW".equals(streamName)) {
-                        jHoveOutput = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext(), mixNodeDevice, rawCreated);
-                    } else {
-                        jHoveOutput = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext(), null, null);
+                        jHoveOutput = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext(), mixNodeDevice, rawCreated, null);
+                    } else if (("MC_IMGGRP".equals(streamName)) && (md5InfosMap.get("MC_IMGGRP") != null)) {
+                        String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
+                        jHoveOutput = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
+                    }
+                     else {
+                        jHoveOutput = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext(), null, null, null);
                     }
                     if (jHoveOutput.getMixNode() != null) {
                         Node mixNode = jHoveOutput.getMixNode();
