@@ -301,7 +301,6 @@ public final class NdkPeriodicalIssueForm {
                             + "<dt>MM.‐MM.RRRR</dt><dd>vydání pro více měsíců</dd>"
                             + "</dl>")
                     .createField()) // value
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200").createField())
                 .createField()) // dateIssued
                 // dateCreated, dateDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("dateCreated").setTitle("Date Created - R").setMaxOccurrences(1)
