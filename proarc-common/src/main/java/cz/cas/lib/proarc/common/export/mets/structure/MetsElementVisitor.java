@@ -48,6 +48,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -605,13 +606,20 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             } catch (DeviceException ex) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Bad device", false, ex);
             }
+            if (editor == null) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "No metadata for scanner", false, null);
+            }
 
             DOMResult domResult = new DOMResult();
             try {
                 TransformerFactory factory = TransformerFactory.newInstance();
                 try {
                     Transformer transformer = factory.newTransformer();
-                    transformer.transform(editor.read(), domResult);
+                    Source scannerMixSource = editor.read();
+                    if (scannerMixSource == null) {
+                        throw new MetsExportException(metsElement.getOriginalPid(), "No metadata for scanner", false, null);
+                    }
+                    transformer.transform(scannerMixSource, domResult);
                     if (domResult != null) {
                         if (domResult.getNode() != null) {
                             return domResult.getNode().getFirstChild();
