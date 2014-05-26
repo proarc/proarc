@@ -835,10 +835,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         toGenerate.put("OBJ_002", "MC_IMGGRP");
         toGenerate.put("OBJ_003", "ALTOGRP");
 
-        if (md5InfosMap.get("ALTOGRP") != null) {
-            md5InfosMap.get("ALTOGRP").setFormatVersion("2.0");
-        }
-
         for (String obj : toGenerate.keySet()) {
             String stream = toGenerate.get(obj);
             if (md5InfosMap.get(stream) == null) {
@@ -981,6 +977,30 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         fptr.setFILEID(fileTypePage);
                         divType.getFptr().add(fptr);
                     }
+                }
+            }
+
+            if (outputFileNames.get("ALTOGRP")!=null) {
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                try {
+                DocumentBuilder db = dbf.newDocumentBuilder();
+                File altoFile = new File(outputFileNames.get("ALTOGRP"));
+                if (altoFile.exists()) {
+                    Document altoDoc = db.parse(altoFile);
+                        String schemaLocation = altoDoc.getDocumentElement().getAttribute("xsi:schemaLocation");
+                        if (schemaLocation == null) {
+                            schemaLocation = altoDoc.getDocumentElement().getAttribute("schemaLocation");
+                        }
+                        if (schemaLocation != null) {
+                            if (schemaLocation.contains("http://www.loc.gov/standards/alto/ns-v2")) {
+                                md5InfosMap.get("ALTOGRP").setFormatVersion("2.0");
+                            } else {
+                                md5InfosMap.get("ALTOGRP").setFormatVersion("1.0");
+                            }
+                        }
+                }
+                } catch (Exception ex) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to parse ALTO file", false, ex);
                 }
             }
 
