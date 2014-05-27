@@ -115,16 +115,6 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                         DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                MODEL_MONOGRAPHSUPPLEMENT, null, null,
-                Arrays.asList(new ElementType("NDK Monograph Supplement", "en"), new ElementType("NDK Příloha Monografie", "cs")),
-                ModsConstants.NS,
-                MODEL_MONOGRAPHSUPPLEMENT,
-                this,
-                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
-                ));
-        models.add(new MetaModel(
                 MODEL_PERIODICALSUPPLEMENT, null, null,
                 Arrays.asList(new ElementType("NDK Periodical Supplement", "en"), new ElementType("NDK Příloha Periodika", "cs")),
                 ModsConstants.NS,
@@ -170,6 +160,16 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 Arrays.asList(new ElementType("NDK Monograph Volume", "en"), new ElementType("NDK Svazek monografie", "cs")),
                 ModsConstants.NS,
                 MODEL_MONOGRAPHVOLUME,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_MONOGRAPHSUPPLEMENT, null, null,
+                Arrays.asList(new ElementType("NDK Monograph Supplement", "en"), new ElementType("NDK Příloha Monografie", "cs")),
+                ModsConstants.NS,
+                MODEL_MONOGRAPHSUPPLEMENT,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
