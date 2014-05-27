@@ -17,7 +17,12 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
+import javax.xml.transform.dom.DOMResult;
+
 import org.w3c.dom.Node;
+
+import cz.cas.lib.proarc.mix.Mix;
+import cz.cas.lib.proarc.mix.MixUtils;
 
 public class JHoveOutput {
     String formatVersion;
@@ -31,7 +36,12 @@ public class JHoveOutput {
     }
 
     public Node getMixNode() {
-        return mixNode;
+        if (this.mix != null) {
+            DOMResult result = new DOMResult();
+            MixUtils.marshal(result, mix, true);
+            return result.getNode().getFirstChild();
+        }
+        return null;
     }
 
     public void setMixNode(Node mixNode) {
@@ -39,4 +49,13 @@ public class JHoveOutput {
     }
 
     Node mixNode;
+    Mix mix;
+
+    public Mix getMix() {
+        return mix;
+    }
+
+    public void setMix(Mix mix) {
+        this.mix = mix;
+    }
 }

@@ -24,18 +24,29 @@ import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import cz.cas.lib.proarc.mix.ChangeHistoryType;
+import cz.cas.lib.proarc.mix.ChangeHistoryType.ImageProcessing;
+import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType;
+import cz.cas.lib.proarc.mix.ImageCaptureMetadataType;
+import cz.cas.lib.proarc.mix.Mix;
+import cz.cas.lib.proarc.mix.MixUtils;
+import cz.cas.lib.proarc.mix.StringType;
+import cz.cas.lib.proarc.mix.TypeOfDateType;
 import edu.harvard.hul.ois.jhove.App;
 import edu.harvard.hul.ois.jhove.JhoveBase;
 import edu.harvard.hul.ois.jhove.Module;
@@ -91,52 +102,20 @@ public class JhoveUtility {
         }
     }
 
-    /**
-     * Merges the MIX info from Scanner and JHove
-     *
-     * @param source
-     * @param document
-     * @param deviceMix
-     */
-    private static void mergeMix(Node source, Document document, Node deviceMix) {
-        NodeList nl = deviceMix.getChildNodes();
-        boolean processed = false;
-        for (int a = 0; a < nl.getLength(); a++) {
-            Node child = nl.item(a);
-            NodeList nodelistchild = source.getChildNodes();
-            for (int i = 0; i < nodelistchild.getLength(); i++) {
-                if ((nodelistchild.item(i).getLocalName() != null) && (nodelistchild.item(i).getLocalName().equals(child.getLocalName()))) {
-                    // node already exists
-                    Node firstChild = nodelistchild.item(i).getFirstChild();
-                    NodeList nlExisting = child.getChildNodes();
-                    for (int b = 0; b < nlExisting.getLength(); b++) {
-                        Node adoptedNodeExisting = nlExisting.item(b).cloneNode(true);
-                        document.adoptNode(adoptedNodeExisting);
-                        nodelistchild.item(i).insertBefore(adoptedNodeExisting, firstChild);
-                    }
-                    processed = true;
-                    break;
-                }
-            }
-            if (!processed) {
-                Node adoptedNode = child.cloneNode(true);
-                document.adoptNode(adoptedNode);
-                source.appendChild(adoptedNode);
-            } else {
-                processed = false;
-            }
-        }
-    }
 
     /**
      *
-     * Returns a MIX node
+     * Returns the MIX data for fiven element
      *
      * @param targetFile
-     * @param metsinfo
+     * @param metsContext
+     * @param deviceMix
+     * @param dateCreated
+     * @param originalFileName
      * @return
+     * @throws MetsExportException
      */
-    public static JHoveOutput getMixNode(File targetFile, MetsContext metsContext, Node deviceMix, XMLGregorianCalendar dateCreated, String originalFileName) throws MetsExportException {
+    public static JHoveOutput getMix(File targetFile, MetsContext metsContext, Mix deviceMix, XMLGregorianCalendar dateCreated, String originalFileName) throws MetsExportException {
         JHoveOutput jhoveOutput = new JHoveOutput();
 
         if (targetFile == null || !targetFile.isFile() || !targetFile.exists()) {
@@ -161,36 +140,9 @@ public class JhoveUtility {
 
             outputFile.delete();
             Node node = getNodeRecursive(jHoveDoc, "mix");
-            if ((deviceMix != null) && (node != null)) {
-                mergeMix(node, jHoveDoc, deviceMix);
-            }
+            Mix mix = MixUtils.unmarshal(new DOMSource(node), Mix.class);
 
-            // add dateTimeCreated to GeneralCaptureInformation
-            if ((dateCreated != null) && (node != null)) {
-                Element elm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "dateTimeCreated");
-                Node generalInfo = getNodeRecursive(node, "GeneralCaptureInformation");
-                if (generalInfo != null) {
-                    generalInfo.insertBefore(elm, generalInfo.getFirstChild());
-                    elm.setTextContent(dateCreated.toXMLFormat());
-                }
-            }
-
-            // add ChangeHistory
-            if ((dateCreated != null) && (originalFileName != null)) {
-            Element changeHistory = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:ChangeHistory");
-            Element ImageProcessing = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:ImageProcessing");
-            Element dateTimeProcessed = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:dateTimeProcessed");
-            Element sourceData = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:sourceData");
-            node.appendChild(changeHistory);
-            changeHistory.appendChild(ImageProcessing);
-            ImageProcessing.appendChild(dateTimeProcessed);
-            ImageProcessing.appendChild(sourceData);
-            dateTimeProcessed.setTextContent(dateCreated.toXMLFormat());
-            sourceData.setTextContent(originalFileName);
-            }
-
-            jhoveOutput.setMixNode(node);
-            XPath xpath =  XPathFactory.newInstance().newXPath();
+            XPath xpath = XPathFactory.newInstance().newXPath();
             String formatVersion = xpath.compile("*[local-name()='jhove']/*[local-name()='repInfo']/*[local-name()='version']").evaluate(jHoveDoc);
             if ((formatVersion == null) || ("0".equals(formatVersion)) || (formatVersion.trim().length() == 0)) {
                 formatVersion = "1.0";
@@ -199,36 +151,62 @@ public class JhoveUtility {
             if ((formatName == null) || (formatName.trim().length() == 0)) {
                 formatName = "unknown";
             }
-
-            // add format to BasicDigitalObjectInformation
-            if (node != null) {
-                Element formatElm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:FormatDesignation");
-                Element formatNameElm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:formatName");
-                Element formatVersionElm = jHoveDoc.createElementNS("http://www.loc.gov/mix/v20", "mix:formatVersion");
-                Node basicInfo = getNodeRecursive(node, "BasicDigitalObjectInformation");
-                if (basicInfo != null) {
-                    // find byteOrder
-                    Node byteOrderNode = null;
-                    NodeList nl = basicInfo.getChildNodes();
-                    for (int i = 0; i < nl.getLength(); i++) {
-                        if ("byteOrder".equals(nl.item(i).getLocalName())) {
-                            byteOrderNode = nl.item(i);
-                            break;
-                        }
-                    }
-                    if (byteOrderNode != null) {
-                        basicInfo.insertBefore(formatElm, byteOrderNode);
-                    } else {
-                        basicInfo.insertBefore(formatElm, basicInfo.getFirstChild().getNextSibling());
-                    }
-                    formatElm.appendChild(formatNameElm);
-                    formatElm.appendChild(formatVersionElm);
-                    formatNameElm.setTextContent(formatName);
-                    formatVersionElm.setTextContent(formatVersion);
+            jhoveOutput.setFormatVersion(formatVersion);
+            // merge device and jhove Mix
+            if (deviceMix != null) {
+                if (deviceMix.getImageCaptureMetadata() != null) {
+                    DOMResult domResult = new DOMResult();
+                    MixUtils.marshal(domResult, new JAXBElement<ImageCaptureMetadataType>(new QName("uri", "local"), ImageCaptureMetadataType.class, deviceMix.getImageCaptureMetadata()), true);
+                    ImageCaptureMetadataType imageCaptureMtd = MixUtils.unmarshal(new DOMSource(domResult.getNode()), ImageCaptureMetadataType.class);
+                    mix.setImageCaptureMetadata(imageCaptureMtd);
                 }
             }
 
-            jhoveOutput.setFormatVersion(formatVersion);
+            // insert date time created
+            if ((dateCreated != null) && (mix != null)) {
+                TypeOfDateType dateTimeCreated = new TypeOfDateType();
+                dateTimeCreated.setValue(dateCreated.toXMLFormat());
+                if (mix.getImageCaptureMetadata() == null) {
+                    mix.setImageCaptureMetadata(new ImageCaptureMetadataType());
+                }
+                if (mix.getImageCaptureMetadata().getGeneralCaptureInformation() == null) {
+                    mix.getImageCaptureMetadata().setGeneralCaptureInformation(new ImageCaptureMetadataType.GeneralCaptureInformation());
+                }
+                mix.getImageCaptureMetadata().getGeneralCaptureInformation().setDateTimeCreated(dateTimeCreated);
+            }
+
+            // insert ChangeHistory
+            if ((dateCreated != null) && (originalFileName != null)) {
+                if (mix.getChangeHistory() == null) {
+                    mix.setChangeHistory(new ChangeHistoryType());
+                }
+                ImageProcessing imageProcessing = new ChangeHistoryType.ImageProcessing();
+                TypeOfDateType dateTimeProcessed = new TypeOfDateType();
+                dateTimeProcessed.setValue(dateCreated.toXMLFormat());
+                imageProcessing.setDateTimeProcessed(dateTimeProcessed);
+                StringType sourceData = new StringType();
+                sourceData.setValue(originalFileName);
+                imageProcessing.setSourceData(sourceData);
+                mix.getChangeHistory().getImageProcessing().add(imageProcessing);
+            }
+
+            // add formatVersion
+            if (mix != null) {
+                if (mix.getBasicDigitalObjectInformation() == null) {
+                    mix.setBasicDigitalObjectInformation(new BasicDigitalObjectInformationType());
+                }
+                if (mix.getBasicDigitalObjectInformation().getFormatDesignation() == null) {
+                    mix.getBasicDigitalObjectInformation().setFormatDesignation(new BasicDigitalObjectInformationType.FormatDesignation());
+                }
+                StringType formatNameType = new StringType();
+                StringType formatVersionType = new StringType();
+                formatNameType.setValue(formatName);
+                formatVersionType.setValue(formatVersion);
+                mix.getBasicDigitalObjectInformation().getFormatDesignation().setFormatName(formatNameType);
+                mix.getBasicDigitalObjectInformation().getFormatDesignation().setFormatVersion(formatVersionType);
+            }
+            jhoveOutput.setMix(mix);
+
         } catch (Exception e) {
             metsContext.getMetsExportException().addException("Error inspecting file '" + targetFile + "' - " + e.getMessage(), true, e);
         }

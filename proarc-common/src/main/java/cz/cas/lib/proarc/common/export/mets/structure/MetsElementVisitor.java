@@ -48,11 +48,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
@@ -71,6 +67,7 @@ import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 
+import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
@@ -82,9 +79,7 @@ import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.AreaType;
 import cz.cas.lib.proarc.mets.DivType;
@@ -103,6 +98,7 @@ import cz.cas.lib.proarc.mets.MetsType.MetsHdr.Agent;
 import cz.cas.lib.proarc.mets.MetsType.StructLink;
 import cz.cas.lib.proarc.mets.StructLinkType.SmLink;
 import cz.cas.lib.proarc.mets.StructMapType;
+import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.premis.AgentComplexType;
@@ -582,6 +578,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
     }
 
+
     /**
      * Returns the description of scanner
      *
@@ -589,51 +586,37 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @return
      * @throws MetsExportException
      */
-    private Node getScannerMix(IMetsElement metsElement) throws MetsExportException {
-        if (metsElement.getMetsContext().getRemoteStorage()!=null) {
-            Node deviceNode = MetsUtils.xPathEvaluateNode(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasDevice']");
-            if (deviceNode == null) {
-                return null;
-            }
-            Node attrNode = deviceNode.getAttributes().getNamedItem("rdf:resource");
-            if (attrNode==null) {
-                return null;
-            }
-            DeviceRepository deviceRepository = new DeviceRepository(metsElement.getMetsContext().getRemoteStorage());
-            XmlStreamEditor editor = null;
+    private Mix getScannerMix(IMetsElement metsElement) throws MetsExportException {
+       if (metsElement.getMetsContext().getRemoteStorage()!=null) {
+           Node deviceNode = MetsUtils.xPathEvaluateNode(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasDevice']");
+           if (deviceNode == null) {
+               return null;
+           }
+           Node attrNode = deviceNode.getAttributes().getNamedItem("rdf:resource");
+           if (attrNode==null) {
+               return null;
+           }
+           DeviceRepository deviceRepository = new DeviceRepository(metsElement.getMetsContext().getRemoteStorage());
+            String deviceId = attrNode.getNodeValue().replaceAll("info:fedora/", "");
+            List<Device> deviceList;
             try {
-                editor = deviceRepository.getDescriptionEditor(attrNode.getNodeValue().replaceAll("info:fedora/", ""));
-            } catch (DeviceException ex) {
-                throw new MetsExportException(metsElement.getOriginalPid(), "Bad device", false, ex);
+                deviceList = deviceRepository.find(deviceId, true);
+            } catch (DeviceException e) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get scanner info", false, e);
             }
-            if (editor == null) {
-                throw new MetsExportException(metsElement.getOriginalPid(), "No metadata for scanner", false, null);
+            if (deviceList.size() != 1) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get scanner info - expected 1 device, got:" + deviceList.size(), false, null);
+           }
+            Device device = deviceList.get(0);
+            if ((device.getDescription() == null) || (device.getDescription().getImageCaptureMetadata() == null)) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Scanner device does not have the description/imageCaptureMetadata set", false, null);
             }
+            Mix mix = device.getDescription();
+            return mix;
+       }
+       return null;
+   }
 
-            DOMResult domResult = new DOMResult();
-            try {
-                TransformerFactory factory = TransformerFactory.newInstance();
-                try {
-                    Transformer transformer = factory.newTransformer();
-                    Source scannerMixSource = editor.read();
-                    if (scannerMixSource == null) {
-                        throw new MetsExportException(metsElement.getOriginalPid(), "No metadata for scanner", false, null);
-                    }
-                    transformer.transform(scannerMixSource, domResult);
-                    if (domResult != null) {
-                        if (domResult.getNode() != null) {
-                            return domResult.getNode().getFirstChild();
-                        }
-                    }
-                } catch (TransformerException e) {
-                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to process device description", false, e);
-                }
-            } catch (DigitalObjectException e) {
-                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read device description", false, e);
-            }
-        }
-        return null;
-    }
 
     private Node getAgent(IMetsElement metsElement) throws MetsExportException {
         AgentComplexType agent = new AgentComplexType();
@@ -892,7 +875,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             HashMap<String, String> toGenerate = new HashMap<String, String>();
             File rawFile = null;
             XMLGregorianCalendar rawCreated = null;
-            Node mixNodeDevice = getScannerMix(metsElement);
+            Mix mixDevice = getScannerMix(metsElement);
             //RAW datastream for MIX_001 - only for Fedora
             if (metsElement.getMetsContext().getFedoraClient() != null) {
                 try {
@@ -937,16 +920,16 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
                     JHoveOutput jHoveOutput;
                     if ("RAW".equals(streamName)) {
-                        jHoveOutput = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext(), mixNodeDevice, rawCreated, null);
+                        jHoveOutput = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), mixDevice, rawCreated, null);
                     } else if (("MC_IMGGRP".equals(streamName)) && (md5InfosMap.get("MC_IMGGRP") != null)) {
                         String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
-                        jHoveOutput = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
+                        jHoveOutput = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
                     }
                      else {
-                        jHoveOutput = JhoveUtility.getMixNode(new File(outputFileName), metsElement.getMetsContext(), null, null, null);
+                        jHoveOutput = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, null, null);
                     }
-                    if (jHoveOutput.getMixNode() != null) {
-                        Node mixNode = jHoveOutput.getMixNode();
+                    Node mixNode = jHoveOutput.getMixNode();
+                    if (mixNode != null) {
                         xmlData.getAny().add(mixNode);
                     }
 
@@ -991,13 +974,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         if (schemaLocation == null) {
                             schemaLocation = altoDoc.getDocumentElement().getAttribute("schemaLocation");
                         }
-                        if (schemaLocation != null) {
-                            if (schemaLocation.contains("http://www.loc.gov/standards/alto/ns-v2")) {
+                        if ((schemaLocation != null) && (schemaLocation.contains("http://www.loc.gov/standards/alto/ns-v2"))) {
                                 md5InfosMap.get("ALTOGRP").setFormatVersion("2.0");
                             } else {
-                                md5InfosMap.get("ALTOGRP").setFormatVersion("1.0");
+                            throw new MetsExportException(metsElement.getOriginalPid(), "ALTO version is unsupported (supports only 2.x)", false, null);
                             }
-                        }
                 }
                 } catch (Exception ex) {
                     throw new MetsExportException(metsElement.getOriginalPid(), "Unable to parse ALTO file", false, ex);
