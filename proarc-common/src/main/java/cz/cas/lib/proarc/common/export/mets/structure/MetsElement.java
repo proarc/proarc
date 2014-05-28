@@ -206,9 +206,9 @@ public class MetsElement implements IMetsElement {
 
         this.relsExt = FoxmlUtils.findDatastream(digitalObject, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
         DatastreamVersionType dcVersion = FoxmlUtils.findDatastream(digitalObject, "DC").getDatastreamVersion().get(0);
-        this.descriptor = MetsUtils.removeModsCollection(dcVersion.getXmlContent().getAny());
+        this.descriptor = MetsUtils.removeSchemaLocation(MetsUtils.removeModsCollection(dcVersion.getXmlContent().getAny()));
         if (FoxmlUtils.findDatastream(digitalObject, "BIBLIO_MODS") != null) {
-            this.modsStream = MetsUtils.removeModsCollection(FoxmlUtils.findDatastream(digitalObject, "BIBLIO_MODS").getDatastreamVersion().get(0).getXmlContent().getAny());
+            this.modsStream = MetsUtils.removeSchemaLocation(MetsUtils.removeModsCollection(FoxmlUtils.findDatastream(digitalObject, "BIBLIO_MODS").getDatastreamVersion().get(0).getXmlContent().getAny()));
         } else {
             this.modsStream = null;
         }
