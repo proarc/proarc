@@ -292,6 +292,21 @@ public class MetsUtils {
     }
 
     /**
+     * Removes the schemaLocation attribute
+     *
+     * @param elements
+     * @return
+     */
+    public static List<Element> removeSchemaLocation(List<Element> elements) {
+        if (elements.size() > 0) {
+            Element element = elements.get(0);
+            element.removeAttribute("xsi:schemaLocation");
+            element.removeAttribute("schemaLocation");
+        }
+        return elements;
+    }
+
+    /**
      *
      * Removes the top element "modsCollection" from the xml
      *
