@@ -39,6 +39,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.Compression;
 import cz.cas.lib.proarc.mix.ChangeHistoryType;
 import cz.cas.lib.proarc.mix.ChangeHistoryType.ImageProcessing;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType;
@@ -205,8 +206,20 @@ public class JhoveUtility {
                 mix.getBasicDigitalObjectInformation().getFormatDesignation().setFormatName(formatNameType);
                 mix.getBasicDigitalObjectInformation().getFormatDesignation().setFormatVersion(formatVersionType);
             }
-            jhoveOutput.setMix(mix);
 
+            // workarround for bug in Jhove - Unknown compression for jpeg2000
+            if ("image/jp2".equals(formatName)) {
+                if (mix.getBasicDigitalObjectInformation() == null) {
+                    mix.setBasicDigitalObjectInformation(new BasicDigitalObjectInformationType());
+                }
+                mix.getBasicDigitalObjectInformation().getCompression().clear();
+                Compression compression = new BasicDigitalObjectInformationType.Compression();
+                StringType jpeg2000Type = new StringType();
+                jpeg2000Type.setValue("JPEG 2000");
+                compression.setCompressionScheme(jpeg2000Type);
+                mix.getBasicDigitalObjectInformation().getCompression().add(compression);
+            }
+            jhoveOutput.setMix(mix);
         } catch (Exception e) {
             metsContext.getMetsExportException().addException("Error inspecting file '" + targetFile + "' - " + e.getMessage(), true, e);
         }
