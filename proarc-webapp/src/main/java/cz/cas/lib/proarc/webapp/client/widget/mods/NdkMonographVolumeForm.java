@@ -352,9 +352,11 @@ public final class NdkMonographVolumeForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @type
                     // XXX autofill "marcform"
-                    .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200").setDefaultValue("marcform").createField())
+                    .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("marcform", "marcform")
+                    .createField()) // authority
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
-                        .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("print")
+                        .setType(Field.COMBO).setRequired(true).setHint("form")
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
                             + "<p>Odpovídá hodnotě v poli 008/23")
                         .addMapValue("braille", "braille")
