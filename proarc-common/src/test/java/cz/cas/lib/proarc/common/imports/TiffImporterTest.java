@@ -101,7 +101,9 @@ public class TiffImporterTest {
 
         alto1 = new File(root, "img1.ocr.xml");
         FileUtils.writeStringToFile(alto1,
-                "<alto xmlns=\"http://www.loc.gov/standards/alto/ns-v2#\"></alto>",
+                "<alto xmlns=\"http://www.loc.gov/standards/alto/ns-v2#\">"
+                    + "<Layout><Page ID=\"Page1\" PHYSICAL_IMG_NR=\"1\"/></Layout>"
+                + "</alto>",
                 "UTF-8");
 
         ac1 = new File(root, "img1.ac.jp2");

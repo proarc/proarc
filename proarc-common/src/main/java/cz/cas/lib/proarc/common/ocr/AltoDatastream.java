@@ -17,13 +17,18 @@
 package cz.cas.lib.proarc.common.ocr;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.common.export.mets.MetsLSResolver;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import java.io.IOException;
 import java.net.URI;
-import org.apache.commons.io.IOUtils;
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import org.xml.sax.SAXException;
 
 /**
  * ALTO data stream.
@@ -35,6 +40,8 @@ public final class AltoDatastream {
     public static final String ALTO_ID = "ALTO";
     public static final String ALTO_LABEL = "ALTO for this object";
     public static final String ALTO_FORMAT_URI = "http://www.loc.gov/standards/alto/ns-v2#";
+    private static Schema ALTO_SCHEMA;
+    private static final String ALTO_SCHEMA_PATH = "/xml/alto-v2.1.xsd";
 
     public static DatastreamProfile altoProfile() {
         return FoxmlUtils.managedProfile(ALTO_ID, ALTO_FORMAT_URI, ALTO_LABEL);
@@ -55,7 +62,7 @@ public final class AltoDatastream {
                                 altoUri.toASCIIString(), AltoDatastream.ALTO_FORMAT_URI),
                         null);
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new DigitalObjectException(fo.getPid(), altoUri.toASCIIString(), ex);
         }
         XmlStreamEditor editor = fo.getEditor(altoProfile());
@@ -67,8 +74,18 @@ public final class AltoDatastream {
      * @param alto URI
      * @throws IOException failure
      */
-    static boolean isAlto(URI alto) throws IOException {
-        String content = IOUtils.toString(alto);
-        return content.contains(ALTO_FORMAT_URI);
+    static boolean isAlto(URI alto) throws IOException, SAXException {
+        getSchema().newValidator().validate(new StreamSource(alto.toASCIIString()));
+        return true;
     }
+
+    public static Schema getSchema() throws SAXException {
+        if (ALTO_SCHEMA == null) {
+            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            schemaFactory.setResourceResolver(MetsLSResolver.getInstance());
+            ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH));
+        }
+        return ALTO_SCHEMA;
+    }
+
 }
