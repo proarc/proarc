@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.xml;
 
+import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -35,7 +36,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Validator;
 import org.custommonkey.xmlunit.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
@@ -141,6 +144,7 @@ public class TransformersTest {
             XMLAssert.assertXpathEvaluatesTo("54 487", "/m:mods/m:location/m:shelfLocator[1]", xmlResult);
             XMLAssert.assertXpathEvaluatesTo("test signatura", "/m:mods/m:location/m:shelfLocator[2]", xmlResult);
             XMLAssert.assertXpathEvaluatesTo("2", "count(/m:mods/m:location/m:shelfLocator)", xmlResult);
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
         }
@@ -253,6 +257,15 @@ public class TransformersTest {
         } finally {
             close(xmlIS);
         }
+    }
+
+    private void validateMods(Source source) throws Exception {
+        Validator v = ModsUtils.getSchema().newValidator();
+        ValidationErrorHandler handler = new ValidationErrorHandler();
+        v.setErrorHandler(handler);
+        v.validate(source);
+        List<String> errors = handler.getValidationErrors();
+        assertTrue(errors.toString(), errors.isEmpty());
     }
 
     private static void close(InputStream is) {

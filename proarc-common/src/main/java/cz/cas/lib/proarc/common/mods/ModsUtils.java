@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods;
 
+import cz.cas.lib.proarc.common.export.mets.MetsLSResolver;
 import cz.cas.lib.proarc.common.xml.Transformers;
 import cz.cas.lib.proarc.common.xml.Transformers.Format;
 import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.XMLConstants;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -47,6 +49,9 @@ import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import org.xml.sax.SAXException;
 
 /**
  * Utilities fro MODS version 3.4 and later.
@@ -63,6 +68,8 @@ public final class ModsUtils {
     private static JAXBContext defaultJaxbContext;
     private static ThreadLocal<Marshaller> defaultMarshaller = new ThreadLocal<Marshaller>();
     private static ThreadLocal<Unmarshaller> defaultUnmarshaller = new ThreadLocal<Unmarshaller>();
+    private static Schema MODS_SCHEMA;
+    private static final String MODS_SCHEMA_PATH = "mods-3-5.xsd";
 
     /**
      * Default MODS context. Oracle JAXB RI's context should be thread safe.
@@ -223,7 +230,15 @@ public final class ModsUtils {
         } catch (UnsupportedEncodingException ex) {
             throw new IllegalStateException(model, ex);
         }
+    }
 
+    public static Schema getSchema() throws SAXException {
+        if (MODS_SCHEMA == null) {
+            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            schemaFactory.setResourceResolver(MetsLSResolver.getInstance());
+            MODS_SCHEMA = schemaFactory.newSchema(ModsDefinition.class.getResource(MODS_SCHEMA_PATH));
+        }
+        return MODS_SCHEMA;
     }
 
 }

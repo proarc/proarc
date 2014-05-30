@@ -8,9 +8,10 @@
 <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
     MARC21slim2MODS3-4 (Revision 1.94) 20140221
 
-Revision 1.94.3 - ProArc patch to map 910a(sigla) as <physicalLocation> and 910b(signatura) as <shelfLocator>. Issue 32.
-Revision 1.94.2 - ProArc patch to fix <frequency authority="marcfrequency"> for fields 310a and 008/18
-Revision 1.94.1 - ProArc patch to include cCNB as <identifier type="ccnb"> from 015a,z
+Revision 1.94.proarc158 - ProArc patch to fix invalid <geographicCode authority="czenas"> for 043  |a |b e-xr-kr |2 czenas
+Revision 1.94.proarc32 - ProArc patch to map 910a(sigla) as <physicalLocation> and 910b(signatura) as <shelfLocator>.
+Revision 1.94.proarc118 - ProArc patch to fix <frequency authority="marcfrequency"> for fields 310a and 008/18
+Revision 1.94.proarc131 - ProArc patch to include cCNB as <identifier type="ccnb"> from 015a,z.
 Revision 1.94 - Leader 07 b mapping changed from "continuing" to "serial" tmee 2014/02/21
 Revision 1.93 - Fixed personal name transform for ind1=0 tmee 2014/01/31
 Revision 1.92 - Removed duplicate code for 856 1.51 tmee tmee 2014/01/31
@@ -877,7 +878,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </issuance>
             </xsl:for-each>
             <xsl:for-each select="marc:datafield[@tag=310]|marc:datafield[@tag=321]">
-                <!-- 1.94.2 patch -->
+                <!-- 1.94.proarc118 patch -->
                 <frequency>
                 <!--<frequency authority="marcfrequency">-->
                     <xsl:call-template name="subfieldSelect">
@@ -892,7 +893,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="marc:controlfield[@tag=008]">
                     <xsl:variable name="controlField008-18" select="substring($controlField008,19,1)"/>
                     <xsl:variable name="frequency">
-                        <!-- 1.94.2 patch -->
+                        <!-- 1.94.proarc118 patch -->
                         <frequency authority="marcfrequency">
                             <xsl:choose>
                                 <xsl:when test="$controlField008-18='a'">Annual</xsl:when>
@@ -1974,7 +1975,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="createLocationFrom856"/>
         </xsl:for-each>
 
-        <!--location: 1.94.3 -->
+        <!--location: 1.94.proarc32 -->
         <xsl:for-each select="marc:datafield[@tag=910]">
             <xsl:call-template name="createLocationFrom910"/>
         </xsl:for-each>
@@ -2397,7 +2398,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:apply-templates select="self::*" mode="trans880"/>
         </xsl:for-each>
 
-        <!-- 1.94.1 ProArc cCNB patch -->
+        <!-- 1.94.proarc131 ProArc cCNB patch -->
         <xsl:for-each select="marc:datafield[@tag='015']/marc:subfield[@code='a']">
             <xsl:if test="starts-with(current(), 'cnb')">
                 <identifier type="ccnb">
@@ -2412,7 +2413,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </identifier>
             </xsl:if>
         </xsl:for-each>
-        <!-- 1.94.1 ProArc cCNB patch -->
+        <!-- 1.94.proarc131 ProArc cCNB patch -->
 
         <!-- 856, 020, 024, 022, 028, 010, 035, 037 -->
 
@@ -4895,17 +4896,20 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="xxx880"/>
             <xsl:for-each select="marc:subfield[@code='a' or @code='b' or @code='c']">
                 <geographicCode>
-                    <xsl:attribute name="authority">
-                        <xsl:if test="@code='a'">
-                            <xsl:text>marcgac</xsl:text>
-                        </xsl:if>
-                        <xsl:if test="@code='b'">
-                            <xsl:value-of select="following-sibling::marc:subfield[@code=2]"/>
-                        </xsl:if>
-                        <xsl:if test="@code='c'">
-                            <xsl:text>iso3166</xsl:text>
-                        </xsl:if>
-                    </xsl:attribute>
+                    <!-- 1.94.proarc158 -->
+                    <xsl:if test="@code!='b'">
+                        <xsl:attribute name="authority">
+                            <xsl:if test="@code='a'">
+                                <xsl:text>marcgac</xsl:text>
+                            </xsl:if>
+<!--                            <xsl:if test="@code='b'">
+                                <xsl:value-of select="following-sibling::marc:subfield[@code=2]"/>
+                            </xsl:if>-->
+                            <xsl:if test="@code='c'">
+                                <xsl:text>iso3166</xsl:text>
+                            </xsl:if>
+                        </xsl:attribute>
+                    </xsl:if>
                     <xsl:value-of select="self::marc:subfield"/>
                 </geographicCode>
             </xsl:for-each>
@@ -5498,7 +5502,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </xsl:if>
     </xsl:template>
 
-    <!--location: 1.94.3 -->
+    <!--location: 1.94.proarc32 -->
 
     <xsl:template name="createLocationFrom910">
         <location>
