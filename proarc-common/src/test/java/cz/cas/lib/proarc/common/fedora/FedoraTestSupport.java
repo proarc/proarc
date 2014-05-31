@@ -45,6 +45,7 @@ public class FedoraTestSupport {
     public FedoraTestSupport() {
         client = fedoraClientSetup();
         storage = new RemoteStorage(client);
+        RemoteStorage.setInstance(storage);
     }
 
     private static FedoraClient fedoraClientSetup() {

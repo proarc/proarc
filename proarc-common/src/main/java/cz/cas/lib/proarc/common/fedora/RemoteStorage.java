@@ -67,6 +67,10 @@ public final class RemoteStorage {
         this.client = client;
     }
 
+    public static void setInstance(RemoteStorage rs) {
+        INSTANCE = rs;
+    }
+
     public static RemoteStorage getInstance() {
         if (INSTANCE == null) {
             throw new IllegalStateException("RemoteStorage not initialized!");
