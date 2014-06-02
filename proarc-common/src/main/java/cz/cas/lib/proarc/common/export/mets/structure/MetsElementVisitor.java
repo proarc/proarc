@@ -286,9 +286,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             }
             LOG.log(Level.FINE, "Element validated:" + metsElement.getOriginalPid() + "(" + metsElement.getElementType() + ")");
         } finally {
-            if (metsElement.getMetsContext().jhoveConfig != null) {
-                JhoveUtility.destroyConfigFiles(metsElement.getMetsContext().jhoveConfig);
-            }
+            JhoveUtility.destroyConfigFiles(metsElement.getMetsContext().getJhoveContext());
         }
         metsElement.getMetsContext().getGeneratedPSP().add(metsElement.getMetsContext().getPackageID());
     }
@@ -1605,9 +1603,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
             saveMets(mets, new File(metsElement.getMetsContext().getPackageDir().getAbsolutePath() + File.separator + "METS_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
         } finally {
-            if (metsElement.getMetsContext().jhoveConfig != null) {
-                JhoveUtility.destroyConfigFiles(metsElement.getMetsContext().jhoveConfig);
-            }
+            JhoveUtility.destroyConfigFiles(metsElement.getMetsContext().getJhoveContext());
         }
     }
 }

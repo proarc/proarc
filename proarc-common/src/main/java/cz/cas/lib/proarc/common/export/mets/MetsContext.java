@@ -27,11 +27,7 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import edu.harvard.hul.ois.jhove.App;
-import edu.harvard.hul.ois.jhove.JhoveBase;
 
 /**
  * Context for Mets mets export
@@ -61,6 +57,7 @@ public class MetsContext {
     private File packageDir;
     private String creatorOrganization = "ProArc";
     private String proarcVersion = "1.0";
+    private JhoveContext jhoveContext;
 
     /**
      * Returns the version of ProArc
@@ -161,9 +158,6 @@ public class MetsContext {
     private final MetsExportException metsExportException = new MetsExportException();
     private final List<FileMD5Info> fileList = new ArrayList<FileMD5Info>();
     private final HashMap<String, IMetsElement> pidElements = new HashMap<String, IMetsElement>();
-    public JhoveBase jhoveBase = null;
-    public String jhoveConfig = null;
-    public App jhoveApp = null;
 
     /**
      * return the map of elements for specified pid
@@ -358,4 +352,19 @@ public class MetsContext {
     public Integer getElementId(String elementId) {
         return elementIds.get(elementId);
     }
+
+    /**
+     * Gets the shared JHOVE instance.
+     */
+    public JhoveContext getJhoveContext() {
+        return jhoveContext;
+    }
+
+    /**
+     * Sets a shared JHOVE instance.
+     */
+    public void setJhoveContext(JhoveContext jhoveContext) {
+        this.jhoveContext = jhoveContext;
+    }
+
 }

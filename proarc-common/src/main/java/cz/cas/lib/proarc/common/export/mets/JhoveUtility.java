@@ -45,6 +45,7 @@ import cz.cas.lib.proarc.mix.ChangeHistoryType.ImageProcessing;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType;
 import cz.cas.lib.proarc.mix.ImageCaptureMetadataType;
 import cz.cas.lib.proarc.mix.Mix;
+import cz.cas.lib.proarc.mix.MixType;
 import cz.cas.lib.proarc.mix.MixUtils;
 import cz.cas.lib.proarc.mix.StringType;
 import cz.cas.lib.proarc.mix.TypeOfDateType;
@@ -52,6 +53,7 @@ import edu.harvard.hul.ois.jhove.App;
 import edu.harvard.hul.ois.jhove.JhoveBase;
 import edu.harvard.hul.ois.jhove.Module;
 import edu.harvard.hul.ois.jhove.OutputHandler;
+import java.util.UUID;
 
 /**
  * @author Robert Simonovsky
@@ -62,6 +64,7 @@ import edu.harvard.hul.ois.jhove.OutputHandler;
 public class JhoveUtility {
 
     private static final Logger LOG = Logger.getLogger(JhoveUtility.class.getName());
+    static final String JHOVE_CONFIG_NAME = "jhove.conf";
 
     public static Node getNodeRecursive(Node node, String localName) {
         if ((node.getLocalName() != null) && (node.getLocalName().startsWith(localName))) {
@@ -88,21 +91,69 @@ public class JhoveUtility {
      * @param metsInfo
      */
     public static void initJhove(MetsContext metsContext) throws MetsExportException {
+        if (metsContext.getJhoveContext() == null) {
+            File configFolder = new File(metsContext.getOutputPath(), metsContext.getPackageID());
+            metsContext.setJhoveContext(createContext(configFolder));
+        }
+    }
+
+    /**
+     * Creates the JHOVE context and stores its configuration in a default temp folder.
+     * Use {@link JhoveContext#destroy() } to remove temp folder.
+     *
+     * @return the context
+     * @throws MetsExportException failure
+     */
+    public static JhoveContext createContext() throws MetsExportException {
+        File temp = new File(FileUtils.getTempDirectory(), "jhove" + UUID.randomUUID().toString());
+        if (!temp.mkdir()) {
+            throw new MetsExportException("Cannot create " + temp.toString());
+        }
+        temp.deleteOnExit();
+        return createContext(temp);
+    }
+
+    /**
+     * Creates the JHOVE context and stores its configuration in the passed folder.
+     * <p>{@link JhoveContext#destroy() } will remove the configuration folder!
+
+     * @param configFolder folder to store configuration files
+     * @return the context
+     * @throws MetsExportException failure
+     * @see #destroyConfigFiles
+     */
+    public static JhoveContext createContext(File configFolder) throws MetsExportException {
         Calendar calendar = Calendar.getInstance();
 
         App app = new App(JhoveUtility.class.getSimpleName(), "1.0", new int[] { calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH) }, "jHove", "");
         try {
             JhoveBase jhoveBase = new JhoveBase();
-            File jhoveConfigFile = createJhoveConfigurationFile(metsContext);
+            File jhoveConfigFile = createJhoveConfigurationFile(configFolder);
             jhoveBase.init(jhoveConfigFile.getAbsolutePath(), null);
-            metsContext.jhoveBase = jhoveBase;
-            metsContext.jhoveApp = app;
-            metsContext.jhoveConfig = jhoveConfigFile.getParent();
+            return new JhoveContext(jhoveBase, configFolder, app);
         } catch (Exception ex) {
             throw new MetsExportException("Error while initialising jHove", false, ex);
         }
     }
 
+    /**
+     * Gets MIX of a source image file.
+     *
+     * @param sourceFile image file to describe with MIX
+     * @param tempFolder workspace for JHove
+     * @param deviceMix optional device description
+     * @param dateCreated optional date of creation of the source
+     * @param originalFileName optional image file name
+     * @return the MIX description
+     * @throws MetsExportException failure
+     */
+    public static JHoveOutput getMix(File sourceFile, File tempFolder,
+            MixType deviceMix, XMLGregorianCalendar dateCreated, String originalFileName
+            ) throws MetsExportException {
+
+        JhoveContext ctx = createContext(tempFolder);
+        return getMix(sourceFile, ctx, deviceMix, dateCreated, null);
+    }
 
     /**
      *
@@ -116,24 +167,43 @@ public class JhoveUtility {
      * @return
      * @throws MetsExportException
      */
-    public static JHoveOutput getMix(File targetFile, MetsContext metsContext, Mix deviceMix, XMLGregorianCalendar dateCreated, String originalFileName) throws MetsExportException {
+    public static JHoveOutput getMix(File targetFile, MetsContext metsContext, MixType deviceMix, XMLGregorianCalendar dateCreated, String originalFileName) throws MetsExportException {
+        initJhove(metsContext);
+        JhoveContext jhoveContext = metsContext.getJhoveContext();
+        return getMix(targetFile, jhoveContext, deviceMix, dateCreated, originalFileName);
+    }
+
+
+    /**
+     * Gets MIX of a source image file.
+     *
+     * @param sourceFile image file to describe with MIX
+     * @param jhoveContext JHove
+     * @param deviceMix optional device description
+     * @param dateCreated optional date of creation of the source
+     * @param originalFileName optional image file name
+     * @return the MIX description
+     * @throws MetsExportException failure
+     */
+    public static JHoveOutput getMix(File sourceFile, JhoveContext jhoveContext,
+            MixType deviceMix, XMLGregorianCalendar dateCreated, String originalFileName
+            ) throws MetsExportException {
+
         JHoveOutput jhoveOutput = new JHoveOutput();
 
-        if (targetFile == null || !targetFile.isFile() || !targetFile.exists()) {
-            LOG.log(Level.SEVERE, "target file '" + targetFile + "' cannot be found.");
-            throw new MetsExportException("target file '" + targetFile + "' cannot be found.", false, null);
-        }
-        if (metsContext.jhoveBase == null) {
-            initJhove(metsContext);
+        if (sourceFile == null || !sourceFile.isFile() || !sourceFile.exists()) {
+            LOG.log(Level.SEVERE, "target file '" + sourceFile + "' cannot be found.");
+            throw new MetsExportException("target file '" + sourceFile + "' cannot be found.", false, null);
         }
         try {
+            JhoveBase jhoveBase = jhoveContext.getJhoveBase();
             File outputFile = File.createTempFile("jhove", "output");
             LOG.log(Level.FINE, "JHOVE output file " + outputFile);
-            Module module = metsContext.jhoveBase.getModule(null);
-            OutputHandler aboutHandler = metsContext.jhoveBase.getHandler(null);
-            OutputHandler xmlHandler = metsContext.jhoveBase.getHandler("XML");
-            LOG.log(Level.FINE, "Calling JHOVE dispatch(...) on file " + targetFile);
-            metsContext.jhoveBase.dispatch(metsContext.jhoveApp, module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[] { targetFile.getAbsolutePath() });
+            Module module = jhoveBase.getModule(null);
+            OutputHandler aboutHandler = jhoveBase.getHandler(null);
+            OutputHandler xmlHandler = jhoveBase.getHandler("XML");
+            LOG.log(Level.FINE, "Calling JHOVE dispatch(...) on file " + sourceFile);
+            jhoveBase.dispatch(jhoveContext.getJhoveApp(), module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[] { sourceFile.getAbsolutePath() });
             DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
             builderFactory.setNamespaceAware(true);
             DocumentBuilder builder = builderFactory.newDocumentBuilder();
@@ -221,7 +291,7 @@ public class JhoveUtility {
             }
             jhoveOutput.setMix(mix);
         } catch (Exception e) {
-            metsContext.getMetsExportException().addException("Error inspecting file '" + targetFile + "' - " + e.getMessage(), true, e);
+            throw new MetsExportException("Error inspecting file '" + sourceFile + "' - " + e.getMessage(), false, e);
         }
         return jhoveOutput;
     }
@@ -232,11 +302,11 @@ public class JhoveUtility {
      * @return the {@link File} where the Jhove configuration was saved.
      *
      */
-    private synchronized static File createJhoveConfigurationFile(MetsContext metsContext) throws MetsExportException {
-        URL jhoveConf = JhoveUtility.class.getResource("jhove.conf");
+    private static File createJhoveConfigurationFile(File configFolder) throws MetsExportException {
+        URL jhoveConf = JhoveUtility.class.getResource(JHOVE_CONFIG_NAME);
         URL jhoveConfXsd = JhoveUtility.class.getResource("jhoveConfig.xsd");
         try {
-            File jhoveConfFile = new File(metsContext.getOutputPath() + File.separator + metsContext.getPackageID(), "jhove.conf");
+            File jhoveConfFile = new File(configFolder, JHOVE_CONFIG_NAME);
             LOG.log(Level.FINE, "JHOVE configuration file " + jhoveConfFile);
             if (!jhoveConfFile.exists()) {
                 FileUtils.copyURLToFile(jhoveConf, jhoveConfFile);
@@ -252,20 +322,24 @@ public class JhoveUtility {
     }
 
     /**
-     * Copy the Jhove configuration file to a temporary file.
-     *
-     * @return the {@link File} where the Jhove configuration was saved.
-     *
+     * Removes JHOVE configuration files (not folder) used by the context.
+     * It is here not to break {@link cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor}.
+     * @param ctx context
      */
-    public synchronized static void destroyConfigFiles(String configDir) throws MetsExportException {
-            File jhoveConfFile = new File(configDir + File.separator + "jhove.conf");
-            LOG.log(Level.FINE, "JHOVE configuration file " + jhoveConfFile);
-            if (jhoveConfFile.exists()) {
-                jhoveConfFile.delete();
-            }
-            File xsdFile = new File(configDir + File.separator + "jhoveConfig.xsd");
-            if (xsdFile.exists()) {
-                xsdFile.delete();
+    public static void destroyConfigFiles(JhoveContext ctx) {
+        if (ctx == null) {
+            return ;
+        }
+        File configDir = ctx.getConfigFolder();
+        File jhoveConfFile = new File(configDir, JHOVE_CONFIG_NAME);
+        LOG.log(Level.FINE, "JHOVE configuration file " + jhoveConfFile);
+        if (jhoveConfFile.exists()) {
+            jhoveConfFile.delete();
+        }
+        File xsdFile = new File(configDir, "jhoveConfig.xsd");
+        if (xsdFile.exists()) {
+            xsdFile.delete();
         }
     }
+
 }
