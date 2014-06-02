@@ -96,6 +96,9 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
             RemoteObject remote = (RemoteObject) fobject;
             String path = String.format("objects/%s/datastreams/%s/content", remote.getPid(), dsId);
             ClientResponse response = remote.getClient().resource().path(path).get(ClientResponse.class);
+            if (Status.fromStatusCode(response.getStatus()) == Status.NOT_FOUND) {
+                return Response.status(response.getStatus()).build();
+            }
             MultivaluedMap<String, String> headers = response.getHeaders();
             String filename = headers.getFirst("Content-Disposition");
             filename = filename != null ? filename : "inline; filename=" + pid + '-' + dsId;
