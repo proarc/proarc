@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright (C) 2014 Jan Pokorsky
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<jaxb:bindings xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+               xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+               version="2.1">
+
+    <jaxb:bindings schemaLocation="response.xsd">
+        <jaxb:bindings
+            node="//xsd:complexType[@name='predecessor']/xsd:simpleContent/xsd:extension/xsd:attribute[@name='value']">
+            <jaxb:property name="urnNbnValue" />
+        </jaxb:bindings>
+        <jaxb:bindings
+            node="//xsd:complexType[@name='successor']/xsd:simpleContent/xsd:extension/xsd:attribute[@name='value']">
+            <jaxb:property name="urnNbnValue" />
+        </jaxb:bindings>
+    </jaxb:bindings>
+
+</jaxb:bindings>

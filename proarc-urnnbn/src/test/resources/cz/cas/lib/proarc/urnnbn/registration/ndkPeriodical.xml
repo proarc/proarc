@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mods:mods version="3.5" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:classification authority="udc">371.133</mods:classification>
+    <mods:classification authority="udc">373.3</mods:classification>
+    <mods:classification authority="udc">(437.313)</mods:classification>
+    <mods:classification authority="udc">(051.067)</mods:classification>
+    <mods:classification authority="udc">908(437.1)Hradec Králové</mods:classification>
+    <mods:genre>title</mods:genre>
+    <mods:genre authority="marcgt">periodical</mods:genre>
+    <mods:genre authority="czenas">specializované časopisy</mods:genre>
+    <mods:identifier type="uuid">88f28bb7-a414-4377-8dd2-559707625249</mods:identifier>
+    <mods:identifier type="ccnb">cnb002372844</mods:identifier>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+    </mods:language>
+    <mods:location>
+        <mods:physicalLocation authority="siglaADR">HKA001</mods:physicalLocation>
+        <mods:shelfLocator>53 207</mods:shelfLocator>
+    </mods:location>
+    <mods:name type="corporate">
+        <mods:namePart>Okresní pedagogické středisko Hradec Králové</mods:namePart>
+    </mods:name>
+    <mods:note type="statement of responsibility" altRepGroup="00"></mods:note>
+    <mods:note type="date/sequential designation">Roč. 1 (1967/1968)-</mods:note>
+    <mods:originInfo>
+        <mods:place>
+            <mods:placeTerm authority="marccountry" type="code">xr</mods:placeTerm>
+        </mods:place>
+        <mods:place>
+            <mods:placeTerm type="text">Hradec Králové</mods:placeTerm>
+        </mods:place>
+        <mods:publisher>Okresní pedagogické středisko</mods:publisher>
+        <mods:dateIssued>1967</mods:dateIssued>
+        <mods:dateIssued encoding="marc" point="start">1967</mods:dateIssued>
+        <mods:dateIssued encoding="marc" point="end">9999</mods:dateIssued>
+        <mods:issuance>continuing</mods:issuance>
+        <mods:frequency>Vychází nepravidelně</mods:frequency>
+        <mods:frequency>10x ročně, 1969/1970-</mods:frequency>
+    </mods:originInfo>
+    <mods:physicalDescription>
+        <mods:form authority="marcform">print</mods:form>
+        <mods:extent>^^^sv. ; 21 cm</mods:extent>
+    </mods:physicalDescription>
+    <mods:recordInfo>
+        <mods:recordContentSource authority="marcorg">HKA001</mods:recordContentSource>
+        <mods:recordCreationDate encoding="iso8601">20140521T074359</mods:recordCreationDate>
+        <mods:recordChangeDate encoding="iso8601">20140521T074522</mods:recordChangeDate>
+        <mods:recordIdentifier source="CZ HkSVK">000177252</mods:recordIdentifier>
+        <mods:languageOfCataloging>
+            <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+        </mods:languageOfCataloging>
+        <mods:recordOrigin>Converted from MARCXML to MODS version 3.4 using MARC21slim2MODS3-4.xsl
+                (Revision 1.94 2014/02/21)</mods:recordOrigin>
+        <mods:descriptionStandard>aacr</mods:descriptionStandard>
+    </mods:recordInfo>
+    <mods:subject authority="czenas">
+        <mods:geographicCode authority="marcgac">e-xr---</mods:geographicCode>
+        <mods:geographicCode authority="czenas">e-xr-kr</mods:geographicCode>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:topic>pedagogická praxe</mods:topic>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:topic>základní školy</mods:topic>
+        <mods:geographic>Česko</mods:geographic>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:geographic>Hradec Králové (Česko : okres)</mods:geographic>
+    </mods:subject>
+    <mods:titleInfo>
+        <mods:title>Škola</mods:title>
+        <mods:subTitle>zpravodaj škol hradeckého okresu</mods:subTitle>
+    </mods:titleInfo>
+    <mods:typeOfResource>text</mods:typeOfResource>
+</mods:mods>

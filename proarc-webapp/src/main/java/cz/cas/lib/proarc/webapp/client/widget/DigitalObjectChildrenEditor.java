@@ -71,6 +71,7 @@ import cz.cas.lib.proarc.webapp.client.action.DigitalObjectFormValidateAction.Va
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
+import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
@@ -238,6 +239,7 @@ public final class DigitalObjectChildrenEditor
                 actionSource),
             Actions.asIconButton(DigitalObjectFormValidateAction.getInstance(i18n),
                     new ValidatableList(childrenListGrid)),
+            Actions.asIconButton(new UrnNbnAction(i18n), actionSource),
             saveActionButton = Actions.asIconButton(saveAction, this),
         };
     }

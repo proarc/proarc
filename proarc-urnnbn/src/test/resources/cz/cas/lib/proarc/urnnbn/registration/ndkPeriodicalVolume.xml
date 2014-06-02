@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mods:mods version="3.5" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:genre>volume</mods:genre>
+    <mods:identifier type="uuid">7556ac9e-78d4-471e-840f-a5bf0800fde9</mods:identifier>
+    <mods:originInfo>
+        <mods:dateIssued>1967-1968</mods:dateIssued>
+    </mods:originInfo>
+    <mods:titleInfo>
+        <mods:partNumber>1</mods:partNumber>
+    </mods:titleInfo>
+</mods:mods>

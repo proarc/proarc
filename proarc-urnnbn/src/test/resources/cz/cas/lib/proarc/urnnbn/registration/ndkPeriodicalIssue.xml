@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mods:mods version="3.5" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:genre type="normal">issue</mods:genre>
+    <mods:identifier type="uuid">18ac200c-7e1a-4367-a089-71077231da1c</mods:identifier>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+    </mods:language>
+    <mods:location>
+        <mods:physicalLocation authority="siglaADR">HKA001</mods:physicalLocation>
+        <mods:shelfLocator>53 207/1967-1968</mods:shelfLocator>
+    </mods:location>
+    <mods:originInfo>
+        <mods:dateIssued>1967</mods:dateIssued>
+    </mods:originInfo>
+    <mods:part type="issue"/>
+    <mods:subject authority="czenas"/>
+    <mods:titleInfo>
+        <mods:title>Škola</mods:title>
+        <mods:subTitle>zpravodaj škol hradeckého okresu</mods:subTitle>
+        <mods:partNumber>1-2</mods:partNumber>
+    </mods:titleInfo>
+</mods:mods>

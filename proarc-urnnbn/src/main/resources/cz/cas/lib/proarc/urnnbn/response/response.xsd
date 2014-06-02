@@ -1,0 +1,524 @@
+<?xml version="1.0"?>
+<!--
+Copyright (C) 2011, 2012 Martin Řehánek
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:r="http://resolver.nkp.cz/v3/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" elementFormDefault="qualified" targetNamespace="http://resolver.nkp.cz/v3/" xsi:schemaLocation="http://www.w3.org/2001/XMLSchema http://www.w3.org/2001/XMLSchema.xsd">
+
+    <!--OAI response doesn't need r:response element-->
+    <xs:element name="digitalDocument" type="r:digitalDocument" />
+
+    <xs:element name="response">
+        <xs:complexType>
+            <xs:choice>
+                <xs:element name="error" type="r:errorType" />
+                <xs:element name="digitalInstances" type="r:digitalInstances" />
+                <xs:element name="digitalInstance" type="r:digitalInstance" />
+                <xs:element name="registrars" type="r:registrars" />
+                <xs:element name="registrar" type="r:registrar" />
+                <xs:element name="urnNbn" type="r:urnNbn" />
+                <xs:element name="urnNbnReservations" type="r:urnNbnReservations" />
+                <xs:element name="urnNbnReservation" type="r:urnNbnReservation" />
+                <xs:element name="digitalDocuments" type="r:digitalDocuments" />
+                <xs:element name="digitalDocument" type="r:digitalDocument" />
+                <xs:element name="registrarScopeIdentifiers" type="r:registrarScopeIdentifiers" />
+                <xs:element name="id" type="r:registrarScopeIdentifier" />
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="digitalInstance">
+        <xs:sequence>
+            <xs:element name="url" type="r:url" />
+            <xs:element name="format" type="xs:string" minOccurs="0" />
+            <xs:element name="accessibility" type="xs:string" minOccurs="0" />
+            <xs:element name="digitalLibraryId" type="xs:int" minOccurs="0" />
+            <xs:element name="created" type="xs:dateTime" />
+            <xs:element name="deactivated" type="xs:dateTime" minOccurs="0" />
+            <xs:element name="digitalLibrary" type="r:digitalLibrary" minOccurs="0" />
+            <xs:element name="digitalDocument" type="r:digitalDocument" minOccurs="0" />
+        </xs:sequence>
+        <xs:attribute name="active" use="required" type="xs:boolean" />
+        <xs:attribute name="id" use="required" type="xs:int" />
+    </xs:complexType>
+
+    <xs:complexType name="digitalInstances">
+        <xs:sequence>
+            <xs:element name="digitalInstance" type="r:digitalInstance" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+        <xs:attribute name="count" use="optional" type="xs:int" />
+    </xs:complexType>
+
+    <!-- digital library -->
+    <xs:complexType name="digitalLibrary">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string" />
+            <xs:element name="description" type="xs:string" minOccurs="0" />
+            <xs:element name="url" type="r:url" minOccurs="0" />
+            <xs:element name="created" type="xs:dateTime" />
+            <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
+            <xs:element name="registrar" type="r:registrar" minOccurs="0" />
+        </xs:sequence>
+        <xs:attribute name="id" use="required" type="xs:int" />
+    </xs:complexType>
+
+    <!-- catalog -->
+    <xs:complexType name="catalog">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string" />
+            <xs:element name="description" type="xs:string" minOccurs="0" />
+            <xs:element name="urlPrefix" type="r:url" minOccurs="0" />
+            <xs:element name="created" type="xs:dateTime" />
+            <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
+        </xs:sequence>
+        <xs:attribute name="id" use="required" type="xs:int" />
+    </xs:complexType>
+
+    <!-- registrars -->
+    <xs:complexType name="registrars">
+        <xs:sequence>
+            <xs:element name="registrar" type="r:registrar" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- registrar -->
+    <xs:complexType name="registrar">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string" />
+            <xs:element name="description" type="xs:string" minOccurs="0" />
+            <xs:element name="created" type="xs:dateTime" minOccurs="0" />
+            <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
+            <xs:element name="registrationModes" type="r:registrationModes" minOccurs="0" />
+            <xs:element name="digitalLibraries" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="digitalLibrary" type="r:digitalLibrary" minOccurs="0" maxOccurs="unbounded" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="catalogs" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="catalog" type="r:catalog" minOccurs="0" maxOccurs="unbounded" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="code" use="required" type="xs:string" />
+        <xs:attribute name="id" use="optional" type="xs:string" />
+    </xs:complexType>
+
+    <!-- archiver -->
+    <xs:complexType name="archiver">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string" />
+            <xs:element name="description" type="xs:string" minOccurs="0" />
+            <xs:element name="created" type="xs:dateTime" minOccurs="0" />
+        </xs:sequence>
+        <xs:attribute name="id" use="optional" type="xs:string" />
+    </xs:complexType>
+
+    <!--registration modes-->
+    <xs:complexType name="registrationModes">
+        <xs:sequence>
+            <xs:element name="mode" type="r:registrationMode" minOccurs="0" maxOccurs="3" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!--registration mode-->
+    <xs:complexType name="registrationMode">
+        <xs:attribute name="name" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="BY_REGISTRAR" />
+                    <xs:enumeration value="BY_RESOLVER" />
+                    <xs:enumeration value="BY_RESERVATION" />
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="enabled" use="required" type="xs:boolean" />
+    </xs:complexType>
+
+    <!-- digital document -->
+    <xs:complexType name="digitalDocument">
+        <xs:sequence>
+            <xs:element name="urnNbn" type="r:urnNbn" />
+            <xs:element name="financed" type="xs:string" minOccurs="0" />
+            <xs:element name="contractNumber" type="xs:string" minOccurs="0" />
+            <xs:element name="created" type="xs:dateTime" />
+            <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
+            <xs:element name="intelectualEntity" type="r:intelectualEntity" minOccurs="0" />
+            <xs:element name="technicalMetadata" type="r:technicalMetadata" />
+            <xs:element name="registrarScopeIdentifiers" type="r:registrarScopeIdentifiers" minOccurs="0" />
+            <xs:element name="registrar" type="r:registrar" minOccurs="0" />
+            <xs:element name="archiver" type="r:archiver" minOccurs="0" />
+            <xs:element name="digitalInstances" type="r:digitalInstances" minOccurs="0" />
+        </xs:sequence>
+        <xs:attribute name="id" use="required" type="xs:int" />
+    </xs:complexType>
+
+    <!-- digital documents -->
+    <xs:complexType name="digitalDocuments">
+        <xs:sequence>
+            <xs:element name="digitalDocument" type="r:digitalDocument" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+        <xs:attribute name="count" use="required" type="xs:int" />
+    </xs:complexType>
+
+
+
+    <!-- urn:nbn reservations -->
+    <xs:complexType name="urnNbnReservations">
+        <xs:sequence>
+            <xs:element name="maxReservationSize" type="xs:int" />
+            <xs:element name="defaultReservationSize" type="xs:int" />
+            <xs:element name="reserved">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="urnNbn" type="r:urnNbnReserved" minOccurs="0" maxOccurs="unbounded" />
+                    </xs:sequence>
+                    <xs:attribute name="totalSize" use="optional" type="xs:int" />
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="urnNbnReserved">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="reserved" use="optional" type="xs:dateTime" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="urnNbnReservation">
+        <xs:sequence>
+            <xs:element name="urnNbn" type="r:urnNbnReserved" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- intelectual entity -->
+    <xs:complexType name="intelectualEntity">
+        <xs:sequence>
+            <xs:element name="created" type="xs:dateTime" />
+            <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
+            <xs:element name="titleInfo" type="r:titleInfo" />
+            <xs:element name="ccnb" type="xs:string" minOccurs="0" />
+            <xs:element name="isbn" type="xs:string" minOccurs="0" />
+            <xs:element name="issn" type="xs:string" minOccurs="0" />
+            <xs:element name="otherId" type="xs:string" minOccurs="0" />
+            <xs:element name="documentType" type="xs:string" minOccurs="0" />
+            <xs:element name="digitalBorn" type="xs:boolean" minOccurs="0" />
+            <xs:element name="primaryOriginator" type="r:primaryOriginator" minOccurs="0" />
+            <xs:element name="otherOriginator" type="xs:string" minOccurs="0" />
+            <xs:element name="publication" type="r:publication" minOccurs="0" />
+            <xs:element name="sourceDocument" type="r:sourceDocument" minOccurs="0" />
+            <xs:element name="degreeAwardingInstitution" type="xs:string" minOccurs="0" />
+        </xs:sequence>
+        <xs:attribute name="type" use="required" type="r:ieType" />
+    </xs:complexType>
+
+    <xs:simpleType name="ieType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MONOGRAPH" />
+            <xs:enumeration value="MONOGRAPH_VOLUME" />
+            <xs:enumeration value="PERIODICAL" />
+            <xs:enumeration value="PERIODICAL_VOLUME" />
+            <xs:enumeration value="PERIODICAL_ISSUE" />
+            <xs:enumeration value="THESIS" />
+            <xs:enumeration value="ANALYTICAL" />
+            <xs:enumeration value="OTHER" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="titleInfo">
+        <xs:sequence>
+            <xs:element name="title" type="xs:string" minOccurs="0" />
+            <xs:element name="subTitle" type="xs:string" minOccurs="0" />
+            <xs:element name="monographTitle" type="xs:string" minOccurs="0" />
+            <xs:element name="periodicalTitle" type="xs:string" minOccurs="0" />
+            <xs:element name="volumeTitle" type="xs:string" minOccurs="0" />
+            <xs:element name="issueTitle" type="xs:string" minOccurs="0" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="nonemptyString">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- urn:nbn -->
+    <xs:simpleType name="urnNbnType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="urn:nbn:[A-Za-z]{2}:[A-Za-z0-9]{2,6}\-[A-Za-z0-9]{6}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- registrar scope identifiers -->
+    <xs:complexType name="registrarScopeIdentifiers">
+        <xs:sequence>
+            <xs:element name="id" type="r:registrarScopeIdentifier" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- registrar scope identifier and type -->
+    <xs:complexType name="registrarScopeIdentifier">
+        <xs:simpleContent>
+            <xs:extension base="r:registarScopeIdValueType">
+                <xs:attribute name="type" use="required" type="r:registarScopeIdTypeType" />
+                <xs:attribute name="previousValue" use="optional" type="r:registarScopeIdValueType" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- identifier value -->
+    <xs:simpleType name="registarScopeIdValueType">
+        <!-- In API V2 were allowed only these characters: A-Z a-z 0-9 $ - _ . + ! * ' ( ) , : @ -->
+        <!-- Now are allowed all reserved and unreserved URI characters as specified in RFC 3986 (sections 2.2 and 2.3)-->
+        <!-- unreserved characters: -->
+        <!-- A-Z a-z 0-9 -_.~ -->
+        <!-- reserved characters (must be url-encoded): -->
+        <!-- ! * ' ( ) ; : @ & = + $ , / ? # [ ] -->
+        <!-- i.e. these characters are newly allowed: ? [ ] ; & = / #-->
+        <xs:restriction base="xs:token">
+            <xs:pattern value="[A-Za-z0-9\-_\.~!\*'\(\);:@&amp;=+$,/\?#\[\]]{1,60}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- identifier type -->
+    <xs:simpleType name="registarScopeIdTypeType">
+        <xs:restriction base="xs:token">
+            <xs:pattern value="[A-Za-z0-9_\-:]{1,20}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- primary originator -->
+    <xs:complexType name="primaryOriginator">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="type" use="required" type="r:originatorTypeType" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- originator type -->
+    <xs:simpleType name="originatorTypeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="AUTHOR" />
+            <xs:enumeration value="EVENT" />
+            <xs:enumeration value="CORPORATION" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- source document -->
+    <xs:complexType name="sourceDocument">
+        <xs:sequence>
+            <xs:element name="titleInfo" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="title" type="xs:string" minOccurs="1" maxOccurs="1" />
+                        <xs:element name="volumeTitle" type="xs:string" minOccurs="0" maxOccurs="1" />
+                        <xs:element name="issueTitle" type="xs:string" minOccurs="0" maxOccurs="1" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ccnb" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="isbn" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="issn" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="otherId" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="publication" type="r:publication" minOccurs="0" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- publication -->
+    <xs:complexType name="publication">
+        <xs:sequence>
+            <xs:element name="publisher" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="place" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <!--TODO: zminit zmenu v dokumentaci. Rok byval xs:int, teď tam muze byt string, ale pokud neobsahuje cislo, zahodi se -->
+            <!--TODO: projit ostatni data a pokud najdu podobny int, tak udelat to same-->
+            <xs:element name="year" type="xs:string" minOccurs="0" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- url -->
+    <xs:simpleType name="url">
+        <xs:restriction base="xs:string">
+            <!--starts with http:// or https:// (case insensitive) with total length at most 2008 characters-->
+            <xs:pattern value="[hH][tT]{2}[pP][sS]{0,1}://.{1,200}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- URN:NBN country code -->
+    <xs:simpleType name="countryCode">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Za-z]{2}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- URN:NBN registrar code -->
+    <xs:simpleType name="registrarCode">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Za-z0-9]{2,6}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- URN:NBN document code -->
+    <xs:simpleType name="documentCode">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Za-z0-9]{6}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- urn:nbn element -->
+    <xs:complexType name="urnNbn">
+        <xs:sequence>
+            <xs:element name="status" minOccurs="0">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="FREE" />
+                        <xs:enumeration value="RESERVED" />
+                        <xs:enumeration value="ACTIVE" />
+                        <xs:enumeration value="DEACTIVATED" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="deactivationNote" type="xs:string" minOccurs="0" />
+            <xs:element name="value" type="r:urnNbnType" />
+            <xs:element name="countryCode" type="r:countryCode" minOccurs="0" />
+            <xs:element name="registrarCode" type="r:registrarCode" minOccurs="0" />
+            <xs:element name="documentCode" type="r:documentCode" minOccurs="0" />
+            <xs:element name="digitalDocumentId" type="xs:int" minOccurs="0" />
+            <xs:element name="reserved" type="xs:dateTime" minOccurs="0" />
+            <xs:element name="registered" type="xs:dateTime" minOccurs="0" />
+            <xs:element name="deactivated" type="xs:dateTime" minOccurs="0" />
+            <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
+            <xs:element name="predecessor" type="r:predecessor" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="successor" type="r:successor" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!--predecessor-->
+    <xs:complexType name="predecessor">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="value" type="r:urnNbnType" />
+                <xs:attribute name="note" use="optional" type="xs:string" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!--successor -->
+    <xs:complexType name="successor">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="value" type="r:urnNbnType" />
+                <xs:attribute name="note" use="optional" type="xs:string" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- technical metadata -->
+    <xs:complexType name="technicalMetadata">
+        <xs:sequence>
+            <xs:element name="format" type="r:format" minOccurs="0" maxOccurs="1" />
+            <xs:element name="extent" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="resolution" type="r:resolution" minOccurs="0" maxOccurs="1" />
+            <xs:element name="compression" type="r:compression" minOccurs="0" maxOccurs="1" />
+            <xs:element name="color" type="r:color" minOccurs="0" maxOccurs="1" />
+            <xs:element name="iccProfile" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="pictureSize" type="r:pictureSize" minOccurs="0" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- format and format version -->
+    <xs:complexType name="format">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="version" type="xs:string" use="optional" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- resolution -->
+    <xs:complexType name="resolution">
+        <xs:sequence>
+            <xs:element name="horizontal" type="xs:integer" minOccurs="1" maxOccurs="1" />
+            <xs:element name="vertical" type="xs:integer" minOccurs="1" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- compression and compression ration -->
+    <xs:complexType name="compression">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="ratio" type="xs:double" use="optional" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- color characteristics -->
+    <xs:complexType name="color">
+        <xs:sequence>
+            <xs:element name="model" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="depth" type="xs:integer" minOccurs="0" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- picture size -->
+    <xs:complexType name="pictureSize">
+        <xs:sequence>
+            <xs:element name="width" type="xs:integer" minOccurs="1" maxOccurs="1" />
+            <xs:element name="height" type="xs:integer" minOccurs="1" maxOccurs="1" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="errorType">
+        <xs:sequence>
+            <xs:element name="code" type="r:errorCodeType" />
+            <xs:element name="message" type="xs:string" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="errorCodeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ALREADY_DEACTIVATED" />
+            <xs:enumeration value="DIGITAL_INSTANCE_ALREADY_PRESENT" />
+            <xs:enumeration value="INCORRECT_PREDECESSOR_FREE" />
+            <xs:enumeration value="INCORRECT_PREDECESSOR_RESERVED" />
+            <xs:enumeration value="INVALID_ARCHIVER_ID" />
+            <xs:enumeration value="INVALID_DATA" />
+            <xs:enumeration value="INVALID_REGISTRAR_SCOPE_IDENTIFIER" />
+            <xs:enumeration value="INVALID_DIGITAL_DOCUMENT_ID_TYPE" />
+            <xs:enumeration value="INVALID_DIGITAL_INSTANCE_ID" />
+            <xs:enumeration value="INVALID_QUERY_PARAM_VALUE" />
+            <xs:enumeration value="INVALID_REGISTRAR_CODE" />
+            <xs:enumeration value="INVALID_URN_NBN" />
+            <xs:enumeration value="MISSING_PARAMETER" />
+            <xs:enumeration value="NOT_AUTHENTICATED" />
+            <xs:enumeration value="NOT_AUTHORIZED" />
+            <xs:enumeration value="NOT_DEFINED" />
+            <xs:enumeration value="UNAUTHORIZED_REGISTRATION_MODE" />
+            <xs:enumeration value="UNKNOWN_DIGITAL_DOCUMENT" />
+            <xs:enumeration value="UNKNOWN_DIGITAL_INSTANCE" />
+            <xs:enumeration value="UNKNOWN_DIGITAL_LIBRARY" />
+            <xs:enumeration value="UNKNOWN_REGISTRAR" />
+            <xs:enumeration value="UNKNOWN_URN" />
+            <xs:enumeration value="URN_NBN_DEACTIVATED" />
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

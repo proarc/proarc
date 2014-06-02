@@ -47,6 +47,7 @@ import cz.cas.lib.proarc.webapp.client.action.KrameriusExportAction;
 import cz.cas.lib.proarc.webapp.client.action.NdkExportAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
@@ -82,6 +83,7 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction mediaEditAction;
     private DigitalObjectEditAction childrenEditAction;
     private DigitalObjectEditAction atmEditAction;
+    private UrnNbnAction registerUrnNbnAction;
     private boolean initialized;
 
     public DigitalObjectManager(ClientMessages i18n, PlaceController places) {
@@ -214,6 +216,7 @@ public final class DigitalObjectManager {
                 i18n.DigitalObjectEditor_AdministrationAction_Hint(),
                 null,
                 DatastreamEditorType.ATM, places);
+        registerUrnNbnAction = new UrnNbnAction(i18n);
     }
     
     /**
@@ -258,6 +261,7 @@ public final class DigitalObjectManager {
         toolbar.addMember(Actions.asIconButton(foxmlAction, actionSource));
         toolbar.addMember(btnExport);
         toolbar.addMember(Actions.asIconButton(deleteAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(registerUrnNbnAction, actionSource));
     }
 
     private void initContextMenu(Menu menu, ActionSource actionSource) {
@@ -279,6 +283,7 @@ public final class DigitalObjectManager {
         menu.addItem(Actions.asMenuItem(rawDataStreamExportAction, actionSource, false));
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(deleteAction, actionSource, true));
+        menu.addItem(Actions.asMenuItem(registerUrnNbnAction, actionSource, true));
     }
 
     private final class RefreshableView implements Refreshable {

@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.object.NdkPlugin;
+import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -123,6 +124,10 @@ public final class AppConfiguration {
 
     public DesaServices getDesaServices() {
         return new DesaServices(config);
+    }
+
+    public UrnNbnConfiguration getUrnNbnConfiguration() {
+        return new UrnNbnConfiguration(config);
     }
 
     public String[] getPlugins() {

@@ -54,6 +54,11 @@
             <artifactId>proarc-desa</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-urnnbn</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>edu.harvard.hul.ois</groupId>
