@@ -27,22 +27,25 @@ import java.util.logging.Logger;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
+import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.mods.Mods33Utils;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -187,6 +190,46 @@ public class MetsElement implements IMetsElement {
     }
 
     /**
+     * Validates Mods and Dc against xsd schema
+     *
+     * @throws MetsExportException
+     */
+    private void validateDCMODS() throws MetsExportException {
+        List<String> validationErrors;
+
+        if (this.descriptor != null) {
+            Document dcDoc = MetsUtils.getDocumentFromList(this.descriptor);
+            try {
+                validationErrors = MetsUtils.validateAgainstXSD(dcDoc, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
+            } catch (Exception ex) {
+                throw new MetsExportException(this.getOriginalPid(), "Error while validating DC for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, ex);
+            }
+
+            if (validationErrors.size() > 0) {
+                MetsExportException metsException = new MetsExportException(this.getOriginalPid(), "Invalid DC in BIBLIO_MODS for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, null);
+                metsException.getExceptions().get(0).setValidationErrors(validationErrors);
+                throw metsException;
+            }
+        }
+        Document modsDoc = MetsUtils.getDocumentFromList(this.modsStream);
+        try {
+            if ("3.5".equals(this.modsStream.get(0).getAttribute("version"))) {
+                validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods-3-5.xsd"));
+            } else {
+                validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods.xsd"));
+            }
+        } catch (Exception ex) {
+            throw new MetsExportException(this.getOriginalPid(), "Error while validating MODS for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, ex);
+        }
+
+        if (validationErrors.size() > 0) {
+            MetsExportException metsException = new MetsExportException(this.getOriginalPid(), "Invalid MODS for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, null);
+            metsException.getExceptions().get(0).setValidationErrors(validationErrors);
+            throw metsException;
+        }
+    }
+
+    /**
      * Constructor
      *
      * @param digitalObject
@@ -210,19 +253,33 @@ public class MetsElement implements IMetsElement {
         this.label = MetsUtils.getProperty(Const.FEDORA_LABEL, digitalObject.getObjectProperties().getProperty());
 
         this.relsExt = FoxmlUtils.findDatastream(digitalObject, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
-        DatastreamVersionType dcVersion = FoxmlUtils.findDatastream(digitalObject, "DC").getDatastreamVersion().get(0);
-        this.descriptor = MetsUtils.removeSchemaLocation(MetsUtils.removeModsCollection(dcVersion.getXmlContent().getAny()));
         if (FoxmlUtils.findDatastream(digitalObject, "BIBLIO_MODS") != null) {
             this.modsStream = MetsUtils.removeSchemaLocation(MetsUtils.removeModsCollection(FoxmlUtils.findDatastream(digitalObject, "BIBLIO_MODS").getDatastreamVersion().get(0).getXmlContent().getAny()));
         } else {
             this.modsStream = null;
         }
 
-        Kramerius4Export.removeNils(descriptor.get(0));
         Kramerius4Export.removeNils(modsStream.get(0));
 
         model = MetsUtils.getModel(relsExt);
         this.elementType = Const.typeMap.get(model);
+
+        if (!Const.PAGE.equals(elementType)) {
+            NdkMapper mapper = NdkMapper.get(model.replaceAll("info:fedora/", ""));
+            Document modsDocument = MetsUtils.getDocumentFromList(modsStream);
+            DOMSource modsDOMSource = new DOMSource(modsDocument);
+            ModsDefinition modsDefinition = ModsUtils.unmarshalModsType(modsDOMSource);
+            OaiDcType dcType = mapper.toDc(modsDefinition, null);
+            DOMResult dcDOMResult = new DOMResult();
+            DcUtils.marshal(dcDOMResult, dcType, true);
+            this.descriptor = new ArrayList<Element>();
+            this.descriptor.add((Element) dcDOMResult.getNode().getFirstChild());
+        } else {
+            this.descriptor = null;
+        }
+
+        validateDCMODS();
+
         String modsName = Const.typeNameMap.get(this.elementType);
         if (modsName == null) {
             throw new MetsExportException(this.originalPid, "Unable to find mods name for:" + this.elementType, false, null);
@@ -240,37 +297,6 @@ public class MetsElement implements IMetsElement {
 
         if (parent instanceof MetsElement) {
             this.parent = (MetsElement) parent;
-        }
-
-        Document dcDoc = MetsUtils.getDocumentFromList(this.descriptor);
-        List<String> validationErrors;
-        try {
-            validationErrors = MetsUtils.validateAgainstXSD(dcDoc, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
-        } catch (Exception ex) {
-            throw new MetsExportException(this.getOriginalPid(), "Error while validating DC for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, ex);
-        }
-
-        if (validationErrors.size() > 0) {
-            MetsExportException metsException = new MetsExportException(this.getOriginalPid(), "Invalid DC in BIBLIO_MODS for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, null);
-            metsException.getExceptions().get(0).setValidationErrors(validationErrors);
-            throw metsException;
-        }
-
-        Document modsDoc = MetsUtils.getDocumentFromList(this.modsStream);
-        try {
-            if ("3.5".equals(this.modsStream.get(0).getAttribute("version"))) {
-                validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods-3-5.xsd"));
-            } else {
-                validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods.xsd"));
-            }
-        } catch (Exception ex) {
-            throw new MetsExportException(this.getOriginalPid(), "Error while validating MODS for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, ex);
-        }
-
-        if (validationErrors.size() > 0) {
-            MetsExportException metsException = new MetsExportException(this.getOriginalPid(), "Invalid MODS for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, null);
-            metsException.getExceptions().get(0).setValidationErrors(validationErrors);
-            throw metsException;
         }
 
         if (fillChildren) {

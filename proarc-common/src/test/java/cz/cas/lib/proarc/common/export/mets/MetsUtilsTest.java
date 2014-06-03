@@ -67,7 +67,7 @@ public class MetsUtilsTest {
      *
      */
     private void initTestElements() {
-        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph", "monograph", 6, 28, 4, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
+        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph", "monograph", 6, 27, 4, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
         this.testElements.add(monografieTestElement);
         MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum", "periodikum", 42, 348, 5, "periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
         this.testElements.add(periodikumTestElement);
@@ -147,7 +147,7 @@ public class MetsUtilsTest {
 
     /**
      * Tests if the exception is thrown for invalid mets
-     * 
+     *
      */
     @Test(expected = MetsExportException.class)
     public void saveInvalidDC() throws Exception {
@@ -168,10 +168,10 @@ public class MetsUtilsTest {
     }
 
     /**
-     * 
+     *
      * Saves a mets document and test it for different parameters (size, number
      * of files, ...)
-     * 
+     *
      * @throws Exception
      */
     @Test
