@@ -124,10 +124,54 @@ public class MetsUtilsTest {
     }
 
     /**
+     * Tests if the exception is thrown for invalid mets
      *
+     */
+    @Test(expected = MetsExportException.class)
+    public void saveInvalidMods() throws Exception {
+        String sourceDirPath = getTargetPath() + File.separator +
+                "monographInvalid" + File.separator;
+        File resultDir = tmp.newFolder("result" + "monographInvalidMods");
+        String path = sourceDirPath + "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml";
+        DigitalObject dbObj = MetsUtils.readFoXML(path);
+        MetsContext context = new MetsContext();
+        context.setPath(sourceDirPath);
+        context.setFsParentMap(parents);
+        context.setOutputPath(resultDir.getAbsolutePath());
+        context.setAllowNonCompleteStreams(true);
+        context.setAllowMissingURNNBN(true);
+        MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
+        MetsElementVisitor visitor = new MetsElementVisitor();
+        metsElement.accept(visitor);
+    }
+
+    /**
+     * Tests if the exception is thrown for invalid mets
+     * 
+     */
+    @Test(expected = MetsExportException.class)
+    public void saveInvalidDC() throws Exception {
+        String sourceDirPath = getTargetPath() + File.separator +
+                "monographInvalid" + File.separator;
+        File resultDir = tmp.newFolder("result" + "monographInvalidDC");
+        String path = sourceDirPath + "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml";
+        DigitalObject dbObj = MetsUtils.readFoXML(path);
+        MetsContext context = new MetsContext();
+        context.setPath(sourceDirPath);
+        context.setFsParentMap(parents);
+        context.setOutputPath(resultDir.getAbsolutePath());
+        context.setAllowNonCompleteStreams(true);
+        context.setAllowMissingURNNBN(true);
+        MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
+        MetsElementVisitor visitor = new MetsElementVisitor();
+        metsElement.accept(visitor);
+    }
+
+    /**
+     * 
      * Saves a mets document and test it for different parameters (size, number
      * of files, ...)
-     *
+     * 
      * @throws Exception
      */
     @Test

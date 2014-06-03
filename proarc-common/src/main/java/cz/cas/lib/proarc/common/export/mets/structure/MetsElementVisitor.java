@@ -70,7 +70,6 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
-import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.JHoveOutput;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
@@ -327,7 +326,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             modsMdWrap.setMIMETYPE("text/xml");
             XmlData modsxmlData = new XmlData();
             metsElement.getModsStream().get(0).setAttribute("ID", "MODS_" + metsElement.getModsElementID());
-            Kramerius4Export.removeNils(metsElement.getModsStream().get(0));
             modsxmlData.getAny().addAll(metsElement.getModsStream());
             modsMdWrap.setXmlData(modsxmlData);
             modsMdSecType.setMdWrap(modsMdWrap);
@@ -342,7 +340,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             dcMdWrap.setMDTYPE("DC");
             dcMdWrap.setMIMETYPE("text/xml");
             XmlData dcxmlData = new XmlData();
-            Kramerius4Export.removeNils(metsElement.getDescriptor().get(0));
             dcxmlData.getAny().addAll(metsElement.getDescriptor());
             dcMdWrap.setXmlData(dcxmlData);
             dcMdSecType.setMdWrap(dcMdWrap);
@@ -1246,6 +1243,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      */
     private void insertSupplement(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement) throws MetsExportException {
         addDmdSec(metsElement);
+        if (physicalDiv.getID() == null) {
+            physicalDiv.setID("DIV_P_0000");
+            physicalDiv.setLabel3(metsElement.getLabel());
+            physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
+            physicalDiv.setTYPE(metsElement.getElementType());
+        }
+
         DivType divType = new DivType();
         divType.setID(metsElement.getElementID());
         divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
@@ -1280,13 +1284,14 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         // Label for volume is inherited from the parent monograph
         divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
         if (Const.PERIODICAL_VOLUME.equals(metsElement.getElementType())) {
-            divType.setTYPE("VOLUME");
+            divType.setTYPE("PERIODICAL_VOLUME");
         } else
         if (Const.MONOGRAPH_MULTIPART.equals(metsElement.getElementType())) {
             divType.setTYPE(Const.MONOGRAPH);
         } else if (Const.MONOGRAPH_UNIT.equals(metsElement.getElementType())) {
             divType.setTYPE("VOLUME");
             divType.setID(metsElement.getElementID().replaceAll(Const.MONOGRAPH_UNIT, Const.VOLUME));
+            physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
         } else {
             divType.setTYPE(Const.VOLUME);
         }

@@ -28,6 +28,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -35,13 +36,17 @@ import org.w3c.dom.NodeList;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
+import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.MdSecType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
  * Class that represents the element of Mets export
@@ -212,6 +217,10 @@ public class MetsElement implements IMetsElement {
         } else {
             this.modsStream = null;
         }
+
+        Kramerius4Export.removeNils(descriptor.get(0));
+        Kramerius4Export.removeNils(modsStream.get(0));
+
         model = MetsUtils.getModel(relsExt);
         this.elementType = Const.typeMap.get(model);
         String modsName = Const.typeNameMap.get(this.elementType);
@@ -232,6 +241,38 @@ public class MetsElement implements IMetsElement {
         if (parent instanceof MetsElement) {
             this.parent = (MetsElement) parent;
         }
+
+        Document dcDoc = MetsUtils.getDocumentFromList(this.descriptor);
+        List<String> validationErrors;
+        try {
+            validationErrors = MetsUtils.validateAgainstXSD(dcDoc, OaiDcType.class.getResourceAsStream("dc_oai.xsd"));
+        } catch (Exception ex) {
+            throw new MetsExportException(this.getOriginalPid(), "Error while validating DC for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, ex);
+        }
+
+        if (validationErrors.size() > 0) {
+            MetsExportException metsException = new MetsExportException(this.getOriginalPid(), "Invalid DC in BIBLIO_MODS for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, null);
+            metsException.getExceptions().get(0).setValidationErrors(validationErrors);
+            throw metsException;
+        }
+
+        Document modsDoc = MetsUtils.getDocumentFromList(this.modsStream);
+        try {
+            if ("3.5".equals(this.modsStream.get(0).getAttribute("version"))) {
+                validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods-3-5.xsd"));
+            } else {
+                validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods.xsd"));
+            }
+        } catch (Exception ex) {
+            throw new MetsExportException(this.getOriginalPid(), "Error while validating MODS for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, ex);
+        }
+
+        if (validationErrors.size() > 0) {
+            MetsExportException metsException = new MetsExportException(this.getOriginalPid(), "Invalid MODS for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, null);
+            metsException.getExceptions().get(0).setValidationErrors(validationErrors);
+            throw metsException;
+        }
+
         if (fillChildren) {
             fillChildren();
         }
