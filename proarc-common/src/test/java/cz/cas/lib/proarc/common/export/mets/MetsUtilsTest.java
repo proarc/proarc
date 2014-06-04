@@ -40,27 +40,12 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.mets.Mets;
+import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.info.Info;
 
 public class MetsUtilsTest {
     private static final Logger LOG = Logger.getLogger(MetsUtilsTest.class.getName());
     private final List<MetsExportTestElement> testElements = new ArrayList<MetsExportTestElement>();
-
-    private static HashMap<String, String> parents = new HashMap<String, String>();
-    static {
-        parents.put("uuid:b46ab0eb-26af-11e3-88e3-001b63bd97ba", "uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317");
-        parents.put("uuid:b46aff0c-26af-11e3-88e3-001b63bd97ba", "uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317");
-        parents.put("uuid:b46aff0d-26af-11e3-88e3-001b63bd97ba", "uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317");
-        parents.put("uuid:b46aff0e-26af-11e3-88e3-001b63bd97ba", "uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317");
-        parents.put("uuid:b46aff0f-26af-11e3-88e3-001b63bd97ba", "uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317");
-        parents.put("uuid:b46b2620-26af-11e3-88e3-001b63bd97ba", "uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317");
-        parents.put("uuid:b46b2621-26af-11e3-88e3-001b63bd97ba", "uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317");
-        parents.put("uuid:b46b2622-26af-11e3-88e3-001b63bd97ba", "uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317");
-        parents.put("uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317", "uuid:90ca85a1-beb8-4b5d-a320-b4b7ac5c8df5");
-        parents.put("uuid:90ca85a1-beb8-4b5d-a320-b4b7ac5c8df5", "uuid:3733b6e3-61ab-42fc-a437-964d143acc45");
-        parents.put("uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a", "uuid:44589055-9fad-4a9f-b6a8-75be399f332d");
-        parents.put("uuid:44589055-9fad-4a9f-b6a8-75be399f332d", "uuid:1ccbf6c5-b22c-4d89-b42e-8cd14101a737");
-    }
 
     /**
      * Inits the elements to test - documents which are in repository
@@ -136,7 +121,7 @@ public class MetsUtilsTest {
         DigitalObject dbObj = MetsUtils.readFoXML(path);
         MetsContext context = new MetsContext();
         context.setPath(sourceDirPath);
-        context.setFsParentMap(parents);
+        context.setFsParentMap(TestConst.parents);
         context.setOutputPath(resultDir.getAbsolutePath());
         context.setAllowNonCompleteStreams(true);
         context.setAllowMissingURNNBN(true);
@@ -158,13 +143,24 @@ public class MetsUtilsTest {
         DigitalObject dbObj = MetsUtils.readFoXML(path);
         MetsContext context = new MetsContext();
         context.setPath(sourceDirPath);
-        context.setFsParentMap(parents);
+        context.setFsParentMap(TestConst.parents);
         context.setOutputPath(resultDir.getAbsolutePath());
         context.setAllowNonCompleteStreams(true);
         context.setAllowMissingURNNBN(true);
         MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
         MetsElementVisitor visitor = new MetsElementVisitor();
         metsElement.accept(visitor);
+    }
+
+    /**
+     * Tests if all filegoups are created
+     *
+     * @throws Exception
+     */
+    @Test
+    public void initGroupsTest() throws Exception {
+        HashMap<String, FileGrp> fileGroups = MetsUtils.initFileGroups();
+        assertEquals(5, fileGroups.keySet().size());
     }
 
     /**
@@ -185,7 +181,7 @@ public class MetsUtilsTest {
             DigitalObject dbObj = MetsUtils.readFoXML(path);
             MetsContext context = new MetsContext();
             context.setPath(sourceDirPath);
-            context.setFsParentMap(parents);
+            context.setFsParentMap(TestConst.parents);
             context.setOutputPath(resultDir.getAbsolutePath());
             context.setAllowNonCompleteStreams(true);
             context.setAllowMissingURNNBN(true);
