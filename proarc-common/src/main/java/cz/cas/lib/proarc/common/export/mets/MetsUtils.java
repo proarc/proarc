@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -834,7 +835,7 @@ public class MetsUtils {
             List<FileMD5Info> fileList = metsContext.getFileList();
             int size = (int) fileSize;
             for (FileMD5Info fileName : fileList) {
-                itemList.getItem().add(fileName.getFileName().replaceAll(File.separator, "/"));
+                itemList.getItem().add(fileName.getFileName().replaceAll(Matcher.quoteReplacement(File.separator), "/"));
                 size += fileName.getSize();
             }
             infoJaxb.setSize(size / 1024);
