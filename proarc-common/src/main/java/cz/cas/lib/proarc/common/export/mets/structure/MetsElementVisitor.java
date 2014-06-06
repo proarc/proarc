@@ -28,6 +28,8 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -478,7 +480,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
         FLocat flocat = new FLocat();
         flocat.setLOCTYPE("URL");
-        flocat.setHref("." + "/" + Const.streamMappingFile.get(metsStreamName) + "/" + outputFileName);
+        String href = "." + "/" + Const.streamMappingFile.get(metsStreamName) + "/" + outputFileName;
+        URI uri;
+        uri = URI.create(href);
+        flocat.setHref(uri.toASCIIString());
         fileType.getFLocat().add(flocat);
         return fileType;
     }
