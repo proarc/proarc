@@ -55,11 +55,18 @@ import cz.cas.lib.proarc.common.object.DisseminationInput;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
+import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration.ResolverConfiguration;
+import cz.cas.lib.proarc.common.urnnbn.UrnNbnService;
+import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler;
+import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.PidResult;
+import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.StatusEntry;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.io.File;
@@ -70,9 +77,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -1018,6 +1027,105 @@ public class DigitalObjectResource {
             result.add(atm);
         }
         return new SmartGwtResponse<AtmItem>(result);
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.URNNBN_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<UrnNbnResult> registerUrnNbn(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) Set<String> pids,
+            @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
+            @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
+            ) {
+
+        List<UrnNbnResult> result = new LinkedList<UrnNbnResult>();
+        if (!pids.isEmpty()) {
+            UrnNbnConfiguration config = appConfig.getUrnNbnConfiguration();
+            ResolverConfiguration resolverConfig = null;
+            if (resolverId == null) {
+                // no resolver passed, try the first registered
+                List<ResolverConfiguration> confs = config.getResolverConfigurations();
+                if (!confs.isEmpty()) {
+                    resolverConfig = confs.get(0);
+                }
+            } else {
+                resolverConfig = config.findResolverConfiguration(resolverId);
+            }
+            if (resolverConfig == null) {
+                throw RestException.plainText(Status.BAD_REQUEST,
+                        String.format("Unknown property '%s' = '%s'. Check server configuration!",
+                                DigitalObjectResourceApi.URNNBN_RESOLVER, resolverId));
+            }
+            ResolverClient resolverClient = config.getClient(resolverConfig);
+            UrnNbnService service = new UrnNbnService(resolverClient);
+            UrnNbnStatusHandler status = service.register(pids, hierarchy);
+            for (Entry<String, PidResult> entry : status.getPids().entrySet()) {
+                PidResult pidResult = entry.getValue();
+                String entryPid = entry.getKey();
+                for (StatusEntry statusEntry : pidResult.getErrors()) {
+                    result.add(new UrnNbnResult(entryPid, statusEntry, false, pidResult.getPid()));
+                }
+                for (StatusEntry statusEntry : pidResult.getWarnings()) {
+                    result.add(new UrnNbnResult(entryPid, statusEntry, true, pidResult.getPid()));
+                }
+                if (pidResult.getUrnNbn() != null) {
+                    result.add(new UrnNbnResult(entryPid, pidResult.getUrnNbn(), pidResult.getPid()));
+                }
+            }
+        }
+        return new SmartGwtResponse<UrnNbnResult>(result);
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class UrnNbnResult {
+
+        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_PID)
+        private String pid;
+
+        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_MODEL)
+        private String modelId;
+
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_LABEL)
+        private String label;
+
+        @XmlElement(name = DigitalObjectResourceApi.URNNBN_ITEM_URNNBN)
+        private String urnnbn;
+
+        @XmlElement(name = DigitalObjectResourceApi.URNNBN_ITEM_MESSAGE)
+        private String message;
+
+        @XmlElement(name = DigitalObjectResourceApi.URNNBN_ITEM_STATUSTYPE)
+        private String type;
+
+        @XmlElement(name = DigitalObjectResourceApi.URNNBN_ITEM_WARNING)
+        private Boolean warning;
+
+        @XmlElement(name = DigitalObjectResourceApi.URNNBN_ITEM_LOG)
+        private String log;
+
+        public UrnNbnResult() {
+        }
+
+        public UrnNbnResult(String pid, String urnnbn, Item elm) {
+            this.pid = pid;
+            this.urnnbn = urnnbn;
+            if (elm != null) {
+                this.modelId = elm.getModel();
+                this.label = elm.getLabel();
+            }
+        }
+
+        public UrnNbnResult(String pid, StatusEntry me, boolean warning, Item elm) {
+            this.pid = pid;
+            this.message = me.getMessage();
+            this.type = me.getStatus().name();
+            this.warning = warning;
+            if (elm != null) {
+                this.modelId = elm.getModel();
+                this.label = elm.getLabel();
+            }
+        }
+
     }
 
     private DigitalObjectHandler findHandler(String pid, Integer batchId) throws DigitalObjectNotFoundException {

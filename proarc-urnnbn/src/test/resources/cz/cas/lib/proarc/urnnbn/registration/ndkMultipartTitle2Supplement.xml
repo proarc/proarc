@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mods:mods version="3.5" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:classification authority="udc">811.111</mods:classification>
+    <mods:classification authority="udc">(075)</mods:classification>
+    <mods:genre>supplement</mods:genre>
+    <mods:identifier type="uuid">e19ed8e8-1870-43f2-a17f-84cbaecd59a2</mods:identifier>
+    <mods:identifier type="isbn">978-0-19-459881-1 (student's book : brož.)</mods:identifier>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">eng</mods:languageTerm>
+    </mods:language>
+    <mods:name usage="primary" type="personal">
+        <mods:namePart>Latham-Koenig, Christina</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">aut</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:name type="personal">
+        <mods:namePart>Oxenden, Clive</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">aut</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:name type="personal">
+        <mods:namePart>Seligson, Paul</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">aut</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:originInfo>
+        <mods:place>
+            <mods:placeTerm type="text">xxk</mods:placeTerm>
+        </mods:place>
+        <mods:place>
+            <mods:placeTerm type="text">Oxford</mods:placeTerm>
+        </mods:place>
+        <mods:publisher>Oxford University Press</mods:publisher>
+        <mods:dateIssued>2012</mods:dateIssued>
+    </mods:originInfo>
+    <mods:physicalDescription>
+        <mods:form authority="marcform">print</mods:form>
+    </mods:physicalDescription>
+    <mods:subject authority="czenas">
+        <mods:topic>angličtina</mods:topic>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:topic>English language</mods:topic>
+    </mods:subject>
+    <mods:titleInfo>
+        <mods:title>English file</mods:title>
+        <mods:partName>Student's book</mods:partName>
+    </mods:titleInfo>
+    <mods:typeOfResource>text</mods:typeOfResource>
+</mods:mods>

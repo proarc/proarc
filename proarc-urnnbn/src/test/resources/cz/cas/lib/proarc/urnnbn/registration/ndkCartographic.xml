@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mods:mods version="3.5" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:classification authority="udc">796.51</mods:classification>
+    <mods:classification authority="udc">913(437.31-17)</mods:classification>
+    <mods:classification authority="udc">913(438-14)</mods:classification>
+    <mods:classification authority="udc">(234.572)</mods:classification>
+    <mods:classification authority="udc">(084.3)796.5</mods:classification>
+    <mods:classification authority="udc">908(234)Krkonoše</mods:classification>
+    <mods:genre>cartographic</mods:genre>
+    <mods:genre authority="marcgt">map</mods:genre>
+    <mods:genre authority="czenas">turistické mapy</mods:genre>
+    <mods:identifier type="uuid">7969476c-02ef-4dc2-8263-87e06a9313b1</mods:identifier>
+    <mods:identifier type="ccnb">cnb002500216</mods:identifier>
+    <mods:identifier type="isbn">978-80-7324-393-7 (složeno)</mods:identifier>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+    </mods:language>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">pol</mods:languageTerm>
+    </mods:language>
+    <mods:location>
+        <mods:physicalLocation authority="siglaADR">HKA001</mods:physicalLocation>
+        <mods:shelfLocator>A0-33007</mods:shelfLocator>
+    </mods:location>
+    <mods:name type="corporate">
+        <mods:namePart>Klub českých turistů (1990-)</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">cre</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:note type="statement of responsibility" altRepGroup="00"></mods:note>
+    <mods:note>Stručný vlastivědný text v přiložené brožuře</mods:note>
+    <mods:note type="language">Místní jména česky a část. polsky, český text</mods:note>
+    <mods:note>Vydavatel: Trasa, spol. s r.o., obchodní společnost Klubu českých turistů</mods:note>
+    <mods:originInfo>
+        <mods:place>
+            <mods:placeTerm authority="marccountry" type="code">xr</mods:placeTerm>
+        </mods:place>
+        <mods:place>
+            <mods:placeTerm type="text">Praha</mods:placeTerm>
+        </mods:place>
+        <mods:publisher>Trasa</mods:publisher>
+        <mods:dateIssued>2014</mods:dateIssued>
+        <mods:edition>9. vyd.</mods:edition>
+        <mods:issuance>monographic</mods:issuance>
+    </mods:originInfo>
+    <mods:part type="volume"/>
+    <mods:physicalDescription>
+        <mods:form authority="gmd">kartografický dokument</mods:form>
+        <mods:form authority="marccategory">map</mods:form>
+        <mods:form authority="marcsmd">map</mods:form>
+        <mods:extent>1 mapa : obě strany, barev. ; 77 x 100 cm, na listu 78 x 51 cm, složeno na 20 x 13 cm, v plastovém obalu + brožura (24 s. ; 20 cm)</mods:extent>
+    </mods:physicalDescription>
+    <mods:recordInfo>
+        <mods:recordContentSource authority="marcorg">ABA001</mods:recordContentSource>
+        <mods:recordCreationDate encoding="iso8601">20140531T115355</mods:recordCreationDate>
+        <mods:recordChangeDate encoding="iso8601">20140531T115704</mods:recordChangeDate>
+        <mods:recordIdentifier source="CZ HkSVK">000821847</mods:recordIdentifier>
+        <mods:languageOfCataloging>
+            <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+        </mods:languageOfCataloging>
+        <mods:recordOrigin>Converted from MARCXML to MODS version 3.4 using MARC21slim2MODS3-4.xsl
+                (Revision 1.94 2014/02/21)</mods:recordOrigin>
+        <mods:descriptionStandard>aacr</mods:descriptionStandard>
+    </mods:recordInfo>
+    <mods:relatedItem type="series">
+        <mods:titleInfo>
+            <mods:title>Edice Klubu českých turistů (Trasa)</mods:title>
+        </mods:titleInfo>
+    </mods:relatedItem>
+    <mods:subject>
+        <mods:geographicCode authority="marcgac">e-xr---</mods:geographicCode>
+        <mods:geographicCode authority="marcgac">e-pl---</mods:geographicCode>
+        <mods:geographicCode>e-xr-cc</mods:geographicCode>
+    </mods:subject>
+    <mods:subject>
+        <mods:cartographics>
+            <mods:scale>Měřítko 1:50 000</mods:scale>
+        </mods:cartographics>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:topic>pěší turistika</mods:topic>
+        <mods:geographic>Česko</mods:geographic>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:topic>pěší turistika</mods:topic>
+        <mods:geographic>Polsko</mods:geographic>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:geographic>Krkonoše (Česko a Polsko : pohoří)</mods:geographic>
+    </mods:subject>
+    <mods:titleInfo>
+        <mods:title>Krkonoše</mods:title>
+        <mods:subTitle>turistická mapa 1:50 000</mods:subTitle>
+    </mods:titleInfo>
+    <mods:typeOfResource>cartographic</mods:typeOfResource>
+</mods:mods>

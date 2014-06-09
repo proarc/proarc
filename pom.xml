@@ -33,10 +33,11 @@
         <module>proarc-mods</module>
         <module>proarc-nsesss</module>
         <module>proarc-oaidublincore</module>
+        <module>proarc-premis</module>
+        <module>proarc-urnnbn</module>
         <module>proarc-webapp</module>
         <module>proarc-z3950</module>
-        <module>proarc-premis</module>        
-    </modules>
+  </modules>
 
     <properties>
         <proarc.version>${project.version}</proarc.version>

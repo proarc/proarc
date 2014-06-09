@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<project
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>cz.cas.lib.proarc</groupId>
+        <artifactId>proarc</artifactId>
+        <version>1.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>proarc-urnnbn</artifactId>
+    <packaging>jar</packaging>
+
+    <name>ProArc URNNBN</name>
+
+    <properties>
+        <!-- local junit properties -->
+        <proarc-urnnbn.junit.properties.file>${project.basedir}/src/test/resources/junit.properties</proarc-urnnbn.junit.properties.file>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-mix</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-mods</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>${jerseyVersion}</version>
+        </dependency>
+
+        <!-- tests -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>
+                        <!--<javax.net.debug>ssl</javax.net.debug>-->
+                    </systemPropertyVariables>
+                    <systemPropertiesFile>${proarc-urnnbn.junit.properties.file}</systemPropertiesFile>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <configuration>
+                    <schemaLanguage>XMLSCHEMA</schemaLanguage>
+                    <args>
+                        <!--
+                            Use custom package-info.java with preferred namespace prefixes.
+                            Requires JDK 1.6.0_24 or later or com.sun.xml.bind:jaxb-impl:2.2.2 dependency.
+                            -npa:  suppress generation of package level annotations (**/package-info.java)
+                        -->
+                        <arg>-npa</arg>
+                    </args>
+                    <extension>true</extension>
+                </configuration>
+                <executions>
+
+                    <execution>
+                        <id>generate-digDocRegistration</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <schemaDirectory>src/main/resources/cz/cas/lib/proarc/urnnbn/registration</schemaDirectory>
+                            <generatePackage>cz.cas.lib.proarc.urnnbn.model.registration</generatePackage>
+                            <schemaIncludes>
+                                <schemaInclude>digDocRegistration.xsd</schemaInclude>
+                            </schemaIncludes>
+                            <bindingDirectory>src/main/resources/cz/cas/lib/proarc/urnnbn/registration</bindingDirectory>
+                            <generateDirectory>${project.build.directory}/generated-sources/xjc-registration</generateDirectory>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>generate-response</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <schemaDirectory>src/main/resources/cz/cas/lib/proarc/urnnbn/response</schemaDirectory>
+                            <generatePackage>cz.cas.lib.proarc.urnnbn.model.response</generatePackage>
+                            <schemaIncludes>
+                                <schemaInclude>response.xsd</schemaInclude>
+                            </schemaIncludes>
+                            <bindingDirectory>src/main/resources/cz/cas/lib/proarc/urnnbn/response</bindingDirectory>
+                            <generateDirectory>${project.build.directory}/generated-sources/xjc-response</generateDirectory>
+                        </configuration>
+                    </execution>
+
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

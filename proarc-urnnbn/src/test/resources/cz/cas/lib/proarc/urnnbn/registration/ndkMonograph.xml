@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mods:mods version="3.5" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:classification authority="udc">908(437.31-17)</mods:classification>
+    <mods:classification authority="udc">908(437.316)</mods:classification>
+    <mods:classification authority="udc">908(437.313)</mods:classification>
+    <mods:classification authority="udc">(036)913</mods:classification>
+    <mods:classification authority="udc">908(437.1)Český ráj</mods:classification>
+    <mods:classification authority="udc">908(437.1)Jičín</mods:classification>
+    <mods:genre>volume</mods:genre>
+    <mods:genre authority="czenas">turistické průvodce</mods:genre>
+    <mods:identifier type="uuid">84306ab4-4d07-48d0-bfa7-a5ff976beb19</mods:identifier>
+    <mods:identifier type="ccnb">cnb000389898</mods:identifier>
+    <mods:identifier type="ccnb" invalid="yes">cnb000902752</mods:identifier>
+    <mods:identifier type="oclc">85706941</mods:identifier>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+    </mods:language>
+    <mods:location>
+        <mods:physicalLocation authority="siglaADR">HKA001</mods:physicalLocation>
+        <mods:shelfLocator>322 650</mods:shelfLocator>
+    </mods:location>
+    <mods:name usage="primary" type="personal">
+        <mods:namePart>Šimák, Josef Vítězslav</mods:namePart>
+        <mods:namePart type="date">1870-1941</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">aut</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:note type="statement of responsibility" altRepGroup="00">sestavil J.V. Šimák</mods:note>
+    <mods:note>Rok vyd. z GKI</mods:note>
+    <mods:originInfo>
+        <mods:place>
+            <mods:placeTerm authority="marccountry" type="code">xr</mods:placeTerm>
+        </mods:place>
+        <mods:place>
+            <mods:placeTerm type="text">V Turnově</mods:placeTerm>
+        </mods:place>
+        <mods:publisher>Nákladem V. Kudrnáče</mods:publisher>
+        <mods:dateIssued>[1904]</mods:dateIssued>
+        <mods:dateIssued encoding="marc">1904</mods:dateIssued>
+        <mods:issuance>monographic</mods:issuance>
+    </mods:originInfo>
+    <mods:part type="volume"/>
+    <mods:physicalDescription>
+        <mods:form authority="marcform">print</mods:form>
+        <mods:form authority="marccategory">text</mods:form>
+        <mods:form authority="marcsmd">regular print</mods:form>
+        <mods:extent>109, 28 s., [30] s. obr. příl. ; il. ; 16 cm</mods:extent>
+    </mods:physicalDescription>
+    <mods:recordInfo>
+        <mods:recordContentSource authority="marcorg">HKA001</mods:recordContentSource>
+        <mods:recordCreationDate encoding="iso8601">20140521T073421</mods:recordCreationDate>
+        <mods:recordChangeDate encoding="iso8601">20140521T073556</mods:recordChangeDate>
+        <mods:recordIdentifier source="CZ HkSVK">000025150</mods:recordIdentifier>
+        <mods:languageOfCataloging>
+            <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+        </mods:languageOfCataloging>
+        <mods:recordOrigin>Converted from MARCXML to MODS version 3.4 using MARC21slim2MODS3-4.xsl
+                (Revision 1.94 2014/02/21)</mods:recordOrigin>
+        <mods:descriptionStandard>aacr</mods:descriptionStandard>
+    </mods:recordInfo>
+    <mods:subject>
+        <mods:geographicCode authority="marcgac">e-xr---</mods:geographicCode>
+        <mods:geographicCode authority="czenas">e-xr-cc</mods:geographicCode>
+        <mods:geographicCode authority="czenas">e-xr-li</mods:geographicCode>
+        <mods:geographicCode authority="czenas">e-xr-kr</mods:geographicCode>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:geographic>Český ráj (Česko)</mods:geographic>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:geographic>Turnov-oblast (Česko)</mods:geographic>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:geographic>Jičín (Česko)</mods:geographic>
+    </mods:subject>
+    <mods:targetAudience authority="marctarget">adult</mods:targetAudience>
+    <mods:titleInfo>
+        <mods:title>Průvodce českým rájem</mods:title>
+        <mods:subTitle>stopadesát výletů z Turnova ; [Jičín a okolí]</mods:subTitle>
+    </mods:titleInfo>
+    <mods:titleInfo type="alternative">
+        <mods:title>Stopadesát výletů z Turnova</mods:title>
+    </mods:titleInfo>
+    <mods:titleInfo type="alternative">
+        <mods:title>Jičín a okolí</mods:title>
+    </mods:titleInfo>
+    <mods:typeOfResource>text</mods:typeOfResource>
+</mods:mods>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mods:mods version="3.5" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:classification authority="udc">78.03.011.26</mods:classification>
+    <mods:classification authority="udc">784.4:784.9</mods:classification>
+    <mods:classification authority="udc">(437.3)</mods:classification>
+    <mods:classification authority="udc">(0:82-192)</mods:classification>
+    <mods:genre>sheetmusic</mods:genre>
+    <mods:genre authority="czenas">zpěvníky</mods:genre>
+    <mods:identifier type="uuid">d7c84a3a-48ee-457d-b8a4-544de167331b</mods:identifier>
+    <mods:identifier type="ccnb">cnb002405684</mods:identifier>
+    <mods:identifier type="isbn">978-80-7262-933-6 (brož.)</mods:identifier>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+    </mods:language>
+    <mods:location>
+        <mods:physicalLocation authority="siglaADR">HKA001</mods:physicalLocation>
+        <mods:shelfLocator>A0-25323</mods:shelfLocator>
+    </mods:location>
+    <mods:name usage="primary" type="personal">
+        <mods:namePart>Xindl X</mods:namePart>
+        <mods:namePart type="date">1979-</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">aut</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:name type="personal">
+        <mods:namePart>Lstibůrek, Jan</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">edt</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:note type="statement of responsibility" altRepGroup="00">Xindl X ; [k vydání připravil Jan Lstibůrek]</mods:note>
+    <mods:note>Obsahuje rejstřík</mods:note>
+    <mods:originInfo>
+        <mods:place>
+            <mods:placeTerm authority="marccountry" type="code">xr</mods:placeTerm>
+        </mods:place>
+        <mods:place>
+            <mods:placeTerm type="text">Praha</mods:placeTerm>
+        </mods:place>
+        <mods:publisher>Galén</mods:publisher>
+        <mods:dateIssued>2012</mods:dateIssued>
+        <mods:edition>1. vyd.</mods:edition>
+        <mods:issuance>monographic</mods:issuance>
+    </mods:originInfo>
+    <mods:part type="volume"/>
+    <mods:physicalDescription>
+        <mods:form authority="gmd">hudebnina</mods:form>
+        <mods:extent>255 s. : noty ; 21 x 30 cm</mods:extent>
+    </mods:physicalDescription>
+    <mods:recordInfo>
+        <mods:recordContentSource authority="marcorg">HKA001</mods:recordContentSource>
+        <mods:recordCreationDate encoding="iso8601">20140531T120731</mods:recordCreationDate>
+        <mods:recordChangeDate encoding="iso8601">20140531T120744</mods:recordChangeDate>
+        <mods:recordIdentifier source="CZ HkSVK">000794102</mods:recordIdentifier>
+        <mods:languageOfCataloging>
+            <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+        </mods:languageOfCataloging>
+        <mods:recordOrigin>Converted from MARCXML to MODS version 3.4 using MARC21slim2MODS3-4.xsl
+                (Revision 1.94 2014/02/21)</mods:recordOrigin>
+        <mods:descriptionStandard>aacr</mods:descriptionStandard>
+    </mods:recordInfo>
+    <mods:subject authority="czenas">
+        <mods:temporal>21. stol</mods:temporal>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:topic>populární hudba</mods:topic>
+        <mods:geographic>Česko</mods:geographic>
+        <mods:temporal>21. stol</mods:temporal>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:topic>populární písně (zpěv, kytara)</mods:topic>
+    </mods:subject>
+    <mods:targetAudience authority="marctarget">adult</mods:targetAudience>
+    <mods:titleInfo>
+        <mods:title>Xpěvník</mods:title>
+    </mods:titleInfo>
+    <mods:titleInfo type="alternative">
+        <mods:title>Xindl X - Xpěvník</mods:title>
+    </mods:titleInfo>
+    <mods:typeOfResource>notated music</mods:typeOfResource>
+</mods:mods>

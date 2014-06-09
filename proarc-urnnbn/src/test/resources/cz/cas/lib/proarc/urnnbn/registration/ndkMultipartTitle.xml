@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mods:mods version="3.5" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:classification authority="udc">341.645</mods:classification>
+    <mods:classification authority="udc">347.951</mods:classification>
+    <mods:classification authority="udc">(4)</mods:classification>
+    <mods:classification authority="udc">(048.8)</mods:classification>
+    <mods:genre>title</mods:genre>
+    <mods:genre authority="czenas">přehledy</mods:genre>
+    <mods:identifier type="uuid">4f3115c1-4be8-4f7c-8bd5-894e13e19ec1</mods:identifier>
+    <mods:identifier type="ccnb">cnb000963966</mods:identifier>
+    <mods:identifier type="isbn">80-7201-204-5 (1. díl)</mods:identifier>
+    <mods:identifier type="isbn">80-7201-252-5 (2. díl)</mods:identifier>
+    <mods:identifier type="oclc">44526407</mods:identifier>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+    </mods:language>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">eng</mods:languageTerm>
+    </mods:language>
+    <mods:language objectPart="translation">
+        <mods:languageTerm authority="iso639-2b" type="code">mul</mods:languageTerm>
+    </mods:language>
+    <mods:location>
+        <mods:physicalLocation>HKA001</mods:physicalLocation>
+        <mods:shelfLocator>693 755</mods:shelfLocator>
+    </mods:location>
+    <mods:name usage="primary" type="personal">
+        <mods:namePart>Pítrová, Lenka</mods:namePart>
+        <mods:namePart type="date">1954-</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">aut</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:name type="personal">
+        <mods:namePart>Pomahač, Richard</mods:namePart>
+        <mods:namePart type="date">1953-</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">aut</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:name type="corporate">
+        <mods:namePart>Soudní dvůr Evropských společenství</mods:namePart>
+    </mods:name>
+    <mods:note type="statement of responsibility" altRepGroup="00">Lenka Pítrová, Richard Pomahač</mods:note>
+    <mods:note>Přeloženo z různých jazyků</mods:note>
+    <mods:note>Dotisk 1. dílu : r. 2000</mods:note>
+    <mods:note type="bibliography">Obsahuje bibliografie</mods:note>
+    <mods:note type="language">Část. souběžný anglický text</mods:note>
+    <mods:originInfo>
+        <mods:place>
+            <mods:placeTerm authority="marccountry" type="code">xr</mods:placeTerm>
+        </mods:place>
+        <mods:place>
+            <mods:placeTerm type="text">Praha</mods:placeTerm>
+        </mods:place>
+        <mods:publisher>Linde</mods:publisher>
+        <mods:dateIssued>2000-</mods:dateIssued>
+        <mods:dateIssued encoding="marc" point="start">2000</mods:dateIssued>
+        <mods:dateIssued encoding="marc" point="end">9999</mods:dateIssued>
+        <mods:issuance>monographic</mods:issuance>
+    </mods:originInfo>
+    <mods:physicalDescription>
+        <mods:form authority="marcform">print</mods:form>
+        <mods:form authority="marccategory">text</mods:form>
+        <mods:form authority="marcsmd">regular print</mods:form>
+        <mods:extent>^^^sv. ; 21 cm</mods:extent>
+    </mods:physicalDescription>
+    <mods:recordInfo>
+        <mods:recordContentSource authority="marcorg">HKA001</mods:recordContentSource>
+        <mods:recordCreationDate encoding="marc">010515</mods:recordCreationDate>
+        <mods:recordChangeDate encoding="iso8601">20140404132754.0</mods:recordChangeDate>
+        <mods:recordIdentifier source="CZ HkSVK">000235541</mods:recordIdentifier>
+        <mods:languageOfCataloging>
+            <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+        </mods:languageOfCataloging>
+        <mods:recordOrigin>Converted from MARCXML to MODS version 3.4 using MARC21slim2MODS3-4.xsl
+                (Revision 1.94 2014/02/21)</mods:recordOrigin>
+        <mods:descriptionStandard>aacr</mods:descriptionStandard>
+    </mods:recordInfo>
+    <mods:subject>
+        <mods:geographicCode authority="marcgac">e------</mods:geographicCode>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:name type="corporate">
+            <mods:namePart>Soudní dvůr Evropských společenství</mods:namePart>
+        </mods:name>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:topic>mezinárodní soudy</mods:topic>
+        <mods:geographic>země Evropských společenství</mods:geographic>
+    </mods:subject>
+    <mods:subject authority="czenas">
+        <mods:topic>soudní rozhodnutí a stanoviska</mods:topic>
+    </mods:subject>
+    <mods:tableOfContents>díl 1. 2000. 359 s. -- díl 2. 2000. 348 s.</mods:tableOfContents>
+    <mods:targetAudience authority="marctarget">adult</mods:targetAudience>
+    <mods:titleInfo>
+        <mods:title>Průvodce judikaturou Evropského soudního dvora</mods:title>
+    </mods:titleInfo>
+    <mods:typeOfResource>text</mods:typeOfResource>
+</mods:mods>

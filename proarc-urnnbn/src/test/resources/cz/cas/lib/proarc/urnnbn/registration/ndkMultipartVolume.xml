@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mods:mods version="3.5" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:genre>volume</mods:genre>
+    <mods:identifier type="uuid">0cf671db-efbf-4f16-a9a1-da0d610c6ed0</mods:identifier>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+    </mods:language>
+    <mods:location>
+        <mods:physicalLocation authority="siglaADR">HKA001</mods:physicalLocation>
+        <mods:shelfLocator>693 755</mods:shelfLocator>
+    </mods:location>
+    <mods:name type="personal">
+        <mods:namePart>Pítrová, Lenka</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">cre</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:originInfo>
+        <mods:dateIssued>2000</mods:dateIssued>
+        <mods:issuance>multipart monograph</mods:issuance>
+    </mods:originInfo>
+    <mods:part type="volume"/>
+    <mods:recordInfo>
+        <mods:recordCreationDate encoding="iso8601">20140521T085606</mods:recordCreationDate>
+        <mods:recordChangeDate encoding="iso8601">20140521T090443</mods:recordChangeDate>
+        <mods:languageOfCataloging>
+            <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+        </mods:languageOfCataloging>
+    </mods:recordInfo>
+    <mods:titleInfo>
+        <mods:title>Průvodce judikaturou Evropského soudního dvora</mods:title>
+        <mods:partNumber>1</mods:partNumber>
+    </mods:titleInfo>
+    <mods:typeOfResource>text</mods:typeOfResource>
+</mods:mods>

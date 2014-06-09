@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mods:mods version="3.5" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mods:classification authority="udc">811.111</mods:classification>
+    <mods:classification authority="udc">(075)</mods:classification>
+    <mods:genre>volume</mods:genre>
+    <mods:genre authority="marcgt">programmed text</mods:genre>
+    <mods:genre authority="czenas">učebnice</mods:genre>
+    <mods:genre authority="eczenas">textbooks</mods:genre>
+    <mods:identifier type="uuid">aa9c14d9-1c27-4400-add7-9606a00e0abe</mods:identifier>
+    <mods:identifier type="isbn">978-0-19-459881-1 (student's book : brož.)</mods:identifier>
+    <mods:identifier type="isbn">978-0-19-459797-5 (student's book : DVD)</mods:identifier>
+    <mods:identifier type="isbn">978-0-19-459873-6 (workbook with key : brož.)</mods:identifier>
+    <mods:identifier type="isbn">978-0-19-459812-5 (workbook with key : CD-ROM)</mods:identifier>
+    <mods:identifier type="isbn">978-0-19-459875-0 (teacher's book : kroužková vazba)</mods:identifier>
+    <mods:identifier type="isbn">978-0-19-459868-2 (multipack A : brož.)</mods:identifier>
+    <mods:identifier type="isbn">978-0-19-459869-9 (multipack B : brož.)</mods:identifier>
+    <mods:language>
+        <mods:languageTerm authority="iso639-2b" type="code">eng</mods:languageTerm>
+    </mods:language>
+    <mods:location>
+        <mods:physicalLocation authority="siglaADR">HKA001</mods:physicalLocation>
+        <mods:shelfLocator>D1-607</mods:shelfLocator>
+        <mods:shelfLocator>D1-676</mods:shelfLocator>
+    </mods:location>
+    <mods:name usage="primary" type="personal">
+        <mods:namePart>Latham-Koenig, Christina</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">aut</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:name type="personal">
+        <mods:namePart>Oxenden, Clive</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">aut</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:name type="personal">
+        <mods:namePart>Seligson, Paul</mods:namePart>
+        <mods:role>
+            <mods:roleTerm type="code" authority="marcrelator">aut</mods:roleTerm>
+        </mods:role>
+    </mods:name>
+    <mods:note type="statement of responsibility" altRepGroup="00">Christina Latham-Koenig, Clive Oxenden, Paul Seligson</mods:note>
+    <mods:originInfo>
+        <mods:place>
+            <mods:placeTerm authority="marccountry" type="code">xxk</mods:placeTerm>
+        </mods:place>
+        <mods:place>
+            <mods:placeTerm type="text">Oxford</mods:placeTerm>
+        </mods:place>
+        <mods:publisher>Oxford University Press</mods:publisher>
+        <mods:dateIssued>c2012</mods:dateIssued>
+        <mods:dateIssued encoding="marc">2012</mods:dateIssued>
+        <mods:edition>3rd ed.</mods:edition>
+        <mods:issuance>monographic</mods:issuance>
+    </mods:originInfo>
+    <mods:part type="volume"/>
+    <mods:physicalDescription>
+        <mods:form authority="marcform">print</mods:form>
+        <mods:form authority="marccategory">text</mods:form>
+        <mods:form authority="marcsmd">regular print</mods:form>
+        <mods:extent>^^^sv. : il. (některé barev.) ; 28-30 cm + 4 CD-ROM, 3 DVD-ROM</mods:extent>
+    </mods:physicalDescription>
+    <mods:recordInfo>
+        <mods:recordContentSource authority="marcorg">BOA001</mods:recordContentSource>
+        <mods:recordCreationDate encoding="iso8601">20140531T141221</mods:recordCreationDate>
+        <mods:recordChangeDate encoding="iso8601">20140531T141231</mods:recordChangeDate>
+        <mods:recordIdentifier source="CZ HkSVK">000596887</mods:recordIdentifier>
+        <mods:languageOfCataloging>
+            <mods:languageTerm authority="iso639-2b" type="code">cze</mods:languageTerm>
+        </mods:languageOfCataloging>
+        <mods:recordOrigin>Converted from MARCXML to MODS version 3.4 using MARC21slim2MODS3-4.xsl
+                (Revision 1.94 2014/02/21)</mods:recordOrigin>
+        <mods:descriptionStandard>aacr</mods:descriptionStandard>
+    </mods:recordInfo>
+    <mods:subject authority="czenas">
+        <mods:topic>angličtina</mods:topic>
+    </mods:subject>
+    <mods:subject>
+        <mods:topic>English language</mods:topic>
+    </mods:subject>
+    <mods:tableOfContents>student's book. 2012. 191 s. + 1 DVD-ROM -- teacher' book. 2012. 279 s. + 1 CD-ROM -- workbook with key. 2012. 95 s. + 1 CD-ROM -- student's book A, workbook A. 2012. 91 s. + 1 DVD-ROM + 1 CD-ROM -- student's book B, workbook B. 2012. 95 s. + 1 DVD-ROM + 1 CD-ROM</mods:tableOfContents>
+    <mods:targetAudience authority="marctarget">adult</mods:targetAudience>
+    <mods:titleInfo>
+        <mods:title>English file</mods:title>
+        <mods:subTitle>pre-intermediate</mods:subTitle>
+    </mods:titleInfo>
+    <mods:typeOfResource>text</mods:typeOfResource>
+</mods:mods>

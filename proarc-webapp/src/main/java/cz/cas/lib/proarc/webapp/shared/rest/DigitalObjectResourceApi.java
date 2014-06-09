@@ -148,6 +148,17 @@ public final class DigitalObjectResourceApi {
     public static final String ATM_ITEM_PID = DIGITALOBJECT_PID;
     public static final String ATM_ITEM_STATE = MEMBERS_ITEM_STATE;
 
+    /** Resource /object/thumb */
+    public static final String URNNBN_PATH = "urnnbn";
+    public static final String URNNBN_HIERARCHY = "hierarchy";
+    public static final String URNNBN_RESOLVER = "resolverId";
+
+    public static final String URNNBN_ITEM_URNNBN = "urnnbn";
+    public static final String URNNBN_ITEM_MESSAGE = "message";
+    public static final String URNNBN_ITEM_STATUSTYPE = "statusType";
+    public static final String URNNBN_ITEM_WARNING = "warning";
+    public static final String URNNBN_ITEM_LOG = "log";
+
     public enum SearchType {
         
         LAST_CREATED(SEARCH_TYPE_PARAM_DEFAULT),
