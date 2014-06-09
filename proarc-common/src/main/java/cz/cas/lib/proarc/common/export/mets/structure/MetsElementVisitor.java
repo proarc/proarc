@@ -29,7 +29,6 @@ import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -932,6 +931,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     Node mixNode = jHoveOutput.getMixNode();
                     if (mixNode != null) {
                         xmlData.getAny().add(mixNode);
+                    } else {
+                        throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate image metadata (MIX) for " + streamName, false, null);
                     }
 
                     if (md5InfosMap.get(streamName) != null) {

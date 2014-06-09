@@ -211,6 +211,9 @@ public class JhoveUtility {
 
             outputFile.delete();
             Node node = getNodeRecursive(jHoveDoc, "mix");
+            if (node == null) {
+                return jhoveOutput;
+            }
             Mix mix = MixUtils.unmarshal(new DOMSource(node), Mix.class);
 
             XPath xpath = XPathFactory.newInstance().newXPath();
