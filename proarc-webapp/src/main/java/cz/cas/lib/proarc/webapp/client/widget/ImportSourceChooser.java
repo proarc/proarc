@@ -205,7 +205,7 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
         t.addMember(Actions.asIconButton(refreshAction, this));
 
         Action loadAction = new AbstractAction(i18n.ImportWizard_ButtonLoadFolder_Title(),
-                "[SKIN]/actions/save.png", null) {
+                "[SKIN]/actions/add.png", null) {
 
             @Override
             public void performAction(ActionEvent event) {
