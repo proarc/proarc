@@ -29,12 +29,12 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.FormItemValueFormatter;
 import com.smartgwt.client.widgets.form.FormItemValueParser;
 import com.smartgwt.client.widgets.form.ValuesManager;
-import com.smartgwt.client.widgets.form.fields.AutoFitTextAreaItem;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.DateItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.RadioGroupItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
+import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.fields.events.ChangedEvent;
 import com.smartgwt.client.widgets.form.fields.events.ChangedHandler;
@@ -198,8 +198,8 @@ public class FormGenerator {
         return item;
     }
 
-    public AutoFitTextAreaItem getTextAreaFormItem(Field f, String lang) {
-        AutoFitTextAreaItem item = new AutoFitTextAreaItem(f.getName(), f.getTitle(activeLocale));
+    public TextAreaItem getTextAreaFormItem(Field f, String lang) {
+        TextAreaItem item = new TextAreaItem(f.getName(), f.getTitle(activeLocale));
         item.setLength(f.getLength());
         item.setWidth(defaultWidth);
         return item;
