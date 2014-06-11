@@ -98,6 +98,7 @@ import cz.cas.lib.proarc.mets.MetsType.MetsHdr.Agent;
 import cz.cas.lib.proarc.mets.MetsType.StructLink;
 import cz.cas.lib.proarc.mets.StructLinkType.SmLink;
 import cz.cas.lib.proarc.mets.StructMapType;
+import cz.cas.lib.proarc.mix.BasicImageInformationType.BasicImageCharacteristics.PhotometricInterpretation;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
@@ -130,6 +131,7 @@ import cz.cas.lib.proarc.premis.RelationshipComplexType;
  * @author Robert Simonovsky
  *
  */
+
 public class MetsElementVisitor implements IMetsElementVisitor {
     private final Logger LOG = Logger.getLogger(MetsElementVisitor.class.getName());
     private Mets mets;
@@ -840,8 +842,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_001", true);
     }
 
-
-
     /**
      * Generates technical metadata using JHOVE
      *
@@ -877,6 +877,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             XMLGregorianCalendar rawCreated = null;
             Mix mixDevice = getScannerMix(metsElement);
             //RAW datastream for MIX_001 - only for Fedora
+            PhotometricInterpretation photometricInterpretation = null;
+            JHoveOutput jHoveOutputRaw = null;
+            JHoveOutput jHoveOutputMC = null;
             if (metsElement.getMetsContext().getFedoraClient() != null) {
                 try {
                         DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
@@ -893,6 +896,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             md5InfosMap.put("RAW", rawinfo);
                             outputFileNames.put("RAW", rawFile.getAbsolutePath());
                             toGenerate.put("MIX_001", "RAW");
+                            jHoveOutputRaw = JhoveUtility.getMix(new File(rawFile.getAbsolutePath()), metsElement.getMetsContext(), mixDevice, rawCreated, null);
+                            if ((jHoveOutputRaw.getMix().getBasicImageInformation() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation() != null)) {
+                                photometricInterpretation = jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation();
+                            }
+                            JhoveUtility.addDenominator(jHoveOutputRaw);
+                            JhoveUtility.addOrientation(jHoveOutputRaw);
+
                             } catch (FedoraClientException e) {
                                 throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                             }
@@ -904,39 +914,48 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
             if (fileNames.get("MC_IMGGRP")!=null) {
                 toGenerate.put("MIX_002", "MC_IMGGRP");
+                String outputFileName = outputFileNames.get("MC_IMGGRP");
+                if (outputFileName!=null) {
+                    String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
+                    jHoveOutputMC = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
+                    JhoveUtility.addPhotometricInformation(jHoveOutputMC, photometricInterpretation);
+                    JhoveUtility.addDenominator(jHoveOutputMC);
+                    JhoveUtility.addOrientation(jHoveOutputMC);
+                }
             }
 
             for (String name : toGenerate.keySet()) {
                 String streamName = toGenerate.get(name);
 
                 if (streamName != null) {
-                    String outputFileName = outputFileNames.get(streamName);
                     MdSecType mdSec = new MdSecType();
                     mdSec.setID(name);
                     MdWrap mdWrap = new MdWrap();
                     mdWrap.setMIMETYPE("text/xml");
                     mdWrap.setMDTYPE("NISOIMG");
                     XmlData xmlData = new XmlData();
+                    Node mixNode = null;
 
-                    JHoveOutput jHoveOutput;
                     if ("RAW".equals(streamName)) {
-                        jHoveOutput = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), mixDevice, rawCreated, null);
+                        if (jHoveOutputRaw != null) {
+                            mixNode = jHoveOutputRaw.getMixNode();
+                            if (md5InfosMap.get(streamName) != null) {
+                                md5InfosMap.get(streamName).setFormatVersion(jHoveOutputRaw.getFormatVersion());
+                            }
+                        }
                     } else if (("MC_IMGGRP".equals(streamName)) && (md5InfosMap.get("MC_IMGGRP") != null)) {
-                        String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
-                        jHoveOutput = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
+                        if (jHoveOutputMC != null) {
+                            mixNode = jHoveOutputMC.getMixNode();
+                            if (md5InfosMap.get(streamName) != null) {
+                                md5InfosMap.get(streamName).setFormatVersion(jHoveOutputMC.getFormatVersion());
+                            }
+                        }
                     }
-                     else {
-                        jHoveOutput = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, null, null);
-                    }
-                    Node mixNode = jHoveOutput.getMixNode();
+
                     if (mixNode != null) {
                         xmlData.getAny().add(mixNode);
                     } else {
                         throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate image metadata (MIX) for " + streamName, false, null);
-                    }
-
-                    if (md5InfosMap.get(streamName) != null) {
-                        md5InfosMap.get(streamName).setFormatVersion(jHoveOutput.getFormatVersion());
                     }
 
                     mdWrap.setXmlData(xmlData);
