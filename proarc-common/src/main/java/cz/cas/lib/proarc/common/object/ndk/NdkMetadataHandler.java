@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
@@ -29,11 +30,20 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
+import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.StringReader;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
@@ -50,6 +60,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
     private final DigitalObjectHandler handler;
     private final ModsStreamEditor editor;
     private final FedoraObject fobject;
+    private DigitalObjectCrawler crawler;
 
     public NdkMetadataHandler(DigitalObjectHandler handler) {
         this.handler = handler;
@@ -70,7 +81,52 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
     }
 
     private ModsDefinition createDefault(String modelId) throws DigitalObjectException {
-        return ModsStreamEditor.defaultMods(fobject.getPid());
+        ModsDefinition defaultMods = ModsStreamEditor.defaultMods(fobject.getPid());
+        DigitalObjectHandler parent = handler.getParameterParent();
+        if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)) {
+            // issue 124
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICAL);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                inheritLocation(defaultMods, titleMods.getLocation());
+                inheritIdentifier(defaultMods, titleMods.getIdentifier());
+            }
+        }
+        return defaultMods;
+    }
+
+    private void inheritIdentifier(ModsDefinition mods, List<IdentifierDefinition> ids) {
+        for (IdentifierDefinition id : ids) {
+            String type = id.getType();
+            if ("ccnb".equals(type) || "issn".equals(type)) {
+                mods.getIdentifier().add(id);
+            }
+        }
+    }
+
+    private void inheritLocation(ModsDefinition mods, List<LocationDefinition> locs) {
+        for (LocationDefinition loc : locs) {
+            List<PhysicalLocationDefinition> pls = loc.getPhysicalLocation();
+            List<StringPlusLanguage> sls = loc.getShelfLocator();
+            if (!pls.isEmpty() || !sls.isEmpty()) {
+                loc.getUrl().clear();
+                mods.getLocation().add(loc);
+            }
+        }
+    }
+
+    private void inheritTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
+        for (TitleInfoDefinition ti : tis) {
+            if (ti.getType() == null) {
+                ti.getPartNumber().clear();
+                ti.getPartName().clear();
+                ti.getNonSort().clear();
+                mods.getTitleInfo().add(ti);
+
+            }
+        }
     }
 
     @Override
@@ -161,6 +217,41 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
         // Label
         String label = mapper.toLabel(mods);
         fobject.setLabel(label);
+    }
+
+    private DigitalObjectHandler findEnclosingObject(
+            DigitalObjectHandler obj, String searcModelId) throws DigitalObjectException {
+
+        if (obj != null) {
+            if (searcModelId.equals(obj.relations().getModel())) {
+                return obj;
+            } else {
+                DigitalObjectElement parent = getCrawler().getParent(obj.getFedoraObject().getPid());
+                return findEnclosingObject(parent, searcModelId);
+            }
+        }
+        return null;
+    }
+
+    private DigitalObjectHandler findEnclosingObject(
+            DigitalObjectElement obj, String searcModelId) throws DigitalObjectException {
+
+        if (obj == DigitalObjectElement.NULL) {
+            return null;
+        } else if (searcModelId.equals(obj.getModelId())) {
+            return obj.getHandler();
+        } else {
+            DigitalObjectElement parent = getCrawler().getParent(obj.getPid());
+            return findEnclosingObject(parent, searcModelId);
+        }
+    }
+
+    public DigitalObjectCrawler getCrawler() {
+        if (crawler == null) {
+            crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(),
+                    RemoteStorage.getInstance().getSearch());
+        }
+        return crawler;
     }
 
     public static class ModsWrapper {
