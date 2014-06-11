@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.export.mets;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.logging.Level;
@@ -40,6 +41,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.Compression;
+import cz.cas.lib.proarc.mix.BasicImageInformationType;
+import cz.cas.lib.proarc.mix.BasicImageInformationType.BasicImageCharacteristics.PhotometricInterpretation;
 import cz.cas.lib.proarc.mix.ChangeHistoryType;
 import cz.cas.lib.proarc.mix.ChangeHistoryType.ImageProcessing;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType;
@@ -47,12 +50,15 @@ import cz.cas.lib.proarc.mix.ImageCaptureMetadataType;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixType;
 import cz.cas.lib.proarc.mix.MixUtils;
+import cz.cas.lib.proarc.mix.OrientationType;
 import cz.cas.lib.proarc.mix.StringType;
 import cz.cas.lib.proarc.mix.TypeOfDateType;
+import cz.cas.lib.proarc.mix.TypeOfOrientationType;
 import edu.harvard.hul.ois.jhove.App;
 import edu.harvard.hul.ois.jhove.JhoveBase;
 import edu.harvard.hul.ois.jhove.Module;
 import edu.harvard.hul.ois.jhove.OutputHandler;
+
 import java.util.UUID;
 
 /**
@@ -211,6 +217,9 @@ public class JhoveUtility {
 
             outputFile.delete();
             Node node = getNodeRecursive(jHoveDoc, "mix");
+            if (node == null) {
+                return jhoveOutput;
+            }
             Mix mix = MixUtils.unmarshal(new DOMSource(node), Mix.class);
 
             XPath xpath = XPathFactory.newInstance().newXPath();
@@ -342,4 +351,62 @@ public class JhoveUtility {
         }
     }
 
+    /**
+     * adds denominator value
+     *
+     * @param jhoveOutput
+     */
+    public static void addDenominator(JHoveOutput jhoveOutput) {
+        if ((jhoveOutput != null) && (jhoveOutput.getMix() != null)) {
+            if ((jhoveOutput.getMix().getImageAssessmentMetadata() != null) && (jhoveOutput.getMix().getImageAssessmentMetadata().getSpatialMetrics() != null)) {
+                if ((jhoveOutput.getMix().getImageAssessmentMetadata().getSpatialMetrics().getXSamplingFrequency() != null) && (jhoveOutput.getMix().getImageAssessmentMetadata().getSpatialMetrics().getXSamplingFrequency().getDenominator() == null)) {
+                    jhoveOutput.getMix().getImageAssessmentMetadata().getSpatialMetrics().getXSamplingFrequency().setDenominator(BigInteger.ONE);
+                }
+                if ((jhoveOutput.getMix().getImageAssessmentMetadata().getSpatialMetrics().getXSamplingFrequency() != null) && (jhoveOutput.getMix().getImageAssessmentMetadata().getSpatialMetrics().getYSamplingFrequency().getDenominator() == null)) {
+                    jhoveOutput.getMix().getImageAssessmentMetadata().getSpatialMetrics().getYSamplingFrequency().setDenominator(BigInteger.ONE);
+                }
+            }
+        }
+    }
+
+    /**
+     * Adds the photometric information to the mix
+     *
+     *
+     * @param jhoveOutput
+     * @param photometricInterpretation
+     */
+    public static void addPhotometricInformation(JHoveOutput jhoveOutput, PhotometricInterpretation photometricInterpretation) {
+        if (photometricInterpretation != null) {
+            if (jhoveOutput.getMix().getBasicImageInformation() == null) {
+                jhoveOutput.getMix().setBasicImageInformation(new BasicImageInformationType());
+            }
+            if (jhoveOutput.getMix().getBasicImageInformation().getBasicImageCharacteristics() == null) {
+                jhoveOutput.getMix().getBasicImageInformation().setBasicImageCharacteristics(new BasicImageInformationType.BasicImageCharacteristics());
+            }
+            if (jhoveOutput.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation() == null) {
+    
+                DOMResult photometricResult = new DOMResult();
+                MixUtils.marshal(photometricResult, new JAXBElement<PhotometricInterpretation>(new QName("uri", "local"), PhotometricInterpretation.class, photometricInterpretation), true);
+    
+                PhotometricInterpretation photometricInterpretationNew = MixUtils.unmarshal(new DOMSource(photometricResult.getNode()), PhotometricInterpretation.class);
+                jhoveOutput.getMix().getBasicImageInformation().getBasicImageCharacteristics().setPhotometricInterpretation(photometricInterpretationNew);
+            }
+        }
+    }
+
+    /**
+     * Adds an orientation tag to the mix
+     *
+     * @param jhoveOutput
+     */
+    public static void addOrientation(JHoveOutput jhoveOutput) {
+        if ((jhoveOutput!=null)&&(jhoveOutput.getMix()!=null)) {
+            if ((jhoveOutput.getMix().getImageCaptureMetadata() != null) && (jhoveOutput.getMix().getImageCaptureMetadata().getOrientation() == null)) {
+                TypeOfOrientationType orientation = new TypeOfOrientationType();
+                orientation.setValue(OrientationType.UNKNOWN);
+                jhoveOutput.getMix().getImageCaptureMetadata().setOrientation(orientation);
+            }
+        }
+    }
 }
