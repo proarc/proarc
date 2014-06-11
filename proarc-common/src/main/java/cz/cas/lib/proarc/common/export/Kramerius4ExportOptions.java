@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export;
 
-import cz.cas.lib.proarc.common.object.NdkPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
