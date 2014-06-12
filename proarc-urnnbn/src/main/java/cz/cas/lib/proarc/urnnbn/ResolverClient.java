@@ -52,13 +52,17 @@ public final class ResolverClient {
     private Client httpClient;
     private final String serviceUrl;
     private final String registrar;
+    private final Long archiver;
     private final String user;
     private final String passwd;
     private boolean debug;
 
-    public ResolverClient(String serviceUrl, String registrar, String user, String passwd) {
+    public ResolverClient(String serviceUrl, String registrar, Long archiver,
+            String user, String passwd) {
+
         this.serviceUrl = serviceUrl;
         this.registrar = registrar;
+        this.archiver = archiver;
         this.user = user;
         this.passwd = passwd;
     }
@@ -75,6 +79,9 @@ public final class ResolverClient {
         }
         if (object == null) {
             throw new NullPointerException("object");
+        }
+        if (archiver != null && object.getDigitalDocument().getArchiverId() == null) {
+            object.getDigitalDocument().setArchiverId(archiver);
         }
         Response response = resource()
                 .path("registrars")
