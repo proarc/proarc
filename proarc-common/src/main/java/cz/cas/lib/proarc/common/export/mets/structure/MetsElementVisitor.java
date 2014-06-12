@@ -797,7 +797,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
     }
 
-    private void addPremisNodeToMets(Node premisNode, AmdSecType amdSec, String Id, boolean isDigiprov) {
+    private void addPremisNodeToMets(Node premisNode, AmdSecType amdSec, String Id, boolean isDigiprov, HashMap<String, FileGrp> amdSecFileGrpMap) {
         MdSecType mdSec = new MdSecType();
         mdSec.setID(Id);
         MdWrap mdWrap = new MdWrap();
@@ -812,9 +812,19 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         } else {
             amdSec.getTechMD().add(mdSec);
         }
+        if ("OBJ_002".equals(Id) || ("EVT_002".equals(Id))) {
+            if ((amdSecFileGrpMap.get("MC_IMGGRP") != null) && (amdSecFileGrpMap.get("MC_IMGGRP").getFile().get(0) != null)) {
+                amdSecFileGrpMap.get("MC_IMGGRP").getFile().get(0).getADMID().add(mdSec);
+            }
+        }
+        if ("OBJ_003".equals(Id) || ("EVT_003".equals(Id))) {
+            if ((amdSecFileGrpMap.get("ALTOGRP") != null) && (amdSecFileGrpMap.get("ALTOGRP").getFile().get(0) != null)) {
+                amdSecFileGrpMap.get("ALTOGRP").getFile().get(0).getADMID().add(mdSec);
+            }
+        }
     }
 
-    private void addPremisToAmdSec(AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, IMetsElement metsElement) throws MetsExportException {
+    private void addPremisToAmdSec(AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, IMetsElement metsElement, HashMap<String, FileGrp> amdSecFileGrpMap) throws MetsExportException {
         HashMap<String, String> toGenerate = new HashMap<String, String>();
         toGenerate.put("OBJ_001", "RAW");
         toGenerate.put("OBJ_002", "MC_IMGGRP");
@@ -825,21 +835,21 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (md5InfosMap.get(stream) == null) {
                 continue;
             }
-            addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream)), amdSec, obj, false);
+            addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream)), amdSec, obj, false, amdSecFileGrpMap);
         }
 
         if (md5InfosMap.get("RAW") != null) {
-            addPremisNodeToMets(getPremisEvent(metsElement, "RAW", md5InfosMap.get("RAW"), "capture/digitization"), amdSec, "EVT_001", true);
+            addPremisNodeToMets(getPremisEvent(metsElement, "RAW", md5InfosMap.get("RAW"), "capture/digitization"), amdSec, "EVT_001", true, null);
         }
 
         if (md5InfosMap.get("MC_IMGGRP") != null) {
-            addPremisNodeToMets(getPremisEvent(metsElement, "MC_IMGGRP", md5InfosMap.get("MC_IMGGRP"), "migration/MC_creation"), amdSec, "EVT_002", true);
+            addPremisNodeToMets(getPremisEvent(metsElement, "MC_IMGGRP", md5InfosMap.get("MC_IMGGRP"), "migration/MC_creation"), amdSec, "EVT_002", true, amdSecFileGrpMap);
         }
         if (md5InfosMap.get("ALTOGRP") != null) {
-            addPremisNodeToMets(getPremisEvent(metsElement, "ALTOGRP", md5InfosMap.get("ALTOGRP"), "capture/XML_creation"), amdSec, "EVT_003", true);
+            addPremisNodeToMets(getPremisEvent(metsElement, "ALTOGRP", md5InfosMap.get("ALTOGRP"), "capture/XML_creation"), amdSec, "EVT_003", true, amdSecFileGrpMap);
         }
 
-        addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_001", true);
+        addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_001", true, null);
     }
 
     /**
@@ -870,6 +880,43 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 divType.setTYPE("PERIODICAL_PAGE");
             } else {
                 divType.setTYPE("MONOGRAPH_PAGE");
+            }
+
+            FileSec fileSec = new FileSec();
+            amdSecMets.setFileSec(fileSec);
+            HashMap<String, FileGrp> amdSecFileGrpMap = new HashMap<String, MetsType.FileSec.FileGrp>();
+            for (String fileMap : fileGrpPage.keySet()) {
+                FileGrp fileGrp = fileGrpPage.get(fileMap);
+                if (fileGrp.getFile().size() > 0) {
+                    FileGrp fileGrpAmd = new FileGrp();
+                    amdSecFileGrpMap.put(fileMap, fileGrpAmd);
+                    fileGrpAmd.setID(fileGrp.getID());
+                    fileGrpAmd.setUSE(fileGrp.getUSE());
+                    fileSec.getFileGrp().add(fileGrpAmd);
+                    for (FileType fileTypePage : fileGrp.getFile()) {
+                        FileType fileTypeAmdSec = new FileType();
+                        fileTypeAmdSec.setCHECKSUM(fileTypePage.getCHECKSUM());
+                        fileTypeAmdSec.setCHECKSUMTYPE(fileTypePage.getCHECKSUMTYPE());
+                        fileTypeAmdSec.setCREATED(fileTypePage.getCREATED());
+                        fileTypeAmdSec.setID(fileTypePage.getID());
+                        fileTypeAmdSec.setMIMETYPE(fileTypePage.getMIMETYPE());
+                        fileTypeAmdSec.setSEQ(fileTypePage.getSEQ());
+                        fileTypeAmdSec.setSIZE(fileTypePage.getSIZE());
+                        fileGrpAmd.getFile().add(fileTypeAmdSec);
+                        if (fileTypePage.getFLocat().get(0)!=null) {
+                            FLocat flocatAmd = new FLocat();
+                            FLocat pageFlocat = fileTypePage.getFLocat().get(0);
+                            if (pageFlocat.getHref()!=null) {
+                                flocatAmd.setHref(".." + pageFlocat.getHref().substring(1));
+                            }
+                            flocatAmd.setLOCTYPE(pageFlocat.getLOCTYPE());
+                            fileTypeAmdSec.getFLocat().add(flocatAmd);
+                        }
+                        Fptr fptr = new Fptr();
+                        fptr.setFILEID(fileTypeAmdSec);
+                        divType.getFptr().add(fptr);
+                    }
+                }
             }
 
             HashMap<String, String> toGenerate = new HashMap<String, String>();
@@ -949,6 +996,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             if (md5InfosMap.get(streamName) != null) {
                                 md5InfosMap.get(streamName).setFormatVersion(jHoveOutputMC.getFormatVersion());
                             }
+                            if (mixNode != null) {
+                                if ((amdSecFileGrpMap.get("MC_IMGGRP") != null) && (amdSecFileGrpMap.get("MC_IMGGRP").getFile().get(0) != null)) {
+                                    amdSecFileGrpMap.get("MC_IMGGRP").getFile().get(0).getADMID().add(mdSec);
+                                }
+                            }
                         }
                     }
 
@@ -967,21 +1019,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (rawFile != null) {
                 outputFileNames.remove("RAW");
                 rawFile.delete();
-            }
-
-            FileSec fileSec = new FileSec();
-            amdSecMets.setFileSec(fileSec);
-
-            for (String fileMap : fileGrpPage.keySet()) {
-                FileGrp fileGrp = fileGrpPage.get(fileMap);
-                if (fileGrp.getFile().size() > 0) {
-                    fileSec.getFileGrp().add(fileGrp);
-                    for (FileType fileTypePage : fileGrp.getFile()) {
-                        Fptr fptr = new Fptr();
-                        fptr.setFILEID(fileTypePage);
-                        divType.getFptr().add(fptr);
-                    }
-                }
             }
 
             if (outputFileNames.get("ALTOGRP")!=null) {
@@ -1006,7 +1043,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
             }
 
-            addPremisToAmdSec(amdSec, md5InfosMap, metsElement);
+            addPremisToAmdSec(amdSec, md5InfosMap, metsElement, amdSecFileGrpMap);
             mapType.setDiv(divType);
             saveAmdSec(metsElement, amdSecMets, fileNames, mimeTypes);
             FileType fileType = prepareFileType(seq, "TECHMDGRP", fileNames, mimeTypes, metsElement.getMetsContext(), outputFileNames, md5InfosMap);
