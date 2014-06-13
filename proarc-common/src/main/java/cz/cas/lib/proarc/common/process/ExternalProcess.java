@@ -118,7 +118,7 @@ public class ExternalProcess implements Runnable {
             IOUtils.closeQuietly(outStream);
             throw ex;
         }
-        exitCode = process.exitValue();
+        exitCode = process.waitFor();
         LOG.fine(getFullOutput());
         return exitCode;
     }
