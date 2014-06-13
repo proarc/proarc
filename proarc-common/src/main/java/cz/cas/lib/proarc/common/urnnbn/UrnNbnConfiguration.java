@@ -135,7 +135,7 @@ public class UrnNbnConfiguration {
         }
 
         public Long getArchiver() {
-            return config.getLong(PROPERTY_ARCHIVER);
+            return config.getLong(PROPERTY_ARCHIVER, null);
         }
 
         public String getTitle() {
