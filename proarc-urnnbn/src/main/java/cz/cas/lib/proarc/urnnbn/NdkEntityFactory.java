@@ -27,19 +27,8 @@ import cz.cas.lib.proarc.urnnbn.model.registration.OtherEntity;
 import cz.cas.lib.proarc.urnnbn.model.registration.PeriodicalIssue;
 import cz.cas.lib.proarc.urnnbn.model.registration.PeriodicalIssue.TitleInfo;
 import cz.cas.lib.proarc.urnnbn.model.registration.Publication;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXB;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.util.JAXBSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
@@ -87,7 +76,7 @@ public class NdkEntityFactory {
                 .build();
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
-        validate(imp, status);
+        ResolverXmlUtils.validate(imp, status);
         return imp;
     }
 
@@ -130,7 +119,7 @@ public class NdkEntityFactory {
                 .build();
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
-        validate(imp, status);
+        ResolverXmlUtils.validate(imp, status);
         return imp;
     }
 
@@ -195,7 +184,7 @@ public class NdkEntityFactory {
                 .build();
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
-        validate(imp, status);
+        ResolverXmlUtils.validate(imp, status);
         return imp;
     }
 
@@ -262,39 +251,13 @@ public class NdkEntityFactory {
                 .build();
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
-        validate(imp, status);
+        ResolverXmlUtils.validate(imp, status);
         return imp;
-    }
-
-    private void validate(Import imp, ErrorHandler status) throws SAXException {
-        try {
-            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = schemaFactory.newSchema(getClass().getResource("registration/digDocRegistration.xsd"));
-            Validator validator = schema.newValidator();
-            validator.setErrorHandler(status);
-            validator.validate(new JAXBSource(JAXBContext.newInstance(Import.class), imp));
-        } catch (IOException ex) {
-            throw new SAXException(ex);
-        } catch (JAXBException ex) {
-            throw new SAXException(ex);
-        }
-    }
-
-    private String toString(Import imp) {
-        StringWriter dump = new StringWriter();
-        try {
-            JAXB.marshal(imp, dump);
-        } catch (Exception e) {
-            PrintWriter pw = new PrintWriter(dump);
-            e.printStackTrace(pw);
-            pw.close();
-        }
-        return dump.toString();
     }
 
     void debugXml(Import imp) {
         if (LOG.isLoggable(XML_DEBUG_LEVEL)) {
-            LOG.log(XML_DEBUG_LEVEL, toString(imp));
+            LOG.log(XML_DEBUG_LEVEL, ResolverXmlUtils.toString(imp));
         }
     }
 
