@@ -110,7 +110,7 @@ public class TransformersTest {
         Transformers mt = new Transformers();
 
         try {
-            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods34);
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
             assertNotNull(contents);
 //            System.out.println(new String(contents, "UTF-8"));
             XMLAssert.assertXMLEqual(new InputSource(goldenIS), new InputSource(new ByteArrayInputStream(contents)));
@@ -131,7 +131,7 @@ public class TransformersTest {
         Transformers mt = new Transformers();
 
         try {
-            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods34);
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
             System.out.println(xmlResult);
