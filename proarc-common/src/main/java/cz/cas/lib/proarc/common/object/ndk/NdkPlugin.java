@@ -95,7 +95,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 ));
         models.add(new MetaModel(
                 MODEL_PERIODICALISSUE, null, null,
-                Arrays.asList(new ElementType("NDK Periodical Issue", "en"), new ElementType("NDK Výtisk", "cs")),
+                Arrays.asList(new ElementType("NDK Periodical Issue", "en"), new ElementType("NDK Číslo", "cs")),
                 ModsConstants.NS,
                 MODEL_PERIODICALISSUE,
                 this,
