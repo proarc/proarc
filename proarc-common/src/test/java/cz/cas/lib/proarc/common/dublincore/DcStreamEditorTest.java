@@ -102,7 +102,7 @@ public class DcStreamEditorTest {
         StringWriter dump = new StringWriter();
         t.transform(jaxbSource, new StreamResult(dump));
         String toXml = dump.toString();
-//        System.out.println(toXml);
+        System.out.println(toXml);
 
         HashMap<String, String> namespaces = new HashMap<String, String>();
         namespaces.put("oai_dc", DcStreamEditor.DATASTREAM_FORMAT_URI);
@@ -112,6 +112,8 @@ public class DcStreamEditorTest {
         XMLAssert.assertXpathExists("/oai_dc:dc/dc:title[text()='key']", toXml);
         XMLAssert.assertXpathExists("/oai_dc:dc/dc:title[text()='alternative']", toXml);
         XMLAssert.assertXpathEvaluatesTo("3", "count(/oai_dc:dc/dc:title)", toXml);
+        XMLAssert.assertXpathExists("/oai_dc:dc/dc:creator[text()='Boleslav']", toXml);
+        XMLAssert.assertXpathExists("/oai_dc:dc/dc:description[text()='poznámka']", toXml);
         XMLAssert.assertXpathExists("/oai_dc:dc/dc:identifier[text()='uuid:40d13cb2-811f-468c-a6d3-1ad6b01f06f7']", toXml);
         XMLAssert.assertXpathExists("/oai_dc:dc/dc:identifier[text()='isbn:0eaa6730']", toXml);
         XMLAssert.assertXpathExists("/oai_dc:dc/dc:identifier[text()='issn-l:idIssn-l']", toXml);
