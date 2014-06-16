@@ -89,6 +89,36 @@ public final class NdkPeriodicalIssueForm {
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
             .createField()); // titleInfo
 
+        // part, type="partDefinition"
+        modsFields.add(new FieldBuilder("part").setTitle("Part - O").setMaxOccurrences(1)
+                .setHint("Popis části, pokud je svazek částí souboru.")
+                // @ID, @type, @order, @displayLabel, @altRepGroup
+                // @languageAttributeGroup(lang, XmlLang, script, transliteration)
+                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("issue")
+                    .setHint("Hodnota bude vždy „issue“.")
+                .createField()) // type
+                // detail, type="detailDefinition"
+                .addField(new FieldBuilder("detail").setMaxOccurrences(1)
+                    // @type, level
+                    // number
+                    // caption, type="stringPlusLanguage"
+                    .addField(new FieldBuilder("caption").setMaxOccurrences(1)
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("value").setTitle("Detail Caption - RA").setMaxOccurrences(1).setType(Field.COMBO)
+                            .setHint("Text před označením čísla.")
+                            .addMapValue("č.", "č.")
+                            .addMapValue("část", "část")
+                            .addMapValue("číslo", "číslo")
+                            .addMapValue("No.", "No.")
+                        .createField()) // value
+                    .createField()) // caption
+                    // title
+                .createField()) // detail
+                // extent, type="extentDefinition"
+                // date
+                // text
+            .createField()); // part
+
         // name, nameDefinition
         modsFields.add(new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
                 .setHint("Údaje o odpovědnosti za číslo periodika.<p>Použití u ročenek,"
@@ -582,36 +612,6 @@ public final class NdkPeriodicalIssueForm {
                 // holdingSimple
                 // holdingExternal
         .createField()); // location
-
-        // part, type="partDefinition"
-        modsFields.add(new FieldBuilder("part").setTitle("Part - O").setMaxOccurrences(1)
-                .setHint("Popis části, pokud je svazek částí souboru.")
-                // @ID, @type, @order, @displayLabel, @altRepGroup
-                // @languageAttributeGroup(lang, XmlLang, script, transliteration)
-                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("issue")
-                    .setHint("Hodnota bude vždy „issue“.")
-                .createField()) // type
-                // detail, type="detailDefinition"
-                .addField(new FieldBuilder("detail").setMaxOccurrences(1)
-                    // @type, level
-                    // number
-                    // caption, type="stringPlusLanguage"
-                    .addField(new FieldBuilder("caption").setMaxOccurrences(1)
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        .addField(new FieldBuilder("value").setTitle("Detail Caption - RA").setMaxOccurrences(1).setType(Field.COMBO)
-                            .setHint("Text před označením čísla.")
-                            .addMapValue("č.", "č.")
-                            .addMapValue("část", "část")
-                            .addMapValue("číslo", "číslo")
-                            .addMapValue("No.", "No.")
-                        .createField()) // value
-                    .createField()) // caption
-                    // title
-                .createField()) // detail
-                // extent, type="extentDefinition"
-                // date
-                // text
-            .createField()); // part
 
         return f;
     }
