@@ -550,7 +550,7 @@ public final class NdkPeriodicalIssueForm {
                     .addMapValue("ccnb", "čČNB")
                     .addMapValue("doi", "DOI")
                     .addMapValue("hdl", "Handle")
-//                    .addMapValue("isbn", "ISBN")
+                    .addMapValue("isbn", "ISBN")
                     .addMapValue("issn", "ISSN")
                     .addMapValue("oclc", "OCLC")
                     .addMapValue("permalink", "Permalink")
