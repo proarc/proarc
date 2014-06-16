@@ -894,7 +894,6 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     <xsl:variable name="controlField008-18" select="substring($controlField008,19,1)"/>
                     <xsl:variable name="frequency">
                         <!-- 1.94.proarc118 patch -->
-                        <frequency authority="marcfrequency">
                             <xsl:choose>
                                 <xsl:when test="$controlField008-18='a'">Annual</xsl:when>
                                 <xsl:when test="$controlField008-18='b'">Bimonthly</xsl:when>
@@ -916,10 +915,9 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                                 <xsl:when test="$controlField008-18='#'">Completely irregular</xsl:when>
                                 <xsl:otherwise/>
                             </xsl:choose>
-                        </frequency>
                     </xsl:variable>
                     <xsl:if test="$frequency!=''">
-                        <frequency>
+                        <frequency authority="marcfrequency">
                             <xsl:value-of select="$frequency"/>
                         </frequency>
                     </xsl:if>

@@ -150,6 +150,35 @@ public class TransformersTest {
         }
     }
 
+    /**
+     * Tests mapping of fields 310a and 008/18 to {@code frequency@authority}.
+     * See issue 118 and 181.
+     */
+    @Test
+    public void testMarcAsMods_FrequencyAuthority_Issue181() throws Exception {
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("frequencyAuthority.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
+            assertNotNull(contents);
+            String xmlResult = new String(contents, "UTF-8");
+            System.out.println(xmlResult);
+            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
+                put("m", ModsConstants.NS);
+            }}));
+            XMLAssert.assertXpathNotExists("/m:mods/m:originInfo/m:frequency[1]/@authority", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("2x ročně", "/m:mods/m:originInfo/m:frequency[1]", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("marcfrequency", "/m:mods/m:originInfo/m:frequency[2]/@authority", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("Semiannual", "/m:mods/m:originInfo/m:frequency[2]", xmlResult);
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
+        } finally {
+            close(xmlIS);
+        }
+    }
+
     @Test
     public void testOaiMarcAsMarc() throws Exception {
         InputStream goldenIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMarcXml.xml");
