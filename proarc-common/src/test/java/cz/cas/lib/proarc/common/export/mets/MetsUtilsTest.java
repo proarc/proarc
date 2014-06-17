@@ -56,7 +56,7 @@ public class MetsUtilsTest {
         this.testElements.add(monografieTestElement);
         MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum", "periodikum", 42, 348, 5, "periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
         this.testElements.add(periodikumTestElement);
-        MetsExportTestElement periodikumPageTestElement = new MetsExportTestElement("periodikumPage", "periodikum", 7, 50, 5, "periodical", "b46aff0e-26af-11e3-88e3-001b63bd97ba.xml");
+        MetsExportTestElement periodikumPageTestElement = new MetsExportTestElement("periodikumPage", "periodikum", 7, 49, 5, "periodical", "b46aff0e-26af-11e3-88e3-001b63bd97ba.xml");
         this.testElements.add(periodikumPageTestElement);
     }
 
