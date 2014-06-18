@@ -19,7 +19,6 @@ package cz.cas.lib.proarc.common.object.ndk;
 import cz.cas.lib.proarc.common.object.HierarchyObjectVisitor;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
-import cz.cas.lib.proarc.common.object.NdkPlugin;
 import cz.cas.lib.proarc.common.object.VisitorException;
 
 /**

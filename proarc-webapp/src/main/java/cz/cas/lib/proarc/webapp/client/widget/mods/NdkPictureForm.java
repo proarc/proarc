@@ -224,11 +224,11 @@ public final class NdkPictureForm {
         // physicalDescription, physicalDescriptionDefinition
 
         // abstract, abstractDefinition extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("abstract").setMaxOccurrences(1)
+        modsFields.add(new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
-                .addField(new FieldBuilder("value").setTitle("Abstract - R").setMaxOccurrences(1).setType(Field.TEXTAREA)
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
                     .setHint("Shrnutí obsahu obrazu.")
                 .createField()) // value
         .createField()); // abstract

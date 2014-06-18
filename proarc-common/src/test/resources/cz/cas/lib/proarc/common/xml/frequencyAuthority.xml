@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+    <leader>01670nas a22004697a 4500</leader>
+    <controlfield tag="001">001742547</controlfield>
+    <controlfield tag="003">CZ PrAS</controlfield>
+    <controlfield tag="005">20140605183303.0</controlfield>
+    <controlfield tag="008">140305c20139999xr f||p||||||||||||0cze d</controlfield>
+    <datafield ind1=" " ind2=" " tag="022">
+        <subfield code="a">2336-2243</subfield>
+        <subfield code="l">2336-2243</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="040">
+        <subfield code="a">ABA007</subfield>
+        <subfield code="b">cze</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="072">
+        <subfield code="a">58</subfield>
+        <subfield code="x">Botanika</subfield>
+        <subfield code="2">Konspekt</subfield>
+        <subfield code="9">2</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">58</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">001.32</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">001.891</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">001.81/.87</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">001.92</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">(051)</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="0" tag="222">
+        <subfield code="a">Botanika</subfield>
+        <subfield code="b">(Praha, Print)</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="0" tag="245">
+        <subfield code="a">Botanika :</subfield>
+        <subfield code="b">informační a popularizační časopis.</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="260">
+        <subfield code="a">Průhonice :</subfield>
+        <subfield code="b">Botanický ústav AV ČR,</subfield>
+        <subfield code="c">2013-.</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="310">
+        <subfield code="a">2x ročně</subfield>
+    </datafield>
+    <datafield ind1="0" ind2=" " tag="362">
+        <subfield code="a">Roč. 1, č. 1 (2013)-</subfield>
+    </datafield>
+    <datafield ind1="2" ind2="7" tag="610">
+        <subfield code="a">Botanický ústav (Akademie věd ČR)</subfield>
+        <subfield code="7">kn20010709006</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1="2" ind2="7" tag="610">
+        <subfield code="a">Průhonice (zámek)</subfield>
+        <subfield code="7">ko2006325236</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="7" tag="650">
+        <subfield code="a">botanika</subfield>
+        <subfield code="7">ph114191</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="7" tag="650">
+        <subfield code="a">vědecké ústavy</subfield>
+        <subfield code="7">ph127379</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="7" tag="650">
+        <subfield code="a">vědecký výzkum</subfield>
+        <subfield code="7">ph116680</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="7" tag="650">
+        <subfield code="a">výzkumné projekty</subfield>
+        <subfield code="7">ph127480</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="7" tag="650">
+        <subfield code="a">popularizace vědy</subfield>
+        <subfield code="7">ph164938</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="9" tag="650">
+        <subfield code="a">botany</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="9" tag="650">
+        <subfield code="a">research institutions</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="9" tag="650">
+        <subfield code="a">scientific research</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="9" tag="650">
+        <subfield code="a">research projects</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="9" tag="650">
+        <subfield code="a">popularization of science</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="651">
+        <subfield code="a">Průhonický park (Průhonice, Česko)</subfield>
+        <subfield code="7">ge300095</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="655">
+        <subfield code="a">časopisy</subfield>
+        <subfield code="7">fd133947</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="9" tag="655">
+        <subfield code="a">journals</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1="2" ind2=" " tag="710">
+        <subfield code="a">Botanický ústav (Akademie věd ČR)</subfield>
+        <subfield code="7">kn20010709006</subfield>
+    </datafield>
+    <datafield ind1="0" ind2=" " tag="776">
+        <subfield code="a">Botanika (Praha, On-line)</subfield>
+        <subfield code="t">Botanika (Praha, On-line)</subfield>
+        <subfield code="x">2336-2251</subfield>
+    </datafield>
+    <datafield ind1="4" ind2="1" tag="856">
+        <subfield code="u">http://www.ibot.cas.cz/botanika/</subfield>
+        <subfield code="y">Digitalizovaný dokument</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="910">
+        <subfield code="a">ABA007</subfield>
+    </datafield>
+</record>

@@ -110,7 +110,7 @@ public class TransformersTest {
         Transformers mt = new Transformers();
 
         try {
-            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods34);
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
             assertNotNull(contents);
 //            System.out.println(new String(contents, "UTF-8"));
             XMLAssert.assertXMLEqual(new InputSource(goldenIS), new InputSource(new ByteArrayInputStream(contents)));
@@ -131,7 +131,7 @@ public class TransformersTest {
         Transformers mt = new Transformers();
 
         try {
-            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods34);
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
             System.out.println(xmlResult);
@@ -144,6 +144,35 @@ public class TransformersTest {
             XMLAssert.assertXpathEvaluatesTo("54 487", "/m:mods/m:location/m:shelfLocator[1]", xmlResult);
             XMLAssert.assertXpathEvaluatesTo("test signatura", "/m:mods/m:location/m:shelfLocator[2]", xmlResult);
             XMLAssert.assertXpathEvaluatesTo("2", "count(/m:mods/m:location/m:shelfLocator)", xmlResult);
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
+        } finally {
+            close(xmlIS);
+        }
+    }
+
+    /**
+     * Tests mapping of fields 310a and 008/18 to {@code frequency@authority}.
+     * See issue 118 and 181.
+     */
+    @Test
+    public void testMarcAsMods_FrequencyAuthority_Issue181() throws Exception {
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("frequencyAuthority.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
+            assertNotNull(contents);
+            String xmlResult = new String(contents, "UTF-8");
+            System.out.println(xmlResult);
+            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
+                put("m", ModsConstants.NS);
+            }}));
+            XMLAssert.assertXpathNotExists("/m:mods/m:originInfo/m:frequency[1]/@authority", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("2x ročně", "/m:mods/m:originInfo/m:frequency[1]", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("marcfrequency", "/m:mods/m:originInfo/m:frequency[2]/@authority", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("Semiannual", "/m:mods/m:originInfo/m:frequency[2]", xmlResult);
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);

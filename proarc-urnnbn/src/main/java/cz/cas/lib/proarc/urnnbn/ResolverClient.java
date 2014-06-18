@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.urnnbn;
 
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
@@ -52,13 +54,17 @@ public final class ResolverClient {
     private Client httpClient;
     private final String serviceUrl;
     private final String registrar;
+    private final Long archiver;
     private final String user;
     private final String passwd;
     private boolean debug;
 
-    public ResolverClient(String serviceUrl, String registrar, String user, String passwd) {
+    public ResolverClient(String serviceUrl, String registrar, Long archiver,
+            String user, String passwd) {
+
         this.serviceUrl = serviceUrl;
         this.registrar = registrar;
+        this.archiver = archiver;
         this.user = user;
         this.passwd = passwd;
     }
@@ -68,7 +74,12 @@ public final class ResolverClient {
         return response;
     }
 
-    // POST http://resolver.nkp.cz/api/v3/registrars/boa001/digitalDocuments
+    /**
+     * Registers an digital document to get URN:NBN.
+     * <p>{@code POST http://resolver.nkp.cz/api/v3/registrars/boa001/digitalDocuments}
+     * @param object a digital document
+     * @return the resolver response
+     */
     public Response registerObject(Import object) {
         if (registrar == null || registrar.isEmpty()) {
             throw new IllegalArgumentException("registrar");
@@ -76,12 +87,41 @@ public final class ResolverClient {
         if (object == null) {
             throw new NullPointerException("object");
         }
-        Response response = resource()
-                .path("registrars")
-                .path(registrar)
-                .path("digitalDocuments")
-                .entity(object, MediaType.APPLICATION_XML_TYPE)
-                .post(Response.class);
+        if (archiver != null && object.getDigitalDocument().getArchiverId() == null) {
+            object.getDigitalDocument().setArchiverId(archiver);
+        }
+
+        Response response = null;
+        try {
+            response = resource()
+                    .path("registrars")
+                    .path(registrar)
+                    .path("digitalDocuments")
+                    .entity(object, MediaType.APPLICATION_XML_TYPE)
+                    .post(Response.class);
+        } catch (UniformInterfaceException ex) {
+            response = readResponseError(ex);
+        }
+        return response;
+    }
+
+    private Response readResponseError(UniformInterfaceException ex) {
+        Response response = null;
+        ClientResponse errResponse = ex.getResponse();
+        errResponse.bufferEntity();
+        MediaType errType = errResponse.getType();
+        if (errType != null && "xml".equalsIgnoreCase(errType.getSubtype())) {
+            // try to map resolver warning to jaxb response
+            try {
+                response = errResponse.getEntity(Response.class);
+            } catch (Exception exception) {
+                String msg = errResponse.getEntity(String.class);
+                throw new IllegalStateException(msg, ex);
+            }
+        }
+        if (response == null) {
+            throw ex;
+        }
         return response;
     }
 
