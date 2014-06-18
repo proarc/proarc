@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object.ndk;
 
+import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
@@ -26,14 +27,21 @@ import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.mods.CodeOrText;
+import cz.cas.lib.proarc.mods.LanguageTermDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.ResourceBundle.Control;
 
 /**
  * The plugin to support NDK digital objects.
@@ -205,7 +213,54 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
 
     @Override
     public List<ValueMap> getValueMaps(UserProfile user) {
-        return Collections.emptyList();
+        Locale locale = new Locale("cs");
+        ArrayList<ValueMap> maps = new ArrayList<ValueMap>();
+        maps.add(readLangs(locale));
+        return maps;
     }
 
+    private ValueMap<? extends LanguageTermDefinition> readLangs(Locale locale) {
+        ArrayList<LangTermValue> langs = new ArrayList<LangTermValue>();
+        // to read properties file in UTF-8 use PropertyResourceBundle(Reader)
+        Control control = ResourceBundle.Control.getControl(ResourceBundle.Control.FORMAT_PROPERTIES);
+        ResourceBundle rb = ResourceBundle.getBundle(BundleName.LANGUAGES_ISO639_2.toString(), locale, control);
+        for (String key : rb.keySet()) {
+            LangTermValue lt = new LangTermValue();
+            lt.setAuthority("iso639-2b");
+            lt.setType(CodeOrText.CODE);
+            lt.setValue(key);
+            lt.setTitle(rb.getString(key));
+            langs.add(lt);
+        }
+        Collections.sort(langs, new LangComparator(locale));
+        return new ValueMap<LangTermValue>("ndk.mods.languageTerms", langs);
+    }
+
+    public static class LangTermValue extends LanguageTermDefinition {
+
+        private String title;
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+    }
+
+    private static class LangComparator implements Comparator<LangTermValue> {
+
+        private final Collator collator;
+
+        public LangComparator(Locale locale) {
+            collator = Collator.getInstance(locale);
+        }
+
+        @Override
+        public int compare(LangTermValue o1, LangTermValue o2) {
+            return collator.compare(o1.getTitle(), o2.getTitle());
+        }
+
+    }
 }

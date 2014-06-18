@@ -308,9 +308,8 @@ public final class NdkCartographicForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @authorityURI, @valueURI
                     // @authority, enum
-                    // XXX fill with "iso639-2b"
                     .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1)
-                        .setType(Field.SELECT).setDefaultValue("iso639-2b").setRequired(true)
+                        .setType(Field.SELECT).setRequired(true)
                         .setHint("Použít hodnotu „iso639-2b“.")
                         .addMapValue("iso639-2b", "ISO 639-2B")
                         .addMapValue("rfc3066", "RFC 3066")
@@ -319,16 +318,13 @@ public final class NdkCartographicForm {
                         .addMapValue("rfc5646", "RFC 5646")
                     .createField())
                     // type, codeOrText('code', 'text')
-                    // XXX autofill "code" value
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
-                        .setType(Field.SELECT).setRequired(true).setDefaultValue("CODE")
+                        .setType(Field.SELECT).setRequired(true)
                         .setHint("Typ popisu.")
                         .addMapValue("CODE", "code")
                         .addMapValue("TEXT", "text")
                     .createField())
-                    // XXX replace with http://www.loc.gov/standards/iso639‐2/php/code_list.php
-                    .addField(new FieldBuilder("value").setTitle("Language - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
-                        .setHint("Přesné určení jazyka kódem.<p>Nutno použít kontrolovaný slovník ISO 639-2.")
+                    .addField(NdkForms.createLangTermValue()
                     .createField()) // value
                 .createField()) // languageTerm
                 // scriptTerm
@@ -680,8 +676,7 @@ public final class NdkCartographicForm {
                         // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                         // @authorityURI, @valueURI
                         // @authority, enum
-                        // XXX fill with "iso639-2b"
-                        .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("iso639-2b")
+                        .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.SELECT)
                             .addMapValue("iso639-2b", "ISO 639-2B")
                             .addMapValue("rfc3066", "RFC 3066")
                             .addMapValue("iso639-3", "ISO 639-3")
@@ -689,14 +684,12 @@ public final class NdkCartographicForm {
                             .addMapValue("rfc5646", "RFC 5646")
                         .createField())
                         // type, codeOrText('code', 'text')
-                        // XXX autofill "code" value
-                        .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("CODE")
+                        .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
                             .addMapValue("CODE", "code")
                             .addMapValue("TEXT", "text")
                         .createField())
-                        // XXX replace with http://www.loc.gov/standards/iso639‐2/php/code_list.php
-                        .addField(new FieldBuilder("value").setTitle("Language - R").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
-                            .setHint("Přesné určení jazyka kódem nutno použít kontrolovaný slovník ISO 639-2.")
+                        .addField(NdkForms.createLangTermValue()
+                            .setTitle("Language - R")
                         .createField()) // value
                     .createField()) // languageTerm
                     // scriptTerm

@@ -20,6 +20,8 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.cas.lib.proarc.webapp.shared.form.Field;
+import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
 
 /**
@@ -71,4 +73,16 @@ public final class NdkForms {
         return new NdkFormGenerator(f, activeLocale).generateForm();
     }
 
+    static FieldBuilder createLangTermValue() {
+        return new FieldBuilder("value").setTitle("Language - M").setMaxOccurrences(1)
+                .setType(Field.COMBO).setRequired(true)
+                .setHint("Přesné určení jazyka kódem.<p>Nutno použít kontrolovaný slovník ISO 639-2.")
+                .setOptionDataSource(new FieldBuilder("ndk.mods.languageTerms").setWidth("300")
+                        .addField(new FieldBuilder("title").setTitle("Name").createField())
+                        .addField(new FieldBuilder("value").setTitle("Language").createField())
+                        .addField(new FieldBuilder("type").setTitle("Type").createField())
+                        .addField(new FieldBuilder("authority").setTitle("Authority").createField())
+                    .createField(),
+                    "value", "type", "authority");
+    }
 }

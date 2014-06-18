@@ -80,22 +80,22 @@ final class MapperUtils {
     // mods/language/languageTerm @type=code, @authority="iso639‐2b"
     // XXX should it be really checked?
     static void fillLanguage(ModsDefinition mods) {
-        fillLanguage(mods.getLanguage());
+//        fillLanguage(mods.getLanguage());
     }
 
     static void fillLanguage(List<LanguageDefinition> languages) {
-        for (LanguageDefinition language : languages) {
-            for (LanguageTermDefinition languageTerm : language.getLanguageTerm()) {
-                CodeOrText type = languageTerm.getType();
-                if (type == null) {
-                    languageTerm.setType(CodeOrText.CODE);
-                }
-                String authority = toValue(languageTerm.getAuthority());
-                if (authority == null) {
-                    languageTerm.setAuthority("iso639‐2b");
-                }
-            }
-        }
+//        for (LanguageDefinition language : languages) {
+//            for (LanguageTermDefinition languageTerm : language.getLanguageTerm()) {
+//                CodeOrText type = languageTerm.getType();
+//                if (type == null) {
+//                    languageTerm.setType(CodeOrText.CODE);
+//                }
+//                String authority = toValue(languageTerm.getAuthority());
+//                if (authority == null) {
+//                    languageTerm.setAuthority("iso639‐2b");
+//                }
+//            }
+//        }
     }
 
     static void fillRecordInfo(ModsDefinition mods) {
