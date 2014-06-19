@@ -66,7 +66,6 @@ public final class AppConfiguration {
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
     private static final String DEFAULT_PROPERTIES_RESOURCE = "cz/cas/lib/proarc/common/config/proarc.properties";
 
-    private String homePath;
     private File configHome;
     private final Map<String, String> environment;
     /** read only configuration */
@@ -145,9 +144,7 @@ public final class AppConfiguration {
     }
 
     private void init(CompositeConfiguration cc) throws IOException {
-        File home = initHome(environment.get(PROPERTY_USER_HOME));
-        this.homePath = home.getPath();
-        this.configHome = initConfigFolder(home, environment.get(PROPERTY_APP_HOME));
+        this.configHome = initConfigFolder(environment.get(PROPERTY_USER_HOME), environment.get(PROPERTY_APP_HOME));
         try {
             // envConfig contains interpolated properties
             PropertiesConfiguration envConfig = new PropertiesConfiguration();
@@ -205,7 +202,7 @@ public final class AppConfiguration {
             }
 
             if (lastResource == null) {
-                throw new IllegalStateException(homePath);
+                throw new IllegalStateException(DEFAULT_PROPERTIES_RESOURCE);
             }
             InputStream resource = lastResource.openStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(resource, "ISO-8859-1"));
@@ -234,11 +231,12 @@ public final class AppConfiguration {
         return homeFile;
     }
 
-    private static File initConfigFolder(File home, String configPath) throws IOException {
+    private static File initConfigFolder(String userHome, String configPath) throws IOException {
         File config;
         if (configPath != null) {
             config = new File(configPath);
         } else {
+            File home = initHome(userHome);
             config = new File(home, DEFAULT_APP_HOME_NAME);
         }
         if (!checkFile(config, false, true, true, true)) {
