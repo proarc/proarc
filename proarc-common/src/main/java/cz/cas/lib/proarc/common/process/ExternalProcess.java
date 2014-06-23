@@ -16,18 +16,17 @@
  */
 package cz.cas.lib.proarc.common.process;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.configuration.ConversionException;
 
 /**
  * The helper to run external processes. It builds command line and environment
@@ -51,14 +50,24 @@ public class ExternalProcess implements Runnable {
      */
     public static final String PROP_ARG = "arg";
     /**
+     * The number of attempts to tun a process again in case of failure.
+     */
+    public static final String PROP_RETRY = "retry";
+    /**
+     * The time to wait for a running process.
+     */
+    public static final String PROP_TIMEOUT = "timeout";
+    /**
      * The processor type.
      */
     public static final String PROP_TYPE = "type";
 
-    private String out;
-    private String err;
-    private int exitCode;
+    public static final long DEFAULT_TIMEOUT = 2 * 60 * 1000;
+    public static final int DEFAULT_RETRY_ATTEMPTS = 0;
+
     private final Configuration conf;
+    private AsyncProcess asyncProcess;
+    public String style;
 
     protected ExternalProcess(Configuration conf) {
         this.conf = conf;
@@ -69,7 +78,15 @@ public class ExternalProcess implements Runnable {
         Map<String, String> env = buildEnv(conf);
         List<String> cmdLine = buildCmdLine(conf);
         try {
-            runCmdLine(cmdLine, env);
+            int retry = getRetryCount() + 1;
+            for (int i = 0; i < retry; i++) {
+                runCmdLine(cmdLine, env);
+                if (isOk()) {
+                    return ;
+                }
+                LOG.log(Level.WARNING, "{0}. failure, \n{1}, \nCmd: {2}",
+                        new Object[]{i + 1, getFullOutput(), cmdLine});
+            }
         } catch (IOException ex) {
             throw new IllegalStateException(ex);
         } catch (InterruptedException ex) {
@@ -105,42 +122,56 @@ public class ExternalProcess implements Runnable {
             debug.append(arg).append(" ");
         }
         LOG.fine("run: " + debug);
-        ProcessBuilder pb = new ProcessBuilder(cmdLine);
-        // for now redirect outputs into a single stream to eliminate
-        // the need to run multiple threads to read each output
-        pb.redirectErrorStream(true);
-        pb.environment().putAll(env);
-        Process process = pb.start();
-        InputStream outStream = new BufferedInputStream(process.getInputStream(), 1024*1024);
-        try {
-            out = IOUtils.toString(outStream);
-        } catch (IOException ex) {
-            IOUtils.closeQuietly(outStream);
-            throw ex;
-        }
-        exitCode = process.waitFor();
+        asyncProcess = new AsyncProcess(cmdLine, env);
+        asyncProcess.start();
+        long timeout = getTimeout();
+        asyncProcess.join(timeout);
+        asyncProcess.kill();
         LOG.fine(getFullOutput());
-        return exitCode;
+        return asyncProcess.getExitCode();
     }
 
     public String getOut() {
-        return out;
+        return asyncProcess == null ? null: asyncProcess.getOut();
     }
 
     public String getErr() {
-        return err;
+        return null;
     }
 
     public int getExitCode() {
-        return exitCode;
+        return asyncProcess == null ? -1: asyncProcess.getExitCode();
     }
 
     public boolean isOk() {
-        return exitCode == 0;
+        return getExitCode() == 0;
     }
 
     public String getFullOutput() {
-        return String.format("exit: %s\nout: %s\nerr: %s", exitCode, out, err);
+        return String.format("exit: %s,\nout: %s", getExitCode(), getOut());
+    }
+
+    int getRetryCount() {
+        try {
+            int retry = conf.getInt("retry", DEFAULT_RETRY_ATTEMPTS);
+            retry = Math.max(0, retry);
+            retry = Math.min(100, retry);
+            return retry;
+        } catch (ConversionException ex) {
+            LOG.log(Level.WARNING, null, ex);
+            return DEFAULT_RETRY_ATTEMPTS;
+        }
+    }
+
+    long getTimeout() {
+        try {
+            long timeout = conf.getLong(PROP_TIMEOUT, DEFAULT_TIMEOUT);
+            timeout = Math.max(0, timeout);
+            return timeout;
+        } catch (ConversionException ex) {
+            LOG.log(Level.WARNING, null, ex);
+            return DEFAULT_TIMEOUT;
+        }
     }
 
 }
