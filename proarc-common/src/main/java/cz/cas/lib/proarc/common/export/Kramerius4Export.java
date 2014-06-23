@@ -23,6 +23,9 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
+import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
+import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
@@ -98,13 +101,31 @@ public final class Kramerius4Export {
             throw new IllegalArgumentException();
         }
 
+        ExportResultLog reslog = new ExportResultLog();
+        ExportResult result = new ExportResult();
+        result.setInputPid(pids[0]);
+        reslog.getExports().add(result);
+
         File target = ExportUtils.createFolder(output, FoxmlUtils.pidAsUuid(pids[0]));
         HashSet<String> selectedPids = new HashSet<String>(Arrays.asList(pids));
         toExport.addAll(selectedPids);
-        for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
-            exportPid(target, hierarchy, pid);
+        try {
+            for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
+                exportPid(target, hierarchy, pid);
+            }
+            exportParents(target, selectedPids);
+        } catch (RuntimeException ex) {
+            result.setStatus(ResultStatus.FAILED);
+            reslog.getExports().add(result);
+            result.getError().add(new ResultError(null, ex));
+            result.setEnd();
+            ExportUtils.writeExportResult(target, reslog);
+            throw ex;
         }
-        exportParents(target, selectedPids);
+
+        result.setStatus(ResultStatus.OK);
+        result.setEnd();
+        ExportUtils.writeExportResult(target, reslog);
         return target;
     }
 

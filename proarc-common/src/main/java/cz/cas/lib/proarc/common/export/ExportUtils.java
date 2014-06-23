@@ -18,12 +18,20 @@ package cz.cas.lib.proarc.common.export;
 
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.bind.JAXB;
 
 /**
  *
  * @author Jan Pokorsky
  */
 final class ExportUtils {
+
+    private static final Logger LOG = Logger.getLogger(ExportUtils.class.getName());
 
     /**
      * Creates new folder. If name already exists it finds similar free name.
@@ -54,6 +62,33 @@ final class ExportUtils {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         File foxml = new File(output, uuid + ".xml");
         return foxml;
+    }
+
+    /**
+     * Writes an export result in XML.
+     */
+    public static void writeExportResult(File targetFolder, ExportResultLog result) {
+        if (result.getEnd() == null) {
+            result.setEnd(new Date());
+        }
+        if (result.getExports().size() == 1) {
+            result.setBegin(null);
+            result.setEnd(null);
+        }
+        File resultFile = new File(targetFolder, "proarc_export_status.log");
+        try {
+            JAXB.marshal(result, resultFile);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, targetFolder.toString(), e);
+        }
+    }
+
+    public static String toString(Throwable ex) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+        pw.close();
+        return sw.toString();
     }
 
 }
