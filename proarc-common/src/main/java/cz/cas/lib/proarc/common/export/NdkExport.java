@@ -155,21 +155,23 @@ public final class NdkExport {
                 return result;
             } catch (MetsExportException ex) {
                 keepResult = false;
+                // do not clean folder as i it is possilbe to write status.log
                 if (ex.getExceptions().isEmpty()) {
                     throw new ExportException(pid, ex);
                 }
                 return result.setValidationError(ex);
             } catch (Throwable ex) {
                 keepResult = false;
+                // do not clean folder as i it is possilbe to write status.log
                 throw new ExportException(pid, ex);
             }
         } finally {
             if (!keepResult) {
-                // run asynchronously not to block client request?
-                boolean deleted = FileUtils.deleteQuietly(target);
-                if (!deleted) {
-                    LOG.warning("Cannot delete: " + target.toString());
-                }
+//                // run asynchronously not to block client request?
+//                boolean deleted = FileUtils.deleteQuietly(target);
+//                if (!deleted) {
+//                    LOG.warning("Cannot delete: " + target.toString());
+//                }
             }
         }
     }
@@ -220,10 +222,11 @@ public final class NdkExport {
             for (MetsExportExceptionElement mex : exceptions) {
                 List<String> validations = mex.getValidationErrors();
                 String pid = mex.getPid();
-                for (String validation : validations) {
-                    logItem.getError().add(new ResultError(pid, validation));
-                }
-                if (validations.isEmpty() && mex.getEx() != null) {
+                if (validations != null && !validations.isEmpty()) {
+                    for (String validation : validations) {
+                        logItem.getError().add(new ResultError(pid, validation));
+                    }
+                } else if (mex.getEx() != null) {
                     logItem.getError().add(new ResultError(pid, mex.getEx()));
                 }
 
