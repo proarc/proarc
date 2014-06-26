@@ -165,7 +165,7 @@ public class TransformersTest {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
-            System.out.println(xmlResult);
+//            System.out.println(xmlResult);
             XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
                 put("m", ModsConstants.NS);
             }}));
@@ -173,6 +173,39 @@ public class TransformersTest {
             XMLAssert.assertXpathEvaluatesTo("2x ročně", "/m:mods/m:originInfo/m:frequency[1]", xmlResult);
             XMLAssert.assertXpathEvaluatesTo("marcfrequency", "/m:mods/m:originInfo/m:frequency[2]/@authority", xmlResult);
             XMLAssert.assertXpathEvaluatesTo("Semiannual", "/m:mods/m:originInfo/m:frequency[2]", xmlResult);
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
+        } finally {
+            close(xmlIS);
+        }
+    }
+
+    /**
+     * Tests mapping of fields 600, 610, 611, 630, 648, 650, 651 indicator_9 $2 to {@code subject@authority}.
+     * See issue 182.
+     */
+    @Test
+    public void testMarcAsMods_SubjectAuthority_Issue182() throws Exception {
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_subject_65X_X9.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
+            assertNotNull(contents);
+            String xmlResult = new String(contents, "UTF-8");
+//            System.out.println(xmlResult);
+            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
+                put("m", ModsConstants.NS);
+            }}));
+            // 600
+            XMLAssert.assertXpathExists("/m:mods/m:subject[@authority='czenas']/m:name[@type='personal']/m:namePart[text()='Novák, A. Jiří']", xmlResult);
+            // 650
+            XMLAssert.assertXpathExists("/m:mods/m:subject[@authority='czenas']/m:topic[text()='daňové delikty']", xmlResult);
+            XMLAssert.assertXpathExists("/m:mods/m:subject[@authority='eczenas']/m:topic[text()='tax delinquency']", xmlResult);
+            // 651
+            XMLAssert.assertXpathExists("/m:mods/m:subject[@authority='czenas']/m:geographic[text()='Česko']", xmlResult);
+            XMLAssert.assertXpathExists("/m:mods/m:subject[@authority='eczenas']/m:geographic[text()='Czechia']", xmlResult);
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);

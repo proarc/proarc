@@ -6,8 +6,9 @@
     <xsl:strip-space elements="*"/>
 
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
-    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 158) 20140530
+    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 182) 20140626
 
+Revision 1.97.proarc182 - ProArc patch for 600, 610, 611, 630, 648, 650, 651 and indicator *9 to map $2 as subject@authority 2014/06/26
 Revision 1.97 - Fixed 264 mapping tmee 20140521
 Revision 1.96 - Fixed 310 and 321 and 008 frequency authority for marcfrequency tmee 2014/04/22
 Revision 1.95 - Modified 035 to include identifier type (WlCaITV) tmee 2014/04/21
@@ -2693,7 +2694,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:for-each>
 
             <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
-                (Revision 1.97 2014/05/21, ProArc patch 158 2014/05/30)</recordOrigin>
+                (Revision 1.97 2014/05/21, ProArc patch 182 2014/06/26)</recordOrigin>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>
@@ -3105,6 +3106,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </xsl:for-each>
     </xsl:template>
     <xsl:template name="subjectAuthority">
+        <!--Revision 1.97.proarc182-->
+        <xsl:if test="@ind2=9 and marc:subfield[@code='2']">
+            <xsl:attribute name="authority">
+                <xsl:value-of select="marc:subfield[@code='2']"/>
+            </xsl:attribute>
+        </xsl:if>
         <xsl:if test="@ind2!=4">
             <xsl:if test="@ind2!=' '">
                 <xsl:if test="@ind2!=8">

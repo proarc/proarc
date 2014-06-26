@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+    <leader>01567nam a22004937a 4500</leader>
+    <controlfield tag="001">001761279</controlfield>
+    <controlfield tag="003">CZ PrAS</controlfield>
+    <controlfield tag="005">20140605194404.0</controlfield>
+    <controlfield tag="008">140425s2014    xr            ||| ||cze d</controlfield>
+    <datafield ind1=" " ind2=" " tag="015">
+        <subfield code="a">cnb002536756</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="020">
+        <subfield code="a">978-80-7380-442-8</subfield>
+        <subfield code="z">978-80-7380-442-9</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="040">
+        <subfield code="a">ABA007</subfield>
+        <subfield code="b">cze</subfield>
+    </datafield>
+    <datafield ind1="0" ind2=" " tag="041">
+        <subfield code="a">cze</subfield>
+        <subfield code="b">eng</subfield>
+        <subfield code="b">ger</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="072">
+        <subfield code="a">343</subfield>
+        <subfield code="x">Trestní právo</subfield>
+        <subfield code="2">Konspekt</subfield>
+        <subfield code="9">16</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">343.37:336.22</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">336.225</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">(437.3)</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">(437.6)</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">(430)</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">(048.8)</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1="1" ind2=" " tag="100">
+        <subfield code="a">Kocina, Jan,</subfield>
+        <subfield code="d">1960-</subfield>
+        <subfield code="7">xx0113245</subfield>
+        <subfield code="4">aut</subfield>
+    </datafield>
+    <datafield ind1="1" ind2="0" tag="245">
+        <subfield code="a">Daňové trestné činy =</subfield>
+        <subfield code="b">Tax crimes : podvody = scams /</subfield>
+        <subfield code="c">Jan Kocina.</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="260">
+        <subfield code="a">Plzeň :</subfield>
+        <subfield code="b">Vydavatelství a nakladatelství Aleš Čeněk,.,.,</subfield>
+        <subfield code="c">2014.</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="300">
+        <subfield code="a">358 s.</subfield>
+    </datafield>
+    <datafield ind1="0" ind2=" " tag="490">
+        <subfield code="a">Monografie</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="504">
+        <subfield code="a">Obsahuje bibliografii, bibliografické odkazy a rejstřík</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="546">
+        <subfield code="a">Anglické a německé resumé</subfield>
+    </datafield>
+    <datafield ind1="1" ind2="7" tag="600">
+        <subfield code="a">Novák, A. Jiří,</subfield>
+        <subfield code="d">1910-</subfield>
+        <subfield code="7">jk01090330</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="7" tag="650">
+        <subfield code="a">daňové delikty</subfield>
+        <subfield code="7">ph486118</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="7" tag="650">
+        <subfield code="a">správa daní</subfield>
+        <subfield code="7">ph116260</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="9" tag="650">
+        <subfield code="a">tax delinquency</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="9" tag="650">
+        <subfield code="a">tax administration</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="651">
+        <subfield code="a">Česko</subfield>
+        <subfield code="7">ge128065</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="651">
+        <subfield code="a">Slovensko</subfield>
+        <subfield code="7">ge128580</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="651">
+        <subfield code="a">Německo</subfield>
+        <subfield code="7">ge135889</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="9" tag="651">
+        <subfield code="a">Czechia</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="9" tag="651">
+        <subfield code="a">Slovakia</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="9" tag="651">
+        <subfield code="a">Germany</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2=" " tag="653">
+        <subfield code="a">kočky</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="9" tag="653">
+        <subfield code="a">cats</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="655">
+        <subfield code="a">monografie</subfield>
+        <subfield code="7">fd132842</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="9" tag="655">
+        <subfield code="a">monographs</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1="1" ind2=" " tag="700">
+        <subfield code="a">Honzík, Bohumil,</subfield>
+        <subfield code="d">1972-</subfield>
+        <subfield code="4">aut</subfield>
+        <subfield code="7">jn20020422016</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="910">
+        <subfield code="a">ABA007</subfield>
+    </datafield>
+</record>
