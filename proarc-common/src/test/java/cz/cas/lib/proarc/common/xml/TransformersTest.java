@@ -212,6 +212,36 @@ public class TransformersTest {
         }
     }
 
+    /**
+     * Tests mapping of field 653 indicator_9 $a to {@code subject/topic}.
+     * See issue 185.
+     */
+    @Test
+    public void testMarcAsMods_SubjectTopic_Issue185() throws Exception {
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_subject_65X_X9.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
+            assertNotNull(contents);
+            String xmlResult = new String(contents, "UTF-8");
+//            System.out.println(xmlResult);
+            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
+                put("m", ModsConstants.NS);
+            }}));
+            // 653
+            XMLAssert.assertXpathExists("/m:mods/m:subject[not(@authority)]/m:topic[text()='kočky']", xmlResult);
+            XMLAssert.assertXpathExists("/m:mods/m:subject[not(@authority)]/m:topic[text()='cats']", xmlResult);
+            XMLAssert.assertXpathNotExists("/m:mods/m:subject/m:name/m:namePart[text()='kočky']", xmlResult);
+            XMLAssert.assertXpathNotExists("/m:mods/m:subject/m:name/m:namePart[text()='cats']", xmlResult);
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
+        } finally {
+            close(xmlIS);
+        }
+    }
+
     @Test
     public void testOaiMarcAsMarc() throws Exception {
         InputStream goldenIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMarcXml.xml");

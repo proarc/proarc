@@ -43,12 +43,10 @@
         <geographicCode>e-xr-pg</geographicCode>
     </subject>
     <subject>
-        <topic>matematikapřírodní vědy</topic>
+        <topic>matematika</topic>
     </subject>
     <subject>
-        <name type="personal">
-            <namePart>matematikapřírodní vědy</namePart>
-        </name>
+        <topic>přírodní vědy</topic>
     </subject>
     <classification authority="udc">51</classification>
     <classification authority="udc">57</classification>
@@ -77,7 +75,7 @@
         <recordChangeDate encoding="iso8601">20030814102951.</recordChangeDate>
         <recordIdentifier source="CZ-PrN">cps1995035651</recordIdentifier>
         <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
-            (Revision 1.97 2014/05/21, ProArc patch 182 2014/06/26)</recordOrigin>
+            (Revision 1.97 2014/05/21, ProArc patch 185 2014/06/26)</recordOrigin>
         <languageOfCataloging>
             <languageTerm type="code" authority="iso639-2b">cze</languageTerm>
         </languageOfCataloging>

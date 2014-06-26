@@ -6,8 +6,9 @@
     <xsl:strip-space elements="*"/>
 
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
-    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 182) 20140626
+    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 185) 20140626
 
+Revision 1.97.proarc185 - ProArc patch of 653 mapping to subject/topic 2014/06/26
 Revision 1.97.proarc182 - ProArc patch for 600, 610, 611, 630, 648, 650, 651 and indicator *9 to map $2 as subject@authority 2014/06/26
 Revision 1.97 - Fixed 264 mapping tmee 20140521
 Revision 1.96 - Fixed 310 and 321 and 008 frequency authority for marcfrequency tmee 2014/04/22
@@ -2694,7 +2695,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:for-each>
 
             <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
-                (Revision 1.97 2014/05/21, ProArc patch 182 2014/06/26)</recordOrigin>
+                (Revision 1.97 2014/05/21, ProArc patch 185 2014/06/26)</recordOrigin>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>
@@ -5138,81 +5139,85 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </subject>
     </xsl:template>
 
+    <!--Revision 1.97.proarc185-->
+    <xsl:template name="createSubFrom653Topic">
+        <xsl:for-each select="marc:subfield">
+            <subject>
+                <topic>
+                    <xsl:value-of select="."/>
+                </topic>
+            </subject>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!--Revision 1.97.proarc185-->
     <xsl:template name="createSubFrom653">
 
-        <xsl:if test="@ind2=' '">
-            <subject>
-                <topic>
-                    <xsl:value-of select="."/>
-                </topic>
-            </subject>
-        </xsl:if>
-        <xsl:if test="@ind2='0'">
-            <subject>
-                <topic>
-                    <xsl:value-of select="."/>
-                </topic>
-            </subject>
-        </xsl:if>
+        <xsl:choose>
+            <xsl:when test="@ind2=' ' or @ind2='0' or @ind2='9'">
+                <xsl:call-template name="createSubFrom653Topic"/>
+            </xsl:when>
 <!-- tmee 1.93 20140130 -->
-        <xsl:if test="@ind=' ' or @ind1='0' or @ind1='1'">
-            <subject>
-                <name type="personal">
-                    <namePart>
+            <xsl:when test="@ind=' ' or @ind1='0' or @ind1='1'">
+                <subject>
+                    <name type="personal">
+                        <namePart>
+                            <xsl:value-of select="."/>
+                        </namePart>
+                    </name>
+                </subject>
+            </xsl:when>
+            <!--@ind1='3' not in MARC spec-->
+<!--            <xsl:if test="@ind1='3'">
+                <subject>
+                    <name type="family">
+                        <namePart>
+                            <xsl:value-of select="."/>
+                        </namePart>
+                    </name>
+                </subject>
+            </xsl:if>-->
+            <xsl:when test="@ind2='2'">
+                <subject>
+                    <name type="corporate">
+                        <namePart>
+                            <xsl:value-of select="."/>
+                        </namePart>
+                    </name>
+                </subject>
+            </xsl:when>
+            <xsl:when test="@ind2='3'">
+                <subject>
+                    <name type="conference">
+                        <namePart>
+                            <xsl:value-of select="."/>
+                        </namePart>
+                    </name>
+                </subject>
+            </xsl:when>
+            <xsl:when test="@ind2=4">
+                <subject>
+                    <temporal>
                         <xsl:value-of select="."/>
-                    </namePart>
-                </name>
-            </subject>
-        </xsl:if>
-        <xsl:if test="@ind1='3'">
-            <subject>
-                <name type="family">
-                    <namePart>
+                    </temporal>
+                </subject>
+            </xsl:when>
+            <xsl:when test="@ind2=5">
+                <subject>
+                    <geographic>
                         <xsl:value-of select="."/>
-                    </namePart>
-                </name>
-            </subject>
-        </xsl:if>
-        <xsl:if test="@ind2='2'">
-            <subject>
-                <name type="corporate">
-                    <namePart>
+                    </geographic>
+                </subject>
+            </xsl:when>
+            <xsl:when test="@ind2=6">
+                <subject>
+                    <genre>
                         <xsl:value-of select="."/>
-                    </namePart>
-                </name>
-            </subject>
-        </xsl:if>
-        <xsl:if test="@ind2='3'">
-            <subject>
-                <name type="conference">
-                    <namePart>
-                        <xsl:value-of select="."/>
-                    </namePart>
-                </name>
-            </subject>
-        </xsl:if>
-        <xsl:if test="@ind2=4">
-            <subject>
-                <temporal>
-                    <xsl:value-of select="."/>
-                </temporal>
-            </subject>
-        </xsl:if>
-        <xsl:if test="@ind2=5">
-            <subject>
-                <geographic>
-                    <xsl:value-of select="."/>
-                </geographic>
-            </subject>
-        </xsl:if>
+                    </genre>
+                </subject>
+            </xsl:when>
+        </xsl:choose>
 
-        <xsl:if test="@ind2=6">
-            <subject>
-                <genre>
-                    <xsl:value-of select="."/>
-                </genre>
-            </subject>
-        </xsl:if>
     </xsl:template>
 
     <xsl:template name="createSubFrom656">
