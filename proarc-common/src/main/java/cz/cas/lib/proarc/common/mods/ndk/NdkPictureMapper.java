@@ -63,13 +63,6 @@ public final class NdkPictureMapper extends NdkMapper {
         addGenre(mods, "picture");
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
-        //  mods/subject@authority="czenas"
-        List<SubjectDefinition> subjects = mods.getSubject();
-        for (SubjectDefinition subject : subjects) {
-            if (subject.getAuthority() == null) {
-                subject.setAuthority("czenas");
-            }
-        }
         //  mods/classification@authority="udc"
         List<ClassificationDefinition> classifications = mods.getClassification();
         for (ClassificationDefinition classification : classifications) {

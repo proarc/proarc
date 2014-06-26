@@ -71,13 +71,6 @@ public class NdkChapterMapper extends NdkMapper {
                 }
             }
         }
-        //  mods/subject@authority="czenas"
-        List<SubjectDefinition> subjects = mods.getSubject();
-        for (SubjectDefinition subject : subjects) {
-            if (subject.getAuthority() == null) {
-                subject.setAuthority("czenas");
-            }
-        }
         //  mods/classification@authority="udc"
         List<ClassificationDefinition> classifications = mods.getClassification();
         for (ClassificationDefinition classification : classifications) {

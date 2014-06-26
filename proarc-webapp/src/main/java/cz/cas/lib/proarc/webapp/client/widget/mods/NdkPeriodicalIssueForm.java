@@ -453,8 +453,10 @@ public final class NdkPeriodicalIssueForm {
                 .setHint("Údaje o věcném třídění.<p>Použití u ročenek, specializovaných periodik,"
                     + " tematických čísel nebo zvláštních vydání.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
-                // autofill "czenas"
-                .addField(new FieldBuilder("authority").setTitle("Authority - RA").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("czenas").createField())
+                .addField(new FieldBuilder("authority").setTitle("Authority - RA").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addMapValue("czenas", "czenas")
+                    .addMapValue("eczenas", "eczenas")
+                .createField()) // authority
 
                 // topic, stringPlusLanguagePlusAuthority
                 .addField(new FieldBuilder("topic").setMaxOccurrences(1)

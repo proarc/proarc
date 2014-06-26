@@ -67,13 +67,6 @@ public final class NdkPeriodicalIssueMapper extends NdkMapper {
         }
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
-        //  mods/subject@authority="czenas"
-        List<SubjectDefinition> subjects = mods.getSubject();
-        for (SubjectDefinition subject : subjects) {
-            if (subject.getAuthority() == null) {
-                subject.setAuthority("czenas");
-            }
-        }
         //  mods/location/physicalLocation@authority="siglaADR"
         List<LocationDefinition> locations = mods.getLocation();
         for (LocationDefinition location : locations) {

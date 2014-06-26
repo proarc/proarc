@@ -411,7 +411,7 @@ public final class NdkPeriodicalSupplementForm {
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 // autofill "czenas"
-                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("czenas")
+                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
                 .createField()) // authority
