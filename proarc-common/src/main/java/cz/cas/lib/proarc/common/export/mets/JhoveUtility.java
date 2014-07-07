@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.Calendar;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,9 +38,11 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.Compression;
 import cz.cas.lib.proarc.mix.BasicImageInformationType;
 import cz.cas.lib.proarc.mix.BasicImageInformationType.BasicImageCharacteristics.PhotometricInterpretation;
@@ -71,6 +74,9 @@ public class JhoveUtility {
 
     private static final Logger LOG = Logger.getLogger(JhoveUtility.class.getName());
     static final String JHOVE_CONFIG_NAME = "jhove.conf";
+    static {
+        LOG.setLevel(Level.SEVERE);
+    }
 
     public static Node getNodeRecursive(Node node, String localName) {
         if ((node.getLocalName() != null) && (node.getLocalName().startsWith(localName))) {
@@ -179,6 +185,48 @@ public class JhoveUtility {
         return getMix(targetFile, jhoveContext, deviceMix, dateCreated, originalFileName);
     }
 
+    /**
+     * Returns the MIX information from the fedoraStream
+     *
+     * @param metsElement
+     * @param streamName
+     * @return
+     * @throws MetsExportException
+     */
+    public static JHoveOutput getMixFromFedora(IMetsElement metsElement, String streamName) throws MetsExportException {
+        JHoveOutput jhoveOutput = new JHoveOutput();
+        List<Element> streamContent = MetsUtils.getDataStreams(metsElement.getMetsContext().getFedoraClient(), metsElement.getOriginalPid(), streamName);
+        if (streamContent == null) {
+            return null;
+        }
+        Document document = MetsUtils.getDocumentFromList(streamContent);
+        if (document == null) {
+            return null;
+        }
+        DOMSource domSource = new DOMSource(document);
+        Mix mix = MixUtils.unmarshal(domSource, Mix.class);
+        jhoveOutput.setMix(mix);
+        jhoveOutput.setFormatVersion(mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatName().getValue());
+        return jhoveOutput;
+    }
+
+    /**
+     * Merges the mix from the device and from the image
+     *
+     * @param source
+     * @param deviceMix
+     */
+    public static void mergeMix(Mix source, MixType deviceMix) {
+        if (deviceMix != null) {
+            if (deviceMix.getImageCaptureMetadata() != null) {
+                DOMResult domResult = new DOMResult();
+                MixUtils.marshal(domResult, new JAXBElement<ImageCaptureMetadataType>(new QName("uri", "local"), ImageCaptureMetadataType.class, deviceMix.getImageCaptureMetadata()), true);
+                ImageCaptureMetadataType imageCaptureMtd = MixUtils.unmarshal(new DOMSource(domResult.getNode()), ImageCaptureMetadataType.class);
+                source.setImageCaptureMetadata(imageCaptureMtd);
+            }
+        }
+
+    }
 
     /**
      * Gets MIX of a source image file.
@@ -233,15 +281,7 @@ public class JhoveUtility {
             }
             jhoveOutput.setFormatVersion(formatVersion);
             // merge device and jhove Mix
-            if (deviceMix != null) {
-                if (deviceMix.getImageCaptureMetadata() != null) {
-                    DOMResult domResult = new DOMResult();
-                    MixUtils.marshal(domResult, new JAXBElement<ImageCaptureMetadataType>(new QName("uri", "local"), ImageCaptureMetadataType.class, deviceMix.getImageCaptureMetadata()), true);
-                    ImageCaptureMetadataType imageCaptureMtd = MixUtils.unmarshal(new DOMSource(domResult.getNode()), ImageCaptureMetadataType.class);
-                    mix.setImageCaptureMetadata(imageCaptureMtd);
-                }
-            }
-
+            mergeMix(mix, deviceMix);
             // insert date time created
             if ((dateCreated != null) && (mix != null)) {
                 TypeOfDateType dateTimeCreated = new TypeOfDateType();
@@ -385,10 +425,10 @@ public class JhoveUtility {
                 jhoveOutput.getMix().getBasicImageInformation().setBasicImageCharacteristics(new BasicImageInformationType.BasicImageCharacteristics());
             }
             if (jhoveOutput.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation() == null) {
-    
+
                 DOMResult photometricResult = new DOMResult();
                 MixUtils.marshal(photometricResult, new JAXBElement<PhotometricInterpretation>(new QName("uri", "local"), PhotometricInterpretation.class, photometricInterpretation), true);
-    
+
                 PhotometricInterpretation photometricInterpretationNew = MixUtils.unmarshal(new DOMSource(photometricResult.getNode()), PhotometricInterpretation.class);
                 jhoveOutput.getMix().getBasicImageInformation().getBasicImageCharacteristics().setPhotometricInterpretation(photometricInterpretationNew);
             }

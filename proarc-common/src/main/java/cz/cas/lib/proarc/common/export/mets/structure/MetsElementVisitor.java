@@ -943,7 +943,20 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             md5InfosMap.put("RAW", rawinfo);
                             outputFileNames.put("RAW", rawFile.getAbsolutePath());
                             toGenerate.put("MIX_001", "RAW");
-                            jHoveOutputRaw = JhoveUtility.getMix(new File(rawFile.getAbsolutePath()), metsElement.getMetsContext(), mixDevice, rawCreated, null);
+
+                            // If mix is present in fedora, then use this one
+                            if (metsElement.getMetsContext().getFedoraClient() != null) {
+                                jHoveOutputRaw = JhoveUtility.getMixFromFedora(metsElement, "RAW_MIX");
+                            }
+                            // If not present, then generate new
+                            if (jHoveOutputRaw == null) {
+                                jHoveOutputRaw = JhoveUtility.getMix(new File(rawFile.getAbsolutePath()), metsElement.getMetsContext(), mixDevice, rawCreated, null);
+                            } else {
+                                // Merges the information from the device mix
+                                if (jHoveOutputRaw.getMix().getImageCaptureMetadata() == null) {
+                                    JhoveUtility.mergeMix(jHoveOutputRaw.getMix(), mixDevice);
+                                }
+                            }
                             if ((jHoveOutputRaw.getMix().getBasicImageInformation() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation() != null)) {
                                 photometricInterpretation = jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation();
                             }
@@ -964,7 +977,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 String outputFileName = outputFileNames.get("MC_IMGGRP");
                 if (outputFileName!=null) {
                     String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
-                    jHoveOutputMC = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
+                    if (metsElement.getMetsContext().getFedoraClient() != null) {
+                        jHoveOutputMC = JhoveUtility.getMixFromFedora(metsElement, "NDK_ARCHIVAL_MIX");
+                    }
+                    if (jHoveOutputMC == null) {
+                        jHoveOutputMC = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
+                    }
                     JhoveUtility.addPhotometricInformation(jHoveOutputMC, photometricInterpretation);
                     JhoveUtility.addDenominator(jHoveOutputMC);
                     JhoveUtility.addOrientation(jHoveOutputMC);
