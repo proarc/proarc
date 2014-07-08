@@ -806,7 +806,7 @@ public class MetsUtils {
      * @param path
      * @param mets
      */
-    public static void saveInfoFile(String path, MetsContext metsContext, String md5, String fileMd5Name, long fileSize) throws MetsExportException {
+    public static void saveInfoFile(String path, MetsContext metsContext, String md5, String fileMd5Name, File metsFile) throws MetsExportException {
         File infoFile = new File(path + File.separator + metsContext.getPackageID() + File.separator + "info_" + metsContext.getPackageID() + ".xml");
         try {
             GregorianCalendar c = new GregorianCalendar();
@@ -814,6 +814,7 @@ public class MetsUtils {
             XMLGregorianCalendar date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
             Info infoJaxb = new Info();
             infoJaxb.setCreated(date2);
+            infoJaxb.setMainmets("./" + metsFile.getName());
             Checksum checkSum = new Checksum();
             checkSum.setChecksum(md5);
             checkSum.setType("MD5");
@@ -826,14 +827,18 @@ public class MetsUtils {
             }
             checkSum.setValue(fileMd5Name);
             infoJaxb.setChecksum(checkSum);
-            infoJaxb.setCreator("ProARC");
+            infoJaxb.setCreator(metsContext.getCreatorOrganization());
             infoJaxb.setPackageid(metsContext.getPackageID());
-            infoJaxb.setMetadataversion("1.1");
+            if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
+                infoJaxb.setMetadataversion((float) 1.5);
+            } else {
+                infoJaxb.setMetadataversion((float) 1.1);
+            }
             Itemlist itemList = new Itemlist();
             infoJaxb.setItemlist(itemList);
             itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size()));
             List<FileMD5Info> fileList = metsContext.getFileList();
-            int size = (int) fileSize;
+            int size = (int) metsFile.length();
             for (FileMD5Info fileName : fileList) {
                 itemList.getItem().add(fileName.getFileName().replaceAll(Matcher.quoteReplacement(File.separator), "/"));
                 size += fileName.getSize();

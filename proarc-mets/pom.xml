@@ -27,6 +27,35 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
+            
+              <plugin>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <configuration>
+                    <generatePackage>cz.cas.lib.proarc.mets.info</generatePackage>
+                    <schemaLanguage>XMLSCHEMA</schemaLanguage>
+                    <schemaDirectory>src/main/resources/cz/cas/lib/proarc/mets/info</schemaDirectory>
+                    <schemaIncludes>
+                        <schemaInclude>info.xsd</schemaInclude>
+                    </schemaIncludes>
+                    <args>
+                        <!--
+                            Use custom package-info.java with preferred namespace prefixes.
+                            Requires JDK 1.6.0_24 or later or com.sun.xml.bind:jaxb-impl:2.2.2 dependency.
+                            -npa:  suppress generation of package level annotations (**/package-info.java)
+                        -->
+                        <arg>-npa</arg>
+                    </args>
+                    <extension>true</extension>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>        
         </plugins>
     </build>
 </project>
