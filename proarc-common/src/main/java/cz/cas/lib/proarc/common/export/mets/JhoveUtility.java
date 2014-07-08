@@ -43,6 +43,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.Compression;
 import cz.cas.lib.proarc.mix.BasicImageInformationType;
 import cz.cas.lib.proarc.mix.BasicImageInformationType.BasicImageCharacteristics.PhotometricInterpretation;
@@ -194,12 +195,15 @@ public class JhoveUtility {
      * @throws MetsExportException
      */
     public static JHoveOutput getMixFromFedora(IMetsElement metsElement, String streamName) throws MetsExportException {
+        Document document = null;
         JHoveOutput jhoveOutput = new JHoveOutput();
-        List<Element> streamContent = MetsUtils.getDataStreams(metsElement.getMetsContext().getFedoraClient(), metsElement.getOriginalPid(), streamName);
-        if (streamContent == null) {
-            return null;
+        if (FoxmlUtils.findDatastream(metsElement.getSourceObject(), streamName) != null) {
+            List<Element> streamContent = MetsUtils.getDataStreams(metsElement.getMetsContext().getFedoraClient(), metsElement.getOriginalPid(), streamName);
+            if (streamContent == null) {
+                return null;
+            }
+            document = MetsUtils.getDocumentFromList(streamContent);
         }
-        Document document = MetsUtils.getDocumentFromList(streamContent);
         if (document == null) {
             return null;
         }
