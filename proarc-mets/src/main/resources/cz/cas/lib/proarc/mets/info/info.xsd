@@ -3,20 +3,32 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element type="xs:dateTime" name="created"/>
-        <xs:element name="metadataversion">
-        	<xs:simpleType>
-  				<xs:restriction base="xs:string">
-    				<xs:enumeration value="1.0"/>
-   			    	<xs:enumeration value="1.1"/>
-  				</xs:restriction>
-			</xs:simpleType>
-		</xs:element>
-        <xs:element type="xs:string" name="packageid"/>
+        <xs:element type="xs:float" name="metadataversion" />
+		<xs:element type="xs:string" name="packageid"/>
+		<xs:element type="xs:string" name="mainmets" />
+		<xs:element name="validation">
+            <xs:complexType>
+                <xs:simpleContent>
+                    <xs:extension base="xs:string">
+                        <xs:attribute name="version" type="xs:float" use="required" />
+                    </xs:extension>
+                </xs:simpleContent>
+            </xs:complexType>
+        </xs:element>
         <xs:element name="titleid" maxOccurs="unbounded">
           <xs:complexType>
             <xs:simpleContent>
               <xs:extension base="xs:string">
-                <xs:attribute type="xs:string" name="type" use="required"/>
+                <xs:attribute name="type" use="required">
+                	<xs:simpleType>
+                		<xs:restriction base="xs:string">
+    						<xs:enumeration value="isbn"/>
+    						<xs:enumeration value="issn"/>
+   							<xs:enumeration value="ccnb"/>
+   							<xs:enumeration value="urnnbn"/>
+  						</xs:restriction>
+  					</xs:simpleType>
+  				</xs:attribute>
               </xs:extension>
             </xs:simpleContent>
           </xs:complexType>
@@ -28,9 +40,9 @@
         <xs:element name="itemlist" maxOccurs="1" minOccurs="1">
           <xs:complexType>
             <xs:sequence>
-              <xs:element type="xs:string" name="item" maxOccurs="unbounded" minOccurs="1"/>
+              <xs:element type="xs:anyURI" name="item" maxOccurs="unbounded" minOccurs="1"/>
             </xs:sequence>
-            <xs:attribute type="xs:integer" name="itemtotal"/>
+            <xs:attribute type="xs:integer" name="itemtotal" use="required" />
           </xs:complexType>
         </xs:element>
         <xs:element name="checksum">
