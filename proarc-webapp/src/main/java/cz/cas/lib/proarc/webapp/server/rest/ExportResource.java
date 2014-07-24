@@ -116,7 +116,7 @@ public class ExportResource {
                 RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export());
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
-        File target = export.export(exportFolder, hierarchy, pids.toArray(new String[pids.size()]));
+        File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
         URI targetPath = user.getUserHomeUri().relativize(target.toURI());
         return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath));
     }

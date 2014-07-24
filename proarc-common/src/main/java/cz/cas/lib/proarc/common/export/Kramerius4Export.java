@@ -93,7 +93,7 @@ public final class Kramerius4Export {
         this.search = rstorage.getSearch();
     }
 
-    public File export(File output, boolean hierarchy, String... pids) {
+    public File export(File output, boolean hierarchy, String log, String... pids) {
         if (!output.exists() || !output.isDirectory()) {
             throw new IllegalStateException(String.valueOf(output));
         }
@@ -114,6 +114,7 @@ public final class Kramerius4Export {
                 exportPid(target, hierarchy, pid);
             }
             exportParents(target, selectedPids);
+            storeExportResult(target, log);
         } catch (RuntimeException ex) {
             result.setStatus(ResultStatus.FAILED);
             reslog.getExports().add(result);
@@ -177,6 +178,7 @@ public final class Kramerius4Export {
 
     void exportParentPid(File output, String pid, Collection<String> includeChildPids) {
         try {
+            exportedPids.add(pid);
             RemoteObject robject = rstorage.find(pid);
             FedoraClient client = robject.getClient();
             DigitalObject dobj = FedoraClient.export(pid).context("archive")
@@ -191,6 +193,17 @@ public final class Kramerius4Export {
         } catch (FedoraClientException ex) {
             // replace with ExportException
             throw new IllegalStateException(pid, ex);
+        }
+    }
+
+    void storeExportResult(File output, String log) {
+        for (String pid : exportedPids) {
+            try {
+                File foxml = ExportUtils.pidAsXmlFile(output, pid);
+                ExportUtils.storeObjectExportResult(pid, foxml.toURI().toASCIIString(), log);
+            } catch (DigitalObjectException ex) {
+                throw new IllegalStateException(ex);
+            }
         }
     }
 

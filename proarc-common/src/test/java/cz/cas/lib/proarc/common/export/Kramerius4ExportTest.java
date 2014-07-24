@@ -86,7 +86,7 @@ public class Kramerius4ExportTest {
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
         RemoteStorage storage = fedora.getRemoteStorage();
         Kramerius4Export instance = new Kramerius4Export(storage, config.getKramerius4Export());
-        File target = instance.export(output, hierarchy, pids);
+        File target = instance.export(output, hierarchy, "export status", pids);
         assertNotNull(target);
 
         // check datastreams with xpath
@@ -120,6 +120,10 @@ public class Kramerius4ExportTest {
         // check policy
         XMLAssert.assertXpathEvaluatesTo("policy:private", streamXPath(DcStreamEditor.DATASTREAM_ID) + "//dc:rights", new InputSource(foxmlSystemId));
         XMLAssert.assertXpathEvaluatesTo("policy:private", streamXPath(RelationEditor.DATASTREAM_ID) + "//kramerius:policy", new InputSource(foxmlSystemId));
+
+        // test export status
+        RelationEditor relationEditor = new RelationEditor(storage.find(pids[0]));
+        assertNotNull(relationEditor.getExportResult());
 
         // test ingest of exported object
         fedora.cleanUp();
