@@ -16,7 +16,12 @@
  */
 package cz.cas.lib.proarc.common.export;
 
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -81,6 +86,23 @@ final class ExportUtils {
         } catch (Exception e) {
             LOG.log(Level.SEVERE, targetFolder.toString(), e);
         }
+    }
+
+    /**
+     * Stores an export result to the digital object.
+     * @param pid digital object ID
+     * @param target export result (file/folder path, remote storage handle, ...)
+     * @param log fedora log message
+     * @throws DigitalObjectException failure
+     */
+    static void storeObjectExportResult(String pid, String target, String log) throws DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        FedoraObject fo = dom.find(pid, null);
+        DigitalObjectHandler doh = dom.createHandler(fo);
+        RelationEditor relations = doh.relations();
+        relations.setExportResult(target);
+        relations.write(relations.getLastModified(), log);
+        doh.commit();
     }
 
     public static String toString(Throwable ex) {

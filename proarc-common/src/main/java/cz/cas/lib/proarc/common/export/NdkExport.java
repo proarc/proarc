@@ -19,27 +19,20 @@ package cz.cas.lib.proarc.common.export;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-
-import org.apache.commons.io.FileUtils;
 
 /**
  * Exports digital object and transforms its data streams to NDK format.
@@ -197,21 +190,11 @@ public final class NdkExport {
      */
     void storeExportResult(MetsContext metsContext, String target, String log) throws MetsExportException {
         for (String pid : metsContext.getPidElements().keySet()) {
-            storeObjectExportResult(pid, target, log);
-        }
-    }
-
-    void storeObjectExportResult(String pid, String target, String log) throws MetsExportException {
-        try {
-            DigitalObjectManager dom = DigitalObjectManager.getDefault();
-            FedoraObject fo = dom.find(pid, null);
-            DigitalObjectHandler doh = dom.createHandler(fo);
-            RelationEditor relations = doh.relations();
-            relations.setExportResult(target);
-            relations.write(relations.getLastModified(), log);
-            doh.commit();
-        } catch (DigitalObjectException ex) {
-            throw new MetsExportException(pid, "Cannot store logs!", false, ex);
+            try {
+                ExportUtils.storeObjectExportResult(pid, target, log);
+            } catch (DigitalObjectException ex) {
+                throw new MetsExportException(pid, "Cannot store logs!", false, ex);
+            }
         }
     }
 
