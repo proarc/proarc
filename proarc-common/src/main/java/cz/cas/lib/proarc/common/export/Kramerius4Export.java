@@ -38,6 +38,9 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.fedora.relation.Relations;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
+import cz.cas.lib.proarc.common.object.DigitalObjectElement;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import java.io.File;
 import java.io.IOException;
@@ -79,6 +82,8 @@ public final class Kramerius4Export {
 
     private RemoteStorage rstorage;
     private LocalStorage lstorage = new LocalStorage();
+    private DigitalObjectCrawler crawler;
+
     private final SearchView search;
     /** already exported PIDs to prevent loops */
     private HashSet<String> exportedPids = new HashSet<String>();
@@ -91,6 +96,7 @@ public final class Kramerius4Export {
         this.rstorage = rstorage;
         this.options = options;
         this.search = rstorage.getSearch();
+        this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
     }
 
     public File export(File output, boolean hierarchy, String log, String... pids) {
@@ -222,31 +228,34 @@ public final class Kramerius4Export {
         // Map<PID, Set<PID>> tree  P1={R1, R3}, R1={C1, C2}, R3={C3}
         Map<String, Set<String>> pidTree = new HashMap<String, Set<String>>();
         for (String pid : pids) {
-            String parentPid = getParent(pid);
-            if (parentPid != null) {
-                if (exportedPids.contains(parentPid)) {
-                    continue;
-                }
-                Set<String> children = pidTree.get(parentPid);
-                if (children == null) {
-                    children = new HashSet<String>();
-                    pidTree.put(parentPid, children);
-                }
-                children.add(pid);
+            try {
+                fillPidTree(pid, pidTree);
+            } catch (DigitalObjectException ex) {
+                throw new IllegalStateException(pid, ex);
             }
         }
         return pidTree;
     }
 
-    private String getParent(String pid) {
-        try {
-            List<Item> referrers = search.findReferrers(pid);
-            return referrers.isEmpty() ? null : referrers.get(0).getPid();
-        } catch (Exception ex) {
-            throw new IllegalStateException(pid, ex);
+    private void fillPidTree(String selectedPid, Map<String, Set<String>> pidTree) throws DigitalObjectException {
+        List<DigitalObjectElement> reversePath = crawler.getReversePath(selectedPid);
+        reversePath.add(crawler.getEntry(selectedPid));
+        Set<String> lastChildren = null;
+        for (Iterator<DigitalObjectElement> it = reversePath.iterator(); it.hasNext();) {
+            DigitalObjectElement elm = it.next();
+            if (lastChildren != null) {
+                lastChildren.add(elm.getPid());
+            }
+            if (it.hasNext() && !exportedPids.contains(elm.getPid())) {
+                lastChildren = pidTree.get(elm.getPid());
+                if (lastChildren == null) {
+                    lastChildren = new HashSet<String>();
+                    pidTree.put(elm.getPid(), lastChildren);
+                }
+            }
         }
     }
-    
+
     private void exportDatastreams(LocalObject local, RelationEditor editor) {
         DigitalObject dobj = local.getDigitalObject();
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
