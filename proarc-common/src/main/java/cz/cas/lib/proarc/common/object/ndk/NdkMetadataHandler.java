@@ -93,6 +93,15 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
                 inheritLocation(defaultMods, titleMods.getLocation());
                 inheritIdentifier(defaultMods, titleMods.getIdentifier());
             }
+        } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
+            // issue 137
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICAL);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                inheritIdentifier(defaultMods, titleMods.getIdentifier());
+            }
         }
         return defaultMods;
     }
@@ -124,7 +133,18 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
                 ti.getPartName().clear();
                 ti.getNonSort().clear();
                 mods.getTitleInfo().add(ti);
+            }
+        }
+    }
 
+    private void inheritSupplementTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
+        for (TitleInfoDefinition ti : tis) {
+            if (ti.getType() == null) {
+                ti.getPartNumber().clear();
+                ti.getPartName().clear();
+                ti.getNonSort().clear();
+                ti.getSubTitle().clear();
+                mods.getTitleInfo().add(ti);
             }
         }
     }
