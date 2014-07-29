@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.common.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.imports.ImportFileScanner.Folder;
 import cz.cas.lib.proarc.common.imports.ImportProcess;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,6 +44,7 @@ import java.net.URISyntaxException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -82,6 +84,7 @@ public class ImportResource {
     private static final Logger LOG = Logger.getLogger(ImportResource.class.getName());
     private static final Pattern INVALID_PATH_CONTENT = Pattern.compile("\\.\\.|//");
 
+    private final HttpHeaders httpHeaders;
     // XXX inject with guice
     private final ImportBatchManager importManager;
     private final AppConfiguration appConfig;
@@ -97,8 +100,9 @@ public class ImportResource {
             /*UserManager userManager*/
             ) throws AppConfigurationException {
 
+        this.httpHeaders = httpHeaders;
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
-        this.importManager = ImportBatchManager.getInstance(appConfig);
+        this.importManager = ImportBatchManager.getInstance();
         session = SessionContext.from(httpRequest);
         user = session.getUser();
     }
@@ -264,7 +268,9 @@ public class ImportResource {
         if (batchId != null) {
             batch = importManager.get(batchId);
             if (batch.getState() == Batch.State.LOADING_FAILED) {
-                throw RestException.plainText(Status.FORBIDDEN, "Batch not loaded.");
+                Locale locale = session.getLocale(httpHeaders);
+                throw RestException.plainText(Status.FORBIDDEN,
+                        ServerMessages.get(locale).ImportResource_BatchLoadingFailed_Msg());
             }
             imports = pid != null && !pid.isEmpty()
                     ? importManager.findBatchObjects(batchId, pid)

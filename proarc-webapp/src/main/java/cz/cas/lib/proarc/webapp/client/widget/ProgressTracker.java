@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.client.widget;
 
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.events.DataArrivedEvent;
@@ -146,6 +147,7 @@ public final class ProgressTracker {
 
     public void setInit() {
         lastDone = lastTotal = 0;
+        label.setIcon(null);
         label.setContents(i18n.ProgressTracker_Initializing_Msg());
         progressbar.setPercentDone(0);
         if (datasource != null) {
@@ -174,9 +176,16 @@ public final class ProgressTracker {
     }
 
     public void setDone(String msg) {
+        setDone(msg, false);
+    }
+
+    public void setDone(String msg, boolean failure) {
         setProgress(lastTotal, lastTotal);
         if (msg != null) {
             label.setContents(msg);
+        }
+        if (failure) {
+            label.setIcon("[SKIN]/Dialog/error.png");
         }
     }
 
@@ -279,16 +288,23 @@ public final class ProgressTracker {
                 return ;
             }
             event.cancel();
-            Map<?, ?> errors = event.getResponse().getErrors();
-            Iterator<?> iterator = errors.values().iterator();
             StringBuilder sb = new StringBuilder();
-            if (iterator.hasNext()) {
-                sb.append(iterator.next());
-            } else {
+            DSResponse response = event.getResponse();
+            Map<?, ?> errors = response.getErrors();
+            if (errors != null) {
+                for (Iterator<?> it = errors.values().iterator(); it.hasNext();) {
+                    sb.append(it.hasNext());
+                    sb.append("<p>\n");
+                }
+            }
+            if (sb.length() == 0) {
+                sb.append(response.getHttpResponseText());
+            }
+            if (sb.length() == 0) {
                 sb.append(i18n.ProgressTracker_Failure_UnknownReason_Title());
             }
             String msg = i18n.ProgressTracker_Failure_Msg(sb.toString());
-            tracker.setDone(msg);
+            tracker.setDone(msg, true);
             done();
         }
 
