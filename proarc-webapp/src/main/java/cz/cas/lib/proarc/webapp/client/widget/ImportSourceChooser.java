@@ -21,12 +21,15 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
+import com.smartgwt.client.widgets.form.fields.events.DataArrivedEvent;
+import com.smartgwt.client.widgets.form.fields.events.DataArrivedHandler;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
@@ -110,26 +113,7 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
 
         ToolStrip toolbar = createToolbar();
 
-        optionsForm = new DynamicForm();
-        optionsForm.setNumCols(10);
-        optionsForm.setGroupTitle(i18n.ImportSourceChooser_Options_Title());
-        optionsForm.setIsGroup(true);
-        optionsForm.setWrapItemTitles(false);
-//        SelectItem selectModel = new SelectItem("model", i18n.ImportSourceChooser_OptionImportModel_Title());
-        CheckboxItem cbiPageIndexes = new CheckboxItem(ImportBatchDataSource.FIELD_INDICES,
-                i18n.ImportSourceChooser_OptionPageIndices_Title());
-        cbiPageIndexes.setValue(true);
-
-        SelectItem selectScanner = new SelectItem(ImportBatchDataSource.FIELD_DEVICE,
-                i18n.ImportSourceChooser_OptionScanner_Title());
-        DeviceDataSource.setOptionDataSource(selectScanner);
-        selectScanner.setAllowEmptyValue(true);
-        selectScanner.setEmptyDisplayValue(
-                ClientUtils.format("<i>&lt;%s&gt;</i>", i18n.NewDigObject_OptionModel_EmptyValue_Title()));
-        selectScanner.setRequired(true);
-        selectScanner.setWidth(300);
-
-        optionsForm.setFields(selectScanner, cbiPageIndexes);
+        optionsForm = createOptionsForm();
 
         innerLayout.setMembers(optionsForm, lblCurrSelection, treeGrid);
         layout.setMembers(toolbar, innerLayout);
@@ -215,6 +199,45 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
         loadButton = Actions.asIconButton(loadAction, this);
         t.addMember(loadButton);
         return t;
+    }
+
+    private DynamicForm createOptionsForm() {
+        DynamicForm form = new DynamicForm();
+        form.setNumCols(10);
+        form.setGroupTitle(i18n.ImportSourceChooser_Options_Title());
+        form.setIsGroup(true);
+        form.setWrapItemTitles(false);
+//        SelectItem selectModel = new SelectItem("model", i18n.ImportSourceChooser_OptionImportModel_Title());
+        CheckboxItem cbiPageIndexes = new CheckboxItem(ImportBatchDataSource.FIELD_INDICES,
+                i18n.ImportSourceChooser_OptionPageIndices_Title());
+        cbiPageIndexes.setValue(true);
+
+        final SelectItem selectScanner = new SelectItem(ImportBatchDataSource.FIELD_DEVICE,
+                i18n.ImportSourceChooser_OptionScanner_Title());
+        DeviceDataSource.setOptionDataSource(selectScanner);
+        selectScanner.setAllowEmptyValue(true);
+        selectScanner.setEmptyDisplayValue(
+                ClientUtils.format("<i>&lt;%s&gt;</i>", i18n.NewDigObject_OptionModel_EmptyValue_Title()));
+        selectScanner.setRequired(true);
+        selectScanner.setWidth(300);
+        selectScanner.addDataArrivedHandler(new DataArrivedHandler() {
+
+            @Override
+            public void onDataArrived(DataArrivedEvent event) {
+                if (event.getStartRow() == 0) {
+                    ResultSet data = event.getData();
+                    int length = data.getLength();
+                    if (length == 1) {
+                        // issue 190: select in case of single device
+                        Record device = data.get(0);
+                        selectScanner.setValue(device.getAttribute(DeviceDataSource.FIELD_ID));
+                    }
+                }
+            }
+        });
+
+        form.setFields(selectScanner, cbiPageIndexes);
+        return form;
     }
 
     public interface ImportSourceChooserHandler {
