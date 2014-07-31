@@ -90,6 +90,7 @@ import cz.cas.lib.proarc.mets.info.Info;
 import cz.cas.lib.proarc.mets.info.Info.Checksum;
 import cz.cas.lib.proarc.mets.info.Info.Itemlist;
 import cz.cas.lib.proarc.mets.info.Info.Titleid;
+import cz.cas.lib.proarc.mets.info.Info.Validation;
 
 /**
  * @author Robert Simonovsky
@@ -827,6 +828,9 @@ public class MetsUtils {
             }
             checkSum.setValue(fileMd5Name);
             infoJaxb.setChecksum(checkSum);
+            Validation validation = new Validation();
+            validation.setValue("W3C-XML");
+            infoJaxb.setValidation(validation);
             infoJaxb.setCreator(metsContext.getCreatorOrganization());
             infoJaxb.setPackageid(metsContext.getPackageID());
             if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
