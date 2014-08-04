@@ -103,9 +103,13 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
             @Override
             public void onDataArrived(DataArrivedEvent event) {
-                if (event.getStartRow() == 0 && event.getEndRow() > 0) {
+                int startRow = event.getStartRow();
+                int endRow = event.getEndRow();
+                if (startRow == 0 && endRow >= 0) {
                     grid.focus();
                     grid.selectSingleRecord(0);
+                } else if (endRow < 0) {
+                    grid.deselectAllRecords();
                 }
             }
         });

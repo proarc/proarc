@@ -109,10 +109,13 @@ public final class DigitalObjectManager {
             @Override
             public void onSelectionUpdated(SelectionUpdatedEvent event) {
                 final ListGridRecord[] selectedRecords = foundView.getGrid().getSelectedRecords();
+                int selectedRecordNumber = selectedRecords != null ? selectedRecords.length : 0;
                 listSource.fireEvent();
-                if (selectedRecords != null && selectedRecords.length == 1) {
+                if (selectedRecordNumber == 1) {
                     String pid = selectedRecords[0].getAttribute(RelationDataSource.FIELD_PID);
                     treeView.setRoot(pid);
+                } else if (selectedRecordNumber == 0) {
+                    treeView.setRoot(null);
                 }
             }
         });
