@@ -22,6 +22,7 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.Label;
@@ -156,13 +157,17 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
         return optionsForm.validate();
     }
 
+    @Override
+    public void refresh() {
+        treeGrid.invalidateCache();
+    }
+
     /**
      * Refreshes selected node or the whole tree.
      */
-    @Override
-    public void refresh() {
+    public void refreshSelectedNode() {
         Tree tree = treeGrid.getTree();
-        TreeNode node = (TreeNode) treeGrid.getSelectedRecord();
+        TreeNode node = treeGrid.getSelectedRecord();
         if (node != null) {
             TreeNode parent = tree.getParent(node);
             if (parent != null) {
@@ -171,6 +176,16 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
             }
         }
         treeGrid.invalidateCache();
+    }
+
+    /**
+     * Updates folder status of the selected node in the data source cache.
+     */
+    public void updateCache(String status) {
+        TreeNode node = treeGrid.getSelectedRecord();
+        // issue 205
+        node.setAttribute(ImportTreeDataSource.FIELD_STATE, status);
+        dataSource.updateCaches(new DSResponse(null, DSOperationType.UPDATE, node));
     }
 
     private void updateOnSelection() {

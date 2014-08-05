@@ -63,9 +63,9 @@ public class ImportTreeDataSource extends RestDataSource {
         DataSourceTextField name = new DataSourceTextField(FIELD_NAME);
 
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
-        states.put("IMPORTED", i18n.ImportBatchDataSource_State_LOADED());
-        states.put("NEW", "");
-        states.put("EMPTY", "");
+        states.put(FolderState.IMPORTED, i18n.ImportBatchDataSource_State_LOADED());
+        states.put(FolderState.NEW, "");
+        states.put(FolderState.EMPTY, "");
         state.setValueMap(states);
 
         setFields(path, parent, name, state);
@@ -118,12 +118,20 @@ public class ImportTreeDataSource extends RestDataSource {
         }
 
         public boolean isImported() {
-            return "IMPORTED".equals(delegate.getAttribute(FIELD_STATE));
+            return FolderState.IMPORTED.equals(delegate.getAttribute(FIELD_STATE));
         }
 
         public boolean isNew() {
             String state = delegate.getAttribute(FIELD_STATE);
-            return state == null || "NEW".equals(state);
+            return state == null || FolderState.NEW.equals(state);
         }
+    }
+
+    public static final class FolderState {
+
+        public static final String EMPTY = "EMPTY";
+        public static final String IMPORTED = "IMPORTED";
+        public static final String NEW = "NEW";
+
     }
 }
