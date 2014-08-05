@@ -35,6 +35,7 @@ import java.util.Map;
 public class Const {
     public final static String FEDORAPREFIX = "info:fedora/";
     public static HashMap<String, List<String>> streamMapping;
+    public static List<String> allowedIdentifiers = new ArrayList<String>();
     public static ArrayList<String> mandatoryStreams = new ArrayList<String>();
     public static HashMap<String, String> streamMappingFile = new HashMap<String, String>();
     public static HashMap<String, String> streamMappingPrefix = new HashMap<String, String>();
@@ -96,6 +97,10 @@ public class Const {
     public final static Map<String, String> mimeToFmtMap = new HashMap<String, String>();
 
     static {
+        allowedIdentifiers.add("isbn");
+        allowedIdentifiers.add("issn");
+        allowedIdentifiers.add("ccnb");
+        allowedIdentifiers.add("urnnbn");
         mimeToFmtMap.put("image/tiff", "fmt/353");
         mimeToFmtMap.put("image/jp2", "fmt/151");
         mimeToFmtMap.put("text/xml", "fmt/101");

@@ -821,15 +821,18 @@ public class MetsUtils {
             checkSum.setType("MD5");
             Map<String, String> identifiers = metsContext.getRootElement().getModsIdentifiers();
             for (String type : identifiers.keySet()) {
-                Titleid titleId = new Titleid();
-                titleId.setType(type);
-                titleId.setValue(identifiers.get(type));
-                infoJaxb.getTitleid().add(titleId);
+                if (Const.allowedIdentifiers.contains(type)) {
+                    Titleid titleId = new Titleid();
+                    titleId.setType(type);
+                    titleId.setValue(identifiers.get(type));
+                    infoJaxb.getTitleid().add(titleId);
+                }
             }
             checkSum.setValue(fileMd5Name);
             infoJaxb.setChecksum(checkSum);
             Validation validation = new Validation();
             validation.setValue("W3C-XML");
+            validation.setVersion(Float.valueOf("0.0"));
             infoJaxb.setValidation(validation);
             infoJaxb.setCreator(metsContext.getCreatorOrganization());
             infoJaxb.setPackageid(metsContext.getPackageID());
@@ -851,6 +854,10 @@ public class MetsUtils {
             try {
                 JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
                 Marshaller marshaller = jaxbContext.createMarshaller();
+                SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+                factory.setResourceResolver(MetsLSResolver.getInstance());
+                Schema schema = factory.newSchema(new StreamSource(Info.class.getResourceAsStream("info.xsd")));
+                marshaller.setSchema(schema);
                 marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
                 marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
                 marshaller.marshal(infoJaxb, infoFile);
