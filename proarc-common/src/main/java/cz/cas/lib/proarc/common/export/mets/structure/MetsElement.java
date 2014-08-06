@@ -178,12 +178,16 @@ public class MetsElement implements IMetsElement {
     public Map<String, String> getModsIdentifiers() throws MetsExportException {
         Map<String, String> result = new HashMap<String, String>();
         String XPATH = "*[local-name()='mods']";
-        Node descNode = MetsUtils.xPathEvaluateNode(MetsUtils.removeModsCollection(this.modsStream), XPATH);
-        NodeList nodeList = descNode.getChildNodes();
-        for (int a = 0; a < nodeList.getLength(); a++) {
-            Node node = nodeList.item(a);
-            if ("identifier".equalsIgnoreCase(node.getLocalName())) {
-                result.put(node.getAttributes().getNamedItem("type").getNodeValue(), node.getTextContent());
+        if (this.modsStream != null) {
+            Node descNode = MetsUtils.xPathEvaluateNode(MetsUtils.removeModsCollection(this.modsStream), XPATH);
+            if (descNode != null) {
+                NodeList nodeList = descNode.getChildNodes();
+                for (int a = 0; a < nodeList.getLength(); a++) {
+                    Node node = nodeList.item(a);
+                    if ("identifier".equalsIgnoreCase(node.getLocalName())) {
+                        result.put(node.getAttributes().getNamedItem("type").getNodeValue(), node.getTextContent());
+                    }
+                }
             }
         }
         return result;
