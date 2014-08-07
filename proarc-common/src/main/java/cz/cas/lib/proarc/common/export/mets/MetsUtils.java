@@ -90,6 +90,7 @@ import cz.cas.lib.proarc.mets.info.Info;
 import cz.cas.lib.proarc.mets.info.Info.Checksum;
 import cz.cas.lib.proarc.mets.info.Info.Itemlist;
 import cz.cas.lib.proarc.mets.info.Info.Titleid;
+import cz.cas.lib.proarc.mets.info.Info.Validation;
 
 /**
  * @author Robert Simonovsky
@@ -798,6 +799,21 @@ public class MetsUtils {
         return output;
     }
 
+    public static void addModsIdentifiersRecursive(MetsElement element, Info infoJaxb) throws MetsExportException {
+        Map<String, String> identifiers = element.getModsIdentifiers();
+        for (String type : identifiers.keySet()) {
+            if (Const.allowedIdentifiers.contains(type)) {
+                Titleid titleId = new Titleid();
+                titleId.setType(type);
+                titleId.setValue(identifiers.get(type));
+                infoJaxb.getTitleid().add(titleId);
+            }
+        }
+
+        for (MetsElement child : element.getChildren()) {
+            addModsIdentifiersRecursive(child, infoJaxb);
+        }
+    }
 
     /**
      *
@@ -808,25 +824,27 @@ public class MetsUtils {
      */
     public static void saveInfoFile(String path, MetsContext metsContext, String md5, String fileMd5Name, File metsFile) throws MetsExportException {
         File infoFile = new File(path + File.separator + metsContext.getPackageID() + File.separator + "info_" + metsContext.getPackageID() + ".xml");
-        try {
             GregorianCalendar c = new GregorianCalendar();
             c.setTime(new Date());
-            XMLGregorianCalendar date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+        XMLGregorianCalendar date2;
+        try {
+            date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+        } catch (DatatypeConfigurationException e1) {
+            throw new MetsExportException("Error while generating info.xml file", false, e1);
+        }
             Info infoJaxb = new Info();
             infoJaxb.setCreated(date2);
             infoJaxb.setMainmets("./" + metsFile.getName());
             Checksum checkSum = new Checksum();
             checkSum.setChecksum(md5);
             checkSum.setType("MD5");
-            Map<String, String> identifiers = metsContext.getRootElement().getModsIdentifiers();
-            for (String type : identifiers.keySet()) {
-                Titleid titleId = new Titleid();
-                titleId.setType(type);
-                titleId.setValue(identifiers.get(type));
-                infoJaxb.getTitleid().add(titleId);
-            }
+        addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb);
             checkSum.setValue(fileMd5Name);
             infoJaxb.setChecksum(checkSum);
+            Validation validation = new Validation();
+            validation.setValue("W3C-XML");
+            validation.setVersion(Float.valueOf("0.0"));
+            infoJaxb.setValidation(validation);
             infoJaxb.setCreator(metsContext.getCreatorOrganization());
             infoJaxb.setPackageid(metsContext.getPackageID());
             if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
@@ -847,15 +865,33 @@ public class MetsUtils {
             try {
                 JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
                 Marshaller marshaller = jaxbContext.createMarshaller();
+            // SchemaFactory factory =
+            // SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            // factory.setResourceResolver(MetsLSResolver.getInstance());
+            // Schema schema = factory.newSchema(new
+            // StreamSource(Info.class.getResourceAsStream("info.xsd")));
+            // marshaller.setSchema(schema);
                 marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
                 marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
                 marshaller.marshal(infoJaxb, infoFile);
             } catch (Exception ex) {
                 throw new MetsExportException("Error while generating info.xml", false, ex);
             }
-            MetsUtils.validateAgainstXSD(infoFile, Info.class.getResourceAsStream("info.xsd"));
+
+        List<String> validationErrors;
+        try {
+            validationErrors = MetsUtils.validateAgainstXSD(infoFile, Info.class.getResourceAsStream("info.xsd"));
         } catch (Exception e) {
-            throw new MetsExportException("Error while creating info.xml", false, e);
+            throw new MetsExportException("Error while validating info.xml", false, e);
+        }
+
+        if (validationErrors.size() > 0) {
+            MetsExportException metsException = new MetsExportException("Invalid info file:" + infoFile.getAbsolutePath(), false, null);
+            metsException.getExceptions().get(0).setValidationErrors(validationErrors);
+            for (String error : validationErrors) {
+                LOG.fine(error);
+            }
+            throw metsException;
         }
     }
 
