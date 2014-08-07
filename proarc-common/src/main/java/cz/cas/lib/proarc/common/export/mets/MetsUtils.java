@@ -865,16 +865,19 @@ public class MetsUtils {
             try {
                 JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
                 Marshaller marshaller = jaxbContext.createMarshaller();
-                SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-                factory.setResourceResolver(MetsLSResolver.getInstance());
-                Schema schema = factory.newSchema(new StreamSource(Info.class.getResourceAsStream("info.xsd")));
-                marshaller.setSchema(schema);
+            // SchemaFactory factory =
+            // SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            // factory.setResourceResolver(MetsLSResolver.getInstance());
+            // Schema schema = factory.newSchema(new
+            // StreamSource(Info.class.getResourceAsStream("info.xsd")));
+            // marshaller.setSchema(schema);
                 marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
                 marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
                 marshaller.marshal(infoJaxb, infoFile);
             } catch (Exception ex) {
                 throw new MetsExportException("Error while generating info.xml", false, ex);
             }
+
         List<String> validationErrors;
         try {
             validationErrors = MetsUtils.validateAgainstXSD(infoFile, Info.class.getResourceAsStream("info.xsd"));
