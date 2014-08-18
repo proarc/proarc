@@ -957,7 +957,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                     JhoveUtility.mergeMix(jHoveOutputRaw.getMix(), mixDevice);
                                 }
                             }
-                            if ((jHoveOutputRaw.getMix().getBasicImageInformation() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation() != null)) {
+                            if ((jHoveOutputRaw.getMix() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation() != null)) {
                                 photometricInterpretation = jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation();
                             }
                             JhoveUtility.addDenominator(jHoveOutputRaw);
