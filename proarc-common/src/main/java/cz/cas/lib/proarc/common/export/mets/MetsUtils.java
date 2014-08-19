@@ -803,10 +803,19 @@ public class MetsUtils {
         Map<String, String> identifiers = element.getModsIdentifiers();
         for (String type : identifiers.keySet()) {
             if (Const.allowedIdentifiers.contains(type)) {
-                Titleid titleId = new Titleid();
-                titleId.setType(type);
-                titleId.setValue(identifiers.get(type));
-                infoJaxb.getTitleid().add(titleId);
+                boolean alreadyAdded = false;
+                for (Titleid titleId : infoJaxb.getTitleid()) {
+                    if ((titleId.getType().equals(type)) && (titleId.getValue().equals(identifiers.get(type)))) {
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+                if (!alreadyAdded) {
+                    Titleid titleId = new Titleid();
+                    titleId.setType(type);
+                    titleId.setValue(identifiers.get(type));
+                    infoJaxb.getTitleid().add(titleId);
+                }
             }
         }
 
