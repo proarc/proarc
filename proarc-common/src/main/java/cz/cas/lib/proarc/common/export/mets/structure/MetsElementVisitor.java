@@ -903,10 +903,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         fileTypeAmdSec.setSEQ(fileTypePage.getSEQ());
                         fileTypeAmdSec.setSIZE(fileTypePage.getSIZE());
                         fileGrpAmd.getFile().add(fileTypeAmdSec);
-                        if (fileTypePage.getFLocat().get(0)!=null) {
+                        if (fileTypePage.getFLocat().get(0) != null) {
                             FLocat flocatAmd = new FLocat();
                             FLocat pageFlocat = fileTypePage.getFLocat().get(0);
-                            if (pageFlocat.getHref()!=null) {
+                            if (pageFlocat.getHref() != null) {
                                 flocatAmd.setHref(".." + pageFlocat.getHref().substring(1));
                             }
                             flocatAmd.setLOCTYPE(pageFlocat.getLOCTYPE());
@@ -923,21 +923,26 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             File rawFile = null;
             XMLGregorianCalendar rawCreated = null;
             Mix mixDevice = getScannerMix(metsElement);
-            //RAW datastream for MIX_001 - only for Fedora
+            // RAW datastream for MIX_001 - only for Fedora
             PhotometricInterpretation photometricInterpretation = null;
             JHoveOutput jHoveOutputRaw = null;
             JHoveOutput jHoveOutputMC = null;
             if (metsElement.getMetsContext().getFedoraClient() != null) {
                 try {
-                        DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
-                        if (rawDS != null) {
-                            GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
-                            try {
+                    DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
+                    if (rawDS != null) {
+                        GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
+                        try {
                             rawCreated = rawDS.getDatastreamVersion().get(0).getCREATED();
                             InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
                             String rawExtendsion = MimeType.getExtension(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
                             rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "raw" + "." + rawExtendsion);
-                            FileMD5Info rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
+                            FileMD5Info rawinfo;
+                            try {
+                                rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
+                            } catch (NoSuchAlgorithmException e) {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to copy RAW image and get digest", false, e);
+                            }
                             rawinfo.setMimeType(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
                             rawinfo.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
                             md5InfosMap.put("RAW", rawinfo);
@@ -951,6 +956,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             // If not present, then generate new
                             if (jHoveOutputRaw == null) {
                                 jHoveOutputRaw = JhoveUtility.getMix(new File(rawFile.getAbsolutePath()), metsElement.getMetsContext(), mixDevice, rawCreated, null);
+                                if (jHoveOutputRaw.getMix() == null) {
+                                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for RAW image", false, null);
+                                }
                             } else {
                                 // Merges the information from the device mix
                                 if (jHoveOutputRaw.getMix().getImageCaptureMetadata() == null) {
@@ -963,25 +971,28 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             JhoveUtility.addDenominator(jHoveOutputRaw);
                             JhoveUtility.addOrientation(jHoveOutputRaw);
 
-                            } catch (FedoraClientException e) {
-                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
-                            }
+                        } catch (FedoraClientException e) {
+                            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                         }
-                } catch (Exception ex) {
+                    }
+                } catch (IOException ex) {
                     throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting RAW datastream " + metsElement.getOriginalPid(), false, ex);
                 }
             }
 
-            if (fileNames.get("MC_IMGGRP")!=null) {
+            if (fileNames.get("MC_IMGGRP") != null) {
                 toGenerate.put("MIX_002", "MC_IMGGRP");
                 String outputFileName = outputFileNames.get("MC_IMGGRP");
-                if (outputFileName!=null) {
+                if (outputFileName != null) {
                     String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
                     if (metsElement.getMetsContext().getFedoraClient() != null) {
                         jHoveOutputMC = JhoveUtility.getMixFromFedora(metsElement, "NDK_ARCHIVAL_MIX");
                     }
                     if (jHoveOutputMC == null) {
                         jHoveOutputMC = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
+                        if (jHoveOutputMC.getMix() == null) {
+                            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for MC image", false, null);
+                        }
                     }
                     JhoveUtility.addPhotometricInformation(jHoveOutputMC, photometricInterpretation);
                     JhoveUtility.addDenominator(jHoveOutputMC);
@@ -1039,23 +1050,23 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 rawFile.delete();
             }
 
-            if (outputFileNames.get("ALTOGRP")!=null) {
+            if (outputFileNames.get("ALTOGRP") != null) {
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                 try {
-                DocumentBuilder db = dbf.newDocumentBuilder();
-                File altoFile = new File(outputFileNames.get("ALTOGRP"));
-                if (altoFile.exists()) {
-                    Document altoDoc = db.parse(altoFile);
+                    DocumentBuilder db = dbf.newDocumentBuilder();
+                    File altoFile = new File(outputFileNames.get("ALTOGRP"));
+                    if (altoFile.exists()) {
+                        Document altoDoc = db.parse(altoFile);
                         String schemaLocation = altoDoc.getDocumentElement().getAttribute("xsi:schemaLocation");
                         if (schemaLocation == null) {
                             schemaLocation = altoDoc.getDocumentElement().getAttribute("schemaLocation");
                         }
                         if ((schemaLocation != null) && (schemaLocation.contains("http://www.loc.gov/standards/alto/ns-v2"))) {
-                                md5InfosMap.get("ALTOGRP").setFormatVersion("2.0");
-                            } else {
+                            md5InfosMap.get("ALTOGRP").setFormatVersion("2.0");
+                        } else {
                             throw new MetsExportException(metsElement.getOriginalPid(), "ALTO version is unsupported (supports only 2.x)", false, null);
-                            }
-                }
+                        }
+                    }
                 } catch (Exception ex) {
                     throw new MetsExportException(metsElement.getOriginalPid(), "Unable to parse ALTO file", false, ex);
                 }
