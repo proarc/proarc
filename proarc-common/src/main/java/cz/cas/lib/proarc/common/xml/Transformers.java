@@ -51,8 +51,7 @@ public final class Transformers {
     private static final Logger LOG = Logger.getLogger(Transformers.class.getName());
 
 //    private static final String DC_RDF_XSL_PATH = "http://www.loc.gov/standards/marcxml/xslt/MARC21slim2RDFDC.xsl";
-//    private static final String MODS_33_XSL_PATH = "http://www.loc.gov/standards/mods/v3/MARC21slim2MODS3-3.xsl";
-    private static final String MODS_34_XSL_PATH = "http://www.loc.gov/standards/mods/v3/MARC21slim2MODS3-4.xsl";
+    private static final String MODS_3_XSL_PATH = "http://www.loc.gov/standards/mods/v3/MARC21slim2MODS3-4.xsl";
     private static final String OAIMARC2MARC21slim_XSL_PATH = "http://www.loc.gov/standards/marcxml/xslt/OAIMARC2MARC21slim.xsl";
     private static final String MARC21slim2HTML_XSL_PATH = "http://www.loc.gov/standards/marcxml/xslt/MARC21slim2HTML.xsl";
     private static final String MODS2HTML_XSL_PATH = "http://www.loc.gov/standards/mods/mods.xsl";
@@ -64,8 +63,8 @@ public final class Transformers {
         FORMAT2TEMPLATES = new EnumMap<Format, Templates>(Format.class);
         FORMAT2XSL = new EnumMap<Format, String>(Format.class);
 //        FORMAT2XSL.put(Format.MarcxmlAsDcRdf, DC_RDF_XSL_PATH);
-//        FORMAT2XSL.put(Format.MarcxmlAsMods33, MODS_33_XSL_PATH);
-        FORMAT2XSL.put(Format.MarcxmlAsMods34, MODS_34_XSL_PATH);
+        FORMAT2XSL.put(Format.MarcxmlAsMods34, MODS_3_XSL_PATH);
+        FORMAT2XSL.put(Format.MarcxmlAsMods3, MODS_3_XSL_PATH);
         FORMAT2XSL.put(Format.OaimarcAsMarc21slim, OAIMARC2MARC21slim_XSL_PATH);
         FORMAT2XSL.put(Format.MarcxmlAsHtml, MARC21slim2HTML_XSL_PATH);
         FORMAT2XSL.put(Format.ModsAsHtml, MODS2HTML_XSL_PATH);
@@ -175,8 +174,7 @@ public final class Transformers {
         private static final Map<String, String> CATALOG = new HashMap<String, String>();
 
         static {
-            CATALOG.put(MODS_34_XSL_PATH, "/xml/MARC21slim2MODS3-4.xsl");
-//            CATALOG.put(MODS_33_XSL_PATH,"/xslts/MARC21slim2MODS3-3.xsl");
+            CATALOG.put(MODS_3_XSL_PATH, "/xml/MARC21slim2MODS3.xsl");
 //            CATALOG.put(DC_RDF_XSL_PATH, "/xslts/MARC21slim2RDFDC.xsl");
             CATALOG.put(OAIMARC2MARC21slim_XSL_PATH, "/xml/OAIMARC2MARC21slim.xsl");
             CATALOG.put(MARC21slim2HTML_XSL_PATH, "/xml/MARC21slim2HTML.xsl");
@@ -208,9 +206,24 @@ public final class Transformers {
 
     public enum Format {
 
-        /*MarcxmlAsMods33,*/ MarcxmlAsMods34, /*MarcxmlAsDcRdf,*/
-        OaimarcAsMarc21slim, MarcxmlAsHtml, ModsAsHtml, ModsAsTitle,
-        ModsAsFedoraLabel, AlephOaiMarcFix;
+        /**
+         * Use {@link #MarcxmlAsMods3} instead.
+         * @deprecated
+         */
+        @Deprecated
+        MarcxmlAsMods34,
+
+        /** The latest MODS 3 version. */
+        MarcxmlAsMods3,
+
+        /*MarcxmlAsDcRdf,*/
+        OaimarcAsMarc21slim,
+        MarcxmlAsHtml,
+        ModsAsHtml,
+        ModsAsTitle,
+        ModsAsFedoraLabel,
+        AlephOaiMarcFix;
+
     }
 
 }

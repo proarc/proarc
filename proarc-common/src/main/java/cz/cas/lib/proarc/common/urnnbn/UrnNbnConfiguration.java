@@ -42,7 +42,8 @@ public class UrnNbnConfiguration {
 
     public ResolverClient getClient(ResolverConfiguration conf) {
         if (conf != null) {
-            return new ResolverClient(conf.getUrl(), conf.getRegistrar(), conf.getUser(), conf.getPasswd());
+            return new ResolverClient(conf.getUrl(), conf.getRegistrar(),
+                    conf.getArchiver(), conf.getUser(), conf.getPasswd());
         }
         return null;
     }
@@ -106,6 +107,7 @@ public class UrnNbnConfiguration {
 
     public static class ResolverConfiguration {
 
+        static final String PROPERTY_ARCHIVER = "archiver";
         static final String PROPERTY_PASSWD = "passwd";
         static final String PROPERTY_REGISTRAR = "registrar";
         static final String PROPERTY_TITLE = "title";
@@ -130,6 +132,10 @@ public class UrnNbnConfiguration {
 
         public String getRegistrar() {
             return config.getString(PROPERTY_REGISTRAR);
+        }
+
+        public Long getArchiver() {
+            return config.getLong(PROPERTY_ARCHIVER, null);
         }
 
         public String getTitle() {

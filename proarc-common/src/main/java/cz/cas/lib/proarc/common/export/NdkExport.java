@@ -17,27 +17,22 @@
 package cz.cas.lib.proarc.common.export;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-
+import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
+import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-
-import org.apache.commons.io.FileUtils;
 
 /**
  * Exports digital object and transforms its data streams to NDK format.
@@ -54,24 +49,24 @@ public final class NdkExport {
         this.rstorage = rstorage;
     }
 
-    /**
-     * Runs export to validate inputs. It cleans outputs on exit.
-     * @param exportsFolder folder with user exports
-     * @param pid PID to validate
-     * @param hierarchy export PID ant its children
-     * @return validation report
-     * @throws ExportException unexpected failure
-     */
-    public List<MetsExportExceptionElement> validate(File exportsFolder, String pid,
-            boolean hierarchy) throws ExportException {
-
-        Result export = export(exportsFolder, pid, "ValPKGID", hierarchy, false, null);
-        if (export.getValidationError() != null) {
-            return export.getValidationError().getExceptions();
-        } else {
-            return null;
-        }
-    }
+//    /**
+//     * Runs export to validate inputs. It cleans outputs on exit.
+//     * @param exportsFolder folder with user exports
+//     * @param pid PID to validate
+//     * @param hierarchy export PID ant its children
+//     * @return validation report
+//     * @throws ExportException unexpected failure
+//     */
+//    public List<MetsExportExceptionElement> validate(File exportsFolder, String pid,
+//            boolean hierarchy) throws ExportException {
+//
+//        Result export = export(exportsFolder, pid, "ValPKGID", hierarchy, false, null);
+//        if (export.getValidationError() != null) {
+//            return export.getValidationError().getExceptions();
+//        } else {
+//            return null;
+//        }
+//    }
 
     /**
      * Prepares export package of a single PID without children for later download.
@@ -89,10 +84,10 @@ public final class NdkExport {
      *
      * @param exportsFolder
      *            folder with user exports
-     * @param pid
+     * @param pids
      *            PID to export
      * @param hierarchy
-     *            export PID ant its children
+     *            export PID and its children
      * @param keepResult
      *            delete or not export folder on exit
      * @param log
@@ -101,10 +96,38 @@ public final class NdkExport {
      * @throws ExportException
      *             unexpected failure
      */
-    public Result export(File exportsFolder, String pid, String packageId, boolean hierarchy, boolean keepResult, String log
+    public List<Result> export(File exportsFolder, List<String> pids,
+            boolean hierarchy, boolean keepResult, String log
             ) throws ExportException {
 
-        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pid));
+        ExportResultLog reslog = new ExportResultLog();
+        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)));
+        ArrayList<Result> results = new ArrayList<Result>(pids.size());
+        for (String pid : pids) {
+            ExportResultLog.ExportResult logItem = new ExportResultLog.ExportResult();
+            logItem.setInputPid(pid);
+            reslog.getExports().add(logItem);
+            try {
+                Result r = export(target, pid, null, hierarchy, keepResult, log);
+                results.add(r);
+                logResult(r, logItem);
+            } catch (ExportException ex) {
+                logItem.setStatus(ResultStatus.FAILED);
+                logItem.getError().add(new ResultError(null, ex));
+                ExportUtils.writeExportResult(target, reslog);
+                throw ex;
+            } finally {
+                logItem.setEnd();
+            }
+        }
+        ExportUtils.writeExportResult(target, reslog);
+        return results;
+    }
+
+    Result export(File target, String pid, String packageId,
+            boolean hierarchy, boolean keepResult, String log
+            ) throws ExportException {
+
         Result result = new Result();
         try {
             if (keepResult) {
@@ -125,21 +148,23 @@ public final class NdkExport {
                 return result;
             } catch (MetsExportException ex) {
                 keepResult = false;
+                // do not clean folder as i it is possilbe to write status.log
                 if (ex.getExceptions().isEmpty()) {
                     throw new ExportException(pid, ex);
                 }
                 return result.setValidationError(ex);
             } catch (Throwable ex) {
                 keepResult = false;
+                // do not clean folder as i it is possilbe to write status.log
                 throw new ExportException(pid, ex);
             }
         } finally {
             if (!keepResult) {
-                // run asynchronously not to block client request?
-                boolean deleted = FileUtils.deleteQuietly(target);
-                if (!deleted) {
-                    LOG.warning("Cannot delete: " + target.toString());
-                }
+//                // run asynchronously not to block client request?
+//                boolean deleted = FileUtils.deleteQuietly(target);
+//                if (!deleted) {
+//                    LOG.warning("Cannot delete: " + target.toString());
+//                }
             }
         }
     }
@@ -165,21 +190,32 @@ public final class NdkExport {
      */
     void storeExportResult(MetsContext metsContext, String target, String log) throws MetsExportException {
         for (String pid : metsContext.getPidElements().keySet()) {
-            storeObjectExportResult(pid, target, log);
+            try {
+                ExportUtils.storeObjectExportResult(pid, target, log);
+            } catch (DigitalObjectException ex) {
+                throw new MetsExportException(pid, "Cannot store logs!", false, ex);
+            }
         }
     }
 
-    void storeObjectExportResult(String pid, String target, String log) throws MetsExportException {
-        try {
-            DigitalObjectManager dom = DigitalObjectManager.getDefault();
-            FedoraObject fo = dom.find(pid, null);
-            DigitalObjectHandler doh = dom.createHandler(fo);
-            RelationEditor relations = doh.relations();
-            relations.setExportResult(target);
-            relations.write(relations.getLastModified(), log);
-            doh.commit();
-        } catch (DigitalObjectException ex) {
-            throw new MetsExportException(pid, "Cannot store logs!", false, ex);
+    private void logResult(Result r, ExportResultLog.ExportResult logItem) {
+        if (r.getValidationError() != null) {
+            logItem.setStatus(ResultStatus.FAILED);
+            List<MetsExportExceptionElement> exceptions = r.getValidationError().getExceptions();
+            for (MetsExportExceptionElement mex : exceptions) {
+                List<String> validations = mex.getValidationErrors();
+                String pid = mex.getPid();
+                if (validations != null && !validations.isEmpty()) {
+                    for (String validation : validations) {
+                        logItem.getError().add(new ResultError(pid, validation));
+                    }
+                } else if (mex.getEx() != null) {
+                    logItem.getError().add(new ResultError(pid, mex.getEx()));
+                }
+
+            }
+        } else {
+            logItem.setStatus(ResultStatus.OK);
         }
     }
 

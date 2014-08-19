@@ -229,7 +229,7 @@ public final class DcUtils {
 
     private static Templates createMods2dcTemplate() {
         TransformerFactory tf = TransformerFactory.newInstance();
-        String resourcePath = "/xml/MODS3-22simpleDC.xsl";
+        String resourcePath = "/xml/MODS3_DC_XSLT1-0.xsl";
         URL resource = DcUtils.class.getResource(resourcePath);
         if (resource == null) {
             throw new IllegalStateException("Template not found: " + resourcePath);

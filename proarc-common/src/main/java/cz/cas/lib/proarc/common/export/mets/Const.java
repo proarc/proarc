@@ -18,7 +18,7 @@
 package cz.cas.lib.proarc.common.export.mets;
 
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.object.NdkPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;

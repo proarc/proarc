@@ -50,7 +50,7 @@ public class ResolverClientTest {
         String passwd = System.getProperty("proarc-urnnbn.ResolverClient.passwd");;
         String registrar = "";
         Assume.assumeNotNull(serviceUrl, user, passwd);
-        client = new ResolverClient(serviceUrl, registrar, user, passwd);
+        client = new ResolverClient(serviceUrl, registrar, null, user, passwd);
     }
 
     @After

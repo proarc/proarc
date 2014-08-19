@@ -25,4 +25,6 @@ public final class ProarcXmlUtils {
 
     public static final String NS_IMPORT = "http://proarc.lib.cas.cz/xml/common/import/v1/";
 
+    public static final String NS_EXPORT = "http://proarc.lib.cas.cz/xml/common/export/v1/";
+
 }

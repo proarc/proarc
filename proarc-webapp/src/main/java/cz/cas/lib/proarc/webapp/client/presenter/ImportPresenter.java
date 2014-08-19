@@ -41,6 +41,7 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchItemDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ImportTreeDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ImportTreeDataSource.ImportRecord;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -407,10 +408,10 @@ public class ImportPresenter {
                     BatchRecord batch = getImportContext().getBatch();
                     if (batch != null && batch.getState() == ImportBatchDataSource.State.LOADED) {
                         ImportPresenter.this.getImportContext().setBatch(batch);
-                        ImportPresenter.this.updateImportedObjects();
+                        importSourceChooser.updateCache(ImportTreeDataSource.FolderState.IMPORTED);
                         placeController.goTo(new ImportPlace(Type.EDIT_ITEMS, batch.getId()));
                     } else {
-                        importSourceChooser.refresh();
+                        importSourceChooser.refreshSelectedNode();
                     }
                 }
             });

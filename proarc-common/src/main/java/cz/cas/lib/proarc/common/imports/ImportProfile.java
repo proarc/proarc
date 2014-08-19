@@ -39,8 +39,11 @@ public final class ImportProfile {
     public static final String PLAIN_OCR_CHARSET = "import.text_ocr.file.charset";
     public static final String PLAIN_OCR_SUFFIX = "import.text_ocr.file.suffix";
     public static final String ALTO_SUFFIX = "import.alto.file.suffix";
+    public static final String NDK_ARCHIVAL_PROCESSOR = "import.ndk_archival.processor";
     public static final String NDK_ARCHIVAL_SUFFIX = "import.ndk_archival.file.suffix";
+    public static final String NDK_USER_PROCESSOR = "import.ndk_user.processor";
     public static final String NDK_USER_SUFFIX = "import.ndk_user.file.suffix";
+    public static final String PROCESSOR = "processor";
 
     private final Configuration config;
 
@@ -61,6 +64,16 @@ public final class ImportProfile {
     public String getAltoFileSuffix() {
         String suffix = config.getString(ALTO_SUFFIX, ".ocr.xml");
         return suffix.toLowerCase();
+    }
+
+    public Configuration getNdkUserProcessor() {
+        String processor = config.getString(NDK_USER_PROCESSOR, "-");
+        return config.subset(PROCESSOR + "." + processor);
+    }
+
+    public Configuration getNdkArchivalProcessor() {
+        String processor = config.getString(NDK_ARCHIVAL_PROCESSOR, "-");
+        return config.subset(PROCESSOR + "." + processor);
     }
 
     public String getNdkArchivalFileSuffix() {

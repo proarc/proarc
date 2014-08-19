@@ -19,7 +19,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
-import cz.cas.lib.proarc.common.object.NdkPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.Extent;
@@ -141,13 +141,6 @@ public class NdkPeriodicalMapper extends NdkMapper {
             physicalDescriptions.add(reqPhysicalDescription);
         }
 
-        //  mods/subject@authority="czenas"
-        List<SubjectDefinition> subjects = mods.getSubject();
-        for (SubjectDefinition subject : subjects) {
-            if (subject.getAuthority() == null) {
-                subject.setAuthority("czenas");
-            }
-        }
         //  mods/classification@authority="udc"
         List<ClassificationDefinition> classifications = mods.getClassification();
         for (ClassificationDefinition classification : classifications) {

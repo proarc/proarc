@@ -27,14 +27,10 @@ import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
-import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.desa.SIP2DESATransporter;
@@ -236,13 +232,7 @@ public final class DesaExport {
 
     void storeObjectExportResult(String pid, String idSIPVersion, String log) throws MetsExportException {
         try {
-            DigitalObjectManager dom = DigitalObjectManager.getDefault();
-            FedoraObject fo = dom.find(pid, null);
-            DigitalObjectHandler doh = dom.createHandler(fo);
-            RelationEditor relations = doh.relations();
-            relations.setExportResult(idSIPVersion);
-            relations.write(relations.getLastModified(), log);
-            doh.commit();
+            ExportUtils.storeObjectExportResult(pid, idSIPVersion, log);
         } catch (DigitalObjectException ex) {
             throw new MetsExportException(pid, "Cannot store SIP ID Version!", false, ex);
         }

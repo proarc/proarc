@@ -1,21 +1,26 @@
 <xsl:stylesheet xmlns="http://www.loc.gov/mods/v3" xmlns:marc="http://www.loc.gov/MARC21/slim"
-                xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                exclude-result-prefixes="xlink marc" version="1.0">
+    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    exclude-result-prefixes="xlink marc" version="1.0">
     <xsl:include href="http://www.loc.gov/standards/marcxml/xslt/MARC21slimUtils.xsl"/>
     <xsl:output encoding="UTF-8" indent="yes" method="xml"/>
     <xsl:strip-space elements="*"/>
 
-<!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
-    MARC21slim2MODS3-4 (Revision 1.94) 20140221
+    <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
+    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 185) 20140626
 
-Revision 1.94.proarc158 - ProArc patch to fix invalid <geographicCode authority="czenas"> for 043  |a |b e-xr-kr |2 czenas
+Revision 1.97.proarc185 - ProArc patch of 653 mapping to subject/topic 2014/06/26
+Revision 1.97.proarc182 - ProArc patch for 600, 610, 611, 630, 648, 650, 651 and indicator *9 to map $2 as subject@authority 2014/06/26
+Revision 1.97 - Fixed 264 mapping tmee 20140521
+Revision 1.96 - Fixed 310 and 321 and 008 frequency authority for marcfrequency tmee 2014/04/22
+Revision 1.95 - Modified 035 to include identifier type (WlCaITV) tmee 2014/04/21
+Revision 1.94.proarc158 - ProArc patch to fix invalid <geographicCode authority="czenas"> for 043  |a |b e-xr-kr |2 czenas jp  2014/05/30
 Revision 1.94.proarc32 - ProArc patch to map 910a(sigla) as <physicalLocation> and 910b(signatura) as <shelfLocator>.
-Revision 1.94.proarc118 - ProArc patch to fix <frequency authority="marcfrequency"> for fields 310a and 008/18
 Revision 1.94.proarc131 - ProArc patch to include cCNB as <identifier type="ccnb"> from 015a,z.
-Revision 1.94 - Leader 07 b mapping changed from "continuing" to "serial" tmee 2014/02/21
+Revision 1.94 - Leader 07 b changed mapping from continuing to serial tmee 2014/02/21
+MODS 3.5
 Revision 1.93 - Fixed personal name transform for ind1=0 tmee 2014/01/31
-Revision 1.92 - Removed duplicate code for 856 1.51 tmee tmee 2014/01/31
-Revision 1.91 - Fixed createnameFrom720 duplication tmee tmee 2014/01/31
+Revision 1.92 - Removed duplicate code for 856 1.51 tmee 2014/01/31
+Revision 1.91 - Fixed createnameFrom720 duplication tmee 2014/01/31
 Revision 1.90 - Fixed 520 displayLabel tmee tmee 2014/01/31
 Revision 1.89 - Fixed 008-06 when value = 's' for cartographics tmee tmee 2014/01/31
 Revision 1.88 - Fixed 510c mapping - tmee 2013/08/29
@@ -105,23 +110,23 @@ Revision 1.06 - Various validation fixes 2004/02/20 ntra
 Revision 1.05 - MODS2 to MODS3 updates, language unstacking and de-duping, chopPunctuation expanded  2003/10/02 16:18:58  ntra
 Revision 1.03 - Additional Changes not related to MODS Version 2.0 by ntra
 Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
--->
+    -->
 
     <xsl:template match="/">
         <xsl:choose>
             <xsl:when test="//marc:collection">
                 <modsCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                                xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-4.xsd">
+                    xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-5.xsd">
                     <xsl:for-each select="//marc:collection/marc:record">
-                        <mods version="3.4">
+                        <mods version="3.5">
                             <xsl:call-template name="marcRecord"/>
                         </mods>
                     </xsl:for-each>
                 </modsCollection>
             </xsl:when>
             <xsl:otherwise>
-                <mods xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.4"
-                                      xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-4.xsd">
+                <mods xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.5"
+                    xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-5.xsd">
                     <xsl:for-each select="//marc:record">
                         <xsl:call-template name="marcRecord"/>
                     </xsl:for-each>
@@ -858,16 +863,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     <xsl:value-of select="."/>
                 </edition>
             </xsl:for-each>
-
-            <!--1.94 -->
-
             <xsl:for-each select="marc:leader">
                 <issuance>
                     <xsl:choose>
                         <xsl:when
                             test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'"
                             >monographic</xsl:when>
-                        <xsl:when test="$leader7='b'">continuing</xsl:when>
                         <xsl:when
                             test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')"
                             >multipart monograph</xsl:when>
@@ -877,10 +878,10 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     </xsl:choose>
                 </issuance>
             </xsl:for-each>
+
+            <!-- 1.96 20140422 -->
             <xsl:for-each select="marc:datafield[@tag=310]|marc:datafield[@tag=321]">
-                <!-- 1.94.proarc118 patch -->
                 <frequency>
-                <!--<frequency authority="marcfrequency">-->
                     <xsl:call-template name="subfieldSelect">
                         <xsl:with-param name="codes">ab</xsl:with-param>
                     </xsl:call-template>
@@ -893,8 +894,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="marc:controlfield[@tag=008]">
                     <xsl:variable name="controlField008-18" select="substring($controlField008,19,1)"/>
                     <xsl:variable name="frequency">
-                        <!-- 1.94.proarc118 patch -->
-                        <frequency authority="marcfrequency">
+                        <frequency>
                             <xsl:choose>
                                 <xsl:when test="$controlField008-18='a'">Annual</xsl:when>
                                 <xsl:when test="$controlField008-18='b'">Bimonthly</xsl:when>
@@ -919,7 +919,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                         </frequency>
                     </xsl:variable>
                     <xsl:if test="$frequency!=''">
-                        <frequency>
+                        <frequency authority="marcfrequency">
                             <xsl:value-of select="$frequency"/>
                         </frequency>
                     </xsl:if>
@@ -931,11 +931,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         <!-- originInfo - 264 -->
 
         <xsl:for-each select="marc:datafield[@tag=264][@ind2=0]">
-            <originInfo displayLabel="producer">
+            <originInfo eventType="production">
                 <!-- Template checks for altRepGroup - 880 $6 -->
                 <xsl:call-template name="xxx880"/>
                 <place>
-                    <placeTerm>
+                    <placeTerm type="text">
                         <xsl:value-of select="marc:subfield[@code='a']"/>
                     </placeTerm>
                 </place>
@@ -948,21 +948,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </originInfo>
         </xsl:for-each>
         <xsl:for-each select="marc:datafield[@tag=264][@ind2=1]">
-            <originInfo displayLabel="publisher">
+            <originInfo eventType="publication">
                 <!-- Template checks for altRepGroup - 880 $6 1.88 20130829 added chopPunc-->
                 <xsl:call-template name="xxx880"/>
                 <place>
-                    <placeTerm>
-
-                        <xsl:attribute name="type">text</xsl:attribute>
-                        <xsl:call-template name="chopPunctuationFront">
-                            <xsl:with-param name="chopString">
-                                <xsl:call-template name="chopPunctuation">
-                                    <xsl:with-param name="chopString" select="."/>
-                                </xsl:call-template>
-                            </xsl:with-param>
-                        </xsl:call-template>
-
+                    <placeTerm type="text">
+                        <xsl:value-of select="marc:subfield[@code='a']"/>
                     </placeTerm>
                 </place>
                 <publisher>
@@ -974,11 +965,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </originInfo>
         </xsl:for-each>
         <xsl:for-each select="marc:datafield[@tag=264][@ind2=2]">
-            <originInfo displayLabel="distributor">
+            <originInfo eventType="distribution">
                 <!-- Template checks for altRepGroup - 880 $6 -->
                 <xsl:call-template name="xxx880"/>
                 <place>
-                    <placeTerm>
+                    <placeTerm type="text">
                         <xsl:value-of select="marc:subfield[@code='a']"/>
                     </placeTerm>
                 </place>
@@ -991,11 +982,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </originInfo>
         </xsl:for-each>
         <xsl:for-each select="marc:datafield[@tag=264][@ind2=3]">
-            <originInfo displayLabel="manufacturer">
+            <originInfo eventType="manufacture">
                 <!-- Template checks for altRepGroup - 880 $6 -->
                 <xsl:call-template name="xxx880"/>
                 <place>
-                    <placeTerm>
+                    <placeTerm type="text">
                         <xsl:value-of select="marc:subfield[@code='a']"/>
                     </placeTerm>
                 </place>
@@ -2536,6 +2527,16 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </identifier>
         </xsl:for-each>
 
+
+        <!-- 3.5 1.95 20140421 -->
+        <xsl:for-each
+            select="marc:datafield[@tag='035'][marc:subfield[@code='a'][contains(text(), '(WlCaITV)')]]">
+            <identifier type="WlCaITV">
+                <xsl:value-of
+                    select="normalize-space(substring-after(marc:subfield[@code='a'], '(WlCaITV)'))"/>
+            </identifier>
+        </xsl:for-each>
+
         <xsl:for-each select="marc:datafield[@tag='037']">
             <identifier type="stock number">
                 <xsl:if test="marc:subfield[@code='c']">
@@ -2693,8 +2694,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </recordIdentifier>
             </xsl:for-each>
 
-            <recordOrigin>Converted from MARCXML to MODS version 3.4 using MARC21slim2MODS3-4.xsl
-                (Revision 1.94 2014/02/21)</recordOrigin>
+            <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
+                (Revision 1.97 2014/05/21, ProArc patch 185 2014/06/26)</recordOrigin>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>
@@ -3106,6 +3107,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </xsl:for-each>
     </xsl:template>
     <xsl:template name="subjectAuthority">
+        <!--Revision 1.97.proarc182-->
+        <xsl:if test="@ind2=9 and marc:subfield[@code='2']">
+            <xsl:attribute name="authority">
+                <xsl:value-of select="marc:subfield[@code='2']"/>
+            </xsl:attribute>
+        </xsl:if>
         <xsl:if test="@ind2!=4">
             <xsl:if test="@ind2!=' '">
                 <xsl:if test="@ind2!=8">
@@ -4456,10 +4463,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <!-- Template checks for altRepGroup - 880 $6 -->
             <xsl:call-template name="xxx880"/>
             <xsl:call-template name="subfieldSelect">
-                <xsl:with-param name="codes">ab</xsl:with-param>
+                <xsl:with-param name="codes">a</xsl:with-param>
                 <xsl:with-param name="delimeter">-</xsl:with-param>
             </xsl:call-template>
         </genre>
+
     </xsl:template>
 
     <xsl:template name="createGenreFrom655">
@@ -5131,81 +5139,85 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </subject>
     </xsl:template>
 
+    <!--Revision 1.97.proarc185-->
+    <xsl:template name="createSubFrom653Topic">
+        <xsl:for-each select="marc:subfield">
+            <subject>
+                <topic>
+                    <xsl:value-of select="."/>
+                </topic>
+            </subject>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!--Revision 1.97.proarc185-->
     <xsl:template name="createSubFrom653">
 
-        <xsl:if test="@ind2=' '">
-            <subject>
-                <topic>
-                    <xsl:value-of select="."/>
-                </topic>
-            </subject>
-        </xsl:if>
-        <xsl:if test="@ind2='0'">
-            <subject>
-                <topic>
-                    <xsl:value-of select="."/>
-                </topic>
-            </subject>
-        </xsl:if>
+        <xsl:choose>
+            <xsl:when test="@ind2=' ' or @ind2='0' or @ind2='9'">
+                <xsl:call-template name="createSubFrom653Topic"/>
+            </xsl:when>
 <!-- tmee 1.93 20140130 -->
-        <xsl:if test="@ind=' ' or @ind1='0' or @ind1='1'">
-            <subject>
-                <name type="personal">
-                    <namePart>
+            <xsl:when test="@ind=' ' or @ind1='0' or @ind1='1'">
+                <subject>
+                    <name type="personal">
+                        <namePart>
+                            <xsl:value-of select="."/>
+                        </namePart>
+                    </name>
+                </subject>
+            </xsl:when>
+            <!--@ind1='3' not in MARC spec-->
+<!--            <xsl:if test="@ind1='3'">
+                <subject>
+                    <name type="family">
+                        <namePart>
+                            <xsl:value-of select="."/>
+                        </namePart>
+                    </name>
+                </subject>
+            </xsl:if>-->
+            <xsl:when test="@ind2='2'">
+                <subject>
+                    <name type="corporate">
+                        <namePart>
+                            <xsl:value-of select="."/>
+                        </namePart>
+                    </name>
+                </subject>
+            </xsl:when>
+            <xsl:when test="@ind2='3'">
+                <subject>
+                    <name type="conference">
+                        <namePart>
+                            <xsl:value-of select="."/>
+                        </namePart>
+                    </name>
+                </subject>
+            </xsl:when>
+            <xsl:when test="@ind2=4">
+                <subject>
+                    <temporal>
                         <xsl:value-of select="."/>
-                    </namePart>
-                </name>
-            </subject>
-        </xsl:if>
-        <xsl:if test="@ind1='3'">
-            <subject>
-                <name type="family">
-                    <namePart>
+                    </temporal>
+                </subject>
+            </xsl:when>
+            <xsl:when test="@ind2=5">
+                <subject>
+                    <geographic>
                         <xsl:value-of select="."/>
-                    </namePart>
-                </name>
-            </subject>
-        </xsl:if>
-        <xsl:if test="@ind2='2'">
-            <subject>
-                <name type="corporate">
-                    <namePart>
+                    </geographic>
+                </subject>
+            </xsl:when>
+            <xsl:when test="@ind2=6">
+                <subject>
+                    <genre>
                         <xsl:value-of select="."/>
-                    </namePart>
-                </name>
-            </subject>
-        </xsl:if>
-        <xsl:if test="@ind2='3'">
-            <subject>
-                <name type="conference">
-                    <namePart>
-                        <xsl:value-of select="."/>
-                    </namePart>
-                </name>
-            </subject>
-        </xsl:if>
-        <xsl:if test="@ind2=4">
-            <subject>
-                <temporal>
-                    <xsl:value-of select="."/>
-                </temporal>
-            </subject>
-        </xsl:if>
-        <xsl:if test="@ind2=5">
-            <subject>
-                <geographic>
-                    <xsl:value-of select="."/>
-                </geographic>
-            </subject>
-        </xsl:if>
+                    </genre>
+                </subject>
+            </xsl:when>
+        </xsl:choose>
 
-        <xsl:if test="@ind2=6">
-            <subject>
-                <genre>
-                    <xsl:value-of select="."/>
-                </genre>
-            </subject>
-        </xsl:if>
     </xsl:template>
 
     <xsl:template name="createSubFrom656">

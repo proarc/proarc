@@ -161,7 +161,7 @@ public final class AlephXServer implements BibliographicCatalog {
         Source marcxmlSrc = transformers.transform(source, Transformers.Format.OaimarcAsMarc21slim);
 //        marcxmlSrc = transformers.dump2Temp(marcxmlSrc, "3OaimarcAsMarc21slim.xml");
         byte[] modsBytes = transformers.transformAsBytes(
-                marcxmlSrc, Transformers.Format.MarcxmlAsMods34);
+                marcxmlSrc, Transformers.Format.MarcxmlAsMods3);
 //        try {
 //            FileOutputStream tmp = new FileOutputStream("/tmp/aleph/4mods.xml");
 //            tmp.write(modsBytes);

@@ -35,6 +35,8 @@ import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
+import cz.cas.lib.proarc.common.process.ExternalProcess;
+import cz.cas.lib.proarc.common.process.KakaduCompress;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
@@ -51,6 +53,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.stream.FileImageOutputStream;
 import javax.ws.rs.core.MediaType;
+import org.apache.commons.configuration.Configuration;
 
 /**
  * Requires Java Advanced Imaging support.
@@ -96,8 +99,8 @@ public final class TiffImporter {
             createMetadata(localObj, ctx);
             createRelsExt(localObj, f, ctx);
             createImages(ctx.getTargetFolder(), f, originalFilename, localObj, config);
-            importArchivalCopy(fileSet, localObj, ctx);
-            importUserCopy(fileSet, localObj, ctx);
+            importArchivalCopy(fileSet, f, localObj, ctx);
+            importUserCopy(fileSet, f, localObj, ctx);
             importOcr(fileSet, localObj, ctx);
             // XXX generate ATM
             // writes FOXML
@@ -195,28 +198,55 @@ public final class TiffImporter {
         return null;
     }
 
-    private void importArchivalCopy(FileSet fileSet, FedoraObject fo, ImportOptions options) throws DigitalObjectException {
+    private void importArchivalCopy(FileSet fileSet, File tiff, FedoraObject fo, ImportOptions options) throws DigitalObjectException, IOException {
         ImportProfile config = options.getConfig();
         FileEntry entry = findSibling(fileSet, config.getNdkArchivalFileSuffix());
+        String dsId = BinaryEditor.NDK_ARCHIVAL_ID;
+        if (entry == null) {
+            entry = processJp2Copy(fileSet, tiff, options.getTargetFolder(), dsId, config.getNdkArchivalProcessor());
+        }
         if (entry != null) {
             // do not use entry.getMimeType. JDK 1.6 does not recognize JPEG2000
             DatastreamProfile p = FoxmlUtils.managedProfile(
-                    BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.IMAGE_JP2, BinaryEditor.NDK_ARCHIVAL_LABEL);
+                    dsId, BinaryEditor.IMAGE_JP2, BinaryEditor.NDK_ARCHIVAL_LABEL);
             BinaryEditor binaryEditor = new BinaryEditor(fo, p);
             binaryEditor.write(entry.getFile(), 0, null);
         }
     }
 
-    private void importUserCopy(FileSet fileSet, FedoraObject fo, ImportOptions options) throws DigitalObjectException {
+    private void importUserCopy(FileSet fileSet, File tiff, FedoraObject fo, ImportOptions options) throws DigitalObjectException, IOException {
         ImportProfile config = options.getConfig();
         FileEntry entry = findSibling(fileSet, config.getNdkUserFileSuffix());
+        String dsId = BinaryEditor.NDK_USER_ID;
+        if (entry == null) {
+            entry = processJp2Copy(fileSet, tiff, options.getTargetFolder(), dsId, config.getNdkUserProcessor());
+        }
         if (entry != null) {
             // do not use entry.getMimeType. JDK 1.6 does not recognize JPEG2000
             DatastreamProfile p = FoxmlUtils.managedProfile(
-                    BinaryEditor.NDK_USER_ID, BinaryEditor.IMAGE_JP2, BinaryEditor.NDK_USER_LABEL);
+                    dsId, BinaryEditor.IMAGE_JP2, BinaryEditor.NDK_USER_LABEL);
             BinaryEditor binaryEditor = new BinaryEditor(fo, p);
             binaryEditor.write(entry.getFile(), 0, null);
         }
+    }
+
+    private FileEntry processJp2Copy(FileSet fileSet, File tiff, File tempBatchFolder, String dsId, Configuration processorConfig) throws IOException {
+        if (processorConfig != null && !processorConfig.isEmpty()) {
+            File acFile = new File(tempBatchFolder, fileSet.getName() + '.' + dsId + ".jp2");
+            String processorType = processorConfig.getString("type");
+            ExternalProcess process = null;
+            if (KakaduCompress.ID.equals(processorType)) {
+                process = new KakaduCompress(processorConfig, tiff, acFile);
+            }
+            if (process != null) {
+                process.run();
+                if (!process.isOk()) {
+                    throw new IOException(acFile.toString() + "\n" + process.getFullOutput());
+                }
+            }
+            return  new FileEntry(acFile);
+        }
+        return null;
     }
 
     private void createImages(File tempBatchFolder, File original,

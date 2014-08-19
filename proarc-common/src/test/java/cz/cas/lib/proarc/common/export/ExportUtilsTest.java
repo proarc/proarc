@@ -17,8 +17,12 @@
 package cz.cas.lib.proarc.common.export;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
+import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
+import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
+import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import java.io.File;
+import java.util.Date;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -73,5 +77,21 @@ public class ExportUtilsTest {
         File parent = temp.getRoot();
         String name = "uuid:0bcf9933-84e5-460f-9e94-d798b724d394";
         ExportUtils.createFolder(parent, name);
+    }
+
+    @Test
+    public void testExportResult() {
+        File target = temp.getRoot();
+        ExportResult export = new ExportResult();
+        export.setStatus(ResultStatus.OK);
+        export.setInputPid("pid1");
+        export.getError().add(new ResultError("childPid1", "error1"));
+        export.getError().add(new ResultError("childpid2", new IllegalStateException("error2")));
+        export.setEnd(new Date());
+
+        ExportResultLog log = new ExportResultLog();
+        log.getExports().add(export);
+
+        ExportUtils.writeExportResult(target, log);
     }
 }

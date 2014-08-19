@@ -51,4 +51,8 @@ public final class ServerMessages {
         return getMessage(l, "DeviceResource_Delete_InUse_Msg");
     }
 
+    public String ImportResource_BatchLoadingFailed_Msg() {
+        return getMessage(l, "ImportResource_BatchLoadingFailed_Msg");
+    }
+
 }

@@ -140,7 +140,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         }
         rootPid = pid;
         if (pid == null) {
-            treeSelector.setData((Record[]) null);
+            treeSelector.setData(new TreeNode[0]);
             return ;
         }
         treeSelector.fetchData(new Criteria(RelationDataSource.FIELD_ROOT, pid));

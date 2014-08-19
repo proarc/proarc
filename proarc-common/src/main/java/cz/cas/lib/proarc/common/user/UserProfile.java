@@ -240,10 +240,11 @@ public class UserProfile {
 
     @Override
     public String toString() {
-        return String.format("UserProfile[id:%s, username:%s, created:%s, lastLogin:%s, email:%s,"
+        return String.format("UserProfile[id:%s, username:%s, defGroup: %s, userGroup: %s,"
+                + " created:%s, lastLogin:%s, email:%s,"
                 + " remoteName:%s, remoteType:%s"
                 + " forename:%s, surname:%s, userHome:%s, userHomeUri:%s, userPasswordDigest:%s]",
-                userId, userName, created, lastLogin, email,
+                userId, userName, defaultGroup, userGroup, created, lastLogin, email,
                 remoteName, remoteType,
                 forename, surname, userHome, userHomeUri, userPasswordDigest);
     }

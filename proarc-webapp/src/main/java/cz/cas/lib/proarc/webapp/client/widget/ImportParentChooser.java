@@ -67,6 +67,8 @@ public final class ImportParentChooser {
     private Record oldParent;
     private boolean loadFailed;
     private boolean parentOwnerCheck = false;
+    /** Whether to fetch the parents filter at first view. */
+    private boolean firstShowParentFetch = true;
     
     public ImportParentChooser(ClientMessages i18n) {
         this.i18n = i18n;
@@ -166,12 +168,14 @@ public final class ImportParentChooser {
                 treeView.setModels(valueMap);
                 foundView.setModels(valueMap);
                 selectionView.setModels(valueMap);
-                if (!reload) {
+                if (firstShowParentFetch) {
                     // init the view filter with the first modelId on first show
                     if (!valueMap.isEmpty()) {
                         Object firstModel = valueMap.keySet().iterator().next();
                         foundView.setFilterModel(firstModel);
                     }
+                    // issue 209: do not refresh the parent search on each show
+                    firstShowParentFetch = false;
                     foundView.refresh();
                 }
             }
