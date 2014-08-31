@@ -170,6 +170,21 @@ public class SearchViewTest {
     }
 
     @Test
+    public void testBuildQuery() {
+        assertEquals("title~'*test*'", SearchView.buildQuery(new StringBuilder(), "title", "test").toString());
+        assertEquals("title~'*test*'", SearchView.buildQuery(new StringBuilder(), "title", "  test  ").toString());
+        // issue 220
+        assertEquals("title~'*test test*'", SearchView.buildQuery(new StringBuilder(), "title", "  test test  ").toString());
+        assertEquals("title~'*test?s test???*'", SearchView.buildQuery(new StringBuilder(), "title", "test's test???").toString());
+        assertEquals("", SearchView.buildQuery(new StringBuilder(), "title", "").toString());
+        assertEquals("", SearchView.buildQuery(new StringBuilder(), "title", "***").toString());
+
+        assertEquals("label~'*test1*' title~'*test2*'", SearchView.buildQuery(
+                SearchView.buildQuery(new StringBuilder(), "label", "test1"),
+                "title", "test2").toString());
+    }
+
+    @Test
     public void testNormalizePhrase() {
         assertEquals("*query*", SearchView.normalizePhrase("*query*"));
         assertEquals("*query*", SearchView.normalizePhrase("*query"));
@@ -178,6 +193,7 @@ public class SearchViewTest {
         assertEquals("*", SearchView.normalizePhrase(" ***"));
         assertEquals("*", SearchView.normalizePhrase(""));
         assertEquals("*", SearchView.normalizePhrase(null));
+        assertEquals("*Stráž pokroku*", SearchView.normalizePhrase("Stráž pokroku"));
     }
 
     @Test

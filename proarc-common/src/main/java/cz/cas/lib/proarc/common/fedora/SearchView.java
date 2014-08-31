@@ -175,9 +175,16 @@ public final class SearchView {
         return result;
     }
 
-    private static StringBuilder buildQuery(StringBuilder builder, String field, String value) {
-        value = normalizePhrase(value);
-        if (!"*".equals(value)) {
+    static StringBuilder buildQuery(StringBuilder builder, String field, String value) {
+        if (value == null || value.isEmpty()) {
+            return builder;
+        }
+        // remove leading and trailing white spaces and asterisks
+        value = value.replaceAll("^[\\s\\*]+|[\\s\\*]+$", "");
+        // Fedora query does not accept "'" char and does not allow to escape special chars *, ?
+        value = value.replaceAll("['*]", "?");
+        if (!value.isEmpty() && !"*".equals(value)) {
+            value = "'*" + value + "*'";
             if (builder.length() > 0) {
                 builder.append(' ');
             }
