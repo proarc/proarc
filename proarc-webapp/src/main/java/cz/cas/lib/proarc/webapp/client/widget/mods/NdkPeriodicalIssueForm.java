@@ -126,7 +126,7 @@ public final class NdkPeriodicalIssueForm {
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
                 .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
-                    // issue 214: not required
+                    // issue 219: not required
                     .setRequired(false)
                     .setHint("<dl>"
                         + "<dt>personal</dt><dd>celé jméno osoby</dd>"
