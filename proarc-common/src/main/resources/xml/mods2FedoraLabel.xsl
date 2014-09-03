@@ -17,8 +17,11 @@
 
     <xsl:template match="/">
         <xsl:choose>
-            <xsl:when test="$MODEL = 'model:page' or $MODEL = 'model:periodicalitem' or $MODEL = 'model:periodicalvolume'">
+            <xsl:when test="$MODEL = 'model:page' or $MODEL = 'model:periodicalitem'">
                 <xsl:apply-templates select="//mods:mods[1]/mods:part[1]" />
+            </xsl:when>
+            <xsl:when test="$MODEL = 'model:periodicalvolume'" >
+                <xsl:call-template name="periodicalVolume" />
             </xsl:when>
             <xsl:otherwise>
                 <xsl:apply-templates select="//mods:mods[1]/*"/>
@@ -64,10 +67,23 @@
     </xsl:template>
 
     <!-- title for: periodicalvolume; syntax: volumeDate, volumeNumber -->
-    <xsl:template match="mods:detail[@type='volume']/mods:number[1]">
-        <xsl:value-of select="../../mods:date"/>
-        <xsl:text>, </xsl:text>
-        <xsl:value-of select="."/>
+    <xsl:template name="periodicalVolume">
+        <xsl:variable name="volumeNumber" select="//mods:detail[@type='volume']/mods:number" />
+        <xsl:variable name="volumeDate">
+            <xsl:choose>
+                <xsl:when test="string($volumeNumber/../../mods:date)">
+                    <xsl:value-of select="$volumeNumber/../../mods:date"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="string(//mods:mods/mods:part/mods:date)"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:value-of select="$volumeDate"/>
+        <xsl:if test="$volumeDate and string($volumeNumber)">
+            <xsl:text>, </xsl:text>
+        </xsl:if>
+        <xsl:value-of select="$volumeNumber" />
     </xsl:template>
 
     <!-- title for: periodicalitem; syntax: itemNumber -->

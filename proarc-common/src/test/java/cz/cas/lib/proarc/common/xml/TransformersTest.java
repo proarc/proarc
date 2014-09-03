@@ -322,6 +322,13 @@ public class TransformersTest {
                 modsAsFedoraLabel(PageMapperTest.class.getResourceAsStream("volume_mods.xml"), "model:periodicalvolume"));
     }
 
+    /** Tests label with date but missing volume number. */
+    @Test
+    public void testModsAsFedoraLabel_Volume_issue222() throws Exception {
+        assertEquals("1893",
+                modsAsFedoraLabel(PageMapperTest.class.getResourceAsStream("volume_mods_issue222.xml"), "model:periodicalvolume"));
+    }
+
     @Test
     public void testModsAsFedoraLabel_Periodical() throws Exception {
         assertEquals("MTITLE[0]: STITLE[0]",
