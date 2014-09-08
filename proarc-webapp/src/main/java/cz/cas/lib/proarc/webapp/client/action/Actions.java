@@ -105,6 +105,7 @@ public final class Actions {
             final Action action, final Object source, ActionSource actionSource) {
 
         final IconButton btn = new IconButton();
+        btn.setHoverWidth(200);
         String title = action.getTitle();
         if (title != null) {
             btn.setTitle(title);
