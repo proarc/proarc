@@ -322,8 +322,9 @@ public class RelationDataSource extends RestDataSource {
     /**
      * Fetches relations of parent object and update caches to notify widgets.
      * @param parentPid PID of parent object
+     * @param callback the callback to run on finish
      */
-    public final void updateCaches(String parentPid) {
+    public final void updateCaches(String parentPid, final BooleanCallback callback) {
         Criteria criteria = new Criteria(RelationDataSource.FIELD_ROOT, parentPid);
         criteria.addCriteria(RelationDataSource.FIELD_PARENT, parentPid);
         fetchData(criteria, new DSCallback() {
@@ -332,6 +333,7 @@ public class RelationDataSource extends RestDataSource {
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 request.setOperationType(DSOperationType.UPDATE);
                 updateCaches(response, request);
+                callback.execute(Boolean.TRUE);
             }
         });
     }

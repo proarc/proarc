@@ -67,6 +67,9 @@ import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.Action;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
+import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction;
+import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction.CopySelector;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction.RecordDeletable;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectFormValidateAction;
@@ -97,7 +100,8 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class ImportBatchItemEditor extends HLayout implements Selectable<Record>, RefreshAction.Refreshable {
+public final class ImportBatchItemEditor extends HLayout implements Selectable<Record>,
+        RefreshAction.Refreshable, CopySelector {
 
     private static final Logger LOG = Logger.getLogger(ImportBatchItemEditor.class.getName());
 
@@ -113,8 +117,10 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private FoxmlViewAction foxmlViewAction;
     private DeleteAction deleteAction;
     private SelectAction selectAllAction;
+    private DigitalObjectCopyMetadataAction copyMetadataAction;
     private final PlaceController childPlaces;
     private final DigitalObjectEditor childEditor;
+    private final ActionSource actionSource;
     private ReorderTask reorderTask = new ReorderTask();
     private Action resumeAction;
     private Handler handler;
@@ -123,6 +129,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         this.i18n = i18n;
         this.setHeight100();
         this.setWidth100();
+        this.actionSource = new ActionSource(this);
         
         VLayout layout = new VLayout();
         layout.setShowResizeBar(true);
@@ -149,7 +156,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         editorThumbToolbarLayout.setResizeBarTarget("next");
 
         createActions();
-        ToolStrip editorToolStrip = createEditorToolBar();
+        ToolStrip editorToolStrip = createEditorToolBar(actionSource);
         editorThumbToolbarLayout.addMember(editorToolStrip);
         editorThumbToolbarLayout.addMember(editorThumbLayout);
 
@@ -180,6 +187,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     }
 
     public void onHide(BooleanCallback callback) {
+        DigitalObjectCopyMetadataAction.resetSelection();
         callback.execute(true);
     }
 
@@ -205,7 +213,19 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     }
 
     private ListGrid createItemList() {
-        final ListGrid grid = new ListGrid();
+        final ListGrid grid = new ListGrid() {
+
+            @Override
+            protected String getCellCSSText(ListGridRecord record, int rowNum, int colNum) {
+                // do not replace with hilites as they do not support UI refresh
+                if (DigitalObjectCopyMetadataAction.isSelectedCopyRecord(record)) {
+                    return "color: #FF0000;";
+                } else {
+                    return super.getCellCSSText(record, rowNum, colNum);
+                }
+            }
+
+        };
         grid.setShowResizeBar(true);
         grid.setSelectionType(SelectionStyle.MULTIPLE);
         grid.setCanSort(false);
@@ -352,7 +372,36 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         });
     }
 
+    @Override
+    public void showCopySelection(Record[] records) {
+        if (records == null) {
+            return ;
+        }
+        RecordList copySelection = new RecordList(records);
+        for (int i = batchItemGrid.getRecords().length - 1; i >= 0; i--) {
+            Record item = batchItemGrid.getRecord(i);
+            DigitalObject listItem = DigitalObject.create(item);
+            Record select = copySelection.find(ImportBatchItemDataSource.FIELD_PID, listItem.getPid());
+            boolean refresh = false;
+            if (select != null) {
+                if (!DigitalObjectCopyMetadataAction.isSelectedCopyRecord(item)) {
+                    DigitalObjectCopyMetadataAction.selectCopyRecord(item);
+                    refresh = true;
+                }
+            } else {
+                if (DigitalObjectCopyMetadataAction.isSelectedCopyRecord(item)) {
+                    DigitalObjectCopyMetadataAction.deselectCopyRecord(item);
+                    refresh = true;
+                }
+            }
+            if (refresh) {
+                batchItemGrid.refreshRow(i);
+            }
+        }
+    }
+
     private void refreshData() {
+        DigitalObjectCopyMetadataAction.resetSelection();
         Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batchRecord.getId());
         batchItemGrid.invalidateCache();
         thumbViewer.setData(new Record[0]);
@@ -386,6 +435,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             selectionIndex[i] = thumbViewer.getRecordIndex(selection[i]);
         }
         Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batchRecord.getId());
+        DigitalObjectCopyMetadataAction.resetSelection();
         batchItemGrid.invalidateCache();
         batchItemGrid.fetchData(criteria, new DSCallback() {
 
@@ -438,6 +488,8 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                         thumbViewer.setData(copyRecords);
                     }
                     ValidatableList.clearRowErrors(batchItemGrid);
+                    // refresh the copy selection as updated records are missing the copy attribute
+                    showCopySelection(DigitalObjectCopyMetadataAction.getSelection());
                 }
             }
         });
@@ -534,6 +586,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                     batchItemGrid.selectRecords(indexes);
                     selectBatchItem(false, selection);
                 }
+                actionSource.fireEvent();
 //                LOG.info("THUMB.onSelectionChanged.selection: " + Arrays.toString(selection));
             }
         });
@@ -590,16 +643,18 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 }
             }
         };
+        copyMetadataAction = new DigitalObjectCopyMetadataAction(i18n);
     }
 
-    private ToolStrip createEditorToolBar() {
+    private ToolStrip createEditorToolBar(ActionSource actionSource) {
         ToolStrip toolbar = Actions.createToolStrip();
         toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n), this));
         toolbar.addMember(Actions.asIconButton(selectAllAction, this));
-        toolbar.addMember(Actions.asIconButton(foxmlViewAction, this));
-        toolbar.addMember(Actions.asIconButton(deleteAction, this));
+        toolbar.addMember(Actions.asIconButton(foxmlViewAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(deleteAction, actionSource));
         toolbar.addMember(Actions.asIconButton(DigitalObjectFormValidateAction.getInstance(i18n),
                 new ValidatableList(batchItemGrid)));
+        toolbar.addMember(Actions.asIconButton(copyMetadataAction, actionSource));
         toolbar.addMember(Actions.asIconButton(resumeAction, this));
         return toolbar;
     }
@@ -607,6 +662,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private Menu createEditorContextMenu(Menu menu, Object contextSource) {
         menu.addItem(Actions.asMenuItem(foxmlViewAction, contextSource, true));
         menu.addItem(Actions.asMenuItem(deleteAction, contextSource, true));
+        menu.addItem(Actions.asMenuItem(copyMetadataAction, contextSource, false));
         menu.addItem(Actions.asMenuItem(DigitalObjectFormValidateAction.getInstance(i18n), new ValidatableList(batchItemGrid), false));
         return menu;
     }
@@ -651,7 +707,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
      * Handles a new children selection.
      */
     private void loadItemInChildEditor(Record[] records) {
-//        actionSource.fireEvent();
+        actionSource.fireEvent();
         if (records == null || records.length == 0 /*|| originChildren != null*/) {
             childPlaces.goTo(Place.NOWHERE);
         } else {
@@ -665,17 +721,6 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                     ? lastEditorType
                     : DatastreamEditorType.MODS;
             childPlaces.goTo(new DigitalObjectEditorPlace(lastEditorType, records));
-        }
-    }
-
-    /**
-     * Clears validation errors.
-     * @param records rows to clear
-     */
-    private void clearRowErrors(ListGridRecord[] records) {
-        for (ListGridRecord record : records) {
-            int recordIndex = batchItemGrid.getRecordIndex(record);
-            batchItemGrid.clearRowErrors(recordIndex);
         }
     }
 

@@ -34,6 +34,7 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.events.DataChangedEvent;
 import com.smartgwt.client.data.events.DataChangedHandler;
@@ -65,6 +66,8 @@ import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
+import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction;
+import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction.CopySelector;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectFormValidateAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectFormValidateAction.ValidatableList;
@@ -94,7 +97,7 @@ import java.util.logging.Logger;
  * @author Jan Pokorsky
  */
 public final class DigitalObjectChildrenEditor
-        implements DatastreamEditor, Refreshable, Selectable<Record> {
+        implements DatastreamEditor, Refreshable, Selectable<Record>, CopySelector {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectChildrenEditor.class.getName());
     private final ClientMessages i18n;
@@ -155,7 +158,14 @@ public final class DigitalObjectChildrenEditor
                             return ;
                         }
                     }
-                    relationDataSource.updateCaches(digitalObject.getPid());
+                    relationDataSource.updateCaches(digitalObject.getPid(), new BooleanCallback() {
+
+                        @Override
+                        public void execute(Boolean value) {
+                            // refresh the copy selection as updated records are missing the copy attribute
+                            showCopySelection(DigitalObjectCopyMetadataAction.getSelection());
+                        }
+                    });
                 }
             }
         });
@@ -172,11 +182,13 @@ public final class DigitalObjectChildrenEditor
         String pid = digitalObject.getPid();
         Criteria criteria = new Criteria(RelationDataSource.FIELD_ROOT, pid);
         criteria.addCriteria(RelationDataSource.FIELD_PARENT, pid);
+        DigitalObjectCopyMetadataAction.resetSelection();
         ResultSet resultSet = childrenListGrid.getResultSet();
         if (resultSet != null) {
             Boolean willFetchData = resultSet.willFetchData(criteria);
             // init editor for cached record when DataArrivedHandler is not called
             if (!willFetchData) {
+                showCopySelection(new Record[0]);
                 initOnEdit();
             }
         }
@@ -240,6 +252,7 @@ public final class DigitalObjectChildrenEditor
             Actions.asIconButton(DigitalObjectFormValidateAction.getInstance(i18n),
                     new ValidatableList(childrenListGrid)),
             Actions.asIconButton(new UrnNbnAction(i18n), actionSource),
+            Actions.asIconButton(new DigitalObjectCopyMetadataAction(i18n), actionSource),
             saveActionButton = Actions.asIconButton(saveAction, this),
         };
     }
@@ -259,6 +272,34 @@ public final class DigitalObjectChildrenEditor
     @Override
     public Record[] getSelection() {
         return originChildren != null ? null : childrenListGrid.getSelectedRecords();
+    }
+
+    @Override
+    public void showCopySelection(Record[] records) {
+        if (records == null) {
+            return ;
+        }
+        RecordList copySelection = new RecordList(records);
+        for (int i = childrenListGrid.getRecords().length - 1; i >= 0; i--) {
+            Record item = childrenListGrid.getRecord(i);
+            DigitalObject listItem = DigitalObject.create(item);
+            Record select = copySelection.find(RelationDataSource.FIELD_PID, listItem.getPid());
+            boolean refresh = false;
+            if (select != null) {
+                if (!DigitalObjectCopyMetadataAction.isSelectedCopyRecord(item)) {
+                    DigitalObjectCopyMetadataAction.selectCopyRecord(item);
+                    refresh = true;
+                }
+            } else {
+                if (DigitalObjectCopyMetadataAction.isSelectedCopyRecord(item)) {
+                    DigitalObjectCopyMetadataAction.deselectCopyRecord(item);
+                    refresh = true;
+                }
+            }
+            if (refresh) {
+                childrenListGrid.refreshRow(i);
+            }
+        }
     }
 
     private void save() {
@@ -302,7 +343,19 @@ public final class DigitalObjectChildrenEditor
     }
 
     private ListGrid initChildrenListGrid() {
-        ListGrid lg = new ListGrid();
+        final ListGrid lg = new ListGrid() {
+
+            @Override
+            protected String getCellCSSText(ListGridRecord record, int rowNum, int colNum) {
+                // do not replace with hilites as they do not support UI refresh
+                if (DigitalObjectCopyMetadataAction.isSelectedCopyRecord(record)) {
+                    return "color: #FF0000;";
+                } else {
+                    return super.getCellCSSText(record, rowNum, colNum);
+                }
+            }
+
+        };
         lg.setDataSource(relationDataSource);
         lg.setFields(
                 new ListGridField(RelationDataSource.FIELD_LABEL,

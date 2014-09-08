@@ -16,12 +16,20 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import com.google.gwt.core.client.Callback;
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.ds.mods.IdentifierDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.LinkedHashMap;
@@ -107,6 +115,95 @@ public final class ModsCustomDataSource extends DataSource implements ModsConsta
 
     public static String getDefaultPageType() {
         return "NormalPage";
+    }
+
+    public void fetchDescription(final DigitalObject dobj, final Callback<DescriptionMetadata, String> cb) {
+        fetchDescription(dobj, cb, true);
+    }
+
+    public void fetchDescription(final DigitalObject dobj, final Callback<DescriptionMetadata, String> cb, boolean showPrompt) {
+        MetaModelRecord model = dobj.getModel();
+        Criteria criteria = new Criteria(MetaModelDataSource.FIELD_EDITOR, model.getEditorId());
+        criteria.addCriteria(FIELD_PID, dobj.getPid());
+        String batchId = dobj.getBatchId();
+        if (batchId != null) {
+            criteria.addCriteria(FIELD_BATCHID, batchId);
+        }
+        DSRequest request = new DSRequest();
+        request.setShowPrompt(showPrompt);
+        fetchData(criteria, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                String errorMsg;
+                if (RestConfig.isStatusOk(response)) {
+                    Record[] data = response.getData();
+                    if (data != null && data.length == 1) {
+                        Record customRecord = data[0];
+                        cb.onSuccess(new DescriptionMetadata(customRecord));
+                        return ;
+                    } else {
+                        errorMsg = "No record found! " + dobj;
+                    }
+                } else {
+                    errorMsg = "Fetch failed! " + dobj;
+                }
+                cb.onFailure(errorMsg);
+            }
+        }, request);
+    }
+
+    public void saveDescription(DescriptionMetadata update, final Callback<DescriptionMetadata, String> cb, boolean showPrompt) {
+        DSRequest request = new DSRequest();
+        request.setShowPrompt(showPrompt);
+        Record customRecord = update.getWrapper();
+        ModsCustomDataSource.getInstance().updateData(customRecord, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                String errorMsg;
+                if (RestConfig.isStatusOk(response)) {
+                    Record[] data = response.getData();
+                    if (data != null && data.length == 1) {
+                        Record customRecord = data[0];
+                        cb.onSuccess(new DescriptionMetadata(customRecord));
+                    } else {
+//                        errorMsg = "No record found! " + dobj;
+                        cb.onSuccess(null);
+                    }
+                    return ;
+                } else {
+                    errorMsg = "Update failed!";
+                }
+                cb.onFailure(errorMsg);
+            }
+        }, request);
+    }
+
+    public static class DescriptionMetadata {
+
+        private Record wrapper;
+
+        /**
+         * Constructs the object from a record fetched by the {@link ModsCustomDataSource}.
+         */
+        public DescriptionMetadata(Record wrapper) {
+            this.wrapper = wrapper;
+        }
+
+        public Record getWrapper() {
+            return wrapper;
+        }
+
+        public DigitalObject getDigitalObject() {
+            return DigitalObject.create(wrapper);
+        }
+
+        public Record getDescription() {
+            Record customModsRecord = wrapper.getAttributeAsRecord(ModsCustomDataSource.FIELD_DATA);
+            return customModsRecord;
+        }
+
     }
 
 }

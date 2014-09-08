@@ -16,10 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.presenter;
 
-import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
+import com.google.gwt.core.client.Callback;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.util.BooleanCallback;
@@ -27,13 +24,13 @@ import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
-import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetadata;
 import cz.cas.lib.proarc.webapp.client.widget.BatchDatastreamEditor;
+import cz.cas.lib.proarc.webapp.client.widget.CopyPageMetadataWidget;
 import cz.cas.lib.proarc.webapp.client.widget.PageMetadataEditor;
 import cz.cas.lib.proarc.webapp.client.widget.ProgressTracker;
 import java.util.Iterator;
@@ -47,21 +44,34 @@ import java.util.Iterator;
  */
 public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable {
 
-    private final PageMetadataEditor editor;
+    private BatchJob editor;
     private DigitalObject[] digitalObjects;
     private final ProgressTracker progress;
     private final ClientMessages i18n;
-    private Canvas panel;
+    private final BatchJob metadataGenerator;
+    private final BatchJob metadataDuplicator;
 
     public ModsBatchEditor(ClientMessages i18n) {
         this.i18n = i18n;
-        this.editor = new PageMetadataEditor();
+        this.metadataGenerator = new GenerateJob(this);
+        this.metadataDuplicator = new CopyJob(this);
         this.progress = new ProgressTracker(i18n);
+        switchEditor();
     }
 
     @Override
     public void edit(DigitalObject[] items) {
         this.digitalObjects = items;
+        switchEditor();
+    }
+
+    private void switchEditor() {
+        Record[] selection = DigitalObjectCopyMetadataAction.getSelection();
+        if (selection != null) {
+            editor = metadataDuplicator;
+        } else {
+            editor = metadataGenerator;
+        }
     }
 
     @Override
@@ -71,9 +81,7 @@ public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable
 
     @Override
     public void focus() {
-        if (panel != null) {
-            panel.focus();
-        }
+        editor.focus();
     }
 
     @Override
@@ -93,64 +101,174 @@ public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable
 
     @Override
     public Canvas getUI() {
-        if (panel == null) {
-            panel = editor.getFormPanel();
-            panel.setWidth100();
-            panel.setHeight100();
-            panel.setOverflow(Overflow.AUTO);
-        }
-        return panel;
+        switchEditor();
+        return editor.getFormPanel();
     }
 
     @Override
     public void refresh() {
-        editor.initAll();
+        editor.refreshPanel();
     }
 
     void save(BooleanCallback callback) {
-        if (editor.validate()) {
-            new SaveTask(callback).execute();
+        if (editor.validatePanel()) {
+            editor.execute(callback);
         }
     }
 
-    private class SaveTask {
+    private static abstract class BatchJob {
 
         private int index = 0;
         private int length = -1;
         private boolean stop = false;
         private String errorMsg;
+        private final ModsBatchEditor editor;
+        private BooleanCallback taskDoneCallback;
 
-        private Integer batchIndexStart;
-        private Iterator<String> batchSequence;
-        private String batchNumberFormat;
-        private final BooleanCallback taskDoneCallback;
-
-        private SaveTask(BooleanCallback callback) {
-            this.taskDoneCallback = callback;
+        public BatchJob(ModsBatchEditor editor) {
+            this.editor = editor;
         }
 
-        public void execute() {
+        public void execute(BooleanCallback taskDoneCallback) {
+            this.taskDoneCallback = taskDoneCallback;
+            index = 0;
+            length = -1;
+            stop = false;
+            execute();
+        }
+
+        protected void execute() {
             if (length < 0) {
-                initTask();
+                init();
             }
             if (!stop && index < length) {
                 processStep();
             } else {
-                closeTask();
+                close();
             }
         }
 
-        private void initTask() {
-            length = digitalObjects.length;
-            progress.setInit();
-            progress.showInWindow(new Runnable() {
+        public ProgressTracker getProgress() {
+            return editor.progress;
+        }
+
+        public int getCurrentIndex() {
+            return index;
+        }
+
+        public DigitalObject getCurrent() {
+            return editor.digitalObjects[getCurrentIndex()];
+        }
+
+        public DigitalObject[] getSelection() {
+            return editor.digitalObjects;
+        }
+
+        public void next() {
+            ++index;
+            getProgress().setProgress(index, length);
+            execute();
+        }
+
+        public void stop(String reason) {
+            stop = true;
+            errorMsg = reason;
+            execute();
+        }
+
+        public void focus() {
+            getFormPanel().focus();
+        }
+
+        public abstract Canvas getFormPanel();
+        public abstract void refreshPanel();
+        public abstract boolean validatePanel();
+
+        protected abstract void processStep();
+
+        protected void init() {
+            length = getSelection().length;
+            getProgress().setInit();
+            getProgress().showInWindow(new Runnable() {
 
                 @Override
                 public void run() {
                     stop = true;
                 }
             });
+        }
 
+        private void close() {
+            if (errorMsg != null) {
+                getProgress().stop();
+                SC.warn(errorMsg);
+            } else {
+                getProgress().stop();
+            }
+            if (taskDoneCallback != null) {
+                taskDoneCallback.execute(errorMsg == null);
+            }
+        }
+
+        void saveMods(DescriptionMetadata description) {
+            ModsCustomDataSource.getInstance().saveDescription(
+                    description,
+                    new Callback<DescriptionMetadata, String>() {
+
+                @Override
+                public void onFailure(String reason) {
+                    stop(reason);
+                }
+
+                @Override
+                public void onSuccess(DescriptionMetadata result) {
+                    next();
+                }
+            }, false);
+        }
+
+    }
+
+    /**
+     * Generates metadata for selected digital objects.
+     */
+    private static class GenerateJob extends BatchJob {
+
+        private final PageMetadataEditor editor;
+        private Integer batchIndexStart;
+        private Iterator<String> batchSequence;
+        private String batchNumberFormat;
+        private Canvas panel;
+
+        public GenerateJob(ModsBatchEditor editor) {
+            super(editor);
+            this.editor = new PageMetadataEditor();
+        }
+
+        @Override
+        public Canvas getFormPanel() {
+            if (panel == null) {
+                panel = editor.getFormPanel();
+                panel.setWidth100();
+                panel.setHeight100();
+                panel.setOverflow(Overflow.AUTO);
+            }
+            return panel;
+        }
+
+        @Override
+        public void refreshPanel() {
+            editor.initAll();
+        }
+
+        @Override
+        public boolean validatePanel() {
+            return editor.validate();
+        }
+
+        @Override
+        protected void init() {
+            super.init();
             batchIndexStart = null;
             batchSequence = null;
             batchNumberFormat = "%s";
@@ -168,53 +286,30 @@ public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable
                     batchNumberFormat += suffix;
                 }
             }
-
         }
 
-        private void processStep() {
-            fetchMods(digitalObjects[index]);
-        }
-
-        private void nextStep() {
-            execute();
+        @Override
+        protected void processStep() {
+            fetchMods(getCurrent());
         }
 
         private void fetchMods(final DigitalObject dobj) {
-            MetaModelRecord model = dobj.getModel();
-            Criteria criteria = new Criteria(MetaModelDataSource.FIELD_EDITOR, model.getEditorId());
-            criteria.addCriteria(ModsCustomDataSource.FIELD_PID, dobj.getPid());
-            String batchId = dobj.getBatchId();
-            if (batchId != null) {
-                criteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, batchId);
-            }
-            DSRequest request = new DSRequest();
-            request.setShowPrompt(false);
-            ModsCustomDataSource.getInstance().fetchData(criteria, new DSCallback() {
+            ModsCustomDataSource.getInstance().fetchDescription(dobj, new Callback<DescriptionMetadata, String>() {
 
                 @Override
-                public void execute(DSResponse response, Object rawData, DSRequest request) {
-                    if (RestConfig.isStatusOk(response)) {
-                        Record[] data = response.getData();
-                        if (data != null && data.length == 1) {
-                            Record customRecord = data[0];
-                            Record customModsRecord = customRecord.getAttributeAsRecord(ModsCustomDataSource.FIELD_DATA);
-                            if (customModsRecord != null) {
-                                updatePage(customRecord, customModsRecord);
-                                return ;
-                            }
-                        } else {
-                            errorMsg = "No record found! " + dobj;
-                        }
-                    } else {
-                        errorMsg = "Fetch failed! " + dobj;
-                    }
-                    stop = true;
-                    nextStep();
+                public void onFailure(String reason) {
+                    stop(reason);
                 }
-            }, request);
+
+                @Override
+                public void onSuccess(DescriptionMetadata result) {
+                    updatePage(result);
+                }
+            }, false);
         }
 
-        private void updatePage(Record customRecord, Record customModsRecord) {
+        private void updatePage(DescriptionMetadata description) {
+            Record customModsRecord = description.getDescription();
             // fill data
 //            RPCManager.startQueue();
             if (editor.getAllowPageIndexes()) {
@@ -238,38 +333,124 @@ public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable
             }
             ClientUtils.removeNulls(customModsRecord);
 //            RPCManager.sendQueue();
-            saveMods(customRecord);
+            saveMods(description);
         }
 
-        private void saveMods(Record customRecord) {
-            DSRequest request = new DSRequest();
-            request.setShowPrompt(false);
-            ModsCustomDataSource.getInstance().updateData(customRecord, new DSCallback() {
+    }
+
+    /**
+     * Copies metadata to selected digital objects.
+     * It takes {@link DigitalObjectCopyMetadataAction#getSelection() }
+     * as a source.
+     */
+    private static class CopyJob extends BatchJob {
+
+        private Record[] templateRecords;
+        private DescriptionMetadata[] templateDescriptions;
+        private Canvas panel;
+        private final CopyPageMetadataWidget widget;
+
+        public CopyJob(ModsBatchEditor editor) {
+            super(editor);
+            widget = new CopyPageMetadataWidget();
+            widget.initAll();
+        }
+
+        @Override
+        public Canvas getFormPanel() {
+            if (panel == null) {
+                panel = widget.getPanel();
+                panel.setWidth100();
+                panel.setHeight100();
+                panel.setOverflow(Overflow.AUTO);
+            }
+            return panel;
+        }
+
+        @Override
+        protected void init() {
+            templateRecords = DigitalObjectCopyMetadataAction.getSelection();
+            templateDescriptions = new DescriptionMetadata[templateRecords.length];
+            super.init();
+        }
+
+        @Override
+        public void refreshPanel() {
+            widget.initAll();
+        }
+
+        @Override
+        public boolean validatePanel() {
+            return widget.validate();
+        }
+
+        @Override
+        protected void processStep() {
+            updateDescription();
+        }
+
+        private void updateDescription() {
+            int templateIndex = getTemplateIndex();
+            Record templateRecord = templateRecords[templateIndex];
+            prepareTemplate(DigitalObject.create(templateRecord), templateDescriptions[templateIndex]);
+        }
+
+        private void updatePage(DescriptionMetadata descCurrent, DescriptionMetadata descTemplate) {
+            Record current = descCurrent.getDescription();
+            Record template = descTemplate.getDescription();
+            copyAttribute(widget.getAllowPageIndexes(), template, current, ModsCustomDataSource.FIELD_PAGE_INDEX);
+            copyAttribute(widget.getAllowPageNumbers(), template, current, ModsCustomDataSource.FIELD_PAGE_NUMBER);
+            copyAttribute(widget.getAllowPageTypes(), template, current, ModsCustomDataSource.FIELD_PAGE_TYPE);
+            saveMods(descCurrent);
+        }
+
+        private void prepareDescription(DigitalObject dobj, final DescriptionMetadata templateDesc) {
+            ModsCustomDataSource.getInstance().fetchDescription(dobj, new Callback<DescriptionMetadata, String>() {
 
                 @Override
-                public void execute(DSResponse response, Object rawData, DSRequest request) {
-                    if (RestConfig.isStatusOk(response)) {
-                        ++index;
-                        progress.setProgress(index, length);
-                    } else {
-                        errorMsg = "Update failed!";
-                        stop = true;
-                    }
-                    nextStep();
+                public void onFailure(String reason) {
+                    stop(reason);
                 }
-            }, request);
+
+                @Override
+                public void onSuccess(DescriptionMetadata result) {
+                    updatePage(result, templateDesc);
+                }
+            }, false);
         }
 
-        private void closeTask() {
-            if (errorMsg != null) {
-                progress.stop();
-                SC.warn(errorMsg);
-            } else {
-                progress.stop();
+        private void prepareTemplate(DigitalObject templateObj, DescriptionMetadata templateDesc) {
+            if (templateDesc != null) {
+                prepareDescription(getCurrent(), templateDesc);
+                return ;
             }
-            if (taskDoneCallback != null) {
-                taskDoneCallback.execute(errorMsg == null);
+            ModsCustomDataSource.getInstance().fetchDescription(templateObj, new Callback<DescriptionMetadata, String>() {
+
+                @Override
+                public void onFailure(String reason) {
+                    stop(reason);
+                }
+
+                @Override
+                public void onSuccess(DescriptionMetadata result) {
+                    templateDescriptions[getTemplateIndex()] = result;
+                    prepareDescription(getCurrent(), result);
+                }
+            }, false);
+        }
+
+        private void copyAttribute(boolean enabled, Record src, Record dst, String attrName) {
+            if (enabled) {
+                String value = src.getAttribute(attrName);
+                if (value != null) {
+                    dst.setAttribute(attrName, value);
+                }
             }
+        }
+
+        private int getTemplateIndex() {
+            int tmplIndex = getCurrentIndex() % templateRecords.length;
+            return tmplIndex;
         }
 
     }
