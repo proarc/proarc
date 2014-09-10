@@ -37,6 +37,10 @@ public class EmpireDaoFactory implements DaoFactory {
         
     }
 
+    public ProarcDatabase getDb() {
+        return db;
+    }
+
     @Override
     public void init() {
         try {
