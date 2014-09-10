@@ -37,8 +37,6 @@
                     <schemaDirectory>src/main/resources/cz/cas/lib/proarc/mods</schemaDirectory>
                     <schemaIncludes>
                         <schemaInclude>mods-jaxb.xsd</schemaInclude>
-                        <schemaInclude>xlink.xsd</schemaInclude>
-                        <schemaInclude>xml.xsd</schemaInclude>
                     </schemaIncludes>
                     <catalog>src/main/resources/cz/cas/lib/proarc/mods/catalog.cat</catalog>
                     <args>
@@ -49,8 +47,7 @@
                         -->
                         <arg>-npa</arg>
                     </args>
-                    <extension>true</extension>
-<!--                    <debug>true</debug>-->
+                    <extension>true</extension>                
                 </configuration>
                 <executions>
                     <execution>
