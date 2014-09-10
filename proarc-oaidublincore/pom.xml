@@ -15,7 +15,7 @@
     <artifactId>proarc-oaidublincore</artifactId>
     <packaging>jar</packaging>
 
-    <name>Proarc OAI Dublin Core JAXB Model</name>
+    <name>ProArc OAI Dublin Core JAXB Model</name>
 
     <dependencies>
     </dependencies>
