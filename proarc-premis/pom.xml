@@ -35,6 +35,7 @@
                     <schemaIncludes>
                         <schemaInclude>premis.xsd</schemaInclude>
                     </schemaIncludes>
+                    <catalog>src/main/resources/cz/cas/lib/proarc/premis/catalog.cat</catalog>
                     <args>
                         <!--
                             Use custom package-info.java with preferred namespace prefixes.
@@ -43,7 +44,7 @@
                         -->
                         <arg>-npa</arg>
                     </args>
-                    <extension>true</extension>
+                    <extension>true</extension>                   
                 </configuration>
                 <executions>
                     <execution>
