@@ -669,7 +669,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         LinkingAgentIdentifierComplexType linkingAgentIdentifier = new LinkingAgentIdentifierComplexType();
         linkingAgentIdentifier.setLinkingAgentIdentifierType("EE_App_Name");
         linkingAgentIdentifier.setLinkingAgentIdentifierValue("ProArc");
-        linkingAgentIdentifier.setRole("software");
+        linkingAgentIdentifier.getLinkingAgentRole().add("software");
         LinkingObjectIdentifierComplexType linkingObject = new LinkingObjectIdentifierComplexType();
         linkingObject.setLinkingObjectIdentifierType("UUID");
         linkingObject.setLinkingObjectIdentifierValue(metsElement.getOriginalPid() + "." + datastream);
