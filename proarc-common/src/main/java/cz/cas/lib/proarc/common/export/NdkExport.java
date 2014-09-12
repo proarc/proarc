@@ -206,13 +206,10 @@ public final class NdkExport {
                 List<String> validations = mex.getValidationErrors();
                 String pid = mex.getPid();
                 if (validations != null && !validations.isEmpty()) {
-                    for (String validation : validations) {
-                        logItem.getError().add(new ResultError(pid, validation));
-                    }
-                } else if (mex.getEx() != null) {
-                    logItem.getError().add(new ResultError(pid, mex.getEx()));
+                    logItem.getError().add(new ResultError(pid, mex.getMessage(), validations));
+                } else {
+                    logItem.getError().add(new ResultError(pid, mex.getMessage(), mex.getEx()));
                 }
-
             }
         } else {
             logItem.setStatus(ResultStatus.OK);

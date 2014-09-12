@@ -153,29 +153,66 @@ public class ExportResultLog {
     public static class ResultError {
 
         @XmlAttribute
+        private String message;
+        @XmlAttribute
         private String pid;
         @XmlAttribute
         private Boolean warning;
         @XmlValue
-        private String log;
+        private String details;
 
-        public ResultError(String pid, String log) {
-            this(pid, log, null);
+        static String toDetails(List<String> details) {
+            StringBuilder sb = null;
+            for (String s : details) {
+                if (sb == null) {
+                    sb = new StringBuilder(200);
+                    sb.append(s);
+                } else {
+                    sb.append("\n").append(s);
+                }
+            }
+            return sb == null ? null : sb.toString();
+        }
+
+        public ResultError(String pid, String message, List<String> details) {
+            this(pid, message, toDetails(details));
+        }
+
+        public ResultError(String pid, String message, String details) {
+            this(pid, message, details, null);
+        }
+
+        public ResultError(String pid, String details) {
+            this(pid, null, details, null);
         }
 
         public ResultError(String pid, Throwable ex) {
             this(pid, null, ex);
         }
 
-        public ResultError(String pid, String log, Throwable ex) {
+        public ResultError(String pid, String message, Throwable ex) {
+            this(pid, message, null, ex);
+        }
+
+        public ResultError(String pid, String message, String details, Throwable ex) {
             this.pid = pid;
-            this.log = log;
+            this.message = message;
             if (ex != null) {
-                this.log = ExportUtils.toString(ex);
+                this.details = ExportUtils.toString(ex);
+            } else {
+                this.details = details;
             }
         }
 
         public ResultError() {
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
         }
 
         public String getPid() {
@@ -186,12 +223,12 @@ public class ExportResultLog {
             this.pid = pid;
         }
 
-        public String getLog() {
-            return log;
+        public String getDetails() {
+            return details;
         }
 
-        public void setLog(String log) {
-            this.log = log;
+        public void setDetails(String log) {
+            this.details = log;
         }
 
         public boolean isWarning() {
