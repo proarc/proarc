@@ -36,18 +36,19 @@ public final class NdkPeriodicalIssueForm {
         f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
         List<Field> modsFields = f.getFields().get(0).getFields();
 
+        // the field order specified by issue 225
         modsFields.add(titleInfo());
+        modsFields.add(originInfo());
+        modsFields.add(location());
+        modsFields.add(identifier());
+        modsFields.add(language());
+        modsFields.add(genre());
         modsFields.add(part());
         modsFields.add(name());
-        modsFields.add(genre());
-        modsFields.add(originInfo());
-        modsFields.add(language());
         modsFields.add(physicalDescription());
         modsFields.add(abstracts());
         modsFields.add(note());
         modsFields.add(subject());
-        modsFields.add(identifier());
-        modsFields.add(location());
 
         return f;
     }
