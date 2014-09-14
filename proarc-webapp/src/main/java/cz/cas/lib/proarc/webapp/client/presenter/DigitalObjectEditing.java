@@ -67,6 +67,7 @@ public final class DigitalObjectEditing extends AbstractActivity {
 
         private DatastreamEditorType editor;
         private String pid;
+        private String selectChildPid;
         private String[] pids;
         private Record[] digitalObjects;
 
@@ -112,6 +113,20 @@ public final class DigitalObjectEditing extends AbstractActivity {
 
         public void setPids(String[] pids) {
             this.pids = pids;
+        }
+
+        /**
+         * Gets a child PID to select in e.g. the relation editor on opening.
+         */
+        public String getSelectChildPid() {
+            return selectChildPid;
+        }
+
+        /**
+         * Sets a child PID to select in e.g. the relation editor on opening.
+         */
+        public void setSelectChildPid(String childPid) {
+            this.selectChildPid = childPid;
         }
 
         public Record[] getDigitalObjects() {
