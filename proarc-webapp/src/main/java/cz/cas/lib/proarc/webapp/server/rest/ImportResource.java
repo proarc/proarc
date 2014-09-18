@@ -332,20 +332,23 @@ public class ImportResource {
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<PageView.Item> deleteBatchItem(
             @QueryParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
-            @QueryParam(ImportResourceApi.BATCHITEM_PID) String pid
+            @QueryParam(ImportResourceApi.BATCHITEM_PID) Set<String> pids
             ) {
 
         boolean changed = false;
-        if (batchId != null && pid != null && !pid.isEmpty()) {
+        if (batchId != null && pids != null && !pids.isEmpty()) {
             Batch batch = importManager.get(batchId);
             if (batch != null) {
                 checkBatchState(batch);
-                changed = importManager.excludeBatchObject(batch, pid);
+                changed = importManager.excludeBatchObject(batch, pids);
             }
         }
         if (changed) {
-            Item deletedItem = new PageView.Item(batchId, null, pid, null, null, null, null, 0, null, null);
-            return new SmartGwtResponse<Item>(deletedItem);
+            ArrayList<Item> deletedItems = new ArrayList<PageView.Item>(pids.size());
+            for (String pid : pids) {
+                deletedItems.add(new PageView.Item(batchId, null, pid, null, null, null, null, 0, null, null));
+            }
+            return new SmartGwtResponse<Item>(deletedItems);
         } else {
             throw RestException.plainText(Status.NOT_FOUND, "Batch item not found!");
         }

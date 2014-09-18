@@ -71,7 +71,7 @@ import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction.CopySelector;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
-import cz.cas.lib.proarc.webapp.client.action.DeleteAction.RecordDeletable;
+import cz.cas.lib.proarc.webapp.client.action.DeleteAction.Deletable;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectFormValidateAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectFormValidateAction.ValidatableList;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
@@ -628,8 +628,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
     private void createActions() {
         foxmlViewAction = new FoxmlViewAction(i18n);
-        deleteAction = new DeleteAction(
-                new RecordDeletable(batchItemGrid.getDataSource(), i18n), i18n);
+        deleteAction = new DeleteAction(new ItemDeletable(), i18n);
         selectAllAction = new SelectAction();
         resumeAction = new AbstractAction(
                 i18n.ImportBatchItemEditor_ActionResume_Title(),
@@ -869,6 +868,48 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     public interface Handler {
 
         void handleNextAction();
+    }
+
+    /**
+     * Deletes a list of import item records.
+     */
+    private final class ItemDeletable implements Deletable {
+
+        public ItemDeletable() {
+        }
+
+        @Override
+        public void delete(Object[] items) {
+            if (items != null && items.length > 0) {
+                Record[] records = (Record[]) items;
+                String[] pids = ClientUtils.toFieldValues(records, ImportBatchItemDataSource.FIELD_PID);
+                String batchId = records[0].getAttribute(ImportBatchItemDataSource.FIELD_BATCHID);
+                ImportBatchItemDataSource.getInstance().delete(new Callback<Record[], String>() {
+
+                    @Override
+                    public void onFailure(String reason) {
+                    }
+
+                    @Override
+                    public void onSuccess(Record[] result) {
+                        DigitalObjectCopyMetadataAction.removeSelection(result);
+                        RecordList rl = thumbViewer.getRecordList();
+                        for (Record record : result) {
+                            int index = rl.findIndex(ImportBatchItemDataSource.FIELD_PID,
+                                    record.getAttribute(ImportBatchItemDataSource.FIELD_PID));
+                            if (index >= 0) {
+                                rl.removeAt(index);
+                            }
+                        }
+                        int visibleFirstRows = batchItemGrid.getVisibleRows()[0];
+                        if (visibleFirstRows >= 0) {
+                            ClientUtils.scrollToTile(thumbViewer, visibleFirstRows);
+                        }
+                        batchItemGrid.deselectAllRecords();
+                    }
+                }, batchId, pids);
+            }
+        }
     }
 
 }
