@@ -192,6 +192,7 @@ public class MetsUtils {
         } else {
             parentId = MetsUtils.getParent(pid, ctx.getFsParentMap());
         }
+
         while (parentId != null) {
             if (ctx.getFedoraClient() != null) {
                 parentdbObj = readFoXML(parentId, ctx.getFedoraClient());
@@ -202,17 +203,37 @@ public class MetsUtils {
             parentModel = MetsUtils.getModel(parentRels);
             parentType = Const.typeMap.get(parentModel);
 
-
-            if (Const.PSPElements.contains(parentType)) {
-                result.add(parentId);
-                return result;
-            }
+            String oldParentId = parentId;
 
             if (ctx.getFedoraClient() != null) {
                 parentId = MetsUtils.getParent(parentId, ctx.getRemoteStorage());
             } else {
                 parentId = MetsUtils.getParent(parentId, ctx.getFsParentMap());
             }
+
+            if (Const.PSPElements.contains(parentType)) {
+                if (Const.SUPPLEMENT.equals(parentType)) {
+                    if (parentId != null) {
+                        DigitalObject parentdbObjSupp;
+                        if (ctx.getFedoraClient() != null) {
+                            parentdbObjSupp = readFoXML(parentId, ctx.getFedoraClient());
+                        } else {
+                            parentdbObjSupp = readFoXML(ctx.getPath() + File.separator + parentId + ".xml");
+                        }
+                        List<Element> parentRelsSupp = FoxmlUtils.findDatastream(parentdbObjSupp, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
+                        String parentTypeSupp = Const.typeMap.get(MetsUtils.getModel(parentRelsSupp));
+                        if (Const.MONOGRAPH_UNIT.equals(parentTypeSupp) || (Const.ISSUE.equals(parentTypeSupp))) {
+                            // do not add an PSP for Supplement under monograph
+                            // unit or issue
+                        } else {
+                            result.add(oldParentId);
+                        }
+                    }
+                } else {
+                    result.add(oldParentId);
+                }
+            }
+            return result;
         }
 
         if (Const.PSPElements.contains(elementType)) {

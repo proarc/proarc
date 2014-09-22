@@ -1354,7 +1354,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             } else if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(divType, physicalDiv, element);
             } else
-                throw new MetsExportException(element.getOriginalPid(), "Expected Page, got:" + element.getElementType(), false, null);
+                throw new MetsExportException(element.getOriginalPid(), "Expected Page or Picture, got:" + element.getElementType(), false, null);
         }
     }
 
@@ -1396,7 +1396,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 continue;
             } else
             if (Const.SUPPLEMENT.equals(element.getElementType())) {
-                element.getMetsContext().setPackageID(getPackageID(element));
+                if (!Const.MONOGRAPH_UNIT.equals(metsElement.getElementType())) {
+                    element.getMetsContext().setPackageID(getPackageID(element));
+                }
                 insertSupplement(divType, physicalDiv, element);
             } else
             if (Const.PAGE.equals(element.getElementType())) {
@@ -1656,6 +1658,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         for (MetsElement element : metsElement.getChildren()) {
             if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(elementDivType, physicalDiv, element);
+            } else {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Unexpected element under Chapter:" + element.getElementType(), false, null);
             }
         }
     }
