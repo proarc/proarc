@@ -142,15 +142,17 @@ public class Const {
 
         mandatoryStreams.add("MC_IMGGRP");
         mandatoryStreams.add("UC_IMGGRP");
+        mandatoryStreams.add("ALTOGRP");
+        mandatoryStreams.add("TXTGRP");
 
         streamMapping = new HashMap<String, List<String>>();
         streamMapping.put("MC_IMGGRP", new ArrayList<String>());
         streamMapping.get("MC_IMGGRP").add(BinaryEditor.NDK_ARCHIVAL_ID);
-        streamMapping.get("MC_IMGGRP").add("RAW");
+        // streamMapping.get("MC_IMGGRP").add("RAW");
 
         streamMapping.put("UC_IMGGRP", new ArrayList<String>());
         streamMapping.get("UC_IMGGRP").add(BinaryEditor.NDK_USER_ID);
-        streamMapping.get("UC_IMGGRP").add("FULL");
+        // streamMapping.get("UC_IMGGRP").add("FULL");
 
         streamMapping.put("ALTOGRP", new ArrayList<String>());
         streamMapping.get("ALTOGRP").add("ALTO");

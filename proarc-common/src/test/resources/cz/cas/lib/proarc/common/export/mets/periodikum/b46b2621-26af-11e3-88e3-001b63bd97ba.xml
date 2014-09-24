@@ -24,6 +24,11 @@
             <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/img/UC_aba009-000029_0007.jp2"/>
         </foxml:datastreamVersion>
     </foxml:datastream>
+    <foxml:datastream ID="NDK_ARCHIVAL" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="NDK_ARCHIVAL.0" CREATED="2013-09-26T15:30:47" MIMETYPE="image/jp2">
+            <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/img/UC_aba009-000029_0007.jp2"/>
+        </foxml:datastreamVersion>
+    </foxml:datastream>    
     <foxml:datastream ID="IMG_THUMB" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
         <foxml:datastreamVersion ID="IMG_THUMB.0" CREATED="2013-09-26T15:30:47" MIMETYPE="image/jpeg">
             <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/thumbnail/UC_aba009-000029_0007.jpg"/>
@@ -34,6 +39,11 @@
             <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/preview/UC_aba009-000029_0007.jpg"/>
         </foxml:datastreamVersion>
     </foxml:datastream>
+    <foxml:datastream ID="NDK_USER" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="NDK_USER.0" CREATED="2013-09-26T15:30:48" MIMETYPE="image/jpeg">
+            <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/preview/UC_aba009-000029_0007.jpg"/>
+        </foxml:datastreamVersion>
+    </foxml:datastream>    
     <foxml:datastream ID="ALTO" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
         <foxml:datastreamVersion ID="ALTO.0" CREATED="2013-09-26T15:30:48" MIMETYPE="text/xml">
             <foxml:contentLocation TYPE="URL" REF="file:///work/incad_docs/vlada/periodikum/converted/txt/ALTO_aba009-000029_0007.xml"/>
