@@ -1222,6 +1222,21 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @throws MetsExportException
      */
     private void insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter, IMetsElement sourceElement) throws MetsExportException {
+        List<IMetsElement> sourceElements = new ArrayList<IMetsElement>();
+        sourceElements.add(sourceElement);
+        insertPage(physicalDiv, metsElement, pageCounter, sourceElements);
+    }
+
+    /**
+     * Inserts Page structure to the mets
+     *
+     * @param physicalDiv
+     * @param metsElement
+     * @param pageCounter
+     * @param sourceElement
+     * @throws MetsExportException
+     */
+    private void insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter, List<IMetsElement> sourceElements) throws MetsExportException {
         if (metsElement.getMetsContext().getPackageDir() == null) {
             File packageDir = createPackageDir(metsElement);
             metsElement.getMetsContext().setPackageDir(packageDir);
@@ -1265,10 +1280,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             structLink = new StructLink();
             mets.setStructLink(structLink);
         }
-        SmLink smLink = new SmLink();
-        smLink.setFrom(sourceElement.getModsElementID());
-        smLink.setTo(ID);
-        structLink.getSmLinkOrSmLinkGrp().add(smLink);
+        for (IMetsElement sourceElement : sourceElements) {
+            SmLink smLink = new SmLink();
+            smLink.setFrom(sourceElement.getModsElementID());
+            smLink.setTo(ID);
+            structLink.getSmLinkOrSmLinkGrp().add(smLink);
+        }
     }
 
     /**
@@ -1658,7 +1675,14 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         for (MetsElement element : metsElement.getChildren()) {
             if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(elementDivType, physicalDiv, element);
-            } else {
+            } else if (Const.PAGE.equals(element.getElementType())) {
+                List<IMetsElement> sourceElements = new ArrayList<IMetsElement>();
+                sourceElements.add(metsElement);
+                sourceElements.add(metsElement.getParent());
+                insertPage(physicalDiv, element, pageCounter, sourceElements);
+                pageCounter++;
+            } else
+            {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Unexpected element under Chapter:" + element.getElementType(), false, null);
             }
         }
