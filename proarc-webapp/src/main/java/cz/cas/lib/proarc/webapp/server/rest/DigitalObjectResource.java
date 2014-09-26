@@ -23,7 +23,6 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
-import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.AtmEditor;
@@ -361,6 +360,35 @@ public class DigitalObjectResource {
     }
 
     /**
+     * {@link #setMembers(SetMemberRequest)} request body.
+     */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class SetMemberRequest {
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PARENT)
+        String parentPid;
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
+        Integer batchId;
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PID)
+        List<String> toSetPids;
+    }
+
+    /**
+     * Sets new member sequence of given parent digital object.
+     *
+     * @param request params posted inside the request body
+     */
+    @PUT
+    @Path(DigitalObjectResourceApi.MEMBERS_PATH)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Item> setMembers(
+            SetMemberRequest request
+            ) throws IOException, FedoraClientException, DigitalObjectException {
+
+        return setMembers(request.parentPid, request.batchId, request.toSetPids);
+    }
+
+    /**
      * Sets new member sequence of given parent digital object.
      *
      * @param parentPid parent PID
@@ -371,6 +399,7 @@ public class DigitalObjectResource {
      */
     @PUT
     @Path(DigitalObjectResourceApi.MEMBERS_PATH)
+    @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Item> setMembers(
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
@@ -379,6 +408,8 @@ public class DigitalObjectResource {
             // XXX long timestamp
             ) throws IOException, FedoraClientException, DigitalObjectException {
 
+//        LOG.log(Level.INFO, "parentPid: {0}, batchId: {1}, toSetPids: {2}",
+//                new Object[]{parentPid, batchId, toSetPids});
         if (batchId == null && parentPid == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT, null);
         }
@@ -395,17 +426,19 @@ public class DigitalObjectResource {
             throw RestException.plainText(Status.BAD_REQUEST, "duplicates in PIDs to set!\n" + toSetPids.toString());
         }
 
+        Batch batch = batchId == null ? null : importManager.get(batchId);
+
         // fetch PID[] -> Item[]
         Map<String, Item> memberSearchMap;
         if (batchImportMembers) {
-            memberSearchMap = loadLocalSearchItems(batchId);
+            memberSearchMap = loadLocalSearchItems(batch);
         } else {
             memberSearchMap = loadSearchItems(toSetPidSet);
         }
         checkSetMembers(toSetPidSet, memberSearchMap);
         // load current members
-        FedoraObject fobject = findFedoraObject(parentPid, batchId, false);
-        RelationEditor editor = new RelationEditor(fobject);
+        DigitalObjectHandler doHandler = findHandler(parentPid, batch, false);
+        RelationEditor editor = doHandler.relations();
         List<String> members = editor.getMembers();
         members.clear();
         // add new members
@@ -424,7 +457,7 @@ public class DigitalObjectResource {
         }
         editor.setMembers(members);
         editor.write(editor.getLastModified(), session.asFedoraLog());
-        fobject.flush();
+        doHandler.commit();
         return new SmartGwtResponse<Item>(added);
     }
 
@@ -438,19 +471,20 @@ public class DigitalObjectResource {
         return memberSearchMap;
     }
 
-    private Map<String, Item> loadLocalSearchItems(int batchId) throws IOException, DigitalObjectException {
+    private Map<String, Item> loadLocalSearchItems(Batch batch) throws IOException, DigitalObjectException {
+        if (batch == null) {
+            throw new NullPointerException();
+        }
         HashMap<String, Item> memberSearchMap = new HashMap<String, Item>();
-        List<BatchItemObject> batchObjects = importManager.findBatchObjects(batchId, null);
+        List<BatchItemObject> batchObjects = importManager.findLoadedObjects(batch);
         for (BatchItemObject batchObject : batchObjects) {
-            if (batchObject.getState() != ObjectState.LOADED) {
-                continue;
-            }
-            LocalObject lfo = (LocalObject) findFedoraObject(batchObject.getPid(), batchId);
+            DigitalObjectHandler doh = findHandler(batchObject.getPid(), batch);
+            LocalObject lfo = (LocalObject) doh.getFedoraObject();
             Item item = new Item(batchObject.getPid());
-            item.setBatchId(batchId);
+            item.setBatchId(batch.getId());
             item.setLabel(lfo.getLabel());
             item.setOwner(lfo.getOwner());
-            RelationEditor relationEditor = new RelationEditor(lfo);
+            RelationEditor relationEditor = doh.relations();
             item.setModel(relationEditor.getModel());
             memberSearchMap.put(batchObject.getPid(), item);
         }
@@ -1132,13 +1166,26 @@ public class DigitalObjectResource {
         return findHandler(pid, batchId, true);
     }
 
+    private DigitalObjectHandler findHandler(String pid, Batch batch) throws DigitalObjectNotFoundException {
+        return findHandler(pid, batch, true);
+    }
+
     private DigitalObjectHandler findHandler(String pid, Integer batchId, boolean readonly)
             throws DigitalObjectNotFoundException {
 
+        Batch batch = null;
+        if (batchId != null) {
+            batch = importManager.get(batchId);
+        }
+        return findHandler(pid, batch, readonly);
+    }
+
+    private DigitalObjectHandler findHandler(String pid, Batch batch, boolean readonly)
+            throws DigitalObjectNotFoundException {
+
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fobject = dom.find(pid, batchId);
+        FedoraObject fobject = dom.find2(pid, batch);
         if (!readonly && fobject instanceof LocalObject) {
-            Batch batch = importManager.get(batchId);
             ImportResource.checkBatchState(batch);
         }
         return dom.createHandler(fobject);

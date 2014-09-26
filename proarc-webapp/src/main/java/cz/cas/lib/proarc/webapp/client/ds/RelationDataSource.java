@@ -111,9 +111,19 @@ public class RelationDataSource extends RestDataSource {
         setOperationBindings(
                 RestConfig.createAddOperation(),
                 RestConfig.createDeleteOperation(),
-                RestConfig.createUpdateOperation()
+                RestConfig.createUpdatePostOperation()
                 );
         setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
+    }
+
+    @Override
+    protected Object transformRequest(DSRequest dsRequest) {
+        if (dsRequest.getOperationType() == DSOperationType.UPDATE
+                && RestConfig.TYPE_APPLICATION_JSON.equals(dsRequest.getContentType())) {
+
+            return ClientUtils.dump(dsRequest.getData());
+        }
+        return super.transformRequest(dsRequest);
     }
 
     /**
