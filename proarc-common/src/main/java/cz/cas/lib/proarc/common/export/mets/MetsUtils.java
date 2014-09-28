@@ -178,20 +178,26 @@ public class MetsUtils {
         } else {
             dObj = readFoXML(ctx.getPath() + File.separator + pid + ".xml");
         }
-        List<Element> relsExt = FoxmlUtils.findDatastream(dObj, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
-        String model = MetsUtils.getModel(relsExt);
-        String elementType = Const.typeMap.get(model);
+        // List<Element> relsExt = FoxmlUtils.findDatastream(dObj,
+        // "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
+        // String model = MetsUtils.getModel(relsExt);
+        // String elementType = Const.typeMap.get(model);
 
-        String parentId = null;
+        String parentId = pid;
         String parentModel = null;
         String parentType = null;
         List<Element> parentRels = null;
         DigitalObject parentdbObj = null;
-        if (ctx.getFedoraClient() != null) {
-            parentId = MetsUtils.getParent(pid, ctx.getRemoteStorage());
-        } else {
-            parentId = MetsUtils.getParent(pid, ctx.getFsParentMap());
-        }
+
+        // if (ctx.getFedoraClient() != null) {
+        // parentId = MetsUtils.getParent(pid, ctx.getRemoteStorage());
+        // } else {
+        // parentId = MetsUtils.getParent(pid, ctx.getFsParentMap());
+        // }
+        //
+        // if (Const.PSPElements.contains(parentType)) {
+        // result.add(e)
+        // }
 
         while (parentId != null) {
             if (ctx.getFedoraClient() != null) {
@@ -233,12 +239,6 @@ public class MetsUtils {
                     result.add(oldParentId);
                 }
             }
-            return result;
-        }
-
-        if (Const.PSPElements.contains(elementType)) {
-            result.add(pid);
-            return result;
         }
 
         if (fillChildren) {
