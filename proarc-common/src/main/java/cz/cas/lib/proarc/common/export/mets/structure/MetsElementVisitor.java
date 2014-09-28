@@ -138,6 +138,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     private StructMapType logicalStruct;
     private StructMapType physicalStruct;
     private HashMap<String, FileGrp> fileGrpMap;
+    private final Map<BigInteger, String> pageOrderToDivMap = new HashMap<BigInteger, String>();
+    private final Map<String, List<BigInteger>> structToPageMap = new HashMap<String, List<BigInteger>>();
     int pageCounter = 0;
     int articleCounter = 0;
     int chapterCounter = 0;
@@ -223,6 +225,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         String fileMd5Name;
         try {
             addFileGrpToMets(fileGrpMap);
+            addStructLink();
             try {
                 JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, OaiDcType.class, ModsDefinition.class);
                 Marshaller marshaller = jaxbContext.createMarshaller();
@@ -1195,9 +1198,15 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 continue;
             }
 
+            if (Const.PICTURE.equals(element.getElementType())) {
+                insertPicture(divType, physicalDiv, element);
+                continue;
+            }
+
             if (Const.ARTICLE.equals(element.getElementType())) {
                 continue;
             }
+
             throw new MetsExportException(element.getOriginalPid(),
                     "This type is not accepted in Issue:" +
                             metsElement.getElementType(), false, null);
@@ -1275,16 +1284,47 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             }
         }
         generateTechMetadata(metsElement, fileNames, pageCounter, fileGrpPage, mimeTypes, pageDiv, outputFileNames, md5InfosMap);
-        StructLink structLink = mets.getStructLink();
-        if (structLink == null) {
-            structLink = new StructLink();
-            mets.setStructLink(structLink);
-        }
+
+        pageOrderToDivMap.put(pageDiv.getORDER(), ID);
         for (IMetsElement sourceElement : sourceElements) {
-            SmLink smLink = new SmLink();
-            smLink.setFrom(sourceElement.getModsElementID());
-            smLink.setTo(ID);
-            structLink.getSmLinkOrSmLinkGrp().add(smLink);
+            addMappingPageStruct(pageDiv.getORDER(), sourceElement.getModsElementID());
+        }
+    }
+
+    private void addMappingPageStruct(BigInteger pageOrder, String fromDiv) {
+        if (structToPageMap.get(fromDiv) == null) {
+            structToPageMap.put(fromDiv, new ArrayList<BigInteger>());
+        }
+        structToPageMap.get(fromDiv).add(pageOrder);
+    }
+
+    /**
+     * Adds the struct-link to the mets
+     *
+     * @throws MetsExportException
+     */
+    private void addStructLink() throws MetsExportException {
+        if (structToPageMap.keySet().size() > 0) {
+            StructLink structLink = mets.getStructLink();
+            if (structLink == null) {
+                structLink = new StructLink();
+                mets.setStructLink(structLink);
+            }
+
+            for (String structFrom : structToPageMap.keySet()) {
+                if (structToPageMap.get(structFrom) != null) {
+                    for (BigInteger orderPage : structToPageMap.get(structFrom)) {
+                        if (pageOrderToDivMap.get(orderPage) != null) {
+                            SmLink smLink = new SmLink();
+                            smLink.setFrom(structFrom);
+                            smLink.setTo(pageOrderToDivMap.get(orderPage));
+                            structLink.getSmLinkOrSmLinkGrp().add(smLink);
+                        } else {
+                            throw new MetsExportException("Unable to find DIV for page order:" + orderPage, false, null);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -1425,9 +1465,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             } else if (Const.CHAPTER.equals(element.getElementType())) {
                 insertChapter(divType, physicalDiv, element, chapterCounter);
                 chapterCounter++;
+            } else if (Const.PICTURE.equals(element.getElementType())) {
+                insertPicture(divType, physicalDiv, element);
             }
             else
-                throw new MetsExportException(element.getOriginalPid(), "Expected Issue, Supplement or Page, got:" + element.getElementType(), false, null);
+                throw new MetsExportException(element.getOriginalPid(), "Expected Issue, Supplement, Picture or Page, got:" + element.getElementType(), false, null);
         }
     }
 
@@ -1614,6 +1656,28 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
         logicalDiv.getDiv().add(elementDivType);
         addInternalElements(elementDivType, metsElement);
+        addStructLinkFromMods(metsElement);
+    }
+
+    /**
+     * Adds the info about linkage between an element and page into the
+     * struct-link
+     *
+     * @param metsElement
+     */
+    private void addStructLinkFromMods(IMetsElement metsElement) throws MetsExportException {
+        if ((metsElement.getModsStart() != null) && (metsElement.getModsEnd() != null)) {
+            if (metsElement.getModsEnd().longValue() < metsElement.getModsStart().longValue()) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Mods start is bigger than mods end", false,null);
+            }
+            for (long i=metsElement.getModsStart().longValue(); i<=metsElement.getModsEnd().longValue();i++) {
+                addMappingPageStruct(BigInteger.valueOf(i), metsElement.getModsElementID());
+            }
+
+
+        }
+
+
     }
 
     /**
@@ -1646,6 +1710,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             } else
                 throw new MetsExportException(element.getOriginalPid(), "Expected Picture got:" + element.getElementType(), false, null);
         }
+        addStructLinkFromMods(metsElement);
     }
 
     /**
@@ -1672,15 +1737,18 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
         logicalDiv.getDiv().add(elementDivType);
         addInternalElements(elementDivType, metsElement);
+        addStructLinkFromMods(metsElement);
         for (MetsElement element : metsElement.getChildren()) {
             if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(elementDivType, physicalDiv, element);
-            } else if (Const.PAGE.equals(element.getElementType())) {
-                List<IMetsElement> sourceElements = new ArrayList<IMetsElement>();
-                sourceElements.add(metsElement);
-                sourceElements.add(metsElement.getParent());
-                insertPage(physicalDiv, element, pageCounter, sourceElements);
-                pageCounter++;
+                // } else if (Const.PAGE.equals(element.getElementType())) {
+                // List<IMetsElement> sourceElements = new
+                // ArrayList<IMetsElement>();
+                // sourceElements.add(metsElement);
+                // sourceElements.add(metsElement.getParent());
+                // insertPage(physicalDiv, element, pageCounter,
+                // sourceElements);
+                // pageCounter++;
             } else
             {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Unexpected element under Chapter:" + element.getElementType(), false, null);

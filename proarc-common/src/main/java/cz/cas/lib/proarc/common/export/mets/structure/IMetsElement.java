@@ -17,6 +17,7 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
@@ -201,4 +202,19 @@ public interface IMetsElement {
      * @return
      */
     public String getModsElementID();
+
+    /**
+     * Returns the start element from mods (Part->Extent->Start)
+     *
+     * @return
+     */
+    public BigInteger getModsStart();
+
+    /**
+     * Returns the end element from mods (Part->Extent->Start)
+     *
+     * @return
+     */
+    public BigInteger getModsEnd();
+
 }

@@ -17,6 +17,7 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,6 +71,8 @@ public class MetsElement implements IMetsElement {
     public final List<Element> modsStream;
     public final XMLGregorianCalendar createDate;
     public final String label;
+    public BigInteger modsStart;
+    public BigInteger modsEnd;
     public MdSecType modsMetsElement;
     private FileType altoFile;
 
@@ -193,6 +196,16 @@ public class MetsElement implements IMetsElement {
         return result;
     }
 
+    @Override
+    public BigInteger getModsStart() {
+        return modsStart;
+    }
+
+    @Override
+    public BigInteger getModsEnd() {
+        return modsEnd;
+    }
+
     /**
      * Validates Mods and Dc against xsd schema
      *
@@ -273,6 +286,20 @@ public class MetsElement implements IMetsElement {
             Document modsDocument = MetsUtils.getDocumentFromList(modsStream);
             DOMSource modsDOMSource = new DOMSource(modsDocument);
             ModsDefinition modsDefinition = ModsUtils.unmarshalModsType(modsDOMSource);
+            if (modsDefinition.getPart().size()>0) {
+                if (modsDefinition.getPart().get(0).getExtent().size()>0) {
+                    try {
+                        if (modsDefinition.getPart().get(0).getExtent().get(0).getStart() != null) {
+                            this.modsStart = new BigInteger(modsDefinition.getPart().get(0).getExtent().get(0).getStart().getValue());
+                        }
+                        if (modsDefinition.getPart().get(0).getExtent().get(0).getEnd() != null) {
+                            this.modsEnd = new BigInteger(modsDefinition.getPart().get(0).getExtent().get(0).getEnd().getValue());
+                        }
+                    } catch (NumberFormatException ex) {
+                        throw new MetsExportException(digitalObject.getPID(), "Unable to parse start-end info from mods", false, ex);
+                    }
+                }
+            }
             OaiDcType dcType = mapper.toDc(modsDefinition, null);
             DOMResult dcDOMResult = new DOMResult();
             DcUtils.marshal(dcDOMResult, dcType, true);
