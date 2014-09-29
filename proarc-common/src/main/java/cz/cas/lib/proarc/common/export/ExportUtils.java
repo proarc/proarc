@@ -36,6 +36,8 @@ import javax.xml.bind.JAXB;
  */
 final class ExportUtils {
 
+    public static final String PROARC_EXPORT_STATUSLOG = "proarc_export_status.log";
+
     private static final Logger LOG = Logger.getLogger(ExportUtils.class.getName());
 
     /**
@@ -80,7 +82,7 @@ final class ExportUtils {
             result.setBegin(null);
             result.setEnd(null);
         }
-        File resultFile = new File(targetFolder, "proarc_export_status.log");
+        File resultFile = new File(targetFolder, PROARC_EXPORT_STATUSLOG);
         try {
             JAXB.marshal(result, resultFile);
         } catch (Exception e) {

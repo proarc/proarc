@@ -42,6 +42,8 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -380,33 +382,59 @@ public class ImportBatchManager {
     }
 
     public boolean excludeBatchObject(Batch batch, String pid) {
+        return excludeBatchObject(batch, pid == null ? null : Collections.singleton(pid));
+    }
+
+    public boolean excludeBatchObject(Batch batch, Collection<String> pids) {
         if (batch == null) {
             throw new NullPointerException("batch");
         }
-        if (pid == null || pid.isEmpty()) {
-            throw new IllegalArgumentException("pid: " + pid);
+        if (pids == null || pids.isEmpty()) {
+            throw new IllegalArgumentException("pid");
         }
         BatchItemDao bitemDao = daos.createBatchItem();
         Transaction tx = daos.createTransaction();
         bitemDao.setTransaction(tx);
         try {
-            List<BatchItem> items = bitemDao.find(batch.getId(), pid, null, null, BatchItem.Type.OBJECT.name());
+            List<BatchItem> items;
+            if (pids.isEmpty()) {
+                items = bitemDao.find(batch.getId(), null, null, null, BatchItem.Type.OBJECT.name());
+                items = filterBatchItems(items, pids);
+            } else {
+                items = bitemDao.find(batch.getId(), pids.iterator().next(), null, null, BatchItem.Type.OBJECT.name());
+            }
             if (items.isEmpty()) {
                 return false;
             }
             List<BatchItemObject> objs = toBatchObjects(items);
-            BatchItemObject obj = objs.get(0);
-            obj.setState(ObjectState.EXCLUDED);
-            bitemDao.update(obj.getItem());
-            removeChildRelation(batch, null, pid);
+            for (BatchItemObject obj : objs) {
+                obj.setState(ObjectState.EXCLUDED);
+                bitemDao.update(obj.getItem());
+            }
+            removeChildRelation(batch, null, pids);
             tx.commit();
             return true;
         } catch (Throwable ex) {
             tx.rollback();
-            throw new IllegalStateException(String.format("pid: %s, %s", pid, batch), ex);
+            throw new IllegalStateException(String.format("pid: %s, %s", pids, batch), ex);
         } finally {
             tx.close();
         }
+    }
+
+    private List<BatchItem> filterBatchItems(List<BatchItem> items, Collection<String> pids) {
+        if (items.isEmpty()) {
+            return items;
+        } else if (pids == null || pids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        ArrayList<BatchItem> result = new ArrayList<BatchItem>(pids.size());
+        for (BatchItem item : items) {
+            if (pids.contains(item.getPid())) {
+                result.add(item);
+            }
+        }
+        return result;
     }
 
     boolean addChildRelation(Batch batch, String parentPid, String childPid) throws DigitalObjectException {
@@ -431,7 +459,7 @@ public class ImportBatchManager {
         return true;
     }
 
-    boolean removeChildRelation(Batch batch, String parentPid, String childPid) throws DigitalObjectException {
+    boolean removeChildRelation(Batch batch, String parentPid, Collection<String> childPid) throws DigitalObjectException {
         if (batch == null) {
             throw new NullPointerException("batch");
         }
@@ -443,7 +471,7 @@ public class ImportBatchManager {
         }
         RelationEditor relationEditor = new RelationEditor(rootObject);
         List<String> members = relationEditor.getMembers();
-        boolean changed = members.remove(childPid);
+        boolean changed = members.removeAll(childPid);
         if (changed) {
             relationEditor.setMembers(members);
             relationEditor.write(relationEditor.getLastModified(), null);

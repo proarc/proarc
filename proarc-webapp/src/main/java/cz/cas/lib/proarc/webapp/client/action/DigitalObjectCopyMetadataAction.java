@@ -18,7 +18,9 @@ package cz.cas.lib.proarc.webapp.client.action;
 
 import com.smartgwt.client.data.Record;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import java.util.ArrayList;
 
 /**
  * Selects a range of digital objects and use them as a template.
@@ -41,6 +43,32 @@ public class DigitalObjectCopyMetadataAction extends AbstractAction {
 
     public static void resetSelection() {
         SELECTION = null;
+    }
+
+    public static void removeSelection(Record[] removePids) {
+        if (SELECTION != null) {
+            ArrayList<Record> newSelection = null;
+            for (Record selectionRecord : SELECTION) {
+                String selectionPid = selectionRecord.getAttribute(DigitalObjectDataSource.FIELD_PID);
+                boolean remove = false;
+                for (Record removeRecord : removePids) {
+                    String removePid = removeRecord.getAttribute(DigitalObjectDataSource.FIELD_PID);
+                    if (selectionPid.equals(removePid)) {
+                        remove = true;
+                        break;
+                    }
+                }
+                if (!remove) {
+                    if (newSelection == null) {
+                        newSelection = new ArrayList<Record>(SELECTION.length);
+                    }
+                    newSelection.add(selectionRecord);
+                }
+            }
+            if (newSelection != null) {
+                SELECTION = newSelection.toArray(new Record[newSelection.size()]);
+            }
+        }
     }
 
     public DigitalObjectCopyMetadataAction(String title, String icon, String tooltip) {

@@ -86,6 +86,8 @@ import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditor;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -110,6 +112,8 @@ public final class DigitalObjectChildrenEditor
     private final PlaceController childPlaces;
     private HandlerRegistration listDataChangedHandler;
     private Record[] originChildren;
+    /** The last child selections. */
+    private SelectionHistory selectionHistory = new SelectionHistory();
     private IconMenuButton addActionButton;
     private IconButton saveActionButton;
     private HandlerRegistration childrenSelectionHandler;
@@ -158,12 +162,15 @@ public final class DigitalObjectChildrenEditor
                             return ;
                         }
                     }
+                    final ListGridRecord[] selection = childrenListGrid.getSelectedRecords();
                     relationDataSource.updateCaches(digitalObject.getPid(), new BooleanCallback() {
 
                         @Override
                         public void execute(Boolean value) {
                             // refresh the copy selection as updated records are missing the copy attribute
                             showCopySelection(DigitalObjectCopyMetadataAction.getSelection());
+                            // refresh the list selection
+                            selectChildren(selection);
                         }
                     });
                 }
@@ -407,11 +414,52 @@ public final class DigitalObjectChildrenEditor
                 @Override
                 public void execute() {
                     // defer the select as it is ignored after refresh in onDataArrived
-                    childrenListGrid.scrollToRow(0);
-                    childrenListGrid.selectSingleRecord(0);
-                    childrenListGrid.focus();
+                    selectChildFromHistory();
                 }
             });
+        }
+    }
+
+    private void selectChildFromHistory() {
+        int row = -1;
+        Place where = places.getWhere();
+        if (where instanceof DigitalObjectEditorPlace) {
+            String selectPid = ((DigitalObjectEditorPlace) where).getSelectChildPid();
+            if (selectPid != null) {
+                int index = childrenListGrid.getRecordList().findIndex(RelationDataSource.FIELD_PID, selectPid);
+                if (index > -1) {
+                    row = index;
+                }
+            }
+        }
+        if (row < 0) {
+            String selectPid = selectionHistory.getSelection(digitalObject.getPid());
+            if (selectPid != null) {
+                int index = childrenListGrid.getRecordList().findIndex(RelationDataSource.FIELD_PID, selectPid);
+                if (index > -1) {
+                    row = index;
+                }
+            }
+        }
+        if (row < 0) {
+            row = 0;
+        }
+        childrenListGrid.scrollToRow(row);
+        childrenListGrid.selectSingleRecord(row);
+        childrenListGrid.focus();
+    }
+
+    private void selectChildren(Record[] selection) {
+        RecordList rl = childrenListGrid.getRecordList();
+        ArrayList<Record> newSelection = new ArrayList<Record>(selection.length);
+        for (Record r : selection) {
+            Record found = rl.find(RelationDataSource.FIELD_PID, r.getAttribute(RelationDataSource.FIELD_PID));
+            if (found != null) {
+                newSelection.add(found);
+            }
+        }
+        if (!newSelection.isEmpty()) {
+            childrenListGrid.selectRecords(newSelection.toArray(new Record[newSelection.size()]));
         }
     }
 
@@ -424,6 +472,7 @@ public final class DigitalObjectChildrenEditor
             @Override
             public void onSelectionUpdated(SelectionUpdatedEvent event) {
                 ListGridRecord[] records = childrenListGrid.getSelectedRecords();
+                selectionHistory.select(digitalObject.getPid(), records);
                 onChildSelection(records);
             }
         });
@@ -558,6 +607,34 @@ public final class DigitalObjectChildrenEditor
             }
         }
 
+    }
+
+    /**
+     * Keeps the history of child selections of edited parents.
+     */
+    private static final class SelectionHistory {
+
+        /**
+         * The PID to PID mapping.
+         */
+        private Map<String, String> cache = new HashMap<String, String>();
+
+        public void select(String pid, Record[] selection) {
+            if (selection == null || selection.length == 0) {
+                select(pid, (String) null);
+            } else {
+                DigitalObject dobj = DigitalObject.create(selection[0]);
+                select(pid, dobj.getPid());
+            }
+        }
+
+        public void select(String pid, String selection) {
+            cache.put(pid, selection);
+        }
+
+        public String getSelection(String pid) {
+            return cache.get(pid);
+        }
     }
 
 }

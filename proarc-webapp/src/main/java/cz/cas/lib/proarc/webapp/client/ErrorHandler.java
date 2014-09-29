@@ -71,7 +71,7 @@ public final class ErrorHandler {
             @Override
             public void handleError(DSResponse response, DSRequest request) {
                 TransportError te = transportError;
-                String requestDump = ClientUtils.dump(request.getData());
+                String requestDump = ClientUtils.dump(request.getJsObj());
                 // message from original error handler; contains URL
                 Object smartGwtMsg = response.getAttributeAsObject("data");
                 if (te != null && response.getTransactionNum() == te.getTransactionNum()) {

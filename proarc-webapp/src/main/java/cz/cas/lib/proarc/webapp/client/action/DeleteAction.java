@@ -108,21 +108,46 @@ public final class DeleteAction extends AbstractAction {
 
         @Override
         public void delete(Object[] items) {
-            for (Object item : items) {
-                if (item instanceof Record) {
+            DeleteTask task = new DeleteTask(items, ds, i18n);
+            task.delete();
+        }
+
+        private static class DeleteTask {
+
+            private final Object[] items;
+            private int itemIndex = 0;
+            private final DataSource ds;
+            private final ClientMessages i18n;
+
+            public DeleteTask(Object[] items, DataSource ds, ClientMessages i18n) {
+                this.items = items;
+                this.ds = ds;
+                this.i18n = i18n;
+            }
+
+            public void delete() {
+                deleteItem();
+            }
+
+            private void deleteItem() {
+                Record item = (Record) items[itemIndex];
                 // TileGrid.removeSelectedData uses queuing support in case of multi-selection.
                 // It will require extra support on server. For now remove data in separate requests.
                 //thumbGrid.removeSelectedData();
-                    ds.removeData((Record) item, new DSCallback() {
+                ds.removeData(item, new DSCallback() {
 
-                        @Override
-                        public void execute(DSResponse response, Object rawData, DSRequest request) {
-                            if (RestConfig.isStatusOk(response)) {
+                    @Override
+                    public void execute(DSResponse response, Object rawData, DSRequest request) {
+                        if (RestConfig.isStatusOk(response)) {
+                            itemIndex++;
+                            if (itemIndex < items.length) {
+                                deleteItem();
+                            } else {
                                 StatusView.getInstance().show(i18n.DeleteAction_Done_Msg());
                             }
                         }
-                    });
-                }
+                    }
+                });
             }
         }
 
