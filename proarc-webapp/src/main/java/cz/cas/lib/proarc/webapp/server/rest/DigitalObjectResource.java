@@ -37,7 +37,6 @@ import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.PurgeFedoraObject;
 import cz.cas.lib.proarc.common.fedora.PurgeFedoraObject.PurgeException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
@@ -432,10 +431,10 @@ public class DigitalObjectResource {
         Map<String, Item> memberSearchMap;
         if (batchImportMembers) {
             memberSearchMap = loadLocalSearchItems(batch);
+            checkSearchedMembers(toSetPidSet, memberSearchMap);
         } else {
             memberSearchMap = loadSearchItems(toSetPidSet);
         }
-        checkSetMembers(toSetPidSet, memberSearchMap);
         // load current members
         DigitalObjectHandler doHandler = findHandler(parentPid, batch, false);
         RelationEditor editor = doHandler.relations();
@@ -461,13 +460,21 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<Item>(added);
     }
 
+    /**
+     * Fetches object descriptions from the index. Useful to check whether object exists.
+     * @param searchIndex index
+     * @param pids object IDs to search
+     * @return the map of found PIDs and descriptions
+     */
     private Map<String, Item> loadSearchItems(Set<String> pids) throws IOException, FedoraClientException {
         RemoteStorage storage = RemoteStorage.getInstance(appConfig);
-        HashMap<String, Item> memberSearchMap = new HashMap<String, Item>();
-        List<Item> memberSearch = storage.getSearch().find(new ArrayList<String>(pids));
+        SearchView search = storage.getSearch(session.getLocale(httpHeaders));
+        List<Item> memberSearch = search.find(new ArrayList<String>(pids));
+        HashMap<String, Item> memberSearchMap = new HashMap<String, Item>(memberSearch.size());
         for (Item item : memberSearch) {
             memberSearchMap.put(item.getPid(), item);
         }
+        checkSearchedMembers(pids, memberSearchMap);
         return memberSearchMap;
     }
 
@@ -491,13 +498,14 @@ public class DigitalObjectResource {
         return memberSearchMap;
     }
 
-    private void checkSetMembers(Set<String> pids, Map<String, Item> memberSearchMap) throws IllegalStateException {
+    private void checkSearchedMembers(Set<String> pids, Map<String, Item> memberSearchMap) throws RestException {
         if (!pids.equals(memberSearchMap.keySet())) {
             HashSet<String> notMembers = new HashSet<String>(pids);
             notMembers.removeAll(memberSearchMap.keySet());
             HashSet<String> missingPids = new HashSet<String>(memberSearchMap.keySet());
             missingPids.removeAll(pids);
-            throw new IllegalStateException("PIDs not members: " + notMembers.toString()
+            throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_PID,
+                    "Not member PIDs: " + notMembers.toString()
                     + "\nMissing PIDs: " + missingPids.toString());
         }
     }
@@ -514,7 +522,8 @@ public class DigitalObjectResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Item> addMembers(
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
-            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toAddPids
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toAddPids,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
             ) throws IOException, FedoraClientException, DigitalObjectException {
 
         if (parentPid == null) {
@@ -526,37 +535,33 @@ public class DigitalObjectResource {
         if (toAddPids.contains(parentPid)) {
             throw RestException.plainText(Status.BAD_REQUEST, "parent and pid are same!");
         }
+        HashSet<String> addPidSet = new HashSet<String>(toAddPids);
+        if (addPidSet.size() != toAddPids.size()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Duplicate children in the request!");
+        }
 
-        Locale locale = session.getLocale(httpHeaders);
+        // XXX loadLocalSearchItems
+        Map<String, Item> memberSearchMap = loadSearchItems(addPidSet);
+        DigitalObjectHandler handler = findHandler(parentPid, batchId, false);
+        List<Item> added = addMembers(handler, toAddPids, memberSearchMap);
+        handler.commit();
+        return new SmartGwtResponse<Item>(added);
+    }
+
+    private List<Item> addMembers(DigitalObjectHandler parent,
+            List<String> toAddPids,
+            Map<String, Item> memberSearchMap
+            ) throws DigitalObjectException {
+
+        String parentPid = parent.getFedoraObject().getPid();
         HashSet<String> toAddPidSet = new HashSet<String>(toAddPids);
+        ArrayList<Item> added = new ArrayList<Item>(toAddPidSet.size());
         if (toAddPidSet.isEmpty()) {
-            return new SmartGwtResponse<Item>(Collections.<Item>emptyList());
+            return added;
         }
-
-        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
-        // fetch PID[] -> Item[]
-        List<Item> memberSearch = storage.getSearch(locale).find(toAddPids);
-        HashMap<String, Item> memberSearchMap = new HashMap<String, Item>(memberSearch.size());
-        for (Item item : memberSearch) {
-            memberSearchMap.put(item.getPid(), item);
-        }
-
-        // check if fetched items corresponds to queried pids
-        if (memberSearch.size() != toAddPidSet.size()) {
-            ArrayList<String> memberSearchAsPids = new ArrayList<String>(memberSearch.size());
-            for (Item item : memberSearch) {
-                memberSearchAsPids.add(item.getPid());
-            }
-            toAddPidSet.removeAll(memberSearchAsPids);
-            throw RestException.plainNotFound(
-                    DigitalObjectResourceApi.MEMBERS_ITEM_PID, toAddPidSet.toString());
-        }
-        // load current members
-        RemoteObject remote = storage.find(parentPid);
-        RelationEditor editor = new RelationEditor(remote);
+        RelationEditor editor = parent.relations();
         List<String> members = editor.getMembers();
         // add new members
-        ArrayList<Item> added = new ArrayList<Item>();
         for (String addPid : toAddPids) {
             if (!members.contains(addPid)) {
                 members.add(addPid);
@@ -566,21 +571,24 @@ public class DigitalObjectResource {
                 }
                 item.setParentPid(parentPid);
                 added.add(item);
+            } else {
+                throw RestException.plainText(Status.BAD_REQUEST,
+                        parentPid + " already contains: " + addPid);
             }
         }
         // write if any change
         if (!added.isEmpty()) {
             editor.setMembers(members);
             editor.write(editor.getLastModified(), session.asFedoraLog());
-            remote.flush();
         }
-        return new SmartGwtResponse<Item>(added);
+        return added;
     }
 
     /**
      * Deletes object members from digital object.
      * @param parentPid digital object ID
      * @param toRemovePids member IDs to remove
+     * @param batchId optional batch import ID
      * @return list of removed IDs
      */
     @DELETE
@@ -588,7 +596,8 @@ public class DigitalObjectResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Item> deleteMembers(
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
-            @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toRemovePids
+            @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toRemovePids,
+            @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
             ) throws IOException, DigitalObjectException {
 
         if (parentPid == null) {
@@ -606,24 +615,9 @@ public class DigitalObjectResource {
             return new SmartGwtResponse<Item>(Collections.<Item>emptyList());
         }
 
-        RemoteStorage storage = RemoteStorage.getInstance(appConfig);
-        RemoteObject remote = storage.find(parentPid);
-        RelationEditor editor = new RelationEditor(remote);
-        List<String> members = editor.getMembers();
-        // check that PIDs being removed are members of parent object
-        HashSet<String> toRemovePidSetCopy = new HashSet<String>(toRemovePidSet);
-        toRemovePidSetCopy.removeAll(members);
-        if (!toRemovePidSetCopy.isEmpty()) {
-            String msg = String.format("Parent: %s does not contain members: %s",
-                    parentPid, toRemovePidSetCopy.toString());
-            throw RestException.plainText(Status.BAD_REQUEST, msg);
-        }
-        // remove
-        if (members.removeAll(toRemovePidSet)) {
-            editor.setMembers(members);
-            editor.write(editor.getLastModified(), session.asFedoraLog());
-            remote.flush();
-        }
+        DigitalObjectHandler parent = findHandler(parentPid, batchId, false);
+        deleteMembers(parent, toRemovePidSet);
+        parent.commit();
 
         ArrayList<Item> removed = new ArrayList<Item>(toRemovePidSet.size());
         for (String removePid : toRemovePidSet) {
@@ -634,7 +628,114 @@ public class DigitalObjectResource {
 
         return new SmartGwtResponse<Item>(removed);
     }
-    
+
+    /**
+     * Removes given children from a parent.
+     * <p><b>Requires handler commit!</b>
+     * @param parent parent PID
+     * @param toRemovePidSet PIDs of children to remove
+     */
+    private void deleteMembers(DigitalObjectHandler parent, Set<String> toRemovePidSet) throws DigitalObjectException {
+        RelationEditor editor = parent.relations();
+        List<String> members = editor.getMembers();
+        // check that PIDs being removed are members of parent object
+        HashSet<String> toRemovePidSetCopy = new HashSet<String>(toRemovePidSet);
+        toRemovePidSetCopy.removeAll(members);
+        if (!toRemovePidSetCopy.isEmpty()) {
+            String msg = String.format("Parent: %s does not contain members: %s",
+                    parent.getFedoraObject().getPid(), toRemovePidSetCopy.toString());
+            throw RestException.plainText(Status.BAD_REQUEST, msg);
+        }
+        // remove
+        if (members.removeAll(toRemovePidSet)) {
+            editor.setMembers(members);
+            editor.write(editor.getLastModified(), session.asFedoraLog());
+        }
+    }
+
+    /**
+     * The helper for {@link #moveMembers(MoveMembersRequest) } request body.
+     */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class MoveMembersRequest {
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID)
+        String srcParentPid;
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID)
+        String dstParentPid;
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
+        Integer batchId;
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PID)
+        List<String> pids;
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.MEMBERS_PATH + '/' + DigitalObjectResourceApi.MEMBERS_MOVE_PATH)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Item> moveMembers(
+            MoveMembersRequest request
+            ) throws IOException, DigitalObjectException, FedoraClientException {
+
+        return moveMembers(request.srcParentPid, request.dstParentPid, request.batchId, request.pids);
+    }
+
+    /**
+     * Moves members from a source object to a destination object.
+     * @param srcParentPid PID of source
+     * @param dstParentPid PID of destination
+     * @param batchId optional batch import ID
+     * @param movePids member PIDs to move
+     * @return the list of updated members
+     */
+    @PUT
+    @Path(DigitalObjectResourceApi.MEMBERS_PATH + '/' + DigitalObjectResourceApi.MEMBERS_MOVE_PATH)
+    @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Item> moveMembers(
+            @FormParam(DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID) String srcParentPid,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID) String dstParentPid,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> movePids
+            ) throws IOException, DigitalObjectException, FedoraClientException {
+
+        if (srcParentPid == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing source PID!");
+        }
+        if (dstParentPid == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing target PID!");
+        }
+        if (srcParentPid.equals(dstParentPid)) {
+            throw RestException.plainText(Status.BAD_REQUEST, "src == dst!");
+        }
+        if (movePids == null || movePids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing children PIDs!");
+        }
+
+        HashSet<String> movePidSet = new HashSet<String>(movePids);
+        if (movePidSet.isEmpty()) {
+            return new SmartGwtResponse<Item>(Collections.<Item>emptyList());
+        } else if (movePidSet.size() != movePids.size()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Duplicate children in the request!");
+        }
+        if (movePidSet.contains(dstParentPid)) {
+            throw RestException.plainText(Status.BAD_REQUEST, "The target parent listed as child!");
+        }
+
+        Batch batch = batchId == null ? null : importManager.get(batchId);
+        DigitalObjectHandler srcHandler = findHandler(srcParentPid, batch, false);
+        deleteMembers(srcHandler, movePidSet);
+
+        // XXX loadLocalSearchItems
+        Map<String, Item> memberSearchMap = loadSearchItems(movePidSet);
+        DigitalObjectHandler dstHandler = findHandler(dstParentPid, batch, false);
+        List<Item> added = addMembers(dstHandler, movePids, memberSearchMap);
+
+        srcHandler.commit();
+        dstHandler.commit();
+        SmartGwtResponse<Item> result = new SmartGwtResponse<Item>(added);
+        return result;
+    }
+
     @GET
     @Path(DigitalObjectResourceApi.DC_PATH)
     @Produces(MediaType.APPLICATION_XML)

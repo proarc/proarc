@@ -80,6 +80,11 @@ public final class DigitalObjectResourceApi {
 
     public static final String MEMBERS_ROOT_PARAM = "root";
 
+    // resource /object/member/move
+    public static final String MEMBERS_MOVE_PATH = "move";
+    public static final String MEMBERS_MOVE_SRCPID = "srcPid";
+    public static final String MEMBERS_MOVE_DSTPID = "dstPid";
+
     // resource /object/metamodel
     public static final String METAMODEL_PATH = "metamodel";
     public static final String METAMODEL_PID_PARAM = "pid";

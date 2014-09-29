@@ -230,32 +230,51 @@ public class RelationDataSource extends RestDataSource {
 
         moveChild(new String[] {pid}, oldParentPid, parentPid, call);
     }
+
     public void moveChild(final String[] pid,
             final String parentPidFrom,
             final String parentPidTo,
             final BooleanCallback call) {
 
+        moveChild(pid, parentPidFrom, parentPidTo, null, call);
+    }
+
+    public void moveChild(final String[] pid,
+            final String parentPidFrom,
+            final String parentPidTo,
+            final Integer batchId,
+            final BooleanCallback call) {
+
+        if (pid == null || pid.length < 1) {
+            throw new IllegalArgumentException("Missing PID!");
+        }
+        if (parentPidFrom == null || parentPidFrom.isEmpty()) {
+            throw new IllegalArgumentException("Missing source parent PID!");
+        }
+        if (parentPidTo == null || parentPidTo.isEmpty()) {
+            throw new IllegalArgumentException("Missing target parent PID!");
+        }
+        Record update = new Record();
+        update.setAttribute(DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID, parentPidFrom);
+        update.setAttribute(DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID, parentPidTo);
+        update.setAttribute(RelationDataSource.FIELD_PID, pid);
+        if (batchId != null) {
+            update.setAttribute(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID, batchId);
+        }
         final RelationDataSource ds = RelationDataSource.getInstance();
-        BooleanCallback toAdd = new BooleanCallback() {
+        DSRequest request = new DSRequest();
+        request.setActionURL(RestConfig.URL_DIGOBJECT_CHILDREN_MOVE);
+        ds.updateData(update, new DSCallback() {
 
             @Override
-            public void execute(Boolean value) {
-                if (value != null && value) {
-                    if (parentPidTo != null) {
-                        ds.addChild(parentPidTo, pid, call);
-                    } else {
-                        call.execute(value);
-                    }
-                } else {
-                    call.execute(value);
+            public void execute(DSResponse response, Object data, DSRequest request) {
+                if (!RestConfig.isStatusOk(response)) {
+                    call.execute(false);
+                    return;
                 }
+                call.execute(true);
             }
-        };
-        if (parentPidFrom != null) {
-            ds.removeChild(parentPidFrom, pid, toAdd);
-        } else {
-            toAdd.execute(Boolean.TRUE);
-        }
+        }, request);
     }
 
     /**

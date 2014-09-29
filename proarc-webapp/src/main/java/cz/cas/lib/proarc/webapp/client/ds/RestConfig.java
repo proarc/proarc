@@ -56,6 +56,7 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT =  path(URL_ROOT, DigitalObjectResourceApi.PATH);
     public static final String URL_DIGOBJECT_ATM =  path(URL_DIGOBJECT, DigitalObjectResourceApi.ATM_PATH);
     public static final String URL_DIGOBJECT_CHILDREN =  path(URL_DIGOBJECT, DigitalObjectResourceApi.MEMBERS_PATH);
+    public static final String URL_DIGOBJECT_CHILDREN_MOVE =  path(URL_DIGOBJECT_CHILDREN, DigitalObjectResourceApi.MEMBERS_MOVE_PATH);
     public static final String URL_DIGOBJECT_DC = path(URL_DIGOBJECT, DigitalObjectResourceApi.DC_PATH);
     public static final String URL_DIGOBJECT_DISSEMINATION = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.DISSEMINATION_PATH);
