@@ -46,6 +46,11 @@
         <smartGwtVersion>4.0</smartGwtVersion>
         <maven.compiler.source>1.6</maven.compiler.source>
         <maven.compiler.target>1.6</maven.compiler.target>
+        <!--
+        Keep the JDK platform property here instead of nb-configuration.xml
+        to inherit it in child projects.
+        -->
+        <netbeans.hint.jdkPlatform>JDK_1.6</netbeans.hint.jdkPlatform>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- JAX-WS 2.2 JDK 1.6 support-->
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>

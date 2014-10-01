@@ -41,6 +41,9 @@ import java.util.Map;
  */
 public final class RestConfig {
 
+    public static final String TYPE_APPLICATION_JSON = "application/json";
+    public static final String TYPE_APPLICATION_XML = "application/xml";
+
 //    public static final String URL_ROOT =  "/rest";
     /** Login servlet dialog */
     public static final String URL_LOGIN_SERVLET =  GWT.getHostPageBaseURL() + "proarclogin";
@@ -53,6 +56,7 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT =  path(URL_ROOT, DigitalObjectResourceApi.PATH);
     public static final String URL_DIGOBJECT_ATM =  path(URL_DIGOBJECT, DigitalObjectResourceApi.ATM_PATH);
     public static final String URL_DIGOBJECT_CHILDREN =  path(URL_DIGOBJECT, DigitalObjectResourceApi.MEMBERS_PATH);
+    public static final String URL_DIGOBJECT_CHILDREN_MOVE =  path(URL_DIGOBJECT_CHILDREN, DigitalObjectResourceApi.MEMBERS_MOVE_PATH);
     public static final String URL_DIGOBJECT_DC = path(URL_DIGOBJECT, DigitalObjectResourceApi.DC_PATH);
     public static final String URL_DIGOBJECT_DISSEMINATION = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.DISSEMINATION_PATH);
@@ -97,10 +101,10 @@ public final class RestConfig {
         Map<String, String> defaultHeaders = new HashMap<String, String>();
         switch (format) {
             case XML:
-                defaultHeaders.put("Accept", "application/xml");
+                defaultHeaders.put("Accept", TYPE_APPLICATION_XML);
                 break;
             case JSON:
-                defaultHeaders.put("Accept", "application/json");
+                defaultHeaders.put("Accept", TYPE_APPLICATION_JSON);
                 break;
         }
         defaultHeaders.put("Accept-Language", LanguagesDataSource.activeLocale());
@@ -134,6 +138,23 @@ public final class RestConfig {
         op.setDataProtocol(DSProtocol.POSTPARAMS);
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("PUT");
+        op.setRequestProperties(dsRequest);
+        return op;
+    }
+
+    /**
+     * Helper for RESTful PUT method with parameters sent as JSON in the request body.
+     * <p>Requires implementation of {@link com.smartgwt.client.data.DataSource#transformRequest}.
+     *
+     * @return update operation
+     */
+    public static OperationBinding createUpdatePostOperation() {
+        OperationBinding op = new OperationBinding();
+        op.setOperationType(DSOperationType.UPDATE);
+        op.setDataProtocol(DSProtocol.POSTMESSAGE);
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setHttpMethod("PUT");
+        dsRequest.setContentType(TYPE_APPLICATION_JSON);
         op.setRequestProperties(dsRequest);
         return op;
     }

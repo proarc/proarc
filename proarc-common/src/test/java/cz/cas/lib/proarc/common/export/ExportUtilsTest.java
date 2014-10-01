@@ -22,7 +22,9 @@ import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Date;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -80,18 +82,30 @@ public class ExportUtilsTest {
     }
 
     @Test
-    public void testExportResult() {
+    public void testExportResult() throws Exception {
         File target = temp.getRoot();
         ExportResult export = new ExportResult();
         export.setStatus(ResultStatus.OK);
         export.setInputPid("pid1");
         export.getError().add(new ResultError("childPid1", "error1"));
         export.getError().add(new ResultError("childpid2", new IllegalStateException("error2")));
+        export.getError().add(new ResultError("childPid3", "msg", "error3"));
+        export.getError().add(new ResultError("childPid4", "msg", Arrays.asList("validation1", "validation2")));
         export.setEnd(new Date());
 
         ExportResultLog log = new ExportResultLog();
         log.getExports().add(export);
 
         ExportUtils.writeExportResult(target, log);
+
+        File statusFile = new File(target, ExportUtils.PROARC_EXPORT_STATUSLOG);
+        assertTrue(statusFile.exists());
+        String result = FileUtils.readFileToString(statusFile);
+//        System.out.println(result);
+        assertTrue(result, result.contains("error1"));
+        assertTrue(result, result.contains("error2"));
+        assertTrue(result, result.contains("error3"));
+        assertTrue(result, result.contains("validation1"));
+        assertTrue(result, result.contains("validation2"));
     }
 }

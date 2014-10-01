@@ -83,13 +83,20 @@ public class DigitalObjectManager {
     }
 
     public FedoraObject find(String pid, Integer batchId) throws DigitalObjectNotFoundException {
-        FedoraObject fobject;
+        Batch batch = null;
         if (batchId != null) {
-            Batch batch = ibm.get(batchId);
+            batch = ibm.get(batchId);
             if (batch == null) {
                 throw new DigitalObjectNotFoundException(pid, batchId, null, null, null);
 //                throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID, String.valueOf(batchId));
             }
+        }
+        return find2(pid, batch);
+    }
+
+    public FedoraObject find2(String pid, Batch batch) throws DigitalObjectNotFoundException {
+        FedoraObject fobject;
+        if (batch != null) {
             // XXX move to LocalObject.flush or stream.write
 //            if (!readonly) {
 //                ImportResource.checkBatchState(batch);
@@ -97,9 +104,9 @@ public class DigitalObjectManager {
             if (pid == null || ImportBatchManager.ROOT_ITEM_PID.equals(pid)) {
                 fobject = ibm.getRootObject(batch);
             } else {
-                BatchItemObject item = ibm.findBatchObject(batchId, pid);
+                BatchItemObject item = ibm.findBatchObject(batch.getId(), pid);
                 if (item == null) {
-                    throw new DigitalObjectNotFoundException(pid, batchId, null, null, null);
+                    throw new DigitalObjectNotFoundException(pid, batch.getId(), null, null, null);
 //                    throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
                 }
                 fobject = new LocalStorage().load(pid, item.getFile());

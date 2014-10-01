@@ -24,7 +24,7 @@ import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.util.SC;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 
@@ -59,7 +59,8 @@ public final class DigitalObjectOpenParentAction extends AbstractAction {
     public void performAction(ActionEvent event) {
         Record[] selectedRecords = Actions.getSelection(event);
         if (accept(selectedRecords)) {
-            openParent(selectedRecords[0].getAttribute(RelationDataSource.FIELD_PID));
+            DigitalObject dobj = DigitalObject.create(selectedRecords[0]);
+            openParent(dobj.getPid());
         }
     }
 
@@ -77,12 +78,11 @@ public final class DigitalObjectOpenParentAction extends AbstractAction {
     }
 
     private static boolean isDigitalObject(Record r) {
-        String pid = r.getAttribute(RelationDataSource.FIELD_PID);
-        String model = r.getAttribute(RelationDataSource.FIELD_MODEL);
-        return pid != null && !pid.isEmpty() && model != null && !model.isEmpty();
+        DigitalObject dobj = DigitalObject.createOrNull(r);
+        return dobj != null;
     }
 
-    private void openParent(String childPid) {
+    private void openParent(final String childPid) {
         if (childPid != null) {
             SearchDataSource.getInstance().findParent(childPid, null, new Callback<ResultSet, Void>() {
 
@@ -96,9 +96,14 @@ public final class DigitalObjectOpenParentAction extends AbstractAction {
                         SC.warn(i18n.DigitalObjectOpenParentAction_NoParent_Msg());
                     } else {
                         Record parent = result.first();
-                        places.goTo(new DigitalObjectEditorPlace(
-                                getLastEditorId(),
-                                parent.getAttribute(SearchDataSource.FIELD_PID)));
+                        DigitalObject parentObj = DigitalObject.createOrNull(parent);
+                        if (parentObj != null) {
+                            DigitalObjectEditorPlace place = new DigitalObjectEditorPlace(
+                                    getLastEditorId(),
+                                    parentObj.getPid());
+                            place.setSelectChildPid(childPid);
+                            places.goTo(place);
+                        }
                     }
                 }
             });
