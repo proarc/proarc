@@ -138,8 +138,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     private StructMapType logicalStruct;
     private StructMapType physicalStruct;
     private HashMap<String, FileGrp> fileGrpMap;
-    private final Map<BigInteger, String> pageOrderToDivMap = new HashMap<BigInteger, String>();
-    private final Map<String, List<BigInteger>> structToPageMap = new HashMap<String, List<BigInteger>>();
+    private final Map<StructLinkMapping, String> pageOrderToDivMap = new HashMap<StructLinkMapping, String>();
+    private final Map<String, List<StructLinkMapping>> structToPageMap = new HashMap<String, List<StructLinkMapping>>();
     int pageCounter = 0;
     int articleCounter = 0;
     int chapterCounter = 0;
@@ -1222,6 +1222,26 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     }
 
     /**
+     * Return the first parent, which can contain pages
+     *
+     * @param metsElement
+     * @return
+     * @throws MetsExportException
+     */
+    private IMetsElement findFirstParentWithPage(IMetsElement metsElement) throws MetsExportException {
+        if (metsElement == null) {
+            throw new MetsExportException("Unable to find parent with pages", false, null);
+        }
+        if (!Const.canContainPage.contains(metsElement.getElementType())) {
+            if (metsElement.getParent() == null) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to find parent with pages", false, null);
+            }
+            return findFirstParentWithPage(metsElement.getParent());
+        }
+        return metsElement;
+    }
+
+    /**
      * Inserts Page structure to the mets
      *
      * @param physicalDiv
@@ -1285,17 +1305,39 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
         generateTechMetadata(metsElement, fileNames, pageCounter, fileGrpPage, mimeTypes, pageDiv, outputFileNames, md5InfosMap);
 
-        pageOrderToDivMap.put(pageDiv.getORDER(), ID);
+        StructLinkMapping structLinkMapping = new StructLinkMapping();
+        structLinkMapping.pageDiv = metsElement.getParent().getModsElementID();
+        structLinkMapping.pageOrder = pageDiv.getORDER();
+        pageOrderToDivMap.put(structLinkMapping, ID);
         for (IMetsElement sourceElement : sourceElements) {
-            addMappingPageStruct(pageDiv.getORDER(), sourceElement.getModsElementID());
+            addMappingPageStruct(structLinkMapping, sourceElement.getModsElementID());
         }
     }
 
-    private void addMappingPageStruct(BigInteger pageOrder, String fromDiv) {
-        if (structToPageMap.get(fromDiv) == null) {
-            structToPageMap.put(fromDiv, new ArrayList<BigInteger>());
+    class StructLinkMapping {
+        String pageDiv;
+        BigInteger pageOrder;
+
+        @Override
+        public int hashCode() {
+            return pageDiv.hashCode() * 1000 + pageOrder.hashCode();
+        };
+
+        @Override
+        public boolean equals(Object obj) {
+            StructLinkMapping structLinkMapping = (StructLinkMapping) obj;
+            if (structLinkMapping.pageDiv.equals(this.pageDiv) && (structLinkMapping.pageOrder.equals(this.pageOrder))) {
+                return true;
+            }
+            return false;
         }
-        structToPageMap.get(fromDiv).add(pageOrder);
+    }
+
+    private void addMappingPageStruct(StructLinkMapping structLinkMapping, String fromDiv) {
+        if (structToPageMap.get(fromDiv) == null) {
+            structToPageMap.put(fromDiv, new ArrayList<StructLinkMapping>());
+        }
+        structToPageMap.get(fromDiv).add(structLinkMapping);
     }
 
     /**
@@ -1313,14 +1355,14 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
             for (String structFrom : structToPageMap.keySet()) {
                 if (structToPageMap.get(structFrom) != null) {
-                    for (BigInteger orderPage : structToPageMap.get(structFrom)) {
-                        if (pageOrderToDivMap.get(orderPage) != null) {
+                    for (StructLinkMapping structLinkMapping : structToPageMap.get(structFrom)) {
+                        if (pageOrderToDivMap.get(structLinkMapping) != null) {
                             SmLink smLink = new SmLink();
                             smLink.setFrom(structFrom);
-                            smLink.setTo(pageOrderToDivMap.get(orderPage));
+                            smLink.setTo(pageOrderToDivMap.get(structLinkMapping));
                             structLink.getSmLinkOrSmLinkGrp().add(smLink);
                         } else {
-                            throw new MetsExportException("Unable to find DIV for page order:" + orderPage, false, null);
+                            throw new MetsExportException("Unable to find DIV for page order:" + structLinkMapping.pageDiv + " " + structLinkMapping.pageOrder, false, null);
                         }
                     }
                 }
@@ -1671,10 +1713,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Mods start is bigger than mods end", false,null);
             }
             for (long i=metsElement.getModsStart().longValue(); i<=metsElement.getModsEnd().longValue();i++) {
-                addMappingPageStruct(BigInteger.valueOf(i), metsElement.getModsElementID());
+                StructLinkMapping structLinkMapping = new StructLinkMapping();
+                structLinkMapping.pageDiv = findFirstParentWithPage(metsElement).getModsElementID();
+                structLinkMapping.pageOrder = BigInteger.valueOf(i);
+                addMappingPageStruct(structLinkMapping, metsElement.getModsElementID());
             }
-
-
         }
 
 

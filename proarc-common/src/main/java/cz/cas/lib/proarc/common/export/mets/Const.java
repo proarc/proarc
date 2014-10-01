@@ -37,6 +37,7 @@ public class Const {
     public static HashMap<String, List<String>> streamMapping;
     public static List<String> allowedIdentifiers = new ArrayList<String>();
     public static ArrayList<String> mandatoryStreams = new ArrayList<String>();
+    public static ArrayList<String> canContainPage = new ArrayList<String>();
     public static HashMap<String, String> streamMappingFile = new HashMap<String, String>();
     public static HashMap<String, String> streamMappingPrefix = new HashMap<String, String>();
     public static final String FEDORA_CREATEDATE = "info:fedora/fedora-system:def/model#createdDate";
@@ -174,5 +175,11 @@ public class Const {
         streamMappingFile.put("ALTOGRP", "ALTO");
         streamMappingFile.put("TXTGRP", "TXT");
         streamMappingFile.put("TECHMDGRP", "amdSec");
+
+        canContainPage.add(Const.ISSUE);
+        canContainPage.add(Const.MONOGRAPH_MULTIPART);
+        canContainPage.add(Const.MONOGRAPH_UNIT);
+        canContainPage.add(Const.SUPPLEMENT);
+        canContainPage.add(Const.PERIODICAL_VOLUME);
     }
 }

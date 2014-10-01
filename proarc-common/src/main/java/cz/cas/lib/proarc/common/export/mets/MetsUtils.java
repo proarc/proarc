@@ -141,7 +141,7 @@ public class MetsUtils {
         return mimeToExtension;
     }
 
-    private static void findChildPSPs(DigitalObject dObj, MetsContext ctx, List<String> psps) throws MetsExportException {
+    private static void findChildPSPs(DigitalObject dObj, MetsContext ctx, List<String> psps, String parentType) throws MetsExportException {
         List<Element> relsExt = FoxmlUtils.findDatastream(dObj, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
         Node node = MetsUtils.xPathEvaluateNode(relsExt, "*[local-name()='RDF']/*[local-name()='Description']");
 
@@ -162,9 +162,13 @@ public class MetsUtils {
                 String elementType = Const.typeMap.get(model);
 
                 if (Const.PSPElements.contains(elementType)) {
-                    psps.add(object.getPID());
+                    if (((Const.MONOGRAPH_UNIT.equals(parentType) || (Const.ISSUE.equals(parentType)))) && (Const.SUPPLEMENT.equals(elementType))) {
+                        // do not add
+                    } else {
+                        psps.add(object.getPID());
+                    }
                 } else {
-                    findChildPSPs(object, ctx, psps);
+                    findChildPSPs(object, ctx, psps, elementType);
                 }
             }
         }
@@ -188,6 +192,7 @@ public class MetsUtils {
         String parentType = null;
         List<Element> parentRels = null;
         DigitalObject parentdbObj = null;
+        String firstParentType = null;
 
         // if (ctx.getFedoraClient() != null) {
         // parentId = MetsUtils.getParent(pid, ctx.getRemoteStorage());
@@ -208,6 +213,10 @@ public class MetsUtils {
             parentRels = FoxmlUtils.findDatastream(parentdbObj, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
             parentModel = MetsUtils.getModel(parentRels);
             parentType = Const.typeMap.get(parentModel);
+
+            if ((parentId.equals(pid)) && (firstParentType == null)) {
+                firstParentType = parentType;
+            }
 
             String oldParentId = parentId;
 
@@ -242,7 +251,7 @@ public class MetsUtils {
         }
 
         if (fillChildren) {
-            findChildPSPs(dObj, ctx, result);
+            findChildPSPs(dObj, ctx, result, firstParentType);
         }
 
         return result;
