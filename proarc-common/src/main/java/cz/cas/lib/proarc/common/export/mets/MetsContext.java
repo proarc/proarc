@@ -25,6 +25,7 @@ import java.util.Map;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -56,7 +57,7 @@ public class MetsContext {
     private boolean allowMissingURNNBN = false;
     private File packageDir;
     private String creatorOrganization = "ProArc";
-    private String proarcVersion = "1.0";
+    private String proarcVersion;
     private JhoveContext jhoveContext;
 
     /**
@@ -65,11 +66,14 @@ public class MetsContext {
      * @return
      */
     public String getProarcVersion() {
+        if (proarcVersion == null) {
+            proarcVersion = AppConfiguration.VERSION;
+        }
         return proarcVersion;
     }
 
     /**
-     * Sets the ProArc version - default 1.0
+     * Sets the ProArc version
      * 
      * @param proarcVersion
      */

@@ -45,12 +45,21 @@ import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
  * @author Jan Pokorsky
  */
 public final class AppConfiguration {
-    
+
+    static {
+        String iv = AppConfiguration.class.getPackage().getImplementationVersion();
+        VERSION = iv == null ? "Unknown" : iv;
+    }
+
     public static final String PROPERTY_USER_HOME = "user.home";
     /** environment variable name to override default application home */
     public static final String ENV_APP_HOME = "PROARC_HOME";
     public static final String DEFAULT_APP_HOME_NAME = ".proarc";
     public static final String CONFIG_FILE_NAME = "proarc.cfg";
+    /**
+     * The implementation version. E.g. {@code 1.0}
+     */
+    public static final String VERSION;
 
     /** Path to configuration folder.
      * Internal configuration property interpolated on init.
