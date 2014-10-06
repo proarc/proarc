@@ -25,6 +25,8 @@ import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
 import com.smartgwt.client.widgets.Window;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
+import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.IntegerItem;
@@ -84,9 +86,24 @@ public final class PageMetadataEditor {
     private DynamicForm formPageIndex;
     private BooleanCallback windowCallback;
     private final ClientMessages i18n;
+    private final SubmitValuesHandler formSubmitHandler;
+    private SubmitValuesHandler proxySubmitHandler;
 
     public PageMetadataEditor() {
         this.i18n = GWT.create(ClientMessages.class);
+        formSubmitHandler = new SubmitValuesHandler() {
+
+            @Override
+            public void onSubmitValues(SubmitValuesEvent event) {
+                if (proxySubmitHandler != null) {
+                    proxySubmitHandler.onSubmitValues(event);
+                }
+            }
+        };
+    }
+
+    public void setSubmitHandler(SubmitValuesHandler submitHandler) {
+        this.proxySubmitHandler = submitHandler;
     }
 
     public Canvas getFormPanel() {
@@ -135,12 +152,14 @@ public final class PageMetadataEditor {
         return false;
     }
 
-    private static DynamicForm createForm() {
+    private DynamicForm createForm() {
         DynamicForm form = new DynamicForm();
         form.setWrapItemTitles(false);
 //        form.setAutoWidth();
         form.setAutoHeight();
         form.setBrowserSpellCheck(false);
+        form.setSaveOnEnter(true);
+        form.addSubmitValuesHandler(formSubmitHandler);
         return form;
     }
 

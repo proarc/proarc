@@ -22,6 +22,8 @@ import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
+import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction;
@@ -29,6 +31,7 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetadata;
+import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.BatchDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.CopyPageMetadataWidget;
 import cz.cas.lib.proarc.webapp.client.widget.PageMetadataEditor;
@@ -42,7 +45,7 @@ import java.util.Iterator;
  *
  * @author Jan Pokorsky
  */
-public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable {
+public final class ModsBatchEditor extends AbstractDatastreamEditor implements BatchDatastreamEditor, Refreshable {
 
     private BatchJob editor;
     private DigitalObject[] digitalObjects;
@@ -240,9 +243,16 @@ public final class ModsBatchEditor implements BatchDatastreamEditor, Refreshable
         private String batchNumberFormat;
         private Canvas panel;
 
-        public GenerateJob(ModsBatchEditor editor) {
+        public GenerateJob(final ModsBatchEditor editor) {
             super(editor);
             this.editor = new PageMetadataEditor();
+            this.editor.setSubmitHandler(new SubmitValuesHandler() {
+
+                @Override
+                public void onSubmitValues(SubmitValuesEvent event) {
+                    editor.fireEvent(event);
+                }
+            });
         }
 
         @Override

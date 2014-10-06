@@ -19,6 +19,9 @@ package cz.cas.lib.proarc.webapp.client.widget;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.event.shared.HandlerManager;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.smartgwt.client.widgets.form.events.HasSubmitValuesHandlers;
+import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
+import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadHandler;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.event.HasEditorLoadHandlers;
@@ -28,13 +31,19 @@ import cz.cas.lib.proarc.webapp.client.event.HasEditorLoadHandlers;
  *
  * @author Jan Pokorsky
  */
-public abstract class AbstractDatastreamEditor implements DatastreamEditor, HasEditorLoadHandlers {
+public abstract class AbstractDatastreamEditor implements DatastreamEditor, HasEditorLoadHandlers,
+        HasSubmitValuesHandlers {
 
     private HandlerManager handlerManager;
 
     @Override
     public HandlerRegistration addEditorLoadHandler(EditorLoadHandler handler) {
         return ensureHandlers().addHandler(EditorLoadEvent.TYPE, handler);
+    }
+
+    @Override
+    public HandlerRegistration addSubmitValuesHandler(SubmitValuesHandler handler) {
+        return ensureHandlers().addHandler(SubmitValuesEvent.getType(), handler);
     }
 
     @Override
@@ -52,4 +61,5 @@ public abstract class AbstractDatastreamEditor implements DatastreamEditor, HasE
     private HandlerManager createHandlerManager() {
         return new HandlerManager(this);
     }
+
 }

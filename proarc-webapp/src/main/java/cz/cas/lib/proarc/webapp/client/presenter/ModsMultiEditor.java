@@ -20,6 +20,7 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.Page;
 import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.form.events.HasSubmitValuesHandlers;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
@@ -292,11 +293,6 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
     private void loadCustom(DigitalObject digitalObject) {
         modsCustomEditor.edit(digitalObject);
         if (modsCustomEditor.getCustomForm() != null) {
-            if (submitCustomValuesRegistration != null) {
-                submitCustomValuesRegistration.removeHandler();
-            }
-            submitCustomValuesRegistration = modsCustomEditor.getCustomForm()
-                    .addSubmitValuesHandler(submitCustomValuesHandler);
             setActiveEditor(modsCustomEditor);
             setEnabledCustom(true);
         } else {
@@ -330,6 +326,13 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
                 uiContainer.setMembers(newEditor.getUI());
             } else {
                 uiContainer.setMembers(new Canvas[0]);
+            }
+            if (submitCustomValuesRegistration != null) {
+                submitCustomValuesRegistration.removeHandler();
+            }
+            if (newEditor instanceof HasSubmitValuesHandlers) {
+                submitCustomValuesRegistration = ((HasSubmitValuesHandlers) newEditor)
+                        .addSubmitValuesHandler(submitCustomValuesHandler);
             }
             activeEditor = newEditor;
         }
