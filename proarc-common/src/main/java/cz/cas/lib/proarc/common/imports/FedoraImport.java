@@ -53,8 +53,9 @@ public final class FedoraImport {
         batch.setState(Batch.State.INGESTING);
         batch = ibm.update(batch);
         String parentPid = batch.getParentPid();
+        long startTime = System.currentTimeMillis();
+        ArrayList<String> ingestedPids = new ArrayList<String>();
         try {
-            ArrayList<String> ingestedPids = new ArrayList<String>();
             boolean itemFailed = importItems(batch, importer, ingestedPids);
             addParentMembers(parentPid, ingestedPids, message);
             batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
@@ -64,6 +65,8 @@ public final class FedoraImport {
             batch.setLog(ImportBatchManager.toString(t));
         } finally {
             batch = ibm.update(batch);
+            LOG.log(Level.FINE, "Total ingest time {0} ms. Ingested items: {1}.\n{2}",
+                    new Object[]{System.currentTimeMillis() - startTime, ingestedPids.size(), batch});
         }
         return batch;
     }
