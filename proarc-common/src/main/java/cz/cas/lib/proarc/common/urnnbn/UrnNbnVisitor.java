@@ -51,6 +51,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.core.Response;
 import org.apache.commons.io.FileUtils;
 import org.xml.sax.SAXException;
@@ -81,6 +83,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkPlugin.MODEL_CARTOGRAPHIC,
             NdkPlugin.MODEL_SHEETMUSIC
             ));
+    private static final Logger LOG = Logger.getLogger(UrnNbnVisitor.class.getName());
 
     private NdkEntityFactory resolverEntities = new NdkEntityFactory();
     private DigitalObjectElement registeringObject;
@@ -109,6 +112,12 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
     @Override
     public Void visitNdkPeriodicalIssue(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The issue under " + registeringObject.toLog());
+            return null;
+        }
         try {
             registeringObject = elm;
             return processNdkPeriodicalIssue(elm, p);
@@ -121,23 +130,42 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
     @Override
     public Void visitNdkPeriodicalSupplement(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            if (!NdkPlugin.MODEL_PERIODICALISSUE.equals(registeringObject.getModelId())) {
+                // supplement under issue - ignore
+                // invalid hierarchy
+                p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                        "The supplement under " + registeringObject.toLog());
+            }
+            return null;
+        }
         try {
-            registeringObject = elm;
             DigitalObjectElement parent = getCrawler().getParent(elm.getPid());
             String parentModelId = parent.getModelId();
             if (parent == DigitalObjectElement.NULL || NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentModelId)) {
-                return processNdkPeriodicalIssue(elm, p);
+                try {
+                    registeringObject = elm;
+                    return processNdkPeriodicalIssue(elm, p);
+                } finally {
+                    registeringObject = null;
+                }
+            } else {
+                // the visitor started on issue's supplement
+                return visitEnclosingElement2Register(elm, p);
             }
-            return null;
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
-        } finally {
-            registeringObject = null;
         }
     }
 
     @Override
     public Void visitNdkMonographVolume(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The volume under " + registeringObject.toLog());
+            return null;
+        }
         try {
             registeringObject = elm;
             return processNdkMonographVolumeOrSupplement(elm, p);
@@ -150,22 +178,41 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
     @Override
     public Void visitNdkMonographSupplement(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
-        try {
-            registeringObject = elm;
-            DigitalObjectElement parent = getCrawler().getParent(elm.getPid());
-            if (parent == DigitalObjectElement.NULL || NdkPlugin.MODEL_MONOGRAPHTITLE.equals(parent.getModelId())) {
-                return processNdkMonographVolumeOrSupplement(elm, p);
+        if (registeringObject != null) {
+            if (!NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(registeringObject.getModelId())) {
+                // supplement under monograph volume - ignore
+                // invalid hierarchy
+                p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                        "The supplement under " + registeringObject.toLog());
             }
             return null;
+        }
+        try {
+            DigitalObjectElement parent = getCrawler().getParent(elm.getPid());
+            if (parent == DigitalObjectElement.NULL || NdkPlugin.MODEL_MONOGRAPHTITLE.equals(parent.getModelId())) {
+                try {
+                    registeringObject = elm;
+                    return processNdkMonographVolumeOrSupplement(elm, p);
+                } finally {
+                    registeringObject = null;
+                }
+            } else {
+                // the visitor started on volume's supplement
+                return visitEnclosingElement2Register(elm, p);
+            }
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
-        } finally {
-            registeringObject = null;
         }
     }
 
     @Override
     public Void visitNdkCartographic(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The cartographic under " + registeringObject.toLog());
+            return null;
+        }
         try {
             registeringObject = elm;
             return processOtherEntity(elm, "cartographic", p);
@@ -178,6 +225,12 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
     @Override
     public Void visitNdkSheetMusic(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The sheet music under " + registeringObject.toLog());
+            return null;
+        }
         try {
             registeringObject = elm;
             return processOtherEntity(elm, "sheetmusic", p);
@@ -229,7 +282,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
     }
 
     private boolean isEntryPoint() {
-        return traversePath.size() > 1;
+        return traversePath.size() == 1;
     }
 
     private Void visitEnclosingElement2Register(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
@@ -429,6 +482,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             if (error != null) {
                 // remote registration failed
                 p.getStatus().error(elm, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                LOG.log(Level.SEVERE, "{0}: {1}: {2}",
+                        new Object[]{elm, error.getCode(), error.getMessage()});
                 return null;
             }
             UrnNbn urnNbn = response.getUrnNbn();
