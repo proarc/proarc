@@ -109,7 +109,7 @@ public final class NdkPeriodicalSupplementForm {
                 .setHint("Údaje o odpovědnosti za přílohu.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
-                .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
                     .setHint("<dl>"
                         + "<dt>personal</dt><dd>celé jméno osoby</dd>"
                         + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
