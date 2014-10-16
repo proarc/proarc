@@ -36,8 +36,25 @@ public final class NdkPeriodicalSupplementForm {
         f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
         List<Field> modsFields = f.getFields().get(0).getFields();
 
+        modsFields.add(titleInfo());
+        modsFields.add(name());
+        modsFields.add(typeOfResource());
+        modsFields.add(genre());
+        modsFields.add(originInfo());
+        modsFields.add(language());
+        modsFields.add(physicalDescription());
+        modsFields.add(abstractElm());
+        modsFields.add(note());
+        modsFields.add(subject());
+        modsFields.add(classification());
+        modsFields.add(identifier());
+
+        return f;
+    }
+
+    private Field titleInfo() {
         // titleInfo, titleInfoDefinition
-        modsFields.add(new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
+        return new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
                 .setHint("Názvová informace přílohy.")
                 // titleInfo@type, enum
 //                .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
@@ -83,10 +100,12 @@ public final class NdkPeriodicalSupplementForm {
                 .createField()) // partName
                 // nonSort, type="stringPlusLanguage"
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
-            .createField()); // titleInfo
+            .createField(); // titleInfo
+    }
 
+    private Field name() {
         // name, nameDefinition
-        modsFields.add(new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
                 .setHint("Údaje o odpovědnosti za přílohu.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
@@ -160,10 +179,12 @@ public final class NdkPeriodicalSupplementForm {
                     .createField()) // roleTerm
                 .createField()) // role
                 // description
-            .createField()); // name
+            .createField(); // name
+    }
 
+    private Field typeOfResource() {
         // typeOfResource, typeOfResourceDefinition extends resourceTypeDefinition
-        modsFields.add(new FieldBuilder("typeOfResource").setMaxOccurrences(1)
+        return new FieldBuilder("typeOfResource").setMaxOccurrences(1)
                 // typeOfResourceDefinition
                 //   collection
                 //   manuscript
@@ -186,10 +207,12 @@ public final class NdkPeriodicalSupplementForm {
                     .addMapValue("software, multimedia", "CD/DVD se software")
                     .addMapValue("mixed material", "mixed material")
                 .createField())
-        .createField()); // typeOfResource
+        .createField(); // typeOfResource
+    }
 
+    private Field genre() {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("genre").setMaxOccurrences(1)
+        return new FieldBuilder("genre").setMaxOccurrences(1)
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
@@ -199,10 +222,12 @@ public final class NdkPeriodicalSupplementForm {
                     .addMapValue("volume_supplement", "příloha k ročníku")
                     .addMapValue("issue_supplement", "příloha k číslu")
                 .createField()) // value
-        .createField()); // genre
+        .createField(); // genre
+    }
 
+    private Field originInfo() {
         // originInfo, originInfoDefinition
-        modsFields.add(new FieldBuilder("originInfo").setTitle("Origin Info - MA").setMaxOccurrences(10)
+        return new FieldBuilder("originInfo").setTitle("Origin Info - MA").setMaxOccurrences(10)
                 .setHint("Informace o původu přílohy."
                     + "<p>Plnit pokud se liší od údajů v popisu čísla periodika."
                     + "<p>Poznámka: Jeden nebo více výskytů elementů se"
@@ -303,10 +328,12 @@ public final class NdkPeriodicalSupplementForm {
                             .setHint("Údaje o pravidelnosti vydávání.<p>Odpovídá údaji MARC21 v poli 310 nebo pozici 18 v poli 008.")
                         .createField())
                 .createField()) // frequency
-        .createField()); // originInfo
+        .createField(); // originInfo
+    }
 
+    private Field language() {
         // language, languageDefinition
-        modsFields.add(new FieldBuilder("language").setTitle("Languages - M").setMaxOccurrences(10)
+        return new FieldBuilder("language").setTitle("Languages - M").setMaxOccurrences(10)
                 .setHint("Údaje o jazyce dokumentu; v případě vícenásobného výskytu nutno element &lt;language> opakovat")
                 // @objectPart, @displayLabel, @altRepGroup, @usage
                 // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
@@ -335,10 +362,12 @@ public final class NdkPeriodicalSupplementForm {
                     .createField()) // value
                 .createField()) // languageTerm
                 // scriptTerm
-        .createField()); // language
+        .createField(); // language
+    }
 
+    private Field physicalDescription() {
         // physicalDescription, physicalDescriptionDefinition
-        modsFields.add(new FieldBuilder("physicalDescription").setTitle("Physical Description - M").setMaxOccurrences(10)
+        return new FieldBuilder("physicalDescription").setTitle("Physical Description - M").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu.")
                 // form, formDefinition extends stringPlusLanguagePlusAuthority
                 .addField(new FieldBuilder("form").setTitle("Form - M").setMaxOccurrences(1)
@@ -385,29 +414,35 @@ public final class NdkPeriodicalSupplementForm {
                             + "<p>Pro každou poznámku je nutno vytvořit nový &lt;note> element.")
                     .createField()) // value
                 .createField()) // note
-        .createField()); // physicalDescription
+        .createField(); // physicalDescription
+    }
 
+    private Field abstractElm() {
         // abstract, abstractDefinition extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
+        return new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
                     .setHint("Shrnutí obsahu jako celku. Odpovídá poli 520 MARC21")
                 .createField()) // value
-        .createField()); // abstract
+        .createField(); // abstract
+    }
 
+    private Field note() {
         // note, noteDefinition extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
                     .setHint("Obecná poznámka k dokumentu.")
                 .createField()) // value
-        .createField()); // note
+        .createField(); // note
+    }
 
+    private Field subject() {
         // subject, subjectDefinition
-        modsFields.add(new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
+        return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 // autofill "czenas"
@@ -484,10 +519,12 @@ public final class NdkPeriodicalSupplementForm {
                 // cartographics
                 // occupation
                 // genre
-        .createField()); // subject
+        .createField(); // subject
+    }
 
+    private Field classification() {
         // classification, classificationDefinition extends stringPlusLanguagePlusAuthority
-        modsFields.add(new FieldBuilder("classification").setTitle("Classification - R").setMaxOccurrences(10)
+        return new FieldBuilder("classification").setTitle("Classification - R").setMaxOccurrences(10)
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // autofill "udc"
                 .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("udc").createField())
@@ -496,10 +533,12 @@ public final class NdkPeriodicalSupplementForm {
                     .setHint("Klasifikační údaje věcného třídění podle Mezinárodního"
                         + " desetinného třídění.<p>Odpovídá poli 080 MARC21.")
                 .createField())
-        .createField()); // classification
+        .createField(); // classification
+    }
 
+    private Field identifier() {
         // identifier, identifierDefinition, [0,*]
-        modsFields.add(new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
+        return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
                 .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
                     + " mezinárodní nebo lokální."
                     + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
@@ -542,9 +581,7 @@ public final class NdkPeriodicalSupplementForm {
                     .addMapValue("yes", "Neplatný")
                 .createField()) // invalid
                 //   altRepGroup, xs:string
-        .createField()); // identifier
-
-        return f;
+        .createField(); // identifier
     }
 
 }
