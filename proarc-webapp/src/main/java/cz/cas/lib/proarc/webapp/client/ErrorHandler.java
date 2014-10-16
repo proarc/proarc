@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
@@ -46,6 +47,15 @@ import com.smartgwt.client.widgets.layout.VLayout;
 public final class ErrorHandler {
 
     private TransportError transportError;
+    private final ClientMessages i18n;
+
+    public ErrorHandler() {
+        this(GWT.<ClientMessages>create(ClientMessages.class));
+    }
+
+    public ErrorHandler(ClientMessages i18n) {
+        this.i18n = i18n;
+    }
 
     /**
      * Gets last transport error or {@code null}.
@@ -71,35 +81,7 @@ public final class ErrorHandler {
             @Override
             public void handleError(DSResponse response, DSRequest request) {
                 TransportError te = transportError;
-                String requestDump = ClientUtils.dump(request.getJsObj());
-                // message from original error handler; contains URL
-                Object smartGwtMsg = response.getAttributeAsObject("data");
-                if (te != null && response.getTransactionNum() == te.getTransactionNum()) {
-//                    boolean clientError = te.getHttpResponseCode() >= 400 && te.getHttpResponseCode() < 500;
-                    String clientMsg = getClientMessage(te, response, request);
-                    String debugInfo = ClientUtils.format("%s\nStatus: %s\nQuery: %s",
-                            smartGwtMsg,
-                            te.getStatus(),
-                            requestDump
-                            );
-                    String htmlDebugInfo = ClientUtils.format("%s<br/>Status: %s<br/>Query: %s",
-                            smartGwtMsg,
-                            te.getStatus(),
-                            SafeHtmlUtils.htmlEscape(requestDump)
-                            );
-                    warn(clientMsg, te.getHttpResponseText(), htmlDebugInfo);
-                    SC.logWarn(debugInfo);
-                } else {
-                    String debugInfo = ClientUtils.format("Invalid transaction numbers %s != %s"
-                            +"\n%s\nStatus: %s\nQuery: %s",
-                            response.getTransactionNum(),
-                            te == null ? null : te.getTransactionNum(),
-                            smartGwtMsg,
-                            te.getStatus(),
-                            requestDump
-                            );
-                    throw new IllegalStateException(debugInfo);
-                }
+                ErrorHandler.this.handleError(te, response, request);
 
             }
         });
@@ -110,16 +92,59 @@ public final class ErrorHandler {
      */
     private String getClientMessage(TransportError te, DSResponse response, DSRequest request) {
         String contentType = String.valueOf(response.getHttpHeaders().get("Content-Type"));
-        String result = null;
+        String result;
         if (contentType.contains("text/plain")) {
             result = te.getHttpResponseText();
+        } else {
+            result = i18n.ErrorHandler_UnexpectedError_Msg();
         }
         if (result == null || result.isEmpty() || result.length() > 1000) {
             // message from original error handler; contains URL
-            return String.valueOf(response.getAttributeAsObject("data"));
+            return response.getDataAsString();
         } else {
             return result;
         }
+    }
+
+    private void handleError(TransportError te, DSResponse response, DSRequest request) {
+        String requestDump = ClientUtils.dump(request.getJsObj());
+        // message from original error handler; contains URL
+        Object smartGwtMsg = response.getDataAsString();
+        if (te != null && response.getTransactionNum() == te.getTransactionNum()) {
+//            boolean clientError = te.getHttpResponseCode() >= 400 && te.getHttpResponseCode() < 500;
+            String clientMsg = getClientMessage(te, response, request);
+            String debugInfo = ClientUtils.format("%s\nStatus: %s\nQuery: %s",
+                    smartGwtMsg,
+                    te.getStatus(),
+                    requestDump
+                    );
+            String htmlDebugInfo = ClientUtils.format("%s<br/>Status: %s<br/>Query: %s",
+                    smartGwtMsg,
+                    te.getStatus(),
+                    SafeHtmlUtils.htmlEscape(requestDump)
+                    );
+            warn(clientMsg, te.getHttpResponseText(), htmlDebugInfo);
+            SC.logWarn(debugInfo);
+        } else {
+            String debugInfo = ClientUtils.format("Invalid transaction numbers %s != %s"
+                    +"\n%s\nStatus: %s\nQuery: %s",
+                    response.getTransactionNum(),
+                    te == null ? null : te.getTransactionNum(),
+                    smartGwtMsg,
+                    response.getStatus(),
+                    requestDump
+                    );
+            throw new IllegalStateException(debugInfo);
+        }
+    }
+
+    /**
+     * The default notification about an error.
+     */
+    public static void warn(DSResponse response, DSRequest request) {
+        new ErrorHandler().handleError(new TransportError(response.getTransactionNum(),
+                    response.getStatus(), response.getHttpResponseCode(), response.getHttpResponseText()),
+                response, request);
     }
 
     /**
@@ -142,7 +167,7 @@ public final class ErrorHandler {
         d.setKeepInParentRect(Boolean.TRUE);
 //        d.setShowMaximizeButton(Boolean.TRUE);
         d.setMinMemberSize(50);
-        Button details = new Button("Details");
+        Button details = new Button(i18n.ErrorHandler_ButtonDetalis_Title());
         details.setVisible(allowDetail);
         d.setButtons(Dialog.OK, details);
         if (allowDetail) {
@@ -159,7 +184,7 @@ public final class ErrorHandler {
             debugInfoPane.setCanSelectText(true);
             final VLayout detailPane = new VLayout(4);
             detailPane.setLayoutMargin(4);
-            detailPane.setGroupTitle("Details");
+            detailPane.setGroupTitle(i18n.ErrorHandler_ButtonDetalis_Title());
             detailPane.setIsGroup(true);
             detailPane.setVisible(false);
             detailPane.addMember(errorPane);

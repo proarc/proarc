@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.ErrorHandler;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction.Savable;
@@ -191,6 +192,8 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
         if (LOG.isLoggable(Level.FINE)) {
             ClientUtils.fine(LOG, "saveCustomRecord: %s", ClientUtils.dump(toSave.getJsObj()));
         }
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setWillHandleError(true);
         ModsCustomDataSource.getInstance().updateData(toSave, new DSCallback() {
 
             @Override
@@ -203,11 +206,26 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                         // refresh editor with server values
                         activeEditor.editRecord(customModsRecord);
                     }
+                } else if (response.getHttpResponseCode() == 409) { // concurrency conflict
+                    SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), new BooleanCallback() {
+
+                        @Override
+                        public void execute(Boolean value) {
+                            callback.execute(false);
+                            activeEditor.focus();
+                            if (value != null && value) {
+                                refresh();
+                            }
+                        }
+                    });
+                    return ;
+                } else {
+                    ErrorHandler.warn(response, request);
                 }
                 callback.execute(status);
                 activeEditor.focus();
             }
-        });
+        }, dsRequest);
     }
 
     @Override

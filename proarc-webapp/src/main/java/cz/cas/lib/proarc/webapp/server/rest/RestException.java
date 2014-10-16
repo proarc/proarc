@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -24,6 +25,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -89,6 +92,16 @@ public class RestException extends WebApplicationException {
         }
 
         public ErrorResponse() {
+        }
+
+    }
+
+    @Provider
+    public static final class DigitalObjectConcurrentModificationMapper implements ExceptionMapper<DigitalObjectConcurrentModificationException> {
+
+        @Override
+        public Response toResponse(DigitalObjectConcurrentModificationException ex) {
+            return plainText(Response.status(Status.CONFLICT), ex.getMessage()).build();
         }
 
     }
