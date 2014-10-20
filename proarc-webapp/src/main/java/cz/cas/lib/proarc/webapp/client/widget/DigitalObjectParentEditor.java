@@ -131,7 +131,7 @@ public final class DigitalObjectParentEditor implements BatchDatastreamEditor, R
             String oldParentPid = chooser.getOldParentPid();
             RelationDataSource ds = RelationDataSource.getInstance();
             String[] pids = DigitalObject.toPidArray(digitalObjects);
-            ds.moveChild(pids, oldParentPid, parentPid, new BooleanCallback() {
+            BooleanCallback saveCallback = new BooleanCallback() {
 
                 @Override
                 public void execute(Boolean value) {
@@ -141,7 +141,15 @@ public final class DigitalObjectParentEditor implements BatchDatastreamEditor, R
                     }
                     // else refresh?
                 }
-            });
+            };
+
+            if (oldParentPid == null && parentPid != null) {
+                ds.addChild(parentPid, pids, saveCallback);
+            } else if (oldParentPid != null && parentPid == null) {
+                ds.removeChild(oldParentPid, pids, saveCallback);
+            } else {
+                ds.moveChild(pids, oldParentPid, parentPid, saveCallback);
+            }
         }
     }
 
