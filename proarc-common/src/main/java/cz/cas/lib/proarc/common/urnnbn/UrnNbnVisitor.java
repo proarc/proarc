@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -542,13 +543,18 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
     }
 
     MixType getMix(DigitalObjectElement elm, UrnNbnContext p) {
+        try {
+            MixType mix = MixEditor.raw(elm.getHandler().getFedoraObject()).read();
+            if (mix != null) {
+                return mix;
+            }
+        } catch (DigitalObjectException ex) {
+            throw new IllegalStateException(ex);
+        }
         String pid = elm.getPid();
         Object entity = getPageImageStream(elm, p.getStatus(), BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.RAW_ID);
         if (entity != null) {
             JhoveContext jhoveCtx = p.getJhoveContext();
-//            File temp = new File(FileUtils.getTempDirectory(), "urn" + UUID.randomUUID().toString());
-//            temp.mkdir();
-//            temp.deleteOnExit();
             File temp = null;
             try {
                 File page = null;

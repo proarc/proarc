@@ -27,7 +27,10 @@ import cz.cas.lib.proarc.common.dao.BatchItemDao;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.export.mets.JhoveContext;
+import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
@@ -74,6 +77,7 @@ public class TiffImporterTest {
     private File uc1;
     private AppConfiguration config;
     private ArrayList<Object> toVerify = new ArrayList<Object>();;
+    private JhoveContext jhoveContext;
 
     public TiffImporterTest() {
     }
@@ -107,17 +111,24 @@ public class TiffImporterTest {
                 "UTF-8");
 
         ac1 = new File(root, "img1.ac.jp2");
-        ac1.createNewFile();
+        // fake JP2 content to pass MIX processing
+        FileUtils.copyURLToFile(resource, ac1);
+        assertTrue(ac1.length() > 0);
         uc1 = new File(root, "img1.uc.jp2");
         uc1.createNewFile();
 
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
         }});
+
+        jhoveContext = JhoveUtility.createContext(temp.newFolder("jhove"));
     }
 
     @After
     public void tearDown() {
+        if (jhoveContext != null) {
+            jhoveContext.destroy();
+        }
     }
 
     @Test
@@ -140,6 +151,7 @@ public class TiffImporterTest {
         batch.setFolder(ibm.relativizeBatchFile(tiff1.getParentFile()));
         ctx.setBatch(batch);
         FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1, ocr1, alto1, ac1, uc1)).get(0);
+        ctx.setJhoveContext(jhoveContext);
 
         TiffImporter instance = new TiffImporter(ibm);
         BatchItemObject result = instance.consume(fileSet, ctx);
@@ -184,8 +196,10 @@ public class TiffImporterTest {
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.PREVIEW_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.THUMB_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.RAW_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(MixEditor.RAW_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.NDK_ARCHIVAL_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.NDK_USER_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(MixEditor.NDK_ARCHIVAL_ID), new InputSource(foxmlSystemId));
 
         String rootSystemId = rootFoxml.toURI().toASCIIString();
         XMLAssert.assertXpathExists(streamXPath(RelationEditor.DATASTREAM_ID), new InputSource(rootSystemId));

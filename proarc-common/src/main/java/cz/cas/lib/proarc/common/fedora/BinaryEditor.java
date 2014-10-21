@@ -73,6 +73,10 @@ public final class BinaryEditor {
             dp = FoxmlUtils.managedProfile(dsId, mime, FULL_LABEL);
         } else if (RAW_ID.equals(dsId)) {
             dp = FoxmlUtils.managedProfile(dsId, mime, RAW_LABEL);
+        } else if (NDK_ARCHIVAL_ID.equals(dsId)) {
+            dp = FoxmlUtils.managedProfile(dsId, mime, NDK_ARCHIVAL_LABEL);
+        } else if (NDK_USER_ID.equals(dsId)) {
+            dp = FoxmlUtils.managedProfile(dsId, mime, NDK_USER_LABEL);
         } else {
             return null;
         }

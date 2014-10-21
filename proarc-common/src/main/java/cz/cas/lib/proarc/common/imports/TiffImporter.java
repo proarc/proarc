@@ -16,16 +16,16 @@
  */
 package cz.cas.lib.proarc.common.imports;
 
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
@@ -42,13 +42,9 @@ import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.awt.image.BufferedImage;
-import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.channels.FileChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.stream.FileImageOutputStream;
@@ -102,7 +98,7 @@ public final class TiffImporter {
             importArchivalCopy(fileSet, f, localObj, ctx);
             importUserCopy(fileSet, f, localObj, ctx);
             importOcr(fileSet, localObj, ctx);
-            // XXX generate ATM
+            createTechnicalMetadata(localObj, ctx);
             // writes FOXML
             localObj.flush();
             ibm.addChildRelation(ctx.getBatch(), null, localObj.getPid());
@@ -207,9 +203,7 @@ public final class TiffImporter {
         }
         if (entry != null) {
             // do not use entry.getMimeType. JDK 1.6 does not recognize JPEG2000
-            DatastreamProfile p = FoxmlUtils.managedProfile(
-                    dsId, BinaryEditor.IMAGE_JP2, BinaryEditor.NDK_ARCHIVAL_LABEL);
-            BinaryEditor binaryEditor = new BinaryEditor(fo, p);
+            BinaryEditor binaryEditor = BinaryEditor.dissemination(fo, dsId, BinaryEditor.IMAGE_JP2);
             binaryEditor.write(entry.getFile(), 0, null);
         }
     }
@@ -223,9 +217,7 @@ public final class TiffImporter {
         }
         if (entry != null) {
             // do not use entry.getMimeType. JDK 1.6 does not recognize JPEG2000
-            DatastreamProfile p = FoxmlUtils.managedProfile(
-                    dsId, BinaryEditor.IMAGE_JP2, BinaryEditor.NDK_USER_LABEL);
-            BinaryEditor binaryEditor = new BinaryEditor(fo, p);
+            BinaryEditor binaryEditor = BinaryEditor.dissemination(fo, dsId, BinaryEditor.IMAGE_JP2);
             binaryEditor.write(entry.getFile(), 0, null);
         }
     }
@@ -331,41 +323,19 @@ public final class TiffImporter {
         return scaled;
     }
 
-    private void copyFile(File src, File dst) throws IOException {
-        FileChannel srcChannel = null;
-        FileChannel dstChannel = null;
-        FileInputStream srcStream = null;
-        FileOutputStream dstStream = null;
-        boolean done = false;
-        try {
-            srcStream = new FileInputStream(src);
-            dstStream = new FileOutputStream(dst);
-            srcChannel = srcStream.getChannel();
-            dstChannel = dstStream.getChannel();
-            long count = 0;
-            long length = src.length();
-            while ((count += dstChannel.transferFrom(srcChannel, count, length - count)) < length) {
-                // no op
-            }
-            done = true;
-        } finally {
-            closeQuietly(srcChannel, src.toString(), done);
-            closeQuietly(srcStream, src.toString(), done);
-            closeQuietly(dstChannel, dst.toString(), done);
-            closeQuietly(dstStream, dst.toString(), done);
-        }
-    }
+    private void createTechnicalMetadata(LocalObject localObj, ImportOptions ctx)
+            throws DigitalObjectException {
 
-    private static void closeQuietly(Closeable c, String description, boolean notQuietly) throws IOException {
-        if (c != null) {
-            try {
-                c.close();
-            } catch (IOException ex) {
-                if (notQuietly) {
-                    throw ex;
-                }
-                LOG.log(Level.SEVERE, description, ex);
-            }
+        JhoveContext jhoveCtx = ctx.getJhoveContext();
+        File file = BinaryEditor.dissemination(localObj, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF).read();
+        MixEditor mixEditor = MixEditor.raw(localObj);
+        mixEditor.write(file, jhoveCtx, mixEditor.getLastModified(), null);
+
+        // NDK version
+        file = BinaryEditor.dissemination(localObj, BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.IMAGE_JP2).read();
+        if (file != null) {
+            mixEditor = MixEditor.ndkArchival(localObj);
+            mixEditor.write(file, jhoveCtx, mixEditor.getLastModified(), null);
         }
     }
 }

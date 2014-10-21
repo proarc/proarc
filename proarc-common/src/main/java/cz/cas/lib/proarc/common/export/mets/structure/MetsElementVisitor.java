@@ -80,6 +80,7 @@ import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.AreaType;
 import cz.cas.lib.proarc.mets.DivType;
@@ -954,7 +955,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
                             // If mix is present in fedora, then use this one
                             if (metsElement.getMetsContext().getFedoraClient() != null) {
-                                jHoveOutputRaw = JhoveUtility.getMixFromFedora(metsElement, "RAW_MIX");
+                                jHoveOutputRaw = JhoveUtility.getMixFromFedora(metsElement, MixEditor.RAW_ID);
                             }
                             // If not present, then generate new
                             if (jHoveOutputRaw == null) {
@@ -989,7 +990,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 if (outputFileName != null) {
                     String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
                     if (metsElement.getMetsContext().getFedoraClient() != null) {
-                        jHoveOutputMC = JhoveUtility.getMixFromFedora(metsElement, "NDK_ARCHIVAL_MIX");
+                        jHoveOutputMC = JhoveUtility.getMixFromFedora(metsElement, MixEditor.NDK_ARCHIVAL_ID);
                     }
                     if (jHoveOutputMC == null) {
                         jHoveOutputMC = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);

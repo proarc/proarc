@@ -19,6 +19,9 @@ package cz.cas.lib.proarc.common.imports;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
+import cz.cas.lib.proarc.common.export.mets.JhoveContext;
+import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -186,7 +189,12 @@ public final class ImportProcess implements Runnable {
             ImportFileScanner scanner = new ImportFileScanner();
             List<File> files = scanner.findDigitalContent(importFolder);
             List<FileSet> fileSets = ImportFileScanner.getFileSets(files);
-            consumeFileSets(batch, fileSets, importConfig);
+            importConfig.setJhoveContext(JhoveUtility.createContext());
+            try {
+                consumeFileSets(batch, fileSets, importConfig);
+            } finally {
+                importConfig.getJhoveContext().destroy();
+            }
             batch = batchManager.update(batch);
             return batch;
         } catch (InterruptedException ex) {
@@ -333,6 +341,7 @@ public final class ImportProcess implements Runnable {
         private String model;
         private Batch batch;
         private final ImportProfile profile;
+        private JhoveContext jhoveContext;
 
         ImportOptions(File importFolder, String model, String device,
                 boolean generateIndices, String username,
@@ -388,6 +397,14 @@ public final class ImportProcess implements Runnable {
 
         public ImportProfile getConfig() {
             return profile;
+        }
+
+        public JhoveContext getJhoveContext() {
+            return jhoveContext;
+        }
+
+        public void setJhoveContext(JhoveContext jhoveContext) {
+            this.jhoveContext = jhoveContext;
         }
 
         public static ImportOptions fromBatch(Batch batch, File importFolder,
