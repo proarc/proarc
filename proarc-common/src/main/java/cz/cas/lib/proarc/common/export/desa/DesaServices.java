@@ -133,13 +133,13 @@ public final class DesaServices {
             throw new IllegalStateException("Missing operator! id: "
                     + dc.getServiceId() + ", user: " + (user == null ? null : user.getUserName()));
         }
-        if (dc.getNomenclatureExpiration() > 0) {
+        long expiration = dc.getNomenclatureExpiration();
+        if (expiration != 0) {
             synchronized(DesaServices.this) {
                 // ensure the filename is platform safe and unique for each operator
                 String codeAsFilename = String.valueOf(operator.hashCode() & 0x00000000ffffffffL);
                 cache = new File(tmpFolder, String.format("%s.%s.nomenclatures.cache", dc.getServiceId(), codeAsFilename));
-                int expiration = dc.getNomenclatureExpiration();
-                if (cache.exists() && (System.currentTimeMillis() - cache.lastModified() < expiration)) {
+                if (cache.exists() && (expiration < 0 || System.currentTimeMillis() - cache.lastModified() < expiration)) {
                     return JAXB.unmarshal(cache, Nomenclatures.class);
                 }
             }
@@ -360,11 +360,11 @@ public final class DesaServices {
         }
 
         /**
-         * Gets time to hold caches.
+         * Gets time to hold caches. A negative value implies eternity. Zero implies no cache.
          * @return time in milliseconds
          */
-        public int getNomenclatureExpiration() {
-            return properties.getInt(PROPERTY_NOMENCLATUREEXPIRATION, 0) * 60 * 1000;
+        public long getNomenclatureExpiration() {
+            return properties.getLong(PROPERTY_NOMENCLATUREEXPIRATION, 0) * 60 * 1000;
         }
 
         @Override
