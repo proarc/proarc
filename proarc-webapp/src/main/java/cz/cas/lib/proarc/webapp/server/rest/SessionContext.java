@@ -48,7 +48,7 @@ public final class SessionContext {
 
     public static SessionContext from(HttpServletRequest request) throws WebApplicationException{
         Principal userPrincipal = request.getUserPrincipal();
-        String remoteAddr = request.getRemoteAddr();
+        String remoteAddr = getRemoteAddr(request);
         if (userPrincipal != null && userPrincipal instanceof ProarcPrincipal) {
             ProarcPrincipal proarcPrincipal = (ProarcPrincipal) userPrincipal;
             UserProfile user = proarcPrincipal.getAssociatedUserProfile();
@@ -82,6 +82,10 @@ public final class SessionContext {
         return user;
     }
 
+    public String getIp() {
+        return ip;
+    }
+
     public boolean checkPermission(Permission... permissions) {
         UserManager userManager = UserUtil.getDefaultManger();
         Set<Permission> grants = userManager.findUserPermissions(user.getId());
@@ -92,6 +96,32 @@ public final class SessionContext {
         if (checkPermission(permissions)) {
             throw new WebApplicationException(Status.FORBIDDEN);
         }
+    }
+
+    /**
+     * Guesses real client IP. E.g. Apache with mod_proxy in front of Tomcat
+     * puts origin client IP to X-Forwarded-For header.
+     * @param request
+     * @return
+     */
+    private static String getRemoteAddr(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
     }
 
 }
