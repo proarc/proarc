@@ -68,6 +68,7 @@ import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
+import cz.cas.lib.proarc.webapp.client.action.DeleteAction.Deletable;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction.CopySelector;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
@@ -166,7 +167,13 @@ public final class DigitalObjectChildrenEditor
                         Record changedRecord = childrenListGrid.getDataAsRecordList()
                                 .find(RelationDataSource.FIELD_PID, changedPid);
                         if (changedRecord == null) {
-                            // not shown object
+                            // moved object(s)
+                            // ListGrid does not remove selection of removed/moved rows
+                            // and it does not fire selection change
+                            // issue 246: clear selection of moved row
+                            childrenListGrid.deselectAllRecords();
+                            DigitalObjectCopyMetadataAction.resetSelection();
+                            showCopySelection(new Record[0]);
                             return ;
                         }
                     }
@@ -253,7 +260,17 @@ public final class DigitalObjectChildrenEditor
                 save();
             }
         };
-        DeleteAction deleteAction = new DeleteAction(DigitalObjectDataSource.createDeletable(), i18n);
+        DeleteAction deleteAction = new DeleteAction(new Deletable() {
+
+            private final Deletable deletable = DigitalObjectDataSource.createDeletable();;
+
+            @Override
+            public void delete(Object[] items) {
+                deletable.delete(items);
+                childrenListGrid.deselectAllRecords();
+                DigitalObjectCopyMetadataAction.removeSelection((Record[]) items);
+            }
+        }, i18n);
         addActionButton = Actions.asIconMenuButton(addAction, this);
         return new Canvas[] {
             addActionButton,

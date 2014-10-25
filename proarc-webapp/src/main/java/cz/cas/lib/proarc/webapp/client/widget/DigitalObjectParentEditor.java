@@ -129,7 +129,7 @@ public final class DigitalObjectParentEditor implements BatchDatastreamEditor, R
             final Record newParent = chooser.getSelectedParent();
             String parentPid = chooser.getSelectedParentPid();
             String oldParentPid = chooser.getOldParentPid();
-            RelationDataSource ds = RelationDataSource.getInstance();
+            final RelationDataSource ds = RelationDataSource.getInstance();
             String[] pids = DigitalObject.toPidArray(digitalObjects);
             BooleanCallback saveCallback = new BooleanCallback() {
 
@@ -138,6 +138,7 @@ public final class DigitalObjectParentEditor implements BatchDatastreamEditor, R
                     if (value != null && value) {
                         chooser.onSave(newParent);
                         StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
+                        ds.fireRelationChange(digitalObjects[0].getPid());
                     }
                     // else refresh?
                 }
