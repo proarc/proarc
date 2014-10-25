@@ -47,6 +47,8 @@ import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
 import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
+import com.smartgwt.client.widgets.grid.events.RecordDoubleClickEvent;
+import com.smartgwt.client.widgets.grid.events.RecordDoubleClickHandler;
 import com.smartgwt.client.widgets.grid.events.RecordDropEvent;
 import com.smartgwt.client.widgets.grid.events.RecordDropHandler;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
@@ -120,11 +122,17 @@ public final class DigitalObjectChildrenEditor
     private RelationDataSource relationDataSource;
     /** Notifies changes in list of children that should be reflected by actions. */
     private final ActionSource actionSource;
+    private final DigitalObjectEditAction goDownAction;
 
     public DigitalObjectChildrenEditor(ClientMessages i18n, PlaceController places) {
         this.i18n = i18n;
         this.places = places;
         this.actionSource = new ActionSource(this);
+        this.goDownAction = new DigitalObjectEditAction(
+                i18n.DigitalObjectEditor_ChildrenEditor_ChildAction_Title(),
+                i18n.DigitalObjectEditor_ChildrenEditor_ChildAction_Hint(),
+                "[SKIN]/FileBrowser/folder.png",
+                DatastreamEditorType.CHILDREN, places);
         relationDataSource = RelationDataSource.getInstance();
         childrenListGrid = initChildrenListGrid();
         VLayout childrenLayout = new VLayout();
@@ -250,12 +258,7 @@ public final class DigitalObjectChildrenEditor
         return new Canvas[] {
             addActionButton,
             Actions.asIconButton(deleteAction, actionSource),
-            Actions.asIconButton(new DigitalObjectEditAction(
-                        i18n.DigitalObjectEditor_ChildrenEditor_ChildAction_Title(),
-                        i18n.DigitalObjectEditor_ChildrenEditor_ChildAction_Hint(),
-                        "[SKIN]/FileBrowser/folder.png",
-                        DatastreamEditorType.CHILDREN, places),
-                actionSource),
+            Actions.asIconButton(goDownAction, actionSource),
             Actions.asIconButton(DigitalObjectFormValidateAction.getInstance(i18n),
                     new ValidatableList(childrenListGrid)),
             Actions.asIconButton(new UrnNbnAction(i18n), actionSource),
@@ -376,6 +379,7 @@ public final class DigitalObjectChildrenEditor
         lg.setCanSort(Boolean.FALSE);
         lg.setCanReorderRecords(Boolean.TRUE);
         lg.setShowRollOver(Boolean.FALSE);
+        lg.setGenerateDoubleClickOnEnter(Boolean.TRUE);
         // ListGrid with enabled grouping prevents record reoredering by dragging! (SmartGWT 3.0)
         // lg.setGroupByField(RelationDataSource.FIELD_MODEL);
         // lg.setGroupStartOpen(GroupStartOpen.ALL);
@@ -397,6 +401,14 @@ public final class DigitalObjectChildrenEditor
                 if (event.getStartRow() == 0) {
                     initOnEdit();
                 }
+            }
+        });
+        lg.addRecordDoubleClickHandler(new RecordDoubleClickHandler() {
+
+            @Override
+            public void onRecordDoubleClick(RecordDoubleClickEvent event) {
+                ActionEvent evt = new ActionEvent(actionSource.getSource());
+                goDownAction.performAction(evt);
             }
         });
         return lg;
