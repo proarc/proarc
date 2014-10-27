@@ -206,6 +206,39 @@ public class TiffImporterTest {
         EasyMock.verify(toVerify.toArray());
     }
 
+    @Test
+    public void testMissingRequiredContent() throws Exception {
+        assertTrue(alto1.delete());
+        assertTrue(config.getImportConfiguration().getRequiredDatastreamId().contains(AltoDatastream.ALTO_ID));
+
+        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot());
+        assertTrue(targetFolder.exists());
+
+        DaoFactory daos = createMockDaoFactory();
+        ImportBatchManager ibm = new ImportBatchManager(config, daos);
+
+        String mimetype = ImportProcess.findMimeType(tiff1);
+        assertNotNull(mimetype);
+
+        ImportOptions ctx = new ImportOptions(tiff1.getParentFile(), "model:page",
+                "scanner:scanner1", true, "junit", config.getImportConfiguration());
+        ctx.setTargetFolder(targetFolder);
+        Batch batch = new Batch();
+        batch.setId(1);
+        batch.setFolder(ibm.relativizeBatchFile(tiff1.getParentFile()));
+        ctx.setBatch(batch);
+        FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1, ocr1, ac1, uc1)).get(0);
+        ctx.setJhoveContext(jhoveContext);
+
+        TiffImporter instance = new TiffImporter(ibm);
+        BatchItemObject result = instance.consume(fileSet, ctx);
+
+        assertEquals(ObjectState.LOADING_FAILED, result.getState());
+        String log = result.getLog();
+        assertNotNull(log);
+        assertTrue(log, log.contains("Missing ALTO"));
+    }
+
     private static String streamXPath(String dsId) {
         return "f:digitalObject/f:datastream[@ID='" + dsId + "']";
     }

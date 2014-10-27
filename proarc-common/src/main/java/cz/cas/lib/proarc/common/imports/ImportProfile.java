@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
+import java.util.List;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConversionException;
 
@@ -44,6 +45,7 @@ public final class ImportProfile {
     public static final String NDK_USER_PROCESSOR = "import.ndk_user.processor";
     public static final String NDK_USER_SUFFIX = "import.ndk_user.file.suffix";
     public static final String PROCESSOR = "processor";
+    public static final String REQUIRED_DATASTREAM = "import.requiredDatastreamId";
 
     private final Configuration config;
 
@@ -96,6 +98,10 @@ public final class ImportProfile {
 
     public ScalingMethod getPreviewScaling() {
         return getJavaScaling(PREVIEW_JAVA_SCALING);
+    }
+
+    public List<Object> getRequiredDatastreamId() {
+        return config.getList(REQUIRED_DATASTREAM);
     }
 
     public Integer getThumbnailMaxHeight() {

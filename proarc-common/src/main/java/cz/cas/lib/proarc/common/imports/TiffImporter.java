@@ -43,8 +43,10 @@ import cz.incad.imgsupport.ImageSupport;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.stream.FileImageOutputStream;
@@ -169,18 +171,26 @@ public final class TiffImporter {
         File tempBatchFolder = options.getTargetFolder();
         String originalFilename = fileSet.getName();
         ImportProfile config = options.getConfig();
+        List<Object> requiredDatastreamId = config.getRequiredDatastreamId();
+
         FileEntry ocrEntry = findSibling(fileSet, config.getPlainOcrFileSuffix());
         if (ocrEntry != null) {
             File ocrFile = new File(tempBatchFolder, originalFilename + '.' + StringEditor.OCR_ID + ".txt");
             StringEditor.copy(ocrEntry.getFile(), config.getPlainOcrCharset(), ocrFile, "UTF-8");
             XmlStreamEditor ocrEditor = fo.getEditor(StringEditor.ocrProfile());
             ocrEditor.write(ocrFile.toURI(), 0, null);
+        } else if (requiredDatastreamId.contains(StringEditor.OCR_ID)) {
+            throw new FileNotFoundException("Missing OCR: " + new File(tempBatchFolder.getParent(),
+                    originalFilename + config.getPlainOcrFileSuffix()).toString());
         }
         // ALTO OCR
         FileEntry altoEntry = findSibling(fileSet, config.getAltoFileSuffix());
         if (altoEntry != null) {
             URI altoUri = altoEntry.getFile().toURI();
             AltoDatastream.importAlto(fo, altoUri, null);
+        } else if (requiredDatastreamId.contains(AltoDatastream.ALTO_ID)) {
+            throw new FileNotFoundException("Missing ALTO: " + new File(tempBatchFolder.getParent(),
+                    originalFilename + config.getPlainOcrFileSuffix()).toString());
         }
     }
 
@@ -205,6 +215,9 @@ public final class TiffImporter {
             // do not use entry.getMimeType. JDK 1.6 does not recognize JPEG2000
             BinaryEditor binaryEditor = BinaryEditor.dissemination(fo, dsId, BinaryEditor.IMAGE_JP2);
             binaryEditor.write(entry.getFile(), 0, null);
+        } else if (config.getRequiredDatastreamId().contains(dsId)) {
+            throw new FileNotFoundException("Missing archival JP2: " + new File(
+                    tiff.getParentFile(), fileSet.getName() + config.getNdkArchivalFileSuffix()));
         }
     }
 
@@ -219,6 +232,9 @@ public final class TiffImporter {
             // do not use entry.getMimeType. JDK 1.6 does not recognize JPEG2000
             BinaryEditor binaryEditor = BinaryEditor.dissemination(fo, dsId, BinaryEditor.IMAGE_JP2);
             binaryEditor.write(entry.getFile(), 0, null);
+        } else if (config.getRequiredDatastreamId().contains(dsId)) {
+            throw new FileNotFoundException("Missing user JP2: " + new File(
+                    tiff.getParentFile(), fileSet.getName() + config.getNdkUserFileSuffix()));
         }
     }
 
