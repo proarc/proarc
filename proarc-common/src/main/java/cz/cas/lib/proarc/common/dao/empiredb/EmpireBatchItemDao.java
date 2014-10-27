@@ -94,6 +94,7 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
         if (type != null) {
             cmd.where(table.type.is(type));
         }
+        cmd.orderBy(table.timestamp);
         result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }

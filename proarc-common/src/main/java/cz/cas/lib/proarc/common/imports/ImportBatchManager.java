@@ -136,6 +136,11 @@ public class ImportBatchManager {
      */
     public List<BatchItemObject> findLoadedObjects(Batch batch) {
         List<BatchItemObject> items = findBatchObjects(batch.getId(), null);
+        if (batch.getState() == State.LOADING) {
+            // issue 245: scheduled or loading batches do not have created or complete
+            //      the root object! Timestamp order should be sufficient here.
+            return items;
+        }
         LocalObject root = getRootObject(batch);
         RelationEditor relationEditor = new RelationEditor(root);
         List<String> members;
