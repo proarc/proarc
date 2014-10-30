@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
+import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.i18n.BundleName;
@@ -46,6 +47,14 @@ public final class PageView {
         LocalStorage storage = new LocalStorage();
         PageMapper mapper = new PageMapper();
         for (BatchItemObject imp : imports) {
+            ObjectState objectState = imp.getState();
+            if (objectState == ObjectState.LOADING || objectState == ObjectState.LOADING_FAILED) {
+                // issue 245: it is unsafe to touch FOXML file if the object
+                // has not been loaded yet or it is broken
+                result.add(new Item(batchId, imp.getItem().getFile(), imp.getPid(),
+                        null, null, null, null, -1, null, null));
+                continue;
+            }
             File foxml = imp.getFile();
             LocalObject local = storage.load(imp.getPid(), foxml);
             DigitalObjectHandler doHandler = DigitalObjectManager.getDefault().createHandler(local);
