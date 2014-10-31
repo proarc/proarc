@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.Calendar;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,12 +37,13 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.MixEditor;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.Compression;
 import cz.cas.lib.proarc.mix.BasicImageInformationType;
 import cz.cas.lib.proarc.mix.BasicImageInformationType.BasicImageCharacteristics.PhotometricInterpretation;
@@ -195,20 +195,36 @@ public class JhoveUtility {
      * @throws MetsExportException
      */
     public static JHoveOutput getMixFromFedora(IMetsElement metsElement, String streamName) throws MetsExportException {
-        Document document = null;
+//        Document document = null;
+        // hotfix of issue 250
         JHoveOutput jhoveOutput = new JHoveOutput();
-        if (FoxmlUtils.findDatastream(metsElement.getSourceObject(), streamName) != null) {
-            List<Element> streamContent = MetsUtils.getDataStreams(metsElement.getMetsContext().getFedoraClient(), metsElement.getOriginalPid(), streamName);
-            if (streamContent == null) {
-                return null;
-            }
-            document = MetsUtils.getDocumentFromList(streamContent);
-        }
-        if (document == null) {
+        MixEditor mixEditor;
+        RemoteObject fObj = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
+        if (MixEditor.RAW_ID.equals(streamName)) {
+            mixEditor = MixEditor.raw(fObj);
+        } else if (MixEditor.NDK_ARCHIVAL_ID.equals(streamName)) {
+            mixEditor = MixEditor.ndkArchival(fObj);
+        } else {
             return null;
         }
-        DOMSource domSource = new DOMSource(document);
-        Mix mix = MixUtils.unmarshal(domSource, Mix.class);
+        Mix mix;
+        try {
+            mix = mixEditor.readMix();
+        } catch (DigitalObjectException ex) {
+            throw new MetsExportException(metsElement.getOriginalPid(), ex.getMessage(), false, ex);
+        }
+//        if (FoxmlUtils.findDatastream(metsElement.getSourceObject(), streamName) != null) {
+//            List<Element> streamContent = MetsUtils.getDataStreams(metsElement.getMetsContext().getFedoraClient(), metsElement.getOriginalPid(), streamName);
+//            if (streamContent == null) {
+//                return null;
+//            }
+//            document = MetsUtils.getDocumentFromList(streamContent);
+//        }
+//        if (document == null) {
+//            return null;
+//        }
+//        DOMSource domSource = new DOMSource(document);
+//        MixType mix = MixUtils.unmarshal(domSource, MixType.class);
         jhoveOutput.setMix(mix);
         jhoveOutput.setFormatVersion(mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatName().getValue());
         return jhoveOutput;

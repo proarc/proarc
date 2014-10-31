@@ -89,6 +89,20 @@ public class MixEditor {
         return result;
     }
 
+    /**
+     * Gets persisted MIX as {@link Mix} class.
+     * @return MIX or {@code null}
+     * @throws DigitalObjectException failure
+     */
+    public Mix readMix() throws DigitalObjectException {
+        Source src = editor.read();
+        Mix result = null;
+        if (src != null) {
+            result = MixUtils.unmarshal(src, Mix.class);
+        }
+        return result;
+    }
+
     public void write(MixType mix, long timestamp, String msg) throws DigitalObjectException {
         EditorResult result = editor.createResult();
         MixUtils.marshal(result, mix, true);
