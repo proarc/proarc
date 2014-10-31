@@ -210,6 +210,9 @@ public class JhoveUtility {
         Mix mix;
         try {
             mix = mixEditor.readMix();
+            if (mix == null) {
+                return null;
+            }
         } catch (DigitalObjectException ex) {
             throw new MetsExportException(metsElement.getOriginalPid(), ex.getMessage(), false, ex);
         }
