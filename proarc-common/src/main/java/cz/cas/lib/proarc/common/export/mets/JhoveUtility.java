@@ -252,6 +252,45 @@ public class JhoveUtility {
     }
 
     /**
+     * Inserts dateCreated into Mix
+     * 
+     * @param mix
+     * @param dateCreated
+     */
+    public static void insertDateCreated(Mix mix, XMLGregorianCalendar dateCreated) {
+        TypeOfDateType dateTimeCreated = new TypeOfDateType();
+        dateTimeCreated.setValue(dateCreated.toXMLFormat());
+        if (mix.getImageCaptureMetadata() == null) {
+            mix.setImageCaptureMetadata(new ImageCaptureMetadataType());
+        }
+        if (mix.getImageCaptureMetadata().getGeneralCaptureInformation() == null) {
+            mix.getImageCaptureMetadata().setGeneralCaptureInformation(new ImageCaptureMetadataType.GeneralCaptureInformation());
+        }
+        mix.getImageCaptureMetadata().getGeneralCaptureInformation().setDateTimeCreated(dateTimeCreated);
+    }
+
+    /**
+     * Inserts changeHistory into Mix
+     * 
+     * @param mix
+     * @param dateCreated
+     * @param originalFileName
+     */
+    public static void insertChangeHistory(Mix mix, XMLGregorianCalendar dateCreated, String originalFileName) {
+        if (mix.getChangeHistory() == null) {
+            mix.setChangeHistory(new ChangeHistoryType());
+        }
+        ImageProcessing imageProcessing = new ChangeHistoryType.ImageProcessing();
+        TypeOfDateType dateTimeProcessed = new TypeOfDateType();
+        dateTimeProcessed.setValue(dateCreated.toXMLFormat());
+        imageProcessing.setDateTimeProcessed(dateTimeProcessed);
+        StringType sourceData = new StringType();
+        sourceData.setValue(originalFileName);
+        imageProcessing.setSourceData(sourceData);
+        mix.getChangeHistory().getImageProcessing().add(imageProcessing);
+    }
+
+    /**
      * Gets MIX of a source image file.
      *
      * @param sourceFile image file to describe with MIX
@@ -307,30 +346,12 @@ public class JhoveUtility {
             mergeMix(mix, deviceMix);
             // insert date time created
             if ((dateCreated != null) && (mix != null)) {
-                TypeOfDateType dateTimeCreated = new TypeOfDateType();
-                dateTimeCreated.setValue(dateCreated.toXMLFormat());
-                if (mix.getImageCaptureMetadata() == null) {
-                    mix.setImageCaptureMetadata(new ImageCaptureMetadataType());
-                }
-                if (mix.getImageCaptureMetadata().getGeneralCaptureInformation() == null) {
-                    mix.getImageCaptureMetadata().setGeneralCaptureInformation(new ImageCaptureMetadataType.GeneralCaptureInformation());
-                }
-                mix.getImageCaptureMetadata().getGeneralCaptureInformation().setDateTimeCreated(dateTimeCreated);
+                insertDateCreated(mix, dateCreated);
             }
 
             // insert ChangeHistory
             if ((dateCreated != null) && (originalFileName != null)) {
-                if (mix.getChangeHistory() == null) {
-                    mix.setChangeHistory(new ChangeHistoryType());
-                }
-                ImageProcessing imageProcessing = new ChangeHistoryType.ImageProcessing();
-                TypeOfDateType dateTimeProcessed = new TypeOfDateType();
-                dateTimeProcessed.setValue(dateCreated.toXMLFormat());
-                imageProcessing.setDateTimeProcessed(dateTimeProcessed);
-                StringType sourceData = new StringType();
-                sourceData.setValue(originalFileName);
-                imageProcessing.setSourceData(sourceData);
-                mix.getChangeHistory().getImageProcessing().add(imageProcessing);
+                insertChangeHistory(mix, dateCreated, originalFileName);
             }
 
             // add formatVersion
