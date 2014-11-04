@@ -965,9 +965,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                 }
                             } else {
                                 // Merges the information from the device mix
-                                if (jHoveOutputRaw.getMix().getImageCaptureMetadata() == null) {
-                                    JhoveUtility.mergeMix(jHoveOutputRaw.getMix(), mixDevice);
-                                }
+                                JhoveUtility.mergeMix(jHoveOutputRaw.getMix(), mixDevice);
+                                // Insert dateCreated if missing
+                                if ((jHoveOutputRaw.getMix().getImageCaptureMetadata()==null)||
+                                        (jHoveOutputRaw.getMix().getImageCaptureMetadata().getGeneralCaptureInformation()==null)||
+                                        (jHoveOutputRaw.getMix().getImageCaptureMetadata().getGeneralCaptureInformation().getDateTimeCreated() == null)) {
+                                            JhoveUtility.insertDateCreated(jHoveOutputRaw.getMix(), rawCreated);
+                                        }
                             }
                             if ((jHoveOutputRaw.getMix() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation() != null)) {
                                 photometricInterpretation = jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation();
@@ -996,6 +1000,17 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         jHoveOutputMC = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
                         if (jHoveOutputMC.getMix() == null) {
                             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for MC image", false, null);
+                        }
+                    } else {
+                        // inserts DateCreated if missing
+                        if ((jHoveOutputMC.getMix().getImageCaptureMetadata() == null) ||
+                                (jHoveOutputMC.getMix().getImageCaptureMetadata().getGeneralCaptureInformation() == null) ||
+                                (jHoveOutputMC.getMix().getImageCaptureMetadata().getGeneralCaptureInformation().getDateTimeCreated() == null)) {
+                            JhoveUtility.insertDateCreated(jHoveOutputMC.getMix(), md5InfosMap.get("MC_IMGGRP").getCreated());
+                        }
+                        // inserts changeHistory if missing
+                        if (jHoveOutputRaw.getMix().getChangeHistory()==null) {
+                            JhoveUtility.insertChangeHistory(jHoveOutputMC.getMix(), md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
                         }
                     }
                     JhoveUtility.addPhotometricInformation(jHoveOutputMC, photometricInterpretation);
