@@ -630,7 +630,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         JAXBElement<AgentComplexType> jaxbPremix = factory.createAgent(agent);
         AgentIdentifierComplexType agentIdentifier = new AgentIdentifierComplexType();
         agent.getAgentIdentifier().add(agentIdentifier);
-        agentIdentifier.setAgentIdentifierType("EE_App_Name");
+        agentIdentifier.setAgentIdentifierType("ProArc_AgentID");
         agentIdentifier.setAgentIdentifierValue("ProArc");
         agent.setAgentType("software");
         agent.getAgentName().add("ProArc");
@@ -665,18 +665,18 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         EventIdentifierComplexType eventIdentifier = new EventIdentifierComplexType();
         event.setEventIdentifier(eventIdentifier);
         event.setEventType("derivation");
-        eventIdentifier.setEventIdentifierType("UUID");
-        eventIdentifier.setEventIdentifierValue(metsElement.getOriginalPid() + "." + datastream + ".event");
+        eventIdentifier.setEventIdentifierType("ProArc_EventID");
+        eventIdentifier.setEventIdentifierValue(Const.dataStreamToEvent.get(datastream));
         EventOutcomeInformationComplexType eventInformation = new EventOutcomeInformationComplexType();
         event.getEventOutcomeInformation().add(eventInformation);
         eventInformation.getContent().add(factory.createEventOutcome("successful"));
         LinkingAgentIdentifierComplexType linkingAgentIdentifier = new LinkingAgentIdentifierComplexType();
-        linkingAgentIdentifier.setLinkingAgentIdentifierType("EE_App_Name");
+        linkingAgentIdentifier.setLinkingAgentIdentifierType("ProArc_AgentID");
         linkingAgentIdentifier.setLinkingAgentIdentifierValue("ProArc");
         linkingAgentIdentifier.getLinkingAgentRole().add("software");
         LinkingObjectIdentifierComplexType linkingObject = new LinkingObjectIdentifierComplexType();
-        linkingObject.setLinkingObjectIdentifierType("UUID");
-        linkingObject.setLinkingObjectIdentifierValue(metsElement.getOriginalPid() + "." + datastream);
+        linkingObject.setLinkingObjectIdentifierType("ProArc_URI");
+        linkingObject.setLinkingObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get(datastream));
         event.getLinkingObjectIdentifier().add(linkingObject);
         event.getLinkingAgentIdentifier().add(linkingAgentIdentifier);
         JAXBContext jc;
@@ -715,8 +715,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         cz.cas.lib.proarc.premis.File file = factory.createFile();
         premis.getObject().add(file);
         ObjectIdentifierComplexType objectIdentifier = new ObjectIdentifierComplexType();
-        objectIdentifier.setObjectIdentifierType("UUID");
-        objectIdentifier.setObjectIdentifierValue(metsElement.getOriginalPid() + "." + datastream);
+        objectIdentifier.setObjectIdentifierType("ProArc_URI");
+        objectIdentifier.setObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get(datastream));
         file.getObjectIdentifier().add(objectIdentifier);
         PreservationLevelComplexType preservation = new PreservationLevelComplexType();
         if ("RAW".equals(datastream)) {
@@ -761,12 +761,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             relationShip.setRelationshipSubType("created from");
             RelatedObjectIdentificationComplexType relatedObject = new RelatedObjectIdentificationComplexType();
             relationShip.getRelatedObjectIdentification().add(relatedObject);
-            relatedObject.setRelatedObjectIdentifierType("UUID");
-            relatedObject.setRelatedObjectIdentifierValue(metsElement.getOriginalPid() + "." + datastream);
+            relatedObject.setRelatedObjectIdentifierType("ProArc_URI");
+            relatedObject.setRelatedObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get("RAW"));
             RelatedEventIdentificationComplexType eventObject = new RelatedEventIdentificationComplexType();
             relationShip.getRelatedEventIdentification().add(eventObject);
-            eventObject.setRelatedEventIdentifierType("UUID");
-            eventObject.setRelatedEventIdentifierValue(metsElement.getOriginalPid() + "." + datastream + ".event");
+            eventObject.setRelatedEventIdentifierType("ProArc_EventID");
+            eventObject.setRelatedEventIdentifierValue(Const.dataStreamToEvent.get(datastream));
             eventObject.setRelatedEventSequence(BigInteger.ONE);
             file.getRelationship().add(relationShip);
         } else {
@@ -774,8 +774,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             relationShip.setRelationshipSubType("created from");
             LinkingEventIdentifierComplexType eventIdentifier = new LinkingEventIdentifierComplexType();
             file.getLinkingEventIdentifier().add(eventIdentifier);
-            eventIdentifier.setLinkingEventIdentifierType("UUID");
-            eventIdentifier.setLinkingEventIdentifierValue(metsElement.getOriginalPid() + "." + datastream + ".event");
+            eventIdentifier.setLinkingEventIdentifierType("ProArc_EventID");
+            eventIdentifier.setLinkingEventIdentifierValue(Const.dataStreamToEvent.get(datastream));
         }
 
         String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
@@ -976,6 +976,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             if ((jHoveOutputRaw.getMix() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation() != null)) {
                                 photometricInterpretation = jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation();
                             }
+                            JhoveUtility.insertObjectIdentifier(jHoveOutputRaw.getMix(), metsElement.getOriginalPid(), "RAW");
                             JhoveUtility.addDenominator(jHoveOutputRaw);
                             JhoveUtility.addOrientation(jHoveOutputRaw);
 
@@ -1013,6 +1014,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             JhoveUtility.insertChangeHistory(jHoveOutputMC.getMix(), md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
                         }
                     }
+                    JhoveUtility.insertObjectIdentifier(jHoveOutputMC.getMix(), metsElement.getOriginalPid(), "MC_IMGGRP");
                     JhoveUtility.addPhotometricInformation(jHoveOutputMC, photometricInterpretation);
                     JhoveUtility.addDenominator(jHoveOutputMC);
                     JhoveUtility.addOrientation(jHoveOutputMC);
