@@ -96,6 +96,9 @@ public class Const {
     public final static Map<String, String> typeMap = new HashMap<String, String>();
     public final static Map<String, String> typeNameMap = new HashMap<String, String>();
     public final static Map<String, String> mimeToFmtMap = new HashMap<String, String>();
+    // Tech MD creation constants
+    public final static Map<String, String> dataStreamToModel = new HashMap<String, String>();
+    public final static Map<String, String> dataStreamToEvent = new HashMap<String, String>();
 
     static {
         allowedIdentifiers.add("isbn");
@@ -181,5 +184,14 @@ public class Const {
         canContainPage.add(Const.MONOGRAPH_UNIT);
         canContainPage.add(Const.SUPPLEMENT);
         canContainPage.add(Const.PERIODICAL_VOLUME);
+
+        dataStreamToModel.put("RAW", BinaryEditor.RAW_ID);
+        dataStreamToModel.put("MC_IMGGRP", BinaryEditor.NDK_ARCHIVAL_ID);
+        dataStreamToModel.put("ALTOGRP", "ALTO");
+
+        dataStreamToEvent.put("RAW", "digitization_001");
+        dataStreamToEvent.put("MC_IMGGRP", "MC_creation_001");
+        dataStreamToEvent.put("ALTOGRP", "XML_creation_001");
+
     }
 }

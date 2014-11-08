@@ -100,7 +100,7 @@ public class NdkExportTest {
             Document mixDocument = MetsUtils.getDocumentFromList(mixElements);
                 DOMSource mixSource = new DOMSource(mixDocument);
                 Mix mix = MixUtils.unmarshal(mixSource, Mix.class);
-                assertEquals("JHOVE", mix.getBasicDigitalObjectInformation().getObjectIdentifier().get(0).getObjectIdentifierType().getValue());
+                assertEquals("ProArc_URI", mix.getBasicDigitalObjectInformation().getObjectIdentifier().get(0).getObjectIdentifierType().getValue());
                 assertEquals("JPEG", mix.getBasicDigitalObjectInformation().getCompression().get(0).getCompressionScheme().getValue());
                 assertNotNull(mix.getChangeHistory().getImageProcessing().get(0).getDateTimeProcessed().getValue());
             } else
@@ -108,13 +108,13 @@ public class NdkExportTest {
                     XmlData premisData = techMD.getMdWrap().getXmlData();
                     DOMSource premisSource = new DOMSource((Node) premisData.getAny().get(0));
                 cz.cas.lib.proarc.premis.File premisType = PremisUtils.unmarshal(premisSource, cz.cas.lib.proarc.premis.File.class);
-                assertEquals("uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a.MC_IMGGRP",
+                assertEquals("info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/NDK_ARCHIVAL",
                         premisType.getObjectIdentifier().get(0).getObjectIdentifierValue());
                 assertEquals("9b0a294cda0508b1a205a57fa66f9568",
                         premisType.getObjectCharacteristics().get(0).getFixity().get(0).getMessageDigest());
                 assertEquals("ProArc", premisType.getObjectCharacteristics().get(0).getFixity().get(0).getMessageDigestOriginator());
                 assertEquals("derivation", premisType.getRelationship().get(0).getRelationshipType());
-                assertEquals("uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a.MC_IMGGRP.event",
+                assertEquals("MC_creation_001",
                         premisType.getRelationship().get(0).getRelatedEventIdentification().get(0).getRelatedEventIdentifierValue());
 
                 } else {
@@ -129,18 +129,17 @@ public class NdkExportTest {
                 XmlData premisData = digiProv.getMdWrap().getXmlData();
                 DOMSource premisSource = new DOMSource((Node) premisData.getAny().get(0));
                 EventComplexType premisType = PremisUtils.unmarshal(premisSource, EventComplexType.class);
-                assertEquals("uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a.MC_IMGGRP.event", premisType.getEventIdentifier().getEventIdentifierValue());
+                assertEquals("MC_creation_001", premisType.getEventIdentifier().getEventIdentifierValue());
                 assertEquals("migration/MC_creation", premisType.getEventDetail());
-                assertEquals("EE_App_Name", premisType.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierType());
+                assertEquals("ProArc_AgentID", premisType.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierType());
                 assertEquals("ProArc", premisType.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierValue());
-                assertEquals("uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a.MC_IMGGRP", premisType.getLinkingObjectIdentifier().get(0).getLinkingObjectIdentifierValue());
+                assertEquals("info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/NDK_ARCHIVAL", premisType.getLinkingObjectIdentifier().get(0).getLinkingObjectIdentifierValue());
             } else if ("AGENT_001".equals(digiProv.getID())) {
                 XmlData premisData = digiProv.getMdWrap().getXmlData();
                 DOMSource premisSource = new DOMSource((Node) premisData.getAny().get(0));
                 AgentComplexType premisType = PremisUtils.unmarshal(premisSource, AgentComplexType.class);
-                assertEquals("EE_App_Name", premisType.getAgentIdentifier().get(0).getAgentIdentifierType());
+                assertEquals("ProArc_AgentID", premisType.getAgentIdentifier().get(0).getAgentIdentifierType());
                 assertEquals("ProArc", premisType.getAgentIdentifier().get(0).getAgentIdentifierValue());
-
             } else {
                 Assert.fail("Unexpected node:" + digiProv.getID());
             }

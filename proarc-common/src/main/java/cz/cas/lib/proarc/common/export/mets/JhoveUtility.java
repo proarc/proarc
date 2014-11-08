@@ -45,6 +45,7 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.Compression;
+import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.ObjectIdentifier;
 import cz.cas.lib.proarc.mix.BasicImageInformationType;
 import cz.cas.lib.proarc.mix.BasicImageInformationType.BasicImageCharacteristics.PhotometricInterpretation;
 import cz.cas.lib.proarc.mix.ChangeHistoryType;
@@ -253,7 +254,7 @@ public class JhoveUtility {
 
     /**
      * Inserts dateCreated into Mix
-     * 
+     *
      * @param mix
      * @param dateCreated
      */
@@ -270,8 +271,27 @@ public class JhoveUtility {
     }
 
     /**
+     * inserts ObjectIdentifier into mix
+     *
+     * @param mix
+     * @param pid
+     * @param datastream
+     */
+    public static void insertObjectIdentifier(Mix mix, String pid, String datastream) {
+        mix.getBasicDigitalObjectInformation().getObjectIdentifier().clear();
+        ObjectIdentifier identifier = new ObjectIdentifier();
+        StringType stringTypeIdentifier = new StringType();
+        stringTypeIdentifier.setValue("ProArc_URI");
+        StringType stringTypeIdentifierValue = new StringType();
+        stringTypeIdentifierValue.setValue(Const.FEDORAPREFIX + pid + "/" + Const.dataStreamToModel.get(datastream));
+        identifier.setObjectIdentifierType(stringTypeIdentifier);
+        identifier.setObjectIdentifierValue(stringTypeIdentifierValue);
+        mix.getBasicDigitalObjectInformation().getObjectIdentifier().add(identifier);
+    }
+
+    /**
      * Inserts changeHistory into Mix
-     * 
+     *
      * @param mix
      * @param dateCreated
      * @param originalFileName
