@@ -421,6 +421,7 @@ public final class DeviceManager {
                                         .addMapValue("MONOCHROME_LINEAR", "MonochromeLinear")
                                         .addMapValue("COLOR_TRI_LINEAR", "ColorTriLinear")
                                         .addMapValue("COLOR_SEQUENTIAL_LINEAR", "ColorSequentialLinear")
+                                        .addMapValue("", "")
                                     .createField()) // value
                             .createField()) // cameraSensor
                         .createField()) // DigitalCameraCapture
