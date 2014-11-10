@@ -39,7 +39,9 @@ import cz.cas.lib.proarc.webapp.client.widget.mods.event.ListChangedEvent;
 import cz.cas.lib.proarc.webapp.client.widget.mods.event.ListChangedHandler;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -62,6 +64,8 @@ public final class RepeatableFormItem extends CanvasItem {
     private DynamicForm formPrototype;
     private CustomFormFactory formFactory;
     private String width = "1"; // default width is autoWidth
+    /** Error messages related to all repetitions of the item. */
+    private HashMap<Object, String> validationMessages;
 
     public RepeatableFormItem(String name, String title) {
         this(name, title, null);
@@ -374,14 +378,35 @@ public final class RepeatableFormItem extends CanvasItem {
         return editor.getErrors();
     }
 
+    /**
+     * Shows validation errors related to all item repetitions. It expects
+     * {@code setShowErrorIcon(false)}.
+     */
     public void showErrors() {
         RepeatableForm editor = (RepeatableForm) getCanvas();
         if (editor != null) {
-            editor.showErrors();
+            Collection<String> errors = validationMessages != null
+                    ? validationMessages.values()
+                    : null;
+            editor.showErrors(errors);
         }
     }
 
+    /**
+     * Adds a validation error message. It works around missing access
+     * to validation results.
+     * @param key key to identify the {@link Validator}
+     * @param error message
+     */
+    public void addValidationError(Object key, String error) {
+        if (validationMessages == null) {
+            validationMessages = new HashMap<Object, String>();
+        }
+        validationMessages.put(key, error);
+    }
+
     public void clearErrors(boolean show) {
+        validationMessages = null;
         RepeatableForm editor = (RepeatableForm) getCanvas();
         if (editor != null) {
             editor.clearErrors(show);
@@ -389,24 +414,17 @@ public final class RepeatableFormItem extends CanvasItem {
     }
 
     /**
-     * Helper to ensure errors are displayed inside inner repeatable form items.
+     * Helps to show error messages related to all repetitions of the item
+     * as no repetition contains given value.
      * It should be called by {@link DynamicForm#showErrors() } implementation.
-     * Invocation of {@link #validateInnerForms()} from {@link RepeatableFormItem}
-     * does not show errors reliably.
      *
-     * @param repeateableItemContainer container holding items as members
-     * @param errors 
+     * @param repeateableItemContainer container holding repeatable form items as members
+     * @see #addValidationError
      */
-    public static void showErrors(DynamicForm repeateableItemContainer, Map<?, ?> errors) {
-        if (errors.isEmpty()) {
-            return ;
-        }
-        // It should help to draw inner form errors properly.
+    public static void showErrors(DynamicForm repeateableItemContainer) {
         for (FormItem formItem : repeateableItemContainer.getFields()) {
             if (formItem instanceof RepeatableFormItem) {
-                if (errors.containsKey(formItem.getName())) {
-                    ((RepeatableFormItem) formItem).showErrors();
-                }
+                ((RepeatableFormItem) formItem).showErrors();
             }
         }
     }

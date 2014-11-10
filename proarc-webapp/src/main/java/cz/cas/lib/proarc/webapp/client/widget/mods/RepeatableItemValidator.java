@@ -64,6 +64,14 @@ abstract class RepeatableItemValidator extends CustomValidator {
 
     protected abstract boolean condition(RecordList recordList);
 
+    @Override
+    public void setErrorMessage(String errorMessage) {
+        super.setErrorMessage(errorMessage);
+        RepeatableFormItem rfi = (RepeatableFormItem) getFormItem();
+        // push error to item
+        rfi.addValidationError(this, errorMessage);
+    }
+
     public ClientMessages getI18n() {
         if (i18n == null) {
             i18n = GWT.create(ClientMessages.class);

@@ -23,6 +23,7 @@ import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.types.VerticalAlignment;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
+import com.smartgwt.client.widgets.Img;
 import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
@@ -38,6 +39,7 @@ import cz.cas.lib.proarc.webapp.client.widget.mods.event.HasListChangedHandlers;
 import cz.cas.lib.proarc.webapp.client.widget.mods.event.ListChangedEvent;
 import cz.cas.lib.proarc.webapp.client.widget.mods.event.ListChangedHandler;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -59,6 +61,8 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     /** active form rows */
     private ArrayList<Row> activeRows = new ArrayList<Row>();
     private final RepeatableFormItem formItem;
+    /** The widget to present validation errors related to all item repetitions. */
+    private final Img formError;
 
     public static final class Row {
         private FormWidget formWidget;
@@ -121,6 +125,11 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
         } else {
             setWidth(formItem.getWidthAsString());
         }
+
+        formError = new Img("[SKIN]/actions/exclamation.png", 16, 16);
+        formError.setHoverWidth(item.getHoverWidth());
+        formError.setVisible(false);
+        addMember(formError);
 //        ClientUtils.info(LOG, "init.RForm, name: %s, autoWidth: %s, width100: %s, width: %s",
 //                formItem.getName(), formItem.isAutoWidth(), formItem.isWidth100(), formItem.getWidthAsString());
     }
@@ -153,17 +162,21 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
         return valid;
     }
 
-    public void showErrors() {
-        for (Row row : activeRows) {
-            ValuesManager vm = row.getForm();
-            Map<?, ?> errors = vm.getErrors();
-            if (errors != null && errors.isEmpty()) {
-                vm.showErrors();
+    public void showErrors(Collection<String> errors) {
+        if (errors != null) {
+            StringBuilder sb = new StringBuilder();
+            for (String error : errors) {
+                sb.append(error).append("<br/>");
             }
+            formError.setVisible(true);
+            formError.setPrompt(sb.toString());
+        } else {
+            formError.setVisible(false);
         }
     }
 
     public void clearErrors(boolean show) {
+        formError.setVisible(false);
         for (Row row : activeRows) {
             ValuesManager vm = row.getForm();
             // vm.clearErrors() broken in SmartGWT 3.0
@@ -312,7 +325,8 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
         }
         Row row = getRow();
         Canvas newListItem = row.getView();
-        RepeatableForm.this.addMember(newListItem, eventRowIndex + 1);
+        // 1. member is formError
+        RepeatableForm.this.addMember(newListItem, eventRowIndex + 2);
         Record newRecord = new Record();
         dataModel.addAt(newRecord, eventRowIndex + 1);
         activeRows.add(eventRowIndex + 1, row);
@@ -324,7 +338,8 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     }
 
     private void onRemoveRowClick(int eventRowIndex) {
-        if (activeRows.size() == 1) {
+        // 1. member is formError
+        if (activeRows.size() == 2) {
             // do not remove last item
             Row row = activeRows.get(0);
             row.getForm().clearValues();

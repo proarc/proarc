@@ -40,9 +40,7 @@ public abstract class AbstractModelForm extends DynamicForm {
 
     @Override
     public void showErrors() {
-//        Map<?, ?> errors = getErrors();
-//        boolean empty = errors.isEmpty();
-//        RepeatableFormItem.showErrors(this, errors);
+        RepeatableFormItem.showErrors(this);
         super.showErrors();
     }
 
