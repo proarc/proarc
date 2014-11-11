@@ -52,6 +52,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
@@ -61,6 +63,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
@@ -81,6 +84,7 @@ import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.AreaType;
 import cz.cas.lib.proarc.mets.DivType;
@@ -1072,24 +1076,20 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             }
 
             if (outputFileNames.get("ALTOGRP") != null) {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                try {
-                    DocumentBuilder db = dbf.newDocumentBuilder();
-                    File altoFile = new File(outputFileNames.get("ALTOGRP"));
-                    if (altoFile.exists()) {
-                        Document altoDoc = db.parse(altoFile);
-                        String schemaLocation = altoDoc.getDocumentElement().getAttribute("xsi:schemaLocation");
-                        if (schemaLocation == null) {
-                            schemaLocation = altoDoc.getDocumentElement().getAttribute("schemaLocation");
-                        }
-                        if ((schemaLocation != null) && (schemaLocation.contains("http://www.loc.gov/standards/alto/ns-v2"))) {
-                            md5InfosMap.get("ALTOGRP").setFormatVersion("2.0");
-                        } else {
-                            throw new MetsExportException(metsElement.getOriginalPid(), "ALTO version is unsupported (supports only 2.x)", false, null);
-                        }
+                File altoFile = new File(outputFileNames.get("ALTOGRP"));
+                if (altoFile.exists()) {
+                    Schema altoSchema;
+                    try {
+                        altoSchema = AltoDatastream.getSchema();
+                    } catch (SAXException e) {
+                        throw new MetsExportException("Unable to get ALTO schema", false);
                     }
-                } catch (Exception ex) {
-                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to parse ALTO file", false, ex);
+                    try {
+                        altoSchema.newValidator().validate(new StreamSource(altoFile));
+                    } catch (Exception exSax) {
+                        throw new MetsExportException(metsElement.getOriginalPid(), "Invalid ALTO", false, exSax);
+                    }
+                    md5InfosMap.get("ALTOGRP").setFormatVersion("2.0");
                 }
             }
 
