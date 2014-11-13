@@ -33,12 +33,12 @@ import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing.DigitalObj
  *
  * @author Jan Pokorsky
  */
-public final class DigitalObjectOpenParentAction extends AbstractAction {
+public final class DigitalObjectNavigateAction extends AbstractAction {
 
     private final PlaceController places;
     private final ClientMessages i18n;
 
-    public DigitalObjectOpenParentAction(ClientMessages i18n, PlaceController places) {
+    public DigitalObjectNavigateAction(ClientMessages i18n, PlaceController places) {
         this(i18n,
                 i18n.DigitalObjectOpenParentAction_Title(),
                 "[SKIN]/FileBrowser/upOneLevel.png",
@@ -46,7 +46,7 @@ public final class DigitalObjectOpenParentAction extends AbstractAction {
                 places);
     }
 
-    public DigitalObjectOpenParentAction(
+    public DigitalObjectNavigateAction(
             ClientMessages i18n, String title, String icon, String tooltip,
             PlaceController places) {
 

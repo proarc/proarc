@@ -45,7 +45,7 @@ import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction.AcceptFilter;
-import cz.cas.lib.proarc.webapp.client.action.DigitalObjectOpenParentAction;
+import cz.cas.lib.proarc.webapp.client.action.DigitalObjectNavigateAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
@@ -312,7 +312,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             menuEditors.addItem(Actions.asMenuItem(atmEditAction, source, false));
             btnEditors.setMenu(menuEditors);
             t.addMember(btnEditors);
-            DigitalObjectOpenParentAction openParentAction = new DigitalObjectOpenParentAction(i18n, places);
+            DigitalObjectNavigateAction openParentAction = new DigitalObjectNavigateAction(i18n, places);
             t.addMember(Actions.asIconButton(openParentAction, source));
         }
         customToolbarSeparator = new ToolStripSeparator();
