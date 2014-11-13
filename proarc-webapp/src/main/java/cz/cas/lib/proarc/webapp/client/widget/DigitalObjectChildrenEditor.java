@@ -71,9 +71,10 @@ import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction.Deletable;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction.CopySelector;
-import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectFormValidateAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectFormValidateAction.ValidatableList;
+import cz.cas.lib.proarc.webapp.client.action.DigitalObjectNavigateAction;
+import cz.cas.lib.proarc.webapp.client.action.DigitalObjectNavigateAction.ChildSelector;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
@@ -101,8 +102,8 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class DigitalObjectChildrenEditor
-        implements DatastreamEditor, Refreshable, Selectable<Record>, CopySelector {
+public final class DigitalObjectChildrenEditor implements DatastreamEditor,
+        Refreshable, Selectable<Record>, CopySelector, ChildSelector {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectChildrenEditor.class.getName());
     private final ClientMessages i18n;
@@ -123,17 +124,13 @@ public final class DigitalObjectChildrenEditor
     private RelationDataSource relationDataSource;
     /** Notifies changes in list of children that should be reflected by actions. */
     private final ActionSource actionSource;
-    private final DigitalObjectEditAction goDownAction;
+    private final DigitalObjectNavigateAction goDownAction;
 
     public DigitalObjectChildrenEditor(ClientMessages i18n, PlaceController places) {
         this.i18n = i18n;
         this.places = places;
         this.actionSource = new ActionSource(this);
-        this.goDownAction = new DigitalObjectEditAction(
-                i18n.DigitalObjectEditor_ChildrenEditor_ChildAction_Title(),
-                i18n.DigitalObjectEditor_ChildrenEditor_ChildAction_Hint(),
-                "[SKIN]/FileBrowser/folder.png",
-                DatastreamEditorType.CHILDREN, places);
+        this.goDownAction = DigitalObjectNavigateAction.child(i18n, places);
         relationDataSource = RelationDataSource.getInstance();
         childrenListGrid = initChildrenListGrid();
         VLayout childrenLayout = new VLayout();
@@ -242,7 +239,7 @@ public final class DigitalObjectChildrenEditor
     @SuppressWarnings("unchecked")
     public <T> T getCapability(Class<T> clazz) {
         T c = null;
-        if (Refreshable.class.equals(clazz)) {
+        if (Refreshable.class.equals(clazz) || ChildSelector.class.equals(clazz)) {
             c = (T) this;
         }
         return c;
@@ -275,7 +272,6 @@ public final class DigitalObjectChildrenEditor
         return new Canvas[] {
             addActionButton,
             Actions.asIconButton(deleteAction, actionSource),
-            Actions.asIconButton(goDownAction, actionSource),
             Actions.asIconButton(DigitalObjectFormValidateAction.getInstance(i18n),
                     new ValidatableList(childrenListGrid)),
             Actions.asIconButton(new UrnNbnAction(i18n), actionSource),
@@ -299,6 +295,11 @@ public final class DigitalObjectChildrenEditor
     @Override
     public Record[] getSelection() {
         return originChildren != null ? null : childrenListGrid.getSelectedRecords();
+    }
+
+    @Override
+    public Record[] getChildSelection() {
+        return getSelection();
     }
 
     @Override

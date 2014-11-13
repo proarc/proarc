@@ -26,6 +26,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.smartgwt.client.data.Record;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import java.util.Arrays;
 
 /**
@@ -76,6 +77,10 @@ public final class DigitalObjectEditing extends AbstractActivity {
 
         public DigitalObjectEditorPlace(DatastreamEditorType editor, String pid) {
             this(editor, pid == null ? null : new String[] {pid});
+        }
+
+        public DigitalObjectEditorPlace(DatastreamEditorType editor, DigitalObject dobj) {
+            this(editor, dobj == null ? null : new Record[] {dobj.getRecord()});
         }
 
         public DigitalObjectEditorPlace(DatastreamEditorType editor, Record[] records) {

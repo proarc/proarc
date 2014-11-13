@@ -27,6 +27,8 @@ import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.types.Alignment;
+import com.smartgwt.client.types.VerticalAlignment;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
@@ -46,6 +48,7 @@ import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction.AcceptFilter;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectNavigateAction;
+import cz.cas.lib.proarc.webapp.client.action.DigitalObjectNavigateAction.ChildSelector;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
@@ -73,7 +76,8 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class DigitalObjectEditor implements Refreshable, Selectable<Record>, HasEditorLoadHandlers {
+public final class DigitalObjectEditor implements Refreshable, Selectable<Record>,
+        HasEditorLoadHandlers, ChildSelector {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectEditor.class.getName());
     private final ClientMessages i18n;
@@ -91,6 +95,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private boolean importView;
     private boolean embeddedView;
     private HandlerManager handlerManager;
+    private Label unsupportedEditor;
 
     public DigitalObjectEditor(ClientMessages i18n, PlaceController places) {
         this(i18n, places, false);
@@ -198,6 +203,29 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         });
     }
 
+    private void openUnsupportedEditor() {
+        if (currentEditor != null) {
+            updateToolbar(currentEditor, null);
+            currentEditor = null;
+        }
+        editorContainer.setMembers(getUnsupportedEditor());
+    }
+
+    private Label getUnsupportedEditor() {
+        if (unsupportedEditor == null) {
+            unsupportedEditor = new Label();
+            unsupportedEditor.setContents(i18n.DigitalObjectEditor_UnsupportedEditor_Msg());
+            unsupportedEditor.setIcon("[SKIN]/Dialog/warn.png");
+            unsupportedEditor.setIconSize(2 * 16);
+            unsupportedEditor.setLayoutAlign(Alignment.CENTER);
+            unsupportedEditor.setLayoutAlign(VerticalAlignment.CENTER);
+            unsupportedEditor.setHeight100();
+            unsupportedEditor.setWidth100();
+            unsupportedEditor.setAlign(Alignment.CENTER);
+        }
+        return unsupportedEditor;
+    }
+
     @Override
     public void refresh() {
         if (currentEditor == null) {
@@ -212,6 +240,18 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     @Override
     public Record[] getSelection() {
         return selection;
+    }
+
+    @Override
+    public Record[] getChildSelection() {
+        Record[] result = null;
+        if (currentEditor != null) {
+            ChildSelector selector = currentEditor.getEditor().getCapability(ChildSelector.class);
+            if (selector != null) {
+                result = selector.getChildSelection();
+            }
+        }
+        return result;
     }
 
     private void updateToolbar(EditorDescriptor oldEditor, EditorDescriptor newEditor) {
@@ -312,8 +352,14 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             menuEditors.addItem(Actions.asMenuItem(atmEditAction, source, false));
             btnEditors.setMenu(menuEditors);
             t.addMember(btnEditors);
-            DigitalObjectNavigateAction openParentAction = new DigitalObjectNavigateAction(i18n, places);
-            t.addMember(Actions.asIconButton(openParentAction, source));
+            DigitalObjectNavigateAction parentAction = DigitalObjectNavigateAction.parent(i18n, places);
+            DigitalObjectNavigateAction childAction = DigitalObjectNavigateAction.child(i18n, places);
+            DigitalObjectNavigateAction prevSiblingAction = DigitalObjectNavigateAction.previous(i18n, places);
+            DigitalObjectNavigateAction nextSiblingAction = DigitalObjectNavigateAction.next(i18n, places);
+            t.addMember(Actions.asIconButton(parentAction, source));
+            t.addMember(Actions.asIconButton(childAction, source));
+            t.addMember(Actions.asIconButton(prevSiblingAction, source));
+            t.addMember(Actions.asIconButton(nextSiblingAction, source));
         }
         customToolbarSeparator = new ToolStripSeparator();
         customToolbarSeparator.setVisible(false);
@@ -537,8 +583,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 setDescription(currentEditor.getTitle(), getLabel(records[0]), model);
                 if (!model.isSupportedDatastream(currentEditor.getType().name())) {
                     // XXX this should query current action, not model
-                    updateToolbar(currentEditor, null);
-                    currentEditor = null;
+                    openUnsupportedEditor();
                     return ;
                 }
             } else {
@@ -548,8 +593,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 BatchDatastreamEditor beditor = currentEditor.getEditor().getCapability(BatchDatastreamEditor.class);
                 if (beditor == null) {
                     // let the user choose proper batch editor
-                    updateToolbar(currentEditor, null);
-                    currentEditor = null;
+                    openUnsupportedEditor();
                     return ;
                 }
             }
