@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.presenter;
 
+import com.google.gwt.activity.shared.ActivityManager;
 import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
@@ -24,14 +25,23 @@ import com.google.gwt.event.shared.HandlerManager;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.web.bindery.event.shared.SimpleEventBus;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.Alignment;
+import com.smartgwt.client.types.SelectionType;
 import com.smartgwt.client.types.VerticalAlignment;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.Label;
+import com.smartgwt.client.widgets.events.DrawEvent;
+import com.smartgwt.client.widgets.events.DrawHandler;
+import com.smartgwt.client.widgets.events.VisibilityChangedEvent;
+import com.smartgwt.client.widgets.events.VisibilityChangedHandler;
+import com.smartgwt.client.widgets.layout.HLayout;
+import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
@@ -42,7 +52,9 @@ import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ClientUtils.SweepTask;
 import cz.cas.lib.proarc.webapp.client.Editor;
+import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.Action;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
@@ -59,10 +71,13 @@ import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadHandler;
 import cz.cas.lib.proarc.webapp.client.event.HasEditorLoadHandlers;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 import cz.cas.lib.proarc.webapp.client.widget.BatchDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.DatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectAdministrationEditor;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectChildrenEditor;
+import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectChildrenEditor.ChildActivities;
+import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectChildrenEditor.ChildEditorDisplay;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectParentEditor;
 import cz.cas.lib.proarc.webapp.client.widget.MediaEditor;
 import cz.cas.lib.proarc.webapp.client.widget.TextEditor;
@@ -86,7 +101,10 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private final ToolStrip toolbar;
     private ToolStripSeparator customToolbarSeparator;
     private final VLayout editorContainer;
+    private VLayout optionalEditorContainer;
     private EditorDescriptor currentEditor;
+    private OptionalEditor optionalEditor;
+    private IconButton optionalEditorSwitch;
     /** currently edited object {PID, MODEL_OBJECT}; should be replaced with some interface */
     private Record[] selection;
     private final EnumMap<DatastreamEditorType, EditorDescriptor> editorCache;
@@ -94,6 +112,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private final PlaceController places;
     private boolean importView;
     private boolean embeddedView;
+    private boolean optionalView;
     private HandlerManager handlerManager;
     private Label unsupportedEditor;
 
@@ -117,9 +136,66 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         editorContainer.setLayoutMargin(4);
         editorContainer.setWidth100();
         editorContainer.setHeight100();
+
         widget.addMember(lblHeader);
         widget.addMember(toolbar);
-        widget.addMember(editorContainer);
+
+        if (embedded) {
+            widget.addMember(editorContainer);
+        } else {
+            editorContainer.setResizeBarTarget("next");
+            HLayout multiView = new HLayout();
+            multiView.setWidth100();
+            multiView.setHeight100();
+            multiView.setLayoutMargin(4);
+            multiView.addMember(editorContainer);
+            initOptionalEditor(multiView);
+            widget.addMember(multiView);
+        }
+    }
+
+    private void initOptionalEditor(Layout multiView) {
+        if (embeddedView) {
+            return ;
+        }
+        editorContainer.setShowResizeBar(true);
+        VLayout optionalEditorInnerContainer = new VLayout();
+        optionalEditorContainer = new VLayout();
+        optionalEditor = new OptionalEditor(i18n, optionalEditorInnerContainer);
+        optionalEditorInnerContainer.addStyleName("defaultBorder");
+        optionalEditorContainer.setLayoutMargin(4);
+        optionalEditorContainer.setWidth100();
+        optionalEditorContainer.setVisible(false);
+        optionalEditorContainer.setMinMemberSize(200);
+        optionalEditorContainer.setMembers(optionalEditorInnerContainer);
+        multiView.addMember(optionalEditorContainer);
+        optionalEditorContainer.addDrawHandler(new DrawHandler() {
+
+            @Override
+            public void onDraw(DrawEvent event) {
+//                LOG.warning("onDraw: " + widget.getID() + ", drawn: " + optionalEditorContainer.isDrawn()
+//                        + ", isVisible: " + optionalEditorContainer.isVisible()
+//                        + ", isSelected: " + optionalEditorSwitch.isSelected()
+//                        );
+                if (optionalEditor.isEnabled()) {
+                    // Ignore events thrown while the editor is enabled as it breaks
+                    // the layout hierarchy in case browser history usage.
+                    // onDraw is necessary as VisibilityChangedEvent is not fired
+                    // before drawing a widget.
+                    return ;
+                }
+                switchOptionalEditor(true);
+            }
+        });
+        // switch the editor on/off by clicking the resize bar
+        optionalEditorContainer.addVisibilityChangedHandler(new VisibilityChangedHandler() {
+
+            @Override
+            public void onVisibilityChanged(VisibilityChangedEvent event) {
+//                LOG.warning("onVisibilityChanged: " + widget.getID() + ", visible: " + event.getIsVisible());
+                switchOptionalEditor(event.getIsVisible());
+            }
+        });
     }
 
     public Canvas getUI() {
@@ -182,25 +258,54 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     }
 
     private void openEditor() {
-        final DatastreamEditor editor = currentEditor.getEditor();
-        final Record[] records = getSelection();
         Scheduler.get().scheduleDeferred(new ScheduledCommand() {
 
             @Override
             public void execute() {
-                if (records.length > 1) {
-                    BatchDatastreamEditor beditor = editor.getCapability(BatchDatastreamEditor.class);
-                    if (beditor != null) {
-                        beditor.edit(DigitalObject.toArray(records));
-                    }
-                } else {
-                    DigitalObject dobj = DigitalObject.create(records[0]);
-                    editor.edit(dobj);
-                }
-                ClientUtils.setMembers(editorContainer, editor.getUI());
-//                editorContainer.show();
+                openEditorImpl();
             }
         });
+    }
+
+    private void openEditorImpl() {
+        final DatastreamEditor editor = currentEditor.getEditor();
+        final Record[] records = getSelection();
+        DigitalObject[] dobjs = records == null ? new DigitalObject[0] : DigitalObject.toArray(records);
+        if (dobjs.length > 1) {
+            setDescription(currentEditor.getTitle(),
+                    i18n.DigitalObjectEditor_MultiSelection_Title(String.valueOf(records.length)),
+                    null);
+            BatchDatastreamEditor beditor = editor.getCapability(BatchDatastreamEditor.class);
+            if (beditor != null) {
+                beditor.edit(DigitalObject.toArray(records));
+                ClientUtils.setMembers(editorContainer, editor.getUI());
+            } else {
+                openUnsupportedEditor();
+            }
+        } else {
+            MetaModelRecord model = dobjs[0].getModel();
+            setDescription(currentEditor.getTitle(), getLabel(records[0]), model);
+            if (model.isSupportedDatastream(currentEditor.getType().name())) {
+                editor.edit(dobjs[0]);
+                ClientUtils.setMembers(editorContainer, editor.getUI());
+            } else {
+                openUnsupportedEditor();
+            }
+        }
+        openOptionalEditor(dobjs);
+//        editorContainer.show();
+    }
+
+    private void openOptionalEditor(DigitalObject... dobj) {
+        if (optionalEditor == null) {
+            return ;
+        }
+        if (currentEditor != null && currentEditor.getType() == DatastreamEditorType.CHILDREN) {
+            DigitalObject[] children = DigitalObject.toArray(getChildSelection());
+            optionalEditor.open(children);
+        } else {
+            optionalEditor.open(dobj);
+        }
     }
 
     private void openUnsupportedEditor() {
@@ -270,8 +375,9 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         } else {
             customToolbarSeparator.setVisible(false);
         }
+        int addCustomIdx = toolbar.getMemberNumber(customToolbarSeparator);
         for (Canvas item : customToolbar) {
-            toolbar.addMember(item);
+            toolbar.addMember(item, ++addCustomIdx);
         }
     }
 
@@ -326,9 +432,11 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             t.addMember(actionsMenu);
             Menu menu = Actions.createMenu();
             menu.addItem(Actions.asMenuItem(refreshAction, source, false));
-            menu.addItem(Actions.asMenuItem(modsEditAction, source, false));
+//            if (!optionalView) {
+                menu.addItem(Actions.asMenuItem(modsEditAction, source, false));
+//            }
             menu.addItem(Actions.asMenuItem(noteEditAction, source, false));
-            if (!importView) {
+            if (!importView/* && !optionalView*/) {
                 menu.addItem(Actions.asMenuItem(parentEditAction, source, false));
             }
             if (!importView) {
@@ -364,7 +472,27 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         customToolbarSeparator = new ToolStripSeparator();
         customToolbarSeparator.setVisible(false);
         t.addMember(customToolbarSeparator);
+        if (!embeddedView) {
+            t.addFill();
+            optionalEditorSwitch = Actions.asIconButton(new SwitchOptionalEditorAction(), source);
+            optionalEditorSwitch.setSelected(false);
+            optionalEditorSwitch.setActionType(SelectionType.CHECKBOX);
+            optionalEditorSwitch.setShowSelectedIcon(true);
+            t.addMember(optionalEditorSwitch);
+        }
         return t;
+    }
+
+    private void switchOptionalEditor(boolean state) {
+        if (optionalEditor == null || state == optionalEditor.isEnabled()) {
+            return ;
+        }
+        optionalEditorSwitch.setSelected(state);
+        optionalEditor.setEnabled(optionalEditorSwitch.getSelected());
+        if (state) {
+            DigitalObject[] selection = DigitalObject.toArray(getSelection());
+            openOptionalEditor(selection);
+        }
     }
 
     /**
@@ -379,6 +507,13 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
      */
     public void setEmbeddedView(boolean embeddedView) {
         this.embeddedView = embeddedView;
+    }
+
+    /**
+     * Use to customize editor as an optional view.
+     */
+    public void setOptionalView(boolean optionalView) {
+        this.optionalView = optionalView;
     }
 
     private EditorDescriptor getDatastreamEditor(DatastreamEditorType type) {
@@ -411,7 +546,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 break;
             case CHILDREN:
                 title = i18n.DigitalObjectEditor_ChildrenEditor_Title();
-                deditor = new DigitalObjectChildrenEditor(i18n, places);
+                deditor = new DigitalObjectChildrenEditor(i18n, places, optionalEditor);
                 break;
             case ATM:
                 title = i18n.DigitalObjectEditor_AdministrationEditor_Title();
@@ -451,6 +586,10 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             content = ClientUtils.format("%s: %s", editorTitle, objectLabel);
         }
         lblHeader.setContents(content);
+    }
+
+    private String getLabel(Record r) {
+        return r == null ? "[ERROR]" : r.getAttribute(SearchDataSource.FIELD_LABEL);
     }
 
     @Override
@@ -578,25 +717,6 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 return ;
             }
             setSelection(records);
-            if (records.length == 1) {
-                MetaModelRecord model = MetaModelDataSource.getModel(records[0]);
-                setDescription(currentEditor.getTitle(), getLabel(records[0]), model);
-                if (!model.isSupportedDatastream(currentEditor.getType().name())) {
-                    // XXX this should query current action, not model
-                    openUnsupportedEditor();
-                    return ;
-                }
-            } else {
-                setDescription(currentEditor.getTitle(),
-                        i18n.DigitalObjectEditor_MultiSelection_Title(String.valueOf(records.length)),
-                        null);
-                BatchDatastreamEditor beditor = currentEditor.getEditor().getCapability(BatchDatastreamEditor.class);
-                if (beditor == null) {
-                    // let the user choose proper batch editor
-                    openUnsupportedEditor();
-                    return ;
-                }
-            }
             openEditor();
         }
 
@@ -647,10 +767,6 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             release();
         }
 
-        private String getLabel(Record r) {
-            return r == null ? "[ERROR]" : r.getAttribute(SearchDataSource.FIELD_LABEL);
-        }
-
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
@@ -662,6 +778,75 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             }
             return super.toString();
         }
+    }
+
+    public static final class OptionalEditor {
+
+        private final PlaceController embeddedPlaces;
+        private boolean editorEnabled;
+
+        private OptionalEditor(ClientMessages i18n, Layout previewContainer) {
+            SimpleEventBus eventBus = new SimpleEventBus();
+            embeddedPlaces = new PlaceController(eventBus);
+            DigitalObjectEditor embeddedEditor = new DigitalObjectEditor(i18n, embeddedPlaces, true);
+            embeddedEditor.setOptionalView(true);
+            ActivityManager activityManager = new ActivityManager(
+                    new ChildActivities(embeddedEditor), eventBus);
+            activityManager.setDisplay(new ChildEditorDisplay(previewContainer));
+        }
+
+        public void open(DigitalObject... objects) {
+            open(null, objects);
+        }
+
+        public void open(DatastreamEditorType editor, DigitalObject... objects) {
+            if (!editorEnabled) {
+                return ;
+            }
+            if (objects == null || objects.length == 0 || objects[0] == null) {
+                embeddedPlaces.goTo(Place.NOWHERE);
+                return ;
+            }
+//            LOG.log(Level.SEVERE, "# openOptionalEditor: " + objects[0].getPid(), new IllegalStateException(objects[0].getPid()));
+            Place lastPlace = embeddedPlaces.getWhere();
+            DatastreamEditorType lastEditorType = null;
+            if (editor != null) {
+                lastEditorType = editor;
+            } else if (lastPlace instanceof DigitalObjectEditorPlace) {
+                DigitalObjectEditorPlace lastDOEPlace = (DigitalObjectEditorPlace) lastPlace;
+                lastEditorType = lastDOEPlace.getEditorId();
+            }
+            lastEditorType = lastEditorType != null
+                    ? lastEditorType
+                    : DatastreamEditorType.MEDIA;
+            embeddedPlaces.goTo(new DigitalObjectEditorPlace(lastEditorType, objects[0]));
+        }
+
+        public boolean isEnabled() {
+            return editorEnabled;
+        }
+
+        public void setEnabled(boolean editorEnabled) {
+            this.editorEnabled = editorEnabled;
+        }
+    }
+
+    private final class SwitchOptionalEditorAction extends AbstractAction {
+
+        public SwitchOptionalEditorAction() {
+            super(i18n.DigitalObjectEditor_OptionalEditorAction_Title(),
+                    null,
+                    i18n.DigitalObjectEditor_OptionalEditorAction_Hint());
+        }
+
+        @Override
+        public void performAction(ActionEvent event) {
+            boolean visible = optionalEditorContainer.isVisible();
+            // fires VisibilityChangedEvent
+            // see optionalEditorContainer.addVisibilityChangedHandler in initOptionalEditor
+            optionalEditorContainer.setVisible(!visible);
+        }
+
     }
 
 }

@@ -90,6 +90,7 @@ import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditor;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditor.OptionalEditor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -125,10 +126,12 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
     /** Notifies changes in list of children that should be reflected by actions. */
     private final ActionSource actionSource;
     private final DigitalObjectNavigateAction goDownAction;
+    private final OptionalEditor preview;
 
-    public DigitalObjectChildrenEditor(ClientMessages i18n, PlaceController places) {
+    public DigitalObjectChildrenEditor(ClientMessages i18n, PlaceController places, OptionalEditor preview) {
         this.i18n = i18n;
         this.places = places;
+        this.preview = preview;
         this.actionSource = new ActionSource(this);
         this.goDownAction = DigitalObjectNavigateAction.child(i18n, places);
         relationDataSource = RelationDataSource.getInstance();
@@ -356,6 +359,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
         actionSource.fireEvent();
         if (records == null || records.length == 0 || originChildren != null) {
             childPlaces.goTo(Place.NOWHERE);
+            preview.open();
         } else {
             Place lastPlace = childPlaces.getWhere();
             DatastreamEditorType lastEditorType = null;
@@ -367,6 +371,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
                     ? lastEditorType
                     : records.length > 1 ? DatastreamEditorType.PARENT : DatastreamEditorType.MODS;
             childPlaces.goTo(new DigitalObjectEditorPlace(lastEditorType, records));
+            preview.open(DigitalObject.create(records[0]));
         }
     }
 
