@@ -115,6 +115,8 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private boolean optionalView;
     private HandlerManager handlerManager;
     private Label unsupportedEditor;
+    /** Holds the last used editor type. */
+    private DatastreamEditorType lastEditorType;
 
     public DigitalObjectEditor(ClientMessages i18n, PlaceController places) {
         this(i18n, places, false);
@@ -202,6 +204,11 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         return widget;
     }
 
+    /**
+     * Shows UI for the passed editor type and fetches digital objects.
+     * @param type optional type. If {@code null} the last type or a reasonable default is used
+     * @param pids digital objects to fetch
+     */
     public void edit(DatastreamEditorType type, Record[] pids) {
         if (pids == null || pids.length == 0) {
             // this should occur just in case someone breakes URL in browser.
@@ -213,6 +220,10 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         edit(type, task, pids.length > 1);
     }
 
+    /**
+     * {@link #edit(cz.cas.lib.proarc.common.object.model.DatastreamEditorType, com.smartgwt.client.data.Record[])
+     * description}
+     */
     public void edit(DatastreamEditorType type, String... pids) {
         if (pids.length == 0) {
             // this should occur just in case someone breakes URL in browser.
@@ -233,12 +244,17 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
     private void edit(DatastreamEditorType type, OpenEditorTask task, boolean multiselection) {
         this.selection = null;
         if (type == null) {
-            ClientUtils.warning(LOG, "missing type, objects: %s", task.toString());
+//            ClientUtils.warning(LOG, "missing type, objects: %s", task.toString());
             // reasonable default
-            type = multiselection ? DatastreamEditorType.PARENT : DatastreamEditorType.MODS;
+            if (lastEditorType != null) {
+                type = lastEditorType;
+            } else if (optionalView) {
+                type = multiselection ? DatastreamEditorType.PARENT : DatastreamEditorType.MEDIA;
+            } else {
+                type = multiselection ? DatastreamEditorType.PARENT : DatastreamEditorType.MODS;
+            }
         }
-
-//        editorContainer.hide();
+        lastEditorType = type;
 
         EditorDescriptor previousEditor = currentEditor;
         currentEditor = getDatastreamEditor(type);
@@ -273,7 +289,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
         DigitalObject[] dobjs = records == null ? new DigitalObject[0] : DigitalObject.toArray(records);
         if (dobjs.length > 1) {
             setDescription(currentEditor.getTitle(),
-                    i18n.DigitalObjectEditor_MultiSelection_Title(String.valueOf(records.length)),
+                    i18n.DigitalObjectEditor_MultiSelection_Title(String.valueOf(dobjs.length)),
                     null);
             BatchDatastreamEditor beditor = editor.getCapability(BatchDatastreamEditor.class);
             if (beditor != null) {
@@ -808,18 +824,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 return ;
             }
 //            LOG.log(Level.SEVERE, "# openOptionalEditor: " + objects[0].getPid(), new IllegalStateException(objects[0].getPid()));
-            Place lastPlace = embeddedPlaces.getWhere();
-            DatastreamEditorType lastEditorType = null;
-            if (editor != null) {
-                lastEditorType = editor;
-            } else if (lastPlace instanceof DigitalObjectEditorPlace) {
-                DigitalObjectEditorPlace lastDOEPlace = (DigitalObjectEditorPlace) lastPlace;
-                lastEditorType = lastDOEPlace.getEditorId();
-            }
-            lastEditorType = lastEditorType != null
-                    ? lastEditorType
-                    : DatastreamEditorType.MEDIA;
-            embeddedPlaces.goTo(new DigitalObjectEditorPlace(lastEditorType, objects[0]));
+            embeddedPlaces.goTo(new DigitalObjectEditorPlace(editor, objects[0]));
         }
 
         public boolean isEnabled() {

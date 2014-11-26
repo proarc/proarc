@@ -66,6 +66,10 @@ public final class DigitalObjectEditing extends AbstractActivity {
 
     public static final class DigitalObjectEditorPlace extends Place {
 
+        /**
+         * The editor type to open. Embedded places can use {@code null} to
+         * reuse the last editor type.
+         */
         private DatastreamEditorType editor;
         private String pid;
         private String selectChildPid;

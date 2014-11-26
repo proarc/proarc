@@ -60,7 +60,6 @@ import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
 import com.smartgwt.client.widgets.menu.events.ItemClickHandler;
-import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.Action;
@@ -361,16 +360,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
             childPlaces.goTo(Place.NOWHERE);
             preview.open();
         } else {
-            Place lastPlace = childPlaces.getWhere();
-            DatastreamEditorType lastEditorType = null;
-            if (lastPlace instanceof DigitalObjectEditorPlace) {
-                DigitalObjectEditorPlace lastDOEPlace = (DigitalObjectEditorPlace) lastPlace;
-                lastEditorType = lastDOEPlace.getEditorId();
-            }
-            lastEditorType = lastEditorType != null
-                    ? lastEditorType
-                    : records.length > 1 ? DatastreamEditorType.PARENT : DatastreamEditorType.MODS;
-            childPlaces.goTo(new DigitalObjectEditorPlace(lastEditorType, records));
+            childPlaces.goTo(new DigitalObjectEditorPlace(null, records));
             preview.open(DigitalObject.create(records[0]));
         }
     }
@@ -652,7 +642,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
         /**
          * The PID to PID mapping.
          */
-        private Map<String, String> cache = new HashMap<String, String>();
+        private final Map<String, String> cache = new HashMap<String, String>();
 
         public void select(String pid, Record[] selection) {
             if (selection == null || selection.length == 0) {
