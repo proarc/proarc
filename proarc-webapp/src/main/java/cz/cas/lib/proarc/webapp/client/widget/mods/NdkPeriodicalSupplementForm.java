@@ -302,7 +302,7 @@ public final class NdkPeriodicalSupplementForm {
                         .addMapValue("inferred", "Inferred")
                         .addMapValue("questionable", "Questionable")
                     .createField()) // @qualifier
-                    .addField(new FieldBuilder("value").setTitle("Date - R").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setWidth("200")
+                    .addField(new FieldBuilder("value").setTitle("Date - R").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                         .setHint("Datum vytvoření přílohy."
                             + "<p>Bude použito pouze při popisu tiskaře, viz poznámka"
                             + " u elementu &lt;originInfo> nebo např. u popisu CD/DVD apod."
