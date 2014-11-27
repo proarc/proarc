@@ -533,6 +533,9 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
      * Opens child editor according to list selection.
      */
     private void attachListToEditor() {
+        if (childrenSelectionHandler != null) {
+            childrenSelectionHandler.removeHandler();
+        }
         childrenSelectionHandler = childrenListGrid.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
             @Override
