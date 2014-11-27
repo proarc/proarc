@@ -47,6 +47,8 @@ import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
 import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
+import com.smartgwt.client.widgets.grid.events.RecordClickEvent;
+import com.smartgwt.client.widgets.grid.events.RecordClickHandler;
 import com.smartgwt.client.widgets.grid.events.RecordDoubleClickEvent;
 import com.smartgwt.client.widgets.grid.events.RecordDoubleClickHandler;
 import com.smartgwt.client.widgets.grid.events.RecordDropEvent;
@@ -105,6 +107,12 @@ import java.util.logging.Logger;
 public final class DigitalObjectChildrenEditor implements DatastreamEditor,
         Refreshable, Selectable<Record>, CopySelector, ChildSelector {
 
+    /**
+     * The boolean attribute to mark the most recently selected record. Useful
+     * in case of multiple-selection.
+     */
+    public static final String LAST_CLICKED_ATTR = "__proarcLastClickedRecord";
+
     private static final Logger LOG = Logger.getLogger(DigitalObjectChildrenEditor.class.getName());
     private final ClientMessages i18n;
     /** A controller of the enclosing editor. */
@@ -126,6 +134,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
     private final ActionSource actionSource;
     private final DigitalObjectNavigateAction goDownAction;
     private final OptionalEditor preview;
+    private Record lastClicked;
 
     public DigitalObjectChildrenEditor(ClientMessages i18n, PlaceController places, OptionalEditor preview) {
         this.i18n = i18n;
@@ -358,10 +367,21 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
         actionSource.fireEvent();
         if (records == null || records.length == 0 || originChildren != null) {
             childPlaces.goTo(Place.NOWHERE);
-            preview.open();
         } else {
             childPlaces.goTo(new DigitalObjectEditorPlace(null, records));
-            preview.open(DigitalObject.create(records[0]));
+        }
+        if (records == null || records.length <= 1) {
+            // in case of multiselection the preview opens the last clicked record
+            // see RecordClickHandler.
+            preview(records);
+        }
+    }
+
+    private void preview(Record... records) {
+        if (records == null || records.length == 0 || originChildren != null) {
+            preview.open();
+        } else {
+            preview.open(DigitalObject.toArray(records));
         }
     }
 
@@ -424,12 +444,33 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
                 goDownAction.performAction(evt);
             }
         });
+        lg.addRecordClickHandler(new RecordClickHandler() {
+
+            @Override
+            public void onRecordClick(RecordClickEvent event) {
+                // NOTE: RecordClickEvent is fired after SelectionUpdatedEvent!
+                if (!event.isCancelled() && originChildren == null) {
+                    ListGridRecord r = event.getRecord();
+                    r.setAttribute(LAST_CLICKED_ATTR, Boolean.TRUE);
+                    if (lastClicked != null && r != lastClicked) {
+                        lastClicked.setAttribute(LAST_CLICKED_ATTR, Boolean.FALSE);
+                    }
+                    lastClicked = r;
+                    Record[] selection = getSelection();
+                    if (selection != null && selection.length > 1) {
+                        // single selection is handled by onChildSelection
+                        preview(r);
+                    }
+                }
+            }
+        });
         return lg;
     }
 
     private void initOnEdit() {
 //        LOG.info("initOnEdit");
         originChildren = null;
+        lastClicked = null;
         updateReorderUi(false);
         attachListResultSet();
         // select first
@@ -508,6 +549,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
             childrenSelectionHandler.removeHandler();
             childrenSelectionHandler = null;
             childPlaces.goTo(Place.NOWHERE);
+            preview();
         }
     }
 

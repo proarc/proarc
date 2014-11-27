@@ -819,12 +819,29 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             if (!editorEnabled) {
                 return ;
             }
-            if (objects == null || objects.length == 0 || objects[0] == null) {
+            DigitalObject openObject = findRecentSelection(objects);
+            if (openObject == null) {
                 embeddedPlaces.goTo(Place.NOWHERE);
                 return ;
             }
-//            LOG.log(Level.SEVERE, "# openOptionalEditor: " + objects[0].getPid(), new IllegalStateException(objects[0].getPid()));
-            embeddedPlaces.goTo(new DigitalObjectEditorPlace(editor, objects[0]));
+//            LOG.log(Level.SEVERE, "# openOptionalEditor: " + objects.length, new IllegalStateException(openObject.toString()));
+            embeddedPlaces.goTo(new DigitalObjectEditorPlace(editor, openObject));
+        }
+
+        private DigitalObject findRecentSelection(DigitalObject... objects) {
+            if (objects == null || objects.length == 0 || objects[0] == null) {
+                return null;
+            } else if (objects.length == 1) {
+                return objects[0];
+            }
+            for (DigitalObject object : objects) {
+                Record record = object.getRecord();
+                Boolean isLastSelection = record.getAttributeAsBoolean(DigitalObjectChildrenEditor.LAST_CLICKED_ATTR);
+                if (isLastSelection != null && isLastSelection) {
+                    return object;
+                }
+            }
+            return null;
         }
 
         public boolean isEnabled() {
