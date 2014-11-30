@@ -277,26 +277,11 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         grid.setContextMenu(Actions.createMenu());
         Actions.fixListGridContextMenu(grid);
 
-        // issue 7: default BodyKeyPressHandler does not change row focus properly
-        // in case of mixing mouse and keyboard navigation.
-        // ListGrid.getSelectedRecord and ListGrid.getFocusRow() do not return same result!
         grid.addBodyKeyPressHandler(new BodyKeyPressHandler() {
 
             @Override
             public void onBodyKeyPress(BodyKeyPressEvent event) {
                 selectAllAction.processEvent(event);
-                if (event.isCancelled() || event.isCtrlKeyDown() || EventHandler.shiftKeyDown()) {
-                    return ;
-                }
-                if ("Arrow_Down".equals(EventHandler.getKey())) {
-                    int nextSelection = getNextSelection();
-                    grid.selectSingleRecord(nextSelection);
-                } else if ("Arrow_Up".equals(EventHandler.getKey())) {
-                    Integer focusRow = grid.getFocusRow();
-                    if (focusRow != null && focusRow > 0) {
-                        grid.selectSingleRecord(focusRow - 1);
-                    }
-                }
             }
         });
 
