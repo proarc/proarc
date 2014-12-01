@@ -134,6 +134,19 @@ public final class Actions {
                 @Override
                 public void onValueChange(ValueChangeEvent<ActionEvent> event) {
                     boolean accept = action.accept(event.getValue());
+                    if (accept) {
+                        String atooltip = action.getTooltip();
+                        String btooltip = btn.getTooltip();
+                        if (atooltip == null ? btooltip != null : !atooltip.equals(btooltip)) {
+                            btn.setTooltip(atooltip);
+                        }
+
+                        String atitle = action.getTitle();
+                        String btitle = btn.getTitle();
+                        if (atitle == null ? btitle != null : !atitle.equals(btitle)) {
+                            btn.setTitle(atitle);
+                        }
+                    }
                     btn.setVisible(accept);
                 }
             });
