@@ -198,20 +198,25 @@ public class ImportPresenter {
 
     /**
      * Resets batch import.
-     * Supports {@code LOADING_FAILED, LOADED} for now.
+     * Supports {@code LOADING_FAILED, LOADED, INGESTING_FAILED} for now.
      */
     private void reset(BatchRecord batch, final BooleanCallback call) {
         ImportBatchDataSource.State state = batch.getState();
-        if (state != ImportBatchDataSource.State.LOADING_FAILED
-                && state != ImportBatchDataSource.State.LOADED) {
+        String stateAttr;
+        if (state == ImportBatchDataSource.State.LOADING_FAILED
+                || state == ImportBatchDataSource.State.LOADED) {
 
+            stateAttr = ImportBatchDataSource.State.LOADING_FAILED.name();
+        } else if (state == ImportBatchDataSource.State.INGESTING_FAILED) {
+            stateAttr = ImportBatchDataSource.State.INGESTING.name();
+        } else {
             throw new IllegalStateException("Unsupported state: " + batch.getState());
         }
         ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
         DSRequest dsRequest = new DSRequest();
         Record update = new Record();
         update.setAttribute(ImportBatchDataSource.FIELD_ID, batch.getId());
-        update.setAttribute(ImportBatchDataSource.FIELD_STATE, ImportBatchDataSource.State.LOADING_FAILED.name());
+        update.setAttribute(ImportBatchDataSource.FIELD_STATE, stateAttr);
         dsBatch.updateData(update, new DSCallback() {
 
             @Override

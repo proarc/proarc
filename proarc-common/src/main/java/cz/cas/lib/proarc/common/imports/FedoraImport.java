@@ -47,7 +47,19 @@ public final class FedoraImport {
     }
 
     public Batch importBatch(Batch batch, String importer, String message) throws DigitalObjectException {
-        if (batch.getState() != Batch.State.LOADED) {
+        checkParent(batch.getParentPid());
+        if (batch.getState() == Batch.State.INGESTING_FAILED) {
+            // reset
+            List<BatchItemObject> allItems = ibm.findBatchObjects(batch.getId(), null);
+            for (BatchItemObject item : allItems) {
+                if (item.getState() == ObjectState.INGESTING_FAILED) {
+                    item.setState(ObjectState.LOADED);
+                    item.setLog(null);
+                    ibm.update(item);
+                }
+            }
+            batch.setLog(null);
+        } else if (batch.getState() != Batch.State.LOADED) {
             throw new IllegalStateException("Invalid batch state: " + batch);
         }
         batch.setState(Batch.State.INGESTING);
@@ -72,18 +84,17 @@ public final class FedoraImport {
     }
 
     private boolean importItems(Batch batch, String importer, List<String> ingests) {
-        boolean itemFailed = false;
         for (BatchItemObject item : ibm.findLoadedObjects(batch)) {
             item = importItem(item, importer);
             if (item != null) {
                 if (ObjectState.INGESTING_FAILED == item.getState()) {
-                    itemFailed = true;
+                    return true;
                 } else {
                     ingests.add(item.getPid());
                 }
             }
         }
-        return itemFailed;
+        return false;
     }
 
     private BatchItemObject importItem(BatchItemObject item, String importer) {
@@ -126,6 +137,15 @@ public final class FedoraImport {
         editor.setMembers(members);
         editor.write(editor.getLastModified(), message);
         remote.flush();
+    }
+
+    private void checkParent(String parent) throws DigitalObjectException {
+        if (parent == null) {
+            return ;
+        }
+        RemoteObject remote = fedora.find(parent);
+        RelationEditor editor = new RelationEditor(remote);
+        editor.getModel();
     }
 
 }

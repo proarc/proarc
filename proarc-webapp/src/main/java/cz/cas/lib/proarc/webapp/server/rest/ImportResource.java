@@ -230,7 +230,7 @@ public class ImportResource {
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
         if (state == Batch.State.INGESTING) {
-            // ingest
+            // ingest or reingest for INGESTING_FAILED
             batch = new FedoraImport(RemoteStorage.getInstance(appConfig), importManager)
                     .importBatch(batch, user.getUserName(), session.asFedoraLog());
         } else if (state == Batch.State.LOADING_FAILED) {

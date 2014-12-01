@@ -236,23 +236,34 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
 
         Action resetAction = new AbstractAction(i18n.ImportBatchChooser_ActionReset_Title(),
                 "[SKIN]/actions/undo.png",
-                i18n.ImportBatchChooser_ActionReset_Hint()) {
+                i18n.ImportBatchChooser_ActionResetLoad_Hint()) {
 
             @Override
             public void performAction(ActionEvent event) {
-                resetImportFolder();
+                BatchRecord record = getSelectedBatch();
+                if (record != null) {
+                    resetImportFolder(record.getState());
+                }
             }
 
             @Override
             public boolean accept(ActionEvent event) {
                 BatchRecord record = getSelectedBatch();
+                boolean accept = false;
                 if (record != null) {
-                    ImportBatchDataSource.State state = record.getState();
-                    return state == ImportBatchDataSource.State.LOADING_FAILED
-                            || state == ImportBatchDataSource.State.LOADED;
-                } else {
-                    return false;
+                    switch(record.getState()) {
+                        case INGESTING_FAILED:
+                            setTooltip(i18n.ImportBatchChooser_ActionResetIngest_Hint());
+                            accept = true;
+                            break;
+                        case LOADING_FAILED:
+                        case LOADED:
+                            setTooltip(i18n.ImportBatchChooser_ActionResetLoad_Hint());
+                            accept = true;
+                            break;
+                    }
                 }
+                return accept;
             }
 
         };
@@ -263,10 +274,8 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         return t;
     }
 
-    private void resetImportFolder() {
-        SC.ask(i18n.ImportBatchChooser_ActionReset_Title(),
-                i18n.ImportBatchChooser_ActionReset_Ask_MSg(),
-                new BooleanCallback() {
+    private void resetImportFolder(ImportBatchDataSource.State state) {
+        BooleanCallback callback = new BooleanCallback() {
 
             @Override
             public void execute(Boolean value) {
@@ -274,7 +283,13 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
                     handler.itemReset();
                 }
             }
-        });
+        };
+        if (state == ImportBatchDataSource.State.INGESTING_FAILED) {
+            callback.execute(true);
+        } else {
+            SC.ask(i18n.ImportBatchChooser_ActionReset_Title(),
+                    i18n.ImportBatchChooser_ActionReset_Ask_MSg(), callback);
+        }
     }
 
     private DynamicForm createLogForm() {

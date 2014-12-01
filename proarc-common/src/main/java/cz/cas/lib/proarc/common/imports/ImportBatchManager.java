@@ -184,10 +184,45 @@ public class ImportBatchManager {
             Timestamp from, Timestamp to, int offset, int maxCount, String sortBy) {
 
         BatchDao dao = daos.createBatch();
+        BatchItemDao itemDao = daos.createBatchItem();
         Transaction tx = daos.createTransaction();
         dao.setTransaction(tx);
+        itemDao.setTransaction(tx);
         try {
-            return dao.view(userId, batchId, state, from, to, offset, maxCount, sortBy);
+            List<BatchView> result = dao.view(userId, batchId, state, from, to, offset, maxCount, sortBy);
+            if (state != null && !state.contains(Batch.State.INGESTING_FAILED)) {
+                return result;
+            }
+            // issue 265: ingest failures are stored within object items
+            StringBuilder sb = new StringBuilder(1024);
+            int threshold = 3;
+            for (BatchView bv : result) {
+                if (Batch.State.INGESTING_FAILED.name().equals(bv.getState())) {
+                    List<BatchItem> failures = itemDao.find(bv.getId(), null, null,
+                            BatchItem.ObjectState.INGESTING_FAILED.name(), BatchItem.Type.OBJECT.name());
+                    sb.setLength(0);
+                    if (bv.getLog() != null) {
+                        sb.append(bv.getLog()).append("\n\n");
+                    }
+                    int itemCounter = 0;
+                    for (BatchItem failure : failures) {
+                        if (itemCounter >= threshold) {
+                            sb.append("...\n\nTotal errors: ").append(failures.size()).append('\n');
+                            break;
+                        }
+                        String log = failure.getLog();
+                        if (log != null) {
+                            ++itemCounter;
+                            sb.append(failure.getFile()).append('\n');
+                            sb.append(log).append("\n\n");
+                        }
+                    }
+                    if (sb.length() > 0) {
+                        bv.setLog(sb.toString());
+                    }
+                }
+            }
+            return result;
         } finally {
             tx.close();
         }
