@@ -81,6 +81,9 @@ public final class ImportBatchDataSource extends RestDataSource {
         DataSourceDateTimeField create = new DataSourceDateTimeField(FIELD_CREATE);
         create.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
+        DataSourceDateTimeField timestamp = new DataSourceDateTimeField(FIELD_TIMESTAMP);
+        timestamp.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
+
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
         LinkedHashMap<String, String> states = new LinkedHashMap<String, String>();
         states.put(State.LOADING.name(), i18n.ImportBatchDataSource_State_LOADING());
@@ -96,7 +99,7 @@ public final class ImportBatchDataSource extends RestDataSource {
 
         DataSourceTextField log = new DataSourceTextField(FIELD_LOG);
 
-        setFields(id, description, userId, user, create, state, parent, log);
+        setFields(id, description, userId, user, create, timestamp, state, parent, log);
         
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         
@@ -136,6 +139,12 @@ public final class ImportBatchDataSource extends RestDataSource {
                         map.put(ImportResourceApi.IMPORT_BATCH_CREATE_TO, criterion.getValueAsDate());
                     } else {
                         map.put(ImportResourceApi.IMPORT_BATCH_CREATE_FROM, criterion.getValueAsDate());
+                    }
+                } else if (FIELD_TIMESTAMP.equals(fieldName)) {
+                    if (criterion.getOperator() == OperatorId.LESS_OR_EQUAL) {
+                        map.put(ImportResourceApi.IMPORT_BATCH_MODIFIED_TO, criterion.getValueAsDate());
+                    } else {
+                        map.put(ImportResourceApi.IMPORT_BATCH_MODIFIED_FROM, criterion.getValueAsDate());
                     }
                 } else {
                     map.put(fieldName, criterion.getValueAsString());

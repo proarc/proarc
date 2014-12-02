@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.BatchDao;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.BatchView;
+import cz.cas.lib.proarc.common.dao.BatchViewFilter;
 import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.BatchItemTable;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.BatchTable;
@@ -149,31 +150,52 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     public List<BatchView> view(Integer userId, Integer batchId, Set<State> state,
             Timestamp from, Timestamp to, int offset, int maxCount, String sortBy) {
 
+        return view(new BatchViewFilter().setUserId(userId).setBatchId(batchId)
+                .setState(state).setCreatedFrom(from).setCreatedTo(to)
+                .setOffset(offset).setMaxCount(maxCount).setSortBy(sortBy));
+    }
+
+    @Override
+    public List<BatchView> view(BatchViewFilter filter) {
+        if (filter == null) {
+            throw new NullPointerException();
+        }
+
         UserTable ut = db.tableUser;
         DBCommand cmd = db.createCommand();
         cmd.select(table.id, table.state, table.userId, table.folder, table.title,
                 table.create, table.parentPid, table.timestamp, table.log);
         cmd.select(ut.username);
         cmd.join(table.userId, ut.id);
-        if (userId != null) {
-            cmd.where(ut.id.is(userId));
+        if (filter.getUserId() != null) {
+            cmd.where(ut.id.is(filter.getUserId()));
         }
-        if (batchId != null) {
-            cmd.where(table.id.is(batchId));
+        if (filter.getBatchId() != null) {
+            cmd.where(table.id.is(filter.getBatchId()));
         }
-        if (state != null && !state.isEmpty()) {
-            cmd.where(table.state.in(state));
+        if (filter.getState() != null && !filter.getState().isEmpty()) {
+            cmd.where(table.state.in(filter.getState()));
         }
-        if (from != null) {
-            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(table.create.isMoreOrEqual(from)));
+        if (filter.getCreatedFrom() != null) {
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    table.create.isMoreOrEqual(filter.getCreatedFrom())));
         }
-        if (to != null) {
-            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(table.create.isLessOrEqual(to)));
+        if (filter.getCreatedTo() != null) {
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    table.create.isLessOrEqual(filter.getCreatedTo())));
         }
-        DBColumn sortByCol = getSortColumn(table, sortBy);
+        if (filter.getModifiedFrom() != null) {
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    table.timestamp.isMoreOrEqual(filter.getModifiedFrom())));
+        }
+        if (filter.getModifiedTo() != null) {
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    table.timestamp.isLessOrEqual(filter.getModifiedTo())));
+        }
+        DBColumn sortByCol = getSortColumn(table, filter.getSortBy());
         boolean descending;
         if (sortByCol != null) {
-            descending = isDescendingSort(sortBy);
+            descending = isDescendingSort(filter.getSortBy());
         } else {
             sortByCol = table.create;
             descending = true;
@@ -182,11 +204,11 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         DBReader reader = new DBReader();
         try {
             reader.open(cmd, getConnection());
-            if (!reader.skipRows(offset)) {
+            if (!reader.skipRows(filter.getOffset())) {
                 return Collections.emptyList();
             }
-            ArrayList<BatchView> viewItems = new ArrayList<BatchView>(maxCount);
-            for (Iterator<DBRecordData> it = reader.iterator(maxCount); it.hasNext();) {
+            ArrayList<BatchView> viewItems = new ArrayList<BatchView>(filter.getMaxCount());
+            for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
                 DBRecordData rec = it.next();
                 BatchView view = new BatchView();
                 rec.getBeanProperties(view);

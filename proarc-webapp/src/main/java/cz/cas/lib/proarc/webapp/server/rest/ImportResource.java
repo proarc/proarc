@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchView;
+import cz.cas.lib.proarc.common.dao.BatchViewFilter;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.PageView.Item;
@@ -41,7 +42,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -178,12 +178,14 @@ public class ImportResource {
     }
 
     /**
-     * Gets list of import batches.
+     * Gets list of batch imports. DateTime format is ISO 8601.
      * 
      * @param batchId optional batch ID to find
      * @param batchState optional states to find
-     * @param createFrom optional create date as lower bound of query
-     * @param createTo  optional create date as upper bound of query
+     * @param createFrom optional create dateTime as lower bound of query
+     * @param createTo  optional create dateTime as upper bound of query
+     * @param modifiedFrom optional modified dateTime as lower bound of query
+     * @param modifiedTo optional modified dateTime as upper bound of query
      * @param startRow optional offset of the result
      * @param sortBy optional {@link BatchView} property name to sort the result. Value syntax: {@code [-]propertyName} where
      *              {@code '-'} stands for descending sort. Default is {@code sortBy=-create}.
@@ -197,17 +199,26 @@ public class ImportResource {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_FROM) DateTimeParam createFrom,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_TO) DateTimeParam createTo,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_FROM) DateTimeParam modifiedFrom,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_TO) DateTimeParam modifiedTo,
             @QueryParam("_startRow") int startRow,
             @QueryParam("_sortBy") String sortBy
             ) {
 
         int pageSize = 100;
-        Timestamp from = createFrom == null ? null : createFrom.toTimestamp();
-        Timestamp to = createTo == null ? null : createTo.toTimestamp();
-        // admin may see all users; XXX use permissions for this!
-        Integer userFilter = user.getId() == 1 ? null : user.getId();
-        List<BatchView> batches = importManager.viewBatch(userFilter, batchId, batchState,
-                from, to, startRow, pageSize, sortBy);
+        BatchViewFilter filter = new BatchViewFilter()
+                .setBatchId(batchId)
+                // admin may see all users; XXX use permissions for this!
+                .setUserId(user.getId() == 1 ? null : user.getId())
+                .setState(batchState)
+                .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
+                .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
+                .setModifiedFrom(modifiedFrom == null ? null : modifiedFrom.toTimestamp())
+                .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
+                .setOffset(startRow).setMaxCount(pageSize)
+                .setSortBy(sortBy)
+                ;
+        List<BatchView> batches = importManager.viewBatch(filter);
         int batchSize = batches.size();
         int endRow = startRow + batchSize;
         int total = (batchSize != pageSize) ? endRow: endRow + 1;

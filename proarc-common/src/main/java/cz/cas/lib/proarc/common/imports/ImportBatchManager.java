@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.dao.BatchItemDao;
 import cz.cas.lib.proarc.common.dao.BatchView;
+import cz.cas.lib.proarc.common.dao.BatchViewFilter;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -176,20 +177,19 @@ public class ImportBatchManager {
     }
 
     public BatchView viewBatch(int batchId) {
-        List<BatchView> view = viewBatch(null, batchId, null, null, null, 0, 1, null);
+        List<BatchView> view = viewBatch(new BatchViewFilter().setBatchId(batchId).setOffset(0).setMaxCount(1));
         return view.get(0);
     }
-    
-    public List<BatchView> viewBatch(Integer userId, Integer batchId, Set<Batch.State> state,
-            Timestamp from, Timestamp to, int offset, int maxCount, String sortBy) {
 
+    public List<BatchView> viewBatch(BatchViewFilter filter) {
         BatchDao dao = daos.createBatch();
         BatchItemDao itemDao = daos.createBatchItem();
         Transaction tx = daos.createTransaction();
         dao.setTransaction(tx);
         itemDao.setTransaction(tx);
         try {
-            List<BatchView> result = dao.view(userId, batchId, state, from, to, offset, maxCount, sortBy);
+            List<BatchView> result = dao.view(filter);
+            Set<Batch.State> state = filter.getState();
             if (state != null && !state.contains(Batch.State.INGESTING_FAILED)) {
                 return result;
             }

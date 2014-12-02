@@ -111,8 +111,19 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         lgfDate.setCanSort(true);
         MiniDateRangeItem dateRangeItem = new MiniDateRangeItem();
         dateRangeItem.setAttribute("allowRelativeDates", false);
-        lgfDate.setFilterEditorType(dateRangeItem);
+        lgfDate.setFilterEditorProperties(dateRangeItem);
         lgfDate.setCanFilter(true);
+
+        ListGridField lgfModified = new ListGridField(ImportBatchDataSource.FIELD_TIMESTAMP,
+                i18n.ImportBatchDataSource_ImportModifiedFieldTitle());
+        lgfModified.setWidth(120);
+        lgfModified.setAlign(Alignment.CENTER);
+        lgfModified.setCanSort(true);
+        MiniDateRangeItem modifiedRangeItem = new MiniDateRangeItem();
+        modifiedRangeItem.setAttribute("allowRelativeDates", false);
+        lgfModified.setFilterEditorProperties(modifiedRangeItem);
+        lgfModified.setCanFilter(true);
+
         ListGridField lgfImported = new ListGridField(ImportBatchDataSource.FIELD_STATE,
                 i18n.ImportBatchDataSource_StateFieldTitle());
         lgfImported.setWidth(150);
@@ -125,7 +136,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         lgfUser.setWidth(150);
         lgfUser.setCanFilter(false);
         lgfUser.setCanSort(false);
-        lg.setFields(lgfFolder, lgfDate, lgfImported, lgfUser);
+        lg.setFields(lgfFolder, lgfDate, lgfModified, lgfImported, lgfUser);
 
         lg.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
@@ -137,7 +148,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         Criteria filter = new Criteria();
         filter.addCriteria(lgfImported.getName(), ImportBatchDataSource.State.LOADED.toString());
         lg.setInitialCriteria(filter);
-        lg.setSortField(lgfDate.getName());
+        lg.setSortField(lgfModified.getName());
         lg.setSortDirection(SortDirection.DESCENDING);
         lg.addDataArrivedHandler(new DataArrivedHandler() {
 

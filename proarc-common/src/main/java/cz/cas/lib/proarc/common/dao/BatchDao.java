@@ -39,8 +39,12 @@ public interface BatchDao extends Dao {
 
     void update(Batch batch) throws ConcurrentModificationException;
 
+    List<BatchView> view(BatchViewFilter filter);
+
+    @Deprecated
     List<BatchView> view(Integer userId, Integer batchId, State state, int offset);
 
+    @Deprecated
     List<BatchView> view(Integer userId, Integer batchId, Set<State> state,
             Timestamp from, Timestamp to, int offset, int maxCount, String sortBy);
 
