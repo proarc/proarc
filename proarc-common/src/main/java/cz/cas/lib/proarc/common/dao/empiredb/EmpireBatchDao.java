@@ -192,6 +192,15 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
             cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
                     table.timestamp.isLessOrEqual(filter.getModifiedTo())));
         }
+        String filePattern = filter.getFilePattern();
+        if (filePattern != null) {
+            BatchItemTable bitems = db.tableBatchItem;
+            cmd.selectDistinct();
+            cmd.join(table.id, bitems.batchId);
+            cmd.where(table.folder.like('%' + filePattern + '%')
+                    .or(bitems.type.is(BatchItem.Type.FILE).and(bitems.file.like('%' + filePattern + '%')))
+            );
+        }
         DBColumn sortByCol = getSortColumn(table, filter.getSortBy());
         boolean descending;
         if (sortByCol != null) {

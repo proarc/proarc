@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.BatchDao;
 import cz.cas.lib.proarc.common.dao.BatchView;
+import cz.cas.lib.proarc.common.dao.BatchViewFilter;
 import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.Transaction;
@@ -35,7 +36,6 @@ import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ITable;
 import org.dbunit.dataset.ReplacementDataSet;
 import org.dbunit.dataset.ReplacementTable;
-import org.dbunit.operation.DatabaseOperation;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -310,11 +310,14 @@ public class EmpireBatchDaoTest {
         support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
-        List<BatchView> view = dao.view(null, null, null, Timestamp.valueOf("2013-01-18 01:00:00.000"), null, 0, 100, null);
+        List<BatchView> view = dao.view(new BatchViewFilter()
+                .setCreatedFrom(Timestamp.valueOf("2013-01-18 01:00:00.000"))
+        );
         assertEquals(1, view.size());
         assertEquals((Integer) 2, view.get(0).getId());
 
-        view = dao.view(null, null, null, null, Timestamp.valueOf("2013-01-18 01:00:00.000"), 0, 100, null);
+        view = dao.view(new BatchViewFilter()
+                .setCreatedTo(Timestamp.valueOf("2013-01-18 01:00:00.000")));
         assertEquals(1, view.size());
         assertEquals((Integer) 1, view.get(0).getId());
     }
@@ -343,4 +346,28 @@ public class EmpireBatchDaoTest {
         assertEquals((Integer) 2, view.get(0).getId());
         assertEquals((Integer) 1, view.get(1).getId());
     }
+
+    @Test
+    public void testViewFileFilter() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "batch_with_items.xml")
+                );
+        support.cleanInsert(support.getConnection(tx), db);
+        tx.commit();
+        // test folder2 match
+        List<BatchView> view = dao.view(new BatchViewFilter()
+                .setFilePattern("lder2")
+        );
+        assertEquals(1, view.size());
+        assertEquals((Integer) 2, view.get(0).getId());
+
+        // test batch item file match
+        view = dao.view(new BatchViewFilter()
+                .setFilePattern("file3.tif")
+        );
+        assertEquals(1, view.size());
+        assertEquals((Integer) 2, view.get(0).getId());
+    }
+
 }

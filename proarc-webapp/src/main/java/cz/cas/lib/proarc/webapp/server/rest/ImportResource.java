@@ -186,6 +186,7 @@ public class ImportResource {
      * @param createTo  optional create dateTime as upper bound of query
      * @param modifiedFrom optional modified dateTime as lower bound of query
      * @param modifiedTo optional modified dateTime as upper bound of query
+     * @param filePattern optional file pattern to match folder or batch item file
      * @param startRow optional offset of the result
      * @param sortBy optional {@link BatchView} property name to sort the result. Value syntax: {@code [-]propertyName} where
      *              {@code '-'} stands for descending sort. Default is {@code sortBy=-create}.
@@ -201,6 +202,7 @@ public class ImportResource {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_TO) DateTimeParam createTo,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_FROM) DateTimeParam modifiedFrom,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_TO) DateTimeParam modifiedTo,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_DESCRIPTION) String filePattern,
             @QueryParam("_startRow") int startRow,
             @QueryParam("_sortBy") String sortBy
             ) {
@@ -215,6 +217,7 @@ public class ImportResource {
                 .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
                 .setModifiedFrom(modifiedFrom == null ? null : modifiedFrom.toTimestamp())
                 .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
+                .setFilePattern(filePattern)
                 .setOffset(startRow).setMaxCount(pageSize)
                 .setSortBy(sortBy)
                 ;

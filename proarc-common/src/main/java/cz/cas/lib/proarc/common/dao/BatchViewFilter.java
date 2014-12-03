@@ -30,6 +30,7 @@ public class BatchViewFilter {
     private Integer userId;
     private Integer batchId;
     private Set<State> state;
+    private String filePattern;
     private Timestamp createdFrom;
     private Timestamp createdTo;
     private Timestamp modifiedFrom;
@@ -48,6 +49,10 @@ public class BatchViewFilter {
 
     public Set<State> getState() {
         return state;
+    }
+
+    public String getFilePattern() {
+        return filePattern;
     }
 
     public Timestamp getCreatedFrom() {
@@ -90,6 +95,14 @@ public class BatchViewFilter {
 
     public BatchViewFilter setState(Set<State> state) {
         this.state = state;
+        return this;
+    }
+
+    /**
+     * The file pattern to search batches with matching folders or batch item files.
+     */
+    public BatchViewFilter setFilePattern(String filePattern) {
+        this.filePattern = filePattern;
         return this;
     }
 

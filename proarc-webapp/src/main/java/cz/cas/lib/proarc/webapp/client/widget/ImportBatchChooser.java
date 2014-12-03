@@ -28,6 +28,7 @@ import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.MiniDateRangeItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
+import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.events.CellDoubleClickEvent;
@@ -102,7 +103,12 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         ListGridField lgfFolder = new ListGridField(ImportBatchDataSource.FIELD_DESCRIPTION,
                 i18n.ImportBatchDataSource_FolderFieldTitle());
 //        lgfFolder.setAutoFitWidth(false);
-        lgfFolder.setCanFilter(false);
+        lgfFolder.setCanFilter(true);
+        lgfFolder.setFilterOnKeypress(false);
+        TextItem lgfFolderFilter = new TextItem();
+        lgfFolderFilter.setPrompt(i18n.ImportBatchChooser_FilterFolder_Hint());
+        lgfFolderFilter.setHoverWidth(200);
+        lgfFolder.setFilterEditorProperties(lgfFolderFilter);
         lgfFolder.setCanSort(false);
         ListGridField lgfDate = new ListGridField(ImportBatchDataSource.FIELD_CREATE,
                 i18n.ImportBatchDataSource_ImportDateFieldTitle());
