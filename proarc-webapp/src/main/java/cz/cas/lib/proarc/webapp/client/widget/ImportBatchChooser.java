@@ -251,7 +251,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
             }
         };
 
-        Action resetAction = new AbstractAction(i18n.ImportBatchChooser_ActionReset_Title(),
+        Action resetAction = new AbstractAction(i18n.ImportBatchChooser_ActionResetLoad_Title(),
                 "[SKIN]/actions/undo.png",
                 i18n.ImportBatchChooser_ActionResetLoad_Hint()) {
 
@@ -270,11 +270,13 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
                 if (record != null) {
                     switch(record.getState()) {
                         case INGESTING_FAILED:
+                            setTitle(i18n.ImportBatchChooser_ActionResetIngest_Title());
                             setTooltip(i18n.ImportBatchChooser_ActionResetIngest_Hint());
                             accept = true;
                             break;
                         case LOADING_FAILED:
                         case LOADED:
+                            setTitle(i18n.ImportBatchChooser_ActionResetLoad_Title());
                             setTooltip(i18n.ImportBatchChooser_ActionResetLoad_Hint());
                             accept = true;
                             break;
@@ -304,8 +306,8 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         if (state == ImportBatchDataSource.State.INGESTING_FAILED) {
             callback.execute(true);
         } else {
-            SC.ask(i18n.ImportBatchChooser_ActionReset_Title(),
-                    i18n.ImportBatchChooser_ActionReset_Ask_MSg(), callback);
+            SC.ask(i18n.ImportBatchChooser_ActionResetLoad_Title(),
+                    i18n.ImportBatchChooser_ActionResetLoad_Ask_MSg(), callback);
         }
     }
 
