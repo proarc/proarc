@@ -229,64 +229,15 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
     }
 
     private ToolStrip createToolbar() {
-        ToolStrip t = Actions.createToolStrip();
         RefreshAction refreshAction = new RefreshAction(i18n);
-        t.addMember(Actions.asIconButton(refreshAction, this));
-
-        resumeAction = new AbstractAction(i18n.ImportBatchChooser_ActionResume_Title(),
-                "[SKIN]/actions/next.png", i18n.ImportBatchChooser_ActionResume_Hint()) {
-
-            @Override
-            public void performAction(ActionEvent event) {
-                handler.itemSelected();
-            }
-
-            @Override
-            public boolean accept(ActionEvent event) {
-                BatchRecord record = getSelectedBatch();
-                if (record != null) {
-                    return record.getState() == ImportBatchDataSource.State.LOADED;
-                }
-                return false;
-            }
-        };
-
-        Action resetAction = new AbstractAction(i18n.ImportBatchChooser_ActionResetLoad_Title(),
+        resumeAction = new ResumeAction(i18n.ImportBatchChooser_ActionResume_Title(),
+                "[SKIN]/actions/next.png", i18n.ImportBatchChooser_ActionResume_Hint());
+        Action resetAction = new ResetImportAction(i18n.ImportBatchChooser_ActionResetLoad_Title(),
                 "[SKIN]/actions/undo.png",
-                i18n.ImportBatchChooser_ActionResetLoad_Hint()) {
+                i18n.ImportBatchChooser_ActionResetLoad_Hint());
 
-            @Override
-            public void performAction(ActionEvent event) {
-                BatchRecord record = getSelectedBatch();
-                if (record != null) {
-                    resetImportFolder(record.getState());
-                }
-            }
-
-            @Override
-            public boolean accept(ActionEvent event) {
-                BatchRecord record = getSelectedBatch();
-                boolean accept = false;
-                if (record != null) {
-                    switch(record.getState()) {
-                        case INGESTING_FAILED:
-                            setTitle(i18n.ImportBatchChooser_ActionResetIngest_Title());
-                            setTooltip(i18n.ImportBatchChooser_ActionResetIngest_Hint());
-                            accept = true;
-                            break;
-                        case LOADING_FAILED:
-                        case LOADED:
-                            setTitle(i18n.ImportBatchChooser_ActionResetLoad_Title());
-                            setTooltip(i18n.ImportBatchChooser_ActionResetLoad_Hint());
-                            accept = true;
-                            break;
-                    }
-                }
-                return accept;
-            }
-
-        };
-
+        ToolStrip t = Actions.createToolStrip();
+        t.addMember(Actions.asIconButton(refreshAction, this));
         t.addMember(Actions.asIconButton(resetAction, actionSource));
         t.addMember(Actions.asIconButton(resumeAction, actionSource));
 
@@ -331,6 +282,70 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
     public interface ImportBatchChooserHandler {
         void itemSelected();
         void itemReset();
+    }
+
+    /**
+     * Opens a loaded import.
+     */
+    private class ResumeAction extends AbstractAction {
+
+        public ResumeAction(String title, String icon, String tooltip) {
+            super(title, icon, tooltip);
+        }
+
+        @Override
+        public void performAction(ActionEvent event) {
+            handler.itemSelected();
+        }
+
+        @Override
+        public boolean accept(ActionEvent event) {
+            BatchRecord record = getSelectedBatch();
+            if (record != null) {
+                return record.getState() == ImportBatchDataSource.State.LOADED;
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Resets a failed import.
+     */
+    private final class ResetImportAction extends AbstractAction {
+
+        public ResetImportAction(String title, String icon, String tooltip) {
+            super(title, icon, tooltip);
+        }
+
+        @Override
+        public void performAction(ActionEvent event) {
+            BatchRecord record = getSelectedBatch();
+            if (record != null) {
+                resetImportFolder(record.getState());
+            }
+        }
+
+        @Override
+        public boolean accept(ActionEvent event) {
+            BatchRecord record = getSelectedBatch();
+            boolean accept = false;
+            if (record != null) {
+                switch(record.getState()) {
+                    case INGESTING_FAILED:
+                        setTitle(i18n.ImportBatchChooser_ActionResetIngest_Title());
+                        setTooltip(i18n.ImportBatchChooser_ActionResetIngest_Hint());
+                        accept = true;
+                        break;
+                    case LOADING_FAILED:
+                    case LOADED:
+                        setTitle(i18n.ImportBatchChooser_ActionResetLoad_Title());
+                        setTooltip(i18n.ImportBatchChooser_ActionResetLoad_Hint());
+                        accept = true;
+                        break;
+                }
+            }
+            return accept;
+        }
     }
 
 }
