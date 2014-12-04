@@ -39,8 +39,10 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.Action;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -50,6 +52,7 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 
 /**
  * The widget to select a batch from import history. There should be 2 kinds of
@@ -235,10 +238,14 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         Action resetAction = new ResetImportAction(i18n.ImportBatchChooser_ActionResetLoad_Title(),
                 "[SKIN]/actions/undo.png",
                 i18n.ImportBatchChooser_ActionResetLoad_Hint());
+        Action parentAction = new ParentAction(i18n.ImportBatchChooser_ActionGotoParent_Title(),
+                "[SKIN]/actions/edit.png",
+                i18n.ImportBatchChooser_ActionGotoParent_Hint());
 
         ToolStrip t = Actions.createToolStrip();
         t.addMember(Actions.asIconButton(refreshAction, this));
         t.addMember(Actions.asIconButton(resetAction, actionSource));
+        t.addMember(Actions.asIconButton(parentAction, actionSource));
         t.addMember(Actions.asIconButton(resumeAction, actionSource));
 
         return t;
@@ -287,7 +294,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
     /**
      * Opens a loaded import.
      */
-    private class ResumeAction extends AbstractAction {
+    private final class ResumeAction extends AbstractAction {
 
         public ResumeAction(String title, String icon, String tooltip) {
             super(title, icon, tooltip);
@@ -345,6 +352,29 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
                 }
             }
             return accept;
+        }
+    }
+
+    /** Opens a selected parent object. */
+    private final  class ParentAction extends AbstractAction {
+
+        public ParentAction(String title, String icon, String tooltip) {
+            super(title, icon, tooltip);
+        }
+
+        @Override
+        public boolean accept(ActionEvent event) {
+            BatchRecord batch = getSelectedBatch();
+            return batch != null && batch.getParentPid() != null;
+        }
+
+        @Override
+        public void performAction(ActionEvent event) {
+            BatchRecord batch = getSelectedBatch();
+            if (batch != null && batch.getParentPid() != null) {
+                Editor.getInstance().getEditorWorkFlow().getPlaceController()
+                        .goTo(new DigitalObjectEditorPlace(DatastreamEditorType.CHILDREN, batch.getParentPid()));
+            }
         }
     }
 
