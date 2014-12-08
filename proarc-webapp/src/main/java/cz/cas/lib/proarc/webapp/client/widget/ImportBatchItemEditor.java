@@ -198,7 +198,9 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
             @Override
             public void onRelationChange(RelationChangeEvent event) {
-                if (batchItemGrid.isVisible()) {
+                // issue 262: isVisible seems to be always true and isAttached is always null.
+                // Add test isDrawn that seems to change for dettached widgets.
+                if (batchItemGrid.isVisible() && batchItemGrid.isDrawn()) {
                     updateCache();
                 }
             }

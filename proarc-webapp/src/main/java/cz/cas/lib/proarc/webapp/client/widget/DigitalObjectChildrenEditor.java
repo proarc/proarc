@@ -169,7 +169,9 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
 
             @Override
             public void onRelationChange(RelationChangeEvent event) {
-                if (digitalObject != null && childrenListGrid.isVisible()) {
+                // issue 262: isVisible seems to be always true and isAttached is always null.
+                // Add test isDrawn that seems to change for dettached widgets.
+                if (digitalObject != null && childrenListGrid.isVisible() && childrenListGrid.isDrawn()) {
                     String changedPid = event.getPid();
                     if (changedPid != null) {
                         Record changedRecord = childrenListGrid.getDataAsRecordList()
