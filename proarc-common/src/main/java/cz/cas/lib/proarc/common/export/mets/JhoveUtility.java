@@ -259,6 +259,10 @@ public class JhoveUtility {
      * @param dateCreated
      */
     public static void insertDateCreated(Mix mix, XMLGregorianCalendar dateCreated) {
+        // inserts DateCreated if missing
+        if ((mix.getImageCaptureMetadata() == null) ||
+                (mix.getImageCaptureMetadata().getGeneralCaptureInformation() == null) ||
+                (mix.getImageCaptureMetadata().getGeneralCaptureInformation().getDateTimeCreated() == null)) {
         TypeOfDateType dateTimeCreated = new TypeOfDateType();
         dateTimeCreated.setValue(dateCreated.toXMLFormat());
         if (mix.getImageCaptureMetadata() == null) {
@@ -268,6 +272,7 @@ public class JhoveUtility {
             mix.getImageCaptureMetadata().setGeneralCaptureInformation(new ImageCaptureMetadataType.GeneralCaptureInformation());
         }
         mix.getImageCaptureMetadata().getGeneralCaptureInformation().setDateTimeCreated(dateTimeCreated);
+        }
     }
 
     /**
@@ -300,14 +305,16 @@ public class JhoveUtility {
         if (mix.getChangeHistory() == null) {
             mix.setChangeHistory(new ChangeHistoryType());
         }
-        ImageProcessing imageProcessing = new ChangeHistoryType.ImageProcessing();
-        TypeOfDateType dateTimeProcessed = new TypeOfDateType();
-        dateTimeProcessed.setValue(dateCreated.toXMLFormat());
-        imageProcessing.setDateTimeProcessed(dateTimeProcessed);
-        StringType sourceData = new StringType();
-        sourceData.setValue(originalFileName);
-        imageProcessing.setSourceData(sourceData);
-        mix.getChangeHistory().getImageProcessing().add(imageProcessing);
+        if (mix.getChangeHistory().getImageProcessing().size() == 0) {
+            ImageProcessing imageProcessing = new ChangeHistoryType.ImageProcessing();
+            TypeOfDateType dateTimeProcessed = new TypeOfDateType();
+            dateTimeProcessed.setValue(dateCreated.toXMLFormat());
+            imageProcessing.setDateTimeProcessed(dateTimeProcessed);
+            StringType sourceData = new StringType();
+            sourceData.setValue(originalFileName);
+            imageProcessing.setSourceData(sourceData);
+            mix.getChangeHistory().getImageProcessing().add(imageProcessing);
+        }
     }
 
     /**

@@ -52,6 +52,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
@@ -61,6 +63,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
@@ -81,6 +84,7 @@ import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.AreaType;
 import cz.cas.lib.proarc.mets.DivType;
@@ -857,6 +861,38 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     }
 
     /**
+     * Fixes PS Mix
+     *
+     * @param jHoveOutputRaw
+     * @param metsElement
+     * @param rawCreated
+     */
+    public static void fixPSMix(JHoveOutput jHoveOutputRaw, String originalPid, XMLGregorianCalendar rawCreated) {
+        JhoveUtility.insertObjectIdentifier(jHoveOutputRaw.getMix(), originalPid, "RAW");
+        JhoveUtility.addDenominator(jHoveOutputRaw);
+        JhoveUtility.addOrientation(jHoveOutputRaw);
+        JhoveUtility.insertDateCreated(jHoveOutputRaw.getMix(), rawCreated);
+    }
+
+    /**
+     * Fixes MC Mix
+     *
+     * @param jHoveOutputMC
+     * @param metsElement
+     * @param mcCreated
+     * @param originalFile
+     * @param photometricInterpretation
+     */
+    public static void fixMCMix(JHoveOutput jHoveOutputMC, String originalPid, XMLGregorianCalendar mcCreated, String originalFile, PhotometricInterpretation photometricInterpretation) {
+        JhoveUtility.insertChangeHistory(jHoveOutputMC.getMix(), mcCreated, originalFile);
+        JhoveUtility.insertObjectIdentifier(jHoveOutputMC.getMix(), originalPid, "MC_IMGGRP");
+        JhoveUtility.addPhotometricInformation(jHoveOutputMC, photometricInterpretation);
+        JhoveUtility.addDenominator(jHoveOutputMC);
+        JhoveUtility.addOrientation(jHoveOutputMC);
+        JhoveUtility.insertDateCreated(jHoveOutputMC.getMix(), mcCreated);
+    }
+
+    /**
      * Generates technical metadata using JHOVE
      *
      * @param metsElement
@@ -966,20 +1002,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             } else {
                                 // Merges the information from the device mix
                                 JhoveUtility.mergeMix(jHoveOutputRaw.getMix(), mixDevice);
-                                // Insert dateCreated if missing
-                                if ((jHoveOutputRaw.getMix().getImageCaptureMetadata()==null)||
-                                        (jHoveOutputRaw.getMix().getImageCaptureMetadata().getGeneralCaptureInformation()==null)||
-                                        (jHoveOutputRaw.getMix().getImageCaptureMetadata().getGeneralCaptureInformation().getDateTimeCreated() == null)) {
-                                            JhoveUtility.insertDateCreated(jHoveOutputRaw.getMix(), rawCreated);
-                                        }
                             }
                             if ((jHoveOutputRaw.getMix() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation() != null)) {
                                 photometricInterpretation = jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation();
                             }
-                            JhoveUtility.insertObjectIdentifier(jHoveOutputRaw.getMix(), metsElement.getOriginalPid(), "RAW");
-                            JhoveUtility.addDenominator(jHoveOutputRaw);
-                            JhoveUtility.addOrientation(jHoveOutputRaw);
-
+                            fixPSMix(jHoveOutputRaw, metsElement.getOriginalPid(), rawCreated);
                         } catch (FedoraClientException e) {
                             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                         }
@@ -1002,22 +1029,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         if (jHoveOutputMC.getMix() == null) {
                             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for MC image", false, null);
                         }
-                    } else {
-                        // inserts DateCreated if missing
-                        if ((jHoveOutputMC.getMix().getImageCaptureMetadata() == null) ||
-                                (jHoveOutputMC.getMix().getImageCaptureMetadata().getGeneralCaptureInformation() == null) ||
-                                (jHoveOutputMC.getMix().getImageCaptureMetadata().getGeneralCaptureInformation().getDateTimeCreated() == null)) {
-                            JhoveUtility.insertDateCreated(jHoveOutputMC.getMix(), md5InfosMap.get("MC_IMGGRP").getCreated());
-                        }
-                        // inserts changeHistory if missing
-                        if (jHoveOutputRaw.getMix().getChangeHistory()==null) {
-                            JhoveUtility.insertChangeHistory(jHoveOutputMC.getMix(), md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
-                        }
                     }
-                    JhoveUtility.insertObjectIdentifier(jHoveOutputMC.getMix(), metsElement.getOriginalPid(), "MC_IMGGRP");
-                    JhoveUtility.addPhotometricInformation(jHoveOutputMC, photometricInterpretation);
-                    JhoveUtility.addDenominator(jHoveOutputMC);
-                    JhoveUtility.addOrientation(jHoveOutputMC);
+                    fixMCMix(jHoveOutputMC, metsElement.getOriginalPid(), md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile, photometricInterpretation);
                 }
             }
 
@@ -1072,24 +1085,20 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             }
 
             if (outputFileNames.get("ALTOGRP") != null) {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                try {
-                    DocumentBuilder db = dbf.newDocumentBuilder();
-                    File altoFile = new File(outputFileNames.get("ALTOGRP"));
-                    if (altoFile.exists()) {
-                        Document altoDoc = db.parse(altoFile);
-                        String schemaLocation = altoDoc.getDocumentElement().getAttribute("xsi:schemaLocation");
-                        if (schemaLocation == null) {
-                            schemaLocation = altoDoc.getDocumentElement().getAttribute("schemaLocation");
-                        }
-                        if ((schemaLocation != null) && (schemaLocation.contains("http://www.loc.gov/standards/alto/ns-v2"))) {
-                            md5InfosMap.get("ALTOGRP").setFormatVersion("2.0");
-                        } else {
-                            throw new MetsExportException(metsElement.getOriginalPid(), "ALTO version is unsupported (supports only 2.x)", false, null);
-                        }
+                File altoFile = new File(outputFileNames.get("ALTOGRP"));
+                if (altoFile.exists()) {
+                    Schema altoSchema;
+                    try {
+                        altoSchema = AltoDatastream.getSchema();
+                    } catch (SAXException e) {
+                        throw new MetsExportException("Unable to get ALTO schema", false);
                     }
-                } catch (Exception ex) {
-                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to parse ALTO file", false, ex);
+                    try {
+                        altoSchema.newValidator().validate(new StreamSource(altoFile));
+                    } catch (Exception exSax) {
+                        throw new MetsExportException(metsElement.getOriginalPid(), "Invalid ALTO", false, exSax);
+                    }
+                    md5InfosMap.get("ALTOGRP").setFormatVersion("2.0");
                 }
             }
 
