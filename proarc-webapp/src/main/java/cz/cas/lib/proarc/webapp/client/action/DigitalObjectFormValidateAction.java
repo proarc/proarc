@@ -278,7 +278,7 @@ public final class DigitalObjectFormValidateAction extends AbstractAction {
 
         @Override
         public void onFinish(boolean canceled) {
-            // no-op
+            list.setCanEdit(false);
         }
 
     }
