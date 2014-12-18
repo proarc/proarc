@@ -111,11 +111,12 @@ public class TiffImporterTest {
                 "UTF-8");
 
         ac1 = new File(root, "img1.ac.jp2");
-        // fake JP2 content to pass MIX processing
+        resource = TiffImporterTest.class.getResource("testscan.uc.jp2");
         FileUtils.copyURLToFile(resource, ac1);
         assertTrue(ac1.length() > 0);
         uc1 = new File(root, "img1.uc.jp2");
-        uc1.createNewFile();
+        FileUtils.copyURLToFile(resource, uc1);
+        assertTrue(uc1.length() > 0);
 
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());

@@ -94,6 +94,9 @@ public final class TiffImporter {
         LocalObject localObj = createObject(originalFilename, ctx);
         BatchItemObject batchLocalObject = ibm.addLocalObject(ctx.getBatch(), localObj);
         try {
+            if (!InputUtils.isTiff(f)) {
+                throw new IllegalStateException("Not a TIFF content: " + f);
+            }
             createMetadata(localObj, ctx);
             createRelsExt(localObj, f, ctx);
             createImages(ctx.getTargetFolder(), f, originalFilename, localObj, config);
@@ -212,9 +215,13 @@ public final class TiffImporter {
             entry = processJp2Copy(fileSet, tiff, options.getTargetFolder(), dsId, config.getNdkArchivalProcessor());
         }
         if (entry != null) {
+            File entryFile = entry.getFile();
             // do not use entry.getMimeType. JDK 1.6 does not recognize JPEG2000
+            if (!InputUtils.isJp2000(entryFile)) {
+                throw new IllegalStateException("Not a JP2000 content: " + entryFile);
+            }
             BinaryEditor binaryEditor = BinaryEditor.dissemination(fo, dsId, BinaryEditor.IMAGE_JP2);
-            binaryEditor.write(entry.getFile(), 0, null);
+            binaryEditor.write(entryFile, 0, null);
         } else if (config.getRequiredDatastreamId().contains(dsId)) {
             throw new FileNotFoundException("Missing archival JP2: " + new File(
                     tiff.getParentFile(), fileSet.getName() + config.getNdkArchivalFileSuffix()));
@@ -229,9 +236,13 @@ public final class TiffImporter {
             entry = processJp2Copy(fileSet, tiff, options.getTargetFolder(), dsId, config.getNdkUserProcessor());
         }
         if (entry != null) {
+            File entryFile = entry.getFile();
             // do not use entry.getMimeType. JDK 1.6 does not recognize JPEG2000
+            if (!InputUtils.isJp2000(entryFile)) {
+                throw new IllegalStateException("Not a JP2000 content: " + entryFile);
+            }
             BinaryEditor binaryEditor = BinaryEditor.dissemination(fo, dsId, BinaryEditor.IMAGE_JP2);
-            binaryEditor.write(entry.getFile(), 0, null);
+            binaryEditor.write(entryFile, 0, null);
         } else if (config.getRequiredDatastreamId().contains(dsId)) {
             throw new FileNotFoundException("Missing user JP2: " + new File(
                     tiff.getParentFile(), fileSet.getName() + config.getNdkUserFileSuffix()));
@@ -273,6 +284,9 @@ public final class TiffImporter {
         start = System.nanoTime();
         String targetName = String.format("%s.full.%s", originalFilename, imageType.getDefaultFileExtension());
         File f = writeImage(tiff, tempBatchFolder, targetName, imageType);
+        if (!InputUtils.isJpeg(f)) {
+            throw new IllegalStateException("Not a JPEG content: " + f);
+        }
         long endFull = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, BinaryEditor.FULL_ID, mediaType).write(f, 0, null);
 
@@ -284,6 +298,9 @@ public final class TiffImporter {
         f = writeImage(
                 scale(tiff, config.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
                 tempBatchFolder, targetName, imageType);
+        if (!InputUtils.isJpeg(f)) {
+            throw new IllegalStateException("Not a JPEG content: " + f);
+        }
         long endPreview = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, BinaryEditor.PREVIEW_ID, mediaType).write(f, 0, null);
 
@@ -295,6 +312,9 @@ public final class TiffImporter {
         f = writeImage(
                 scale(tiff, config.getThumbnailScaling(), thumbMaxWidth, thumbMaxHeight),
                 tempBatchFolder, targetName, imageType);
+        if (!InputUtils.isJpeg(f)) {
+            throw new IllegalStateException("Not a JPEG content: " + f);
+        }
         long endThumb = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, BinaryEditor.THUMB_ID, mediaType).write(f, 0, null);
 
