@@ -106,6 +106,17 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
         public void setButtonRemove(IButton buttonRemove) {
             this.buttonRemove = buttonRemove;
         }
+
+        /**
+         * Fixed {@link ValuesManager#clearErrors(boolean) }.
+         */
+        public void clearErrors(boolean show) {
+            ValuesManager vm = getForm();
+            // vm.clearErrors() broken in SmartGWT 3.0
+            for (DynamicForm form : vm.getMembers()) {
+                form.clearErrors(show);
+            }
+        }
     }
 
     RepeatableForm(RepeatableFormItem item) {
@@ -178,11 +189,7 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     public void clearErrors(boolean show) {
         formError.setVisible(false);
         for (Row row : activeRows) {
-            ValuesManager vm = row.getForm();
-            // vm.clearErrors() broken in SmartGWT 3.0
-            for (DynamicForm form : vm.getMembers()) {
-                form.clearErrors(show);
-            }
+            row.clearErrors(show);
         }
     }
 
@@ -252,6 +259,7 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
             row.setView(listItem);
         } else {
             row = pool.remove(0);
+            row.clearErrors(true);
             row.getForm().clearValues();
         }
         return row;
@@ -338,18 +346,20 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
     }
 
     private void onRemoveRowClick(int eventRowIndex) {
-        // 1. member is formError
-        if (activeRows.size() == 2) {
+        if (activeRows.size() == 1) {
             // do not remove last item
             Row row = activeRows.get(0);
             row.getForm().clearValues();
-            return ;
+            row.clearErrors(true);
+            dataModel.set(0, new Record());
+        } else {
+            Row row = activeRows.remove(eventRowIndex);
+            pool.add(row);
+            dataModel.removeAt(eventRowIndex);
+            // 1. member is formError
+            RepeatableForm.this.removeMember(row.getView());
+            setAddDisabled(false);
         }
-        Row row = activeRows.remove(eventRowIndex);
-        pool.add(row);
-        dataModel.removeAt(eventRowIndex);
-        RepeatableForm.this.removeMember(row.getView());
-        setAddDisabled(false);
         RepeatableForm.this.fireEvent(new ListChangedEvent());
     }
 
