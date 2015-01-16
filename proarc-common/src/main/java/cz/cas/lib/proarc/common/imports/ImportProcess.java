@@ -285,7 +285,7 @@ public final class ImportProcess implements Runnable {
             if (item != null) {
                 if (ObjectState.LOADING_FAILED == item.getState()) {
                     batch.setState(Batch.State.LOADING_FAILED);
-                    batch.setLog(item.getLog());
+                    batch.setLog(item.getFile() + "\n" + item.getLog());
                     return ;
                 }
             }

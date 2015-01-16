@@ -550,7 +550,7 @@ public class ImportBatchManager {
 
     public static String toString(Throwable ex) {
         StringWriter sw = new StringWriter();
-        ex.printStackTrace(new PrintWriter(sw));
+        ex.printStackTrace(new PrintWriter(sw, true));
         return sw.toString();
     }
 
