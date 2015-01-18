@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
+import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
@@ -39,6 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -213,6 +215,56 @@ public final class FoxmlUtils {
     private static DatastreamVersionType findDatastreamVersion(DatastreamType datastream) {
         List<DatastreamVersionType> versions = datastream.getDatastreamVersion();
         return versions.isEmpty() ? null : versions.get(versions.size() - 1);
+    }
+
+    /**
+     * Translates {@link DatastreamType} to {@link DatastreamProfile}. It searches
+     * for the newest version.
+     * <p>For now it fills only description!
+     */
+    public static DatastreamProfile toDatastreamProfile(String pid, DatastreamType datastream) {
+        DatastreamVersionType dv = findDatastreamVersion(datastream);
+        return dv == null ? null : toDatastreamProfile(pid, dv, datastream);
+    }
+
+    /**
+     * Translates {@link DatastreamType} to {@link DatastreamProfile}.
+     * For now it fills only description!
+     */
+    public static DatastreamProfile toDatastreamProfile(String pid,
+            DatastreamVersionType version, DatastreamType datastream) {
+
+        DatastreamProfile profile = new DatastreamProfile();
+        profile.setDsID(datastream.getID());
+        profile.setDsLabel(version.getLABEL());
+        profile.setDsCreateDate(version.getCREATED());
+        profile.setDsFormatURI(version.getFORMATURI());
+        profile.setDsMIME(version.getMIMETYPE());
+
+        profile.setDateTime(version.getCREATED());
+//        profile.setDsChecksum();
+        profile.setDsControlGroup(datastream.getCONTROLGROUP());
+        profile.setDsState(datastream.getSTATE().value());
+//        profile.setDsVersionID();
+//        profile.setPid(datastream.);
+        return profile;
+    }
+
+
+    /**
+     * Translates {@link com.yourmediashelf.fedora.generated.access.DatastreamType}
+     * to {@link DatastreamProfile}. It searches
+     * for the newest version.
+     * <p>For now it fills only description!
+     */
+    public static DatastreamProfile toDatastreamProfile(String pid,
+            com.yourmediashelf.fedora.generated.access.DatastreamType datastream) {
+
+        DatastreamProfile profile = new DatastreamProfile();
+        profile.setDsID(datastream.getDsid());
+        profile.setDsLabel(datastream.getLabel());
+        profile.setDsMIME(datastream.getMimeType());
+        return profile;
     }
 
     /**
@@ -400,6 +452,21 @@ public final class FoxmlUtils {
             throw new IllegalArgumentException();
         }
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Check whether failure stands for a missing requested datastream.
+     */
+    public static boolean missingDatastream(FedoraClientException ex) {
+        if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+            // Missing datastream message:
+            // HTTP 404 Error: No datastream could be found. Either there is no datastream for the digital object "uuid:5c3caa12-1e82-4670-a6aa-3d9ff8a7a3c5" with datastream ID of "TEXT_OCR"  OR  there are no datastreams that match the specified date/time value of "null".
+            // Missing object message:
+            // HTTP 404 Error: uuid:5c3caa12-1e82-4670-a6aa-3d9ff8a7a3c56
+            // To check message see fcrepo-server/src/main/java/org/fcrepo/server/rest/DatastreamResource.java
+            return ex.getMessage().contains("No datastream");
+        }
+        return false;
     }
 
     public enum ControlGroup {

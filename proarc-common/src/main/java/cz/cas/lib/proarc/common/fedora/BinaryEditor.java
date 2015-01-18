@@ -19,6 +19,8 @@ package cz.cas.lib.proarc.common.fedora;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import java.io.File;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -50,6 +52,12 @@ public final class BinaryEditor {
     public static final MediaType IMAGE_JP2 = new MediaType("image", "jp2");
     public static final MediaType IMAGE_JPEG = new MediaType("image", "jpeg");
     public static final MediaType IMAGE_TIFF = new MediaType("image", "tiff");
+    /**
+     * Data stream IDs with binary contents.
+     */
+    private static final List<String> MEDIA_DS_IDS = Arrays.asList(
+            BinaryEditor.FULL_ID, BinaryEditor.PREVIEW_ID, BinaryEditor.RAW_ID,
+            BinaryEditor.THUMB_ID, BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.NDK_USER_ID);
 
     private final XmlStreamEditor editor;
     private final FedoraObject object;
@@ -81,6 +89,13 @@ public final class BinaryEditor {
             return null;
         }
         return new BinaryEditor(object, dp);
+    }
+
+    /**
+     * Is the data stream holding media content?
+     */
+    public static boolean isMediaStream(String dsId) {
+        return MEDIA_DS_IDS.contains(dsId);
     }
 
     public BinaryEditor(FedoraObject object, DatastreamProfile profile) {

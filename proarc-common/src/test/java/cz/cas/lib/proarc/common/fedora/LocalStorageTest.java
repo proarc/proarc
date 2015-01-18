@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -405,6 +406,28 @@ public class LocalStorageTest {
         // check with new editor
         editor = lobject.getEditor(FoxmlUtils.managedProfile(dsID, mime, label));
         assertEquals(expectedMimetype, editor.getProfile().getDsMIME());
+    }
+
+    @Test
+    public void testGetStreamProfile() throws Exception {
+        LocalStorage storage = new LocalStorage();
+        LocalObject lobject = storage.create();
+        String dsID = BinaryEditor.FULL_ID;
+        MediaType mime = MediaType.TEXT_PLAIN_TYPE;
+        String label = "label";
+        XmlStreamEditor editor = lobject.getEditor(FoxmlUtils.managedProfile(dsID, mime, label));
+        assertNotNull(editor);
+        assertNotNull(editor.getProfile());
+        assertEquals(mime.toString(), editor.getProfile().getDsMIME());
+        assertNull(editor.getProfile().getDsFormatURI());
+        byte[] data = "data".getBytes("UTF-8");
+        editor.write(data, 0, null);
+        lobject.flush();
+
+        List<DatastreamProfile> resultProfiles = lobject.getStreamProfile(null);
+        assertNotNull(resultProfiles);
+        assertEquals(1, resultProfiles.size());
+        assertEquals(dsID, resultProfiles.get(0).getDsID());
     }
 
     @XmlRootElement

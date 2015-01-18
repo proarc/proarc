@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.common.object;
 
+import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -74,9 +74,12 @@ public class DefaultDisseminationHandlerTest {
         final DigitalObjectHandler pageObject = new DigitalObjectHandler(robject, null);
 
         DefaultDisseminationHandler handler = new DefaultDisseminationHandler("unknownDatastreamId", pageObject);
-        Response response = handler.getDissemination(null);
-        assertNotNull(response);
-        assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
+        try {
+            Response response = handler.getDissemination(null);
+            fail(robject.getPid());
+        } catch (DigitalObjectNotFoundException ex) {
+            assertEquals(robject.getPid(), ex.getPid());
+        }
     }
 
 }

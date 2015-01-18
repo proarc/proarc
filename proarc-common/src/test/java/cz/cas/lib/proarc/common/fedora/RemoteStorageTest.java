@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.fedora;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.response.DescribeRepositoryResponse;
 import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
@@ -89,6 +90,16 @@ public class RemoteStorageTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testVersion() throws Exception {
+        RemoteStorage fedora = new RemoteStorage(client);
+        DescribeRepositoryResponse descr = fedora.getRepositoryDescription(true);
+        assertNotNull(descr);
+        String version = descr.getRepositoryVersion();
+        assertNotNull(version);
+        assertTrue(version, fedora.isCompatible("3.5"));
     }
 
     @Test
@@ -472,6 +483,28 @@ public class RemoteStorageTest {
         // MIME cannot be changed without content as it is send as Content-Type HTTP header!
         assertNotEquals(newMime.toString(), profile.getDsMIME());
         assertEquals(expectedLabel, profile.getDsLabel());
+    }
+
+    @Test
+    public void testGetStreamProfile() throws Exception {
+        String dsId = "testId";
+        LocalObject local = new LocalStorage().create();
+        local.setLabel(test.getMethodName());
+        String format = "testns";
+        XmlStreamEditor leditor = local.getEditor(FoxmlUtils.inlineProfile(dsId, format, "label"));
+        EditorResult editorResult = leditor.createResult();
+        TestXml content = new TestXml("test content");
+        JAXB.marshal(content, editorResult);
+        leditor.write(editorResult, 0, null);
+
+        RemoteStorage fedora = new RemoteStorage(client);
+        fedora.ingest(local, support.getTestUser());
+
+        RemoteObject remote = fedora.find(local.getPid());
+        List<DatastreamProfile> resultProfiles = remote.getStreamProfile(null);
+        assertNotNull(resultProfiles);
+        assertEquals(2, resultProfiles.size()); // + DC
+        assertEquals(dsId, resultProfiles.get(0).getDsID());
     }
 
     @XmlRootElement(namespace="testns")

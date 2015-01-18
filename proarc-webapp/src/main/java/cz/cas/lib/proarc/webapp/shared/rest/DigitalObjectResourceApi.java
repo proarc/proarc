@@ -116,6 +116,11 @@ public final class DigitalObjectResourceApi {
     public static final String STRINGRECORD_ELEMENT = "record";
     public static final String STRINGRECORD_CONTENT = "content";
 
+    /** Resource /object/streamprofile. */
+    public static final String STREAMPROFILE_PATH = "streamprofile";
+    public static final String STREAMPROFILE_ID = "dsid";
+    public static final String STREAMPROFILE_MIME = "mime";
+
     /** Resource /object/dissemination */
     public static final String DISSEMINATION_PATH = "dissemination";
     public static final String DISSEMINATION_DATASTREAM = "datastream";

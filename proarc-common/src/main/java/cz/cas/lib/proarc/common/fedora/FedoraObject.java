@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.fedora;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import java.util.List;
 
 /**
  *
@@ -25,6 +26,14 @@ import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 public interface FedoraObject {
 
     String getPid();
+
+    /**
+     * Gets available datastream profiles.
+     * @param dsId datastream ID. {@code null} stands for all streams.
+     * @return the list of profiles
+     * @throws DigitalObjectException failure
+     */
+    List<DatastreamProfile> getStreamProfile(String dsId) throws DigitalObjectException;
 
     XmlStreamEditor getEditor(DatastreamProfile datastream);
     

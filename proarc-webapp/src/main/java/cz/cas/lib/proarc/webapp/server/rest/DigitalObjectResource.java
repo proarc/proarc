@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.webapp.server.rest;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -860,6 +861,61 @@ public class DigitalObjectResource {
             result.add(new AnnotatedMetaModel(model, locale));
         }
         return new SmartGwtResponse<AnnotatedMetaModel>(result);
+    }
+
+    /**
+     * Gets list of data profiles. Only with digitized contents.
+     * @param pid object ID
+     * @param batchId optional import ID
+     * @param dsId optional profile ID to filter result
+     * @return the list of profiles
+     */
+    @GET
+    @Path(DigitalObjectResourceApi.STREAMPROFILE_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DatastreamResult> getStreamProfile(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @QueryParam(DigitalObjectResourceApi.STREAMPROFILE_ID) String dsId
+            ) throws IOException, DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+        FedoraObject fo = findFedoraObject(pid, batchId, true);
+        List<DatastreamProfile> profiles = fo.getStreamProfile(dsId);
+        ArrayList<DatastreamResult> result = new ArrayList<DatastreamResult>(profiles.size());
+        for (DatastreamProfile profile : profiles) {
+            // filter digital contents
+            String profileDsId = profile.getDsID();
+            if (BinaryEditor.isMediaStream(profileDsId)) {
+                result.add(DatastreamResult.from(profile));
+            }
+        }
+        return new SmartGwtResponse<DatastreamResult>(result);
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class DatastreamResult {
+        @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_ID)
+        private String id;
+        @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_MIME)
+        private String mime;
+
+        public static DatastreamResult from(DatastreamProfile profile) {
+            DatastreamResult d = new DatastreamResult();
+            d.id = profile.getDsID();
+            d.mime = profile.getDsMIME();
+            return d;
+        }
+
+        public DatastreamResult(String id, String mime) {
+            this.id = id;
+            this.mime = mime;
+        }
+
+        public DatastreamResult() {
+        }
     }
 
     @GET

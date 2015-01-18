@@ -61,6 +61,8 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_DISSEMINATION = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.DISSEMINATION_PATH);
     public static final String URL_DIGOBJECT_FULL = path(URL_DIGOBJECT, DigitalObjectResourceApi.FULL_PATH);
+    public static final String URL_DIGOBJECT_METAMODEL =  path(
+            URL_DIGOBJECT, DigitalObjectResourceApi.METAMODEL_PATH);
     public static final String URL_DIGOBJECT_MODS = path(URL_DIGOBJECT, DigitalObjectResourceApi.MODS_PATH);
     public static final String URL_DIGOBJECT_MODS_CUSTOM = path(
             URL_DIGOBJECT_MODS, DigitalObjectResourceApi.MODS_CUSTOM_PATH);
@@ -72,9 +74,8 @@ public final class RestConfig {
             URL_DIGOBJECT, DigitalObjectResourceApi.PRIVATENOTE_PATH);
     public static final String URL_DIGOBJECT_RAW = path(URL_DIGOBJECT, DigitalObjectResourceApi.RAW_PATH);
     public static final String URL_DIGOBJECT_SEARCH =  path(URL_DIGOBJECT, DigitalObjectResourceApi.SEARCH_PATH);
+    public static final String URL_DIGOBJECT_STREAMPROFILE = path(URL_DIGOBJECT, DigitalObjectResourceApi.STREAMPROFILE_PATH);
     public static final String URL_DIGOBJECT_THUMBNAIL = path(URL_DIGOBJECT, DigitalObjectResourceApi.THUMB_PATH);
-    public static final String URL_DIGOBJECT_METAMODEL =  path(
-            URL_DIGOBJECT, DigitalObjectResourceApi.METAMODEL_PATH);
     public static final String URL_DIGOBJECT_URNNBN =  path(
             URL_DIGOBJECT, DigitalObjectResourceApi.URNNBN_PATH);
     public static final String URL_LOCALIZATION =  path(URL_ROOT, LocalizationResourceApi.PATH);

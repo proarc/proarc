@@ -17,9 +17,12 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -39,6 +42,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class RestException extends WebApplicationException {
     
     private static final long serialVersionUID = 1L;
+    private static final Logger LOG = Logger.getLogger(RestException.class.getName());
 
     private RestException(Response response) {
         super(response);
@@ -101,7 +105,19 @@ public class RestException extends WebApplicationException {
 
         @Override
         public Response toResponse(DigitalObjectConcurrentModificationException ex) {
+            LOG.log(Level.INFO, null, ex);
             return plainText(Response.status(Status.CONFLICT), ex.getMessage()).build();
+        }
+
+    }
+
+    @Provider
+    public static final class DigitalObjectNotFoundExceptionMapper implements ExceptionMapper<DigitalObjectNotFoundException> {
+
+        @Override
+        public Response toResponse(DigitalObjectNotFoundException ex) {
+            LOG.log(Level.INFO, null, ex);
+            return plainText(Response.status(Status.NOT_FOUND), "Not found! " + ex.getMessage()).build();
         }
 
     }

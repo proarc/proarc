@@ -71,8 +71,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
             }
             File entity = loader.read();
             if (entity == null) {
-                return Response.status(Status.NOT_FOUND).type(MediaType.TEXT_PLAIN_TYPE)
-                        .entity("content not found").build();
+                throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
             }
 
             Date lastModification = new Date(loader.getLastModified());
@@ -97,7 +96,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
             String path = String.format("objects/%s/datastreams/%s/content", remote.getPid(), dsId);
             ClientResponse response = remote.getClient().resource().path(path).get(ClientResponse.class);
             if (Status.fromStatusCode(response.getStatus()) == Status.NOT_FOUND) {
-                return Response.status(response.getStatus()).build();
+                throw new DigitalObjectNotFoundException(pid, null, dsId, response.getEntity(String.class), null);
             }
             MultivaluedMap<String, String> headers = response.getHeaders();
             String filename = headers.getFirst("Content-Disposition");

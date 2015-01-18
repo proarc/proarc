@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.fedora;
 
 import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
@@ -35,6 +36,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
 import javax.xml.transform.Source;
@@ -156,6 +161,24 @@ public final class LocalStorage {
             return FoxmlUtils.toXml(dobj, true);
         }
 
+        @Override
+        public List<DatastreamProfile> getStreamProfile(String dsId) throws DigitalObjectException {
+            List<DatastreamType> datastreams;
+            if (dsId == null) {
+                datastreams = dobj.getDatastream();
+            } else {
+                DatastreamType datastream = FoxmlUtils.findDatastream(dobj, dsId);
+                datastreams = (datastream != null)
+                        ? Arrays.asList(datastream)
+                        : Collections.<DatastreamType>emptyList();
+            }
+            List<DatastreamProfile> profiles = new ArrayList<DatastreamProfile>(datastreams.size());
+            for (DatastreamType datastream : datastreams) {
+                profiles.add(FoxmlUtils.toDatastreamProfile(getPid(), datastream));
+            }
+            return profiles;
+        }
+
     }
 
     public static final class LocalXmlStreamEditor implements XmlStreamEditor {
@@ -259,17 +282,12 @@ public final class LocalStorage {
 
         public DatastreamProfile getProfileImp() {
             String dsId = defaultProfile.getDsID();
-            DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
-            if (version == null) {
+            DatastreamType datastream = FoxmlUtils.findDatastream(object.getDigitalObject(), dsId);
+            if (datastream == null) {
                 return defaultProfile;
+            } else {
+                return FoxmlUtils.toDatastreamProfile(object.getPid(), datastream);
             }
-            DatastreamProfile profile = new DatastreamProfile();
-            profile.setDsID(version.getID());
-            profile.setDsLabel(version.getLABEL());
-            profile.setDsCreateDate(version.getCREATED());
-            profile.setDsFormatURI(version.getFORMATURI());
-            profile.setDsMIME(version.getMIMETYPE());
-            return profile;
         }
 
         /**

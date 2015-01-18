@@ -23,10 +23,14 @@ import com.yourmediashelf.fedora.client.request.AddDatastream;
 import com.yourmediashelf.fedora.client.request.ModifyDatastream;
 import com.yourmediashelf.fedora.client.response.AddDatastreamResponse;
 import com.yourmediashelf.fedora.client.response.DatastreamProfileResponse;
+import com.yourmediashelf.fedora.client.response.DescribeRepositoryResponse;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.client.response.GetDatastreamResponse;
+import com.yourmediashelf.fedora.client.response.GetDatastreamsResponse;
 import com.yourmediashelf.fedora.client.response.IngestResponse;
+import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.client.response.ModifyDatastreamResponse;
+import com.yourmediashelf.fedora.generated.access.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
@@ -41,7 +45,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,6 +69,7 @@ public final class RemoteStorage {
     private static RemoteStorage INSTANCE;
 
     private final FedoraClient client;
+    private DescribeRepositoryResponse fedoraDescription;
 
     public RemoteStorage(FedoraClient client) {
         this.client = client;
@@ -194,6 +202,18 @@ public final class RemoteStorage {
         }
     }
 
+    /**
+     * Is the storage compatible with a version?
+     * @param version the requested version
+     * @return {@code true} if the repository is compatible.
+     * @throws FedoraClientException failure
+     */
+    public boolean isCompatible(String version) throws FedoraClientException {
+        DescribeRepositoryResponse desc = getRepositoryDescription(true);
+        String repositoryVersion = desc.getRepositoryVersion();
+        return repositoryVersion.compareTo(version) >= 0;
+    }
+
     FedoraClient getClient() {
         return client;
     }
@@ -206,6 +226,14 @@ public final class RemoteStorage {
         if (errMsg != null && errMsg.contains("org.fcrepo.server.errors.ObjectExistsException")) {
             throw new DigitalObjectExistException(pid, null, "Object already exists!", ex);
         }
+    }
+
+    DescribeRepositoryResponse getRepositoryDescription(boolean cache) throws FedoraClientException {
+        if (fedoraDescription == null || !cache) {
+            DescribeRepositoryResponse response = FedoraClient.describeRepository().execute(client);
+            fedoraDescription = response;
+        }
+        return fedoraDescription;
     }
 
     public static final class RemoteObject extends AbstractFedoraObject {
@@ -257,6 +285,70 @@ public final class RemoteStorage {
                 return response.getEntity(String.class);
             } catch (FedoraClientException ex) {
                 throw new IllegalStateException(getPid(), ex);
+            }
+        }
+
+        @Override
+        public List<DatastreamProfile> getStreamProfile(String dsId) throws DigitalObjectException {
+            if (dsId == null) {
+                return getDatastreams();
+            } else {
+                return getDatastreamImpl(dsId);
+            }
+        }
+
+        private List<DatastreamProfile> getDatastreamImpl(String dsId) throws DigitalObjectException {
+            try {
+                GetDatastreamResponse response = FedoraClient.getDatastream(getPid(), dsId)
+                        .format("xml").execute(client);
+                DatastreamProfile profile = response.getDatastreamProfile();
+                return Collections.singletonList(profile);
+            } catch (FedoraClientException ex) {
+                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    if (FoxmlUtils.missingDatastream(ex)) {
+                        // log
+                        return Collections.emptyList();
+                    }
+                    throw new DigitalObjectNotFoundException(getPid(), ex);
+                }
+                throw new DigitalObjectException(getPid(), null, dsId, null, ex);
+            }
+        }
+
+        /**
+         * API-M getDatastreams is not implemented in Fedora 3.5 and older.
+         */
+        private List<DatastreamProfile> getDatastreams3_5() throws DigitalObjectException {
+            try {
+//                FedoraResponse r = FedoraClient.getObjectXML(getPid()).execute(client);
+                ListDatastreamsResponse response = FedoraClient.listDatastreams(getPid()).execute(client);
+                List<DatastreamType> datastreams = response.getDatastreams();
+                ArrayList<DatastreamProfile> profiles = new ArrayList<DatastreamProfile>(datastreams.size());
+                for (DatastreamType datastream : datastreams) {
+                    profiles.add(FoxmlUtils.toDatastreamProfile(getPid(), datastream));
+                }
+                return profiles;
+            } catch (FedoraClientException ex) {
+                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    throw new DigitalObjectNotFoundException(getPid(), ex);
+                }
+                throw new DigitalObjectException(getPid(), ex);
+            }
+        }
+
+        public List<DatastreamProfile> getDatastreams() throws DigitalObjectException {
+            try {
+                if (!RemoteStorage.getInstance().isCompatible("3.6")) {
+                    return getDatastreams3_5();
+                }
+                GetDatastreamsResponse response = FedoraClient.getDatastreams(getPid()).execute(client);
+                List<DatastreamProfile> profiles = response.getDatastreamProfiles();
+                return profiles;
+            } catch (FedoraClientException ex) {
+                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    throw new DigitalObjectNotFoundException(getPid(), ex);
+                }
+                throw new DigitalObjectException(getPid(), ex);
             }
         }
 
@@ -423,7 +515,7 @@ public final class RemoteStorage {
                     // Missing object message:
                     // HTTP 404 Error: uuid:5c3caa12-1e82-4670-a6aa-3d9ff8a7a3c56
                     // To check message see fcrepo-server/src/main/java/org/fcrepo/server/rest/DatastreamResource.java
-                    missingDataStream = ex.getMessage().contains("No datastream");
+                    missingDataStream = FoxmlUtils.missingDatastream(ex);
                     lastModified = -1;
                     if (missingDataStream) {
                         if (defaultProfile != null) {

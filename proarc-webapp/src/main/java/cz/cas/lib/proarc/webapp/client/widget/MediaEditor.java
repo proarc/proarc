@@ -16,11 +16,23 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.data.SortSpecifier;
+import com.smartgwt.client.types.Alignment;
+import com.smartgwt.client.types.SortDirection;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.ColorPicker;
+import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.events.ColorSelectedEvent;
 import com.smartgwt.client.widgets.form.events.ColorSelectedHandler;
+import com.smartgwt.client.widgets.form.fields.SelectItem;
+import com.smartgwt.client.widgets.form.fields.events.ChangedEvent;
+import com.smartgwt.client.widgets.form.fields.events.ChangedHandler;
+import com.smartgwt.client.widgets.form.fields.events.DataArrivedEvent;
+import com.smartgwt.client.widgets.form.fields.events.DataArrivedHandler;
+import com.smartgwt.client.widgets.grid.ListGridRecord;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
@@ -29,30 +41,33 @@ import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.StreamProfileDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.StreamProfileDataSource.StreamProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.ArrayList;
 
 /**
  * Edits data streams containing digitized multimedia content.
  *
- * <p>For now it just shows the content. Later it could allow to upload content.
- *
  * @author Jan Pokorsky
  */
 public final class MediaEditor implements DatastreamEditor, Refreshable {
 
+    private final ClientMessages i18n;
     private final DigitalObjectPreview doPreview;
     private String imgParams;
     private final ArrayList<Canvas> backgroundListeners = new ArrayList<Canvas>();
     private Action fullAction;
-    private AbstractAction rawAction;
     private AbstractAction backgroundAction;
     private AbstractAction uploadAction;
     private DigitalObject digitalObject;
+    private SelectItem streamMenu;
 
     public MediaEditor(ClientMessages i18n) {
+        this.i18n = i18n;
         doPreview = new DigitalObjectPreview(i18n);
         initActions(i18n);
     }
@@ -63,16 +78,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
             throw new NullPointerException();
         }
         this.digitalObject = digitalObject;
-        StringBuilder sb = new StringBuilder();
-        sb.append(DigitalObjectResourceApi.DIGITALOBJECT_PID).append('=')
-                .append(digitalObject.getPid());
-        String batchId = digitalObject.getBatchId();
-        if (batchId != null) {
-            sb.append('&').append(DigitalObjectResourceApi.BATCHID_PARAM).append('=').append(batchId);
-        }
-        imgParams = sb.toString();
-        String previewUrl = buildResourceUrl(RestConfig.URL_DIGOBJECT_PREVIEW, imgParams);
-        doPreview.show(previewUrl);
+        updateStreamMenu(digitalObject);
     }
 
     @Override
@@ -92,12 +98,13 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
     @Override
     public Canvas[] getToolbarItems() {
+        Canvas zoomer = doPreview.getPreviewZoomer();
+        zoomer.setWidth(100);
         return new Canvas[] {
             Actions.asIconButton(fullAction, this),
-            Actions.asIconButton(rawAction, this),
             Actions.asIconButton(uploadAction, this),
-            Actions.asIconButton(backgroundAction, this),
-            doPreview.getPreviewZoomer(),
+            Actions.asIconButton(backgroundAction, this), zoomer,
+            createStreamMenu(),
         };
     }
 
@@ -108,9 +115,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
     @Override
     public void refresh() {
-        String previewUrl = buildResourceUrl(RestConfig.URL_DIGOBJECT_PREVIEW, imgParams);
-        doPreview.show(previewUrl);
-//        doPreview.show(previewUrl + "&reload=" + System.currentTimeMillis());
+        edit(digitalObject);
     }
 
     public void addBackgroundColorListeners(Canvas c) {
@@ -132,20 +137,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
             @Override
             public void performAction(ActionEvent event) {
-                String url = buildResourceUrl(RestConfig.URL_DIGOBJECT_FULL, imgParams);
-                doPreview.showInWindow(url);
-            }
-        };
-
-        rawAction = new AbstractAction(
-                i18n.DigitalObjectPreview_ViewRawAction_Title(),
-                "[SKIN]/actions/download.png",
-                i18n.DigitalObjectPreview_ViewRawAction_Hint()) {
-
-            @Override
-            public void performAction(ActionEvent event) {
-                String url = buildResourceUrl(RestConfig.URL_DIGOBJECT_RAW, imgParams);
-                doPreview.showInNewWindow(url);
+                doPreview.showInWindow(getObjectTitle());
             }
         };
 
@@ -183,11 +175,98 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
                     public void execute(Boolean value) {
                         if (value != null && value) {
                             RelationDataSource.getInstance().fireRelationChange(digitalObject.getPid());
+                            refresh();
                         }
                     }
                 });
             }
         };
+    }
+
+    private DynamicForm createStreamMenu() {
+        streamMenu = new SelectItem();
+        streamMenu.setShowTitle(Boolean.FALSE);
+        streamMenu.setWidth(100);
+        streamMenu.setPickListWidth(150);
+        streamMenu.addChangedHandler(new ChangedHandler() {
+
+            @Override
+            public void onChanged(ChangedEvent event) {
+                showStream();
+            }
+        });
+        streamMenu.setAutoFetchData(Boolean.FALSE);
+        streamMenu.setOptionDataSource(StreamProfileDataSource.getInstance());
+        SortSpecifier sort = new SortSpecifier(StreamProfileDataSource.FIELD_ORDER, SortDirection.ASCENDING);
+        streamMenu.setPickListSort(new SortSpecifier[] {sort});
+        streamMenu.setDisplayField(StreamProfileDataSource.FIELD_LABEL);
+        streamMenu.setValueField(StreamProfileDataSource.FIELD_ID);
+        streamMenu.addDataArrivedHandler(new DataArrivedHandler() {
+
+            @Override
+            public void onDataArrived(DataArrivedEvent event) {
+                updateStreamMenu(event.getData(), streamMenu);
+            }
+        });
+
+        DynamicForm form = new DynamicForm();
+        form.setFields(streamMenu);
+        form.setLayoutAlign(Alignment.CENTER);
+        return form;
+    }
+
+    private void updateStreamMenu(DigitalObject dobj) {
+        Criteria streamMenuFilter = dobj.toCriteria();
+        streamMenu.setPickListCriteria(streamMenuFilter);
+        streamMenu.fetchData();
+    }
+
+    private void updateStreamMenu(ResultSet data, SelectItem view) {
+        ListGridRecord lastViewSelection = view.getSelectedRecord();
+        Boolean contains = lastViewSelection == null ? false : data.contains(lastViewSelection);
+        if (!contains) {
+            String dsId = data.isEmpty() ? null : data.get(0).getAttribute(StreamProfileDataSource.FIELD_ID);
+            view.setValue(dsId);
+        }
+        showStream();
+    }
+
+    private void showStream() {
+        StreamProfile stream = StreamProfile.get(streamMenu.getSelectedRecord());
+        if (stream != null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(DigitalObjectResourceApi.DIGITALOBJECT_PID).append('=')
+                    .append(digitalObject.getPid())
+                    .append('&').append(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM)
+                    .append('=').append(stream.getId());
+            String batchId = digitalObject.getBatchId();
+            if (batchId != null) {
+                sb.append('&').append(DigitalObjectResourceApi.BATCHID_PARAM).append('=').append(batchId);
+            }
+            imgParams = sb.toString();
+            String previewUrl = buildResourceUrl(RestConfig.URL_DIGOBJECT_DISSEMINATION, imgParams);
+            doPreview.show(previewUrl, stream.getMime());
+        } else {
+            doPreview.show(null);
+        }
+    }
+
+    private String getObjectTitle() {
+        String label = digitalObject.getRecord().getAttribute(DigitalObjectResourceApi.MEMBERS_ITEM_LABEL);
+        MetaModelRecord model = digitalObject.getModel();
+        String modelName = null;
+        if (model != null) {
+            modelName = model.getDisplayName();
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(i18n.DigitalObjectPreview_Window_Title());
+        if (modelName != null) {
+            sb.append(" - ").append(modelName);
+        }
+        if (label != null) {
+            sb.append(": ").append(label);
+        }
+        return sb.toString();
     }
 
     /**

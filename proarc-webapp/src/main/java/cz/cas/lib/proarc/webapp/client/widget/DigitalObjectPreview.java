@@ -22,6 +22,7 @@ import com.google.gwt.event.dom.client.LoadEvent;
 import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.Cursor;
@@ -34,6 +35,8 @@ import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Img;
 import com.smartgwt.client.widgets.WidgetCanvas;
 import com.smartgwt.client.widgets.Window;
+import com.smartgwt.client.widgets.events.CloseClickEvent;
+import com.smartgwt.client.widgets.events.CloseClickHandler;
 import com.smartgwt.client.widgets.events.DragMoveEvent;
 import com.smartgwt.client.widgets.events.DragMoveHandler;
 import com.smartgwt.client.widgets.events.DragStartEvent;
@@ -45,6 +48,7 @@ import com.smartgwt.client.widgets.events.DrawHandler;
 import com.smartgwt.client.widgets.events.ResizedEvent;
 import com.smartgwt.client.widgets.events.ResizedHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.ValuesManager;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.events.ChangedEvent;
 import com.smartgwt.client.widgets.form.fields.events.ChangedHandler;
@@ -52,6 +56,7 @@ import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,35 +70,41 @@ public final class DigitalObjectPreview {
 
     // darker variant #E6E6F5
     public static final String BACKGROUND_COLOR = "#F5F5FB";
+    private static final String FIELD_ZOOM = "zoom";
     private static final Logger LOG = Logger.getLogger(DigitalObjectPreview.class.getName());
+    /** MIMEs displayable by img element. */
+    private static final HashSet<String> SUPPORTED_IMAGES = new HashSet<String>();
+    static {
+        SUPPORTED_IMAGES.add("image/jpeg");
+        SUPPORTED_IMAGES.add("image/png");
+        SUPPORTED_IMAGES.add("image/gif");
+    }
     
     private final ClientMessages i18n;
     private final VLayout previewLayout;
+    private final VLayout windowContainer;
     private Window imageWindow;
-    private final ImageLoadTask windowLoadTask;
     private final ImageLoadTask previewLoadTask;
-    private Zoom zoom;
+    private final ValuesManager zoomValues;
 
     public DigitalObjectPreview(ClientMessages i18n) {
         this.i18n = i18n;
-        this.zoom = new Zoom();
+        zoomValues = new ValuesManager();
+        zoomValues.setValue(FIELD_ZOOM, Zoom.FIT_PANEL);
         VLayout imgContainer = new VLayout();
-        imgContainer.setLayoutMargin(4);
         imgContainer.setAlign(Alignment.CENTER);
-        imgContainer.setOverflow(Overflow.AUTO);
 
-        VLayout windowContainer = new VLayout();
-        windowContainer.setOverflow(Overflow.AUTO);
+        windowContainer = new VLayout();
         windowContainer.setAlign(Alignment.CENTER);
         windowContainer.setWidth100();
         windowContainer.setHeight100();
-        windowLoadTask = new ImageLoadTask(windowContainer, new Zoom(Zoom.ZOOM_PREFIX + "100"), true, i18n);
         imageWindow = createFullImageWindow(windowContainer);
 
         previewLayout = new VLayout();
         previewLayout.setBackgroundColor(BACKGROUND_COLOR);
         previewLayout.addMember(imgContainer);
-        previewLoadTask = new ImageLoadTask(imgContainer, zoom, false, i18n);
+        previewLoadTask = new ImageLoadTask(imgContainer,
+                new Zoom(zoomValues.getValueAsString(FIELD_ZOOM)), false, i18n);
     }
 
     public Canvas asCanvas() {
@@ -101,12 +112,16 @@ public final class DigitalObjectPreview {
     }
 
     public void show(String previewUrl) {
+        show(previewUrl, "image/jpeg");
+    }
+
+    public void show(String previewUrl, String mime) {
         if (previewUrl == null) {
             Layout container = previewLoadTask.getImgContainer();
             container.removeMembers(container.getMembers());
             previewLoadTask.stop();
         } else {
-            previewLoadTask.loadImage(previewUrl);
+            previewLoadTask.load(previewUrl, mime);
         }
     }
 
@@ -120,11 +135,11 @@ public final class DigitalObjectPreview {
 
             @Override
             public void onChanged(ChangedEvent event) {
-                zoom = new Zoom(String.valueOf(event.getValue()));
-                previewLoadTask.resize(zoom);
+                onZoomChange(event);
             }
         });
         DynamicForm form = new DynamicForm();
+        form.setValuesManager(zoomValues);
         form.setFields(zoomItem);
         form.setLayoutAlign(Alignment.CENTER);
         return form;
@@ -136,7 +151,6 @@ public final class DigitalObjectPreview {
      */
     public Canvas getWindowZoomer() {
         SelectItem zoomItem = createZoomForm();
-        zoomItem.setDefaultValue(windowLoadTask.getZoom().getValue());
         zoomItem.setHeight(15);
         zoomItem.setPickerIconSrc("[SKIN]/headerIcons/zoom.png");
         zoomItem.setPickerIconHeight(15);
@@ -145,29 +159,29 @@ public final class DigitalObjectPreview {
 
             @Override
             public void onChanged(ChangedEvent event) {
-                Zoom windowZoom = new Zoom(String.valueOf(event.getValue()));
-                windowLoadTask.resize(windowZoom);
+                onZoomChange(event);
             }
         });
         DynamicForm form = new DynamicForm();
+        form.setValuesManager(zoomValues);
         form.setFields(zoomItem);
         form.setLayoutAlign(Alignment.CENTER);
         return form;
     }
 
     private SelectItem createZoomForm() {
-        SelectItem selectItem = new SelectItem();
+        SelectItem selectItem = new SelectItem(FIELD_ZOOM);
         selectItem.setShowTitle(Boolean.FALSE);
         selectItem.setValueMap(Zoom.getValueMap(i18n));
-        selectItem.setDefaultValue(Zoom.FIT_PANEL);
         return selectItem;
     }
 
     private Window createFullImageWindow(Canvas content) {
-        Window window = new Window();
+        final Window window = new Window();
         window.setWidth(Page.getWidth() - 200);
         window.setHeight(Page.getHeight() - 40);
         window.setAutoCenter(true);
+        window.setMaximized(true);
         window.setCanDragResize(true);
         window.setCanDragReposition(true);
         window.setIsModal(true);
@@ -188,6 +202,17 @@ public final class DigitalObjectPreview {
 
         window.setHeaderControls(HeaderControls.HEADER_ICON, HeaderControls.HEADER_LABEL,
                 getWindowZoomer(), HeaderControls.MAXIMIZE_BUTTON, HeaderControls.CLOSE_BUTTON);
+
+        window.addCloseClickHandler(new CloseClickHandler() {
+
+            @Override
+            public void onCloseClick(CloseClickEvent event) {
+                event.cancel();
+                window.close();
+                onWindowClose();
+            }
+        });
+
         return window;
     }
 
@@ -200,11 +225,27 @@ public final class DigitalObjectPreview {
         com.google.gwt.user.client.Window.open(url, "_blank", "");
     }
 
-    public void showInWindow(String url) {
+    /**
+     * Gets preview container and put it to window. On close it returns the container back.
+     */
+    public void showInWindow(String title) {
         // put focus inside window to enable Window.setDismissOnEscape
-        imageWindow.focus();
-        windowLoadTask.loadImage(url);
+        Canvas[] members = previewLayout.getMembers();
+        windowContainer.setMembers(members);
+        imageWindow.setTitle(title);
         imageWindow.show();
+        imageWindow.focus();
+    }
+
+    private void onWindowClose() {
+        Canvas[] members = windowContainer.getMembers();
+        previewLayout.setMembers(members);
+    }
+
+    private void onZoomChange(ChangedEvent event) {
+        Zoom zoom = new Zoom(String.valueOf(event.getValue()));
+        previewLoadTask.resize(zoom);
+        zoomValues.synchronizeMembers();
     }
 
     /**
@@ -320,6 +361,7 @@ public final class DigitalObjectPreview {
             LoadHandler, ErrorHandler, DrawHandler, ResizedHandler {
 
         private final Layout imgContainer;
+        private final Layout display;
         private Image image;
         private HandlerRegistration drawHandler;
         private HandlerRegistration resizedHandler;
@@ -338,24 +380,71 @@ public final class DigitalObjectPreview {
          */
         private double scrollVertical;
 
-        public ImageLoadTask(Layout imgContainer, Zoom zoom, boolean focus, ClientMessages i18n) {
-            this.imgContainer = imgContainer;
+        public ImageLoadTask(Layout display, Zoom zoom, boolean focus, ClientMessages i18n) {
+            this.imgContainer = new VLayout();
+            this.imgContainer.setLayoutMargin(4);
+            // center vertically
+            this.imgContainer.setAlign(Alignment.CENTER);
+            // center horizontally
+            this.imgContainer.setDefaultLayoutAlign(Alignment.CENTER);
+            this.imgContainer.setOverflow(Overflow.AUTO);
+            this.display = display;
             this.i18n = i18n;
             this.zoom = zoom;
             this.focus = focus;
         }
 
         public Layout getImgContainer() {
-            return imgContainer;
+            return display;
         }
 
         public Zoom getZoom() {
             return zoom;
         }
 
-        public void loadImage(String url) {
+        /**
+         * Loads a resource in proper HTML element.
+         */
+        public void load(String url, String mime) {
             stop();
             loadFailed = false;
+            if (SUPPORTED_IMAGES.contains(mime)) {
+                loadImage(url);
+            } else {
+                loadObject(url, mime);
+            }
+        }
+
+        /**
+         * Shows a resource as the {@code <object>} element.
+         */
+        public void loadObject(String url, String mime) {
+            String click = ClientUtils.format("<a href='%s' target='_blank'>%s</a>",
+                    url, i18n.DigitalObjectPreview_UnkownContent_Param0());
+            String msg = i18n.DigitalObjectPreview_UnkownContent_Msg(mime, click);
+            String html = ClientUtils.format(
+                    "<object data='%s' height='100%' width='100%'>"
+                        + "<div style='margin-left: 10px; margin-top: 20px;'>"
+                            + "%s"
+                        + "</div>"
+                    + "</object>",
+                    url, msg
+            );
+            HTML htmlWidget = new HTML(html);
+            htmlWidget.setHeight("100%");
+            // use WidgetCanvas to strech the object to full height
+            // HTMLFlow or Canvas creates div that does not respect height='100%' of the object element
+            WidgetCanvas objectWidget = new WidgetCanvas(htmlWidget);
+            objectWidget.setWidth100();
+            objectWidget.setHeight100();
+            ClientUtils.setMembers(display, objectWidget);
+        }
+
+        /**
+         * Shows a resource as the {@code <img>} element.
+         */
+        public void loadImage(String url) {
+            ClientUtils.setMembers(display, imgContainer);
             image = new Image();
             image.addLoadHandler(this);
             image.addErrorHandler(this);
@@ -383,11 +472,13 @@ public final class DigitalObjectPreview {
             if (drawHandler != null) {
                 drawHandler.removeHandler();
                 resizedHandler.removeHandler();
+                drawHandler = null;
+                resizedHandler = null;
             }
             cancel();
-            scrollHorizontal = (double) imgContainer.getScrollLeft() / (double) imgContainer.getWidth();
-            scrollVertical = (double) imgContainer.getScrollTop() / (double) imgContainer.getHeight();
-            ClientUtils.fine(LOG, "stop: [%s, %s]", scrollHorizontal, scrollVertical);
+//            scrollHorizontal = (double) imgContainer.getScrollLeft() / (double) imgContainer.getWidth();
+//            scrollVertical = (double) imgContainer.getScrollTop() / (double) imgContainer.getHeight();
+//            ClientUtils.fine(LOG, "stop: [%s, %s]", scrollHorizontal, scrollVertical);
         }
 
         private void scheduleForRender() {
@@ -417,6 +508,7 @@ public final class DigitalObjectPreview {
                     (int) width - imgContainer.getScrollbarSize() - 4,
                     (int) height - imgContainer.getScrollbarSize() - 4);
             img.setCanFocus(Boolean.TRUE);
+            img.setAlign(Alignment.CENTER);
             imgContainer.setMembers(img);
             imgContainer.adjustForContent(true);
             int scrollLeft = (int) (imgContainer.getWidth() * scrollHorizontal);
@@ -449,9 +541,7 @@ public final class DigitalObjectPreview {
 
                     @Override
                     public void execute(boolean earlyFinish) {
-                        if (focus) {
-                            img.focus();
-                        }
+                        img.focus();
                         log("after resize.earlyFinish: " + earlyFinish, 0, 0);
                     }
                 });
