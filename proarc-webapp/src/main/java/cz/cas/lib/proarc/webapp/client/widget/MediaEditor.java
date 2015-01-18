@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.Action;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
@@ -65,6 +66,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private AbstractAction uploadAction;
     private DigitalObject digitalObject;
     private SelectItem streamMenu;
+    private boolean showRefreshButton;
 
     public MediaEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -76,6 +78,9 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     public void edit(DigitalObject digitalObject) {
         if (digitalObject == null) {
             throw new NullPointerException();
+        }
+        if (this.digitalObject != null && this.digitalObject.getPid().equals(digitalObject.getPid())) {
+            return ;
         }
         this.digitalObject = digitalObject;
         updateStreamMenu(digitalObject);
@@ -100,12 +105,18 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     public Canvas[] getToolbarItems() {
         Canvas zoomer = doPreview.getPreviewZoomer();
         zoomer.setWidth(100);
-        return new Canvas[] {
-            Actions.asIconButton(fullAction, this),
-            Actions.asIconButton(uploadAction, this),
-            Actions.asIconButton(backgroundAction, this), zoomer,
-            createStreamMenu(),
-        };
+        ArrayList<Canvas> toolbar = new ArrayList<Canvas>();
+        if (showRefreshButton) {
+            RefreshAction refreshAction = new RefreshAction(i18n);
+            refreshAction.setTitle(null);
+            toolbar.add(Actions.asIconButton(refreshAction, this));
+        }
+        toolbar.add(Actions.asIconButton(fullAction, this));
+        toolbar.add(Actions.asIconButton(uploadAction, this));
+        toolbar.add(Actions.asIconButton(backgroundAction, this));
+        toolbar.add(zoomer);
+        toolbar.add(createStreamMenu());
+        return toolbar.toArray(new Canvas[toolbar.size()]);
     }
 
     @Override
@@ -115,7 +126,9 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
     @Override
     public void refresh() {
-        edit(digitalObject);
+        DigitalObject refresh = this.digitalObject;
+        this.digitalObject = null;
+        edit(refresh);
     }
 
     public void addBackgroundColorListeners(Canvas c) {
@@ -127,6 +140,14 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         for (Canvas canvas : backgroundListeners) {
             canvas.setBackgroundColor(color);
         }
+    }
+
+    public boolean isShowRefreshButton() {
+        return showRefreshButton;
+    }
+
+    public void setShowRefreshButton(boolean showRefreshButton) {
+        this.showRefreshButton = showRefreshButton;
     }
 
     private void initActions(final ClientMessages i18n) {
