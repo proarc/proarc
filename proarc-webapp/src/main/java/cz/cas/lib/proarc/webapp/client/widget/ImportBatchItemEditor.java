@@ -321,7 +321,13 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
             @Override
             public void onRecordClick(RecordClickEvent event) {
-                Record record = grid.anySelected() ? event.getRecord() : null;
+                // NOTE: RecordClickEvent is fired after SelectionUpdatedEvent!
+                // single selection is handled by onChildSelection
+                ListGridRecord[] selection = event.getViewer().getSelectedRecords();
+                if (selection.length < 2) {
+                    return ;
+                }
+                Record record = event.getRecord();
                 // always preview last clicked record
                 previewItem(record);
             }
