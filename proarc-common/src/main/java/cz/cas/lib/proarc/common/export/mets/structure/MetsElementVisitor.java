@@ -275,8 +275,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
                 osw.close();
                 is.close();
+
+                // calculate md5 for md5file - it's inserted into info.xml
+                is = new FileInputStream(fileMd5);
+                FileMD5Info md5InfoMd5File = MetsUtils.getDigest(is);
+                is.close();
                 metsElement.getMetsContext().getFileList().add(new FileMD5Info("." + File.separator + fileMd5Name, null, (int) fileMd5.length()));
-                MetsUtils.saveInfoFile(metsElement.getMetsContext().getOutputPath(), metsElement.getMetsContext(), result, fileMd5Name, outputFile);
+                MetsUtils.saveInfoFile(metsElement.getMetsContext().getOutputPath(), metsElement.getMetsContext(), md5InfoMd5File.getMd5(), fileMd5Name, outputFile);
             } catch (Exception ex) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Unable to save mets file:" + outputFile.getAbsolutePath(), false, ex);
             }
@@ -1836,6 +1841,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     @Override
     public void insertIntoMets(IMetsElement metsElement) throws MetsExportException {
         try {
+            // clear the output fileList before the generation starts
+            metsElement.getMetsContext().getFileList().clear();
             mets = prepareMets(metsElement);
             initHeader(metsElement);
             LOG.log(Level.FINE, "Inserting into Mets:" + metsElement.getOriginalPid() + "(" + metsElement.getElementType() + ")");

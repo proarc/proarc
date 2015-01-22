@@ -895,7 +895,7 @@ public class MetsUtils {
             infoJaxb.setItemlist(itemList);
             itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size()));
             List<FileMD5Info> fileList = metsContext.getFileList();
-            int size = (int) metsFile.length();
+        int size = 0;
             for (FileMD5Info fileName : fileList) {
                 itemList.getItem().add(fileName.getFileName().replaceAll(Matcher.quoteReplacement(File.separator), "/"));
                 size += fileName.getSize();

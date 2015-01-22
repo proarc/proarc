@@ -52,11 +52,11 @@ public class MetsUtilsTest {
      *
      */
     private void initTestElements() {
-        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph", "monograph", 6, 28, 4, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
+        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph", "monograph", 6, 20, 4, "monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
         this.testElements.add(monografieTestElement);
-        MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum", "periodikum", 42, 348, 5, "periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
+        MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum", "periodikum", 42, 323, 5, "periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
         this.testElements.add(periodikumTestElement);
-        MetsExportTestElement periodikumPageTestElement = new MetsExportTestElement("periodikumPage", "periodikum", 7, 49, 5, "periodical", "b46aff0e-26af-11e3-88e3-001b63bd97ba.xml");
+        MetsExportTestElement periodikumPageTestElement = new MetsExportTestElement("periodikumPage", "periodikum", 7, 39, 5, "periodical", "b46aff0e-26af-11e3-88e3-001b63bd97ba.xml");
         this.testElements.add(periodikumPageTestElement);
     }
 
