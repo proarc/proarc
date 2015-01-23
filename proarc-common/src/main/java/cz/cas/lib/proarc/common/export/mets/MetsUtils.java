@@ -895,12 +895,13 @@ public class MetsUtils {
             infoJaxb.setItemlist(itemList);
             itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size()));
             List<FileMD5Info> fileList = metsContext.getFileList();
-        int size = 0;
+        long size = 0;
             for (FileMD5Info fileName : fileList) {
                 itemList.getItem().add(fileName.getFileName().replaceAll(Matcher.quoteReplacement(File.separator), "/"));
                 size += fileName.getSize();
             }
-            infoJaxb.setSize(size / 1024);
+            int infoTotalSize = (int) (size/1024);
+        infoJaxb.setSize(infoTotalSize);
             try {
                 JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
                 Marshaller marshaller = jaxbContext.createMarshaller();
@@ -991,7 +992,7 @@ public class MetsUtils {
         md.reset();
         byte[] bytes = new byte[2048];
         int numBytes;
-        int totalBytes = 0;
+        long totalBytes = 0;
         while ((numBytes = is.read(bytes)) > 0) {
             totalBytes += numBytes;
             md.update(bytes, 0, numBytes);
@@ -1019,7 +1020,7 @@ public class MetsUtils {
         md.reset();
         byte[] bytes = new byte[2048];
         int numBytes;
-        int totalBytes = 0;
+        long totalBytes = 0;
         while ((numBytes = is.read(bytes)) > 0) {
             totalBytes += numBytes;
             md.update(bytes, 0, numBytes);

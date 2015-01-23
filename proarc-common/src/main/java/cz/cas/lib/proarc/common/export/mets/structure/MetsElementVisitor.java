@@ -254,7 +254,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
                 byte[] bytes = new byte[2048];
                 int numBytes;
-                int totalBytes = 0;
+                long totalBytes = 0;
                 try {
                     while ((numBytes = is.read(bytes)) != -1) {
                         totalBytes = totalBytes + numBytes;
@@ -280,7 +280,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 is = new FileInputStream(fileMd5);
                 FileMD5Info md5InfoMd5File = MetsUtils.getDigest(is);
                 is.close();
-                metsElement.getMetsContext().getFileList().add(new FileMD5Info("." + File.separator + fileMd5Name, null, (int) fileMd5.length()));
+                metsElement.getMetsContext().getFileList().add(new FileMD5Info("." + File.separator + fileMd5Name, null, fileMd5.length()));
                 MetsUtils.saveInfoFile(metsElement.getMetsContext().getOutputPath(), metsElement.getMetsContext(), md5InfoMd5File.getMd5(), fileMd5Name, outputFile);
             } catch (Exception ex) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Unable to save mets file:" + outputFile.getAbsolutePath(), false, ex);
@@ -742,7 +742,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         fixity.setMessageDigestAlgorithm("MD5");
         fixity.setMessageDigestOriginator("ProArc");
         characteristics.getFixity().add(fixity);
-        characteristics.setSize((long) md5Info.getSize());
+        characteristics.setSize(md5Info.getSize());
         FormatComplexType format = new FormatComplexType();
         characteristics.getFormat().add(format);
         FormatDesignationComplexType formatDesignation = new FormatDesignationComplexType();

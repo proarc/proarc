@@ -84,7 +84,7 @@ public class FileMD5Info {
     }
 
     private String md5;
-    private int size;
+    private long size;
 
     public String getMd5() {
         return md5;
@@ -94,15 +94,15 @@ public class FileMD5Info {
         this.md5 = md5;
     }
 
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
-    public void setSize(int size) {
+    public void setSize(long size) {
         this.size = size;
     }
 
-    public FileMD5Info(String fileName, String md5, int size) {
+    public FileMD5Info(String fileName, String md5, long size) {
         super();
         this.fileName = fileName;
         this.md5 = md5;
@@ -118,7 +118,7 @@ public class FileMD5Info {
         this.fileName = fileName;
     }
 
-    public FileMD5Info(String md5, int size) {
+    public FileMD5Info(String md5, long size) {
         super();
         this.md5 = md5;
         this.size = size;
