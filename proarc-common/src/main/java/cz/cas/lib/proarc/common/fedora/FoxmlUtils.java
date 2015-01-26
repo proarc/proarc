@@ -31,6 +31,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -64,6 +66,8 @@ public final class FoxmlUtils {
 
     public static final String FOXML_NAMESPACE;
     public static final String PID_PREFIX = "uuid:";
+    static final String LOCAL_FEDORA_OBJ_PATH = "http://local.fedora.server/fedora/get/";
+
     static {
         XmlSchema schema = ObjectFactory.class.getPackage().getAnnotation(XmlSchema.class);
         FOXML_NAMESPACE = schema.namespace();
@@ -444,14 +448,39 @@ public final class FoxmlUtils {
     }
 
     /**
-     * Use to store whatever external content.
-     * XXX Data should be URL?
+     * Use to store whatever external content. The contents must be accessible
+     * when its URL is being written to the stream!
      */
     public static DatastreamProfile externalProfile(String dsId, MediaType mimetype, String label) {
         if (dsId == null || dsId.isEmpty() || mimetype == null) {
             throw new IllegalArgumentException();
         }
-        throw new UnsupportedOperationException();
+        return createProfileTemplate(dsId, null, label, mimetype, ControlGroup.EXTERNAL);
+    }
+
+    public static URI localFedoraUri(String pid) throws URISyntaxException {
+        return localFedoraUri(pid, null);
+    }
+
+    /**
+     * Creates an object or datastream URI independent on a Fedora instance.
+     * The URI is resolvable just inside a given Fedora context.
+     * @param pid object PID
+     * @param dsId datastream ID
+     * @return the portable URI
+     * @throws URISyntaxException failure
+     */
+    public static URI localFedoraUri(String pid, String dsId) throws URISyntaxException {
+        if (pid == null || pid.isEmpty()) {
+            throw new URISyntaxException(pid, "Invalid PID.");
+        }
+        StringBuilder sb = new StringBuilder(LOCAL_FEDORA_OBJ_PATH.length() + 100);
+        sb.append(LOCAL_FEDORA_OBJ_PATH).append(pid);
+        if (dsId != null) {
+            sb.append('/').append(dsId);
+        }
+        URI location = new URI(sb.toString());
+        return location;
     }
 
     /**

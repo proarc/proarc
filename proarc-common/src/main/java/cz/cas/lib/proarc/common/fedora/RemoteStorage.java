@@ -30,6 +30,7 @@ import com.yourmediashelf.fedora.client.response.GetDatastreamsResponse;
 import com.yourmediashelf.fedora.client.response.IngestResponse;
 import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.client.response.ModifyDatastreamResponse;
+import com.yourmediashelf.fedora.client.response.PurgeDatastreamResponse;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
@@ -363,6 +364,7 @@ public final class RemoteStorage {
         private final String dsId;
         private long lastModified;
         private DatastreamProfile profile;
+        private DatastreamProfile newProfile;
         private DatastreamContent data;
         private boolean modified;
         private boolean missingDataStream;
@@ -435,12 +437,12 @@ public final class RemoteStorage {
         @Override
         public DatastreamProfile getProfile() throws DigitalObjectException {
             fetchProfile();
-            return profile;
+            return newProfile != null ? newProfile : profile;
         }
 
         @Override
         public void setProfile(DatastreamProfile profile) throws DigitalObjectException {
-            this.profile = profile;
+            this.newProfile = profile;
             object.register(this);
             modified = true;
         }
@@ -576,11 +578,18 @@ public final class RemoteStorage {
                 return ;
             }
             try {
+                if (newProfile != null && !newProfile.getDsControlGroup().equals(profile.getDsControlGroup())) {
+                    // It seems the fedora implementation cannot change the control group (3.5-3.8).
+                    // Purge the stream to change the control group.
+                    purgeDataStream(profile);
+                    missingDataStream = true;
+                }
                 DatastreamProfileResponse response = missingDataStream
                         ? addDataStream() : modifyDataStream();
                 missingDataStream = false;
                 modified = false;
                 logMessage = null;
+                newProfile = null;
                 profile = response.getDatastreamProfile();
                 profile = normalizeProfile(profile);
                 lastModified = response.getLastModifiedDate().getTime();
@@ -595,8 +604,20 @@ public final class RemoteStorage {
             }
         }
 
+        private void purgeDataStream(DatastreamProfile p) throws FedoraClientException, DigitalObjectConcurrentModificationException {
+            PurgeDatastreamResponse response = FedoraClient.purgeDatastream(p.getPid(), p.getDsID())
+                    .logMessage(logMessage)
+                    // null would purge the entire history
+                    .endDT(new Date(lastModified))
+                    .execute(object.getClient());
+            if (response.getPurgedDates().isEmpty()) {
+                throw new DigitalObjectConcurrentModificationException(p.getPid(), toLogString());
+            }
+        }
+
         private DatastreamProfileResponse addDataStream() throws FedoraClientException, IOException {
-            AddDatastream request = FedoraClient.addDatastream(profile.getPid(), profile.getDsID())
+            DatastreamProfile profile = newProfile != null ? newProfile : this.profile;
+            AddDatastream request = FedoraClient.addDatastream(object.getPid(), profile.getDsID())
                     .controlGroup(profile.getDsControlGroup())
                     .dsLabel(profile.getDsLabel())
                     .dsState("A")
@@ -618,12 +639,16 @@ public final class RemoteStorage {
         }
 
         private DatastreamProfileResponse modifyDataStream() throws FedoraClientException, IOException {
+            DatastreamProfile profile = newProfile != null ? newProfile : this.profile;
             ModifyDatastream request = FedoraClient.modifyDatastream(object.getPid(), dsId)
+                    .controlGroup(profile.getDsControlGroup())
                     .dsLabel(profile.getDsLabel())
                     .formatURI(profile.getDsFormatURI())
                     .lastModifiedDate(new Date(lastModified))
                     .logMessage(logMessage)
-                    .mimeType(profile.getDsMIME());
+                    .mimeType(profile.getDsMIME())
+                    // enforce change with query parameter
+                    .xParam("mimeType", profile.getDsMIME());
 
             // some profile changes (MIME) cannot be written without contents!
             if (data != null) {

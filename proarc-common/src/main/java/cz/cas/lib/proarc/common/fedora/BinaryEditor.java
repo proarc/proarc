@@ -28,8 +28,6 @@ import javax.xml.transform.stream.StreamSource;
 /**
  * Editor for managed binary content.
  * 
- * XXX implement RemoteObject support
- *
  * @author Jan Pokorsky
  */
 public final class BinaryEditor {
@@ -61,6 +59,7 @@ public final class BinaryEditor {
 
     private final XmlStreamEditor editor;
     private final FedoraObject object;
+    private final String dsId;
 
     public static BinaryEditor preview(FedoraObject object) {
         DatastreamProfile dp = FoxmlUtils.managedProfile(PREVIEW_ID, IMAGE_JPEG, PREVIEW_LABEL);
@@ -101,6 +100,7 @@ public final class BinaryEditor {
     public BinaryEditor(FedoraObject object, DatastreamProfile profile) {
         this.editor = object.getEditor(profile);
         this.object = object;
+        this.dsId = profile.getDsID();
     }
 
     public long getLastModified() throws DigitalObjectException {
@@ -118,7 +118,8 @@ public final class BinaryEditor {
     public File read() throws DigitalObjectException {
         Source source = editor.read();
         if (source != null && !(source instanceof StreamSource)) {
-            throw new DigitalObjectException(object.getPid(), "Unsupported: " + source.getClass());
+            throw new DigitalObjectException(object.getPid(), null, dsId,
+                    "Unsupported: " + source.getClass(), null);
         }
         if (source != null) {
             StreamSource stream = (StreamSource) source;
@@ -134,6 +135,20 @@ public final class BinaryEditor {
 
     public void write(File data, long timestamp, String message) throws DigitalObjectException {
         editor.write(data.toURI(), timestamp, message);
+    }
+
+    /**
+     * Writes source contents or just a location according to the stream profile
+     * according to the actual profile control value (external/managed).
+     *
+     * @param source a contents location. The contents must be accessible
+     *              even in case of an external link!
+     * @param timestamp
+     * @param message
+     * @throws DigitalObjectException failure
+     */
+    public void write(URI source, long timestamp, String message) throws DigitalObjectException {
+        editor.write(source, timestamp, message);
     }
 
 }

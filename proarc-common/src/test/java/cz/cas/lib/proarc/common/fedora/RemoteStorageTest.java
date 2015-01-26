@@ -23,6 +23,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils.ControlGroup;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteXmlStreamEditor;
@@ -42,6 +43,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.Source;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -428,6 +430,134 @@ public class RemoteStorageTest {
     }
 
     @Test
+    public void testDatastreamEditorWriteReference_External() throws Exception {
+        LocalStorage storage = new LocalStorage();
+        LocalObject local = storage.create();
+        local.setLabel(test.getMethodName());
+        String dsID = "dsID";
+        MediaType mime = MediaType.TEXT_PLAIN_TYPE;
+        String label = "label";
+        DatastreamProfile dsProfile = FoxmlUtils.externalProfile(dsID, mime, label);
+
+        RemoteStorage fedora = new RemoteStorage(client);
+        fedora.ingest(local, support.getTestUser());
+
+        // prepare referenced contents
+        byte[] data = "data".getBytes("UTF-8");
+        File file = tmp.newFile();
+        FileUtils.writeByteArrayToFile(file, data);
+
+        RemoteObject remote = fedora.find(local.getPid());
+        XmlStreamEditor reditor = remote.getEditor(dsProfile);
+        assertNotNull(reditor);
+        reditor.write(file.toURI(), reditor.getLastModified(), "add");
+
+        // test read cached
+        InputStream is = reditor.readStream();
+        assertNotNull(is);
+        ByteArrayOutputStream resultData = new ByteArrayOutputStream();
+        FoxmlUtils.copy(is, resultData);
+        is.close();
+        assertArrayEquals(data, resultData.toByteArray());
+        assertEquals(mime.toString(), reditor.getProfile().getDsMIME());
+        assertEquals(ControlGroup.EXTERNAL.toExternal(), reditor.getProfile().getDsControlGroup());
+
+        // test remote read
+        remote.flush();
+        remote = fedora.find(local.getPid());
+        reditor = remote.getEditor(dsProfile);
+        is = reditor.readStream();
+        assertNotNull(is);
+        resultData = new ByteArrayOutputStream();
+        FoxmlUtils.copy(is, resultData);
+        is.close();
+        assertArrayEquals(data, resultData.toByteArray());
+        assertEquals(mime.toString(), reditor.getProfile().getDsMIME());
+        assertEquals(ControlGroup.EXTERNAL.toExternal(), reditor.getProfile().getDsControlGroup());
+
+        // test update MIME + location
+        MediaType mime2 = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+        byte[] data2 = "data2".getBytes("UTF-8");
+        File file2 = tmp.newFile();
+        FileUtils.writeByteArrayToFile(file2, data2);
+        remote = fedora.find(local.getPid());
+        reditor = remote.getEditor(dsProfile);
+        DatastreamProfile dsProfile2 = FoxmlUtils.externalProfile(dsID, mime2, label);
+        reditor.setProfile(dsProfile2);
+        reditor.write(file2.toURI(), reditor.getLastModified(), "update");
+        remote.flush();
+
+        remote = fedora.find(local.getPid());
+        reditor = remote.getEditor(dsProfile);
+        is = reditor.readStream();
+        assertNotNull(is);
+        resultData = new ByteArrayOutputStream();
+        FoxmlUtils.copy(is, resultData);
+        is.close();
+        assertArrayEquals(data2, resultData.toByteArray());
+        assertEquals(mime2.toString(), reditor.getProfile().getDsMIME());
+        assertEquals(ControlGroup.EXTERNAL.toExternal(), reditor.getProfile().getDsControlGroup());
+    }
+
+    @Test
+    public void testDatastreamEditorRewriteControlGroup() throws Exception {
+        // prepare referenced contents
+        byte[] data1 = "data1".getBytes("UTF-8");
+        File file1 = tmp.newFile();
+        FileUtils.writeByteArrayToFile(file1, data1);
+        byte[] data2 = "data2".getBytes("UTF-8");
+        File file2 = tmp.newFile();
+        FileUtils.writeByteArrayToFile(file2, data2);
+
+        LocalStorage storage = new LocalStorage();
+        LocalObject local = storage.create();
+        System.out.println(local.getPid());
+        local.setLabel(test.getMethodName());
+        String dsID = "dsID";
+        String label = "label";
+        MediaType mime1 = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+        DatastreamProfile dsProfile1 = FoxmlUtils.managedProfile(dsID, mime1, label);
+        XmlStreamEditor leditor = local.getEditor(dsProfile1);
+        assertNotNull(leditor);
+        leditor.write(file1.toURI(), leditor.getLastModified(), null);
+        local.flush();
+
+        RemoteStorage fedora = new RemoteStorage(client);
+        fedora.ingest(local, support.getTestUser());
+
+        MediaType mime2 = MediaType.TEXT_PLAIN_TYPE;
+        DatastreamProfile dsProfile2 = FoxmlUtils.externalProfile(dsID, mime2, label);
+        RemoteObject remote = fedora.find(local.getPid());
+        XmlStreamEditor reditor = remote.getEditor(dsProfile1);
+        assertNotNull(reditor);
+        reditor.setProfile(dsProfile2);
+        reditor.write(file2.toURI(), reditor.getLastModified(), null);
+
+        // test read cached
+        InputStream is = reditor.readStream();
+        assertNotNull(is);
+        ByteArrayOutputStream resultData = new ByteArrayOutputStream();
+        FoxmlUtils.copy(is, resultData);
+        is.close();
+        assertArrayEquals(data2, resultData.toByteArray());
+        assertEquals(mime2.toString(), reditor.getProfile().getDsMIME());
+        assertEquals(ControlGroup.EXTERNAL.toExternal(), reditor.getProfile().getDsControlGroup());
+
+        // test remote read
+        remote.flush();
+        remote = fedora.find(local.getPid());
+        reditor = remote.getEditor(dsProfile1);
+        is = reditor.readStream();
+        assertNotNull(is);
+        resultData = new ByteArrayOutputStream();
+        FoxmlUtils.copy(is, resultData);
+        is.close();
+        assertArrayEquals(data2, resultData.toByteArray());
+        assertEquals(mime2.toString(), reditor.getProfile().getDsMIME());
+        assertEquals(ControlGroup.EXTERNAL.toExternal(), reditor.getProfile().getDsControlGroup());
+    }
+
+    @Test
     public void testSetDatastreamProfile() throws Exception {
         RemoteStorage fedora = new RemoteStorage(client);
         LocalObject local = new LocalStorage().create();
@@ -480,8 +610,7 @@ public class RemoteStorageTest {
 
         editor = new RemoteXmlStreamEditor(remote, FoxmlUtils.managedProfile(dsId, mime, ""));
         profile = editor.getProfile();
-        // MIME cannot be changed without content as it is send as Content-Type HTTP header!
-        assertNotEquals(newMime.toString(), profile.getDsMIME());
+        assertEquals(newMime.toString(), profile.getDsMIME());
         assertEquals(expectedLabel, profile.getDsLabel());
     }
 

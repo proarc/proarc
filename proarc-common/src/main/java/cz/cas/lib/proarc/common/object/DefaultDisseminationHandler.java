@@ -22,12 +22,17 @@ import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import java.io.File;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
@@ -67,7 +72,6 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
             BinaryEditor loader = BinaryEditor.dissemination(lobject, dsId);
             if (loader == null) {
                 throw new DigitalObjectNotFoundException(pid, null, dsId, null, null);
-//                throw RestException.plainNotFound(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM, dsId);
             }
             File entity = loader.read();
             if (entity == null) {
@@ -95,7 +99,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
             RemoteObject remote = (RemoteObject) fobject;
             String path = String.format("objects/%s/datastreams/%s/content", remote.getPid(), dsId);
             ClientResponse response = remote.getClient().resource().path(path).get(ClientResponse.class);
-            if (Status.fromStatusCode(response.getStatus()) == Status.NOT_FOUND) {
+            if (Status.fromStatusCode(response.getStatus()) != Status.OK) {
                 throw new DigitalObjectNotFoundException(pid, null, dsId, response.getEntity(String.class), null);
             }
             MultivaluedMap<String, String> headers = response.getHeaders();
@@ -119,7 +123,83 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
     }
 
     public void setRawDissemination(File contents, String filename, MediaType mime, String message) throws DigitalObjectException {
-        BinaryEditor editor = BinaryEditor.dissemination(fobject, BinaryEditor.RAW_ID, mime);
+        setDsDissemination(BinaryEditor.RAW_ID, contents, filename, mime, message);
+
+        RelationEditor relationEditor = handler.relations();
+        relationEditor.setImportFile(filename);
+        relationEditor.write(relationEditor.getLastModified(), message);
+    }
+
+    public void setPreviewDissemination(File contents, String filename, MediaType mime, String message) throws DigitalObjectException {
+        setDsDissemination(BinaryEditor.PREVIEW_ID, contents, filename, mime, message);
+    }
+
+    public void setIconAsDissemination(MediaType origMime, String dsLabel, String message) throws DigitalObjectException {
+        setIconAsDissemination(dsId, origMime, dsLabel, message);
+    }
+
+    /**
+     * Writes an icon URI to represent the given MIME. It searches for {@code icon:MIME/dsId}
+     * or {@code icon:MIME/THUMBNAIL}. If there is no icon and stream found, nothing is written.
+     *
+     * @param dsId stream ID where to write an icon location
+     * @param origMime MIME to derive icon URI
+     * @param dsLabel
+     * @param message
+     * @throws DigitalObjectException failure
+     */
+    public void setIconAsDissemination(String dsId, MediaType origMime, String dsLabel, String message) throws DigitalObjectException {
+        DatastreamProfile newProfile = FoxmlUtils.externalProfile(dsId, BinaryEditor.IMAGE_JPEG, dsLabel);
+        BinaryEditor editor = new BinaryEditor(fobject, newProfile);
+        DatastreamProfile profile = editor.getProfile();
+
+        // default icon datastream ID for givent MIME
+        final String defaultDsId = BinaryEditor.THUMB_ID;
+        String dsLocation = profile.getDsLocation();
+        URI newLocation = toIconUri(origMime, dsId);
+        URI newLocationDefault;
+        if (newLocation.toASCIIString().equals(dsLocation)) {
+            // ok
+            return ;
+        } else {
+            newLocationDefault = toIconUri(origMime, defaultDsId);
+            if (newLocationDefault.toASCIIString().equals(dsLocation)) {
+                // ok
+                return ;
+            }
+        }
+        //  check icon:mime/DS exists
+        RemoteObject icon = RemoteStorage.getInstance().find(mime2iconPid(origMime));
+        List<DatastreamProfile> iconStreams = icon.getDatastreams();
+        DatastreamProfile iconStream = findProfile(dsId, iconStreams);
+        if (iconStream == null) {
+            //  check default icon:mime/THUMBNAIL exists
+            iconStream = findProfile(defaultDsId, iconStreams);
+            if (iconStream == null) {
+                // no icon
+                return ;
+            }
+            newLocation = newLocationDefault;
+        }
+        if (iconStream.getDsMIME() != null) {
+            newProfile.setDsMIME(iconStream.getDsMIME());
+        }
+        editor.setProfile(newProfile);
+        editor.write(newLocation, editor.getLastModified(), message);
+    }
+
+    private URI toIconUri(MediaType origMime, String dsId) throws DigitalObjectException {
+        URI newLocation;
+        try {
+            newLocation = FoxmlUtils.localFedoraUri(mime2iconPid(origMime), dsId);
+        } catch (URISyntaxException ex) {
+            throw new DigitalObjectException(fobject.getPid(), null, dsId, null, ex);
+        }
+        return newLocation;
+    }
+
+    private void setDsDissemination(String dsId, File contents, String filename, MediaType mime, String message) throws DigitalObjectException {
+        BinaryEditor editor = BinaryEditor.dissemination(fobject, dsId, mime);
         DatastreamProfile profile = editor.getProfile();
         profile.setDsMIME(mime.toString());
         // fedora adds own extensions :-(
@@ -127,10 +207,24 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         editor.setProfile(profile);
         // XXX generate preview, thumb, ocr if possible
         editor.write(contents, editor.getLastModified(), message);
+    }
 
-        RelationEditor relationEditor = handler.relations();
-        relationEditor.setImportFile(filename);
-        relationEditor.write(relationEditor.getLastModified(), message);
+    static DatastreamProfile findProfile(String dsId, List<DatastreamProfile> profiles) {
+        for (DatastreamProfile p : profiles) {
+            if (dsId.equals(p.getDsID())) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    static String mime2iconPid(MediaType mime) {
+        return mime2iconPid(mime.toString());
+    }
+
+    static String mime2iconPid(String mime) {
+        // object-id syntax: ( [A-Z] / [a-z] / [0-9] / "-" / "." / "~" / "_" / escaped-octet ) 1+
+        return "icon:" + mime.replaceAll("[^A-Za-z0-9\\-\\.~_]", "_");
     }
 
 }
