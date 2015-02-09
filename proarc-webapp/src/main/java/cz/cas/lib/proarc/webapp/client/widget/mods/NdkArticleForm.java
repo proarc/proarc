@@ -36,8 +36,25 @@ public final class NdkArticleForm {
         f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
         List<Field> modsFields = f.getFields().get(0).getFields();
 
+        modsFields.add(titleInfo(f.getItemWidth()));
+        modsFields.add(name());
+        modsFields.add(genre());
+        modsFields.add(language());
+        modsFields.add(physicalDescription());
+        modsFields.add(abstracts());
+        modsFields.add(note());
+        modsFields.add(subject());
+        modsFields.add(classification());
+        modsFields.add(identifier());
+        modsFields.add(part());
+        modsFields.add(recordInfo());
+
+        return f;
+    }
+
+    private Field titleInfo(String width) {
         // titleInfo, titleInfoDefinition
-        modsFields.add(new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
+        return new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
                 .setHint("Názvová informace vnitřní části.")
                 // titleInfo@type, enum
                 .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
@@ -54,7 +71,7 @@ public final class NdkArticleForm {
                 .createField()) // type
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true).setWidth(f.getItemWidth())
+                    .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true).setWidth(width)
                         .setHint("Vlastní název článku."
                             + "<p>Pokud není titul, nutno vyplnit hodnotu „untitled“")
                         .addMapValue("untitled", "untitled")
@@ -87,10 +104,12 @@ public final class NdkArticleForm {
                 .createField()) // partName
                 // nonSort, type="stringPlusLanguage"
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
-            .createField()); // titleInfo
+            .createField(); // titleInfo
+    }
 
+    private Field name() {
         // name, nameDefinition
-        modsFields.add(new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
                 .setHint("Údaje o odpovědnosti za článek.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
@@ -164,10 +183,12 @@ public final class NdkArticleForm {
                     .createField()) // roleTerm
                 .createField()) // role
                 // description
-            .createField()); // name
+            .createField(); // name
+    }
 
+    private Field genre() {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(1)
+        return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(1)
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
                 .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
                     .addMapValue("news", "zpráva")
@@ -189,10 +210,12 @@ public final class NdkArticleForm {
                 .addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setDefaultValue("article")
                     .setHint("Bližší údaj o typu vnitřní části.<p>Hodnota „article“.")
                 .createField()) // value
-        .createField()); // genre
+        .createField(); // genre
+    }
 
+    private Field language() {
         // language, languageDefinition
-        modsFields.add(new FieldBuilder("language").setTitle("Languages - MA").setMaxOccurrences(10)
+        return new FieldBuilder("language").setTitle("Languages - MA").setMaxOccurrences(10)
                 .setHint("Údaje o jazyce dokumentu; v případě vícenásobného výskytu nutno element &lt;language> opakovat")
                 // @objectPart, @displayLabel, @altRepGroup, @usage
                 // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
@@ -219,10 +242,12 @@ public final class NdkArticleForm {
                     .createField()) // value
                 .createField()) // languageTerm
                 // scriptTerm
-        .createField()); // language
+        .createField(); // language
+    }
 
+    private Field physicalDescription() {
         // physicalDescription, physicalDescriptionDefinition
-        modsFields.add(new FieldBuilder("physicalDescription").setTitle("Physical Description - R").setMaxOccurrences(10)
+        return new FieldBuilder("physicalDescription").setTitle("Physical Description - R").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu článku.")
                 // form, formDefinition extends stringPlusLanguagePlusAuthority
                 .addField(new FieldBuilder("form").setTitle("Form - R").setMaxOccurrences(1)
@@ -250,30 +275,36 @@ public final class NdkArticleForm {
                 // digitalOrigin
                 // extent, stringPlusLanguagePlusSupplied
                 // note, physicalDescriptionNote extends stringPlusLanguage
-        .createField()); // physicalDescription
+        .createField(); // physicalDescription
+    }
 
+    private Field abstracts() {
         // abstract, abstractDefinition extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
+        return new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
                     .setHint("Shrnutí obsahu článku.")
                 .createField()) // value
-        .createField()); // abstract
+        .createField(); // abstract
+    }
 
+    private Field note() {
         // note, noteDefinition extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
                     .setHint("Obecná poznámka k vnitřní části. Do poznámky by se"
                         + " měla dávat šifra autora vnitřní části, která se vyskytuje pod vnitřní částí.")
                 .createField()) // value
-        .createField()); // note
+        .createField(); // note
+    }
 
+    private Field subject() {
         // subject, subjectDefinition
-        modsFields.add(new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
+        return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.TEXT)
@@ -349,10 +380,12 @@ public final class NdkArticleForm {
                 // cartographics
                 // occupation
                 // genre
-        .createField()); // subject
+        .createField(); // subject
+    }
 
+    private Field classification() {
         // classification, classificationDefinition extends stringPlusLanguagePlusAuthority
-        modsFields.add(new FieldBuilder("classification").setTitle("Classification - RA").setMaxOccurrences(10)
+        return new FieldBuilder("classification").setTitle("Classification - RA").setMaxOccurrences(10)
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // autofill "udc"
                 .addField(new FieldBuilder("authority").setTitle("Authority - RA").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("udc").createField())
@@ -361,10 +394,12 @@ public final class NdkArticleForm {
                     .setHint("Klasifikační údaje věcného třídění podle Mezinárodního"
                         + " desetinného třídění.<p>Odpovídá poli 080 MARC21.")
                 .createField()) // value
-        .createField()); // classification
+        .createField(); // classification
+    }
 
+    private Field identifier() {
         // identifier, identifierDefinition, [0,*]
-        modsFields.add(new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
+        return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
                 .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
                     + " mezinárodní nebo lokální."
                     + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
@@ -401,10 +436,12 @@ public final class NdkArticleForm {
                     .addMapValue("yes", "Neplatný")
                 .createField()) // invalid
                 //   altRepGroup, xs:string
-        .createField()); // identifier
+        .createField(); // identifier
+    }
 
+    private Field part() {
         // part, type="partDefinition"
-        modsFields.add(new FieldBuilder("part").setTitle("Part - RA").setMaxOccurrences(1)
+        return new FieldBuilder("part").setTitle("Part - RA").setMaxOccurrences(1)
                 .setHint("Popis rozsahu.")
                 // @ID, @type, @order, @displayLabel, @altRepGroup
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
@@ -428,10 +465,12 @@ public final class NdkArticleForm {
                 .createField()) // extent
                 // date
                 // text
-            .createField()); // part
+            .createField(); // part
+    }
 
+    private Field recordInfo() {
         // recordInfo, recordInfoDefinition
-        modsFields.add(new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
+        return new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
                 .setHint("Údaje o metadatovém záznamu - jeho vzniku, změnách apod.")
                 // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @altRepGroup
@@ -469,9 +508,6 @@ public final class NdkArticleForm {
                     .createField()) // value
                 .createField()) // recordOrigin
                 // descriptionStandard
-        .createField()); // recordInfo
-
-        return f;
+        .createField(); // recordInfo
     }
-
 }
