@@ -34,6 +34,13 @@ import java.util.List;
  */
 public abstract class NdkMapper {
 
+    /**
+     * Gets a NDK mapper for the given model ID.
+     * @param modelId model ID
+     * @return the mapper
+     * @deprecated Replaced with {@link NdkMapperFactory#get}.
+     */
+    @Deprecated
     public static NdkMapper get(String modelId) {
         NdkMapper mapper;
         if (NdkPlugin.MODEL_PERIODICAL.equals(modelId)) {

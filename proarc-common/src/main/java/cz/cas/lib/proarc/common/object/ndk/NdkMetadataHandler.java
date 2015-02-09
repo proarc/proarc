@@ -29,6 +29,7 @@ import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -61,13 +62,19 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
     private final ModsStreamEditor editor;
     private final FedoraObject fobject;
     private DigitalObjectCrawler crawler;
+    private final NdkMapperFactory mapperFactory;
 
     public NdkMetadataHandler(DigitalObjectHandler handler) {
+        this(handler, new NdkMapperFactory());
+    }
+
+    public NdkMetadataHandler(DigitalObjectHandler handler, NdkMapperFactory mapperFactory) {
         this.handler = handler;
         this.fobject = handler.getFedoraObject();
         XmlStreamEditor streamEditor = fobject.getEditor(FoxmlUtils.inlineProfile(
                 DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, DESCRIPTION_DATASTREAM_LABEL));
         this.editor = new ModsStreamEditor(streamEditor, fobject);
+        this.mapperFactory = mapperFactory;
     }
 
     @Override
@@ -169,7 +176,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
     }
 
     void fillNdkConstants_(ModsDefinition mods, String modelId) {
-        NdkMapper mapper = NdkMapper.get(modelId);
+        NdkMapper mapper = mapperFactory.get(modelId);
         Context context = new Context(handler);
         mapper.createMods(mods, context);
     }
@@ -218,7 +225,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
     }
 
     private void write(String modelId, ModsDefinition mods, long timestamp, String message) throws DigitalObjectException {
-        NdkMapper mapper = NdkMapper.get(modelId);
+        NdkMapper mapper = mapperFactory.get(modelId);
         Context context = new Context(handler);
         mapper.createMods(mods, context);
         if (LOG.isLoggable(Level.FINE)) {
