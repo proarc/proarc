@@ -146,7 +146,7 @@ public class NdkExportTest {
         }
 
         assertEquals(3, mets.getFileSec().getFileGrp().size());
-        assertEquals("PHYSICAL", mets.getStructMap().get(0).getID());
+        assertEquals("PHYSICAL", mets.getStructMap().get(0).getTYPE());
         assertEquals("MONOGRAPH_PAGE", mets.getStructMap().get(0).getDiv().getTYPE());
         assertEquals(3, mets.getStructMap().get(0).getDiv().getFptr().size());
     }

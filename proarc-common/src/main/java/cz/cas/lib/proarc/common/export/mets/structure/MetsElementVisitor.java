@@ -915,7 +915,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             amdSecMets.setLabel1(mets.getLabel1());
             amdSecMets.setTYPE(mets.getTYPE());
             StructMapType mapType = new StructMapType();
-            mapType.setID(Const.DIV_PHYSICAL_ID);
+            mapType.setTYPE(Const.DIV_PHYSICAL_ID);
             amdSecMets.getStructMap().add(mapType);
             AmdSecType amdSec = new AmdSecType();
             amdSec.setID(metsElement.getElementID());
