@@ -1554,7 +1554,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @throws MetsExportException
      */
     private void insertMonograph(IMetsElement metsElement) throws MetsExportException {
-        mets.setTYPE("monograph");
+        mets.setTYPE("Monograph");
         DivType logicalDiv = new DivType();
         logicalStruct.setDiv(logicalDiv);
         DivType physicalDiv = new DivType();
@@ -1674,7 +1674,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @throws MetsExportException
      */
     private void insertPeriodical(IMetsElement metsElement) throws MetsExportException {
-        mets.setTYPE("periodical");
+        mets.setTYPE("Periodical");
         addDmdSec(metsElement);
         DivType divType = new DivType();
         logicalStruct.setDiv(divType);
