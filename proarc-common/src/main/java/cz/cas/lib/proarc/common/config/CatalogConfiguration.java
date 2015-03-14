@@ -36,6 +36,7 @@ public final class CatalogConfiguration {
 
     private static final Logger LOG = Logger.getLogger(CatalogConfiguration.class.getName());
 
+    public static final String PROPERTY_DEBUG = "debug";
     public static final String PROPERTY_NAME = "name";
     public static final String PROPERTY_USER = "user";
     public static final String PROPERTY_PASSWD = "password";
@@ -58,6 +59,10 @@ public final class CatalogConfiguration {
 
     public String getId() {
         return id;
+    }
+
+    public boolean getDebug() {
+        return properties.getBoolean(PROPERTY_DEBUG, false);
     }
 
     public String getName() {
@@ -116,6 +121,10 @@ public final class CatalogConfiguration {
 
     public String getProperty(String name) {
         return properties.getString(name);
+    }
+
+    public String getProperty(String name, String defaultValue) {
+        return properties.getString(name, defaultValue);
     }
 
     @Override

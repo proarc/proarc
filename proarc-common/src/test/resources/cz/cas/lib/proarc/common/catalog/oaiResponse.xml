@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2015-03-11T23:01:49Z</responseDate>
+    <request verb="GetRecord" identifier="oai:namespace:4" metadataPrefix="marc21">http://repository/oai</request>
+    <GetRecord>
+        <record>
+            <header>
+                <identifier>oai:namespace:4</identifier>
+                <datestamp>2009-12-02T09:41:58Z</datestamp>
+                <setSpec>until98</setSpec>
+            </header>
+            <metadata>
+                <marc:record xmlns:marc="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" type="Bibliographic">
+                    <marc:leader>     nam a22      a 4500</marc:leader>
+                    <marc:controlfield tag="001">4</marc:controlfield>
+                    <marc:controlfield tag="003">CZ-PrNK</marc:controlfield>
+                    <marc:controlfield tag="005">19900701000000.0</marc:controlfield>
+                    <marc:controlfield tag="008">900701s1990----xx-----|------------cze--</marc:controlfield>
+                    <marc:datafield tag="020" ind1=" " ind2=" ">
+                        <marc:subfield code="a">80-7052-005-1</marc:subfield>
+                    </marc:datafield>
+                    <marc:datafield tag="040" ind1=" " ind2=" ">
+                        <marc:subfield code="a">ABG001</marc:subfield>
+                        <marc:subfield code="b">cze</marc:subfield>
+                        <marc:subfield code="c">ABG001</marc:subfield>
+                    </marc:datafield>
+                    <marc:datafield tag="100" ind1="1" ind2=" ">
+                        <marc:subfield code="a">Vacina, Ladislav,</marc:subfield>
+                        <marc:subfield code="d">1943-1992</marc:subfield>
+                    </marc:datafield>
+                    <marc:datafield tag="245" ind1="1" ind2="0">
+                        <marc:subfield code="a">Karel Čapek /</marc:subfield>
+                        <marc:subfield code="c">Hurvínek. Ladislav Vacina</marc:subfield>
+                    </marc:datafield>
+                    <marc:datafield tag="260" ind1=" " ind2=" ">
+                        <marc:subfield code="a">S.l.,</marc:subfield>
+                        <marc:subfield code="c">1990</marc:subfield>
+                    </marc:datafield>
+                    <marc:datafield tag="600" ind1="1" ind2="4">
+                        <marc:subfield code="a">Čapek, Karel,</marc:subfield>
+                        <marc:subfield code="d">1890-1938</marc:subfield>
+                    </marc:datafield>
+                    <marc:datafield tag="653" ind1="0" ind2=" ">
+                        <marc:subfield code="a">forma: text</marc:subfield>
+                        <marc:subfield code="a">nosič: papír</marc:subfield>
+                        <marc:subfield code="a">způsob vydávání: monografie</marc:subfield>
+                        <marc:subfield code="a">úroveň zpracování: jednoduchá</marc:subfield>
+                    </marc:datafield>
+                    <marc:datafield tag="655" ind1=" " ind2="4">
+                        <marc:subfield code="a">sborníky</marc:subfield>
+                    </marc:datafield>
+                    <marc:datafield tag="910" ind1=" " ind2=" ">
+                        <marc:subfield code="a">ABG001</marc:subfield>
+                        <marc:subfield code="b">X 5190</marc:subfield>
+                    </marc:datafield>
+                </marc:record>
+            </metadata>
+        </record>
+    </GetRecord>
+</OAI-PMH>

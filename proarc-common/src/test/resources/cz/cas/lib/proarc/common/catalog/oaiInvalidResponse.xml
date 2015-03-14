@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2015-03-11T23:01:49Z</responseDate>
+    <request verb="GetRecord" identifier="oai:namespace:4" metadataPrefix="marc21">http://repository/oai</request>
+    <GetRecord>
+        <record>
+            <header>
+                <identifier>oai:namespace:4</identifier>
+                <datestamp>2009-12-02T09:41:58Z</datestamp>
+                <setSpec>until98</setSpec>
+            </header>
+            <metadata>
+                <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" />
+            </metadata>
+        </record>
+    </GetRecord>
+</OAI-PMH>

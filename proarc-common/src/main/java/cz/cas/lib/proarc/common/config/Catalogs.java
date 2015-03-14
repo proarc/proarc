@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.config;
 import cz.cas.lib.proarc.common.catalog.AlephXServer;
 import cz.cas.lib.proarc.common.catalog.BibliographicCatalog;
 import cz.cas.lib.proarc.common.catalog.DigitizationRegistryCatalog;
+import cz.cas.lib.proarc.common.catalog.OaiCatalog;
 import cz.cas.lib.proarc.common.catalog.Z3950Catalog;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +74,10 @@ public final class Catalogs {
             return catalog;
         }
         catalog = AlephXServer.get(props);
+        if (catalog != null) {
+            return catalog;
+        }
+        catalog = OaiCatalog.get(props);
         if (catalog != null) {
             return catalog;
         }
