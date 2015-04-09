@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
@@ -1013,6 +1014,7 @@ public class DigitalObjectResource {
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) File file,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) FormDataContentDisposition fileInfo,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) FormDataBodyPart fileBodyPart,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_MIME) String mimeType
             ) throws IOException, DigitalObjectException {
 
@@ -1031,16 +1033,13 @@ public class DigitalObjectResource {
         }
         String filename = getFilename(fileInfo.getFileName());
         try {
-            if (mimeType == null) {
-                // XXX workaround; replace with Dron or Pronom to get mimetype
-                mimeType = fileInfo.getType();
-            }
             MediaType mime;
             try {
-                mime = MediaType.valueOf(mimeType);
+                mime = mimeType != null ? MediaType.valueOf(mimeType) : fileBodyPart.getMediaType();
             } catch (IllegalArgumentException ex) {
-                throw RestException.plainText(Status.BAD_REQUEST, "Invalid MIME type!");
+                throw RestException.plainText(Status.BAD_REQUEST, "Invalid MIME type! " + mimeType);
             }
+            LOG.log(Level.FINE, "filename: {0}, user mime: {1}, resolved mime: {2}, {3}/{4}", new Object[]{filename, mimeType, mime, pid, dsId});
             DigitalObjectHandler doHandler = findHandler(pid, batchId);
             DisseminationHandler dissemination = doHandler.dissemination(BinaryEditor.RAW_ID);
             DisseminationInput input = new DisseminationInput(file, filename, mime);
