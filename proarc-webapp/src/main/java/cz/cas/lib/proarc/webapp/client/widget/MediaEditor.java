@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.Action;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
@@ -57,6 +58,8 @@ import java.util.ArrayList;
  */
 public final class MediaEditor implements DatastreamEditor, Refreshable {
 
+    private static String REFRESH;
+
     private final ClientMessages i18n;
     private final DigitalObjectPreview doPreview;
     private String imgParams;
@@ -67,9 +70,11 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private DigitalObject digitalObject;
     private SelectItem streamMenu;
     private boolean showRefreshButton;
+    private final ActionSource actionSource;
 
     public MediaEditor(ClientMessages i18n) {
         this.i18n = i18n;
+        this.actionSource = new ActionSource(this);
         doPreview = new DigitalObjectPreview(i18n);
         initActions(i18n);
     }
@@ -84,6 +89,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         }
         this.digitalObject = digitalObject;
         updateStreamMenu(digitalObject);
+        actionSource.fireEvent();
     }
 
     @Override
@@ -112,7 +118,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
             toolbar.add(Actions.asIconButton(refreshAction, this));
         }
         toolbar.add(Actions.asIconButton(fullAction, this));
-        toolbar.add(Actions.asIconButton(uploadAction, this));
+        toolbar.add(Actions.asIconButton(uploadAction, actionSource));
         toolbar.add(Actions.asIconButton(backgroundAction, this));
         toolbar.add(zoomer);
         toolbar.add(createStreamMenu());
@@ -128,6 +134,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     public void refresh() {
         DigitalObject refresh = this.digitalObject;
         this.digitalObject = null;
+        REFRESH = String.valueOf(System.currentTimeMillis());
         edit(refresh);
     }
 
@@ -263,6 +270,9 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
             String batchId = digitalObject.getBatchId();
             if (batchId != null) {
                 sb.append('&').append(DigitalObjectResourceApi.BATCHID_PARAM).append('=').append(batchId);
+            }
+            if (REFRESH != null) {
+                sb.append('&').append(REFRESH);
             }
             imgParams = sb.toString();
             String previewUrl = buildResourceUrl(RestConfig.URL_DIGOBJECT_DISSEMINATION, imgParams);
