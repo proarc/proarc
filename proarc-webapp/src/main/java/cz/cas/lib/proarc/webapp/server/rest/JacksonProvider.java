@@ -17,10 +17,12 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.json.JsonUtils;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.AnnotatedSmartGwtResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -56,6 +58,7 @@ public final class JacksonProvider extends JacksonJaxbJsonProvider {
 //        registerAnnotatedSuperclass(AnnotatedMetaModel.class);
         registerAnnotatedSuperclass(AnnotatedPageViewItem.class);
         registerAnnotatedSuperclass(AnnotatedSearchViewItem.class);
+        registerAnnotatedSuperclass(AnnotatedSmartGwtResponse.class);
         registerAnnotatedSuperclass(AnnotatedStringRecord.class);
         registerAnnotatedSuperclass(AnnotatedUser.class);
         registerAnnotatedSuperclass(AnnotatedValueMap.class);
@@ -92,6 +95,23 @@ public final class JacksonProvider extends JacksonJaxbJsonProvider {
 
     private void registerAnnotatedSuperclass(Class<?> mixinSource) {
         register(mixinSource.getSuperclass(), mixinSource);
+    }
+
+    /**
+     * The helper class that can override a declared XML adapter with the default JAXB mapping.
+     */
+    public static class DefaultAdapter extends XmlAdapter<Object, Object> {
+
+        @Override
+        public Object unmarshal(Object v) throws Exception {
+            return v;
+        }
+
+        @Override
+        public Object marshal(Object v) throws Exception {
+            return v;
+        }
+
     }
 
 }

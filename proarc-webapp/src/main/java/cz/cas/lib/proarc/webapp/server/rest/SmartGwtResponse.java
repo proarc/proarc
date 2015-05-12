@@ -16,14 +16,25 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.webapp.server.rest.JacksonProvider.DefaultAdapter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Wrapper suitable as a RestDataSource response
@@ -48,13 +59,18 @@ public class SmartGwtResponse<T> {
     private Integer startRow;
     private Integer endRow;
     private Integer totalRows;
-    private List<T> data;
-    
+    @XmlTransient
+    private List<T> typedData;
+    /** The JAXB mapping for {@link #typedData} and {@link #errdata}. */
+    private Object data;
+    @XmlTransient
+    private String errdata;
     /**
      * errors holder; see RestDataSource doc
      * <br/> validation format: status:STATUS_VALIDATION_ERROR, errors:[{fieldname:errormsg}] or errors:[fieldname:[{errormsg}]]
      * <br/> failure format: status:STATUS_FAILURE, errors:errormsg
      */
+    @XmlJavaTypeAdapter(ErrorAdapter.class)
     private Map<String, List<ErrorMessage>> errors;
 
     public SmartGwtResponse() {
@@ -75,7 +91,48 @@ public class SmartGwtResponse<T> {
         this.startRow = startRow;
         this.endRow = endRow;
         this.totalRows = totalRows;
-        this.data = (data != null) ? data : Collections.<T>emptyList();
+        setTypedData(data);
+    }
+
+    /**
+     * Builds response as an unrecoverable error with status {@link #STATUS_FAILURE}.
+     * @param <T> data type
+     * @param msg error message send as data
+     * @return the response
+     */
+    public static <T> SmartGwtResponse<T> asError(String msg) {
+        SmartGwtResponse<T> result = new SmartGwtResponse<T>();
+        result.setErrorData(msg);
+        return result;
+    }
+
+    /**
+     * @see #asError(java.lang.String)
+     */
+    public static <T> SmartGwtResponse<T> asError(Throwable t) {
+        return asError(null, t);
+    }
+
+    /**
+     * @see #asError(java.lang.String)
+     */
+    public static <T> SmartGwtResponse<T> asError(String msg, Throwable t) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        if (msg == null || msg.isEmpty()) {
+            msg = t.getMessage();
+        }
+        if (msg != null && !msg.isEmpty()) {
+            pw.println(msg);
+            pw.println();
+        }
+        t.printStackTrace(pw);
+        pw.close();
+        return asError(sw.toString());
+    }
+
+    public static <T> SmartGwtResponse<T> asError(String fieldName, String message) {
+        return SmartGwtResponse.<T>asError().error(fieldName, message).build();
     }
 
     public static <T> ErrorBuilder<T> asError() {
@@ -83,7 +140,24 @@ public class SmartGwtResponse<T> {
     }
 
     public List<T> getData() {
-        return data;
+        return typedData;
+    }
+
+    String getDataAsError() {
+        return errdata;
+    }
+
+    private void setTypedData(List<T> data) {
+        this.typedData = (data != null) ? data : Collections.<T>emptyList();
+        this.data = typedData;
+        this.errdata = null;
+    }
+
+    private void setErrorData(String msg) {
+        this.status = STATUS_FAILURE;
+        this.errdata = msg;
+        this.data = errdata;
+        this.typedData = null;
     }
 
     public Integer getEndRow() {
@@ -108,7 +182,7 @@ public class SmartGwtResponse<T> {
 
     public static final class ErrorBuilder<T> {
 
-        private Map<String, List<ErrorMessage>> errors = new HashMap<String, List<ErrorMessage>>();
+        private Map<String, List<ErrorMessage>> errors = new LinkedHashMap<String, List<ErrorMessage>>();
 
         private ErrorBuilder() {
         }
@@ -147,6 +221,77 @@ public class SmartGwtResponse<T> {
             return errorMessage;
         }
         
+    }
+
+    /**
+     * The JAXB mapping of Map to DOM Element that complies with the SmartGWT response schema.
+     */
+    public static class ErrorAdapter extends XmlAdapter<Element, Map<String, List<ErrorMessage>>> {
+
+        public ErrorAdapter() {
+        }
+
+        @Override
+        public Map<String, List<ErrorMessage>> unmarshal(Element v) throws Exception {
+            // not required yet
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Element marshal(Map<String, List<ErrorMessage>> v) throws Exception {
+            if (v == null) {
+                return null;
+            }
+            List<Element> errFields = errorsAsElements(v);
+            if (errFields.isEmpty()) {
+                return null;
+            } else {
+                Document doc = errFields.get(0).getOwnerDocument();
+                Element errorsElm = doc.createElement("errors");
+                for (Element errField : errFields) {
+                    errorsElm.appendChild(errField);
+                }
+                return errorsElm;
+            }
+        }
+
+        /**
+         * Gets list of {@code  <fieldName><errorMessage>error</errorMessage></fieldName>} elements
+         * where fieldName is replaced with real names.
+         * @param errors maps field names to lists of errors
+         * @return the list of DOM elements
+         */
+        private static List<Element> errorsAsElements(Map<String, List<ErrorMessage>> errors) {
+            try {
+                Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+                List<Element> errFields = new ArrayList<Element>();
+                for (Entry<String, List<ErrorMessage>> entry : errors.entrySet()) {
+                    String field = entry.getKey();
+                    Element fieldElm = doc.createElement(field);
+                    errFields.add(fieldElm);
+                    for (ErrorMessage errmsg : entry.getValue()) {
+                        Element errMsgElm = doc.createElement("errorMessage");
+                        errMsgElm.setTextContent(errmsg.getErrorMessage());
+                        fieldElm.appendChild(errMsgElm);
+                    }
+                }
+                return errFields;
+            } catch (ParserConfigurationException ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
+
+    }
+
+    /**
+     * JSON JAXB mapping helper class. It removes errors XML adapter as Jackson can
+     * serialize rather Map than DOM elements.
+     */
+    public static abstract class AnnotatedSmartGwtResponse<T> extends SmartGwtResponse<T> {
+
+        @XmlJavaTypeAdapter(DefaultAdapter.class)
+        private Map<String, List<ErrorMessage>> errors;
+
     }
 
 }
