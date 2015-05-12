@@ -16,9 +16,11 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.json.client.JSONBoolean;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
+import com.google.gwt.user.client.ui.Widget;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.rpc.RPCResponse;
@@ -195,7 +197,16 @@ public final class UploadFile {
 
     private Canvas createBrowseCanvas() {
         UploadHandler uploadHandler = new UploadHandler();
-        uploader = new Uploader().setUploadURL(RestConfig.URL_DIGOBJECT_DISSEMINATION)
+        uploader = new Uploader() {
+
+            @Override
+            protected void onLoad() {
+                super.onLoad();
+                openFileDialog(uploader);
+            }
+
+        };
+        uploader.setUploadURL(RestConfig.URL_DIGOBJECT_DISSEMINATION)
                 .setButtonImageURL(Page.getSkinImgDir() + "MultiUploadItem/icon_add_files.png")
                 .setButtonWidth(16)
                 .setButtonHeight(16)
@@ -218,6 +229,18 @@ public final class UploadFile {
         hStack.addMember(label);
         hStack.addMember(uploader);
         return hStack;
+    }
+
+    private void openFileDialog(Uploader uploader) {
+        // workaround to call Uploader.openFileDialog
+        for (int i = uploader.getWidgetCount() - 1; i >= 0; i--) {
+            Widget widget = uploader.getWidget(i);
+            if (widget instanceof com.google.gwt.user.client.ui.Label) {
+                final com.google.gwt.user.client.ui.Label btn = (com.google.gwt.user.client.ui.Label) widget;
+                btn.fireEvent(new ClickEvent() {});
+                break;
+            }
+        }
     }
 
     private class UploadHandler implements UploadCompleteHandler, UploadErrorHandler,
