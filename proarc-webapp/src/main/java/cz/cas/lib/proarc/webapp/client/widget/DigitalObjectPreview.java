@@ -423,12 +423,13 @@ public final class DigitalObjectPreview {
                     url, i18n.DigitalObjectPreview_UnkownContent_Param0());
             String msg = i18n.DigitalObjectPreview_UnkownContent_Msg(mime, click);
             String html = ClientUtils.format(
-                    "<object data='%s' height='100%' width='100%'>"
+                    // object@type is necessary for Chrome not to auto-download content
+                    "<object data='%s' type='%s' height='100%' width='100%'>"
                         + "<div style='margin-left: 10px; margin-top: 20px;'>"
                             + "%s"
                         + "</div>"
                     + "</object>",
-                    url, msg
+                    url, mime, msg
             );
             HTML htmlWidget = new HTML(html);
             htmlWidget.setHeight("100%");
