@@ -17,6 +17,10 @@
 package cz.cas.lib.proarc.webapp.client;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.json.client.JSONObject;
+import com.google.gwt.json.client.JSONParser;
+import com.google.gwt.json.client.JSONString;
+import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
@@ -25,12 +29,15 @@ import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.rpc.HandleErrorCallback;
 import com.smartgwt.client.rpc.HandleTransportErrorCallback;
 import com.smartgwt.client.rpc.RPCManager;
+import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Button;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Dialog;
 import com.smartgwt.client.widgets.layout.VLayout;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Global Smart GWT RPC error handler.
@@ -46,6 +53,7 @@ import com.smartgwt.client.widgets.layout.VLayout;
  */
 public final class ErrorHandler {
 
+    private static final Logger LOG = Logger.getLogger(ErrorHandler.class.getName());
     private TransportError transportError;
     private final ClientMessages i18n;
 
@@ -148,12 +156,22 @@ public final class ErrorHandler {
     }
 
     /**
+     * The default notification about an error using a text message.
+     */
+    public static void warn(String error) {
+        new ErrorHandler().warn(null, error, null);
+    }
+
+    /**
      * Notifies user about error.
      * @param msg simple client message
      * @param detailMsg detail response message; can be HTML
      * @param debugInfo request details, URL, ...
      */
     private void warn(String msg, String detailMsg, String debugInfo) {
+        if (msg == null) {
+            msg = i18n.ErrorHandler_UnexpectedError_Msg();
+        }
         SmartGwtMessages sgi18n = ClientUtils.createSmartGwtMessages();
         boolean allowDetail = !msg.equals(detailMsg);
         final Dialog d = new Dialog();
@@ -205,6 +223,39 @@ public final class ErrorHandler {
             });
         }
         d.show();
+    }
+
+    /**
+     * Creates response object from JSON response string in
+     * {@link com.smartgwt.client.data.RestDataSource SmartGWT format}.
+     * @param response JSON response string
+     * @return response object
+     */
+    public static DSResponse getDsResponse(String response) {
+        DSResponse dsResponse;
+//        ClientUtils.info(LOG, "response: %s", response);
+        if (response == null || response.isEmpty()) {
+            // not JSON response
+            LOG.log(Level.WARNING, null, new IllegalStateException("Empty response!"));
+            dsResponse = new DSResponse();
+            dsResponse.setStatus(RPCResponse.STATUS_SUCCESS);
+        } else {
+            JSONValue rVal = JSONParser.parseStrict(response);
+            if (rVal.isObject() != null) {
+                rVal = rVal.isObject().get("response");
+            }
+            if (rVal != null && rVal.isObject() != null) {
+                JSONObject rObj = rVal.isObject();
+                dsResponse = DSResponse.getOrCreateRef(rObj.getJavaScriptObject());
+            } else {
+                // not JSON response in expected format
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("data", new JSONString(response));
+                dsResponse = new DSResponse(jsonObject.getJavaScriptObject());
+                dsResponse.setStatus(RPCResponse.STATUS_FAILURE);
+            }
+        }
+        return dsResponse;
     }
 
     /**

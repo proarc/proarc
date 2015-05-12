@@ -16,9 +16,12 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
+import com.google.gwt.json.client.JSONBoolean;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.i18n.SmartGwtMessages;
+import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.Encoding;
 import com.smartgwt.client.types.TitleOrientation;
@@ -34,18 +37,20 @@ import com.smartgwt.client.widgets.events.CloseClickHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.HiddenItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
-import com.smartgwt.client.widgets.form.fields.UploadItem;
 import com.smartgwt.client.widgets.layout.HStack;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.ErrorHandler;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.HashMap;
+import java.util.logging.Logger;
 import org.moxieapps.gwt.uploader.client.File;
 import org.moxieapps.gwt.uploader.client.Uploader;
 import org.moxieapps.gwt.uploader.client.Uploader.ButtonAction;
+import org.moxieapps.gwt.uploader.client.Uploader.Cursor;
 import org.moxieapps.gwt.uploader.client.events.FileQueueErrorEvent;
 import org.moxieapps.gwt.uploader.client.events.FileQueueErrorHandler;
 import org.moxieapps.gwt.uploader.client.events.FileQueuedEvent;
@@ -70,9 +75,10 @@ public final class UploadFile {
 
     private static final String FIELD_FILE = DigitalObjectResourceApi.DISSEMINATION_FILE;
     private static final String FIELD_MIMETYPE = DigitalObjectResourceApi.DISSEMINATION_MIME;
-    private static final String FIELD_FILENAME = "filenameItem";
     private static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     private static final String FIELD_BATCHID = DigitalObjectResourceApi.BATCHID_PARAM;
+
+    private static final Logger LOG = Logger.getLogger(UploadFile.class.getName());
 
     private final ClientMessages i18n;
     private final SmartGwtMessages i18nSgwt;
@@ -136,6 +142,7 @@ public final class UploadFile {
         if (batchId != null) {
             post.put(FIELD_BATCHID, new JSONString(batchId));
         }
+        post.put(DigitalObjectResourceApi.DISSEMINATION_ERROR, JSONBoolean.getInstance(true));
         uploader.setPostParams(post);
         uploader.startUpload();
         showUploading(true);
@@ -169,16 +176,12 @@ public final class UploadFile {
         form.setTitleOrientation(TitleOrientation.TOP);
         form.setCanSubmit(true);
 
-        UploadItem uploadItem = new UploadItem(FIELD_FILE);
-        uploadItem.setColSpan(2);
-        uploadItem.setWidth(800);
-
         TextItem mimeItem = new TextItem(FIELD_MIMETYPE,
                 i18n.DigitalObjectEditor_MediaEditor_Uploader_Mimetype_Title());
         mimeItem.setWidth(400);
         mimeItem.setColSpan(2);
 
-        TextItem filenameItem = new TextItem(FIELD_FILENAME,
+        TextItem filenameItem = new TextItem(FIELD_FILE,
                 i18n.DigitalObjectEditor_MediaEditor_Uploader_Filename_Title());
         filenameItem.setWidth(400);
         filenameItem.setColSpan(2);
@@ -196,10 +199,11 @@ public final class UploadFile {
                 .setButtonImageURL(Page.getSkinImgDir() + "MultiUploadItem/icon_add_files.png")
                 .setButtonWidth(16)
                 .setButtonHeight(16)
+                .setButtonCursor(Cursor.HAND)
                 .setButtonAction(ButtonAction.SELECT_FILE)
                 .setFileSizeLimit("1 GB")
                 .setFilePostName(FIELD_FILE)
-                .setFileUploadLimit(1)
+                .setFileUploadLimit(0)
                 .setFileQueuedHandler(uploadHandler)
                 .setFileQueueErrorHandler(uploadHandler)
                 .setUploadCompleteHandler(uploadHandler)
@@ -228,15 +232,19 @@ public final class UploadFile {
         @Override
         public boolean onUploadError(UploadErrorEvent uploadErrorEvent) {
             form.clearValues();
-            HashMap<String, String> errors = new HashMap<String, String>();
-            errors.put(FIELD_FILENAME, uploadErrorEvent.getMessage());
-            form.setErrors(errors, true);
+            showFormError(uploadErrorEvent.getMessage());
             return true;
+        }
+
+        private void showFormError(String message) {
+            HashMap<String, String> errors = new HashMap<String, String>();
+            errors.put(FIELD_FILE, message);
+            form.setErrors(errors, true);
         }
 
         @Override
         public boolean onUploadProgress(UploadProgressEvent uploadProgressEvent) {
-            uploadProgressEvent.getBytesComplete();
+//            uploadProgressEvent.getBytesComplete();
             int percentDone = (int) uploadProgressEvent.getFile().getPercentUploaded();
             progressbar.setPercentDone(percentDone);
             return true;
@@ -244,10 +252,48 @@ public final class UploadFile {
 
         @Override
         public boolean onUploadSuccess(UploadSuccessEvent uploadSuccessEvent) {
-            btnOk.hide();
-            uploader.setButtonDisabled(true);
-            btnCancel.setTitle(i18nSgwt.dialog_DoneButtonTitle());
+            String response = uploadSuccessEvent.getServerData();
+            DSResponse dsResponse = ErrorHandler.getDsResponse(response);
+            if (dsResponse.getStatus() == RPCResponse.STATUS_SUCCESS) {
+                btnOk.hide();
+                uploader.setButtonDisabled(true);
+                btnCancel.setTitle(i18nSgwt.dialog_DoneButtonTitle());
+                closeWindow();
+            } else {
+                // upload error
+                uploader.cancelUpload(false);
+                // clear the chosen file name to force user to enqueue the cancelled file again
+                // as there is no uploader API to do it
+                form.clearValues();
+                progressbar.setPercentDone(0);
+                showError(dsResponse);
+            }
             return true;
+        }
+
+
+        private void showError(DSResponse response) {
+//            ClientUtils.info(LOG, "dsResponse: %s, %s", response.getStatus(), response.getDataAsString());
+            switch(response.getStatus()) {
+                case RPCResponse.STATUS_SUCCESS:
+                    break;
+                case RPCResponse.STATUS_VALIDATION_ERROR:
+                    form.setErrors(response.getErrors(), true);
+                    break;
+                case RPCResponse.STATUS_LOGIN_REQUIRED:
+                case RPCResponse.STATUS_LOGIN_INCORRECT:
+                    // ignore, it is handled as HTTP 403 (onUploadError)
+                case RPCResponse.STATUS_FAILURE:
+                default:
+                    ErrorHandler.warn(formatStackTrace(response.getDataAsString()));
+            }
+        }
+
+        private String formatStackTrace(String errMsg) {
+            return errMsg == null ? "" : errMsg
+                    .replaceAll("\n", "<br>")
+                    .replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
+                    ;
         }
 
         @Override
@@ -255,16 +301,14 @@ public final class UploadFile {
             form.clearErrors(true);
             File file = fileQueuedEvent.getFile();
             form.setValue(FIELD_MIMETYPE, file.getType());
-            form.setValue(FIELD_FILENAME, file.getName());
+            form.setValue(FIELD_FILE, file.getName());
             return true;
         }
 
         @Override
         public boolean onFileQueueError(FileQueueErrorEvent fileQueueErrorEvent) {
             form.clearValues();
-            HashMap<String, String> errors = new HashMap<String, String>();
-            errors.put(FIELD_FILENAME, fileQueueErrorEvent.getMessage());
-            form.setErrors(errors, true);
+            showFormError(fileQueueErrorEvent.getMessage());
             return true;
         }
 

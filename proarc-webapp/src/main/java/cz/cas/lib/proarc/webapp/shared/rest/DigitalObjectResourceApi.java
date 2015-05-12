@@ -126,6 +126,7 @@ public final class DigitalObjectResourceApi {
     public static final String DISSEMINATION_DATASTREAM = "datastream";
     public static final String DISSEMINATION_FILE = "file";
     public static final String DISSEMINATION_MIME = "mime";
+    public static final String DISSEMINATION_ERROR = "jsonErrors";
 
     /** Resource /object/full */
     public static final String FULL_PATH = "full";

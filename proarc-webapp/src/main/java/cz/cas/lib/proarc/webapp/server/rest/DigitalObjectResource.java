@@ -1001,14 +1001,39 @@ public class DigitalObjectResource {
      * @param file contents
      * @param fileInfo contents description metadata (injected by the server)
      * @param mimeType MIME type of the sent contents (optional)
-     * @return HTTP status
-     * @throws IOException failure
-     * @throws DigitalObjectException failure
+     * @param jsonErrors include error in JSON response with HTTP status 200
+     * @return JSON response with process ID (needs process API)
      */
     @POST
     @Path(DigitalObjectResourceApi.DISSEMINATION_PATH)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response updateDissemination(
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Map<String, Object>> updateDissemination(
+            @FormDataParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormDataParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) File file,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) FormDataContentDisposition fileInfo,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) FormDataBodyPart fileBodyPart,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_MIME) String mimeType,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_ERROR) @DefaultValue("false") boolean jsonErrors
+            ) {
+
+        try {
+            return updateDisseminationImpl(pid, batchId, dsId, file, fileInfo, fileBodyPart, mimeType);
+        } catch (Throwable ex) {
+            if (jsonErrors) {
+                return SmartGwtResponse.<Map<String,Object>>asError(ex);
+            } else {
+                if (!(ex instanceof WebApplicationException)) {
+                    ex = new WebApplicationException(ex);
+                }
+                throw (WebApplicationException) ex;
+            }
+        }
+    }
+
+    private SmartGwtResponse<Map<String, Object>> updateDisseminationImpl(
             @FormDataParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormDataParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
@@ -1019,10 +1044,10 @@ public class DigitalObjectResource {
             ) throws IOException, DigitalObjectException {
 
         if (pid == null) {
-            throw RestException.plainText(Status.BAD_REQUEST, "Missing pid!");
+            return SmartGwtResponse.<Map<String,Object>>asError(DigitalObjectResourceApi.DIGITALOBJECT_PID, "Missing PID!");
         }
         if (file == null) {
-            throw RestException.plainText(Status.BAD_REQUEST, "Missing file!");
+            return SmartGwtResponse.<Map<String,Object>>asError(DigitalObjectResourceApi.DISSEMINATION_FILE, "Missing file!");
         }
         // XXX add config property or user permission
         if (file.length() > 1*1024 * 1024 * 1024) { // 1GB
@@ -1037,7 +1062,8 @@ public class DigitalObjectResource {
             try {
                 mime = mimeType != null ? MediaType.valueOf(mimeType) : fileBodyPart.getMediaType();
             } catch (IllegalArgumentException ex) {
-                throw RestException.plainText(Status.BAD_REQUEST, "Invalid MIME type! " + mimeType);
+                return SmartGwtResponse.<Map<String,Object>>asError(
+                        DigitalObjectResourceApi.DISSEMINATION_MIME, "Invalid MIME type! " + mimeType);
             }
             LOG.log(Level.FINE, "filename: {0}, user mime: {1}, resolved mime: {2}, {3}/{4}", new Object[]{filename, mimeType, mime, pid, dsId});
             DigitalObjectHandler doHandler = findHandler(pid, batchId);
@@ -1048,7 +1074,7 @@ public class DigitalObjectResource {
         } finally {
             file.delete();
         }
-        return Response.ok().build();
+        return new SmartGwtResponse<Map<String,Object>>(Collections.singletonMap("processId", (Object) 0L));
     }
 
     @GET
