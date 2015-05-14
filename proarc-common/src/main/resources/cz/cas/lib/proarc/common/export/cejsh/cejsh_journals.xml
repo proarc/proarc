@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cejsh>
+    <journal issn="0231-5955">
+        <title>Acta Comeniana</title>
+        <discipline>PHILOSOPHY</discipline>
+        <publisherAddress>Acta Comeniana, redakce, Filosofický ústav AV ČR, v.v.i., Jilská 1, 110 00  Praha 1, Czech Republic</publisherAddress>
+        <journalId>9358223b-b135-388f-a71e-24ac2c8422c7</journalId>
+        <publisherId>18ec9101-da63-3687-b222-87ff0f2b4978</publisherId>
+        <publisher>Institute of the Czech Language, Academy of Sciences of the Czech Republic</publisher>
+        <journalFrequency></journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW></institutionWWW>
+        <editorialOffice></editorialOffice>
+    </journal>
+    <journal issn="1211-4413">
+        <title>Acta Onomastica</title>
+        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <publisherAddress>Acta onomastica, redakce, Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51  Praha 1, Czech Republic</publisherAddress>
+        <journalId>7bb33933-19b8-30c2-b6e2-0001b3e8b6fc</journalId>
+        <publisherId>c72cc013-68ec-3954-9ac5-9a760e1d62e9</publisherId>
+        <journalFrequency>ANNUAL</journalFrequency>
+        <journalWWW>http://www.ujc.cas.cz/casopisy/acta-onomastica/current-issue-archive/</journalWWW>
+        <institutionWWW>http://www.ujc.cas.cz/casopisy/acta-onomastica/</institutionWWW>
+        <editorialOffice>Ústav pro jazyk český AV ČR, v. v. i., oddělení onomastiky, Valentinská 1, 116 46 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0862-8459">
+        <title>Časopis pro moderní filologii (The Journal for Modern Philology)</title>
+        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <publisherAddress>Časopis pro moderní filologii, redakce, Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of the Czech Language, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>d4e6be36-e1a4-32d8-bcdd-d5c3f785b523</journalId>
+        <publisherId>c72cc013-68ec-3954-9ac5-9a760e1d62e9</publisherId>
+        <journalFrequency>SEMIANNUAL</journalFrequency>
+        <journalWWW>http://www.ujc.cas.cz/casopisy/casopis-pro-moderni-filologii/current-issue-archive/index.html</journalWWW>
+        <institutionWWW>http://www.ujc.cas.cz/casopisy/casopis-pro-moderni-filologii/</institutionWWW>
+        <editorialOffice>Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0009-0468">
+        <title>Česká literatura (Czech Literature)</title>
+        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <publisherAddress>Československá psychologie, redakce, Psychologický ústav AV ČR, v.v.i., Politických vězňů 7, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Czech Literature of the Academy of Sciences of the Czech Republic</publisher>
+        <journalId>9e1cae7e-bcec-3aa5-9fc5-088078515ea5</journalId>
+        <publisherId>20190506-2411-331b-bcd0-a79739daf0b1</publisherId>
+        <journalFrequency>BIMONTHLY</journalFrequency>
+        <journalWWW>http://www.ucl.cas.cz/en/ceska-literatura-journal</journalWWW>
+        <institutionWWW>http://www.ucl.cas.cz/en/ceska-literatura-journal/editorial-board-and-editorial-staff </institutionWWW>
+        <editorialOffice>Ústav pro českou literaturu AV ČR, v. v. i., Na Florenci 3, 110 00 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0009-062X">
+        <title>Československá psychologie (Czechoslovak Psychology)</title>
+        <discipline>PSYCHOLOGY</discipline>
+        <publisherAddress>Československá psychologie, redakce, Psychologický ústav AV ČR, v.v.i., Politických vězňů 7, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Psychology, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>ef5d1d16-e3fb-3295-a26c-3a87d3a8c37a</journalId>
+        <publisherId>120b7ce6-08d0-31c5-b169-ce4f5c1616e1</publisherId>
+        <journalFrequency>BIMONTHLY</journalFrequency>
+        <journalWWW>http://cspsych.psu.cas.cz/aktualni.php</journalWWW>
+        <institutionWWW>http://cspsych.psu.cas.cz/redakce.html</institutionWWW>
+        <editorialOffice>Psychologický ústav AV ČR, v.v.i., Veveří 97, 602 00 Brno, editorial office: Politických vězňů 7, 110 00 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0862-6111">
+        <title>Český časopis historický (The Czech Historical Review) </title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Český časopis historický, redakce, Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic</publisherAddress>
+        <publisher>Institute of History, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>b617a7cc-bfe9-3d83-a1f0-ae4ad4966bea</journalId>
+        <publisherId>27ab9942-eef4-3caa-8d9b-7b04054e3fc0</publisherId>
+        <journalFrequency>QUARTERLY</journalFrequency>
+        <journalWWW>http://www.hiu.cas.cz/en/publishing-center/journals-and-periodicals/czech-historical-review.ep/</journalWWW>
+        <institutionWWW>http://www.hiu.cas.cz/en/publishing-center/journals-and-periodicals/czech-historical-review.ep/</institutionWWW>
+        <editorialOffice>Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0009-0794">
+        <title>Český lid: etnologický časopis (Český lid: Ethnological journal)</title>
+        <discipline>ETHNOLOGY</discipline>
+        <publisherAddress>Český lid, redakce, Etnologický ústav AV ČR, v.v.i., Na Florenci 3,  110 00  Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Ethnology, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>d3704984-d66e-364d-afea-4807daf32e8b</journalId>
+        <publisherId>9930f6c1-54a6-3d81-9cd9-cefb77424042</publisherId>
+        <journalFrequency>QUARTERLY</journalFrequency>
+        <journalWWW>http://eu.avcr.cz/Casopisy/cesky_lid/index.html</journalWWW>
+        <institutionWWW>http://eu.avcr.cz/Casopisy/cesky_lid/Redakce_a_kontakt.html</institutionWWW>
+        <editorialOffice>Etnologický ústav AV ČR, v.v.i., Na Florenci 3, 110 00 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="1802-8152">
+        <title>Data a výzkum - SDA Info (Data and Research - SDA Info)</title>
+        <discipline>SOCIOLOGY</discipline>
+        <publisherAddress>Data a výzkum – SDA Info, redakce, Sociologický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Sociology of the Academy of Sciences of the Czech Republic</publisher>
+        <journalId>ec3f42af-9041-305e-8b58-caff5a891d06</journalId>
+        <publisherId>965be5c4-563a-359b-a923-ca6d0464913f</publisherId>
+        <journalFrequency>SEMIANNUAL</journalFrequency>
+        <journalWWW>http://dav.soc.cas.cz/page/1-english-information</journalWWW>
+        <institutionWWW>http://dav.soc.cas.cz/page/1-english-information</institutionWWW>
+        <editorialOffice>Sociologický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic </editorialOffice>
+    </journal>
+    <journal issn="1214-7249">
+        <title>Dějiny - Teorie - Kritika (History - Theory - Criticism)</title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Dějiny – Teorie – Kritika, redakce, Masarykův ústav a Archiv AV ČR, v.v.i., Gabčíkova 2362/10, 180 00  Praha 8, Czech Republic</publisherAddress>
+        <publisher>Masaryk's Institute and Archives, ASCR</publisher>
+        <journalId>89a8aa2d-1fdc-3511-8be4-80e78fd196a0</journalId>
+        <publisherId>e380c8af-586e-393f-83c4-17fdbf0b5cd0</publisherId>
+        <journalFrequency>SEMIANNUAL</journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW>http://www.mua.cas.cz/publikace/msu/dtk/dtk.html</institutionWWW>
+        <editorialOffice>Masarykův ústav a archiv AV ČR, v.v.i., Na Florenci 3, 110 00 Praha 1, Czech Republic </editorialOffice>
+    </journal>
+    <journal issn="0046-1628">
+        <title>Eirene. Studia Graeca et Latina</title>
+        <discipline>PHILOSOPHY</discipline>
+        <publisherAddress>Eirene, redakce, Kabinet pro klasická studia Filosofického ústavu AV ČR, v.v.i., Na Florenci 3, 110 00  Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Philosophy, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>dd5cc1e9-6e0f-3529-af9c-1b1e162cdb99</journalId>
+        <publisherId>18ec9101-da63-3687-b222-87ff0f2b4978</publisherId>
+        <journalFrequency>ANNUAL</journalFrequency>
+        <journalWWW>http://www.ics.cas.cz/index.php/casopisy/eirene</journalWWW>
+        <institutionWWW>http://www.ics.cas.cz/index.php/casopisy/eirene</institutionWWW>
+        <editorialOffice>Kabinet pro klasická studia FLÚ AV ČR, v.v.i., Na Florenci 3, 110 00 Praha 1 , Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0014-1291">
+        <title>Estetika: The Central European Journal of Aestetics</title>
+        <discipline>PHILOSOPHY</discipline>
+        <publisherAddress>Estetika, redakce, Katedra estetiky, Filozofická fakulta UK, Celená 20, 116 42  Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Art History, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>ccf76f9a-1ea6-3ee8-8fbd-d2e46e5aa9db</journalId>
+        <publisherId>8649780a-c5f6-35dc-898a-b5da0c474d16</publisherId>
+        <journalFrequency>QUARTERLY</journalFrequency>
+        <journalWWW>http://aesthetics.ff.cuni.cz/archive/</journalWWW>
+        <institutionWWW>http://aesthetics.ff.cuni.cz/</institutionWWW>
+        <editorialOffice>Ústav dějin umění AV ČR, v.v.i., Husova 4, 110 00 Praha 1, editorial office: Katedra estetiky, Filozofická fakulta UK, Celetná 20, 116 42 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0015-1831">
+        <title>Filosofický časopis (Philosophical Journal) </title>
+        <discipline>PHILOSOPHY</discipline>
+        <publisherAddress>Filosofický časopis, redakce, Filosofický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Philosophy, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>8f02030f-bb93-3075-a72a-4dd9e18e3db3</journalId>
+        <publisherId>18ec9101-da63-3687-b222-87ff0f2b4978</publisherId>
+        <journalFrequency>BIMONTHLY</journalFrequency>
+        <journalWWW>http://filcasop.flu.cas.cz/</journalWWW>
+        <institutionWWW>http://filcasop.flu.cas.cz/index.php?page=redakce</institutionWWW>
+        <editorialOffice>Filozofický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0231-7494">
+        <title>Folia Historica Bohemica</title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Folia historica Bohemica, redakce, Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic</publisherAddress>
+        <publisher>Institute of History, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>9512c8ab-49ca-32eb-8d2a-d6c215f9aabc</journalId>
+        <publisherId>27ab9942-eef4-3caa-8d9b-7b04054e3fc0</publisherId>
+        <journalFrequency>ANNUAL</journalFrequency>
+        <journalWWW>http://www.hiu.cas.cz/en/publishing-center/journals-and-periodicals/folia-historica-bohemica.ep/</journalWWW>
+        <institutionWWW>http://www.hiu.cas.cz/en/publishing-center/journals-and-periodicals/folia-historica-bohemica.ep/</institutionWWW>
+        <editorialOffice>Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Prague 9, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="1213-0028">
+        <title>Gender, rovné příležitosti, výzkum (Gender, Equal Opportunities, Research) </title>
+        <discipline>SOCIOLOGY</discipline>
+        <publisherAddress>Gender, rovné příležitosti, výzkum, redakce, Sociologický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Sociology of the Academy of Sciences of the Czech Republic</publisher>
+        <journalId>fe595fe3-ea1f-3c50-bc27-faf78a77844e</journalId>
+        <publisherId>965be5c4-563a-359b-a923-ca6d0464913f</publisherId>
+        <journalFrequency>SEMIANNUAL</journalFrequency>
+        <journalWWW>http://www.genderonline.cz/en/page/9-about-the-journal</journalWWW>
+        <institutionWWW>http://www.genderonline.cz/en/archive </institutionWWW>
+        <editorialOffice>Sociologický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="1803-7550">
+        <title>Historica: revue pro historii a příbuzné vědy (Historica: Review in history and related sciences)</title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Katedra historie, Filozofická fakulta, Ostravská univerzita v Ostravě, Reální 5, 701 00 Ostrava, Czech Republic</publisherAddress>
+        <publisher>University of Ostrava, Faculty of Arts, Czech Republic</publisher>
+        <journalId>6bee26a8-4ea1-358e-8edb-62adaf901311</journalId>
+        <publisherId>fda636d4-0bea-3cf5-b8b3-7bc39f11401d</publisherId>
+        <journalFrequency>SEMIANNUAL</journalFrequency>
+        <journalWWW>http://katedry.osu.cz/khi/historica/</journalWWW>
+        <institutionWWW>http://katedry.osu.cz/khi/historica/contacts.html</institutionWWW>
+        <editorialOffice>Historica: revue pro historii a příbuzné vědy, redakce, Filozofická fakulta Ostravské univerzity, Reální 5, 701 03 Ostrava, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0323-0937">
+        <title>Historická demografie (Historical Demography)</title>
+        <discipline>ETHNOLOGY</discipline>
+        <publisherAddress>Sociologický ústav AV CR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Sociology of the Academy of Sciences of the Czech Republic</publisher>
+        <journalId>042ed8c5-8dbd-3fc7-a517-7b7e49fdb44c</journalId>
+        <publisherId>965be5c4-563a-359b-a923-ca6d0464913f</publisherId>
+        <journalFrequency>ANNUAL</journalFrequency>
+        <journalWWW>http://eu.avcr.cz/Casopisy/Historicka_demografie/</journalWWW>
+        <institutionWWW>http://eu.avcr.cz/Casopisy/Historicka_demografie/</institutionWWW>
+        <editorialOffice>Sociologický ústav AV CR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0323-0988">
+        <title>Historická geografie (Historical Geography)</title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Historická geografie, redakce, Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic</publisherAddress>
+        <publisher>Institute of History, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>feb8a64a-a108-3388-86a5-acdbd7484a78</journalId>
+        <publisherId>27ab9942-eef4-3caa-8d9b-7b04054e3fc0</publisherId>
+        <journalFrequency>SEMIANNUAL</journalFrequency>
+        <journalWWW>http://www.hiu.cas.cz/en/publishing-center/journals-and-periodicals/historical-geography.ep/</journalWWW>
+        <institutionWWW>http://www.hiu.cas.cz/en/publishing-center/journals-and-periodicals/historical-geography.ep/</institutionWWW>
+        <editorialOffice>Historický ústav AV CR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0231-7540">
+        <title>Hospodářské dějiny (Economic History)</title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Hospodářské dějiny, redakce, Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic</publisherAddress>
+        <publisher>Institute of History, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>c085f5a8-f791-4701-b206-6ac63366dd5d</journalId>
+        <publisherId>27ab9942-eef4-3caa-8d9b-7b04054e3fc0</publisherId>
+        <journalFrequency>Since 2010 SEMIANNUAL</journalFrequency>
+        <journalWWW>http://www.hiu.cas.cz/cs/nakladatelstvi/periodika/hospodarske-dejiny.ep</journalWWW>
+        <institutionWWW>http://www.hiu.cas.cz/cs/nakladatelstvi/periodika/hospodarske-dejiny.ep</institutionWWW>
+        <editorialOffice>Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0018-7003">
+        <title>Hudební věda (Musicology)</title>
+        <discipline>ETHNOLOGY</discipline>
+        <publisherAddress>Hudební věda, redakce, Etnologický ústav AV ČR, v.v.i., Puškinovo nám. 9, 160 00 Praha 6, Czech Republic</publisherAddress>
+        <publisher>Institute of Ethnology, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>011c3306-7464-39ee-8336-2390c86a7b3c</journalId>
+        <publisherId>9930f6c1-54a6-3d81-9cd9-cefb77424042</publisherId>
+        <journalFrequency>QUARTERLY</journalFrequency>
+        <journalWWW>http://eu.avcr.cz/Casopisy/hudebni_veda/</journalWWW>
+        <institutionWWW>http://eu.avcr.cz/Casopisy/cesky_lid/Redakce_a_kontakt.html</institutionWWW>
+        <editorialOffice>Kabinet hudební historie, Etnologický ústav AV ČR, v.v.i., Puškinovo náměstí 9, 160 00 Praha 6, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="1210-8510">
+        <title>Knihy a dějiny (Books and history)</title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Knihovna AV ČR, v.v.i., Národní 1009/3, 115 22 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Library of the Academy of Sciences of the Czech Republic</publisher>
+        <journalId>4799697a-98a7-44e0-8073-2d450fca3d90</journalId>
+        <publisherId>164e38f1-186b-44e9-a955-9ac5924feda0</publisherId>
+        <journalFrequency>ANNUAL</journalFrequency>
+        <journalWWW>http://www.lib.cas.cz/kvo/en/the-journal-books-and-history/</journalWWW>
+        <institutionWWW>http://www.lib.cas.cz/kvo/en/the-journal-books-and-history/</institutionWWW>
+        <editorialOffice>Knihovědné oddělení KNAV, Knihovna AV ČR, v.v.i., Národní 1009/3, 115 22 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0862-8432">
+        <title>Linguistica Pragensia</title>
+        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <publisherAddress>Linguistica Pragensia, Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of the Czech Language, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>d41f195e-4a9a-31ac-9d96-8da8369fcd15</journalId>
+        <publisherId>c72cc013-68ec-3954-9ac5-9a760e1d62e9</publisherId>
+        <journalFrequency>SEMIANNUAL</journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW></institutionWWW>
+        <editorialOffice>Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0024-4457">
+        <title>Listy filologické (Folia philologica)</title>
+        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <publisherAddress>Listy filologické, redakce, Filosofický ústav AV ČR, v.v.i., Kabinet pro klasická studia, Na Florenci 3, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Philosophy, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>eab77fae-44e5-398b-ab8f-ecb2aa8b5a66</journalId>
+        <publisherId>18ec9101-da63-3687-b222-87ff0f2b4978</publisherId>
+        <journalFrequency>SEMIANNUAL</journalFrequency>
+        <journalWWW>http://lf.clavmon.cz/</journalWWW>
+        <institutionWWW>http://lf.clavmon.cz/</institutionWWW>
+        <editorialOffice>Kabinet pro klasická studia, Filosofický ústav AV ČR, v.v.i., Na Florenci 3, 110 00 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0862-979X">
+        <title>Mediaevalia Historica Bohemica</title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Mediaevalia historica Bohemica, redakce, Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic</publisherAddress>
+        <publisher>Institute of History, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>255ae1b4-7b49-4eb1-ba72-7bf4b34f35c7</journalId>
+        <publisherId>27ab9942-eef4-3caa-8d9b-7b04054e3fc0</publisherId>
+        <journalFrequency>SEMIANNUAL</journalFrequency>
+        <journalWWW>http://www.hiu.cas.cz/en/publishing-center/journals-and-periodicals/mediaevalia.ep/</journalWWW>
+        <institutionWWW>http://www.hiu.cas.cz/en/publishing-center/journals-and-periodicals/mediaevalia.ep/</institutionWWW>
+        <editorialOffice>Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="1210-6860">
+        <title>Moderní dějiny: sborník k dějinám 19. a 20. století (Modern History: Studies into 19th and 20th century history)</title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Moderní dějiny, redakce, Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic</publisherAddress>
+        <publisher>Institute of History, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>28cd1eec-dff8-32f5-b4c5-917ff1b7dc73</journalId>
+        <publisherId>27ab9942-eef4-3caa-8d9b-7b04054e3fc0</publisherId>
+        <journalFrequency>ANNUAL</journalFrequency>
+        <journalWWW>http://www.hiu.cas.cz/en/publishing-center/journals-and-periodicals/modern-history.ep/</journalWWW>
+        <institutionWWW>http://www.hiu.cas.cz/en/publishing-center/journals-and-periodicals/modern-history.ep/</institutionWWW>
+        <editorialOffice>Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0027-8203">
+        <title>Naše řeč (Our Speech)</title>
+        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <publisherAddress>Naše řeč, redakce, Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of the Czech Language, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>0a0dc341-afa4-3343-9168-87329146c725</journalId>
+        <publisherId>c72cc013-68ec-3954-9ac5-9a760e1d62e9</publisherId>
+        <journalFrequency>FIVE TIMES A YEAR</journalFrequency>
+        <journalWWW>http://nase-rec.ujc.cas.cz/?lang=en</journalWWW>
+        <institutionWWW>http://nase-rec.ujc.cas.cz/index.php?lang=en&amp;id=2</institutionWWW>
+        <editorialOffice>Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="1214-438X">
+        <title>Naše společnost (Our Society)</title>
+        <discipline>SOCIOLOGY</discipline>
+        <publisherAddress>Naše společnost, redakce, Sociologický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Sociology of the Academy of Sciences of the Czech Republic</publisher>
+        <journalId>2a85a164-ed7e-3734-abbe-3d1dcd327ba8</journalId>
+        <publisherId>965be5c4-563a-359b-a923-ca6d0464913f</publisherId>
+        <journalFrequency>SEMIANNUAL</journalFrequency>
+        <journalWWW>http://cvvm.soc.cas.cz/casopis/o-casopisu</journalWWW>
+        <institutionWWW>http://cvvm.soc.cas.cz/</institutionWWW>
+        <editorialOffice>Centrum pro výzkum veřejného mínění, Sociologický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1 , Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0231-6625">
+        <title>Právník (The Lawyer)</title>
+        <discipline>LAW_&amp;_ADMINISTRATION</discipline>
+        <publisherAddress>Právník, redakce, Ústav státu a práva AV ČR, v.v.i., Národní 18, 116 00 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of State and Law, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>43bd8a20-6585-36ec-bf4d-05e090a1242b</journalId>
+        <publisherId>8001c39e-5d1f-36c9-8222-f3811052fa92</publisherId>
+        <journalFrequency>MONTHLY</journalFrequency>
+        <journalWWW>http://www.ilaw.cas.cz/index.php?page=142, http://casopispravnik.juristic.cz/</journalWWW>
+        <institutionWWW>http://www.ilaw.cas.cz/index.php?page=111</institutionWWW>
+        <editorialOffice>Ústav státu a práva AV ČR, v.v.i., Národní 18, 116 00 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="1211-7250">
+        <title>Přehled výzkumů (Survey in the Field Excavations)</title>
+        <discipline>ARCHAEOLOGY</discipline>
+        <publisherAddress>Přehled výzkumů, redakce, Archeologický ústav AV ČR, Brno, v.v.i., Královopolská 147, 612 00 Brno, Czech Republic</publisherAddress>
+        <publisher>Institute of Archeology, AS CR Brno</publisher>
+        <journalId>9fb5710c-32e8-321b-ac46-7721c80074dc</journalId>
+        <publisherId>dbf6b444-6468-3a84-9a0f-0735539b3a9b</publisherId>
+        <journalFrequency>YEARBOOK</journalFrequency>
+        <journalWWW>http://www.arub.cz/prehled-vyzkumu.html</journalWWW>
+        <institutionWWW>http://www.arub.cz/prehled-vyzkumu.html</institutionWWW>
+        <editorialOffice>Archeologický ústav AV CR Brno, Královopolská 147, 612 00 Brno, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0037-6922">
+        <title>Slovanský přehled: historická revue pro dějiny střední, východní a jihovýchodní Evropy (Slavonic Review: Review for Central, Eastern and Southeastern European history)</title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Slovanský přehled, redakce, Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic</publisherAddress>
+        <publisher>Institute of History, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>3111a42d-c41b-3f03-8867-b741b7917dba</journalId>
+        <publisherId>27ab9942-eef4-3caa-8d9b-7b04054e3fc0</publisherId>
+        <journalFrequency>QUARTERLY, since 2010 FIVE ISSUES A YEAR</journalFrequency>
+        <journalWWW>http://www.hiu.cas.cz/en/publishing-center/journals-and-periodicals/slavonic-review.ep/</journalWWW>
+        <institutionWWW>http://www.hiu.cas.cz/en/publishing-center/journals-and-periodicals/slavonic-review.ep/</institutionWWW>
+        <editorialOffice>Historický ústav AV ČR, v.v.i., Prosecká 76, 190 00 Praha 9, Czech Republic </editorialOffice>
+    </journal>
+    <journal issn="0037-7031">
+        <title>Slovo a slovesnost: časopis pro otázky teorie a kultury jazyka (Slovo a slovesnost: A journal for the theory of language and language cultivation)</title>
+        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <publisherAddress>Slovo a slovesnost, redakce, Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of the Czech Language, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>32c56366-5e72-37d3-bd39-7890034e5104</journalId>
+        <publisherId>c72cc013-68ec-3954-9ac5-9a760e1d62e9</publisherId>
+        <journalFrequency>QUARTERLY</journalFrequency>
+        <journalWWW>http://sas.ujc.cas.cz/index.php?lang=en</journalWWW>
+        <institutionWWW>http://sas.ujc.cas.cz/index.php?id=3</institutionWWW>
+        <editorialOffice>Ústav pro jazyk český AV ČR, v. v. i., Letenská 4, 118 51 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0038-0288">
+        <title>Sociologický časopis. Czech Sociological Review</title>
+        <discipline>SOCIOLOGY</discipline>
+        <publisherAddress>Sociologický časopis, redakce, Sociologický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Sociology of the Academy of Sciences of the Czech Republic</publisher>
+        <journalId>ccc91f86-a9c9-371d-89b6-a1e21954a583</journalId>
+        <publisherId>965be5c4-563a-359b-a923-ca6d0464913f</publisherId>
+        <journalFrequency>BIMONTHLY</journalFrequency>
+        <journalWWW>http://sreview.soc.cas.cz/en/page/10-about-us</journalWWW>
+        <institutionWWW>http://sreview.soc.cas.cz/en/page/5-contact</institutionWWW>
+        <editorialOffice>Sociologický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="1210-7050">
+        <title>Soudobé dějiny (Contemporary History)</title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Soudobé dějiny, redakce, Ústav pro soudobé dějiny AV ČR, v.v.i., Vlašská 9, 118 40 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Contemporary History of the Academy of Sciences of the Czech Republic</publisher>
+        <journalId>1b98d311-9a8e-3e63-a00f-d5f18262ea5d</journalId>
+        <publisherId>d820f8ea-76a2-3e93-9fc4-704f7fe861d8</publisherId>
+        <journalFrequency>QUARTERLY</journalFrequency>
+        <journalWWW>http://www.usd.cas.cz/en/pages/en-soudobe-dejiny</journalWWW>
+        <institutionWWW>http://www.usd.cas.cz/en/pages/en-soudobe-dejiny</institutionWWW>
+        <editorialOffice>Redakce časopisu Soudobé dějiny, Ústav pro soudobé dějiny AV ČR, v.v.i., Vlašská 9, 118 40 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="1803-9243">
+        <title>Střed. Časopis pro mezioborová studia Střední Evropy 19. a 20. století. / Centre. Journal for Interdisciplinary Studies of Central Europe in the 19th and 20th Centuries.</title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Masarykův ústav a archiv AV ČR, v.v.i., Gabčíkova 2362/10, 182 00 Praha 8, Czech Republic</publisherAddress>
+        <publisher>Masaryk's Institute and Archives, ASCR</publisher>
+        <journalId>1d21a4b1-cf7b-4531-bf54-2a4c8519cf1c</journalId>
+        <publisherId>e380c8af-586e-393f-83c4-17fdbf0b5cd0</publisherId>
+        <journalFrequency>Semiannual</journalFrequency>
+        <journalWWW>http://www.mua.cas.cz/index.php/en/journals/centre</journalWWW>
+        <institutionWWW>http://www.mua.cas.cz/index.php/journals/centre</institutionWWW>
+        <editorialOffice>Střed, redakce, Masarykův ústav a archiv AV ČR, v.v.i., Gabčíkova 2362/10, 182 00 Praha 8, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0585-5691">
+        <title>Studie o rukopisech (Manuscript Studies)</title>
+        <discipline>HISTORY</discipline>
+        <publisherAddress>Studie o rukopisech, redakce, Masarykův ústav a Archiv AV ČR, v.v.i., Gabčíkova 2362/10, 180 00 Praha 8, Czech Republic</publisherAddress>
+        <publisher>Masaryk's Institute and Archives, ASCR</publisher>
+        <journalId>7311d813-37c1-3224-b757-33cdac2ce611</journalId>
+        <publisherId>e380c8af-586e-393f-83c4-17fdbf0b5cd0</publisherId>
+        <journalFrequency>ANNUAL</journalFrequency>
+        <journalWWW>http://www.mua.cas.cz/studie.html</journalWWW>
+        <institutionWWW>http://www.mua.cas.cz/studie.html</institutionWWW>
+        <editorialOffice>Masarykův ústav a Archiv AV ČR, v.v.i., Na Florenci 3, 110 00 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="1210-0250">
+        <title>Teorie vědy (Theory of Science)</title>
+        <discipline>SCIENCE OF SCIENCE</discipline>
+        <publisherAddress>Teorie vědy, redakce, Filosofický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Philosophy, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>0b52025e-b122-3b44-a72e-176a1fa61d0a</journalId>
+        <publisherId>18ec9101-da63-3687-b222-87ff0f2b4978</publisherId>
+        <journalFrequency>QUARTERLY</journalFrequency>
+        <journalWWW>http://teorievedy.flu.cas.cz/index.php/tv</journalWWW>
+        <institutionWWW>http://teorievedy.flu.cas.cz/index.php/tv</institutionWWW>
+        <editorialOffice>Filosofický ústav AV CR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="1803-845X">
+        <title>Theatralia: Revue současného myšlení o divadelní kultuře (Theatralia: The revue of contemporary thought on theatre culture)</title>
+        <discipline>ARTS_&amp;_ARCHITECTURE</discipline>
+        <publisherAddress>Theatralia, redakce, Masarykova univerzita, Filozofická fakulta, Katedra divadelních studií, Arna Nováka 1, 602 00 Brno, Czech Republic</publisherAddress>
+        <publisher>Masaryk University, Faculty of Arts</publisher>
+        <journalId>dd23d01d-d2bd-4555-bc63-a85ef16d5db5</journalId>
+        <publisherId>20f488de-e422-4d95-9fad-72509f92b7f9</publisherId>
+        <journalFrequency>SEMIANNUAL</journalFrequency>
+        <journalWWW>http://www.phil.muni.cz/kds/index.php?menu=katedra&amp;sub=publikace&amp;str=teatralia.php</journalWWW>
+        <institutionWWW>http://www.phil.muni.cz/kds/index.php?menu=katedra&amp;sub=publikace&amp;str=teatralia.php</institutionWWW>
+        <editorialOffice>Katedra divadelních studií FF MU, Gorkého 7, 602 00 Brno, Czech Republic</editorialOffice>
+    </journal>
+    <journal issn="0049-5123">
+        <title>Umění (Art)</title>
+        <discipline>ARTS_&amp;_ARCHITECTURE</discipline>
+        <publisherAddress>Umění, redakce, Ústav dějin umění AV ČR, v.v.i., Husova 4, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <publisher>Institute of Art History, Academy of Sciences of the Czech Republic</publisher>
+        <journalId>7b27774f-cbec-3412-8f69-cd0b7a61338b</journalId>
+        <publisherId>8649780a-c5f6-35dc-898a-b5da0c474d16</publisherId>
+        <journalFrequency>BIMONTHLY</journalFrequency>
+        <journalWWW>http://www.umeni-art.cz</journalWWW>
+        <institutionWWW>http://www.umeni-art.cz</institutionWWW>
+        <editorialOffice>Ústav dějin umění AV ČR, v. v. i., Husova 4, 110 00 Praha 1</editorialOffice>
+    </journal>
+</cejsh>
