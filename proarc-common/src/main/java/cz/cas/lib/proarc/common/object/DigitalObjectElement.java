@@ -34,6 +34,7 @@ public class DigitalObjectElement {
     private DigitalObjectHandler handler;
 
     private  DigitalObjectElement() {
+        this.item = new Item();
     }
 
     public DigitalObjectElement(Item item, DigitalObjectHandler handler) {
@@ -76,7 +77,7 @@ public class DigitalObjectElement {
 
     @Override
     public String toString() {
-        String sitem = item == null ? null
+        String sitem = this == NULL ? "NULL"
                 : String.format("%s, %s, %s", item.getModel(), item.getPid(), item.getLabel());
         return "DigitalObjectElement{" + "item=" + sitem + ", handler=" + handler + '}';
     }
