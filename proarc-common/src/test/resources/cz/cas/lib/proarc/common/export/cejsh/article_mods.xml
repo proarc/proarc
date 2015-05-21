@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mods:mods xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xlink="http://www.w3.org/1999/xlink" version="3.5">
+  <mods:classification authority="udc">58</mods:classification>
+  <mods:classification authority="udc">(050)</mods:classification>
+  <mods:genre type="main article">article</mods:genre>
+  <mods:genre authority="marcgt">periodical</mods:genre>
+  <mods:genre authority="czenas">časopisy</mods:genre>
+  <mods:identifier type="uuid">ebfd7bf2-169d-476e-a230-0cc39f01764c</mods:identifier>
+  <mods:identifier type="ccnb">cnb000356490</mods:identifier>
+  <mods:identifier type="issn">0032-7786</mods:identifier>
+  <mods:identifier type="issn-l">0032-7786</mods:identifier>
+  <mods:language>
+    <mods:languageTerm authority="iso639-2b" type="code">eng</mods:languageTerm>
+  </mods:language>
+  <mods:location>
+    <mods:url displayLabel="electronic resource" usage="primary display">http://www.preslia.cz/</mods:url>
+  </mods:location>
+  <mods:location>
+    <mods:url displayLabel="electronic resource">http://www.ibot.cas.cz/preslia</mods:url>
+  </mods:location>
+  <mods:location>
+    <mods:url displayLabel="Digitální knihovna">http://kramerius.lib.cas.cz/search/handle/uuid:42896897-0d7f-11e3-993b-005056a60003</mods:url>
+  </mods:location>
+  <mods:location>
+    <mods:physicalLocation>ABA007</mods:physicalLocation>
+  </mods:location>
+  <mods:name type="corporate">
+    <mods:namePart>Československá botanická společnost</mods:namePart>
+  </mods:name>
+  <mods:name type="corporate">
+    <mods:namePart>Česká botanická společnost</mods:namePart>
+  </mods:name>
+  <mods:note altRepGroup="00" type="statement of responsibility"></mods:note>
+  <mods:note>Od r. 1952 Praha : Přírodověd. vydav</mods:note>
+  <mods:note>Od r. 1952 roč. 24. podnázev: Časopis Československé botanické společnosti</mods:note>
+  <mods:note>Od r. 1953 Praha : ČSAV (Čs. botanická společnost)</mods:note>
+  <mods:note>Od r. 1993 podnázev: Časopis České botanické společnosti. The journal of the Czech Botanical Society</mods:note>
+  <mods:note>Od r. 1966 Praha : Academia (Čs. botanická společnost)</mods:note>
+  <mods:note>Od r. 1993 Praha : Česká botanická společnost při AV ČR</mods:note>
+  <mods:originInfo>
+    <mods:place>
+      <mods:placeTerm authority="marccountry" type="code">xr</mods:placeTerm>
+    </mods:place>
+    <mods:place>
+      <mods:placeTerm type="text">Praha</mods:placeTerm>
+    </mods:place>
+    <mods:place>
+      <mods:placeTerm type="text">Praha</mods:placeTerm>
+    </mods:place>
+    <mods:publisher>Československá botanická společnost</mods:publisher>
+    <mods:publisher>Česká botanická společnost.</mods:publisher>
+    <mods:dateIssued>[1914-]</mods:dateIssued>
+    <mods:dateIssued encoding="marc" point="start">1914</mods:dateIssued>
+    <mods:dateIssued encoding="marc" point="end">9999</mods:dateIssued>
+    <mods:issuance>serial</mods:issuance>
+    <mods:frequency>4x ročně</mods:frequency>
+    <mods:frequency authority="marcfrequency">Quarterly</mods:frequency>
+  </mods:originInfo>
+  <mods:recordInfo>
+    <mods:recordContentSource authority="marcorg">ABA007</mods:recordContentSource>
+    <mods:recordCreationDate encoding="iso8601">20150128T120850</mods:recordCreationDate>
+    <mods:recordChangeDate encoding="iso8601">20150128T121033</mods:recordChangeDate>
+    <mods:recordIdentifier source="CZ PrAS">000593018</mods:recordIdentifier>
+    <mods:recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
+                (Revision 1.97 2014/05/21, ProArc patch 185 2014/06/26)</mods:recordOrigin>
+    <mods:descriptionStandard>aacr</mods:descriptionStandard>
+  </mods:recordInfo>
+  <mods:subject authority="czenas">
+    <mods:topic>botanika</mods:topic>
+  </mods:subject>
+  <mods:titleInfo>
+    <mods:title>Preslia článek</mods:title>
+    <mods:subTitle>věstník Československé botanické společnosti</mods:subTitle>
+  </mods:titleInfo>
+  <mods:titleInfo type="abbreviated">
+    <mods:title>Preslia</mods:title>
+    <mods:subTitle>(Praha)</mods:subTitle>
+  </mods:titleInfo>
+  <mods:titleInfo type="alternative">
+    <mods:title>Preslia</mods:title>
+    <mods:subTitle>časopis České botanické společnosti</mods:subTitle>
+  </mods:titleInfo>
+  <mods:titleInfo type="alternative">
+    <mods:title>Preslia</mods:title>
+    <mods:subTitle>the journal of the Czech botanical society</mods:subTitle>
+  </mods:titleInfo>
+  <mods:titleInfo displayLabel="Roč. 84, 2012, č. 3 spec. iss. to the centenary of the Czech Botanical Society (1912-2012):" type="alternative">
+    <mods:title>Flora and vegetation of the Czech Republic =</mods:title>
+    <mods:subTitle>Flóra a vegetace České republiky</mods:subTitle>
+  </mods:titleInfo>
+  <mods:titleInfo displayLabel="Roč. 85, 2013, č. 3:" type="alternative">
+    <mods:title>Oligotrophic wetlands: history, recent variability and restoration =</mods:title>
+    <mods:subTitle>Oligotrofní mokřady: historie, současná variabilita a obnova</mods:subTitle>
+  </mods:titleInfo>
+  <mods:typeOfResource>text</mods:typeOfResource>
+</mods:mods>

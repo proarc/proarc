@@ -103,6 +103,11 @@ public class CejshStatusHandler {
     }
 
     private ExportResult getCurrentResult() {
+        if (currentPkg == null) {
+            LOG.log(Level.WARNING, "Call startInput first!");
+            currentPkg = new ExportResult();
+            reslog.getExports().add(currentPkg);
+        }
         return currentPkg != null ? currentPkg : new ExportResult();
     }
 

@@ -34,7 +34,7 @@ import javax.xml.bind.JAXB;
  *
  * @author Jan Pokorsky
  */
-final class ExportUtils {
+public final class ExportUtils {
 
     public static final String PROARC_EXPORT_STATUSLOG = "proarc_export_status.log";
 
@@ -49,6 +49,9 @@ final class ExportUtils {
     public static File createFolder(File parent, String name) {
         if (name == null || name.contains(":")) {
             throw new IllegalArgumentException(name);
+        }
+        if (parent == null) {
+            throw new NullPointerException("parent");
         }
         File folder = new File(parent, name);
         for (int i = 1; !folder.mkdir(); i++) {
@@ -105,6 +108,21 @@ final class ExportUtils {
         relations.setExportResult(target);
         relations.write(relations.getLastModified(), log);
         doh.commit();
+    }
+
+    public static String toString(Iterable<?> lines) {
+        return toString(lines, "\n");
+    }
+
+    public static String toString(Iterable<?> lines, String lineEnd) {
+        StringBuilder sb = new StringBuilder();
+        for (Object line : lines) {
+            if (sb.length() > 0) {
+                sb.append(lineEnd);
+            }
+            sb.append(line);
+        }
+        return sb.toString();
     }
 
     public static String toString(Throwable ex) {

@@ -26,7 +26,6 @@ import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
-import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -51,12 +50,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -76,7 +75,6 @@ import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -107,8 +105,6 @@ class CejshBuilder {
     private static final Logger LOG = Logger.getLogger(CejshBuilder.class.getName());
 
     private final Transformer bwmetaXsl;
-    private final Transformer mods2cejsh;
-    private final Transformer mods2cejshHead;
     private final TranformationErrorHandler tranformationErrorHandler;
     private Validator bwValidator;
     private final DocumentBuilder db;
@@ -125,19 +121,13 @@ class CejshBuilder {
         this.gcalendar = new GregorianCalendar(UTC);
         this.logLevel = config.getLogLevel();
         TransformerFactory xslFactory = TransformerFactory.newInstance();
-        mods2cejsh = xslFactory.newTransformer(new StreamSource(config.getXslCejshUrl()));
-        if (mods2cejsh == null) {
-            throw new TransformerConfigurationException("Cannot load XSL: " + config.getXslCejshUrl());
-        }
-        mods2cejshHead = xslFactory.newTransformer(new StreamSource(config.getXslCejshHeadUrl()));
-        if (mods2cejshHead == null) {
-            throw new TransformerConfigurationException("Cannot load cejsh head XSL: " + config.getXslCejshHeadUrl());
-        }
         tranformationErrorHandler = new TranformationErrorHandler();
-        mods2cejsh.setErrorListener(tranformationErrorHandler);
-        mods2cejshHead.setErrorListener(tranformationErrorHandler);
-        bwmetaXsl = xslFactory.newTransformer();
+        bwmetaXsl = xslFactory.newTransformer(new StreamSource(config.getCejshXslUrl()));
+        if (bwmetaXsl == null) {
+            throw new TransformerConfigurationException("Cannot load XSL: " + config.getCejshXslUrl());
+        }
         bwmetaXsl.setOutputProperty(OutputKeys.INDENT, "yes");
+        bwmetaXsl.setErrorListener(tranformationErrorHandler);
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
         db = dbf.newDocumentBuilder();
@@ -183,25 +173,11 @@ class CejshBuilder {
             p.getStatus().error(article, "Missing issue!", null, null);
             return null;
         }
-        mods2cejsh.reset();
-        mods2cejshHead.reset();
         try {
             String articleIssn = getIssnPath().evaluate(articleDom);
-            String packageIssn = getPackageIssn();
-            Element cejshDom = createCejshElement(packageIssn, getIssue().getIssueId(), articleDom);
-            if (cejshDom == null) {
-                return null;
-            }
-            Element cejshHeadDom = createCejshHeadElement(packageIssn,
-                    getVolume().getVolumeNumber(), getVolume().getVolumeId(), getVolume().getYear(),
-                    getIssue().getIssueNumber(), getIssue().getIssueId(), articleDom);
-            if (cejshHeadDom == null) {
-                p.getStatus().error(article, "Validation error!", tranformationErrorHandler.getErrors().toString(), null);
-                return null;
-            }
-            return new Article(article, cejshDom, cejshHeadDom, articleIssn);
-        } catch (TransformerException ex) {
-            p.getStatus().error(article, "Validation error!", getTranformationErrors().toString(), ex);
+            // XXX check mods vs modsCollection?
+            Element modsElement = articleDom.getDocumentElement();
+            return new Article(article, modsElement, articleIssn);
         } catch (Exception ex) {
             p.getStatus().error(article, "Unexpected error!", null, ex);
         }
@@ -209,9 +185,9 @@ class CejshBuilder {
     }
 
     String getPackageIssn() {
-        String issn = getIssue().getIssn();
+        String issn = getIssue() == null ? null : getIssue().getIssn();
         if (issn == null || issn.isEmpty()) {
-            issn = getTitle().getIssn();
+            issn = getTitle() == null ? null : getTitle().getIssn();
             if (issn == null || issn.isEmpty()) {
                 issn = "NA";
             }
@@ -219,68 +195,69 @@ class CejshBuilder {
         return issn;
     }
 
-    Element createCejshHeadElement(String issn, String volume, String volumeId, String year,
-            String issue, String issueId, Document articleDom) throws TransformerException {
-
-        mods2cejshHead.setParameter("issn", issn);
-        mods2cejshHead.setParameter("volume", volume);
-        mods2cejshHead.setParameter("volumeId", volumeId);
-        mods2cejshHead.setParameter("issue", issue);
-        mods2cejshHead.setParameter("issueId", issueId);
-        mods2cejshHead.setParameter("year", year);
-        DOMResult cejshHeadDom = new DOMResult();
-        tranformationErrorHandler.reset();
-        mods2cejshHead.transform(new DOMSource(articleDom), cejshHeadDom);
-        if (!tranformationErrorHandler.getErrors().isEmpty()) {
-            return null;
+    /**
+     * Transforms a collection of articles to the bwmeta document.
+     * @param src modsCollection in MODS format
+     * @param dst bwmeta document
+     * @return the error handler
+     */
+    TranformationErrorHandler createCejshXml(Source src, Result dst) {
+        bwmetaXsl.reset();
+        String packageIssn = getPackageIssn();
+        bwmetaXsl.setParameter("issn", packageIssn);
+        if (getVolume() != null) {
+            bwmetaXsl.setParameter("volume", getVolume().getVolumeNumber());
+            bwmetaXsl.setParameter("volumeId", getVolume().getVolumeId());
+            bwmetaXsl.setParameter("year", getVolume().getYear());
         }
-        Node resultNode = cejshHeadDom.getNode();
-        return resultNode instanceof Document ? ((Document) resultNode).getDocumentElement() : null;
+        if (getIssue() != null) {
+            bwmetaXsl.setParameter("issue", getIssue().getIssueNumber());
+            bwmetaXsl.setParameter("issueId", getIssue().getIssueId());
+        }
+        try {
+            tranformationErrorHandler.reset();
+            bwmetaXsl.transform(src, dst);
+        } catch (TransformerException ex) {
+            if (tranformationErrorHandler.getErrors().isEmpty()) {
+                tranformationErrorHandler.getErrors().add(ex.getMessageAndLocation());
+            }
+        }
+        return tranformationErrorHandler;
     }
 
-    Element createCejshElement(String issn, String issueId, Document articleDom) throws TransformerException {
-        mods2cejsh.setParameter("issn", issn);
-        mods2cejsh.setParameter("issueId", issueId);
-        DOMResult cejshDom = new DOMResult();
-        tranformationErrorHandler.reset();
-        mods2cejsh.transform(new DOMSource(articleDom), cejshDom);
-        if (!tranformationErrorHandler.getErrors().isEmpty()) {
-            return null;
-        }
-        Node resultNode = cejshDom.getNode();
-        return resultNode instanceof Document ? ((Document) resultNode).getDocumentElement() : null;
-    }
-
-    public void writePackage(DigitalObjectElement packageElm, List<Article> articles, CejshContext p) {
+    public File writePackage(DigitalObjectElement packageElm, List<Article> articles, CejshContext p) {
         if (articles == null || articles.isEmpty()) {
-            return;
+            return null;
         }
+        File packageFolder = null;
         try {
             Document doc = mergeElements(articles);
 
             String pkgName = createPackageName();
-            File packageFolder = ExportUtils.createFolder(p.getOutput(), pkgName);
-            pkgName = packageFolder.getName();
+            packageFolder = ExportUtils.createFolder(p.getOutput(), pkgName);
             File importFolder = new File(packageFolder, IMPORTS_NEW_FILENAME);
             importFolder.mkdirs();
             writeProperties(packageFolder, articles.size());
 
             File p0xml = new File(importFolder, P0XML_FILENAME);
             DOMSource domSource = new DOMSource(doc);
-            bwmetaXsl.transform(domSource, new StreamResult(p0xml));
-            // validate after writing to disk to permit to check the output
-            List<String> validateErrors = validatePackage(domSource);
-            if (validateErrors.isEmpty()) {
+            TranformationErrorHandler cejshXslErrors = createCejshXml(domSource, new StreamResult(p0xml));
+            if (!cejshXslErrors.getErrors().isEmpty()) {
+                p.getStatus().error(packageElm, "Validation error!", cejshXslErrors.getErrors().toString(), null);
+                return packageFolder;
+            }
+            // validate XML after writing to disk to permit admin to check the output
+            List<String> validationErrors = validateCejshXml(new StreamSource(p0xml));
+
+            if (validationErrors.isEmpty()) {
                 writeZip(packageFolder, p.getStatus(), packageElm);
             } else {
-                p.getStatus().error(packageElm, "Validation error!", ExportUtils.toString(validateErrors), null);
+                p.getStatus().error(packageElm, "Validation error!", ExportUtils.toString(validationErrors), null);
             }
-        } catch (TransformerException ex) {
-            p.getStatus().error(packageElm, "Transform error!", null, ex);
         } catch (Exception ex) {
             p.getStatus().error(packageElm, "Unexpected error!", null, ex);
-        } finally {
         }
+        return packageFolder;
     }
 
     void writeZip(File pkgFile, File packageFolder) throws ZipException {
@@ -313,7 +290,7 @@ class CejshBuilder {
         return SCHEMA_BWMETA;
     }
 
-    List<String> validatePackage(Source bwmeta) throws SAXException, IOException {
+    List<String> validateCejshXml(Source bwmeta) throws SAXException, IOException {
         if (bwValidator == null) {
             bwValidator = getBwSchema().newValidator();
             bwValidator.setErrorHandler(new ValidationErrorHandler());
@@ -367,27 +344,19 @@ class CejshBuilder {
         return name == null || name.isEmpty() ? "NA" : name;
     }
 
+    /**
+     * Builds modsCollection from mods of articles.
+     */
     Document mergeElements(List<Article> articles) throws DOMException {
         Document doc = db.newDocument();
-        Element root = doc.createElementNS(NS_BWMETA105, "bwmeta");
+        Element root = doc.createElementNS(ModsConstants.NS, "modsCollection");
         for (Article article : articles) {
-            Element cejshHead = article.getCejshHead();
-            merge(doc, root, cejshHead);
-        }
-        for (Article article : articles) {
-            Element cejsh = article.getCejsh();
-            merge(doc, root, cejsh);
+            Element modsElm = article.getModsElement();
+            Node n = doc.adoptNode(modsElm);
+            root.appendChild(n);
         }
         doc.appendChild(root);
         return doc;
-    }
-
-    void merge(Document doc, Element root, Element bwmeta) {
-        NodeList nodes = bwmeta.getElementsByTagNameNS(NS_BWMETA105, "element");
-        for (int i = 0; i < nodes.getLength(); i++) {
-            Node n = doc.adoptNode(nodes.item(i));
-            root.appendChild(n);
-        }
     }
 
     boolean addTitle(DigitalObjectElement current, DigitalObjectElement title, CejshContext p) {
@@ -486,7 +455,6 @@ class CejshBuilder {
     }
 
     public void setTitle(Title title) {
-        LOG.log(logLevel, String.valueOf(title));
         this.title = title;
     }
 
@@ -508,21 +476,9 @@ class CejshBuilder {
         this.issue = issue;
     }
 
-    private ModsDefinition getMods(DigitalObjectElement elm, CejshContext p) {
-        try {
-            MetadataHandler<ModsDefinition> metadataHandler = elm.getHandler().metadata();
-            DescriptionMetadata<ModsDefinition> dm = metadataHandler.getMetadata();
-            ModsDefinition mods = dm.getData();
-            return mods;
-        } catch (DigitalObjectException ex) {
-            p.getStatus().error(elm, "Missing MODS!", ex);
-            return null;
-        }
-    }
-
     private Document getModsDom(DigitalObjectElement elm, CejshContext p) {
         try {
-            MetadataHandler<ModsDefinition> metadataHandler = elm.getHandler().metadata();
+            MetadataHandler<?> metadataHandler = elm.getHandler().metadata();
             DescriptionMetadata<String> dm = metadataHandler.getMetadataAsXml();
             String mods = dm.getData();
             Document modsDom = db.parse(new InputSource(new StringReader(mods)));
@@ -641,17 +597,15 @@ class CejshBuilder {
 
     static class Article {
 
-        private Element cejsh;
-        private Element cejshHead;
+        private Element mods;
         private DigitalObjectElement article;
         private String issn;
 
         public Article() {
         }
 
-        public Article(DigitalObjectElement article, Element cejsh, Element cejshHead, String issn) {
-            this.cejsh = cejsh;
-            this.cejshHead = cejshHead;
+        public Article(DigitalObjectElement article, Element mods, String issn) {
+            this.mods = mods;
             this.article = article;
             this.issn = issn;
         }
@@ -660,20 +614,12 @@ class CejshBuilder {
             return article;
         }
 
-        public Element getCejsh() {
-            return cejsh;
+        public Element getModsElement() {
+            return mods;
         }
 
-        public void setCejsh(Element cejsh) {
-            this.cejsh = cejsh;
-        }
-
-        public Element getCejshHead() {
-            return cejshHead;
-        }
-
-        public void setCejshHead(Element cejshHead) {
-            this.cejshHead = cejshHead;
+        public void setModsElement(Element mods) {
+            this.mods = mods;
         }
 
         public String getIssn() {
@@ -726,7 +672,7 @@ class CejshBuilder {
     /**
      * Collects transformation errors. Reset the handler before each transformation.
      */
-    private static class TranformationErrorHandler implements ErrorListener {
+    public static class TranformationErrorHandler implements ErrorListener {
 
         private final List<String> errors;
 

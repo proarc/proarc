@@ -124,13 +124,13 @@ public class CejshExport {
 
     /**
      * Transforms a list of PIDs to the list of digital objects to be exported.
-     * When an object is an article then the parent is listed instead and
+     * When an object is the article then its parent is listed instead and
      * the article is included in the attached set.
      * Other children of the parent are ignored during the export.
      * @param pids input PIDs
      * @param crawler the search index
      * @param ctx the context
-     * @return the list of unique digital objects and their possible articles to include.
+     * @return the list of unique digital objects and their articles to include.
      *      The {@code null} Set means include all children.
      */
     private LinkedHashMap<DigitalObjectElement, Set<DigitalObjectElement>> prepareInputQueue(

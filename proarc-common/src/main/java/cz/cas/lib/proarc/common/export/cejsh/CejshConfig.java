@@ -30,15 +30,13 @@ import org.apache.commons.configuration.ConversionException;
 public class CejshConfig {
 
     private static final Logger LOG = Logger.getLogger(CejshConfig.class.getName());
-    static final String PROP_XSLCEJSH_URL = "cejsh.mods_to_cejsh.path";
-    static final String PROP_XSLCEJSHHEAD_URL = "cejsh.mods_to_cejsh_head.path";
+    static final String PROP_MODS_XSL_URL = "cejsh.mods_xsl.path";
     static final String PROP_JOURNALS_URL = "cejsh.journals.path";
     static final String PROP_DEBUG = "cejsh.debug";
 
     public static CejshConfig from(Configuration conf) {
         CejshConfig cc = new CejshConfig();
-        cc.setXslCejshUrl(conf.getString(PROP_XSLCEJSH_URL, null));
-        cc.setXslCejshHeadUrl(conf.getString(PROP_XSLCEJSHHEAD_URL, null));
+        cc.setCejshXslUrl(conf.getString(PROP_MODS_XSL_URL, null));
 //        cc.setJournalUrl(conf.getString(PROP_JOURNALS_URL, null));
         try {
             boolean debug = conf.getBoolean(PROP_DEBUG, Boolean.FALSE);
@@ -50,24 +48,15 @@ public class CejshConfig {
     }
 
     private String xslCejshUrl;
-    private String xslCejshHeadUrl;
     private String journalUrl;
     private Level logLevel = Level.FINE;
 
-    public String getXslCejshUrl() {
-        return xslCejshUrl != null ? xslCejshUrl : cpResource("mods_to_cejsh.xsl");
+    public String getCejshXslUrl() {
+        return xslCejshUrl != null ? xslCejshUrl : cpResource("mods_cejsh.xsl");
     }
 
-    public void setXslCejshUrl(String xslCejshUrl) {
+    public void setCejshXslUrl(String xslCejshUrl) {
         this.xslCejshUrl = xslCejshUrl;
-    }
-
-    public String getXslCejshHeadUrl() {
-        return xslCejshHeadUrl != null ? xslCejshHeadUrl : cpResource("mods_to_cejsh_head.xsl");
-    }
-
-    public void setXslCejshHeadUrl(String xslCejshHeadUrl) {
-        this.xslCejshHeadUrl = xslCejshHeadUrl;
     }
 
     public String getJournalUrl() {

@@ -197,10 +197,11 @@ public class ExportResultLog {
         public ResultError(String pid, String message, String details, Throwable ex) {
             this.pid = pid;
             this.message = message;
+            this.details = details;
             if (ex != null) {
-                this.details = ExportUtils.toString(ex);
-            } else {
-                this.details = details;
+                this.details = details == null
+                        ? ExportUtils.toString(ex)
+                        : details + '\n' + ExportUtils.toString(ex);
             }
         }
 
