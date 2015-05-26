@@ -169,10 +169,6 @@ class CejshBuilder {
             p.getStatus().error(article, "Missing volume!", null, null);
             return null;
         }
-        if (getIssue() == null) {
-            p.getStatus().error(article, "Missing issue!", null, null);
-            return null;
-        }
         try {
             String articleIssn = getIssnPath().evaluate(articleDom);
             // XXX check mods vs modsCollection?
@@ -326,7 +322,7 @@ class CejshBuilder {
     String createPackageName() {
         //ISSN_publicationYear_volumePartNumber_issueParNumber
         String issn = getPackageIssn();
-        String issueNumber = safeFilename(getIssue().getIssueNumber());
+        String issueNumber = safeFilename(getIssue() == null ? null : getIssue().getIssueNumber());
         String volumeYear = safeFilename(getVolume().getYear());
         String volumeNumber = safeFilename(getVolume().getVolumeNumber());
         String pkgName = String.format("%s_%s_%s_%s", issn, volumeYear, volumeNumber, issueNumber);

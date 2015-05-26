@@ -32,7 +32,6 @@ import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -177,7 +176,6 @@ public class CejshExport {
 
         protected DigitalObjectElement getParent() {
             Iterator<DigitalObjectElement> it = getParentPath();
-            it.next();
             return it.hasNext() ? it.next() : null;
         }
 
@@ -215,48 +213,18 @@ public class CejshExport {
 
         public Void visitBdmArticle(DigitalObjectElement elm, CejshContext p) throws VisitorException {
             CejshBuilder builder = p.getBuilder();
-            boolean standaloneArticle = getPath().size() == 1;
-            try {
-                if (standaloneArticle) { // start
-                    p.setIssue(findParent(elm, p, NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT));
-                    if (p.getIssue() != null) {
-                        p.setVolume(findParent(p.getIssue(), p, NdkPlugin.MODEL_PERIODICALVOLUME));
-                        if (builder.addVolume(elm, p.getVolume(), p)) {
-                            p.setTitle(findParent(p.getVolume(), p, NdkPlugin.MODEL_PERIODICAL));
-                            if (builder.addTitle(elm, p.getTitle(), p)) {
-                                Article article = builder.addArticle(elm, p);
-                                if (article != null) {
-                                    builder.writePackage(p.getIssue(), Collections.singletonList(article), p);
-                                }
-                            }
-                        }
-                    }
+            List<Article> articles = p.getArticles();
+            if (articles != null && p.acceptArticle(getParent(), elm)) {
+                Article article = builder.addArticle(elm, p);
+                if (article != null) {
+                    articles.add(article);
                 } else {
-                    List<Article> articles = p.getArticles();
-                    if (articles != null && p.acceptArticle(getParent(), elm)) {
-                        Article article = builder.addArticle(elm, p);
-                        if (article != null) {
-                            articles.add(article);
-                        } else {
-                            // broken package, discard articles and ignore others
-                            p.setArticles(null);
-                        }
-                    }
+                    // broken package, discard articles and ignore others
+                    p.setArticles(null);
                 }
-            } catch (DigitalObjectNotFoundException ex) {
-                p.getStatus().error(elm, "Parent not found!", null, ex);
-                // broken package, discard articles and ignore others
-                p.setArticles(null);
             }
             return null;
         }
-
-//        /**
-//         * Stops processing of next articles under a given parent.
-//         */
-//        static class BrokenArticleException extends VisitorException {
-//
-//        }
 
         @Override
         public Void visitNdkPeriodicalIssue(DigitalObjectElement elm, CejshContext p) throws VisitorException {
@@ -288,15 +256,9 @@ public class CejshExport {
                 Void result = null;
                 if (builder.addIssue(elm, elm, p)) {
                     result = super.visitNdkPeriodicalIssue(elm, p);
-                    List<Article> articles = p.getArticles();
-                    if (articles != null && !articles.isEmpty()) {
-                        builder.writePackage(elm, articles, p);
-                    } else {
-                    }
+                    builder.writePackage(elm, p.getArticles(), p);
                 }
                 return result;
-//            } catch (BrokenArticleException ex) {
-//                return null;
             } finally {
                 p.setArticles(parentArticles);
                 p.setIssue(null);
@@ -313,7 +275,7 @@ public class CejshExport {
             CejshBuilder builder = p.getBuilder();
             if (getPath().size() == 1) { // start point
                 try {
-                    p.setTitle(findParent(p.getVolume(), p, NdkPlugin.MODEL_PERIODICAL));
+                    p.setTitle(findParent(elm, p, NdkPlugin.MODEL_PERIODICAL));
                     if (!builder.addTitle(elm, p.getTitle(), p)) {
                         return null;
                     }
@@ -324,13 +286,17 @@ public class CejshExport {
             }
             try {
                 p.setVolume(elm);
+                p.setArticles(new ArrayList<Article>());
                 Void result = null;
                 if (builder.addVolume(elm, elm, p)) {
                     result = super.visitNdkPeriodicalVolume(elm, p);
+                    builder.writePackage(elm, p.getArticles(), p);
                 }
                 return result;
             } finally {
+                p.setArticles(null);
                 p.setVolume(null);
+                builder.setVolume(null);
             }
         }
 
@@ -349,6 +315,7 @@ public class CejshExport {
                 return result;
             } finally {
                 p.setTitle(null);
+                p.getBuilder().setTitle(null);
             }
         }
 

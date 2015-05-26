@@ -118,7 +118,7 @@ public class CejshBuilderTest {
     }
 
     @Test
-    public void testCreateCejshXml() throws Exception {
+    public void testCreateCejshXml_TitleVolumeIssue() throws Exception {
         CejshConfig conf = new CejshConfig();
         CejshBuilder cb = new CejshBuilder(conf);
         Document articleDoc = cb.getDocumentBuilder().parse(CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
@@ -154,6 +154,44 @@ public class CejshBuilderTest {
         assertNotNull(xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.ebfd7bf2-169d-476e-a230-0cc39f01764c']", cejshRootNode, XPathConstants.NODE));
         assertEquals("volume1", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.uuid-volume']/b:name", cejshRootNode, XPathConstants.STRING));
         assertEquals("issue1", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.uuid-issue']/b:name", cejshRootNode, XPathConstants.STRING));
+        assertEquals("1985", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.9358223b-b135-388f-a71e-24ac2c8422c7-1985']/b:name", cejshRootNode, XPathConstants.STRING));
+    }
+
+    @Test
+    public void testCreateCejshXml_TitleVolume() throws Exception {
+        CejshConfig conf = new CejshConfig();
+        CejshBuilder cb = new CejshBuilder(conf);
+        Document articleDoc = cb.getDocumentBuilder().parse(CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
+        // issn must match some cejsh_journals.xml/cejsh/journal[@issn=$issn]
+        final String pkgIssn = "0231-5955";
+        Title title = new Title();
+        title.setIssn(pkgIssn);
+        Volume volume = new Volume();
+        volume.setVolumeId("uuid-volume");
+        volume.setVolumeNumber("volume1");
+        volume.setYear("1985");
+        Article article = new Article(null, articleDoc.getDocumentElement(), null);
+        cb.setTitle(title);
+        cb.setVolume(volume);
+
+        Document articleCollectionDoc = cb.mergeElements(Collections.singletonList(article));
+        DOMSource cejshSource = new DOMSource(articleCollectionDoc);
+        DOMResult cejshResult = new DOMResult();
+//        dump(cejshSource);
+
+        TranformationErrorHandler xslError = cb.createCejshXml(cejshSource, cejshResult);
+        assertEquals(Collections.emptyList(), xslError.getErrors());
+        final Node cejshRootNode = cejshResult.getNode();
+//        dump(new DOMSource(cejshRootNode));
+
+        List<String> errors = cb.validateCejshXml(new DOMSource(cejshRootNode));
+        assertEquals(Collections.emptyList(), errors);
+
+        XPath xpath = ProarcXmlUtils.defaultXPathFactory().newXPath();
+        xpath.setNamespaceContext(new SimpleNamespaceContext().add("b", CejshBuilder.NS_BWMETA105));
+        assertNotNull(xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.ebfd7bf2-169d-476e-a230-0cc39f01764c']", cejshRootNode, XPathConstants.NODE));
+        assertEquals("volume1", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.uuid-volume']/b:name", cejshRootNode, XPathConstants.STRING));
+//        assertEquals("issue1", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.uuid-issue']/b:name", cejshRootNode, XPathConstants.STRING));
         assertEquals("1985", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.9358223b-b135-388f-a71e-24ac2c8422c7-1985']/b:name", cejshRootNode, XPathConstants.STRING));
     }
 
@@ -205,6 +243,23 @@ public class CejshBuilderTest {
         cb.getVolume().setYear(null);
         cb.getIssue().setIssueNumber("");
         assertEquals("2222-2222_NA_NA_NA", cb.createPackageName());
+    }
+
+    @Test
+    public void testCreatePackageName_TitleVolume() throws Exception {
+        CejshConfig cejshConfig = new CejshConfig();
+        CejshBuilder cb = new CejshBuilder(cejshConfig);
+        cb.setTitle(new Title());
+        cb.getTitle().setIssn("1111-1111");
+        cb.setVolume(new Volume());
+        cb.getVolume().setVolumeNumber("2");
+        cb.getVolume().setVolumeId("uuid-volume");
+        cb.getVolume().setYear("1980");
+        assertEquals("1111-1111_1980_2_NA", cb.createPackageName());
+
+        cb.getVolume().setVolumeNumber(null);
+        cb.getVolume().setYear(null);
+        assertEquals("1111-1111_NA_NA_NA", cb.createPackageName());
     }
 
     @Test

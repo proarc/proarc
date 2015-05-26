@@ -47,7 +47,7 @@ class CejshContext {
 
     /**
      * The list of cejsh articles from a given subtree. Or {@code null} when
-     * articles should be collected (e.g. error occurred, unknown subtree, ...).
+     * articles should not be collected (e.g. error occurred, unknown subtree, ...).
      */
     public List<Article> getArticles() {
         return articles;
