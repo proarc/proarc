@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
@@ -112,7 +113,7 @@ public final class Kramerius4Export {
         result.setInputPid(pids[0]);
         reslog.getExports().add(result);
 
-        File target = ExportUtils.createFolder(output, FoxmlUtils.pidAsUuid(pids[0]));
+        File target = ExportUtils.createFolder(output, "k4_" + FoxmlUtils.pidAsUuid(pids[0]));
         HashSet<String> selectedPids = new HashSet<String>(Arrays.asList(pids));
         toExport.addAll(selectedPids);
         try {
@@ -258,11 +259,17 @@ public final class Kramerius4Export {
 
     private void exportDatastreams(LocalObject local, RelationEditor editor) {
         DigitalObject dobj = local.getDigitalObject();
+        // XXX replace DS only for other than image/* MIMEs?
+        DatastreamType fullDs = FoxmlUtils.findDatastream(dobj, BinaryEditor.FULL_ID);
+        DatastreamType rawDs = fullDs != null ? null : FoxmlUtils.findDatastream(dobj, BinaryEditor.RAW_ID);
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
             DatastreamType datastream = it.next();
             if (options.getExcludeDatastreams().contains(datastream.getID())) {
-                it.remove();
-                continue;
+                // use RAW if FULL is not available
+                if (rawDs != datastream ) {
+                    it.remove();
+                    continue;
+                }
             }
             excludeVersions(datastream);
             renameDatastream(datastream);

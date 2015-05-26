@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export;
 
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import java.util.Arrays;
 import java.util.HashSet;
 import org.apache.commons.configuration.BaseConfiguration;
@@ -56,7 +57,8 @@ public class Kramerius4ExportOptionsTest {
         Configuration config = new BaseConfiguration();
         Kramerius4ExportOptions result = Kramerius4ExportOptions.from(config);
         assertTrue(result.getExcludeDatastreams().isEmpty());
-        assertTrue(result.getDsIdMap().isEmpty());
+        assertEquals(1, result.getDsIdMap().size());
+        assertEquals("IMG_FULL", result.getDsIdMap().get(BinaryEditor.RAW_ID));
         assertNull(result.getPolicy());
     }
 }

@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.export;
 
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,6 +47,8 @@ public final class Kramerius4ExportOptions {
 
         Configuration renames = config.subset(PROP_RENAME_PREFIX);
         HashMap<String, String> dsIdMap = new HashMap<String, String>();
+        // use RAW if FULL ds is not available
+        dsIdMap.put(BinaryEditor.RAW_ID, "IMG_FULL");
         for (Iterator<String> it = renames.getKeys(); it.hasNext();) {
             String dsId = it.next();
             String newDsId = renames.getString(dsId);
@@ -78,6 +82,7 @@ public final class Kramerius4ExportOptions {
             put(NdkPlugin.MODEL_PERIODICALVOLUME, "hasVolume");
             put(NdkPlugin.MODEL_PICTURE, "hasIntCompPart");
             put(NdkPlugin.MODEL_SHEETMUSIC, "hasUnit");
+            put(BornDigitalModsPlugin.MODEL_ARTICLE, "hasIntCompPart");
         }
     };
 
@@ -96,6 +101,7 @@ public final class Kramerius4ExportOptions {
             put(NdkPlugin.MODEL_PERIODICALVOLUME, "model:periodicalvolume");
             put(NdkPlugin.MODEL_PICTURE, "model:picture");
             put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
+            put(BornDigitalModsPlugin.MODEL_ARTICLE, "model:article");
         }
     };
 
