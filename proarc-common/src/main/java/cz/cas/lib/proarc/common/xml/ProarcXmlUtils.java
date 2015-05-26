@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.xml;
 
+import javax.xml.xpath.XPathFactory;
+
 /**
  * Helper to handle ProArc XMLs.
  *
@@ -27,4 +29,17 @@ public final class ProarcXmlUtils {
 
     public static final String NS_EXPORT = "http://proarc.lib.cas.cz/xml/common/export/v1/";
 
+    private static ThreadLocal<XPathFactory> XPATH_FACTORY = new ThreadLocal<XPathFactory>();
+
+    /**
+     * Gets a thread safe XPath factory.
+     * @return the factory
+     */
+    public static XPathFactory defaultXPathFactory() {
+        XPathFactory xPathFactory = XPATH_FACTORY.get();
+        if (xPathFactory == null) {
+            xPathFactory = XPathFactory.newInstance();
+        }
+        return xPathFactory;
+    }
 }
