@@ -205,6 +205,26 @@ public class CejshExport {
         }
 
         @Override
+        public Void visitChildren(DigitalObjectElement elm, CejshContext p) throws VisitorException {
+            Set<DigitalObjectElement> filter = p.getFilter(elm);
+            if (filter.isEmpty()) {
+                return super.visitChildren(elm, p);
+            } else {
+                try {
+                    List<DigitalObjectElement> children = getCrawler().getChildren(elm.getPid());
+                    for (DigitalObjectElement child : children) {
+                        if (filter.contains(child)) {
+                            child.accept(this, p);
+                        }
+                    }
+                    return null;
+                } catch (DigitalObjectException ex) {
+                    throw new VisitorException(ex);
+                }
+            }
+        }
+
+        @Override
         public Void visitNdkArticle(DigitalObjectElement elm, CejshContext p) throws VisitorException {
             // XXX ignore NDK article
 //            return null;

@@ -83,8 +83,17 @@ class CejshContext {
                 ? includeArticles : Collections.<DigitalObjectElement>emptySet();
     }
 
+    /**
+     * Gets articles that should be filtered from a given parent.
+     * @param parent
+     * @return either set of articles to include or empty set to include all.
+     */
+    public Set<DigitalObjectElement> getFilter(DigitalObjectElement parent) {
+        return this.articleParentFilter == parent ? includeArticleFilter : Collections.<DigitalObjectElement>emptySet();
+    }
+
     public boolean acceptArticle(DigitalObjectElement parent, DigitalObjectElement article) {
-        if (parent == null || parent != articleParentFilter) {
+        if (parent == null || parent != articleParentFilter || includeArticleFilter.isEmpty()) {
             return true;
         } else {
             return includeArticleFilter.contains(article);
