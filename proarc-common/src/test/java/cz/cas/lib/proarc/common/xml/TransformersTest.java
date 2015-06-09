@@ -243,6 +243,53 @@ public class TransformersTest {
     }
 
     /**
+     * Tests mapping of field 100,700 $7 to {@code name@authorityURI} and {@code name@valueURI}.
+     * See issue 305.
+     */
+    @Test
+    public void testMarcAsMods_AuthorityId_Issue305() throws Exception {
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_subject_65X_X9.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
+            assertNotNull(contents);
+            String xmlResult = new String(contents, "UTF-8");
+//            System.out.println(xmlResult);
+            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
+                put("m", ModsConstants.NS);
+            }}));
+            // test 100 1# $a Kocina, Jan, $d 1960- $4 aut $7 xx0113245
+            XMLAssert.assertXpathExists("/m:mods/m:name[@type='personal'"
+                        + " and @authorityURI='http://aut.nkp.cz'"
+                        + " and @valueURI='http://aut.nkp.cz/xx0113245']"
+                    + "/m:namePart[text()='Kocina, Jan']"
+                    + "/../m:namePart[@type='date' and text()='1960-']"
+                    + "/../m:role/m:roleTerm[text()='aut']", xmlResult);
+            // test 700 1# $a Honzík, Bohumil, $d 1972- $4 aut $7 jn20020422016
+            XMLAssert.assertXpathExists("/m:mods/m:name[@type='personal'"
+                        + " and @authorityURI='http://aut.nkp.cz'"
+                        + " and @valueURI='http://aut.nkp.cz/jn20020422016']"
+                    + "/m:namePart[text()='Honzík, Bohumil']"
+                    + "/../m:namePart[@type='date' and text()='1972-']"
+                    + "/../m:role/m:roleTerm[text()='aut']", xmlResult);
+            // test 700 1# $a Test Without AuthorityId $d 1972- $4 aut
+            XMLAssert.assertXpathExists("/m:mods/m:name[@type='personal'"
+                        + " and not(@authorityURI)"
+                        + " and not(@valueURI)]"
+                    + "/m:namePart[text()='Test Without AuthorityId']"
+                    + "/../m:namePart[@type='date' and text()='1972-']"
+                    + "/../m:role/m:roleTerm[text()='aut']", xmlResult);
+
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
+        } finally {
+            close(xmlIS);
+        }
+    }
+
+    /**
      * Tests mapping of field 510 $c to {@code part/detail/number}.
      * See issue 306.
      */

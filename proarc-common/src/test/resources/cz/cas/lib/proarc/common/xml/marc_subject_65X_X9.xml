@@ -162,6 +162,12 @@
         <subfield code="4">aut</subfield>
         <subfield code="7">jn20020422016</subfield>
     </datafield>
+    <!-- issue 305, test missing $7 -->
+    <datafield ind1="1" ind2=" " tag="700">
+        <subfield code="a">Test Without AuthorityId</subfield>
+        <subfield code="d">1972-</subfield>
+        <subfield code="4">aut</subfield>
+    </datafield>
     <datafield ind1=" " ind2=" " tag="910">
         <subfield code="a">ABA007</subfield>
     </datafield>

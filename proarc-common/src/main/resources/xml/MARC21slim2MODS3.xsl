@@ -8,6 +8,7 @@
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
     MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 306) 20150609
 
+Revision 1.97.proarc305 - ProArc patch of 100,700 $7 mapping to name@authorityURI, name@valueURI 2015/06/09
 Revision 1.97.proarc306 - ProArc patch of 510 $c mapping to relatedItem/part/detail/number 2015/06/09
 Revision 1.97.proarc185 - ProArc patch of 653 mapping to subject/topic 2014/06/26
 Revision 1.97.proarc182 - ProArc patch for 600, 610, 611, 630, 648, 650, 651 and indicator *9 to map $2 as subject@authority 2014/06/26
@@ -2702,7 +2703,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:for-each>
 
             <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
-                (Revision 1.97 2014/05/21, ProArc patch 306 2015/06/09)</recordOrigin>
+                (Revision 1.97 2014/05/21, ProArc patch 305 2015/06/09)</recordOrigin>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>
@@ -4318,6 +4319,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                         <xsl:text>1</xsl:text>
                     </xsl:attribute>
                 </xsl:if>
+                <xsl:call-template name="createNameAuthorityIdFrom100_700"/>
                 <xsl:call-template name="nameABCDQ"/>
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
@@ -4334,10 +4336,20 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                         <xsl:text>1</xsl:text>
                     </xsl:attribute>
                 </xsl:if>
+                <xsl:call-template name="createNameAuthorityIdFrom100_700"/>
                 <xsl:call-template name="nameABCDQ"/>
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
             </name>
+        </xsl:if>
+    </xsl:template>
+
+    <!--Revision 1.97.proarc305-->
+    <xsl:template name="createNameAuthorityIdFrom100_700">
+        <xsl:variable name="subfield7" select="marc:subfield[@code='7']"/>
+        <xsl:if test="$subfield7">
+            <xsl:attribute name="authorityURI">http://aut.nkp.cz</xsl:attribute>
+            <xsl:attribute name="valueURI">http://aut.nkp.cz/<xsl:value-of select="$subfield7" /></xsl:attribute>
         </xsl:if>
     </xsl:template>
 
@@ -4374,6 +4386,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
     <xsl:template name="createNameFrom700">
         <xsl:if test="@ind1='1'">
             <name type="personal">
+                <xsl:call-template name="createNameAuthorityIdFrom100_700"/>
                 <xsl:call-template name="xxx880"/>
                 <xsl:call-template name="nameABCDQ"/>
                 <xsl:call-template name="affiliation"/>
@@ -4382,6 +4395,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </xsl:if>
         <xsl:if test="@ind1='3'">
             <name type="family">
+                <xsl:call-template name="createNameAuthorityIdFrom100_700"/>
                 <xsl:call-template name="xxx880"/>
                 <xsl:call-template name="nameABCDQ"/>
                 <xsl:call-template name="affiliation"/>
