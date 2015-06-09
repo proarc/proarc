@@ -242,6 +242,42 @@ public class TransformersTest {
         }
     }
 
+    /**
+     * Tests mapping of field 510 $c to {@code part/detail/number}.
+     * See issue 306.
+     */
+    @Test
+    public void testMarcAsMods_RelatedItemPartDetailNumber_Issue306() throws Exception {
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_subject_65X_X9.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
+            assertNotNull(contents);
+            String xmlResult = new String(contents, "UTF-8");
+//            System.out.println(xmlResult);
+            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
+                put("m", ModsConstants.NS);
+            }}));
+            // test 510 4# $a Knihopis 1 $c K01416
+            XMLAssert.assertXpathExists("/m:mods/m:relatedItem[@type='isReferencedBy']"
+                    + "/m:titleInfo/m:title[text()='Knihopis 1']", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("K01416", "/m:mods/m:relatedItem[@type='isReferencedBy']"
+                    + "/m:titleInfo/m:title[text()='Knihopis 1']/../../m:part/m:detail[@type='part']/m:number", xmlResult);
+
+            // test 510 0# $a Knihopis 2
+            XMLAssert.assertXpathExists("/m:mods/m:relatedItem[@type='isReferencedBy']"
+                    + "/m:titleInfo/m:title[text()='Knihopis 2']", xmlResult);
+            XMLAssert.assertXpathNotExists("/m:mods/m:relatedItem[@type='isReferencedBy']"
+                    + "/m:titleInfo/m:title[text()='Knihopis 2']/../../m:part", xmlResult);
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
+        } finally {
+            close(xmlIS);
+        }
+    }
+
     @Test
     public void testOaiMarcAsMarc() throws Exception {
         InputStream goldenIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMarcXml.xml");

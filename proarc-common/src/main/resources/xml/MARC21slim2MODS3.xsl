@@ -6,8 +6,9 @@
     <xsl:strip-space elements="*"/>
 
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
-    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 185) 20140626
+    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 306) 20150609
 
+Revision 1.97.proarc306 - ProArc patch of 510 $c mapping to relatedItem/part/detail/number 2015/06/09
 Revision 1.97.proarc185 - ProArc patch of 653 mapping to subject/topic 2014/06/26
 Revision 1.97.proarc182 - ProArc patch for 600, 610, 611, 630, 648, 650, 651 and indicator *9 to map $2 as subject@authority 2014/06/26
 Revision 1.97 - Fixed 264 mapping tmee 20140521
@@ -2012,9 +2013,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     </originInfo>
                 </xsl:for-each>
 
-                <part>
-                    <detail type="part">
-                        <number>
+                <!--Revision 1.97.proarc306-->
+                <xsl:variable name="partNumber">
                     <xsl:call-template name="chopPunctuation">
                         <xsl:with-param name="chopString">
                             <xsl:call-template name="subfieldSelect">
@@ -2022,9 +2022,16 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                             </xsl:call-template>
                         </xsl:with-param>
                     </xsl:call-template>
-                        </number>
-                    </detail>
+                </xsl:variable>
+                <xsl:if test="normalize-space($partNumber)">
+                    <part>
+                        <detail type="part">
+                            <number>
+                                <xsl:value-of select="$partNumber" />
+                            </number>
+                        </detail>
                     </part>
+                </xsl:if>
             </relatedItem>
         </xsl:for-each>
 
@@ -2695,7 +2702,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:for-each>
 
             <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
-                (Revision 1.97 2014/05/21, ProArc patch 185 2014/06/26)</recordOrigin>
+                (Revision 1.97 2014/05/21, ProArc patch 306 2015/06/09)</recordOrigin>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>

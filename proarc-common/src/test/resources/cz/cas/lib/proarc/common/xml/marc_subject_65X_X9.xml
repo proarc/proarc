@@ -76,6 +76,17 @@
     <datafield ind1=" " ind2=" " tag="504">
         <subfield code="a">Obsahuje bibliografii, bibliografické odkazy a rejstřík</subfield>
     </datafield>
+
+    <!--issue 306, test 510/$c empty detail/number-->
+    <datafield ind1="4" ind2=" " tag="510">
+        <subfield code="a">Knihopis 1</subfield>
+        <subfield code="c">K01416</subfield>
+    </datafield>
+    <datafield ind1="0" ind2=" " tag="510">
+        <subfield code="a">Knihopis 2</subfield>
+    </datafield>
+    <!--issue 306, test 510/$c empty detail/number-->
+
     <datafield ind1=" " ind2=" " tag="546">
         <subfield code="a">Anglické a německé resumé</subfield>
     </datafield>
