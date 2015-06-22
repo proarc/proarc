@@ -36,6 +36,7 @@ import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.ExternalProcess;
+import cz.cas.lib.proarc.common.process.GenericExternalProcess;
 import cz.cas.lib.proarc.common.process.KakaduCompress;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.imgsupport.ImageMimeType;
@@ -305,21 +306,46 @@ public final class TiffImporter {
         BinaryEditor.dissemination(foxml, BinaryEditor.PREVIEW_ID, mediaType).write(f, 0, null);
 
         start = System.nanoTime();
-        Integer thumbMaxHeight = config.getThumbnailMaxHeight();
-        Integer thumbMaxWidth = config.getThumbnailMaxWidth();
-        config.checkThumbnailScaleParams();
-        targetName = String.format("%s.thumb.%s", originalFilename, imageType.getDefaultFileExtension());
-        f = writeImage(
-                scale(tiff, config.getThumbnailScaling(), thumbMaxWidth, thumbMaxHeight),
-                tempBatchFolder, targetName, imageType);
-        if (!InputUtils.isJpeg(f)) {
-            throw new IllegalStateException("Not a JPEG content: " + f);
-        }
+        f = createThumbnail(tempBatchFolder, originalFilename, original, tiff, config);
         long endThumb = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, BinaryEditor.THUMB_ID, mediaType).write(f, 0, null);
 
         LOG.fine(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
                 originalFilename, endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));
+    }
+
+    private File createThumbnail(File tempBatchFolder, String originalFilename, File original, BufferedImage tiff, ImportProfile config)
+            throws AppConfigurationException, IOException {
+        ImageMimeType imageType = ImageMimeType.JPEG;
+        String targetName = String.format("%s.thumb.%s", originalFilename, imageType.getDefaultFileExtension());
+        // XXX requieres import profiles
+//        Configuration processCfg = config.getThumbnailProcessor();
+//        if (processCfg.isEmpty()) {
+            return createJavaThumbnail(tempBatchFolder, targetName, imageType, tiff, config);
+//        } else {
+//            GenericExternalProcess process = new GenericExternalProcess(processCfg);
+//            process.addInputFile(original);
+//            process.addOutputFile(new File(tempBatchFolder, targetName));
+//            process.run();
+//            if (!process.isOk()) {
+//                throw new IOException(process.getOutputFile().toString() + "\n" + process.getFullOutput());
+//            }
+//            return process.getOutputFile();
+//        }
+    }
+
+    private File createJavaThumbnail(File tempBatchFolder, String targetName, ImageMimeType imageType, BufferedImage tiff, ImportProfile config)
+            throws AppConfigurationException, IOException {
+        Integer thumbMaxHeight = config.getThumbnailMaxHeight();
+        Integer thumbMaxWidth = config.getThumbnailMaxWidth();
+        config.checkThumbnailScaleParams();
+        File f = writeImage(
+                scale(tiff, config.getThumbnailScaling(), thumbMaxWidth, thumbMaxHeight),
+                tempBatchFolder, targetName, imageType);
+        if (!InputUtils.isJpeg(f)) {
+            throw new IllegalStateException("Not a JPEG content: " + f);
+        }
+        return f;
     }
 
     private static File writeImage(BufferedImage image, File folder, String filename, ImageMimeType imageType) throws IOException {

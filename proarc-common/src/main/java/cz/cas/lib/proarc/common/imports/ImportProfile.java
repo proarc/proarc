@@ -34,6 +34,7 @@ public final class ImportProfile {
     public static final String PREVIEW_MAX_HEIGHT = "import.image.preview.maxHeight";
     public static final String PREVIEW_MAX_WIDTH = "import.image.preview.maxWidth";
     public static final String PREVIEW_JAVA_SCALING = "import.image.preview.java.scalingMethod";
+    public static final String THUMBNAIL_PROCESSOR = "import.thumbnail.processor";
     public static final String THUMBNAIL_MAX_HEIGHT = "import.image.thumbnail.maxHeight";
     public static final String THUMBNAIL_MAX_WIDTH = "import.image.thumbnail.maxWidth";
     public static final String THUMBNAIL_JAVA_SCALING = "import.image.thumbnail.java.scalingMethod";
@@ -102,6 +103,16 @@ public final class ImportProfile {
 
     public List<Object> getRequiredDatastreamId() {
         return config.getList(REQUIRED_DATASTREAM);
+    }
+
+    public Configuration getThumbnailProcessor() {
+        String processor = config.getString(THUMBNAIL_PROCESSOR, "-");
+        String confId = PROCESSOR + "." + processor;
+        Configuration subset = config.subset(confId);
+        if (!subset.isEmpty() && !subset.containsKey("id")) {
+            subset.addProperty("id", confId);
+        }
+        return subset;
     }
 
     public Integer getThumbnailMaxHeight() {
