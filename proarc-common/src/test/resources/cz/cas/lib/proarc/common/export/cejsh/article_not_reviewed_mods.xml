@@ -2,7 +2,7 @@
 <mods:mods xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xlink="http://www.w3.org/1999/xlink" version="3.5">
   <mods:classification authority="udc">58</mods:classification>
   <mods:classification authority="udc">(050)</mods:classification>
-  <mods:genre type="peer-reviewed">article</mods:genre>
+  <mods:genre type="main article">article</mods:genre>
   <mods:genre authority="marcgt">periodical</mods:genre>
   <mods:genre authority="czenas">časopisy</mods:genre>
   <mods:identifier type="uuid">ebfd7bf2-169d-476e-a230-0cc39f01764c</mods:identifier>

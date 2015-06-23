@@ -289,6 +289,26 @@ public class CejshBuilderTest {
         assertTrue(new File(new File(resultPkg, CejshBuilder.IMPORTS_NEW_FILENAME), CejshBuilder.P0XML_FILENAME).exists());
     }
 
+    @Test
+    public void testAddArticleNotReviewed() throws Exception {
+        CejshConfig cejshConfig = new CejshConfig();
+        CejshBuilder cb = new CejshBuilder(cejshConfig);
+        CejshContext ctx = new CejshContext(temp.getRoot(), new CejshStatusHandler(), cejshConfig);
+        cb.setTitle(new Title());
+        cb.getTitle().setIssn("1111-1111");
+        cb.setVolume(new Volume());
+        cb.getVolume().setVolumeNumber("2");
+        cb.getVolume().setVolumeId("uuid-volume");
+        cb.getVolume().setYear("1980");
+        cb.setIssue(new Issue());
+        cb.getIssue().setIssn("0231-5955");
+        cb.getIssue().setIssueNumber("3");
+        cb.getIssue().setIssueId("uuid-issue");
+        Document articleDoc = cb.getDocumentBuilder().parse(CejshBuilderTest.class.getResource("article_not_reviewed_mods.xml").toExternalForm());
+        Article addArticle = cb.addArticle(articleDoc, DigitalObjectElement.NULL, ctx);
+        assertNull(addArticle);
+    }
+
     private void dump(Source src) throws TransformerException {
         dump(src, new StreamResult(System.out));
     }

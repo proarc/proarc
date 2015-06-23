@@ -226,9 +226,7 @@ public class CejshExport {
 
         @Override
         public Void visitNdkArticle(DigitalObjectElement elm, CejshContext p) throws VisitorException {
-            // XXX ignore NDK article
-//            return null;
-            return visitBdmArticle(elm, p);
+            return null;
         }
 
         public Void visitBdmArticle(DigitalObjectElement elm, CejshContext p) throws VisitorException {

@@ -63,6 +63,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -111,6 +112,7 @@ class CejshBuilder {
     private final XPathExpression issnPath;
     private final XPathExpression partNumberPath;
     private final XPathExpression dateIssuedPath;
+    private final XPathExpression reviewedArticlePath;
     private final GregorianCalendar gcalendar;
     private Title title;
     private Volume volume;
@@ -137,6 +139,7 @@ class CejshBuilder {
         issnPath = xpath.compile("m:mods/m:identifier[@type='issn' and not(@invalid)]");
         partNumberPath = xpath.compile("m:mods/m:titleInfo/m:partNumber");
         dateIssuedPath = xpath.compile("m:mods/m:originInfo/m:dateIssued");
+        reviewedArticlePath = xpath.compile("m:mods/m:genre[text()='article' and @type='peer-reviewed']");
     }
 
     public XPathExpression getDateIssuedPath() {
@@ -151,6 +154,10 @@ class CejshBuilder {
         return partNumberPath;
     }
 
+    public XPathExpression getReviewedArticlePath() {
+        return reviewedArticlePath;
+    }
+
     public Article addArticle(DigitalObjectElement article, CejshContext p) {
         Document articleDom = getModsDom(article, p);
         return addArticle(articleDom, article, p);
@@ -160,6 +167,15 @@ class CejshBuilder {
         if (articleDom == null) {
             p.getStatus().error(article, "Missing article MODS!", null, null);
             return null;
+        }
+        try {
+            Object isReviewed = getReviewedArticlePath().evaluate(articleDom, XPathConstants.BOOLEAN);
+            if (!(isReviewed instanceof Boolean) || !((Boolean) isReviewed)) {
+                LOG.log(logLevel, "Skipped not reviewed article: {0}", article.getPid());
+                return null;
+            }
+        } catch (XPathExpressionException ex) {
+            p.getStatus().error(article, "Unexpected error!", null, ex);
         }
         if (getTitle() == null) {
             p.getStatus().error(article, "Missing title!", null, null);

@@ -36,9 +36,9 @@ public final class BornDigitalArticleForm {
         f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
         List<Field> modsFields = f.getFields().get(0).getFields();
 
+        modsFields.add(genre());
         modsFields.add(titleInfo(f.getItemWidth()));
         modsFields.add(name());
-        modsFields.add(genre());
         modsFields.add(language());
         modsFields.add(physicalDescription());
         modsFields.add(abstracts());
@@ -188,9 +188,11 @@ public final class BornDigitalArticleForm {
 
     private Field genre() {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
-        return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(1)
+        return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(10)
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
                 .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
+                     // CEJSH, issue 234
+                    .addMapValue("peer-reviewed", "recenzovaný článek")
                     .addMapValue("news", "zpráva")
                     .addMapValue("table of content", "obsah")
                     .addMapValue("advertisement", "reklama")
