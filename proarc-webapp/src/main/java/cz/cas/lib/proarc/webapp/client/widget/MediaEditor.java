@@ -194,6 +194,16 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
                 i18n.DigitalObjectEditor_MediaEditor_UploaderAction_Title(),
                 "[SKIN]/MultiUploadItem/icon_add_files.png",
                 i18n.DigitalObjectEditor_MediaEditor_UploaderAction_Hint()) {
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                String modelId = digitalObject.getModelId();
+                return modelId != null && (modelId.startsWith("model:bdm")
+                        || "model:derFile".equals(modelId)
+                        || "model:desFile".equals(modelId)
+                        );
+            }
+
             @Override
             public void performAction(ActionEvent event) {
                 UploadFile uploadFile = new UploadFile(i18n);
