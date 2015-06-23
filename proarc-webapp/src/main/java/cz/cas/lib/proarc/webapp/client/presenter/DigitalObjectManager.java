@@ -38,6 +38,7 @@ import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
+import cz.cas.lib.proarc.webapp.client.action.CejshExportAction;
 import cz.cas.lib.proarc.webapp.client.action.DataStreamExportAction;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
 import cz.cas.lib.proarc.webapp.client.action.DesaExportAction;
@@ -71,6 +72,7 @@ public final class DigitalObjectManager {
     private FoxmlViewAction foxmlAction;
     private KrameriusExportAction krameriusExportAction;
     private NdkExportAction ndkExportAction;
+    private CejshExportAction cejshExportAction;
     private DesaExportAction desaDownloadAction;
     private DesaExportAction desaExportAction;
     private DataStreamExportAction fullDataStreamExportAction;
@@ -188,6 +190,7 @@ public final class DigitalObjectManager {
         foxmlAction = new FoxmlViewAction(i18n);
         krameriusExportAction = new KrameriusExportAction(i18n);
         ndkExportAction = new NdkExportAction(i18n);
+        cejshExportAction = new CejshExportAction(i18n);
         desaExportAction = DesaExportAction.export(i18n);
         desaDownloadAction = DesaExportAction.download(i18n);
         fullDataStreamExportAction = DataStreamExportAction.full(i18n);
@@ -244,6 +247,7 @@ public final class DigitalObjectManager {
         Menu menuExport = Actions.createMenu();
         menuExport.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(cejshExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(desaExportAction, actionSource, true));
         menuExport.addItem(Actions.asMenuItem(desaDownloadAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(fullDataStreamExportAction, actionSource, false));
@@ -280,6 +284,7 @@ public final class DigitalObjectManager {
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(cejshExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(desaExportAction, actionSource, true));
         menu.addItem(Actions.asMenuItem(desaDownloadAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(fullDataStreamExportAction, actionSource, false));

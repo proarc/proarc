@@ -26,6 +26,9 @@ public final class ExportResourceApi {
 
     public static final String PATH = "export";
     
+    public static final String CEJSH_PATH = "cejsh";
+    public static final String CEJSH_PID_PARAM = "pid";
+
     public static final String KRAMERIUS4_PATH = "kramerius4";
     public static final String KRAMERIUS4_PID_PARAM = "pid";
     public static final String KRAMERIUS4_HIERARCHY_PARAM = "hierarchy";

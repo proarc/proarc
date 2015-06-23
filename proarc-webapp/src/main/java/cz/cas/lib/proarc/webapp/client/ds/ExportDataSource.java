@@ -44,6 +44,10 @@ public final class ExportDataSource extends RestDataSource {
         setOperationBindings(RestConfig.createAddOperation());
     }
 
+    public static ExportDataSource getCejsh() {
+        return new ExportDataSource(RestConfig.URL_EXPORT_CEJSH);
+    }
+
     public static ExportDataSource getDataStream() {
         return new ExportDataSource(RestConfig.URL_EXPORT_DATASTREAM);
     }

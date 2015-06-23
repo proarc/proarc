@@ -24,10 +24,16 @@ import cz.cas.lib.proarc.common.export.DataStreamExport;
 import cz.cas.lib.proarc.common.export.DesaExport;
 import cz.cas.lib.proarc.common.export.DesaExport.Result;
 import cz.cas.lib.proarc.common.export.ExportException;
+import cz.cas.lib.proarc.common.export.ExportResultLog;
+import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.NdkExport;
+import cz.cas.lib.proarc.common.export.cejsh.CejshConfig;
+import cz.cas.lib.proarc.common.export.cejsh.CejshExport;
+import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
@@ -239,6 +245,43 @@ public class ExportResource {
     }
 
     /**
+     * Starts a new CEJSH export.
+     * @param pids PIDs to export
+     * @return the export result
+     */
+    @POST
+    @Path(ExportResourceApi.CEJSH_PATH)
+    public SmartGwtResponse<ExportResult> newCejshExport(
+            @FormParam(ExportResourceApi.CEJSH_PID_PARAM) List<String> pids
+            ) {
+
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.CEJSH_PID_PARAM);
+        }
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        CejshConfig cejshConfig = CejshConfig.from(appConfig.getAuthenticators());
+        CejshExport export = new CejshExport(
+                DigitalObjectManager.getDefault(), RemoteStorage.getInstance(), cejshConfig);
+        CejshStatusHandler status = export.export(exportFolder, pids);
+        File targetFolder = status.getTargetFolder();
+        ExportResult result = new ExportResult();
+        if (targetFolder != null) {
+            result.setTarget(user.getUserHomeUri().relativize(targetFolder.toURI()).toASCIIString());
+        }
+        if (!status.isOk()) {
+            result.setErrors(new ArrayList<ExportError>());
+            for (ExportResultLog.ExportResult logResult : status.getReslog().getExports()) {
+                for (ResultError error : logResult.getError()) {
+                    result.getErrors().add(new ExportError(
+                            error.getPid(), error.getMessage(), false, error.getDetails()));
+                }
+            }
+        }
+        return new SmartGwtResponse<ExportResult>(result);
+    }
+
+    /**
      * The export result.
      */
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -335,6 +378,16 @@ public class ExportResource {
 
         @XmlElement(name = ExportResourceApi.RESULT_ERROR_LOG)
         private String log;
+
+        public ExportError() {
+        }
+
+        public ExportError(String pid, String message, boolean warning, String log) {
+            this.pid = pid;
+            this.message = message;
+            this.warning = warning;
+            this.log = log;
+        }
 
         public ExportError(MetsExportExceptionElement me) {
             this.pid = me.getPid();
