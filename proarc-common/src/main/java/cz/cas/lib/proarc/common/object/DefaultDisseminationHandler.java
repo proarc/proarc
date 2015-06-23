@@ -59,6 +59,14 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         fobject = handler.getFedoraObject();
     }
 
+    public String getDsId() {
+        return dsId;
+    }
+
+    public DigitalObjectHandler getHandler() {
+        return handler;
+    }
+
     @Override
     public Response getDissemination(Request httpRequest) throws DigitalObjectException, DigitalObjectNotFoundException {
         String pid = fobject.getPid();
@@ -128,6 +136,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         RelationEditor relationEditor = handler.relations();
         relationEditor.setImportFile(filename);
         relationEditor.write(relationEditor.getLastModified(), message);
+        // generate preview, thumb, ocr if possible
     }
 
     public void setPreviewDissemination(File contents, String filename, MediaType mime, String message) throws DigitalObjectException {
@@ -198,14 +207,13 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         return newLocation;
     }
 
-    private void setDsDissemination(String dsId, File contents, String filename, MediaType mime, String message) throws DigitalObjectException {
+    public void setDsDissemination(String dsId, File contents, String filename, MediaType mime, String message) throws DigitalObjectException {
         BinaryEditor editor = BinaryEditor.dissemination(fobject, dsId, mime);
         DatastreamProfile profile = editor.getProfile();
         profile.setDsMIME(mime.toString());
         // fedora adds own extensions :-(
         profile.setDsLabel(filename);
         editor.setProfile(profile);
-        // XXX generate preview, thumb, ocr if possible
         editor.write(contents, editor.getLastModified(), message);
     }
 
