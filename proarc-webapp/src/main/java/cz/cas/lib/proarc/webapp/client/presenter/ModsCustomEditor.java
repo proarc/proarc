@@ -47,6 +47,7 @@ import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.dc.DcEditor;
+import cz.cas.lib.proarc.webapp.client.widget.mods.BornDigitalForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.MonographForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.MonographUnitForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
@@ -276,6 +277,9 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
         DynamicForm form = null;
         if (ModsConstants.NS.equals(metadataFormat)) {
             form = new NdkForms(i18n).getForm(model);
+            if (form == null) {
+                form = new BornDigitalForms(i18n).getForm(model);
+            }
             if (form == null) {
                 // obsolete K4 forms as a fallback
                 form = createModsForm(model.getEditorId());
