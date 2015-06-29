@@ -200,7 +200,7 @@ public final class NdkArticleForm {
                     .addMapValue("dedication", "věnování")
                     .addMapValue("bibliography", "bibliografie")
                     .addMapValue("editorsNote", "úvodník")
-                    .addMapValue("preface", "přemluva")
+                    .addMapValue("preface", "předmluva")
                     .addMapValue("main article", "hlavní článek")
                     .addMapValue("index", "rejstřík")
                     .addMapValue("unspecified", "nespecifikován")

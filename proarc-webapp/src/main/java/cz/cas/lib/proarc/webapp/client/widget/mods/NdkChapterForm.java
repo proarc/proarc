@@ -177,7 +177,7 @@ public final class NdkChapterForm {
                     .addMapValue("dedication", "věnování")
                     .addMapValue("bibliography", "bibliografie")
                     .addMapValue("editorsNote", "úvodník")
-                    .addMapValue("preface", "přemluva")
+                    .addMapValue("preface", "předmluva")
                     .addMapValue("chapter", "kapitola")
                     .addMapValue("article", "článek")
                     .addMapValue("index", "rejstřík")
