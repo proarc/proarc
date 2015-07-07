@@ -77,7 +77,8 @@ public class CejshExportAction extends AbstractAction {
 //                String metadataFormat = model.getMetadataFormat();
                 String modelId = dobj.getModelId();
                 // XXX hack; it needs support to query model/object for action availability
-                if (modelId != null && modelId.startsWith("model:bdmarticle")) {
+                if (modelId != null && (modelId.equals("model:bdmarticle")
+                         || modelId.startsWith("model:ndk"))) {
                     accept = true;
                     continue;
                 }
