@@ -101,8 +101,11 @@ public class DigitalObjectCrawler {
             if (parentItem == null) {
                 parentEntry = DigitalObjectElement.NULL;
             } else {
-                parentEntry = createEntry(parentItem);
-                cache.put(parentItem.getPid(), parentEntry);
+                parentEntry = cache.get(parentItem.getPid());
+                if (parentEntry == null) {
+                    parentEntry = createEntry(parentItem);
+                    cache.put(parentItem.getPid(), parentEntry);
+                }
             }
             parents.put(pid, parentEntry);
         }
