@@ -108,6 +108,7 @@ public class CejshExport {
             DigitalObjectElement dobj = entry.getKey();
             try {
                 status.startInput(dobj);
+                ctx.reset();
                 ctx.setFilter(dobj, entry.getValue());
                 hierarchy.visit(dobj, ctx);
             } catch (Throwable ex) {

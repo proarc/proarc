@@ -133,4 +133,15 @@ class CejshContext {
         this.title = title;
     }
 
+    public void reset() {
+        articleParentFilter = null;
+        articles = null;
+        builder.setIssue(null);
+        builder.setTitle(null);
+        builder.setVolume(null);
+        includeArticleFilter = null;
+        title = null;
+        volume = null;
+    }
+
 }
