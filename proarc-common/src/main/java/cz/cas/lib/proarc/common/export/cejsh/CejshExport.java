@@ -141,8 +141,7 @@ public class CejshExport {
         for (String pid : pids) {
             try {
                 DigitalObjectElement elm = crawler.getEntry(pid);
-                if (BornDigitalModsPlugin.MODEL_ARTICLE.equals(elm.getModelId())
-                        || NdkPlugin.MODEL_ARTICLE.equals(elm.getModelId())) {
+                if (BornDigitalModsPlugin.MODEL_ARTICLE.equals(elm.getModelId())) {
                     // add article as inlude filter
                     DigitalObjectElement parent = crawler.getParent(pid);
                     if (parent == DigitalObjectElement.NULL) {
@@ -235,11 +234,11 @@ public class CejshExport {
             List<Article> articles = p.getArticles();
             if (articles != null && p.acceptArticle(getParent(), elm)) {
                 Article article = builder.addArticle(elm, p);
-                if (article != null) {
-                    articles.add(article);
-                } else {
+                if (article == null) {
                     // broken package, discard articles and ignore others
                     p.setArticles(null);
+                } else if (article.isReviewed()) {
+                    articles.add(article);
                 }
             }
             return null;

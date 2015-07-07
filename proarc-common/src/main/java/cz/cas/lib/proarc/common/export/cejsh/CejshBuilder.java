@@ -172,7 +172,7 @@ class CejshBuilder {
             Object isReviewed = getReviewedArticlePath().evaluate(articleDom, XPathConstants.BOOLEAN);
             if (!(isReviewed instanceof Boolean) || !((Boolean) isReviewed)) {
                 LOG.log(logLevel, "Skipped not reviewed article: {0}", article.getPid());
-                return null;
+                return new Article().setReviewed(false);
             }
         } catch (XPathExpressionException ex) {
             p.getStatus().error(article, "Unexpected error!", null, ex);
@@ -189,7 +189,8 @@ class CejshBuilder {
             String articleIssn = getIssnPath().evaluate(articleDom);
             // XXX check mods vs modsCollection?
             Element modsElement = articleDom.getDocumentElement();
-            return new Article(article, modsElement, articleIssn);
+            return new Article(article, modsElement, articleIssn)
+                    .setReviewed(true);
         } catch (Exception ex) {
             p.getStatus().error(article, "Unexpected error!", null, ex);
         }
@@ -612,6 +613,7 @@ class CejshBuilder {
         private Element mods;
         private DigitalObjectElement article;
         private String issn;
+        private boolean reviewed;
 
         public Article() {
         }
@@ -640,6 +642,15 @@ class CejshBuilder {
 
         public void setIssn(String issn) {
             this.issn = issn;
+        }
+
+        public boolean isReviewed() {
+            return reviewed;
+        }
+
+        public Article setReviewed(boolean reviewed) {
+            this.reviewed = reviewed;
+            return this;
         }
 
         public static List<DigitalObjectElement> toDigitalObjects(List<Article> articles) {

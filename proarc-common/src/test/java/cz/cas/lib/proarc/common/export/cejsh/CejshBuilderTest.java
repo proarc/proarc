@@ -280,6 +280,7 @@ public class CejshBuilderTest {
         Document articleDoc = cb.getDocumentBuilder().parse(CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
         Article addArticle = cb.addArticle(articleDoc, DigitalObjectElement.NULL, ctx);
         assertNotNull(addArticle);
+        assertTrue(addArticle.isReviewed());
         File resultPkg = cb.writePackage(DigitalObjectElement.NULL, Arrays.asList(addArticle), ctx);
         assertTrue(ctx.getStatus().isOk());
         assertNotNull(resultPkg);
@@ -306,7 +307,8 @@ public class CejshBuilderTest {
         cb.getIssue().setIssueId("uuid-issue");
         Document articleDoc = cb.getDocumentBuilder().parse(CejshBuilderTest.class.getResource("article_not_reviewed_mods.xml").toExternalForm());
         Article addArticle = cb.addArticle(articleDoc, DigitalObjectElement.NULL, ctx);
-        assertNull(addArticle);
+        assertNotNull(addArticle);
+        assertFalse(addArticle.isReviewed());
     }
 
     private void dump(Source src) throws TransformerException {
