@@ -38,11 +38,11 @@ Author Miroslav Pavelka
 
     <xsl:param name="parentId">
         <xsl:choose>
-            <xsl:when test="$supplementId">
-                <xsl:value-of select="$supplementId"/>
-            </xsl:when>
             <xsl:when test="$issueId">
                 <xsl:value-of select="$issueId"/>
+            </xsl:when>
+            <xsl:when test="$supplementId">
+                <xsl:value-of select="$supplementId"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="$volumeId"/>
@@ -73,14 +73,20 @@ Author Miroslav Pavelka
         <xsl:if test="$issn='' or $year='' ">
             <xsl:message terminate="yes">ERROR: Missing hierarchy parameters: issn or year</xsl:message>
         </xsl:if>
-        <xsl:if test="($volumeId='' or $volume='') and ($issueId='' or $issue='')">
+        <xsl:if test="($volumeId='' and $issueId='')">
             <xsl:message terminate="yes">ERROR: Missing hierarchy parameters: volume or issue</xsl:message>
+        </xsl:if>
+        <xsl:if test="($volumeId!='' and $volume='') or ($issueId!='' and $issue='')">
+            <xsl:message terminate="yes">ERROR: Missing hierarchy parameters name: volume or issue</xsl:message>
         </xsl:if>
         <xsl:if test="not($journalId)">
             <xsl:message terminate="yes">ERROR: Missing journalId for ISSN: '<xsl:value-of select="$issn"/>'!</xsl:message>
         </xsl:if>
         <xsl:if test="($supplementType='volume_supplement' and not($volumeId)) or ($supplementType='issue_supplement' and not($issueId))">
             <xsl:message terminate="yes">ERROR: Missing hierarchy parameters!</xsl:message>
+        </xsl:if>
+        <xsl:if test="($supplementId and not($supplementTitle))">
+            <xsl:message terminate="yes">ERROR: Missing supplement title!</xsl:message>
         </xsl:if>
 
         <bwmeta>
@@ -121,7 +127,29 @@ Author Miroslav Pavelka
             <!-- issue or supplement-->
 
             <xsl:choose>
-                <xsl:when test="$supplementId">
+                <xsl:when test="$issueId">
+                    <xsl:element name="element">
+                        <xsl:attribute name="id">bwmeta1.element.<xsl:value-of select="$issueId"/></xsl:attribute>
+                        <xsl:element name="name">
+                            <xsl:value-of select="$issue"/>
+                        </xsl:element>
+                        <xsl:element name="hierarchy">
+                            <xsl:attribute name="class">bwmeta1.hierarchy-class.hierarchy_Journal</xsl:attribute>
+                            <xsl:attribute name="level">bwmeta1.level.hierarchy_Journal_Number</xsl:attribute>
+                            <xsl:element name="element-ref">
+                                <xsl:choose>
+                                    <xsl:when test="$volumeId">
+                                        <xsl:attribute name="ref">bwmeta1.element.<xsl:value-of select="$volumeId"/></xsl:attribute>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:attribute name="ref">bwmeta1.element.<xsl:value-of select="$yearId"/></xsl:attribute>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:element>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:when>
+                <xsl:when test="$supplementId and $supplementType='volume_supplement'">
                     <xsl:element name="element">
                         <xsl:attribute name="id">bwmeta1.element.<xsl:value-of select="$supplementId"/></xsl:attribute>
                         <xsl:element name="name">
@@ -145,47 +173,20 @@ Author Miroslav Pavelka
                             <xsl:attribute name="type">supplement</xsl:attribute>
                             <xsl:element name="element-ref">
                                 <xsl:attribute name="ref">
+                                    <xsl:text>bwmeta1.element.</xsl:text>
                                     <xsl:choose>
-                                        <xsl:when test="$supplementType = 'volume_supplement'">
-                                            <xsl:text>bwmeta1.element.</xsl:text>
+                                        <xsl:when test="$volumeId">
                                             <xsl:value-of select="$volumeId"/>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <xsl:text>bwmeta1.element.</xsl:text>
-                                            <xsl:value-of select="$issueId"/>
+                                            <xsl:value-of select="$yearId"/>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </xsl:attribute>
                             </xsl:element>
-
                         </xsl:element>
                     </xsl:element>
                 </xsl:when>
-                <xsl:otherwise>
-                    <xsl:if test="$issueId">
-                        <xsl:element name="element">
-                            <xsl:attribute name="id">bwmeta1.element.<xsl:value-of select="$issueId"/></xsl:attribute>
-                            <xsl:element name="name">
-                                <xsl:value-of select="$issue"/>
-                            </xsl:element>
-
-                            <xsl:element name="hierarchy">
-                                <xsl:attribute name="class">bwmeta1.hierarchy-class.hierarchy_Journal</xsl:attribute>
-                                <xsl:attribute name="level">bwmeta1.level.hierarchy_Journal_Number</xsl:attribute>
-                                <xsl:element name="element-ref">
-                                    <xsl:choose>
-                                        <xsl:when test="$volumeId">
-                                            <xsl:attribute name="ref">bwmeta1.element.<xsl:value-of select="$volumeId"/></xsl:attribute>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <xsl:attribute name="ref">bwmeta1.element.<xsl:value-of select="$yearId"/></xsl:attribute>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
-                                </xsl:element>
-                            </xsl:element>
-                        </xsl:element>
-                    </xsl:if>
-                </xsl:otherwise>
             </xsl:choose>
                 
             <xsl:apply-templates/>
@@ -195,7 +196,7 @@ Author Miroslav Pavelka
     </xsl:template>
 
     <xsl:template match="mods:mods">
-        <xsl:if test="$issueId = '' and volumeId = ''">
+        <xsl:if test="not($parentId)">
             <xsl:message terminate="yes">ERROR: Missing id of parent level</xsl:message>
         </xsl:if>
 
@@ -365,6 +366,18 @@ Author Miroslav Pavelka
                                 </xsl:element>
                             </xsl:if>
                         </xsl:element>
+
+                        <xsl:if test="$supplementId and $supplementType='issue_supplement'">
+                            <xsl:element name="relations">
+                                <xsl:attribute name="type">supplement</xsl:attribute>
+                                <xsl:element name="element-ref">
+                                    <xsl:attribute name="ref">
+                                        <xsl:text>bwmeta1.element.</xsl:text>
+                                        <xsl:value-of select="$supplementId"/>
+                                    </xsl:attribute>
+                                </xsl:element>
+                            </xsl:element>
+                        </xsl:if>
 
                         <xsl:element name="contents">
                             <xsl:attribute name="index">1</xsl:attribute>
