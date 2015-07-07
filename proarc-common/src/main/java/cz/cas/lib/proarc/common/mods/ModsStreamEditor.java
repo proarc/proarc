@@ -130,8 +130,13 @@ public final class ModsStreamEditor {
         return mods;
     }
 
-    private static ModsDefinition addPid(ModsDefinition mods, String pid) {
+    public static ModsDefinition addPid(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);
+        for (IdentifierDefinition id : mods.getIdentifier()) {
+            if ("uuid".equals(id.getType()) && uuid.equals(id.getValue())) {
+                return mods;
+            }
+        }
         IdentifierDefinition id = new IdentifierDefinition();
         id.setValue(uuid);
         id.setType("uuid");

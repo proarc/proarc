@@ -38,12 +38,16 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetadata;
+import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionSaveHandler;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadHandler;
 import cz.cas.lib.proarc.webapp.client.event.HasEditorLoadHandlers;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.BatchDatastreamEditor;
+import cz.cas.lib.proarc.webapp.client.widget.CatalogBrowser;
 import cz.cas.lib.proarc.webapp.client.widget.DatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import java.util.logging.Logger;
@@ -64,6 +68,7 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
     private final ModsFullEditor modsFullEditor;
     private final ModsXmlEditor modsSourceEditor;
     private final ModsBatchEditor modsBatchEditor;
+    private final CatalogBrowser catalogBrowser;
     private DatastreamEditor activeEditor;
     private final ClientMessages i18n;
     private DigitalObject[] digitalObjects;
@@ -84,6 +89,8 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         modsCustomEditor = new ModsCustomEditor(i18n);
         modsSourceEditor = new ModsXmlEditor();
         modsBatchEditor = new ModsBatchEditor(i18n);
+        catalogBrowser = new CatalogBrowser(i18n);
+        catalogBrowser.setCompactUi(true);
         actionSource = new ActionSource(this);
         attachDatastreamEditor(modsCustomEditor);
         attachDatastreamEditor(modsFullEditor);
@@ -151,6 +158,8 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
             saveFullData(callback);
         } else if (activeEditor == modsBatchEditor) {
             saveBatchData(callback);
+        } else if (activeEditor == catalogBrowser) {
+            saveCatalogData(callback);
         } else {
             callback.execute(Boolean.TRUE);
         }
@@ -254,6 +263,12 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
                         Page.getAppDir() + "images/oxygen/16/application_xml.png",
                         i18n.ModsMultiEditor_TabSource_Hint()
                 ), actionSource, false));
+        menuMods.addItem(Actions.asMenuItem(
+                new SwitchAction(catalogBrowser,
+                        i18n.ModsMultiEditor_TabCatalog_Title(),
+                        "[SKIN]/DatabaseBrowser/data.png",
+                        i18n.ModsMultiEditor_TabCatalog_Hint()
+                ), actionSource, false));
         btnMods.setMenu(menuMods);
         return btnMods;
     }
@@ -281,12 +296,11 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
     }
 
     private void loadTabData(DatastreamEditor tab, DigitalObject digitalObject) {
-        if (tab == modsFullEditor) {
-            loadFull(digitalObject);
-        } else if (tab == modsSourceEditor) {
-            loadSource(digitalObject);
-        } else {
+        if (tab == modsCustomEditor) {
             loadCustom(digitalObject);
+        } else {
+            setActiveEditor(tab);
+            tab.edit(digitalObject);
         }
     }
 
@@ -298,18 +312,8 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         } else {
             // unknown model, use full form
             setEnabledCustom(false);
-            loadFull(digitalObject);
+            loadTabData(modsFullEditor, digitalObject);
         }
-    }
-
-    private void loadFull(DigitalObject digitalObject) {
-        setActiveEditor(modsFullEditor);
-        modsFullEditor.edit(digitalObject);
-    }
-
-    private void loadSource(DigitalObject digitalObject) {
-        setActiveEditor(modsSourceEditor);
-        modsSourceEditor.edit(digitalObject);
     }
 
     private void loadBatch() {
@@ -354,6 +358,25 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
 
     private void saveBatchData(BooleanCallback callback) {
         modsBatchEditor.save(callback);
+    }
+
+    private void saveCatalogData(final BooleanCallback callback) {
+        String mods = catalogBrowser.getMods();
+        ModsCustomDataSource.getInstance().saveXmlDescription(digitalObjects[0], mods, new DescriptionSaveHandler() {
+
+            @Override
+            protected void onSave(DescriptionMetadata dm) {
+                super.onSave(dm);
+                callback.execute(Boolean.TRUE);
+            }
+
+            @Override
+            protected void onError() {
+                super.onError();
+                callback.execute(Boolean.FALSE);
+            }
+
+        });
     }
 
     private final class SwitchAction extends AbstractAction {

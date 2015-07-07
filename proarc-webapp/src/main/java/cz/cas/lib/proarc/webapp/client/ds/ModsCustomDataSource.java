@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.google.gwt.core.client.Callback;
+import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -24,15 +25,24 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RestDataSource;
+import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
+import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.SC;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ErrorHandler;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.ds.mods.IdentifierDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 /**
@@ -55,7 +65,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class ModsCustomDataSource extends DataSource implements ModsConstants {
+public final class ModsCustomDataSource extends RestDataSource implements ModsConstants {
 
     private static final Logger LOG = Logger.getLogger(ModsCustomDataSource.class.getName());
 
@@ -73,7 +83,6 @@ public final class ModsCustomDataSource extends DataSource implements ModsConsta
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_DIGOBJECT_MODS_CUSTOM);
-        setRecordXPath('/' + DigitalObjectResourceApi.CUSTOMMODS_ELEMENT);
 
         DataSourceField fieldPid = new DataSourceField(FIELD_PID, FieldType.TEXT);
         fieldPid.setPrimaryKey(true);
@@ -153,31 +162,29 @@ public final class ModsCustomDataSource extends DataSource implements ModsConsta
         }, request);
     }
 
-    public void saveDescription(DescriptionMetadata update, final Callback<DescriptionMetadata, String> cb, boolean showPrompt) {
-        DSRequest request = new DSRequest();
-        request.setShowPrompt(showPrompt);
-        Record customRecord = update.getWrapper();
-        ModsCustomDataSource.getInstance().updateData(customRecord, new DSCallback() {
+    public void saveXmlDescription(DigitalObject dobj, String xml, DescriptionSaveHandler callback) {
+        Record update = new Record();
+        dobj.toCriteria();
+        update.setAttribute(FIELD_PID, dobj.getPid());
+        if (dobj.getBatchId() != null) {
+            update.setAttribute(FIELD_BATCHID, dobj.getBatchId());
+        }
+        if (xml == null || xml.isEmpty()) {
+            return ;
+        }
+        update.setAttribute(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA, xml);
+        // timestamp -1 stands for rewrite without concurrency check
+        update.setAttribute(FIELD_TIMESTAMP, -1);
+        update.setAttribute(FIELD_EDITOR, dobj.getModel().getEditorId());
+        callback.setUpdateRecord(update);
+        updateData(update, callback, callback.getUpdateRequest());
+    }
 
-            @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                String errorMsg;
-                if (RestConfig.isStatusOk(response)) {
-                    Record[] data = response.getData();
-                    if (data != null && data.length == 1) {
-                        Record customRecord = data[0];
-                        cb.onSuccess(new DescriptionMetadata(customRecord));
-                    } else {
-//                        errorMsg = "No record found! " + dobj;
-                        cb.onSuccess(null);
-                    }
-                    return ;
-                } else {
-                    errorMsg = "Update failed!";
-                }
-                cb.onFailure(errorMsg);
-            }
-        }, request);
+    public void saveDescription(DescriptionMetadata update, DescriptionSaveHandler callback, Boolean showPrompt) {
+        Record customRecord = update.getWrapper();
+        callback.getUpdateRequest().setShowPrompt(showPrompt);
+        callback.setUpdateRecord(customRecord);
+        updateData(customRecord, callback, callback.getUpdateRequest());
     }
 
     public static class DescriptionMetadata {
@@ -202,6 +209,125 @@ public final class ModsCustomDataSource extends DataSource implements ModsConsta
         public Record getDescription() {
             Record customModsRecord = wrapper.getAttributeAsRecord(ModsCustomDataSource.FIELD_DATA);
             return customModsRecord;
+        }
+
+        public void setDescription(Record r) {
+            wrapper.setAttribute(ModsCustomDataSource.FIELD_DATA, r);
+        }
+    }
+
+    /**
+     * A helper class to handle save responses.
+     */
+    public static class DescriptionSaveHandler implements DSCallback {
+
+        private DSResponse response;
+        /** The template of the request. */
+        private DSRequest updateRequest;
+        /** The used request by query. */
+        private DSRequest sentRequest;
+        /** Data to save. */
+        private Record updateRecord;
+        private final ClientMessages i18n;
+
+        public DescriptionSaveHandler() {
+            this(GWT.<ClientMessages>create(ClientMessages.class));
+        }
+
+        public DescriptionSaveHandler(ClientMessages i18n) {
+            this.i18n = i18n;
+        }
+
+        public DSResponse getResponse() {
+            return response;
+        }
+
+        public Record getUpdateRecord() {
+            return updateRecord;
+        }
+
+        public DSRequest getUpdateRequest() {
+            if (updateRequest == null) {
+                updateRequest = new DSRequest();
+                updateRequest.setWillHandleError(true);
+            }
+            return updateRequest;
+        }
+
+        public void setUpdateRecord(Record updateRecord) {
+            this.updateRecord = updateRecord;
+        }
+
+        @Override
+        public void execute(DSResponse response, Object rawData, DSRequest request) {
+            this.response = response;
+            this.sentRequest = request;
+            if (RestConfig.isStatusOk(response)) {
+                Record[] data = response.getData();
+                if (data != null && data.length == 1) {
+                    Record customRecord = data[0];
+                    onSave(new DescriptionMetadata(customRecord));
+                }
+            } else if (response.getStatus() == RPCResponse.STATUS_VALIDATION_ERROR) {
+                onValidationError();
+            } else if (response.getHttpResponseCode() == 409) { // concurrency conflict
+                onConcurrencyError();
+            } else {
+                onError();
+            }
+        }
+
+        protected void onSave(DescriptionMetadata dm) {
+        }
+
+        protected void onValidationError() {
+            String msg = i18n.SaveAction_IgnoreRemoteInvalid_Msg(getValidationMessage());
+            SC.ask(i18n.SaveAction_Title(), msg, new BooleanCallback() {
+
+                @Override
+                public void execute(Boolean value) {
+                    // save again
+                    if (value != null && value) {
+                        updateRecord.setAttribute(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION, true);
+                        getInstance().updateData(updateRecord, DescriptionSaveHandler.this, updateRequest);
+                    }
+                }
+            });
+        }
+
+        protected void onConcurrencyError() {
+        }
+
+        protected void onError() {
+            ErrorHandler.warn(response, sentRequest);
+        }
+
+        /**
+         * Gets a {@code <li>} list of validation messages.
+         */
+        public String getValidationMessage() {
+            Map<?,?> errors = response.getErrors();
+            StringBuilder sb = new StringBuilder(1024);
+            for (Entry<?,?> entry : errors.entrySet()) {
+                Object errMsgs = entry.getValue();
+                if (errMsgs instanceof List) {
+                    for (Object errMsg : (List) errMsgs) {
+                    sb.append("<li>").append(errMsg).append("</li>");
+                    }
+                } else {
+                    sb.append("<li>").append(errMsgs).append("</li>");
+                }
+            }
+            if (sb.length() == 0) {
+                sb.append(response.getDataAsString());
+            } else {
+                sb.insert(0, "<ul>");
+                sb.append("</ul>");
+            }
+            if (sb.length() == 0) {
+                sb.append(response.getHttpResponseText());
+            }
+            return sb.toString();
         }
 
     }

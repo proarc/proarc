@@ -34,7 +34,6 @@ import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import cz.cas.lib.proarc.webapp.client.ErrorHandler;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction.Savable;
@@ -43,6 +42,8 @@ import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetadata;
+import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionSaveHandler;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
@@ -73,7 +74,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
     private final ClientMessages i18n;
     private final HashMap<String, DynamicForm> editorCache;
     private DynamicForm activeEditor;
-    private Record editedCustomRecord;
+    private DescriptionMetadata metadata;
     private final VLayout widget;
     private Boolean showFetchPrompt;
     private DigitalObject digitalObject;
@@ -101,7 +102,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
      */
     public void edit(DigitalObject digitalObject, BooleanCallback loadCallback) {
         this.digitalObject = digitalObject;
-        editedCustomRecord = null;
+        metadata = null;
         activeEditor = getCustomForm(digitalObject.getModel());
         if (activeEditor != null) {
             ClientUtils.setMembers(widget, activeEditor);
@@ -162,7 +163,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
      * @see SaveAction#saveTask
      */
     public void save(final BooleanCallback callback, boolean ask, SaveValidation strategy) {
-        if (editedCustomRecord == null) {
+        if (metadata == null) {
             callback.execute(Boolean.TRUE);
             return ;
         }
@@ -188,45 +189,50 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
             ClientUtils.fine(LOG, "saveCustomData: %s", ClientUtils.dump(r.getJsObj()));
         }
         r = ClientUtils.normalizeData(r);
-        final Record toSave = editedCustomRecord;
-        toSave.setAttribute(ModsCustomDataSource.FIELD_DATA, r);
+        metadata.setDescription(r);
         if (LOG.isLoggable(Level.FINE)) {
-            ClientUtils.fine(LOG, "saveCustomRecord: %s", ClientUtils.dump(toSave.getJsObj()));
+            ClientUtils.fine(LOG, "saveCustomRecord: %s", ClientUtils.dump(metadata.getWrapper().getJsObj()));
         }
-        DSRequest dsRequest = new DSRequest();
-        dsRequest.setWillHandleError(true);
-        ModsCustomDataSource.getInstance().updateData(toSave, new DSCallback() {
+        DescriptionSaveHandler dsh = new DescriptionSaveHandler() {
 
             @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                boolean status = RestConfig.isStatusOk(response);
-                if (status) {
-                    editedCustomRecord = response.getData()[0];
-                    Record customModsRecord = editedCustomRecord.getAttributeAsRecord(ModsCustomDataSource.FIELD_DATA);
+            protected void onSave(DescriptionMetadata dm) {
+                super.onSave(dm);
+                if (dm != null) {
+                    metadata = dm;
+                    Record customModsRecord = dm.getDescription();
                     if (customModsRecord != null) {
                         // refresh editor with server values
                         activeEditor.editRecord(customModsRecord);
                     }
-                } else if (response.getHttpResponseCode() == 409) { // concurrency conflict
-                    SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), new BooleanCallback() {
-
-                        @Override
-                        public void execute(Boolean value) {
-                            callback.execute(false);
-                            activeEditor.focus();
-                            if (value != null && value) {
-                                refresh();
-                            }
-                        }
-                    });
-                    return ;
-                } else {
-                    ErrorHandler.warn(response, request);
                 }
-                callback.execute(status);
+                callback.execute(true);
                 activeEditor.focus();
             }
-        }, dsRequest);
+
+            @Override
+            protected void onConcurrencyError() {
+                SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), new BooleanCallback() {
+
+                    @Override
+                    public void execute(Boolean value) {
+                        callback.execute(false);
+                        activeEditor.focus();
+                        if (value != null && value) {
+                            refresh();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            protected void onError() {
+                super.onError();
+                callback.execute(false);
+            }
+
+        };
+        ModsCustomDataSource.getInstance().saveDescription(metadata, dsh, true);
     }
 
     @Override
@@ -321,7 +327,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
     private void loadCustom(final DynamicForm editor, String pid, String batchId,
             MetaModelRecord model, final BooleanCallback loadCallback) {
 
-        editedCustomRecord = null;
+        metadata = null;
         Criteria pidCriteria = new Criteria(ModsCustomDataSource.FIELD_PID, pid);
         Criteria criteria = new Criteria(MetaModelDataSource.FIELD_EDITOR, model.getEditorId());
         criteria.addCriteria(pidCriteria);
@@ -350,9 +356,10 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
             }
             if (data != null && data.length == 1) {
                 Record customRecord = data[0];
-                Record customModsRecord = customRecord.getAttributeAsRecord(ModsCustomDataSource.FIELD_DATA);
+                DescriptionMetadata dm = new DescriptionMetadata(customRecord);
+                Record customModsRecord = dm.getDescription();
                 if (customModsRecord != null) {
-                    editedCustomRecord = customRecord;
+                    metadata = dm;
                     editor.editRecord(customModsRecord);
                     editor.clearErrors(true);
                     loadCallback.execute(Boolean.TRUE);

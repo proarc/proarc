@@ -104,7 +104,9 @@ public final class DigitalObjectResourceApi {
     // resource /object/mods/custom
     public static final String MODS_CUSTOM_PATH = "custom";
     public static final String MODS_CUSTOM_EDITORID = "editorId";
-    public static final String MODS_CUSTOM_CUSTOMJSONDATA = "customJsonData";
+    public static final String MODS_CUSTOM_CUSTOMJSONDATA = "jsonData";
+    public static final String MODS_CUSTOM_CUSTOMXMLDATA = "xmlData";
+    public static final String MODS_CUSTOM_IGNOREVALIDATION = "ignoreValidation";
 
     // CustomMods
     public static final String CUSTOMMODS_ELEMENT = "mods";

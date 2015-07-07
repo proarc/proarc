@@ -32,6 +32,8 @@ import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
@@ -67,6 +69,8 @@ import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
+import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.io.File;
@@ -82,6 +86,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -803,7 +808,7 @@ public class DigitalObjectResource {
     @GET
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public DescriptionMetadata<Object> getDescriptionMetadata(
+    public SmartGwtResponse<DescriptionMetadata<Object>> getDescriptionMetadata(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
@@ -816,38 +821,73 @@ public class DigitalObjectResource {
         DigitalObjectHandler doHandler = findHandler(pid, batchId);
         DescriptionMetadata<Object> metadata = doHandler.metadata().getMetadataAsJsonObject(editorId);
         metadata.setBatchId(batchId);
-        return metadata;
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
     }
 
     @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public DescriptionMetadata<?> updateDescriptionMetadata(
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadata(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
-            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String customJsonData
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA) String xmlData,
+            @DefaultValue("false")
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation
             ) throws IOException, DigitalObjectException {
 
-        LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, json: %s", pid, editorId, timestamp, customJsonData));
+        LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, ignoreValidation: %s, json: %s, xml: %s",
+                pid, editorId, timestamp, ignoreValidation, jsonData, xmlData));
         if (pid == null || pid.isEmpty()) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
         if (timestamp == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
         }
+        final boolean isJsonData = xmlData == null;
+        String data = isJsonData ? jsonData : xmlData;
         DigitalObjectHandler doHandler = findHandler(pid, batchId, false);
         MetadataHandler<?> mHandler = doHandler.metadata();
-        DescriptionMetadata<String> metadataAsJson = new DescriptionMetadata<String>();
-        metadataAsJson.setPid(pid);
-        metadataAsJson.setBatchId(batchId);
-        metadataAsJson.setEditor(editorId);
-        metadataAsJson.setData(customJsonData);
-        metadataAsJson.setTimestamp(timestamp);
-        mHandler.setMetadataAsJson(metadataAsJson, session.asFedoraLog());
+        DescriptionMetadata<String> dMetadata = new DescriptionMetadata<String>();
+        dMetadata.setPid(pid);
+        dMetadata.setBatchId(batchId);
+        dMetadata.setEditor(editorId);
+        dMetadata.setData(data);
+        dMetadata.setTimestamp(timestamp);
+        dMetadata.setIgnoreValidation(ignoreValidation);
+        try {
+            if (isJsonData) {
+                mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog());
+            } else {
+                mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog());
+            }
+        } catch (DigitalObjectValidationException ex) {
+            return toError(ex);
+        }
         doHandler.commit();
-        return mHandler.getMetadataAsJsonObject(editorId);
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+    }
+
+    <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {
+        if (ex.getValidations().isEmpty()) {
+            return SmartGwtResponse.asError(ex);
+        }
+        ErrorBuilder<T> error = SmartGwtResponse.asError();
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        for (ValidationResult validation : ex.getValidations()) {
+            String msg;
+            try {
+                msg = msgs.getFormattedMessage(validation.getBundleKey(), validation.getValues());
+            } catch (MissingResourceException mrex) {
+                LOG.log(Level.WARNING, validation.getBundleKey(), mrex);
+                msg = validation.getBundleKey();
+            }
+            error.error(validation.getName(), msg);
+        }
+        return error.build();
     }
 
     @GET

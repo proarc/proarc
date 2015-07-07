@@ -30,6 +30,7 @@ public class DescriptionMetadata<T> {
     private long timestamp;
     private String editor;
     private T data;
+    private boolean ignoreValidation = false;
 
     public DescriptionMetadata() {
     }
@@ -56,6 +57,14 @@ public class DescriptionMetadata<T> {
 
     public void setEditor(String editor) {
         this.editor = editor;
+    }
+
+    public boolean isIgnoreValidation() {
+        return ignoreValidation;
+    }
+
+    public void setIgnoreValidation(boolean ignoreValidation) {
+        this.ignoreValidation = ignoreValidation;
     }
 
     public String getPid() {

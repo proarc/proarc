@@ -19,10 +19,12 @@ package cz.cas.lib.proarc.common.object.ndk;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
@@ -44,7 +46,11 @@ import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.StringReader;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
@@ -57,6 +63,16 @@ import org.codehaus.jackson.map.ObjectMapper;
  */
 public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
 
+    public static final String ERR_NDK_CHANGE_MODS_WITH_URNNBN = "Err_Ndk_Change_Mods_With_UrnNbn";
+    public static final String ERR_NDK_CHANGE_MODS_WITH_MEMBERS = "Err_Ndk_Change_Mods_With_Members";
+    public static final String ERR_NDK_REMOVE_URNNBN = "Err_Ndk_Remove_UrnNbn";
+
+    /**
+     * The set of model IDs that should be checked for connected members.
+     */
+    private static final Set<String> HAS_MEMBER_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+            NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME
+    )));
     private static final Logger LOG = Logger.getLogger(NdkMetadataHandler.class.getName());
     private final DigitalObjectHandler handler;
     private final ModsStreamEditor editor;
@@ -84,7 +100,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
         if (mods == null) {
             mods = createDefault(modelId);
         }
-        write(modelId, mods, data.getTimestamp(), message);
+        write(modelId, mods, data, message);
     }
 
     private ModsDefinition createDefault(String modelId) throws DigitalObjectException {
@@ -172,7 +188,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
                 throw new DigitalObjectException(fobject.getPid(), null, ModsStreamEditor.DATASTREAM_ID, null, ex);
             }
         }
-        write(modelId, mods, jsonData.getTimestamp(), message);
+        write(modelId, mods, jsonData, message);
     }
 
     void fillNdkConstants_(ModsDefinition mods, String modelId) {
@@ -190,7 +206,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
         } else {
             mods = createDefault(modelId);
         }
-        write(modelId, mods, xmlData.getTimestamp(), message);
+        write(modelId, mods, xmlData, message);
     }
 
     @Override
@@ -224,7 +240,54 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
         return dm;
     }
 
-    private void write(String modelId, ModsDefinition mods, long timestamp, String message) throws DigitalObjectException {
+    private void checkBeforeWrite(ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations) throws DigitalObjectException {
+        ModsStreamEditor.addPid(mods, fobject.getPid());
+        if (ignoreValidations) {
+            return ;
+        }
+        List<IdentifierDefinition> oldIds = oldMods != null ? oldMods.getIdentifier()
+                : Collections.<IdentifierDefinition>emptyList();
+        DigitalObjectValidationException ex = new DigitalObjectValidationException(fobject.getPid(), null,
+                DESCRIPTION_DATASTREAM_ID, "MODS validation", null);
+        RelationEditor relations = handler.relations();
+        List<String> members = relations.getMembers();
+        if (HAS_MEMBER_VALIDATION_MODELS.contains(relations.getModel()) && !members.isEmpty()) {
+            ex.addValidation("mods", ERR_NDK_CHANGE_MODS_WITH_MEMBERS);
+        }
+        // check URN:NBN
+        for (IdentifierDefinition oldId : oldIds) {
+            if ("urnnbn".equals(oldId.getType()) && oldId.getValue() != null && !oldId.getValue().trim().isEmpty()) {
+                boolean missingId = true;
+                for (IdentifierDefinition id : mods.getIdentifier()) {
+                    if (oldId.getType().equals(id.getType()) && oldId.getValue().equals(id.getValue())) {
+                        missingId = false;
+                        break;
+                    }
+                }
+                if (missingId) {
+                    ex.addValidation("mods.identifier", ERR_NDK_REMOVE_URNNBN, oldId.getValue());
+                } else {
+                    ex.addValidation("mods.identifier", ERR_NDK_CHANGE_MODS_WITH_URNNBN, oldId.getValue());
+                }
+            }
+        }
+        if (!ex.getValidations().isEmpty()) {
+            throw ex;
+        }
+    }
+
+    private void write(String modelId, ModsDefinition mods,
+            DescriptionMetadata<?> options, String message) throws DigitalObjectException {
+        ModsDefinition oldMods = null;
+        long timestamp = options.getTimestamp();
+        if (timestamp < 0) {
+            // rewrite with brand new MODS
+            timestamp = editor.getLastModified();
+        }
+        if (timestamp > 0) {
+            oldMods = editor.read();
+        }
+        checkBeforeWrite(mods, oldMods, options.isIgnoreValidation());
         NdkMapper mapper = mapperFactory.get(modelId);
         Context context = new Context(handler);
         mapper.createMods(mods, context);

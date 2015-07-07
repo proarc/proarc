@@ -31,6 +31,7 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetadata;
+import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionSaveHandler;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.BatchDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.CopyPageMetadataWidget;
@@ -216,18 +217,32 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
         void saveMods(DescriptionMetadata description) {
             ModsCustomDataSource.getInstance().saveDescription(
                     description,
-                    new Callback<DescriptionMetadata, String>() {
+                    new DescriptionSaveHandler() {
 
-                @Override
-                public void onFailure(String reason) {
-                    stop(reason);
-                }
+                        @Override
+                        protected void onSave(DescriptionMetadata dm) {
+                            super.onSave(dm);
+                            next();
+                        }
 
-                @Override
-                public void onSuccess(DescriptionMetadata result) {
-                    next();
-                }
-            }, false);
+                        @Override
+                        protected void onConcurrencyError() {
+                            stop("Update failed!");
+                        }
+
+                        @Override
+                        protected void onError() {
+                            super.onError();
+                            stop("Update failed!");
+                        }
+
+                        @Override
+                        protected void onValidationError() {
+                            stop(getValidationMessage());
+                        }
+
+                    },
+                    false);
         }
 
     }
