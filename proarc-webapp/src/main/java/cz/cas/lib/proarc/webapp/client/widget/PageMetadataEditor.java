@@ -28,10 +28,10 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.form.fields.CheckboxItem;
+import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.IntegerItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
-import com.smartgwt.client.widgets.form.fields.SpacerItem;
 import com.smartgwt.client.widgets.form.fields.StaticTextItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.fields.events.ChangedEvent;
@@ -48,6 +48,7 @@ import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.shared.series.Series;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 /**
  * Editor allowing user input of new values to modify multiple digital objects. It can
@@ -74,6 +75,7 @@ public final class PageMetadataEditor {
     private TextItem suffix;
     private StaticTextItem numberExample;
     private SelectItem pageType;
+    private ComboBoxItem applyTo;
     private IntegerRangeValidator integerStartValidator;
     private IntegerRangeValidator integerIncrementValidator;
     private RegExpValidator romanStartValidator;
@@ -81,6 +83,7 @@ public final class PageMetadataEditor {
     private RequiredIfValidator numberStartRequired;
     private Window window;
     private VLayout formPanel;
+    private DynamicForm formApply;
     private DynamicForm formPageNumber;
     private DynamicForm formPageType;
     private DynamicForm formPageIndex;
@@ -88,6 +91,8 @@ public final class PageMetadataEditor {
     private final ClientMessages i18n;
     private final SubmitValuesHandler formSubmitHandler;
     private SubmitValuesHandler proxySubmitHandler;
+    private int applyToMaxValue = 16;
+    private IntegerRangeValidator applyToValidator;
 
     public PageMetadataEditor() {
         this.i18n = GWT.create(ClientMessages.class);
@@ -111,12 +116,10 @@ public final class PageMetadataEditor {
             return formPanel;
         }
 
-        SpacerItem newRowSpacer = new SpacerItem();
-        newRowSpacer.setStartRow(true);
-
         createPageIndexUi();
         createPageNumberUi();
         createPageTypeUi();
+        createApplyToUi();
 
         formPanel = new VLayout(10);
         formPanel.setAutoHeight();
@@ -124,7 +127,7 @@ public final class PageMetadataEditor {
         formPageNumber.setItems(allowPageNumbers, prefix, numberStart,
                 numberIncrement, suffix, seriesType, numberExample);
         formPageType.setItems(allowPageTypes, pageType);
-        formPanel.setMembers(formPageType, formPageIndex, formPageNumber);
+        formPanel.setMembers(formPageType, formPageIndex, formPageNumber, formApply);
 
         initAll();
 
@@ -147,6 +150,7 @@ public final class PageMetadataEditor {
                 valid &= formPageType.validate();
                 anyValue = true;
             }
+            valid &= formApply.validate();
             return anyValue && valid;
         }
         return false;
@@ -262,6 +266,30 @@ public final class PageMetadataEditor {
         allowPageTypes.addChangedHandler(new DisableStateHandler(pageType));
     }
 
+    private void createApplyToUi() {
+        formApply = createForm();
+
+        applyTo = new ComboBoxItem("applyTo", i18n.PageMetadataEditor_ApplyTo_Title());
+        applyTo.setPrompt(i18n.PageMetadataEditor_ApplyTo_Hint());
+        applyTo.setRequired(true);
+
+        LinkedHashMap<String, String> vals = new LinkedHashMap<String, String>();
+        vals.put("1", i18n.PageMetadataEditor_ApplyToEachItem_Title());
+        for (int i = 2; i <= 20; i++) {
+            String nth = String.valueOf(i);
+            vals.put(nth, i18n.PageMetadataEditor_ApplyToEachNthItem_Title(nth));
+        }
+        applyTo.setValueMap(vals);
+        applyTo.setDefaultValue(1);
+        applyTo.setValue(1);
+
+        applyToValidator = new IntegerRangeValidator();
+        applyToValidator.setMin(1);
+        applyToValidator.setMax(applyToMaxValue);
+        applyTo.setValidators(new IsIntegerValidator(), applyToValidator);
+        formApply.setItems(applyTo);
+    }
+
     private void initPageIndex() {
         formPageIndex.clearValues();
         allowPageIndexes.setValue(false);
@@ -287,6 +315,10 @@ public final class PageMetadataEditor {
         pageType.setDisabled(!getAllowPageTypes());
     }
 
+    private void initApplyTo() {
+        formApply.clearValues();
+    }
+
     /**
      * Resets form.
      */
@@ -295,6 +327,7 @@ public final class PageMetadataEditor {
             initPageIndex();
             initPageNumber();
             initPageType();
+            initApplyTo();
             updatePageNumberValidators(seriesType.getValueAsString());
         }
     }
@@ -367,6 +400,22 @@ public final class PageMetadataEditor {
 
     public boolean getAllowPageTypes() {
         return allowPageTypes.getValueAsBoolean();
+    }
+
+    /**
+     * Gets an increment to determine the next page of the selection.
+     */
+    public int getApplyTo() {
+        Integer val = getInt(applyTo.getValueAsString());
+        return Math.max(1, val == null ? 1 : val);
+    }
+
+    /**
+     * Sets maximal value that is valid for the {@code Apply To} field.
+     */
+    public void setMaxApplyTo(int size) {
+        applyToMaxValue = size;
+        applyToValidator.setMax(applyToMaxValue);
     }
 
     public Integer getIndexStart() {

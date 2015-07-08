@@ -128,9 +128,11 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
         private String errorMsg;
         private final ModsBatchEditor editor;
         private BooleanCallback taskDoneCallback;
+        protected final ClientMessages i18n;
 
         public BatchJob(ModsBatchEditor editor) {
             this.editor = editor;
+            this.i18n = editor.i18n;
         }
 
         public void execute(BooleanCallback taskDoneCallback) {
@@ -253,6 +255,8 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
     private static class GenerateJob extends BatchJob {
 
         private final PageMetadataEditor editor;
+        /** An increment of the job item index used to process only required pages. */
+        private int batchApplyTo;
         private Integer batchIndexStart;
         private Iterator<String> batchSequence;
         private String batchNumberFormat;
@@ -288,6 +292,7 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
 
         @Override
         public boolean validatePanel() {
+            editor.setMaxApplyTo(getSelection().length);
             return editor.validate();
         }
 
@@ -311,11 +316,19 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
                     batchNumberFormat += suffix;
                 }
             }
+            batchApplyTo = editor.getApplyTo();
+            if (batchApplyTo > getSelection().length) {
+                stop(i18n.PageMetadataEditor_ApplyToErrOutOfBounds_Msg(String.valueOf(batchApplyTo)));
+            }
         }
 
         @Override
         protected void processStep() {
-            fetchMods(getCurrent());
+            if ((getCurrentIndex() + 1) % batchApplyTo == 0) {
+                fetchMods(getCurrent());
+            } else {
+                next();
+            }
         }
 
         private void fetchMods(final DigitalObject dobj) {
