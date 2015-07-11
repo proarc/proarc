@@ -6,8 +6,9 @@
     <xsl:strip-space elements="*"/>
 
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
-    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 306) 20150609
+    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 303) 20150711
 
+Revision 1.97.proarc303 - ProArc patch that maps 072#7 $x to subject/topic and $a/$9 to classification 2015/07/11
 Revision 1.97.proarc305 - ProArc patch of 100,700 $7 mapping to name@authorityURI, name@valueURI 2015/06/09
 Revision 1.97.proarc306 - ProArc patch of 510 $c mapping to relatedItem/part/detail/number 2015/06/09
 Revision 1.97.proarc185 - ProArc patch of 653 mapping to subject/topic 2014/06/26
@@ -1890,6 +1891,9 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="createSubTemFrom045"/>
         </xsl:for-each>
 
+        <!--Revision 1.97.proarc303-->
+        <xsl:call-template name="createSubjectFrom072"/>
+
         <xsl:for-each select="marc:datafield[@tag=255]">
             <xsl:call-template name="createSubGeoFrom255"/>
         </xsl:for-each>
@@ -1948,6 +1952,10 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         <xsl:for-each select="marc:datafield[@tag='080']">
             <xsl:call-template name="createClassificationFrom080"/>
         </xsl:for-each>
+
+        <!--Revision 1.97.proarc303-->
+        <xsl:call-template name="createClassificationFrom072"/>
+
         <xsl:for-each select="marc:datafield[@tag='082']">
             <xsl:call-template name="createClassificationFrom082"/>
         </xsl:for-each>
@@ -2703,7 +2711,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:for-each>
 
             <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
-                (Revision 1.97 2014/05/21, ProArc patch 305 2015/06/09)</recordOrigin>
+                (Revision 1.97 2014/05/21, ProArc patch 303 2015/07/11)</recordOrigin>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>
@@ -5570,6 +5578,46 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:with-param name="codes">abcde35</xsl:with-param>
             </xsl:call-template>
         </accessCondition>
+    </xsl:template>
+
+    <!--Revision 1.97.proarc303-->
+    <xsl:template name="createSubjectFrom072">
+        <xsl:for-each select="marc:datafield[@tag=072]">
+            <subject>
+                <xsl:if test="marc:subfield[@code='2']">
+                    <xsl:attribute name="authority">
+                        <xsl:value-of select="marc:subfield[@code='2']"/>
+                    </xsl:attribute>
+                </xsl:if>
+                <topic>
+                    <xsl:value-of select="marc:subfield[@code='x']"/>
+                </topic>
+            </subject>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!--Revision 1.97.proarc303-->
+    <xsl:template name="createClassificationFrom072">
+        <xsl:for-each select="marc:datafield[@tag=072]">
+            <classification>
+                <xsl:if test="marc:subfield[@code='2']">
+                    <xsl:attribute name="authority">
+                        <xsl:value-of select="marc:subfield[@code='2']"/>
+                    </xsl:attribute>
+                </xsl:if>
+                <xsl:value-of select="marc:subfield[@code='9']"/>
+            </classification>
+        </xsl:for-each>
+        <xsl:for-each select="marc:datafield[@tag=072]">
+            <classification authority="udc">
+                <xsl:if test="marc:subfield[@code='2']">
+                    <xsl:attribute name="edition">
+                        <xsl:value-of select="marc:subfield[@code='2']"/>
+                    </xsl:attribute>
+                </xsl:if>
+                <xsl:value-of select="marc:subfield[@code='a']"/>
+            </classification>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- recordInfo 040 005 001 003 -->

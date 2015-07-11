@@ -134,7 +134,7 @@ public class TransformersTest {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
-            System.out.println(xmlResult);
+//            System.out.println(xmlResult);
             XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
                 put("m", ModsConstants.NS);
             }}));
@@ -236,6 +236,34 @@ public class TransformersTest {
             XMLAssert.assertXpathExists("/m:mods/m:subject[not(@authority)]/m:topic[text()='cats']", xmlResult);
             XMLAssert.assertXpathNotExists("/m:mods/m:subject/m:name/m:namePart[text()='kočky']", xmlResult);
             XMLAssert.assertXpathNotExists("/m:mods/m:subject/m:name/m:namePart[text()='cats']", xmlResult);
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
+        } finally {
+            close(xmlIS);
+        }
+    }
+
+    /**
+     * Test mapping of 072#7 $x to {@code subject/topic} and $a/$9 to {@code classification}.
+     * See issue 303.
+     */
+    @Test
+    public void testMarcAsMods_Conspectus_Issue303() throws Exception {
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
+            assertNotNull(contents);
+            String xmlResult = new String(contents, "UTF-8");
+//            System.out.println(xmlResult);
+            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
+                put("m", ModsConstants.NS);
+            }}));
+            XMLAssert.assertXpathEvaluatesTo("Umění", "/m:mods/m:subject[@authority='Konspekt']/m:topic", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("7.01/.09", "/m:mods/m:classification[@authority='udc' and @edition='Konspekt']", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("21", "/m:mods/m:classification[@authority='Konspekt']", xmlResult);
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
