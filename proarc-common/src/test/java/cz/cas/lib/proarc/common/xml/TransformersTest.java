@@ -353,6 +353,44 @@ public class TransformersTest {
         }
     }
 
+    /**
+     * Tests mapping of field 787 to {@code relatedItem}.
+     * See issue 313.
+     */
+    @Test
+    public void testMarcAsMods_RelatedItem_Issue313() throws Exception {
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_relatedItem_787.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
+            assertNotNull(contents);
+            String xmlResult = new String(contents, "UTF-8");
+//            System.out.println(xmlResult);
+            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
+                put("m", ModsConstants.NS);
+            }}));
+            // test 78708 |i Recenze na: |a Čeřovský, Jan |t Jak jsme zachraňovali svět aneb Půl století ve službách ochrany přírody |d Praha : Nakladatelství Academia, 2014 |4 kniha
+            XMLAssert.assertXpathEvaluatesTo(
+                    "Jak jsme zachraňovali svět aneb Půl století ve službách ochrany přírody",
+                    "/m:mods/m:relatedItem[not(@type) and @displayLabel='Recenze na:']"
+                    + "/m:titleInfo/m:title/text()", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo(
+                    "Čeřovský, Jan",
+                    "/m:mods/m:relatedItem[not(@type) and @displayLabel='Recenze na:']"
+                    + "/m:name/m:namePart/text()", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo(
+                    "Praha : Nakladatelství Academia, 2014",
+                    "/m:mods/m:relatedItem[not(@type) and @displayLabel='Recenze na:']"
+                    + "/m:originInfo/m:publisher/text()", xmlResult);
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
+        } finally {
+            close(xmlIS);
+        }
+    }
+
     @Test
     public void testOaiMarcAsMarc() throws Exception {
         InputStream goldenIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMarcXml.xml");
@@ -407,7 +445,7 @@ public class TransformersTest {
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.ModsAsHtml, params);
             assertNotNull(contents);
-            System.out.println(new String(contents, "UTF-8"));
+//            System.out.println(new String(contents, "UTF-8"));
 //            XMLAssert.assertXMLEqual(new InputSource(goldenIS), new InputSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
@@ -462,7 +500,7 @@ public class TransformersTest {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.ModsAsFedoraLabel, params);
             assertNotNull(contents);
             String label = new String(contents, "UTF-8");
-            System.out.println(label);
+//            System.out.println(label);
             return label;
         } finally {
             close(xmlIS);

@@ -6,8 +6,9 @@
     <xsl:strip-space elements="*"/>
 
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
-    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 8.303) 20150711
+    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 9.313) 20150711
 
+Revision 1.97.proarc.9.313 - ProArc patch of mapping 787 to relatedItem 2015/07/11
 Revision 1.97.proarc.8.303 - ProArc patch that maps 072#7 $x to subject/topic and $a/$9 to classification 2015/07/11
 Revision 1.97.proarc.7.305 - ProArc patch of 100,700 $7 mapping to name@authorityURI, name@valueURI 2015/06/09
 Revision 1.97.proarc.6.306 - ProArc patch of 510 $c mapping to relatedItem/part/detail/number 2015/06/09
@@ -2273,6 +2274,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="relatedItem76X-78X"/>
             </relatedItem>
         </xsl:for-each>
+        <!--Revision 1.97.proarc.9.313-->
+        <xsl:for-each select="marc:datafield[@tag=787]">
+            <relatedItem>
+                <xsl:call-template name="relatedItem76X-78X"/>
+            </relatedItem>
+        </xsl:for-each>
         <xsl:for-each select="marc:datafield[@tag=800]">
             <relatedItem type="series">
                 <titleInfo>
@@ -2711,7 +2718,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:for-each>
 
             <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
-                (Revision 1.97 2014/05/21, ProArc patch 8.303 2015/07/11)</recordOrigin>
+                (Revision 1.97 2014/05/21, ProArc patch 9.313 2015/07/11)</recordOrigin>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>

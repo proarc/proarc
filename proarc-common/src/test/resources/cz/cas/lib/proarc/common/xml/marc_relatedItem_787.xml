@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+    <leader>01014nab a2200253 i 4500</leader>
+    <controlfield tag="001">001888953</controlfield>
+    <controlfield tag="003">CZ PrAS</controlfield>
+    <controlfield tag="005">20150528062111.0</controlfield>
+    <controlfield tag="008">150527s2015    xr a   e^^^^^^|^^^^|cze^d</controlfield>
+    <datafield ind1=" " ind2=" " tag="040">
+        <subfield code="a">ABA007</subfield>
+        <subfield code="b">cze</subfield>
+        <subfield code="e">rda</subfield>
+        <subfield code="9">2</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="072">
+        <subfield code="a">57/59</subfield>
+        <subfield code="x">Biologické vědy</subfield>
+        <subfield code="2">Konspekt</subfield>
+        <subfield code="9">2</subfield>
+    </datafield>
+    <datafield ind1="1" ind2=" " tag="100">
+        <subfield code="a">Baltus, Jan,</subfield>
+        <subfield code="d">1944-</subfield>
+        <subfield code="7">xx0016898</subfield>
+        <subfield code="4">rev</subfield>
+    </datafield>
+    <datafield ind1="1" ind2="0" tag="245">
+        <subfield code="a">Jan Čeřovský: Jak jsme zachraňovali svět aneb Půl století ve službách ochrany přírody /</subfield>
+        <subfield code="c">[autor recenze] Jan Baltus.</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="300">
+        <subfield code="b">ilustrace.</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="336">
+        <subfield code="a">text</subfield>
+        <subfield code="b">txt</subfield>
+        <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="337">
+        <subfield code="a">bez média</subfield>
+        <subfield code="b">n</subfield>
+        <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="338">
+        <subfield code="a">jiný</subfield>
+        <subfield code="b">nz</subfield>
+        <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="7" tag="650">
+        <subfield code="a">biologie</subfield>
+        <subfield code="7">ph114166</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="9" tag="650">
+        <subfield code="a">biology</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="655">
+        <subfield code="a">recenze</subfield>
+        <subfield code="7">fd133231</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="9" tag="655">
+        <subfield code="a">recensions</subfield>
+        <subfield code="2">eczenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2=" " tag="773">
+        <subfield code="t">Živa</subfield>
+        <subfield code="x">0044-4812</subfield>
+        <subfield code="g">Vol. LXIII (CI), no. 2 (2015), s. xxvii-xxviii</subfield>
+        <subfield code="q">63:2&lt;xxvii</subfield>
+        <subfield code="9">2015</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="8" tag="787">
+        <subfield code="i">Recenze na:</subfield>
+        <subfield code="a">Čeřovský, Jan</subfield>
+        <subfield code="t">Jak jsme zachraňovali svět aneb Půl století ve službách ochrany přírody</subfield>
+        <subfield code="d">Praha : Nakladatelství Academia, 2014</subfield>
+        <subfield code="4">kniha</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="910">
+        <subfield code="a">ABA007</subfield>
+        <subfield code="t">rs</subfield>
+        <subfield code="k">anlplus</subfield>
+    </datafield>
+</record>
