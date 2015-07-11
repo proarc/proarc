@@ -6,19 +6,19 @@
     <xsl:strip-space elements="*"/>
 
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
-    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 303) 20150711
+    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 8.303) 20150711
 
-Revision 1.97.proarc303 - ProArc patch that maps 072#7 $x to subject/topic and $a/$9 to classification 2015/07/11
-Revision 1.97.proarc305 - ProArc patch of 100,700 $7 mapping to name@authorityURI, name@valueURI 2015/06/09
-Revision 1.97.proarc306 - ProArc patch of 510 $c mapping to relatedItem/part/detail/number 2015/06/09
-Revision 1.97.proarc185 - ProArc patch of 653 mapping to subject/topic 2014/06/26
-Revision 1.97.proarc182 - ProArc patch for 600, 610, 611, 630, 648, 650, 651 and indicator *9 to map $2 as subject@authority 2014/06/26
+Revision 1.97.proarc.8.303 - ProArc patch that maps 072#7 $x to subject/topic and $a/$9 to classification 2015/07/11
+Revision 1.97.proarc.7.305 - ProArc patch of 100,700 $7 mapping to name@authorityURI, name@valueURI 2015/06/09
+Revision 1.97.proarc.6.306 - ProArc patch of 510 $c mapping to relatedItem/part/detail/number 2015/06/09
+Revision 1.97.proarc.5.185 - ProArc patch of 653 mapping to subject/topic 2014/06/26
+Revision 1.97.proarc.4.182 - ProArc patch for 600, 610, 611, 630, 648, 650, 651 and indicator *9 to map $2 as subject@authority 2014/06/26
 Revision 1.97 - Fixed 264 mapping tmee 20140521
 Revision 1.96 - Fixed 310 and 321 and 008 frequency authority for marcfrequency tmee 2014/04/22
 Revision 1.95 - Modified 035 to include identifier type (WlCaITV) tmee 2014/04/21
-Revision 1.94.proarc158 - ProArc patch to fix invalid <geographicCode authority="czenas"> for 043  |a |b e-xr-kr |2 czenas jp  2014/05/30
-Revision 1.94.proarc32 - ProArc patch to map 910a(sigla) as <physicalLocation> and 910b(signatura) as <shelfLocator>.
-Revision 1.94.proarc131 - ProArc patch to include cCNB as <identifier type="ccnb"> from 015a,z.
+Revision 1.94.proarc.3.158 - ProArc patch to fix invalid <geographicCode authority="czenas"> for 043  |a |b e-xr-kr |2 czenas jp  2014/05/30
+Revision 1.94.proarc.2.32 - ProArc patch to map 910a(sigla) as <physicalLocation> and 910b(signatura) as <shelfLocator>.
+Revision 1.94.proarc.1.131 - ProArc patch to include cCNB as <identifier type="ccnb"> from 015a,z.
 Revision 1.94 - Leader 07 b changed mapping from continuing to serial tmee 2014/02/21
 MODS 3.5
 Revision 1.93 - Fixed personal name transform for ind1=0 tmee 2014/01/31
@@ -1891,7 +1891,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="createSubTemFrom045"/>
         </xsl:for-each>
 
-        <!--Revision 1.97.proarc303-->
+        <!--Revision 1.97.proarc.8.303-->
         <xsl:call-template name="createSubjectFrom072"/>
 
         <xsl:for-each select="marc:datafield[@tag=255]">
@@ -1953,7 +1953,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="createClassificationFrom080"/>
         </xsl:for-each>
 
-        <!--Revision 1.97.proarc303-->
+        <!--Revision 1.97.proarc.8.303-->
         <xsl:call-template name="createClassificationFrom072"/>
 
         <xsl:for-each select="marc:datafield[@tag='082']">
@@ -2022,7 +2022,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     </originInfo>
                 </xsl:for-each>
 
-                <!--Revision 1.97.proarc306-->
+                <!--Revision 1.97.proarc.6.306-->
                 <xsl:variable name="partNumber">
                     <xsl:call-template name="chopPunctuation">
                         <xsl:with-param name="chopString">
@@ -2405,7 +2405,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:apply-templates select="self::*" mode="trans880"/>
         </xsl:for-each>
 
-        <!-- 1.94.proarc131 ProArc cCNB patch -->
+        <!-- 1.94.proarc.1.131 cCNB patch -->
         <xsl:for-each select="marc:datafield[@tag='015']/marc:subfield[@code='a']">
             <xsl:if test="starts-with(current(), 'cnb')">
                 <identifier type="ccnb">
@@ -2420,7 +2420,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </identifier>
             </xsl:if>
         </xsl:for-each>
-        <!-- 1.94.proarc131 ProArc cCNB patch -->
+        <!-- 1.94.proarc.1.131 cCNB patch -->
 
         <!-- 856, 020, 024, 022, 028, 010, 035, 037 -->
 
@@ -2711,7 +2711,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:for-each>
 
             <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
-                (Revision 1.97 2014/05/21, ProArc patch 303 2015/07/11)</recordOrigin>
+                (Revision 1.97 2014/05/21, ProArc patch 8.303 2015/07/11)</recordOrigin>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>
@@ -3123,7 +3123,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </xsl:for-each>
     </xsl:template>
     <xsl:template name="subjectAuthority">
-        <!--Revision 1.97.proarc182-->
+        <!--Revision 1.97.proarc.4.182-->
         <xsl:if test="@ind2=9 and marc:subfield[@code='2']">
             <xsl:attribute name="authority">
                 <xsl:value-of select="marc:subfield[@code='2']"/>
@@ -4352,7 +4352,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </xsl:if>
     </xsl:template>
 
-    <!--Revision 1.97.proarc305-->
+    <!--Revision 1.97.proarc.7.305-->
     <xsl:template name="createNameAuthorityIdFrom100_700">
         <xsl:variable name="subfield7" select="marc:subfield[@code='7']"/>
         <xsl:if test="$subfield7">
@@ -4933,7 +4933,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="xxx880"/>
             <xsl:for-each select="marc:subfield[@code='a' or @code='b' or @code='c']">
                 <geographicCode>
-                    <!-- 1.94.proarc158 -->
+                    <!-- 1.94.proarc.3.158 -->
                     <xsl:if test="@code!='b'">
                         <xsl:attribute name="authority">
                             <xsl:if test="@code='a'">
@@ -5168,7 +5168,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </subject>
     </xsl:template>
 
-    <!--Revision 1.97.proarc185-->
+    <!--Revision 1.97.proarc.5.185-->
     <xsl:template name="createSubFrom653Topic">
         <xsl:for-each select="marc:subfield">
             <subject>
@@ -5179,7 +5179,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </xsl:for-each>
     </xsl:template>
 
-    <!--Revision 1.97.proarc185-->
+    <!--Revision 1.97.proarc.5.185-->
     <xsl:template name="createSubFrom653">
 
         <xsl:choose>
@@ -5543,7 +5543,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </xsl:if>
     </xsl:template>
 
-    <!--location: 1.94.proarc32 -->
+    <!--location: 1.94.proarc.2.32 -->
 
     <xsl:template name="createLocationFrom910">
         <location>
@@ -5580,7 +5580,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </accessCondition>
     </xsl:template>
 
-    <!--Revision 1.97.proarc303-->
+    <!--Revision 1.97.proarc.8.303-->
     <xsl:template name="createSubjectFrom072">
         <xsl:for-each select="marc:datafield[@tag=072]">
             <subject>
@@ -5596,7 +5596,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </xsl:for-each>
     </xsl:template>
 
-    <!--Revision 1.97.proarc303-->
+    <!--Revision 1.97.proarc.8.303-->
     <xsl:template name="createClassificationFrom072">
         <xsl:for-each select="marc:datafield[@tag=072]">
             <classification>
