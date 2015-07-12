@@ -83,6 +83,17 @@ public final class SearchView {
     }
 
     /**
+     * @see #findQuery(cz.cas.lib.proarc.common.fedora.SearchView.Query)
+     */
+    public List<Item> findQuery(String title, String label, String identifier, String owner, String model, Collection<String> hasOwners)
+            throws FedoraClientException, IOException {
+
+        return findQuery(new Query().setTitle(title).setLabel(label)
+                .setIdentifier(identifier).setOwner(owner).setModel(model)
+                .setHasOwners(hasOwners));
+    }
+
+    /**
      * Finds objects matching passed fields using the Fedora Basic Search.
      * Matching objects are filtered with {@link #find(java.lang.String[]) }
      * to return only ProArc objects.
@@ -90,22 +101,23 @@ public final class SearchView {
      * @return limited list of objects.
      * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Basic+Search'>Fedora Basic Search</a>
      */
-    public List<Item> findQuery(String title, String label, String identifier, String owner, String model, Collection<String> hasOwners)
+    public List<Item> findQuery(Query q)
             throws FedoraClientException, IOException {
-        
+
         final int objectsLimit = 80;
         StringBuilder query = new StringBuilder();
-        if (model != null && !model.isEmpty()) {
-            query.append("type~").append(model);
+        if (q.getModel() != null && !q.getModel().isEmpty()) {
+            query.append("type~").append(q.getModel());
         }
         // FedoraClient.findObjects() does not support OR operator!
-        if (!hasOwners.isEmpty()) {
-            query.append(" rights~").append(hasOwners.iterator().next());
+        if (!q.getHasOwners().isEmpty()) {
+            query.append(" rights~").append(q.getHasOwners().iterator().next());
         }
-        buildQuery(query, "title", title);
-        buildQuery(query, "label", label);
-        buildQuery(query, "identifier", identifier);
-        buildQuery(query, "ownerId", owner);
+        buildQuery(query, "title", q.getTitle());
+        buildQuery(query, "label", q.getLabel());
+        buildQuery(query, "identifier", q.getIdentifier());
+        buildQuery(query, "ownerId", q.getOwner());
+        buildQuery(query, "creator", q.getCreator());
         final String queryString = query.toString().trim();
         LOG.fine(queryString);
         FindObjectsResponse response = FedoraClient.findObjects().query(queryString).resultFormat("xml")
@@ -593,6 +605,81 @@ public final class SearchView {
 
         public void setResults(List<Item> results) {
             this.results = results;
+        }
+
+    }
+
+    public static class Query {
+
+        private String title;
+        private String creator;
+        private String label;
+        private String identifier;
+        private String owner;
+        private String model;
+        private Collection<String> hasOwners;
+
+        public String getTitle() {
+            return title;
+        }
+
+        public Query setTitle(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public String getCreator() {
+            return creator;
+        }
+
+        public Query setCreator(String creator) {
+            this.creator = creator;
+            return this;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public Query setLabel(String label) {
+            this.label = label;
+            return this;
+        }
+
+        public String getIdentifier() {
+            return identifier;
+        }
+
+        public Query setIdentifier(String identifier) {
+            this.identifier = identifier;
+            return this;
+        }
+
+        public String getOwner() {
+            return owner;
+        }
+
+        public Query setOwner(String owner) {
+            this.owner = owner;
+            return this;
+        }
+
+        public String getModel() {
+            return model;
+        }
+
+        public Query setModel(String model) {
+            this.model = model;
+            return this;
+        }
+
+        public Collection<String> getHasOwners() {
+            return hasOwners;
+        }
+
+        public Query setHasOwners(Collection<String> hasOwners) {
+            this.hasOwners = hasOwners;
+            return this;
         }
 
     }

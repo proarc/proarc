@@ -43,6 +43,7 @@ import cz.cas.lib.proarc.common.fedora.PurgeFedoraObject.PurgeException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchView.Query;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.fedora.StringEditor.StringRecord;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
@@ -250,6 +251,7 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.SEARCH_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.SEARCH_BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM) String phrase,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM) String queryCreator,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM) String queryIdentifier,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM) String queryLabel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM) String queryModel,
@@ -266,7 +268,10 @@ public class DigitalObjectResource {
                 items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), 100);
                 break;
             case QUERY:
-                items = search.findQuery(queryTitle, queryLabel, queryIdentifier, owner, queryModel, filterGroups(user));
+                items = search.findQuery(new Query().setTitle(queryTitle)
+                        .setLabel(queryLabel).setIdentifier(queryIdentifier)
+                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
+                        .setHasOwners(filterGroups(user)));
                 page = 1;
                 break;
             case PIDS:

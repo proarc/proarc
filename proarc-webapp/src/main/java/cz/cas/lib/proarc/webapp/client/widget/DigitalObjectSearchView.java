@@ -226,6 +226,8 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
                         i18n.DigitalObjectSearchView_FilterAdvancedTitle_Title(), showIfAdvanced),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM,
                         i18n.DigitalObjectSearchView_FilterAdvancedIdentifier_Title(), showIfAdvanced),
+                createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM,
+                        i18n.DigitalObjectSearchView_FilterAdvancedCreator_Title(), showIfAdvanced),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM,
                         i18n.DigitalObjectSearchView_FilterAdvancedLabel_Title(), showIfAdvanced),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_OWNER_PARAM,
