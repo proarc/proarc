@@ -1294,7 +1294,7 @@ public class DigitalObjectResource {
     @Path(DigitalObjectResourceApi.URNNBN_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<UrnNbnResult> registerUrnNbn(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) Set<String> pids,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
             ) {
