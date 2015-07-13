@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object.emods;
 
-import cz.cas.lib.proarc.common.mods.ndk.NdkArticleMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
 
@@ -30,7 +29,7 @@ public class BornDigitalModsMapperFactory extends NdkMapperFactory {
     @Override
     public NdkMapper get(String modelId) {
         if (BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)) {
-            return new NdkArticleMapper();
+            return new BdmArticleMapper();
         } else {
             throw new IllegalStateException("Unsupported model: " + modelId);
         }

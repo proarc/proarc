@@ -38,6 +38,8 @@ import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -181,20 +183,16 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
         if (json == null) {
             mods = createDefault(modelId);
         } else {
+            NdkMapper mapper = mapperFactory.get(modelId);
+            Context context = new Context(handler);
             ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
             try {
-                mods = jsMapper.readValue(json, ModsWrapper.class).getMods();
+                mods = mapper.fromJsonObject(jsMapper, json, context);
             } catch (Exception ex) {
                 throw new DigitalObjectException(fobject.getPid(), null, ModsStreamEditor.DATASTREAM_ID, null, ex);
             }
         }
         write(modelId, mods, jsonData, message);
-    }
-
-    void fillNdkConstants_(ModsDefinition mods, String modelId) {
-        NdkMapper mapper = mapperFactory.get(modelId);
-        Context context = new Context(handler);
-        mapper.createMods(mods, context);
     }
 
     @Override
@@ -225,7 +223,18 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
     public <O> DescriptionMetadata<O> getMetadataAsJsonObject(String mappingId) throws DigitalObjectException {
         DescriptionMetadata<ModsDefinition> dm = getMetadata();
         DescriptionMetadata json = dm;
-        json.setData(new ModsWrapper(dm.getData()));
+        if (mappingId == null) {
+            String modelId = handler.relations().getModel();
+            MetaModel model = modelId == null ? null : MetaModelRepository.getInstance().find(modelId);
+            if (model == null) {
+                throw new DigitalObjectException(fobject.getPid(), null, "ds", "Missing mappingId!", null);
+            }
+            mappingId = model.getModsCustomEditor();
+        }
+        NdkMapper mapper = mapperFactory.get(mappingId);
+        Context context = new Context(handler);
+        json.setData(mapper.toJsonObject(dm.getData(), context));
+        json.setEditor(mappingId);
         return json;
     }
 
@@ -344,6 +353,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
         return crawler;
     }
 
+    /**
+     * Wraps MODS for JSON serialization. Subclasses can add own properties.
+     */
     public static class ModsWrapper {
 
         private ModsDefinition mods;

@@ -19,12 +19,15 @@ package cz.cas.lib.proarc.common.mods.ndk;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.io.IOException;
 import java.util.List;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Subclass to implement transformations of MODS data in NDK flavor
@@ -86,6 +89,28 @@ public abstract class NdkMapper {
      */
     public final OaiDcType toDc(ModsDefinition mods, Context ctx) {
         return createDc(mods, ctx);
+    }
+
+    /**
+     * Override to provide own view of MODS for a JSON editor.
+     * @param mods persisted MODS
+     * @param ctx context
+     * @return the serializable object
+     */
+    public ModsWrapper toJsonObject(ModsDefinition mods, Context ctx) {
+        return new ModsWrapper(mods);
+    }
+
+    /**
+     * Reads MODS from JSON. Use subclass of {@link ModsWrapper} to read a customized MODS.
+     * @param jsMapper
+     * @param json
+     * @param ctx
+     * @return MODS
+     * @throws IOException failure
+     */
+    public ModsDefinition fromJsonObject(ObjectMapper jsMapper, String json, Context ctx) throws IOException {
+        return jsMapper.readValue(json, ModsWrapper.class).getMods();
     }
 
     /**
