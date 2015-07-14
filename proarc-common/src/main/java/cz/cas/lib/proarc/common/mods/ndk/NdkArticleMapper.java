@@ -61,10 +61,6 @@ public class NdkArticleMapper extends NdkMapper {
         }
         // genre="article"
         GenreDefinition genre = addGenre(mods, "article");
-        // genre@type="main article" if null
-        if (genre.getType() == null) {
-            genre.setType("main article");
-        }
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
         //  mods/physicalDescription/form@type="code"
