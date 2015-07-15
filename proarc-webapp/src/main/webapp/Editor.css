@@ -45,3 +45,10 @@
     background-color:#bad4ee;
     color:black;
 }
+
+/* issue 315: chage display to inline to show the warning */
+.proarcMetadataFormWarning {
+    display: none;
+    color: red;
+    font-style: italic;
+}

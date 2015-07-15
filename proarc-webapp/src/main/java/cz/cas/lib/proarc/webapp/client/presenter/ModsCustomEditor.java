@@ -74,6 +74,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
     private final ClientMessages i18n;
     private final HashMap<String, DynamicForm> editorCache;
     private DynamicForm activeEditor;
+    private final Canvas warning = new Canvas();
     private DescriptionMetadata metadata;
     private final VLayout widget;
     private Boolean showFetchPrompt;
@@ -84,6 +85,11 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
         this.editorCache = new HashMap<String, DynamicForm>();
         this.widget = new VLayout();
         this.widget.setOverflow(Overflow.AUTO);
+
+        String wmsg = ClientUtils.format("<div class='proarcMetadataFormWarning'>%s</div>",
+                i18n.DigitalObjectEditor_DescriptionFormEditor_FormSaveWarning_Msg());
+        warning.setContents(wmsg);
+        warning.setAutoHeight();
     }
 
     /**
@@ -105,7 +111,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
         metadata = null;
         activeEditor = getCustomForm(digitalObject.getModel());
         if (activeEditor != null) {
-            ClientUtils.setMembers(widget, activeEditor);
+            ClientUtils.setMembers(widget, warning, activeEditor);
             loadCustom(activeEditor, digitalObject, loadCallback);
         } else {
             widget.setMembers();
