@@ -142,6 +142,14 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
                 inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
             }
+        } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
+            // issue 241
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHVOLUME);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                inheritIdentifier(defaultMods, titleMods.getIdentifier());
+            }
         }
         return defaultMods;
     }
