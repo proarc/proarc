@@ -120,7 +120,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
                 inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 inheritLocation(defaultMods, titleMods.getLocation());
-                inheritIdentifier(defaultMods, titleMods.getIdentifier());
+                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
             }
         } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
             // issue 137
@@ -129,7 +129,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
                 ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                inheritIdentifier(defaultMods, titleMods.getIdentifier());
+                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
             }
         } else if (NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(modelId)) {
             // issue 240
@@ -138,7 +138,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
                 ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                inheritIdentifier(defaultMods, titleMods.getIdentifier());
+                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
                 inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
             }
@@ -148,17 +148,23 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
             if (title != null) {
                 ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                inheritIdentifier(defaultMods, titleMods.getIdentifier());
+                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
             }
         }
         return defaultMods;
     }
 
-    private void inheritIdentifier(ModsDefinition mods, List<IdentifierDefinition> ids) {
+    private void inheritIdentifier(ModsDefinition mods, List<IdentifierDefinition> ids, String... includeIdTypes) {
         for (IdentifierDefinition id : ids) {
             String type = id.getType();
-            if ("ccnb".equals(type) || "issn".equals(type) || "isbn".equals(type)) {
+            if (includeIdTypes == null) {
                 mods.getIdentifier().add(id);
+            } else {
+                for (String includeIdType : includeIdTypes) {
+                    if (includeIdType.equals(type)) {
+                        mods.getIdentifier().add(id);
+                    }
+                }
             }
         }
     }
