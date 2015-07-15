@@ -40,9 +40,13 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.mods.DateDefinition;
+import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
@@ -127,6 +131,17 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 inheritIdentifier(defaultMods, titleMods.getIdentifier());
             }
+        } else if (NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(modelId)) {
+            // issue 240
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHVOLUME);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                inheritIdentifier(defaultMods, titleMods.getIdentifier());
+                inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
+                inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
+            }
         }
         return defaultMods;
     }
@@ -134,7 +149,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
     private void inheritIdentifier(ModsDefinition mods, List<IdentifierDefinition> ids) {
         for (IdentifierDefinition id : ids) {
             String type = id.getType();
-            if ("ccnb".equals(type) || "issn".equals(type)) {
+            if ("ccnb".equals(type) || "issn".equals(type) || "isbn".equals(type)) {
                 mods.getIdentifier().add(id);
             }
         }
@@ -147,6 +162,32 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
             if (!pls.isEmpty() || !sls.isEmpty()) {
                 loc.getUrl().clear();
                 mods.getLocation().add(loc);
+            }
+        }
+    }
+
+    private void inheritOriginInfoDateIssued(ModsDefinition mods, List<OriginInfoDefinition> ois) {
+        for (OriginInfoDefinition oi : ois) {
+            OriginInfoDefinition newOi = null;
+            for (DateDefinition dateIssued : oi.getDateIssued()) {
+                if (newOi == null) {
+                    newOi = new OriginInfoDefinition();
+                    mods.getOriginInfo().add(newOi);
+                }
+                newOi.getDateIssued().add(dateIssued);
+            }
+        }
+    }
+
+    private void inheritPhysicalDescriptionForm(ModsDefinition mods, List<PhysicalDescriptionDefinition> pds) {
+        for (PhysicalDescriptionDefinition pd : pds) {
+            PhysicalDescriptionDefinition newPd = null;
+            for (FormDefinition form : pd.getForm()) {
+                if (newPd == null) {
+                    newPd = new PhysicalDescriptionDefinition();
+                    mods.getPhysicalDescription().add(newPd);
+                }
+                newPd.getForm().add(form);
             }
         }
     }
