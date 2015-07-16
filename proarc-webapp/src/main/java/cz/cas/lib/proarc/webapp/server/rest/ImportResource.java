@@ -313,34 +313,6 @@ public class ImportResource {
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, totalRows, records);
     }
 
-    @PUT
-    @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCHITEM_PATH)
-    @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<PageView.Item> updateBatchItem(
-            @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
-            @FormParam(ImportResourceApi.BATCHITEM_PID) String pid,
-            @FormParam(ImportResourceApi.BATCHITEM_TIMESTAMP) long timestamp,
-            @FormParam(ImportResourceApi.BATCHITEM_PAGEINDEX) String pageIndex,
-            @FormParam(ImportResourceApi.BATCHITEM_PAGENUMBER) String pageNumber,
-            @FormParam(ImportResourceApi.BATCHITEM_PAGETYPE) String pageType,
-            @FormParam(ImportResourceApi.BATCHITEM_FILENAME) String filename
-            ) throws IOException, DigitalObjectException {
-
-        BatchItemObject item = null;
-        if (batchId != null && pid != null && !pid.isEmpty()) {
-            item = importManager.findBatchObject(batchId, pid);
-        }
-        if (item == null) {
-            throw RestException.plainText(Status.NOT_FOUND, "Item not found!");
-        }
-
-        Batch batch = importManager.get(batchId);
-        checkBatchState(batch);
-        Item updatedItem = new PageView().updateItem(
-                batchId, item, timestamp, session.asFedoraLog(), pageIndex, pageNumber, pageType);
-        return new SmartGwtResponse<Item>(updatedItem);
-    }
-
     @DELETE
     @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCHITEM_PATH)
     @Produces(MediaType.APPLICATION_JSON)

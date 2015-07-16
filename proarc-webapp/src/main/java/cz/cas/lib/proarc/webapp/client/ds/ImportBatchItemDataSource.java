@@ -99,7 +99,7 @@ public final class ImportBatchItemDataSource extends RestDataSource {
 
         setFields(pid, batchId, timestamp, filename, user, model, preview, thumbnail, pageIndex, pageNumber, pageType);
 
-        setOperationBindings(RestConfig.createUpdateOperation(), RestConfig.createDeleteOperation());
+        setOperationBindings(RestConfig.createDeleteOperation());
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
 
