@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -75,7 +76,7 @@ public final class ImportProcess implements Runnable {
             ImportProfile profile
             ) throws IOException {
 
-        importAs = "model:page"; // for now use default
+        importAs = NdkPlugin.MODEL_PAGE; // for now use default
         ImportOptions options = new ImportOptions(importFolder, importAs, device,
                 generateIndices, user.getUserName(), profile);
         ImportProcess process = new ImportProcess(options, batchManager);
@@ -411,7 +412,7 @@ public final class ImportProcess implements Runnable {
                 String username, ImportProfile profile) {
 
             ImportOptions options = new ImportOptions(
-                    importFolder, "model:page", batch.getDevice(),
+                    importFolder, NdkPlugin.MODEL_PAGE, batch.getDevice(),
                     batch.isGenerateIndices(), username, profile);
             options.setBatch(batch);
             return options;

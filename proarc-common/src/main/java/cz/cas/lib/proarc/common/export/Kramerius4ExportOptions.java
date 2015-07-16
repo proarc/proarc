@@ -69,7 +69,7 @@ public final class Kramerius4ExportOptions {
     // config options; it should go to proarc.properties
     private Map<String, String> relationMap = new HashMap<String, String>() {
         {
-            put("model:page", "hasPage");
+            put(NdkPlugin.MODEL_PAGE, "hasPage");
             put("model:monographunit", "hasUnit");
             put("model:periodicalvolume", "hasVolume");
             put("model:periodicalitem", "hasItem");

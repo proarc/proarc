@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.json.JsonUtils;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -449,7 +450,7 @@ public final class SearchView {
     }
 
     private static String resolveObjectLabel(String label, String model, Locale locale) {
-        if ("model:page".equals(model)) {
+        if (NdkPlugin.MODEL_PAGE.equals(model)) {
             label = PageView.resolveFedoraObjectLabel(label, locale);
         }
         return label;
