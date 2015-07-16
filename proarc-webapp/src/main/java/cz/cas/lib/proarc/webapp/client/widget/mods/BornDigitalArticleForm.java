@@ -36,8 +36,8 @@ public final class BornDigitalArticleForm {
         // CEJSH, issue 234
         f.getFields().add(new FieldBuilder("reviewed").setTitle("Peer Review").setMaxOccurrences(1)
                 .setType(Field.RADIOGROUP).setRequired(true)
-                .addMapValue("true", "Reviewed")
-                .addMapValue("false", "Not Reviewed")
+                .addMapValue("true", "recenzovaný článek")
+                .addMapValue("false", "nerecenzovaný článek")
                 .createField());
 
         Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
