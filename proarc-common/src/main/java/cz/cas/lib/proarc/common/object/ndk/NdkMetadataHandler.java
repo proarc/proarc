@@ -149,6 +149,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
                 ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
+                inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
             }
         }
         return defaultMods;
