@@ -87,7 +87,21 @@ public final class MetaModelRepository {
     }
 
     void registerModels(Collection<MetaModel> models) {
-        this.repository.addAll(models);
+        for (MetaModel model : models) {
+            MetaModel exists = find(model.getPid());
+            if (exists != null) {
+                if (exists.getPriority() < model.getPriority()) {
+                    LOG.log(Level.WARNING, "Model ID duplicates! {0}, {2} ovverides {1} plugin.",
+                            new Object[]{model.getPid(), exists.getPlugin().getId(), model.getPlugin().getId()});
+                    this.repository.remove(exists);
+                } else {
+                    LOG.log(Level.WARNING, "Model ID duplicates! {0}, {1} overrides {2} plugin.",
+                            new Object[]{model.getPid(), exists.getPlugin().getId(), model.getPlugin().getId()});
+                    continue;
+                }
+            }
+            this.repository.add(model);
+        }
     }
 
 }

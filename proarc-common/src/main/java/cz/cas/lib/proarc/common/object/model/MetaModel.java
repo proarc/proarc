@@ -37,6 +37,7 @@ public class MetaModel {
     private String editorId;
     private DigitalObjectPlugin plugin;
     private EnumSet<DatastreamEditorType> dataStreamEditors;
+    private double priority = 1.0;
 
     public MetaModel() {
     }
@@ -94,6 +95,19 @@ public class MetaModel {
 
     public DigitalObjectPlugin getPlugin() {
         return plugin;
+    }
+
+    public double getPriority() {
+        return priority;
+    }
+
+    /**
+     * The priority of the model to solve model ID collisions. The higher priority
+     * wins. Default priority is 1.
+     */
+    public MetaModel setPriority(double priority) {
+        this.priority = priority;
+        return this;
     }
 
 }
