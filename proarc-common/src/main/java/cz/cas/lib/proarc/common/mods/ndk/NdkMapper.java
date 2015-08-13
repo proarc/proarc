@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
@@ -46,7 +47,10 @@ public abstract class NdkMapper {
     @Deprecated
     public static NdkMapper get(String modelId) {
         NdkMapper mapper;
-        if (NdkPlugin.MODEL_PERIODICAL.equals(modelId)) {
+        if (NdkPlugin.MODEL_PAGE.equals(modelId)
+                || ModsCutomEditorType.EDITOR_PAGE.equals(modelId)) {
+            mapper = new NdkPageMapper();
+        } else if (NdkPlugin.MODEL_PERIODICAL.equals(modelId)) {
             mapper = new NdkPeriodicalMapper();
         } else if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)) {
             mapper = new NdkPeriodicalVolumeMapper();
@@ -158,13 +162,21 @@ public abstract class NdkMapper {
     public static class Context {
 
         private DigitalObjectHandler handler;
+        private String pid;
 
         public Context(DigitalObjectHandler handler) {
             this.handler = handler;
         }
 
+        /**
+         * Use this just in case there is no handler to provide.
+         */
+        public Context(String pid) {
+            this.pid = pid;
+        }
+
         public String getPid() {
-            return handler.getFedoraObject().getPid();
+            return handler == null ? pid: handler.getFedoraObject().getPid();
         }
 
         public DigitalObjectHandler getHandler() {

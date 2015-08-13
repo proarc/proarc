@@ -218,7 +218,7 @@ public final class DcUtils {
         addElementType(dc.getRights(), owner);
     }
 
-    static void addElementType(List<ElementType> elms, String value) {
+    public static void addElementType(List<ElementType> elms, String value) {
         for (ElementType elm : elms) {
             if (value.equals(elm.getValue())) {
                 return;

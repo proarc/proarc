@@ -67,6 +67,8 @@ public final class NdkForms {
             f = new NdkCartographicForm().build();
         } else if ("model:ndksheetmusic".equals(modelId)) {
             f = new NdkSheetMusicForm().build();
+        } else if ("model:page".equals(modelId)) {
+            return new PageForm(i18n);
         } else {
             return null;
         }

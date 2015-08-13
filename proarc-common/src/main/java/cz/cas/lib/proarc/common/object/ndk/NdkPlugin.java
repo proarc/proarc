@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.object.ndk;
 
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
@@ -202,6 +203,15 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
                 ));
+        models.add(new MetaModel(
+                MODEL_PAGE, null, true,
+                Arrays.asList(new ElementType("Page", "en"), new ElementType("Strana", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_PAGE,
+                this,
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
+                ).setPriority(2)) // override K4 plugin
+                ;
 
         return models;
     }
