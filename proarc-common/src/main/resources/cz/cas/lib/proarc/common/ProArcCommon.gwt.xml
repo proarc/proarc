@@ -6,6 +6,7 @@
 
     <source path="i18n">
         <include name="BundleName.java" />
+        <include name="BundleValue.java" />
     </source>
 
     <source path="mods">

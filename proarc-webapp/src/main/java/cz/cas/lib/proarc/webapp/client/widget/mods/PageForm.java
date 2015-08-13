@@ -24,8 +24,11 @@ import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.validator.IntegerRangeValidator;
 import com.smartgwt.client.widgets.form.validator.IsIntegerValidator;
+import cz.cas.lib.proarc.common.i18n.BundleName;
+import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.mods.IdentifierDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.StringTrimValidator;
 import java.util.Arrays;
@@ -41,6 +44,20 @@ public final class PageForm extends AbstractModelForm {
     private static final Logger LOG = Logger.getLogger(PageForm.class.getName());
 
     public PageForm(ClientMessages i18n) {
+        this(i18n, BundleName.MODS_PAGE_TYPES.getValueMapId());
+    }
+
+    public PageForm(ClientMessages i18n, BundleName typeBundle) {
+        this(i18n, typeBundle.getValueMapId());
+    }
+
+    /**
+     * Create a new form.
+     * @param i18n I18N
+     * @param typeValueMapId {@link ValueMapDataSource#getOptionDataSource}
+     *          reference to bundle with page types.
+     */
+    public PageForm(ClientMessages i18n, String typeValueMapId) {
         // save on Enter is supposed mainly for ImportBatchItemEditor
         // see submit handler in ModsMultiEditor
         setSaveOnEnter(true);
@@ -48,7 +65,9 @@ public final class PageForm extends AbstractModelForm {
         setHeight100();
         setTitleOrientation(TitleOrientation.TOP);
         SelectItem pageType = new SelectItem(ModsCustomDataSource.FIELD_PAGE_TYPE, i18n.PageForm_PageType_Title());
-        pageType.setValueMap(ModsCustomDataSource.getPageTypes());
+        pageType.setOptionDataSource(ValueMapDataSource.getInstance().getOptionDataSource(typeValueMapId));
+        pageType.setValueField(BundleValue.KEY);
+        pageType.setDisplayField(BundleValue.VALUE);
         pageType.setDefaultValue(ModsCustomDataSource.getDefaultPageType());
         pageType.setWidth(200);
         pageType.setEndRow(true);

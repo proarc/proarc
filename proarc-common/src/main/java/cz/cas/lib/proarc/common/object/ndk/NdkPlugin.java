@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.object.ndk;
 
 import cz.cas.lib.proarc.common.i18n.BundleName;
+import cz.cas.lib.proarc.common.i18n.BundleValue;
+import cz.cas.lib.proarc.common.i18n.BundleValueMap;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -226,6 +228,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
         Locale locale = new Locale("cs");
         ArrayList<ValueMap> maps = new ArrayList<ValueMap>();
         maps.add(readLangs(locale));
+        maps.add(readPageTypes(locale));
         return maps;
     }
 
@@ -243,7 +246,11 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
             langs.add(lt);
         }
         Collections.sort(langs, new LangComparator(locale));
-        return new ValueMap<LangTermValue>("ndk.mods.languageTerms", langs);
+        return new ValueMap<LangTermValue>(BundleName.LANGUAGES_ISO639_2.getValueMapId(), langs);
+    }
+
+    private ValueMap<BundleValue> readPageTypes(Locale locale) {
+        return BundleValueMap.fromBundle(BundleName.MODS_PAGE_TYPES, locale);
     }
 
     public static class LangTermValue extends LanguageTermDefinition {
