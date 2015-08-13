@@ -16,7 +16,9 @@
  */
 package cz.cas.lib.proarc.common.object;
 
+import cz.cas.lib.proarc.common.user.UserProfile;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Describes a value map used in client forms.
@@ -59,4 +61,26 @@ public class ValueMap<T> {
         this.values = values;
     }
 
+    public static class Context {
+
+        private UserProfile user;
+        private Locale locale;
+
+        public UserProfile getUser() {
+            return user;
+        }
+
+        public void setUser(UserProfile user) {
+            this.user = user;
+        }
+
+        public Locale getLocale() {
+            return locale;
+        }
+
+        public void setLocale(Locale locale) {
+            this.locale = locale;
+        }
+
+    }
 }

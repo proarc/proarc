@@ -29,7 +29,6 @@ import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
-import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.LanguageTermDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -224,8 +223,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
     }
 
     @Override
-    public List<ValueMap> getValueMaps(UserProfile user) {
-        Locale locale = new Locale("cs");
+    public List<ValueMap> getValueMaps(ValueMap.Context context) {
+        Locale locale = context.getLocale();
         ArrayList<ValueMap> maps = new ArrayList<ValueMap>();
         maps.add(readLangs(locale));
         maps.add(readPageTypes(locale));

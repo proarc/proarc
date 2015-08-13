@@ -30,7 +30,6 @@ import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
-import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.ArrayList;
@@ -87,7 +86,7 @@ public class BornDigitalModsPlugin implements DigitalObjectPlugin, HasMetadataHa
     }
 
     @Override
-    public List<ValueMap> getValueMaps(UserProfile user) {
+    public List<ValueMap> getValueMaps(ValueMap.Context context) {
         return Collections.emptyList();
     }
 

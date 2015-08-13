@@ -29,7 +29,6 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
-import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.util.ArrayList;
@@ -135,7 +134,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
     }
 
     @Override
-    public List<ValueMap> getValueMaps(UserProfile user) {
+    public List<ValueMap> getValueMaps(ValueMap.Context context) {
         return Collections.emptyList();
     }
 

@@ -33,7 +33,6 @@ import cz.cas.lib.proarc.common.object.DerDesaPlugin.DerMetadataHandler;
 import cz.cas.lib.proarc.common.object.DerDesaPlugin.DerRawDisseminationHandler;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
-import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.nsesss2.Dokument;
 import cz.cas.lib.proarc.nsesss2.NsesssConstants;
@@ -134,14 +133,14 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
     }
 
     @Override
-    public List<ValueMap> getValueMaps(UserProfile user) {
+    public List<ValueMap> getValueMaps(ValueMap.Context context) {
         try {
             AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
             DesaServices desaServices = appConfig.getDesaServices();
             DesaConfiguration dc = desaServices.findConfigurationWithModel(
                     MODEL_EXTERNAL_RECORD, MODEL_FILE, MODEL_FOLDER, MODEL_INTERNAL_RECORD);
             if (dc != null) {
-                Nomenclatures nomenclatures = desaServices.getNomenclatures(dc, user);
+                Nomenclatures nomenclatures = desaServices.getNomenclatures(dc, context.getUser());
                 return desaServices.getValueMap(nomenclatures, ID);
             } else {
                 return Collections.emptyList();
