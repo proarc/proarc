@@ -1,0 +1,1 @@
+Složka **Import** obsahuje dva pořadače určené pro práci s naskenovanými soubory. Umožňuje načtení a zpracování nové dávky a pomocí složky **Historie** návrat ke všem dávkám daného uživatele.

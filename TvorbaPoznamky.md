@@ -1,0 +1,1 @@
+Pokud při zpracování zjistíme skutečnost, kterou je nutné zapsat do veřejné nebo skryté poznámky, přidáme ji před exportem.

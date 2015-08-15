@@ -1,0 +1,1 @@
+Stromová struktura periodik vznikne navázáním jednotlivých ročníků na titul periodika a jednotlivých výtisků na ročník. Doporučujeme založit nejprve všechny ročníky a následně zakládat výtisky pouze jednoho ročníku.

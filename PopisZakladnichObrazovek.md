@@ -1,0 +1,3 @@
+Po přihlášení do programu se uživateli objeví úvodní obrazovka s informací o ProArcu. V horní části obrazovky je lišta obsahující roletku **Menu**, roletku pro volbu jazyka a přihlašovací jméno uživatele. Roletka Menu obsahuje složky **Import** a **Úložiště** s jednotlivými pořadači, pořadač Zařízení a základní informací o ProArcu. Tato lišta je zobrazena ve všech obrazovkách.
+
+http://wiki.archivacni-system.googlecode.com/git/images/02_zakladni_obrazovka.JPG

@@ -1,0 +1,1 @@
+Podřazené objekty (ročník, výtisk, monografie – volná část) již založených objektů (periodikum, monografie) lze zakládat i v obrazovce Editor připojených objektů.

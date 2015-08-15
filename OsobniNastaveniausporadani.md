@@ -1,0 +1,1 @@
+![http://wiki.archivacni-system.googlecode.com/git/images/Uvodni_obrazovka.jpg](http://wiki.archivacni-system.googlecode.com/git/images/Uvodni_obrazovka.jpg)
