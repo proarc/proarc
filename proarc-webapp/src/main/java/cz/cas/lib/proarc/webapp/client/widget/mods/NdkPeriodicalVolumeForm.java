@@ -36,8 +36,18 @@ public class NdkPeriodicalVolumeForm {
         f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
         List<Field> modsFields = f.getFields().get(0).getFields();
 
+        modsFields.add(titleInfo());
+        modsFields.add(genre());
+        modsFields.add(originInfo());
+        modsFields.add(physicalDescription());
+        modsFields.add(identifier());
+
+        return f;
+    }
+
+    private Field titleInfo() {
         // titleInfo, titleInfoDefinition
-        modsFields.add(new FieldBuilder("titleInfo").setMaxOccurrences(1)
+        return new FieldBuilder("titleInfo").setMaxOccurrences(1)
                 // titleInfo@type, enum
                 // title, type="stringPlusLanguage"
                 // subTitle, type="stringPlusLanguage"
@@ -51,10 +61,12 @@ public class NdkPeriodicalVolumeForm {
                 // partName, type="stringPlusLanguage"
                 // nonSort, type="stringPlusLanguage"
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
-        .createField()); // titleInfo
+        .createField(); // titleInfo
+    }
 
+    private Field genre() {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("genre").setMaxOccurrences(1)
+        return new FieldBuilder("genre").setMaxOccurrences(1)
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
@@ -62,10 +74,12 @@ public class NdkPeriodicalVolumeForm {
                 .addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
                     .setHint("bližší údaje o typu dokumentu\n hodnota “volume”")
                 .createField()) // value
-        .createField()); // genre
+        .createField(); // genre
+    }
 
+    private Field originInfo() {
         // originInfo, originInfoDefinition
-        modsFields.add(new FieldBuilder("originInfo").setMaxOccurrences(1)
+        return new FieldBuilder("originInfo").setMaxOccurrences(1)
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 // @displayLabel
                 // @altRepGroup
@@ -101,10 +115,12 @@ public class NdkPeriodicalVolumeForm {
                 // edition
                 // issuance, issuanceDefinition, enum
                 // frequency, stringPlusLanguagePlusAuthority
-        .createField()); // originInfo
+        .createField(); // originInfo
+    }
 
+    private Field physicalDescription() {
         // physicalDescription, physicalDescriptionDefinition
-        modsFields.add(new FieldBuilder("physicalDescription").setMaxOccurrences(1)
+        return new FieldBuilder("physicalDescription").setMaxOccurrences(1)
                 // form, formDefinition extends stringPlusLanguagePlusAuthority
                 // reformattingQuality
                 // internetMediaType
@@ -121,10 +137,12 @@ public class NdkPeriodicalVolumeForm {
                             + " úroveň ročníku (např. chybějící čísla apod.)")
                     .createField()) // value
                 .createField()) // note
-        .createField()); // physicalDescription
+        .createField(); // physicalDescription
+    }
 
+    private Field identifier() {
         // identifier, identifierDefinition, [0,*]
-        modsFields.add(new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
+        return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
                 .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
                     + " mezinárodní nebo lokální."
                     + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
@@ -156,9 +174,7 @@ public class NdkPeriodicalVolumeForm {
                     .addMapValue("yes", "Neplatný")
                 .createField()) // invalid
                 //   altRepGroup, xs:string
-        .createField()); // identifier
-
-        return f;
+        .createField(); // identifier
     }
 
 }
