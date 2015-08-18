@@ -43,9 +43,11 @@ import com.smartgwt.client.widgets.form.validator.RequiredIfFunction;
 import com.smartgwt.client.widgets.form.validator.RequiredIfValidator;
 import com.smartgwt.client.widgets.layout.HStack;
 import com.smartgwt.client.widgets.layout.VLayout;
+import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
 import cz.cas.lib.proarc.webapp.shared.series.Series;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -93,6 +95,7 @@ public final class PageMetadataEditor {
     private SubmitValuesHandler proxySubmitHandler;
     private int applyToMaxValue = 16;
     private IntegerRangeValidator applyToValidator;
+    private String typeValueMapId;
 
     public PageMetadataEditor() {
         this.i18n = GWT.create(ClientMessages.class);
@@ -250,6 +253,9 @@ public final class PageMetadataEditor {
                 prefix, numberStart, numberIncrement, suffix, seriesType, numberExample));
     }
 
+    /**
+     * @see #setPageTypeValueMapId
+     */
     private void createPageTypeUi() {
         formPageType = createForm();
 
@@ -259,7 +265,6 @@ public final class PageMetadataEditor {
         allowPageTypes.setShowTitle(false);
 
         pageType = new SelectItem(ModsCustomDataSource.FIELD_PAGE_TYPE, i18n.PageForm_PageType_Title());
-        pageType.setValueMap(ModsCustomDataSource.getPageTypes());
         pageType.setDefaultValue(ModsCustomDataSource.getDefaultPageType());
         pageType.setValue(ModsCustomDataSource.getDefaultPageType());
         
@@ -416,6 +421,21 @@ public final class PageMetadataEditor {
     public void setMaxApplyTo(int size) {
         applyToMaxValue = size;
         applyToValidator.setMax(applyToMaxValue);
+    }
+
+    /**
+     * Sets a page type value map.
+     * @param typeValueMapId ID of a value map
+     * @see ValueMapDataSource
+     */
+    public void setPageTypeValueMapId(String typeValueMapId) {
+        if (this.typeValueMapId == null ? typeValueMapId == null : this.typeValueMapId.equals(typeValueMapId)) {
+            return ;
+        }
+        this.typeValueMapId = typeValueMapId;
+        pageType.setOptionDataSource(ValueMapDataSource.getInstance().getOptionDataSource(typeValueMapId));
+        pageType.setValueField(BundleValue.KEY);
+        pageType.setDisplayField(BundleValue.VALUE);
     }
 
     public Integer getIndexStart() {

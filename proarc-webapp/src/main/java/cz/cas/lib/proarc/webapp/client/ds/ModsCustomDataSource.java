@@ -31,7 +31,6 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
-import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ErrorHandler;
@@ -39,7 +38,6 @@ import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.ds.mods.IdentifierDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -116,10 +114,6 @@ public final class ModsCustomDataSource extends RestDataSource implements ModsCo
         ModsCustomDataSource ds = (ModsCustomDataSource) DataSource.get(ID);
         ds = ds != null ? ds : new ModsCustomDataSource();
         return ds;
-    }
-
-    public static LinkedHashMap<String, String> getPageTypes() {
-        return LocalizationDataSource.getInstance().asValueMap(BundleName.MODS_PAGE_TYPES);
     }
 
     public static String getDefaultPageType() {

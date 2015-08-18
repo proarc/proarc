@@ -24,6 +24,7 @@ import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
+import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction;
@@ -67,6 +68,7 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
     public void edit(DigitalObject[] items) {
         this.digitalObjects = items;
         switchEditor();
+        editor.selectionChanged();
     }
 
     private void switchEditor() {
@@ -204,6 +206,12 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
             });
         }
 
+        /**
+         * Implement to modify UI according to selection changes.
+         */
+        protected void selectionChanged() {
+        }
+
         private void close() {
             if (errorMsg != null) {
                 getProgress().stop();
@@ -319,6 +327,22 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
             batchApplyTo = editor.getApplyTo();
             if (batchApplyTo > getSelection().length) {
                 stop(i18n.PageMetadataEditor_ApplyToErrOutOfBounds_Msg(String.valueOf(batchApplyTo)));
+            }
+        }
+
+        @Override
+        protected void selectionChanged() {
+            super.selectionChanged();
+            DigitalObject[] selection = getSelection();
+            if (selection != null && selection.length > 0) {
+                String modelId = selection[0].getModelId();
+                String pageTypeMapId = null;
+                if ("model:page".equals(modelId)) {
+                    pageTypeMapId = BundleName.MODS_PAGE_TYPES.getValueMapId();
+                }
+                if (pageTypeMapId != null) {
+                    editor.setPageTypeValueMapId(pageTypeMapId);
+                }
             }
         }
 
