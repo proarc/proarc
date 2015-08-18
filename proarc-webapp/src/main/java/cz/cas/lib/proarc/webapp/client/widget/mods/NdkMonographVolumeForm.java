@@ -36,8 +36,30 @@ public final class NdkMonographVolumeForm {
         f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
         List<Field> modsFields = f.getFields().get(0).getFields();
 
+        modsFields.add(titleInfo());
+        modsFields.add(name());
+        modsFields.add(typeOfResource());
+        modsFields.add(genre());
+        modsFields.add(originInfo());
+        modsFields.add(language());
+        modsFields.add(physicalDescription());
+        modsFields.add(abstracts());
+        modsFields.add(note());
+        modsFields.add(subject());
+        modsFields.add(classification());
+        // XXX unsupported yet
+        // relatedItem
+        modsFields.add(identifier());
+        modsFields.add(location());
+        modsFields.add(part());
+        modsFields.add(recordInfo());
+
+        return f;
+    }
+
+    private Field titleInfo() {
         // titleInfo, titleInfoDefinition
-        modsFields.add(new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
+        return new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
                 .setHint("Název titulu.<p>Pro plnění použít katalogizační záznam.")
                 // titleInfo@type, enum
                 .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
@@ -85,10 +107,12 @@ public final class NdkMonographVolumeForm {
                 .createField()) // partName
                 // nonSort, type="stringPlusLanguage"
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
-        .createField()); // titleInfo
+        .createField(); // titleInfo
+    }
 
+    private Field name() {
         // name, nameDefinition
-        modsFields.add(new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
                 .setHint("Údaje o odpovědnosti za svazek."
                     + "<p>Pokud má monografie autora a ilustrátora, element &lt;name> se opakuje s různými rolemi.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
@@ -169,10 +193,12 @@ public final class NdkMonographVolumeForm {
                     .createField()) // roleTerm
                 .createField()) // role
                 // description
-            .createField()); // name
+            .createField(); // name
+    }
 
+    private Field typeOfResource() {
         // typeOfResource, typeOfResourceDefinition extends resourceTypeDefinition
-        modsFields.add(new FieldBuilder("typeOfResource").setMaxOccurrences(1)
+        return new FieldBuilder("typeOfResource").setMaxOccurrences(1)
                 // typeOfResourceDefinition
                 //   collection
                 //   manuscript
@@ -184,19 +210,23 @@ public final class NdkMonographVolumeForm {
                     .setHint("Popis charakteristiky typu nebo obsahu zdroje.<p>Pro monografie hodnota „text“.")
                     .addMapValue("text", "text")
                 .createField()) // value
-        .createField()); // typeOfResource
+        .createField(); // typeOfResource
+    }
 
+    private Field genre() {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(10)
+        return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(10)
                 .setHint("Bližší údaje o typu dokumentu.<p>Pro monografie hodnota “volume”.")
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
-        .createField()); // genre
+        .createField(); // genre
+    }
 
+    private Field originInfo() {
         // originInfo, originInfoDefinition
-        modsFields.add(new FieldBuilder("originInfo").setTitle("Origin Info - M").setMaxOccurrences(10)
+        return new FieldBuilder("originInfo").setTitle("Origin Info - M").setMaxOccurrences(10)
                 .setHint("Informace o původu předlohy.")
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 // @displayLabel
@@ -298,10 +328,12 @@ public final class NdkMonographVolumeForm {
 //                    .addMapValue("INTEGRATING_RESOURCE", "integrating resource")
                 .createField()) // issuance
                 // frequency, stringPlusLanguagePlusAuthority
-        .createField()); // originInfo
+        .createField(); // originInfo
+    }
 
+    private Field language() {
         // language, languageDefinition
-        modsFields.add(new FieldBuilder("language").setTitle("Languages - M").setMaxOccurrences(10)
+        return new FieldBuilder("language").setTitle("Languages - M").setMaxOccurrences(10)
                 .setHint("Údaje o jazyce dokumentu; v případě vícenásobného výskytu nutno element &lt;language> opakovat")
                 // @objectPart, @displayLabel, @altRepGroup, @usage
                 .addField(new FieldBuilder("objectPart").setTitle("Object Part - MA").setMaxOccurrences(1).setType(Field.COMBO).setWidth("300")
@@ -337,10 +369,12 @@ public final class NdkMonographVolumeForm {
                     .createField()) // value
                 .createField()) // languageTerm
                 // scriptTerm
-        .createField()); // language
+        .createField(); // language
+    }
 
+    private Field physicalDescription() {
         // physicalDescription, physicalDescriptionDefinition
-        modsFields.add(new FieldBuilder("physicalDescription").setTitle("Physical Description - M").setMaxOccurrences(10)
+        return new FieldBuilder("physicalDescription").setTitle("Physical Description - M").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu zdroje/předlohy.")
                 // form, formDefinition extends stringPlusLanguagePlusAuthority
                 .addField(new FieldBuilder("form").setTitle("Form - M").setMaxOccurrences(1)
@@ -387,20 +421,24 @@ public final class NdkMonographVolumeForm {
                             + "<p>Pro každou poznámku je nutno vytvořit nový &lt;note> element.")
                     .createField()) // value
                 .createField()) // note
-        .createField()); // physicalDescription
+        .createField(); // physicalDescription
+    }
 
+    private Field abstracts() {
         // abstract, abstractDefinition extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
+        return new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
                     .setHint("Shrnutí obsahu jako celku. Odpovídá poli 520 MARC21")
                 .createField()) // value
-        .createField()); // abstract
+        .createField(); // abstract
+    }
 
+    private Field note() {
         // note, noteDefinition extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
@@ -408,10 +446,12 @@ public final class NdkMonographVolumeForm {
                         + "<p>Odpovídá hodnotám v poli 245, podpole „c“ (statement of responsibility)"
                         + " a v polích 5XX (poznámky) katalogizačního záznamu")
                 .createField()) // value
-        .createField()); // note
+        .createField(); // note
+    }
 
+    private Field subject() {
         // subject, subjectDefinition
-        modsFields.add(new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
+        return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 // autofill "czenas"
@@ -490,10 +530,12 @@ public final class NdkMonographVolumeForm {
                 // cartographics
                 // occupation
                 // genre
-        .createField()); // subject
+        .createField(); // subject
+    }
 
+    private Field classification() {
         // classification, classificationDefinition extends stringPlusLanguagePlusAuthority
-        modsFields.add(new FieldBuilder("classification").setTitle("Classification - R").setMaxOccurrences(10)
+        return new FieldBuilder("classification").setTitle("Classification - R").setMaxOccurrences(10)
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // autofill "udc"
                 .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("udc").createField())
@@ -502,13 +544,12 @@ public final class NdkMonographVolumeForm {
                     .setHint("Klasifikační údaje věcného třídění podle Mezinárodního"
                         + " desetinného třídění.<p>Odpovídá poli 080 MARC21.")
                 .createField()) // value
-        .createField()); // classification
+        .createField(); // classification
+    }
 
-        // XXX unsupported yet
-        // relatedItem
-
+    private Field identifier() {
         // identifier, identifierDefinition, [0,*]
-        modsFields.add(new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
+        return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
                 .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
                     + " mezinárodní nebo lokální."
                     + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
@@ -550,10 +591,12 @@ public final class NdkMonographVolumeForm {
                     .addMapValue("yes", "Neplatný")
                 .createField()) // invalid
                 //   altRepGroup, xs:string
-        .createField()); // identifier
+        .createField(); // identifier
+    }
 
+    private Field location() {
         // location, locationDefinition
-        modsFields.add(new FieldBuilder("location").setTitle("Location - MA").setMaxOccurrences(10)
+        return new FieldBuilder("location").setTitle("Location - MA").setMaxOccurrences(10)
                 .setHint("Údaje o uložení popisovaného dokumentu, např. signatura, místo uložení apod.")
                 // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @altRepGroup
@@ -591,10 +634,12 @@ public final class NdkMonographVolumeForm {
                 .createField()) // url
                 // holdingSimple
                 // holdingExternal
-        .createField()); // location
+        .createField(); // location
+    }
 
+    private Field part() {
         // part, type="partDefinition"
-        modsFields.add(new FieldBuilder("part").setTitle("Part - O").setMaxOccurrences(1)
+        return new FieldBuilder("part").setTitle("Part - O").setMaxOccurrences(1)
                 .setHint("Popis části, pokud je svazek částí souboru.")
                 // @ID, @type, @order, @displayLabel, @altRepGroup
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
@@ -620,10 +665,12 @@ public final class NdkMonographVolumeForm {
                 // extent, type="extentDefinition"
                 // date
                 // text
-            .createField()); // part
+            .createField(); // part
+    }
 
+    private Field recordInfo() {
         // recordInfo, recordInfoDefinition
-        modsFields.add(new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
+        return new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
                 .setHint("Údaje o metadatovém záznamu - jeho vzniku, změnách apod.")
                 // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @altRepGroup
@@ -705,9 +752,7 @@ public final class NdkMonographVolumeForm {
                             + "<p>Odpovídá hodnotě návěští záznamu MARC21, pozice 18 - hodnota „aacr“ pro LDR/18 = „a“")
                     .createField()) // value
                 .createField()) // descriptionStandard
-        .createField()); // recordInfo
-
-        return f;
+        .createField(); // recordInfo
     }
 
 }
