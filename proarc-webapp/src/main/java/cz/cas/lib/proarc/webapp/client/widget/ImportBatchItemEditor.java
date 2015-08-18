@@ -81,7 +81,6 @@ import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchItemDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource.RelationChangeEvent;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource.RelationChangeHandler;
@@ -92,7 +91,6 @@ import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing.DigitalObj
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditor;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectChildrenEditor.ChildActivities;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectChildrenEditor.ChildEditorDisplay;
-import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -271,10 +269,9 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 i18n.ImportBatchItemEditor_ListHeaderPageNumber_Title());
         fieldPageNumber.setPrompt(i18n.ImportBatchItemEditor_ListHeaderPageNumber_Hint());
 
-        ListGridField fieldPageType = new ListGridField(ImportBatchItemDataSource.FIELD_PAGE_TYPE,
+        ListGridField fieldPageType = new ListGridField(ImportBatchItemDataSource.FIELD_PAGE_TYPE_LABEL,
                 i18n.ImportBatchItemEditor_ListHeaderPageType_Title());
         fieldPageType.setPrompt(i18n.ImportBatchItemEditor_ListHeaderPageType_Hint());
-        fieldPageType.setEmptyCellValue(ModsCustomDataSource.getPageTypes().get(ModsCustomDataSource.getDefaultPageType()));
 
         grid.setFields(fieldFilename, fieldPageNumber, fieldPageIndex, fieldPageType, fieldPid, fieldItemModel, fieldUser);
         grid.setContextMenu(Actions.createMenu());
@@ -529,17 +526,15 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         //thumbGrid.setDetailViewerProperties(thumbViewer);
 
         DetailViewerField dvfPageIndex = new DetailViewerField(ImportBatchItemDataSource.FIELD_PAGE_INDEX);
-        final LinkedHashMap<String, String> pageTypes = ModsCustomDataSource.getPageTypes();
         dvfPageIndex.setDetailFormatter(new DetailFormatter() {
 
             @Override
             public String format(Object value, Record record, DetailViewerField field) {
                 String number = record.getAttribute(ImportBatchItemDataSource.FIELD_PAGE_NUMBER);
-                String type = record.getAttribute(ImportBatchItemDataSource.FIELD_PAGE_TYPE);
-                type = (type != null) ? type : ModsCustomDataSource.getDefaultPageType();
+                String type = record.getAttribute(ImportBatchItemDataSource.FIELD_PAGE_TYPE_LABEL);
                 number = (number != null) ? number : "-";
                 value = (value != null) ? value : "-";
-                return ClientUtils.format("%s: %s<br>Index: %s", pageTypes.get(type), number, value);
+                return ClientUtils.format("%s: %s<br>Index: %s", type, number, value);
             }
         });
         final DetailViewerField dvfThumbnail = new DetailViewerField(ImportBatchItemDataSource.FIELD_THUMBNAIL);

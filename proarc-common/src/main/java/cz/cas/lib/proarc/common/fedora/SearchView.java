@@ -25,7 +25,9 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.json.JsonUtils;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.HasDataHandler;
+import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -443,17 +445,18 @@ public final class SearchView {
         item.state = replaceUriWithPid(item.state);
         return item;
     }
-
     void resolveObjectLabel(Item item) {
-        String label = resolveObjectLabel(item.getLabel(), item.getModel(), locale);
-        item.setLabel(label);
-    }
-
-    private static String resolveObjectLabel(String label, String model, Locale locale) {
-        if (NdkPlugin.MODEL_PAGE.equals(model)) {
-            label = PageView.resolveFedoraObjectLabel(label, locale);
+        // XXX implement a plugin cache
+        MetaModel model = MetaModelRepository.getInstance().find(item.getModel());
+        if (model == null) {
+            // other than digital object model (device, ...)
+            return ;
         }
-        return label;
+        HasSearchViewHandler hasHandler = model.getPlugin().getHandlerProvider(HasSearchViewHandler.class);
+        if (hasHandler != null) {
+            String label = hasHandler.createSearchViewHandler().getObjectLabel(item, locale);
+            item.setLabel(label);
+        }
     }
 
     private static RiSearch buildSearch(String query) {
@@ -474,6 +477,20 @@ public final class SearchView {
         String content = scanner.next();
         scanner.close();
         return content;
+    }
+
+    /**
+     * A plug-in capability.
+     */
+    public interface HasSearchViewHandler extends HasDataHandler {
+        SearchViewHandler createSearchViewHandler();
+    }
+
+    /**
+     * Implement to customize a result label of a search.
+     */
+    public interface SearchViewHandler {
+        String getObjectLabel(Item item, Locale locale);
     }
 
     public static class Item {

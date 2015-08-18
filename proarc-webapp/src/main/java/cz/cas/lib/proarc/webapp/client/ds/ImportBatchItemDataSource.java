@@ -51,6 +51,7 @@ public final class ImportBatchItemDataSource extends RestDataSource {
     public static final String FIELD_PID = ImportResourceApi.BATCHITEM_PID;
     public static final String FIELD_MODEL = ImportResourceApi.BATCHITEM_MODEL;
     public static final String FIELD_PAGE_TYPE = ImportResourceApi.BATCHITEM_PAGETYPE;
+    public static final String FIELD_PAGE_TYPE_LABEL = ImportResourceApi.BATCHITEM_PAGETYPELABEL;
     public static final String FIELD_PAGE_INDEX = ImportResourceApi.BATCHITEM_PAGEINDEX;
     public static final String FIELD_PAGE_NUMBER = ImportResourceApi.BATCHITEM_PAGENUMBER;
     public static final String FIELD_TIMESTAMP = ImportResourceApi.BATCHITEM_TIMESTAMP;
@@ -91,13 +92,13 @@ public final class ImportBatchItemDataSource extends RestDataSource {
         DataSourceImageField thumbnail = new DataSourceImageField(FIELD_THUMBNAIL);
         thumbnail.setImageURLPrefix(RestConfig.URL_DIGOBJECT_THUMBNAIL + "?");
 
-        DataSourceField pageType = new DataSourceField(FIELD_PAGE_TYPE, FieldType.ENUM);
-        pageType.setValueMap(ModsCustomDataSource.getPageTypes());
-        
+        DataSourceField pageType = new DataSourceField(FIELD_PAGE_TYPE, FieldType.TEXT);
+        DataSourceField pageTypeLabel = new DataSourceField(FIELD_PAGE_TYPE_LABEL, FieldType.TEXT);
+
         DataSourceField pageIndex = new DataSourceField(FIELD_PAGE_INDEX, FieldType.INTEGER, "Page Index");
         DataSourceField pageNumber = new DataSourceField(FIELD_PAGE_NUMBER, FieldType.TEXT, "Page Number");
 
-        setFields(pid, batchId, timestamp, filename, user, model, preview, thumbnail, pageIndex, pageNumber, pageType);
+        setFields(pid, batchId, timestamp, filename, user, model, preview, thumbnail, pageIndex, pageNumber, pageType, pageTypeLabel);
 
         setOperationBindings(RestConfig.createDeleteOperation());
 

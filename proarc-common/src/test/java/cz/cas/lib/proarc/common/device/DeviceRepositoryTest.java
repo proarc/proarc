@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.device;
 
 import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mix.ImageCaptureMetadataType;
 import cz.cas.lib.proarc.mix.ImageCaptureMetadataType.ScannerCapture;
 import cz.cas.lib.proarc.mix.Mix;
@@ -45,6 +46,7 @@ public class DeviceRepositoryTest {
     public void setUp() {
         fedora = new FedoraTestSupport();
         storage = fedora.getRemoteStorage();
+        MetaModelRepository.setInstance(new String[0]);
         repository = new DeviceRepository(storage);
     }
 

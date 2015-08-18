@@ -309,7 +309,7 @@ public class ImportResource {
         if (startRow > 0) {
             imports = imports.subList(startRow, totalImports);
         }
-        List<Item> records = new PageView().list(batchId, imports);
+        List<Item> records = new PageView().list(batchId, imports, session.getLocale(httpHeaders));
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, totalRows, records);
     }
 

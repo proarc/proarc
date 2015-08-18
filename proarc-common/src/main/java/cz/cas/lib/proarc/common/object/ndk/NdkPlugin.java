@@ -16,11 +16,16 @@
  */
 package cz.cas.lib.proarc.common.object.ndk;
 
+import cz.cas.lib.proarc.common.fedora.PageView;
+import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
+import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.i18n.BundleValueMap;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
+import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
@@ -50,7 +55,8 @@ import java.util.ResourceBundle.Control;
  *
  * @author Jan Pokorsky
  */
-public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDefinition> {
+public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDefinition>,
+        HasSearchViewHandler {
 
     /**
      * The plugin ID.
@@ -69,6 +75,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
     public static final String MODEL_CHAPTER = "model:ndkchapter";
     public static final String MODEL_PICTURE = "model:ndkpicture";
     public static final String MODEL_PAGE = "model:page";
+
+    private NdkSearchViewHandler searchViewHandler;
 
     @Override
     public String getId() {
@@ -223,6 +231,14 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
     }
 
     @Override
+    public SearchViewHandler createSearchViewHandler() {
+        if (searchViewHandler == null) {
+            searchViewHandler = new NdkSearchViewHandler();
+        }
+        return searchViewHandler;
+    }
+
+    @Override
     public List<ValueMap> getValueMaps(ValueMap.Context context) {
         Locale locale = context.getLocale();
         ArrayList<ValueMap> maps = new ArrayList<ValueMap>();
@@ -279,4 +295,18 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
         }
 
     }
+
+    public static class NdkSearchViewHandler implements SearchViewHandler {
+
+        @Override
+        public String getObjectLabel(Item item, Locale locale) {
+            if (MODEL_PAGE.equals(item.getModel())) {
+                return PageView.resolveFedoraObjectLabel(
+                        item.getLabel(), NdkPageMapper.getPageTypeLabels(locale));
+            }
+            return item.getLabel();
+        }
+
+    }
+
 }

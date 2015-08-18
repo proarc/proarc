@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
+import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
@@ -32,6 +33,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+import java.util.logging.Logger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -44,6 +49,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  */
 public class NdkPageMapper extends NdkMapper {
 
+    private static final Logger LOG = Logger.getLogger(NdkPageMapper.class.getName());
     /** {@code /mods/part/detail@type} */
     private static final String NUMBER_TYPE_PAGE_INDEX = "pageIndex";
     /** {@code /mods/part/detail@type} */
@@ -52,6 +58,24 @@ public class NdkPageMapper extends NdkMapper {
     public static final String PAGE_TYPE_NORMAL = "NormalPage";
     /** A default value of {@code /mods/typeOfResource}. */
     public static final String RESOURCE_TYPE_TEXT = "text";
+
+    public static ResourceBundle getPageTypeLabels(Locale locale) {
+        ResourceBundle rb = ResourceBundle.getBundle(
+                BundleName.MODS_PAGE_TYPES.toString(), locale);
+        return rb;
+    }
+
+    public static String getPageTypeLabel(String pageType, Locale locale) {
+        if (pageType == null || pageType.isEmpty()) {
+            pageType = NdkPageMapper.PAGE_TYPE_NORMAL;
+        }
+        try {
+            return getPageTypeLabels(locale).getString(pageType);
+        } catch (MissingResourceException ex) {
+            LOG.warning("Missing page type resource for " + pageType + " locale " + locale);
+            return pageType;
+        }
+    }
 
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {

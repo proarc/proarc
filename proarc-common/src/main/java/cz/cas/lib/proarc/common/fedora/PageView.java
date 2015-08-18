@@ -19,15 +19,11 @@ package cz.cas.lib.proarc.common.fedora;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.mods.custom.PageMapper;
-import cz.cas.lib.proarc.common.mods.custom.PageMapper.Page;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,15 +33,18 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
+ * A view over batch items that are usually pages. Each plugin that wants to
+ * handle batch imports has to provide {@link MetadataHandler} that implements
+ * {@link PageViewHandler}.
  *
  * @author Jan Pokorsky
  */
 public final class PageView {
 
-    public List<Item> list(int batchId, Collection<BatchItemObject> imports) throws DigitalObjectException {
+    private LocalStorage storage = new LocalStorage();
+
+    public List<Item> list(int batchId, Collection<BatchItemObject> imports, Locale locale) throws DigitalObjectException {
         ArrayList<Item> result = new ArrayList<Item>(imports.size());
-        LocalStorage storage = new LocalStorage();
-        PageMapper mapper = new PageMapper();
         for (BatchItemObject imp : imports) {
             ObjectState objectState = imp.getState();
             if (objectState == ObjectState.LOADING || objectState == ObjectState.LOADING_FAILED) {
@@ -55,76 +54,54 @@ public final class PageView {
                         null, null, null, null, -1, null, null));
                 continue;
             }
-            File foxml = imp.getFile();
-            LocalObject local = storage.load(imp.getPid(), foxml);
-            DigitalObjectHandler doHandler = DigitalObjectManager.getDefault().createHandler(local);
-            DescriptionMetadata<ModsType> metadata = doHandler.<ModsType>metadata().getMetadata();
-            ModsType mods = metadata.getData();
-            Page page = mapper.map(mods);
-            RelationEditor relsExt = doHandler.relations();
-            String model = relsExt.getModel();
-            String filename = relsExt.getImportFile();
-            result.add(new Item(batchId, filename, imp.getPid(),
-                    model, page.getIndex(), page.getNumber(), page.getType(),
-                    metadata.getTimestamp(), local.getOwner(), local.getLabel()));
+            result.add(createItem(imp, locale));
         }
         return result;
     }
 
-    public Item updateItem(int batchId, BatchItemObject item, long timestamp, String message,
-            String pageIndex, String pageNumber, String pageType)
-            throws DigitalObjectException {
-        
-        LocalStorage storage = new LocalStorage();
-        LocalObject local = storage.load(item.getPid(), item.getFile());
+    private Item createItem(BatchItemObject imp, Locale locale) throws DigitalObjectException {
+        Integer batchId = imp.getBatchId();
+        File foxml = imp.getFile();
+        LocalObject local = storage.load(imp.getPid(), foxml);
         DigitalObjectHandler doHandler = DigitalObjectManager.getDefault().createHandler(local);
+        MetadataHandler<?> metadataHandler = doHandler.metadata();
 
-        // MODS
-        MetadataHandler<Object> metadataHandler = doHandler.metadata();
-        DescriptionMetadata<Object> metadata = metadataHandler.getMetadata();
-        Object data = metadata.getData();
-        if (data instanceof ModsType) {
-            ModsType mods = (ModsType) data;
-            PageMapper pageMapper = new PageMapper();
-            pageMapper.updatePage(mods, pageIndex, pageNumber, pageType);
-            metadata.setData(mods);
-            metadataHandler.setMetadata(metadata, message);
-        } else {
-            throw new DigitalObjectException(local.getPid(), batchId, null,
-                    "Unsupported metadata type: " + data.getClass(), null);
-        }
-
-        // RELS-EXT
+        DescriptionMetadata<?> metadata = metadataHandler.getMetadata();
         RelationEditor relsExt = doHandler.relations();
         String model = relsExt.getModel();
         String filename = relsExt.getImportFile();
-
-        doHandler.commit();
-        metadata = metadataHandler.getMetadata();
-        Item update = new Item(batchId, filename, item.getPid(), model,
-                pageIndex, pageNumber, pageType,
+        Item item = new Item(batchId, filename, imp.getPid(),
+                model, null, null, null,
                 metadata.getTimestamp(), local.getOwner(), local.getLabel());
-        return update;
+
+        if (metadataHandler instanceof PageViewHandler) {
+            PageViewHandler pvh = (PageViewHandler) metadataHandler;
+            PageViewItem pvItem = pvh.createPageViewItem(locale);
+            updateItem(item, pvItem);
+        } else {
+            throw new DigitalObjectException(imp.getPid(), batchId, null, "Model '" + model + "' unsuported by any plug-in!", null);
+        }
+        return item;
     }
 
-    private static ResourceBundle getPageTypeTitles(Locale locale) {
-        ResourceBundle rb = ResourceBundle.getBundle(
-                BundleName.MODS_PAGE_TYPES.toString(), locale);
-        return rb;
+    private Item updateItem(Item item, PageViewItem pvItem) {
+        item.pageIndex = pvItem.getPageIndex();
+        item.pageNumber = pvItem.getPageNumber();
+        item.pageType = pvItem.getPageType();
+        item.pageTypeLabel = pvItem.getPageTypeLabel();
+        return item;
     }
-
     /**
      * Gets localized label of fedora object containing page.
      * It relies on page label syntax: {@code <pageLabel>, <pageType>}
      *
      * @param label label of fedora object
-     * @param locale target locale
+     * @param pageTypeTitles bundle of page type titles in target locale
      * @return localized label
      *
      * @see ModsUtils#getLabel
      */
-    public static String resolveFedoraObjectLabel(String label, Locale locale) {
-        ResourceBundle pageTypeTitles = getPageTypeTitles(locale);
+    public static String resolveFedoraObjectLabel(String label, ResourceBundle pageTypeTitles) {
         int typeIndex = label.lastIndexOf(", ") + 2;
         if (typeIndex - 2 >= 0 && typeIndex < label.length()) {
             String typeCode = label.substring(typeIndex);
@@ -140,6 +117,50 @@ public final class PageView {
         return label;
     }
 
+    public interface PageViewHandler {
+        PageViewItem createPageViewItem(Locale locale) throws DigitalObjectException;
+    }
+
+    public static class PageViewItem {
+
+        private String pageIndex;
+        private String pageNumber;
+        private String pageType;
+        private String pageTypeLabel;
+
+        public String getPageIndex() {
+            return pageIndex;
+        }
+
+        public void setPageIndex(String pageIndex) {
+            this.pageIndex = pageIndex;
+        }
+
+        public String getPageNumber() {
+            return pageNumber;
+        }
+
+        public void setPageNumber(String pageNumber) {
+            this.pageNumber = pageNumber;
+        }
+
+        public String getPageType() {
+            return pageType;
+        }
+
+        public void setPageType(String pageType) {
+            this.pageType = pageType;
+        }
+
+        public String getPageTypeLabel() {
+            return pageTypeLabel;
+        }
+
+        public void setPageTypeLabel(String pageTypeLabel) {
+            this.pageTypeLabel = pageTypeLabel;
+        }
+    }
+
     public static class Item {
 
         private Integer batchId;
@@ -149,6 +170,7 @@ public final class PageView {
         private String pageIndex;
         private String pageNumber;
         private String pageType;
+        private String pageTypeLabel;
         private long timestamp;
         private String user;
         private String label;
@@ -197,6 +219,10 @@ public final class PageView {
 
         public String getPageType() {
             return pageType;
+        }
+
+        public String getPageTypeLabel() {
+            return pageTypeLabel;
         }
 
         public long getTimestamp() {

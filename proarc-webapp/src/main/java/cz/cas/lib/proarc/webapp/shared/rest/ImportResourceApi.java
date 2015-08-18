@@ -71,6 +71,7 @@ public final class ImportResourceApi {
     public static final String BATCHITEM_PAGEINDEX = "pageIndex";
     public static final String BATCHITEM_PAGENUMBER = "pageNumber";
     public static final String BATCHITEM_PAGETYPE = "pageType";
+    public static final String BATCHITEM_PAGETYPELABEL = "pageTypeLabel";
     public static final String BATCHITEM_TIMESTAMP = "timestamp";
     public static final String BATCHITEM_USER = "user";
 

@@ -61,6 +61,10 @@ public abstract class AnnotatedPageViewItem extends Item {
     @Override
     public abstract String getPageType();
 
+    @XmlElement(name = ImportResourceApi.BATCHITEM_PAGETYPELABEL)
+    @Override
+    public abstract String getPageTypeLabel();
+
     @XmlElement(name = ImportResourceApi.BATCHITEM_TIMESTAMP)
     @Override
     public abstract long getTimestamp();

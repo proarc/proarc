@@ -24,6 +24,8 @@ import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.SearchView.Result;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.user.FedoraGroupDao;
 import cz.cas.lib.proarc.common.user.FedoraUserDao;
 import cz.cas.lib.proarc.common.user.Group;
@@ -58,6 +60,7 @@ public class SearchViewTest {
     public void setUp() throws Exception {
         fedora = new FedoraTestSupport();
         storage = fedora.getRemoteStorage();
+        MetaModelRepository.setInstance(new String[]{NdkPlugin.ID});
     }
 
     @After
@@ -115,7 +118,7 @@ public class SearchViewTest {
     public void testFindLastCreated() throws Exception {
         // XXX needs some assertions; it tests no exception now
 //        client.debug(true);
-        String user = "model:periodical";
+        String user = NdkPlugin.MODEL_PERIODICAL;
 //        String user = null;
         SearchView instance = new SearchView(storage);
         List<Item> result = instance.findLastCreated(0, user, null);
@@ -124,7 +127,7 @@ public class SearchViewTest {
 
     @Test
     public void testFind_HasOwner() throws Exception {
-        String modelId = "model:periodical";
+        String modelId = NdkPlugin.MODEL_PERIODICAL;
         UserProfile user = UserProfile.create(testName.getMethodName(), testName.getMethodName(), testName.getMethodName());
         fedora.cleanUp();
         // prepare fedora user and group
@@ -200,7 +203,7 @@ public class SearchViewTest {
     public void testFindQuery() throws Exception {
 //        client.debug(true);
         SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findQuery("p", "p", "u", "p", "model:periodical", Collections.<String>emptyList());
+        List<Item> result = instance.findQuery("p", "p", "u", "p", NdkPlugin.MODEL_PERIODICAL, Collections.<String>emptyList());
         assertFalse(result.isEmpty());
     }
 
@@ -208,7 +211,7 @@ public class SearchViewTest {
     public void testFindModelQuery() throws Exception {
 //        client.debug(true);
         SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findQuery(null, null, null, null, "model:periodical", Collections.<String>emptyList());
+        List<Item> result = instance.findQuery(null, null, null, null, NdkPlugin.MODEL_PERIODICAL, Collections.<String>emptyList());
         assertFalse(result.isEmpty());
     }
 

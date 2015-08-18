@@ -22,6 +22,8 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.PageView.PageViewHandler;
+import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
@@ -32,6 +34,8 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
+import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
+import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -56,6 +60,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,7 +72,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  *
  * @author Jan Pokorsky
  */
-public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
+public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, PageViewHandler {
 
     public static final String ERR_NDK_CHANGE_MODS_WITH_URNNBN = "Err_Ndk_Change_Mods_With_UrnNbn";
     public static final String ERR_NDK_CHANGE_MODS_WITH_MEMBERS = "Err_Ndk_Change_Mods_With_Members";
@@ -303,6 +308,24 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition> {
 //            dm.setEditor(editorId);
         dm.setData(xml);
         return dm;
+    }
+
+    @Override
+    public PageViewItem createPageViewItem(Locale locale) throws DigitalObjectException {
+        String modelId = handler.relations().getModel();
+        if (modelId.equals(NdkPlugin.MODEL_PAGE)) {
+            ModsDefinition mods = editor.read();
+            NdkPageMapper mapper = new NdkPageMapper();
+            Page page = mapper.toJsonObject(mods, new Context(handler));
+            PageViewItem item = new PageViewItem();
+            item.setPageIndex(page.getIndex());
+            item.setPageNumber(page.getNumber());
+            item.setPageType(page.getType());
+            item.setPageTypeLabel(NdkPageMapper.getPageTypeLabel(item.getPageType(), locale));
+            return item;
+        } else {
+            throw new DigitalObjectException(fobject.getPid(), "Unexpected model for NDK page: " + modelId);
+        }
     }
 
     private void checkBeforeWrite(ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations) throws DigitalObjectException {

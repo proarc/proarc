@@ -20,6 +20,10 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.PageView.PageViewHandler;
+import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
+import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
+import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
@@ -27,8 +31,14 @@ import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.custom.Mapping;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
+import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
+import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin.NdkSearchViewHandler;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.util.ArrayList;
@@ -37,6 +47,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -47,7 +58,8 @@ import org.codehaus.jackson.map.ObjectMapper;
  * @author Jan Pokorsky
  */
 @Deprecated
-public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsType> {
+public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsType>,
+        HasSearchViewHandler {
 
     /**
      * The plugin ID.
@@ -134,11 +146,16 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
     }
 
     @Override
+    public SearchViewHandler createSearchViewHandler() {
+        return new NdkSearchViewHandler();
+    }
+
+    @Override
     public List<ValueMap> getValueMaps(ValueMap.Context context) {
         return Collections.emptyList();
     }
 
-    static class K4MetadataHandler implements MetadataHandler<ModsType> {
+    static class K4MetadataHandler implements MetadataHandler<ModsType>, PageViewHandler {
 
         private static final Logger LOG = Logger.getLogger(K4MetadataHandler.class.getName());
         private final DigitalObjectHandler handler;
@@ -241,6 +258,24 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
 //            dm.setEditor(editorId);
             dm.setData(xml);
             return dm;
+        }
+
+        @Override
+        public PageViewItem createPageViewItem(Locale locale) throws DigitalObjectException {
+            String modelId = handler.relations().getModel();
+            if (modelId.equals(NdkPlugin.MODEL_PAGE)) {
+                ModsDefinition mods = editor.read();
+                NdkPageMapper mapper = new NdkPageMapper();
+                Page page = mapper.toJsonObject(mods, new Context(handler));
+                PageViewItem item = new PageViewItem();
+                item.setPageIndex(page.getIndex());
+                item.setPageNumber(page.getNumber());
+                item.setPageType(page.getType());
+                item.setPageTypeLabel(NdkPageMapper.getPageTypeLabel(item.getPageType(), locale));
+                return item;
+            } else {
+                throw new DigitalObjectException(fobject.getPid(), "Unexpected model for K4 page: " + modelId);
+            }
         }
 
         private void write(String modelId, ModsType mods, long timestamp, String message) throws DigitalObjectException {

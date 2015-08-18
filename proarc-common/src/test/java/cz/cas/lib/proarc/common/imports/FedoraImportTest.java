@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import java.io.File;
 import java.sql.Timestamp;
@@ -92,6 +93,7 @@ public class FedoraImportTest {
     @Before
     public void setUp() throws Exception {
         fedoraSupport.cleanUp();
+        MetaModelRepository.setInstance(new String[0]);
         localStorage = new LocalStorage();
         remoteStorage = RemoteStorage.getInstance();
         search = remoteStorage.getSearch();

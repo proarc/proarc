@@ -10,7 +10,7 @@
             <xmlContent>
                 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:fedora-rels-ext="info:fedora/fedora-system:def/relations-external#">
                     <rdf:Description rdf:about="info:fedora/uuid:tree1">
-                        <fedora-model:hasModel rdf:resource="info:fedora/model:periodical"/>
+                        <fedora-model:hasModel rdf:resource="info:fedora/model:ndkperiodical"/>
                         <fedora-rels-ext:hasMember rdf:resource="info:fedora/uuid:tree1-child1" />
                         <fedora-rels-ext:hasMember rdf:resource="info:fedora/uuid:tree1-child2" />
                     </rdf:Description>
