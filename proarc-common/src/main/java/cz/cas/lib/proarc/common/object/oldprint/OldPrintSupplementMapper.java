@@ -16,25 +16,20 @@
  */
 package cz.cas.lib.proarc.common.object.oldprint;
 
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMonographSupplementMapper;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 
 /**
- * It is expected to handle MODS of old prints the same way like NDK.
  *
  * @author Jan Pokorsky
  */
-public class OldPrintMapperFactory extends NdkMapperFactory {
+public class OldPrintSupplementMapper extends NdkMonographSupplementMapper {
 
     @Override
-    public NdkMapper get(String modelId) {
-        if (OldPrintPlugin.MODEL_VOLUME.equals(modelId)) {
-            return new OldPrintVolumeMapper();
-        } else if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
-            return new OldPrintSupplementMapper();
-        } else {
-            throw new IllegalStateException("Unsupported model: " + modelId);
-        }
+    public void createMods(ModsDefinition mods, Context ctx) {
+        super.createMods(mods, ctx);
+        //  mods/typeOfResource="text"
+        OldPrintMapperUtils.addTypeOfResource(mods);
     }
 
 }

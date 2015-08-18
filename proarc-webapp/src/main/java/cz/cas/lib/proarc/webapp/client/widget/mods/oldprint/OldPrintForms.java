@@ -43,6 +43,8 @@ public class OldPrintForms {
         if ("model:oldprintvolume".equals(modelId)) {
             f = new OldPrintVolumeForm().build();
             f.setItemWidth("800");
+        } else if ("model:oldprintsupplement".equals(modelId)) {
+            f = new OldPrintSupplementForm().build();
         } else {
             return null;
         }

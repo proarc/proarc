@@ -52,6 +52,11 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
      */
     public static final String MODEL_VOLUME = "model:oldprintvolume";
 
+    /**
+     * The supplement of old prints.
+     */
+    public static final String MODEL_SUPPLEMENT = "model:oldprintsupplement";
+
     @Override
     public String getId() {
         return ID;
@@ -69,6 +74,16 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         /*DatastreamEditorType.PARENT, */DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_SUPPLEMENT, true, null,
+                Arrays.asList(new ElementType("Old Print Supplement", "en"), new ElementType("Starý tisk - Příloha", "cs")),
+                ModsConstants.NS,
+                MODEL_SUPPLEMENT,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
                 ));
         return models;
