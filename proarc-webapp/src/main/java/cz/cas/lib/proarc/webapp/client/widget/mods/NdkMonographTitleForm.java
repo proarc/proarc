@@ -36,8 +36,17 @@ public final class NdkMonographTitleForm {
         f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
         List<Field> modsFields = f.getFields().get(0).getFields();
 
+        modsFields.add(titleInfo());
+        modsFields.add(originInfo());
+        modsFields.add(genre());
+        modsFields.add(identifier());
+
+        return f;
+    }
+
+    private Field titleInfo() {
         // titleInfo, titleInfoDefinition
-        modsFields.add(new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
+        return new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
                 .setHint("Název titulu, souborný název.<p>Pro plnění použít katalogizační záznam.")
                 // titleInfo@type, enum
                 .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
@@ -85,10 +94,12 @@ public final class NdkMonographTitleForm {
                 .createField()) // partName
                 // nonSort, type="stringPlusLanguage"
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
-        .createField()); // titleInfo
+        .createField(); // titleInfo
+    }
 
+    private Field originInfo() {
         // originInfo, originInfoDefinition
-        modsFields.add(new FieldBuilder("originInfo").setTitle("Origin Info - MA").setMaxOccurrences(10)
+        return new FieldBuilder("originInfo").setTitle("Origin Info - MA").setMaxOccurrences(10)
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 // @displayLabel
                 // @altRepGroup
@@ -115,19 +126,23 @@ public final class NdkMonographTitleForm {
                 .createField()) // edition
                 // issuance, issuanceDefinition, enum
                 // frequency, stringPlusLanguagePlusAuthority
-        .createField()); // originInfo
+        .createField(); // originInfo
+    }
 
+    private Field genre() {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(1)
+        return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(1)
                 .setHint("Bližší údaje o typu dokumentu.<p>Pro vícesvazkovou monografii “title”.")
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
-        .createField()); // genre
+        .createField(); // genre
+    }
 
+    private Field identifier() {
         // identifier, identifierDefinition, [0,*]
-        modsFields.add(new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
+        return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
                 .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
                     + " mezinárodní nebo lokální."
                     + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
@@ -169,9 +184,7 @@ public final class NdkMonographTitleForm {
                     .addMapValue("yes", "Neplatný")
                 .createField()) // invalid
                 //   altRepGroup, xs:string
-        .createField()); // identifier
-
-        return f;
+        .createField(); // identifier
     }
 
 }
