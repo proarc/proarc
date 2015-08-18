@@ -45,7 +45,7 @@ import java.util.List;
  *
  * @author Jan Pokorsky
  */
-public final class NdkMonographVolumeMapper extends NdkMapper {
+public class NdkMonographVolumeMapper extends NdkMapper {
 
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {

@@ -56,6 +56,7 @@ import cz.cas.lib.proarc.webapp.client.widget.mods.PageForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalIssueForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalVolumeForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.oldprint.OldPrintForms;
 import cz.cas.lib.proarc.webapp.client.widget.nsesss.NsesssV2Form;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -291,6 +292,9 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
             form = new NdkForms(i18n).getForm(model);
             if (form == null) {
                 form = new BornDigitalForms(i18n).getForm(model);
+            }
+            if (form == null) {
+                form = new OldPrintForms(i18n).getForm(model);
             }
             if (form == null) {
                 // obsolete K4 forms as a fallback

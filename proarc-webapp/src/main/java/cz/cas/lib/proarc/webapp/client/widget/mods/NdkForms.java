@@ -75,7 +75,7 @@ public final class NdkForms {
         return new NdkFormGenerator(f, activeLocale).generateForm();
     }
 
-    static FieldBuilder createLangTermValue() {
+    public static FieldBuilder createLangTermValue() {
         return new FieldBuilder("value").setTitle("Language - M").setMaxOccurrences(1)
                 .setType(Field.COMBO).setRequired(true)
                 .setHint("Přesné určení jazyka kódem.<p>Nutno použít kontrolovaný slovník ISO 639-2.")
