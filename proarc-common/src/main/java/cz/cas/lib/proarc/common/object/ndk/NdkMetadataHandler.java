@@ -85,10 +85,11 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME
     )));
     private static final Logger LOG = Logger.getLogger(NdkMetadataHandler.class.getName());
-    private final DigitalObjectHandler handler;
-    private final ModsStreamEditor editor;
-    private final FedoraObject fobject;
-    private DigitalObjectCrawler crawler;
+
+    protected final DigitalObjectHandler handler;
+    protected final ModsStreamEditor editor;
+    protected final FedoraObject fobject;
+    protected DigitalObjectCrawler crawler;
     private final NdkMapperFactory mapperFactory;
 
     public NdkMetadataHandler(DigitalObjectHandler handler) {

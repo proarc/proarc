@@ -339,6 +339,8 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
                 String pageTypeMapId = null;
                 if ("model:page".equals(modelId)) {
                     pageTypeMapId = BundleName.MODS_PAGE_TYPES.getValueMapId();
+                } else if ("model:oldprintpage".equals(modelId)) {
+                    pageTypeMapId = BundleName.MODS_OLDPRINT_PAGE_TYPES.getValueMapId();
                 }
                 if (pageTypeMapId != null) {
                     editor.setPageTypeValueMapId(pageTypeMapId);

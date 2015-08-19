@@ -50,6 +50,7 @@ import cz.cas.lib.proarc.webapp.client.widget.BatchDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.CatalogBrowser;
 import cz.cas.lib.proarc.webapp.client.widget.DatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
 /**
@@ -62,6 +63,11 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         BatchDatastreamEditor, Refreshable, Selectable<DigitalObject> {
 
     private static final Logger LOG = Logger.getLogger(ModsMultiEditor.class.getName());
+    private static final HashSet<String> ACCEPT_BATCH_MODELS = new HashSet<String>();
+    static {
+        ACCEPT_BATCH_MODELS.add("model:page");
+        ACCEPT_BATCH_MODELS.add("model:oldprintpage");
+    }
 
     private final VLayout uiContainer;
     private final ModsCustomEditor modsCustomEditor;
@@ -126,10 +132,14 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         } else if (items.length == 1) {
             loadCustom(items[0]);
         } else {
-            String modelId = "model:page";
+            String firstModelId = null;
             boolean unsupportedBatch = false;
             for (DigitalObject dobj : items) {
-                if (!modelId.equals(dobj.getModelId())) {
+                if (firstModelId == null) {
+                    firstModelId = dobj.getModelId();
+                }
+                String currentModelId = dobj.getModelId();
+                if (!ACCEPT_BATCH_MODELS.contains(currentModelId) || !firstModelId.equals(currentModelId)) {
                     unsupportedBatch = true;
                     break;
                 }

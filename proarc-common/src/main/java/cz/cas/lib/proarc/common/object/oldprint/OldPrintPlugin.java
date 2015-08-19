@@ -16,7 +16,18 @@
  */
 package cz.cas.lib.proarc.common.object.oldprint;
 
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.PageView;
+import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
+import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
+import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
+import cz.cas.lib.proarc.common.i18n.BundleName;
+import cz.cas.lib.proarc.common.i18n.BundleValue;
+import cz.cas.lib.proarc.common.i18n.BundleValueMap;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
+import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
@@ -31,16 +42,17 @@ import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * The plug-in to support old print digital objects.
  *
  * @author Jan Pokorsky
  */
-public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDefinition> {
+public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDefinition>,
+        HasSearchViewHandler {
 
     /**
      * The plugin ID. Old prints.
@@ -56,6 +68,13 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
      * The supplement of old prints.
      */
     public static final String MODEL_SUPPLEMENT = "model:oldprintsupplement";
+
+    /**
+     * The page of old prints.
+     */
+    public static final String MODEL_PAGE = "model:oldprintpage";
+
+    private OldPrintSearchViewHandler searchViewHandler;
 
     @Override
     public String getId() {
@@ -86,6 +105,14 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
                 ));
+        models.add(new MetaModel(
+                MODEL_PAGE, null, true,
+                Arrays.asList(new ElementType("Old Print Page", "en"), new ElementType("Starý tisk - Strana", "cs")),
+                ModsConstants.NS,
+                MODEL_PAGE,
+                this,
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
+                ));
         return models;
     }
 
@@ -96,12 +123,60 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
 
     @Override
     public List<ValueMap> getValueMaps(ValueMap.Context context) {
-        return Collections.emptyList();
+        Locale locale = context.getLocale();
+        ArrayList<ValueMap> maps = new ArrayList<ValueMap>();
+        maps.add(readPageTypes(locale));
+        return maps;
+    }
+
+    private ValueMap<BundleValue> readPageTypes(Locale locale) {
+        return BundleValueMap.fromBundle(BundleName.MODS_OLDPRINT_PAGE_TYPES, locale);
     }
 
     @Override
     public MetadataHandler<ModsDefinition> createMetadataHandler(DigitalObjectHandler handler) {
-        return new NdkMetadataHandler(handler, new OldPrintMapperFactory());
+        return new NdkMetadataHandler(handler, new OldPrintMapperFactory()) {
+
+            @Override
+            public PageViewItem createPageViewItem(Locale locale) throws DigitalObjectException {
+                String modelId = handler.relations().getModel();
+                if (modelId.equals(MODEL_PAGE)) {
+                    ModsDefinition mods = editor.read();
+                    OldPrintPageMapper mapper = new OldPrintPageMapper();
+                    Page page = mapper.toJsonObject(mods, new Context(handler));
+                    PageViewItem item = new PageViewItem();
+                    item.setPageIndex(page.getIndex());
+                    item.setPageNumber(page.getNumber());
+                    item.setPageType(page.getType());
+                    item.setPageTypeLabel(OldPrintPageMapper.getPageTypeLabel(item.getPageType(), locale));
+                    return item;
+                } else {
+                    throw new DigitalObjectException(fobject.getPid(), "Unexpected model for NDK page: " + modelId);
+                }
+            }
+
+        };
+    }
+
+    @Override
+    public SearchViewHandler createSearchViewHandler() {
+        if (searchViewHandler == null) {
+            searchViewHandler = new OldPrintSearchViewHandler();
+        }
+        return searchViewHandler;
+    }
+
+    private static class OldPrintSearchViewHandler implements SearchViewHandler {
+
+        @Override
+        public String getObjectLabel(Item item, Locale locale) {
+            if (MODEL_PAGE.equals(item.getModel())) {
+                return PageView.resolveFedoraObjectLabel(
+                        item.getLabel(), OldPrintPageMapper.getPageTypeLabels(locale));
+            }
+            return item.getLabel();
+        }
+
     }
 
 }

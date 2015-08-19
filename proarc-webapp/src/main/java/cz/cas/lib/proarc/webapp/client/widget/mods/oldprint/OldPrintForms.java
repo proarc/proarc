@@ -17,10 +17,12 @@
 package cz.cas.lib.proarc.webapp.client.widget.mods.oldprint;
 
 import com.smartgwt.client.widgets.form.DynamicForm;
+import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkFormGenerator;
+import cz.cas.lib.proarc.webapp.client.widget.mods.PageForm;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
 
 /**
@@ -45,6 +47,8 @@ public class OldPrintForms {
             f.setItemWidth("800");
         } else if ("model:oldprintsupplement".equals(modelId)) {
             f = new OldPrintSupplementForm().build();
+        } else if ("model:oldprintpage".equals(modelId)) {
+            return new PageForm(i18n, BundleName.MODS_OLDPRINT_PAGE_TYPES);
         } else {
             return null;
         }

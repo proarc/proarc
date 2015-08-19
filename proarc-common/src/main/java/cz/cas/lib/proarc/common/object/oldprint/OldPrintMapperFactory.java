@@ -28,7 +28,9 @@ public class OldPrintMapperFactory extends NdkMapperFactory {
 
     @Override
     public NdkMapper get(String modelId) {
-        if (OldPrintPlugin.MODEL_VOLUME.equals(modelId)) {
+        if (OldPrintPlugin.MODEL_PAGE.equals(modelId)) {
+            return new OldPrintPageMapper();
+        } else if (OldPrintPlugin.MODEL_VOLUME.equals(modelId)) {
             return new OldPrintVolumeMapper();
         } else if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
             return new OldPrintSupplementMapper();
