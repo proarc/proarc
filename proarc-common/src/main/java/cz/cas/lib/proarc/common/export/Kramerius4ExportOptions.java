@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.export;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -83,6 +84,8 @@ public final class Kramerius4ExportOptions {
             put(NdkPlugin.MODEL_PICTURE, "hasIntCompPart");
             put(NdkPlugin.MODEL_SHEETMUSIC, "hasUnit");
             put(BornDigitalModsPlugin.MODEL_ARTICLE, "hasIntCompPart");
+            put(OldPrintPlugin.MODEL_PAGE, "hasPage");
+            put(OldPrintPlugin.MODEL_SUPPLEMENT, "hasIntCompPart");
         }
     };
 
@@ -102,6 +105,9 @@ public final class Kramerius4ExportOptions {
             put(NdkPlugin.MODEL_PICTURE, "model:picture");
             put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
             put(BornDigitalModsPlugin.MODEL_ARTICLE, "model:article");
+            put(OldPrintPlugin.MODEL_VOLUME, "model:monograph");
+            put(OldPrintPlugin.MODEL_SUPPLEMENT, "model:supplement");
+            put(OldPrintPlugin.MODEL_PAGE, "model:page");
         }
     };
 
