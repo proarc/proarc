@@ -44,7 +44,7 @@ public class Batch {
     private String device;
     private boolean generateIndices;
     private String log;
-//    private String model;
+    private String profileId;
 
     public Integer getId() {
         return id;
@@ -150,9 +150,22 @@ public class Batch {
         this.log = log;
     }
 
+    public String getProfileId() {
+        return profileId;
+    }
+
+    public void setProfileId(String profileId) {
+        this.profileId = profileId;
+    }
+
     @Override
     public String toString() {
-        return "Batch{" + "id=" + id + ", folder=" + folder + ", title=" + title + ", parentPid=" + parentPid + ", create=" + create + ", timestamp=" + timestamp + ", state=" + state + ", userId=" + userId + ", estimateItemNumber=" + estimateItemNumber + ", device=" + device + ", generateIndices=" + generateIndices + ", log=" + log + '}';
+        return "Batch{" + "id=" + id + ", folder=" + folder + ", title=" + title
+                + ", parentPid=" + parentPid + ", create=" + create
+                + ", timestamp=" + timestamp + ", state=" + state
+                + ", userId=" + userId + ", estimateItemNumber=" + estimateItemNumber
+                + ", device=" + device + ", generateIndices=" + generateIndices
+                + ", profileId=" + profileId + ", log=" + log + '}';
     }
 
 }

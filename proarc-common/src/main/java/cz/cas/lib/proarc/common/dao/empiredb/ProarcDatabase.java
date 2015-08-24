@@ -40,7 +40,7 @@ import org.apache.empire.db.exceptions.QueryFailedException;
 import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
 
 /**
- * Database schema.
+ * Database schema version 3.
  *
  * <p><b>Warning:</b> declare sequence names the same way like PostgreSql
  * ({@code {tablename}_{column_name}_seq}).
@@ -51,6 +51,8 @@ public class ProarcDatabase extends DBDatabase {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
+    /** the schema version */
+    public static final int VERSION = 3;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -92,7 +94,7 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn device; // digitization device ID (PID)
         public final DBTableColumn generateIndices;
         public final DBTableColumn log;
-//        public final DBTableColumn model; // default batch item model
+        public final DBTableColumn profileId;
 
         public BatchTable(DBDatabase db) {
             super("PROARC_BATCH", db);
@@ -110,6 +112,7 @@ public class ProarcDatabase extends DBDatabase {
             device = addColumn("DEVICE", DataType.TEXT, 2000, false);
             generateIndices = addColumn("GENERATE_INDICES", DataType.BOOL, 0, false);
             log = addColumn("LOG", DataType.CLOB, 0, false);
+            profileId = addColumn("PROFILE_ID", DataType.TEXT, 2000, false);
             setPrimaryKey(id);
             addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { create, state, title, userId });
         }
@@ -301,11 +304,10 @@ public class ProarcDatabase extends DBDatabase {
         try {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
-                if (schemaVersion == 1) {
-                    schemaVersion = ProarcDatabaseV1.upgradeVersion1(this, conn);
-                }
-                if (schemaVersion == 2) {
-                    // up to date
+                schemaVersion = ProarcDatabaseV2.upgradeToVersion3(
+                        schemaVersion, this, conn, conf);
+                if (schemaVersion != VERSION) {
+                    throw new SQLException("Invalid schema version " + schemaVersion);
                 }
             } else {
                 createSchema(this, conn);
@@ -339,7 +341,7 @@ public class ProarcDatabase extends DBDatabase {
         conn.setAutoCommit(false);
     }
 
-    void initVersion(Connection conn, Integer oldVersion) {
+    int initVersion(Connection conn, Integer oldVersion) {
         ProarcDatabase db = this;
         DBRecord dbRecord = new DBRecord();
         if (oldVersion != null) {
@@ -349,9 +351,11 @@ public class ProarcDatabase extends DBDatabase {
             dbRecord.setValue(db.tableProarcVersion.id, 0);
         }
 
-        dbRecord.setValue(db.tableProarcVersion.schemaVersion, 2);
+        dbRecord.setValue(db.tableProarcVersion.schemaVersion, VERSION);
         dbRecord.update(conn);
+        return VERSION;
     }
+
     /**
      * Improves and fixes {@link DBTable}.
      */

@@ -105,10 +105,12 @@ public class ProarcDatabaseTest {
     @Test
     public void testUpgrade() throws Exception {
         ProarcDatabaseV1 v1 = new ProarcDatabaseV1();
+        ProarcDatabaseV2 v2 = new ProarcDatabaseV2();
         final IDatabaseConnection con = support.getConnection();
         try {
             // clear DB
             dropSchema(schema);
+            dropSchema(v2);
             dropSchema(v1);
             v1.init(emireCfg);
             assertEquals(1, ProarcDatabase.schemaExists(schema, con.getConnection()));
@@ -121,7 +123,7 @@ public class ProarcDatabaseTest {
                 support.clearDtdSchema();
             }
             schema.init(emireCfg);
-            assertEquals(2, ProarcDatabase.schemaExists(schema, con.getConnection()));
+            assertEquals(ProarcDatabase.VERSION, ProarcDatabase.schemaExists(schema, con.getConnection()));
         } finally {
             con.close();
             dropSchema(schema);

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.dao.empiredb;
 
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.BatchDao;
@@ -124,6 +125,7 @@ public class EmpireBatchDaoTest {
         batch.setState(State.LOADING);
         batch.setTitle("title_folder/");
         batch.setUserId(1);
+        batch.setProfileId(ConfigurationProfile.DEFAULT);
         dao.update(batch);
         tx.commit();
 
@@ -203,6 +205,7 @@ public class EmpireBatchDaoTest {
         Batch result = dao.find(1);
         assertNotNull(result);
         assertEquals(1, (int) result.getId());
+        assertEquals(ConfigurationProfile.DEFAULT, result.getProfileId());
     }
 
     @Test

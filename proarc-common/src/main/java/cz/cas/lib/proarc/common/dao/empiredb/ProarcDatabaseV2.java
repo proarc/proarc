@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jan Pokorsky
+ * Copyright (C) 2013 Jan Pokorsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,21 +17,23 @@
 package cz.cas.lib.proarc.common.dao.empiredb;
 
 import cz.cas.lib.proarc.common.dao.BatchItem;
-import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.EnhancedDBTable;
-import cz.cas.lib.proarc.common.user.UserUtil;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.empire.commons.OptionEntry;
+import org.apache.empire.commons.Options;
+import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
 import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
+import static org.apache.empire.db.DBDatabase.SYSDATE;
 import org.apache.empire.db.DBDatabaseDriver;
-import org.apache.empire.db.DBReader;
+import org.apache.empire.db.DBExpr;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRelation;
-import org.apache.empire.db.DBRelation.DBReference;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
@@ -39,18 +41,21 @@ import org.apache.empire.db.exceptions.QueryFailedException;
 import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
 
 /**
- * Database schema version 1.
+ * Database schema version 2.
+ *
+ * <p><b>Warning:</b> declare sequence names the same way like PostgreSql
+ * ({@code {tablename}_{column_name}_seq}).
  *
  * @author Jan Pokorsky
  * @deprecated Replaced with {@link ProarcDatabase}. <b>Use only for tests and upgrade purposes!</b>
  */
 @Deprecated
-public class ProarcDatabaseV1 extends DBDatabase {
+public class ProarcDatabaseV2 extends DBDatabase {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger LOG = Logger.getLogger(ProarcDatabaseV1.class.getName());
+    private static final Logger LOG = Logger.getLogger(ProarcDatabaseV2.class.getName());
     /** the schema version */
-    public static final int VERSION = 1;
+    public static final int VERSION = 2;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -59,111 +64,42 @@ public class ProarcDatabaseV1 extends DBDatabase {
     public final UserGroupTable tableUserGroup = new UserGroupTable(this);
     public final GroupMemberTable tableGroupMember = new GroupMemberTable(this);
     public final GroupPermissionTable tableGroupPermission = new GroupPermissionTable(this);
-    public final TomcatUserTable tableTomcatUser = new TomcatUserTable(this);
-    public final TomcatRoleTable tableTomcatRole = new TomcatRoleTable(this);
-    public final DBRelation relUsername2TomcatUser;
-    public final DBRelation relUsername2TomcatUserAlias;
-    public final DBRelation relTomcatRoleUser2TomcatUser;
-    public final DBRelation relTomcatRoleUser2TomcatUserAlias;
 
-    public static int upgradeToVersion2(
-            int currentSchemaVersion, Connection conn,
-            EmpireConfiguration conf) throws SQLException {
+    public static int upgradeToVersion3(
+            int currentSchemaVersion, ProarcDatabase schema,
+            Connection conn, EmpireConfiguration conf) throws SQLException {
 
+        if (currentSchemaVersion < VERSION) {
+            currentSchemaVersion = ProarcDatabaseV1.upgradeToVersion2(currentSchemaVersion, conn, conf);
+        }
         if (currentSchemaVersion > VERSION) {
             // ignore higher versions
             return currentSchemaVersion;
         } else if (currentSchemaVersion != VERSION) {
             throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
         }
-        ProarcDatabaseV2 schema = new ProarcDatabaseV2();
-        ProarcDatabaseV1 schemaV1 = new ProarcDatabaseV1();
+//        ProarcDatabaseV2 schemaOld = new ProarcDatabaseV2();
         try {
-            schema.open(conf.getDriver(), conn);
-            // the driver instance must be same!
-            schemaV1.open(schema.getDriver(), conn);
-            upgradeDdl(schema, schemaV1, conn);
-            // copy passwords from tomcat
-            upgradeUsers(schema, schemaV1, conn);
-            // update user groups to comply with new columns
-            upgradeGroups(schema, schemaV1, conn);
-
+            upgradeDdl(schema, conn);
             int schemaVersion = schema.initVersion(conn, VERSION);
 
             conn.commit();
-
-            // drop tomcat tables
-            // do not drop as they may be still be used by tomcat configuration!
-//            script.clear();
-//            driver.getDDLScript(DBCmdType.DROP, schemaV1.tableTomcatUser, script);
-//            driver.getDDLScript(DBCmdType.DROP, schemaV1.tableTomcatRole, script);
-//            conn.setAutoCommit(true);
-//            script.run(driver, conn);
-//            conn.setAutoCommit(false);
             return schemaVersion;
         } finally {
-            schema.close(conn);
-            schemaV1.close(conn);
+//            schemaOld.close(conn);
         }
     }
 
-    private static void upgradeDdl(ProarcDatabaseV2 schema, ProarcDatabaseV1 schemaV1, Connection conn) throws SQLException {
+    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
         try {
             conn.setAutoCommit(true);
             DBDatabaseDriver driver = schema.getDriver();
             DBSQLScript script = new DBSQLScript();
             // add UserTable columns
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.passwd, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.remoteName, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.remoteType, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.defaultGroup, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.userGroup, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.timestamp, script);
-            // add UserGroupTable columns
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableUserGroup.title, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableUserGroup.remoteName, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableUserGroup.remoteType, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableUserGroup.created, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableUserGroup.timestamp, script);
-            // add GroupPermissionTable columns
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableGroupPermission.type, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.profileId, script);
             script.run(driver, conn);
-            // drop table references
-            script.clear();
-            schema.dropRelation(script, schemaV1.relUsername2TomcatUser);
-            schema.dropRelation(script, schemaV1.relUsername2TomcatUserAlias);
-            schema.dropRelation(script, schemaV1.relTomcatRoleUser2TomcatUser);
-            schema.dropRelation(script, schemaV1.relTomcatRoleUser2TomcatUserAlias);
-            script.run(driver, conn, true);
         } finally {
             conn.setAutoCommit(false);
-        }
-    }
-
-    private static void upgradeGroups(ProarcDatabaseV2 schema, ProarcDatabaseV1 schemaV1, Connection conn) {
-        DBCommand cmd = schema.createCommand();
-        cmd.set(schema.tableUserGroup.groupname.to(UserUtil.toGroupPid("admin")));
-        cmd.set(schema.tableUserGroup.title.to("Administrátoři"));
-        cmd.where(schema.tableUserGroup.groupname.is("Administrátoři"));
-        schema.executeUpdate(cmd, conn);
-    }
-
-    private static void upgradeUsers(ProarcDatabaseV2 schema, ProarcDatabaseV1 schemaV1, Connection conn) {
-        DBRecord dbr = new DBRecord();
-        DBReader dbReader = new DBReader();
-        DBCommand cmd = schema.createCommand();
-        cmd.select(schema.tableUser.getColumns());
-        cmd.select(schemaV1.tableTomcatUser.getColumns());
-        cmd.join(schema.tableUser.username, schemaV1.tableTomcatUser.username);
-        try {
-            dbReader.open(cmd, conn);
-            while (dbReader.moveNext()) {
-                dbReader.initRecord(schema.tableUser, dbr);
-                dbr.setValue(schema.tableUser.passwd, dbReader.getValue(schemaV1.tableTomcatUser.userpass));
-                dbr.update(conn);
-            }
-        } finally {
-            dbReader.close();
         }
     }
 
@@ -263,6 +199,7 @@ public class ProarcDatabaseV1 extends DBDatabase {
 
         public final DBTableColumn id;
         public final DBTableColumn username;
+        public final DBTableColumn passwd;
         public final DBTableColumn forename;
         public final DBTableColumn surname;
         public final DBTableColumn email;
@@ -270,20 +207,38 @@ public class ProarcDatabaseV1 extends DBDatabase {
         public final DBTableColumn created;
         public final DBTableColumn lastLogin;
         public final DBTableColumn home;
-//        public final DBTableColumn timestamp;
+        /** group to use as owner for newly created objects */
+        public final DBTableColumn defaultGroup;
+        /** group that can contain single member; it can hold overridden permissions */
+        public final DBTableColumn userGroup;
+        /** use to identify external user. */
+        public final DBTableColumn remoteName;
+        /** type of the remote user null(PROARC), DESA, LDAP, ... */
+        public final DBTableColumn remoteType;
+        public final DBTableColumn timestamp;
 
         public UserTable(DBDatabase db) {
             super("PROARC_USERS", db);
             id = addSequenceColumn("USERID");
+            id.setBeanPropertyName("id");
             username = addColumn("USERNAME", DataType.TEXT, 255, true);
+            username.setBeanPropertyName("userName");
+            passwd = addColumn("PASSWD", DataType.TEXT, 255, false);
+            passwd.setBeanPropertyName("userPasswordDigest");
             forename = addColumn("FORENAME", DataType.TEXT, 100, false);
             surname = addColumn("SURNAME", DataType.TEXT, 255, true);
             email = addColumn("EMAIL", DataType.TEXT, 255, false);
             state = addColumn("STATUS", DataType.TEXT, 20, false);
-            created = addColumn("CREATED", DataType.DATETIME, 0, true, SYSDATE);
+            created = addColumn("CREATED", DataType.DATETIME, 0, DataMode.NotNull, SYSDATE);
             lastLogin = addColumn("LASTLOGIN", DataType.DATETIME, 0, false);
+            lastLogin.setBeanPropertyName("lastLogin");
             home = addColumn("HOME", DataType.TEXT, 2000, true);
-//            timestamp = addTimestampColumn("TIMESTAMP");
+            home.setBeanPropertyName("userHome");
+            defaultGroup = addColumn("DEFAULT_GROUP", DataType.INTEGER, 0, false);
+            userGroup = addColumn("USER_GROUP", DataType.INTEGER, 0, false);
+            remoteName = addColumn("REMOTE_NAME", DataType.TEXT, 255, false);
+            remoteType = addColumn("REMOTE_TYPE", DataType.TEXT, 2000, false);
+            timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
             addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[] { username });
         }
@@ -293,13 +248,29 @@ public class ProarcDatabaseV1 extends DBDatabase {
     public static final class UserGroupTable extends EnhancedDBTable {
 
         private static final long serialVersionUID = 1L;
-        private final DBTableColumn id;
-        private final DBTableColumn groupname;
+        public final DBTableColumn id;
+        /**
+         * The unique group name. Used as fedora PID object ID.
+         */
+        public final DBTableColumn groupname;
+        public final DBTableColumn title;
+        /** use to identify group of external users. */
+        public final DBTableColumn remoteName;
+        /** type of the remote group null(PROARC), DESA, LDAP, ... */
+        public final DBTableColumn remoteType;
+        public final DBTableColumn created;
+        public final DBTableColumn timestamp;
 
         public UserGroupTable(DBDatabase db) {
             super("PROARC_GROUPS", db);
             id = addSequenceColumn("GROUPID");
-            groupname = addColumn("NAME", DataType.TEXT, 255, true);
+            id.setBeanPropertyName("id");
+            groupname = addColumn("NAME", DataType.TEXT, 64, true);
+            title = addColumn("TITLE", DataType.TEXT, 255, false);
+            remoteName = addColumn("REMOTE_NAME", DataType.TEXT, 255, false);
+            remoteType = addColumn("REMOTE_TYPE", DataType.TEXT, 2000, false);
+            created = addColumn("CREATED", DataType.DATETIME, 0, DataMode.NotNull, SYSDATE);
+            timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
             // unique group name
             addIndex(String.format("%s_%s_IDX", getName(), groupname.getName()), true, new DBColumn[] { groupname });
@@ -310,8 +281,8 @@ public class ProarcDatabaseV1 extends DBDatabase {
     public static final class GroupMemberTable extends EnhancedDBTable {
 
         private static final long serialVersionUID = 1L;
-        private final DBTableColumn groupid;
-        private final DBTableColumn userid;
+        public final DBTableColumn groupid;
+        public final DBTableColumn userid;
 
         public GroupMemberTable(DBDatabase db) {
             super("PROARC_GROUP_MEMBERS", db);
@@ -325,64 +296,45 @@ public class ProarcDatabaseV1 extends DBDatabase {
     public static final class GroupPermissionTable extends EnhancedDBTable {
 
         private static final long serialVersionUID = 1L;
-        private final DBTableColumn groupid;
-        private final DBTableColumn objectid;
-        private final DBTableColumn permissionid;
+        public final DBTableColumn groupid;
+        public final DBTableColumn objectid;
+        public final DBTableColumn permissionid;
+        /** type to override inherited permission in user group. Options: null, disabled, enabled. */
+        public final DBTableColumn type;
 
         public GroupPermissionTable(DBDatabase db) {
             super("PROARC_GROUP_PERMISSIONS", db);
             groupid = addColumn("GROUPID", DataType.INTEGER, 0, true);
             objectid = addColumn("OBJECTID", DataType.TEXT, 2000, false);
             permissionid = addColumn("PERMISSIONID", DataType.TEXT, 2000, true);
-
+            type = addColumn("TYPE", DataType.TEXT, 255, false);
         }
 
     }
 
-    public static final class TomcatUserTable extends EnhancedDBTable {
-
-        private static final long serialVersionUID = 1L;
-        public final DBTableColumn username;
-        public final DBTableColumn userpass;
-
-        public TomcatUserTable(DBDatabase db) {
-            super("TOMCAT_USERS", db);
-            username = addColumn("USERNAME", DataType.TEXT, 255, true);
-            userpass = addColumn("USERPASS", DataType.TEXT, 255, true);
-            setPrimaryKey(username);
-        }
-
-    }
-
-    public static final class TomcatRoleTable extends EnhancedDBTable {
-
-        private static final long serialVersionUID = 1L;
-        public final DBTableColumn username;
-        public final DBTableColumn rolename;
-
-        public TomcatRoleTable(DBDatabase db) {
-            super("TOMCAT_ROLES", db);
-            username = addColumn("USERNAME", DataType.TEXT, 255, true);
-            rolename = addColumn("ROLENAME", DataType.TEXT, 255, true);
-            setPrimaryKey(username, rolename);
-        }
-
-    }
-
-    public ProarcDatabaseV1() {
+    public ProarcDatabaseV2() {
         addRelation(tableBatch.userId.referenceOn(tableUser.id));
         addRelation(tableBatchItem.batchId.referenceOn(tableBatch.id));
-        relUsername2TomcatUser = addRelation(tableUser.username.referenceOn(tableTomcatUser.username));
-        // define duplicate foreign key with alias to match the pre-EmpireDB declaration
-        relUsername2TomcatUserAlias = addRelation("proarc_users_username_fkey",
-                new DBReference[] {tableUser.username.referenceOn(tableTomcatUser.username)});
+        addRelation(tableUser.defaultGroup.referenceOn(tableUserGroup.id));
         addRelation(tableGroupMember.groupid.referenceOn(tableUserGroup.id));
         addRelation(tableGroupMember.userid.referenceOn(tableUser.id));
         addRelation(tableGroupPermission.groupid.referenceOn(tableUserGroup.id));
-        relTomcatRoleUser2TomcatUser = addRelation(tableTomcatRole.username.referenceOn(tableTomcatUser.username));
-        // define duplicate foreign key with alias to match the pre-EmpireDB declaration
-        relTomcatRoleUser2TomcatUserAlias = addRelation("tomcat_roles_username_fkey",
-                new DBReference[] {tableTomcatRole.username.referenceOn(tableTomcatUser.username)});
+    }
+
+    void dropRelation(DBSQLScript script, DBRelation relation) {
+        StringBuilder sql = new StringBuilder();
+        DBSQLScript helper = new DBSQLScript();
+        DBTable sourceTable = relation.getForeignKeyTable();
+        sql.append("-- drop foreign key constraint ");
+        sql.append(relation.getName());
+        sql.append(" --\r\n");
+        sql.append("ALTER TABLE ");
+        sourceTable.addSQL(sql, DBExpr.CTX_FULLNAME);
+
+        driver.getDDLScript(DBCmdType.DROP, relation, helper);
+        sql.append(' ');
+        sql.append(helper.getStmt(0));
+        script.addStmt(sql);
     }
 
     void init(EmpireConfiguration conf) throws SQLException {
@@ -390,8 +342,14 @@ public class ProarcDatabaseV1 extends DBDatabase {
         Connection conn = conf.getConnection();
         open(drv, conn);
         try {
-            if (schemaExists(this, conn)) {
-                // XXX upgrade
+            int schemaVersion = schemaExists(this, conn);
+            if (schemaVersion > 0) {
+                LOG.log(Level.WARNING, "Do not init the obsolete schema {0}!"
+                        + " Only #upgradeToVersion3() is supported now!", schemaVersion);
+                schemaVersion = ProarcDatabaseV1.upgradeToVersion2(schemaVersion, conn, conf);
+                if (schemaVersion != VERSION) {
+                    throw new SQLException("Invalid schema version " + schemaVersion);
+                }
             } else {
                 createSchema(this, conn);
             }
@@ -400,18 +358,18 @@ public class ProarcDatabaseV1 extends DBDatabase {
         }
     }
 
-    static boolean schemaExists(ProarcDatabaseV1 db, Connection c) {
+    static int schemaExists(ProarcDatabaseV2 db, Connection c) {
         try {
             DBCommand cmd = db.createCommand();
-            cmd.select(db.tableProarcVersion.count());
-            int count = db.querySingleInt(cmd, -1, c);
-            return count >= 0;
+            cmd.select(db.tableProarcVersion.schemaVersion);
+            int version = db.querySingleInt(cmd, -1, c);
+            return version;
         } catch (QueryFailedException ex) {
-            return false;
+            return -1;
         }
     }
 
-    private static void createSchema(ProarcDatabaseV1 db, Connection conn) throws SQLException {
+    private static void createSchema(ProarcDatabaseV2 db, Connection conn) throws SQLException {
         if (db.getDriver() instanceof DBDatabaseDriverPostgreSQL) {
             conn.setAutoCommit(true);
         }
@@ -419,17 +377,93 @@ public class ProarcDatabaseV1 extends DBDatabase {
         db.getCreateDDLScript(db.getDriver(), script);
         LOG.fine(script.toString());
         script.run(db.getDriver(), conn);
-        initProarcVersion(db, conn);
+        db.initVersion(conn, null);
         db.commit(conn);
         conn.setAutoCommit(false);
     }
 
-    private static void initProarcVersion(ProarcDatabaseV1 db, Connection conn) {
+    int initVersion(Connection conn, Integer oldVersion) {
+        ProarcDatabaseV2 db = this;
         DBRecord dbRecord = new DBRecord();
-        dbRecord.create(db.tableProarcVersion);
-        dbRecord.setValue(db.tableProarcVersion.id, 0);
+        if (oldVersion != null) {
+            dbRecord.init(db.tableProarcVersion, new Integer[] {0}, false);
+        } else {
+            dbRecord.create(db.tableProarcVersion);
+            dbRecord.setValue(db.tableProarcVersion.id, 0);
+        }
+
         dbRecord.setValue(db.tableProarcVersion.schemaVersion, VERSION);
         dbRecord.update(conn);
+        return VERSION;
+    }
+    /**
+     * Improves and fixes {@link DBTable}.
+     */
+    static abstract class EnhancedDBTable extends DBTable {
+
+        public EnhancedDBTable(String name, DBDatabase db) {
+            super(name, db);
+        }
+
+        /**
+         * Adds a timestamp column to the table used for optimistic locking.
+         *
+         * <p>This implementation creates column that can be modified with
+         * {@link DBRecord#setBeanValues } or {@link DBRecord#setValue } as
+         * the column is not read-only or auto generated.
+         *
+         * @param columnName the column name
+         *
+         * @return the timestamp table column object
+         */
+        @Override
+        public DBTableColumn addTimestampColumn(String columnName) {
+            return addTimestampColumn(columnName, DataMode.NotNull);
+        }
+
+        /**
+         * Adds a timestamp column to the table used for optimistic locking.
+         *
+         * @param columnName the column name
+         * @param mode use AutoGenerated in case user bean does not handle timestamp
+         *
+         * @return the timestamp table column object
+         */
+        public DBTableColumn addTimestampColumn(String columnName, DataMode mode) {
+            // Do NOT change to DataMode.AutoGenerated; otherwise DBRecord.setBeanValues ignores user timestamp!
+            // DBDatabase.SYSDATE used mainly for ALTER TABLE ADD column to fill default values.
+            // DBRecord.setBeanValues MUST set any timestamp for the new record!
+            DBTableColumn col = addColumn(columnName, DataType.DATETIME, 0, mode, DBDatabase.SYSDATE);
+            setTimestampColumn(col);
+            return col;
+        }
+
+        public DBTableColumn addSequenceColumn(String columnName) {
+            String seqName = postgreSequenceName(this, columnName);
+            return addSequenceColumn(columnName, seqName);
+        }
+
+        public DBTableColumn addSequenceColumn(String columnName, String seqName) {
+            return addColumn(columnName, DataType.AUTOINC, 0, DataMode.AutoGenerated, seqName);
+        }
+
+        public boolean isTimestamp(DBColumn c) {
+            return c == this.timestampColumn;
+        }
+
+        static Options toOptions(Object[] options) {
+            Options result = new Options();
+            for (Object option : options) {
+                result.add(new OptionEntry(option, String.valueOf(option)));
+            }
+            return result;
+        }
+
+        private static String postgreSequenceName(DBTable table, String columnName) {
+            String sqnName = String.format("%s_%s_SEQ", table.getName(), columnName);
+            return sqnName;
+        }
+
     }
 
 }
