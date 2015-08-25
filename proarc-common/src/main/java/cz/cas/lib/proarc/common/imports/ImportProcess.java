@@ -16,12 +16,14 @@
  */
 package cz.cas.lib.proarc.common.imports;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
+import cz.cas.lib.proarc.common.config.Profiles;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.user.UserManager;
@@ -107,13 +109,41 @@ public final class ImportProcess implements Runnable {
      * This should be run when application starts.
      */
     public static void resumeAll(ImportBatchManager ibm, ImportDispatcher dispatcher,
-            ImportProfile config) {
+            AppConfiguration config) {
 
+        Profiles profiles = config.getProfiles();
         List<Batch> batches2schedule = ibm.findLoadingBatches();
         for (Batch batch : batches2schedule) {
-            ImportProcess resume = ImportProcess.resume(batch, ibm, config);
-            dispatcher.addImport(resume);
+            try {
+                ConfigurationProfile profile = resolveProfile(batch, profiles);
+                ImportProfile importCfg = config.getImportConfiguration(profile);
+                ImportProcess resume = ImportProcess.resume(batch, ibm, importCfg);
+                dispatcher.addImport(resume);
+            } catch (Exception ex) {
+                logBatchFailure(ibm, batch, ex);
+            }
         }
+    }
+
+    private static ConfigurationProfile resolveProfile(Batch batch, Profiles profiles) {
+        String profileId = batch.getProfileId();
+        if (profileId == null) {
+            profileId = ConfigurationProfile.DEFAULT;
+        }
+        ConfigurationProfile profile = profiles.getProfile(ImportProfile.PROFILES, profileId);
+        String err = null;
+        if (profile == null) {
+            err = String.format("Cannot resume batch %s! Missing profile %s."
+                    + " Check proarc.cfg and %s registrations.",
+                    batch.getId(), profileId, ImportProfile.PROFILES);
+        } else if (profile.getError() != null) {
+            err = String.format("Cannot resume batch %s! Check proarc.cfg.\n%s\nProfile error: %s",
+                    new Object[]{batch.getId(), profile, profile.getError()});
+        }
+        if (err != null) {
+            throw new IllegalStateException(err);
+        }
+        return profile;
     }
 
     private void prepare(String description, UserProfile user) throws IOException {
@@ -151,6 +181,10 @@ public final class ImportProcess implements Runnable {
     }
 
     private Batch logBatchFailure(Batch batch, Throwable t) {
+        return logBatchFailure(batchManager, batch, t);
+    }
+
+    private static Batch logBatchFailure(ImportBatchManager batchManager, Batch batch, Throwable t) {
         LOG.log(Level.SEVERE, batch.toString(), t);
         batch.setState(Batch.State.LOADING_FAILED);
         batch.setLog(ImportBatchManager.toString(t));

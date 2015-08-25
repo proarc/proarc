@@ -25,6 +25,7 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
@@ -97,6 +98,7 @@ public final class RestConfig {
             URL_EXPORT, ExportResourceApi.NDK_PATH);
     public static final String URL_DEVICE = path(URL_ROOT, DeviceResourceApi.PATH);
     public static final String URL_VALUEMAP = path(URL_ROOT, ValueMapResourceApi.PATH);
+    public static final String URL_CONFIGPROFILE = path(URL_ROOT, ConfigurationProfileResourceApi.PATH);
 
     public static DSRequest createRestRequest(DSDataFormat format) {
         DSRequest dsr = new DSRequest();

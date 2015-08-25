@@ -263,6 +263,7 @@ public class EmpireBatchDaoTest {
         assertEquals("title_folder/", bv.getTitle());
         assertEquals((Integer) 1, bv.getUserId());
         assertEquals("test", bv.getUserName());
+        assertEquals("profile.default", bv.getProfileId());
 
         view = dao.view(1, 1, null, 0);
         assertEquals(1, view.size());

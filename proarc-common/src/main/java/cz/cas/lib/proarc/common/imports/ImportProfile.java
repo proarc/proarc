@@ -17,19 +17,23 @@
 package cz.cas.lib.proarc.common.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
+import cz.cas.lib.proarc.common.config.Profiles;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.util.List;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConversionException;
 
 /**
- * Import configuration.
- *
- * <p>Later there could be predefined profiles for TIFF, PDF, ...
+ * The import configuration. There can be several versions declared
+ * with {@link #PROFILES} in {@code proarc.cfg}. They are available with {@link Profiles}.
  *
  * @author Jan Pokorsky
  */
 public final class ImportProfile {
+
+    /** The configuration key to register import configuration profiles. */
+    public static final String PROFILES = "import.profiles";
 
     public static final String PREVIEW_MAX_HEIGHT = "import.image.preview.maxHeight";
     public static final String PREVIEW_MAX_WIDTH = "import.image.preview.maxWidth";
@@ -49,9 +53,19 @@ public final class ImportProfile {
     public static final String REQUIRED_DATASTREAM = "import.requiredDatastreamId";
 
     private final Configuration config;
+    private final String profileId;
 
     public ImportProfile(Configuration config) {
+        this(config, ConfigurationProfile.DEFAULT);
+    }
+
+    public ImportProfile(Configuration config, String profileId) {
         this.config = config;
+        this.profileId = profileId;
+    }
+
+    public String getProfileId() {
+        return profileId;
     }
 
     public String getPlainOcrCharset() {

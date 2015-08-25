@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.dao.empiredb;
 
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.BatchDao;
@@ -164,7 +165,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         UserTable ut = db.tableUser;
         DBCommand cmd = db.createCommand();
         cmd.select(table.id, table.state, table.userId, table.folder, table.title,
-                table.create, table.parentPid, table.timestamp, table.log);
+                table.create, table.parentPid, table.timestamp, table.log, table.profileId);
         cmd.select(ut.username);
         cmd.join(table.userId, ut.id);
         if (filter.getUserId() != null) {
@@ -221,6 +222,9 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
                 DBRecordData rec = it.next();
                 BatchView view = new BatchView();
                 rec.getBeanProperties(view);
+                if (view.getProfileId() == null) {
+                    view.setProfileId(ConfigurationProfile.DEFAULT);
+                }
                 viewItems.add(view);
             }
             return viewItems;

@@ -200,7 +200,7 @@ public class ImportPresenter {
      * Resets batch import.
      * Supports {@code LOADING_FAILED, LOADED, INGESTING_FAILED} for now.
      */
-    private void reset(BatchRecord batch, final BooleanCallback call) {
+    private void reset(BatchRecord batch, String newProfileId, final BooleanCallback call) {
         ImportBatchDataSource.State state = batch.getState();
         String stateAttr;
         if (state == ImportBatchDataSource.State.LOADING_FAILED
@@ -217,6 +217,9 @@ public class ImportPresenter {
         Record update = new Record();
         update.setAttribute(ImportBatchDataSource.FIELD_ID, batch.getId());
         update.setAttribute(ImportBatchDataSource.FIELD_STATE, stateAttr);
+        if (newProfileId != null) {
+            update.setAttribute(ImportBatchDataSource.FIELD_PROFILE_ID, newProfileId);
+        }
         dsBatch.updateData(update, new DSCallback() {
 
             @Override
@@ -305,7 +308,8 @@ public class ImportPresenter {
         @Override
         public void itemReset() {
             BatchRecord batch = widget.getSelectedBatch();
-            reset(batch, ClientUtils.EMPTY_BOOLEAN_CALLBACK);
+            String profile = widget.getSelectedProfile();
+            reset(batch, profile, ClientUtils.EMPTY_BOOLEAN_CALLBACK);
         }
 
     }
@@ -361,7 +365,7 @@ public class ImportPresenter {
                 dsRequest.setPromptStyle(PromptStyle.DIALOG);
                 dsRequest.setPrompt(i18n.ImportWizard_SelectFolderStep_Wait_Title());
                 Record newBatch = dsBatch.newBatch(importRecord.getPath(),
-                        importSourceChooser.getImportAsType(),
+                        importSourceChooser.getImportProfile(),
                         importSourceChooser.getDevice(),
                         importSourceChooser.getGenerateIndices());
                 dsBatch.addData(newBatch, new DSCallback() {

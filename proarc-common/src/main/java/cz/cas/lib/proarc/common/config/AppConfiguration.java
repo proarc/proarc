@@ -30,6 +30,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -79,11 +80,14 @@ public final class AppConfiguration {
     private final Map<String, String> environment;
     /** read only configuration */
     private final Configuration config;
+    private final Map<ConfigurationProfile, Configuration> profileConfigCache =
+            new HashMap<ConfigurationProfile, Configuration>();
+    private final Profiles profiles;
 
     AppConfiguration(Map<String, String> environment) throws IOException {
         this.environment = environment;
-        this.config = new CompositeConfiguration();
-        init((CompositeConfiguration) config);
+        this.config = init();
+        this.profiles = new Profiles(config, configHome);
     }
 
     /**
@@ -118,8 +122,34 @@ public final class AppConfiguration {
         return configHome;
     }
 
+    public Profiles getProfiles() {
+        return profiles;
+    }
+
+    private Configuration getProfileConfiguration(ConfigurationProfile cp) {
+        if (ConfigurationProfile.DEFAULT.equals(cp.getId())) {
+            return config;
+        }
+        Configuration profileConfig = profileConfigCache.get(cp);
+        if (profileConfig != null) {
+            return profileConfig;
+        }
+        File file = cp.getFile();
+        if (file != null) {
+            profileConfig = buildConfiguration(file);
+            profileConfigCache.put(cp, profileConfig);
+            return profileConfig;
+        }
+        throw new IllegalStateException("Unknown profile file: " + cp.toString());
+    }
+
+    public ImportProfile getImportConfiguration(ConfigurationProfile cp) {
+        Configuration profileConfig = getProfileConfiguration(cp);
+        return new ImportProfile(profileConfig, cp.getId());
+    }
+
     public ImportProfile getImportConfiguration() {
-        return new ImportProfile(config);
+        return new ImportProfile(config, ConfigurationProfile.DEFAULT);
     }
 
     public Kramerius4ExportOptions getKramerius4Export() {
@@ -152,8 +182,18 @@ public final class AppConfiguration {
         return config;
     }
 
-    private void init(CompositeConfiguration cc) throws IOException {
+    private Configuration init() throws IOException {
         this.configHome = initConfigFolder(environment.get(PROPERTY_USER_HOME), environment.get(PROPERTY_APP_HOME));
+        return buildConfiguration(new File(configHome, CONFIG_FILE_NAME));
+    }
+
+    private Configuration buildConfiguration(File cfgFile) {
+        CompositeConfiguration cc = new CompositeConfiguration();
+        buildConfiguration(cc, cfgFile);
+        return cc;
+    }
+
+    private void buildConfiguration(CompositeConfiguration cc, File cfgFile) {
         try {
             // envConfig contains interpolated properties
             PropertiesConfiguration envConfig = new PropertiesConfiguration();
@@ -164,7 +204,7 @@ public final class AppConfiguration {
             external.setEncoding("UTF-8");
             FileChangedReloadingStrategy reloading = new FileChangedReloadingStrategy();
             external.setReloadingStrategy(reloading);
-            external.setFile(new File(configHome, CONFIG_FILE_NAME));
+            external.setFile(cfgFile);
             cc.addConfiguration(external);
             try {
                 // bundled default configurations

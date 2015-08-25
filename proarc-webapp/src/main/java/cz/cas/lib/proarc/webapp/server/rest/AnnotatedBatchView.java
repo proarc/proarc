@@ -75,6 +75,10 @@ public abstract class AnnotatedBatchView extends BatchView {
     @Override
     public abstract String getParentPid();
 
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PROFILE)
+    @Override
+    public abstract String getProfileId();
+
     @XmlSchemaType(name = "dateTime")
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_TIMESTAMP)
     @Override

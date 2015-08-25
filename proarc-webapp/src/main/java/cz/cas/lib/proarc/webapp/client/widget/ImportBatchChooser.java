@@ -24,9 +24,9 @@ import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SortDirection;
 import com.smartgwt.client.types.TextAreaWrap;
 import com.smartgwt.client.util.BooleanCallback;
-import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.MiniDateRangeItem;
+import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
@@ -53,6 +53,8 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
+import cz.cas.lib.proarc.webapp.client.widget.Dialog.DialogCloseHandler;
+import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi.ProfileGroup;
 
 /**
  * The widget to select a batch from import history. There should be 2 kinds of
@@ -70,6 +72,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
     private final ActionSource actionSource;
     private Action resumeAction;
     private BatchRecord lastSelection;
+    private String lastProfileSelection;
 
     public ImportBatchChooser(ClientMessages i18n) {
         this.i18n = i18n;
@@ -196,6 +199,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
     }
 
     public void bind() {
+        lastProfileSelection = null;
         lGridBatches.invalidateCache();
         lGridBatches.fetchData(lGridBatches.getCriteria());
     }
@@ -207,6 +211,15 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
     public BatchRecord getSelectedBatch() {
         Record r = getSelectedRecord();
         return r == null ? null : new BatchRecord(r);
+    }
+
+    /**
+     * A configuration profile as a parameter to reset the batch.
+     * @return the profile
+     * @see #getSelectedBatch() 
+     */
+    public String getSelectedProfile() {
+        return lastProfileSelection;
     }
 
     public Record getSelectedRecord() {
@@ -251,8 +264,9 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         return t;
     }
 
-    private void resetImportFolder(ImportBatchDataSource.State state) {
-        BooleanCallback callback = new BooleanCallback() {
+    private void resetImportFolder(final BatchRecord batch) {
+        ImportBatchDataSource.State state = batch.getState();
+        final BooleanCallback callback = new BooleanCallback() {
 
             @Override
             public void execute(Boolean value) {
@@ -264,9 +278,42 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         if (state == ImportBatchDataSource.State.INGESTING_FAILED) {
             callback.execute(true);
         } else {
-            SC.ask(i18n.ImportBatchChooser_ActionResetLoad_Title(),
-                    i18n.ImportBatchChooser_ActionResetLoad_Ask_MSg(), callback);
+            askForBatchReload(callback, batch);
         }
+    }
+
+    private void askForBatchReload(final BooleanCallback callback, BatchRecord batch) {
+        final Dialog dialog = new Dialog(i18n.ImportBatchChooser_ActionResetLoad_Title());
+        dialog.getDialogLabelContainer().setContents(i18n.ImportBatchChooser_ActionResetLoad_Ask_MSg());
+
+        final DynamicForm dialogForm = new DynamicForm();
+        final SelectItem profileSelect = ProfileChooser.createProfileSelection(ProfileGroup.IMPORTS, i18n);
+        profileSelect.setValue(batch.getProfileId());
+        dialogForm.setFields(profileSelect);
+        dialog.getDialogContentContainer().setMembers(dialogForm);
+
+        dialog.addYesButton(new com.smartgwt.client.widgets.events.ClickHandler() {
+
+            @Override
+            public void onClick(com.smartgwt.client.widgets.events.ClickEvent event) {
+                if (dialogForm.validate()) {
+                    lastProfileSelection = profileSelect.getValueAsString();
+                    dialog.destroy();
+                    callback.execute(true);
+                }
+            }
+        });
+        dialog.addNoButton(new DialogCloseHandler() {
+
+            @Override
+            public void onClose() {
+                dialog.destroy();
+                lastProfileSelection = null;
+                callback.execute(false);
+            }
+        });
+        dialog.setWidth(400);
+        dialog.show();
     }
 
     private DynamicForm createLogForm() {
@@ -328,7 +375,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         public void performAction(ActionEvent event) {
             BatchRecord record = getSelectedBatch();
             if (record != null) {
-                resetImportFolder(record.getState());
+                resetImportFolder(record);
             }
         }
 

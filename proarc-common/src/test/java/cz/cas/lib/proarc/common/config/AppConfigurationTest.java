@@ -17,10 +17,13 @@
 package cz.cas.lib.proarc.common.config;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
+import cz.cas.lib.proarc.common.imports.ImportProfile;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 import org.apache.commons.configuration.Configuration;
 import org.junit.After;
@@ -44,6 +47,8 @@ public class AppConfigurationTest {
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder();
     private AppConfigurationFactory factory;
+    private File confHome;
+    private File proarcCfg;
 
     public AppConfigurationTest() {
     }
@@ -57,8 +62,11 @@ public class AppConfigurationTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         factory = AppConfigurationFactory.getInstance();
+        confHome = temp.newFolder(AppConfiguration.DEFAULT_APP_HOME_NAME);
+        assertNotNull(confHome);
+        proarcCfg = new File(confHome, AppConfiguration.CONFIG_FILE_NAME);
     }
 
     @After
@@ -67,8 +75,6 @@ public class AppConfigurationTest {
 
     @Test
     public void testGetConfigHome() throws Exception {
-        final File confHome = temp.getRoot();
-        assertNotNull(confHome);
         AppConfiguration config = factory.create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
@@ -81,8 +87,6 @@ public class AppConfigurationTest {
 
     @Test
     public void testGetAllUserHome() throws Exception {
-        final File confHome = temp.getRoot();
-        assertNotNull(confHome);
         AppConfiguration config = factory.create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
         }});
@@ -97,17 +101,11 @@ public class AppConfigurationTest {
 
     @Test
     public void testReadProperty() throws Exception {
-        final File confHome = temp.newFolder(AppConfiguration.DEFAULT_APP_HOME_NAME);
-
         // init proarc.cfg
-        Properties props = new Properties();
         final String expectedPropValue = "test-čŇů"; // test UTF-8
+        Properties props = new Properties();
         props.put(TEST_PROPERTY_NAME, expectedPropValue);
-        final File configFile = new File(confHome, AppConfiguration.CONFIG_FILE_NAME);
-        OutputStreamWriter propsOut = new OutputStreamWriter(new FileOutputStream(configFile), "UTF-8");
-        props.store(propsOut, null);
-        propsOut.close();
-        assertTrue(configFile.exists());
+        createConfigFile(props, proarcCfg);
 
         AppConfiguration pconfig = factory.create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
@@ -120,12 +118,12 @@ public class AppConfigurationTest {
         // test reload (like servlet reload)
         final String expectedReloadValue = "reload";
         props.put(TEST_PROPERTY_NAME, expectedReloadValue);
-        propsOut = new OutputStreamWriter(new FileOutputStream(configFile), "UTF-8");
+        OutputStreamWriter propsOut = new OutputStreamWriter(new FileOutputStream(proarcCfg), "UTF-8");
         // FileChangedReloadingStrategy waits 5s to reload changes so give it a chance
         Thread.sleep(5000);
         props.store(propsOut, null);
         propsOut.close();
-        assertTrue(configFile.exists());
+        assertTrue(proarcCfg.exists());
 
         AppConfiguration pconfigNew = factory.create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
@@ -142,18 +140,12 @@ public class AppConfigurationTest {
 
     @Test
     public void testOverrideProperty() throws Exception {
-        final File confHome = temp.newFolder(AppConfiguration.DEFAULT_APP_HOME_NAME);
-
         // init proarc.cfg
         Properties props = new Properties();
         final String expPropValue = "overriddenValue";
         props.put(TEST_DEFAULT_PROPERTY_NAME, expPropValue);
-        
-        final File configFile = new File(confHome, AppConfiguration.CONFIG_FILE_NAME);
-        FileOutputStream propsOut = new FileOutputStream(configFile);
-        props.store(propsOut, null);
-        propsOut.close();
-        assertTrue(configFile.exists());
+
+        createConfigFile(props, proarcCfg);
 
         AppConfiguration pconfig = factory.create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
@@ -162,4 +154,50 @@ public class AppConfigurationTest {
         Configuration config = pconfig.getConfiguration();
         assertEquals(expPropValue, config.getString(TEST_DEFAULT_PROPERTY_NAME));
     }
+
+    @Test
+    public void testGetProfile() throws Exception {
+        // init proarc.cfg
+        final String expProfileValue = "profileValue";
+        final String expDefaultProfileValue = "defaultProfileValue";
+        final String importProfileGroup = ImportProfile.PROFILES;
+
+        createConfigFile(new Properties() {{
+                put(importProfileGroup, "profile.ndk");
+                put("profile.ndk.label", "NDK label");
+                put("profile.ndk.description", "NDK description");
+                put("profile.ndk.file", "ndk.cfg");
+                put(ImportProfile.PLAIN_OCR_CHARSET, expDefaultProfileValue);
+            }},
+            new File(confHome, AppConfiguration.CONFIG_FILE_NAME));
+
+        File ndkProfileFile = createConfigFile(new Properties() {{
+                put(TEST_PROPERTY_NAME, expProfileValue);
+                put(ImportProfile.PLAIN_OCR_CHARSET, expProfileValue);
+            }},
+            new File(confHome, "ndk.cfg"));
+
+        AppConfiguration config = factory.create(new HashMap<String, String>() {{
+            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
+        }});
+
+        List<ConfigurationProfile> profiles = config.getProfiles().getProfiles(importProfileGroup);
+        assertNotNull(profiles);
+        assertEquals("profile.ndk", profiles.get(0).getId());
+        assertEquals("NDK label", profiles.get(0).getLabel());
+        assertEquals("NDK description", profiles.get(0).getDescription());
+        assertEquals(ndkProfileFile, profiles.get(0).getFile());
+
+        assertEquals(expProfileValue, config.getImportConfiguration(profiles.get(0)).getPlainOcrCharset());
+        assertEquals(expDefaultProfileValue, config.getImportConfiguration().getPlainOcrCharset());
+    }
+
+    private File createConfigFile(Properties props, File configFile) throws IOException {
+        FileOutputStream propsOut = new FileOutputStream(configFile);
+        props.store(propsOut, null);
+        propsOut.close();
+        assertTrue(configFile.exists());
+        return configFile;
+    }
+
 }

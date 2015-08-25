@@ -54,8 +54,8 @@ public final class ImportBatchDataSource extends RestDataSource {
     public static final String FIELD_USER_DISPLAYNAME = ImportResourceApi.IMPORT_BATCH_USER;
     public static final String FIELD_PARENT = ImportResourceApi.IMPORT_BATCH_PARENTPID;
     public static final String FIELD_LOG = ImportResourceApi.IMPORT_BATCH_FAILURE;
+    public static final String FIELD_PROFILE_ID = ImportResourceApi.IMPORT_BATCH_PROFILE;
 
-    public static final String FIELD_MODEL = ImportResourceApi.NEWBATCH_MODEL_PARAM;
     public static final String FIELD_DEVICE = ImportResourceApi.NEWBATCH_DEVICE_PARAM;
     public static final String FIELD_INDICES = ImportResourceApi.NEWBATCH_INDICES_PARAM;
 
@@ -97,9 +97,12 @@ public final class ImportBatchDataSource extends RestDataSource {
         DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);
         parent.setHidden(true);
 
+        DataSourceTextField profileId = new DataSourceTextField(FIELD_PROFILE_ID);
+        profileId.setHidden(true);
+
         DataSourceTextField log = new DataSourceTextField(FIELD_LOG);
 
-        setFields(id, description, userId, user, create, timestamp, state, parent, log);
+        setFields(id, description, userId, user, create, timestamp, state, parent, log, profileId);
         
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         
@@ -153,11 +156,11 @@ public final class ImportBatchDataSource extends RestDataSource {
         }
     }
 
-    public Record newBatch(String folderPath, String model, String device, Boolean indices) {
+    public Record newBatch(String folderPath, String profile, String device, Boolean indices) {
         Record r = new Record();
         r.setAttribute(FIELD_PATH, folderPath);
-        if (model != null) {
-            r.setAttribute(FIELD_MODEL, model);
+        if (profile != null) {
+            r.setAttribute(FIELD_PROFILE_ID, profile);
         }
         if (indices != null) {
             r.setAttribute(FIELD_INDICES, indices);
@@ -198,6 +201,10 @@ public final class ImportBatchDataSource extends RestDataSource {
             delegate.setAttribute(FIELD_PARENT, pid);
         }
 
+        public String getProfileId() {
+            return delegate.getAttribute(FIELD_PROFILE_ID);
+        }
+
         public State getState() {
             String attr = delegate.getAttribute(FIELD_STATE);
             return State.fromString(attr);
@@ -210,6 +217,7 @@ public final class ImportBatchDataSource extends RestDataSource {
         public Record getDelegate() {
             return delegate;
         }
+
     }
 
     /**

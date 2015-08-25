@@ -239,6 +239,7 @@ public class ImportBatchManager {
         batch.setState(Batch.State.LOADING);
         batch.setTitle(title);
         batch.setUserId(user.getId());
+        batch.setProfileId(options.getConfig().getProfileId());
         Batch updated = update(batch);
         updateFolderStatus(updated);
         return updated;

@@ -52,6 +52,7 @@ import cz.cas.lib.proarc.webapp.client.ds.DeviceDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ImportTreeDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ImportTreeDataSource.ImportRecord;
+import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi.ProfileGroup;
 import java.util.logging.Logger;
 
 /**
@@ -141,8 +142,8 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
         return treeGrid.getSelectedRecord();
     }
 
-    public String getImportAsType() {
-        return optionsForm.getValueAsString(ImportBatchDataSource.FIELD_MODEL);
+    public String getImportProfile() {
+        return optionsForm.getValueAsString(ImportBatchDataSource.FIELD_PROFILE_ID);
     }
 
     public Boolean getGenerateIndices() {
@@ -222,11 +223,20 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
         form.setGroupTitle(i18n.ImportSourceChooser_Options_Title());
         form.setIsGroup(true);
         form.setWrapItemTitles(false);
-//        SelectItem selectModel = new SelectItem("model", i18n.ImportSourceChooser_OptionImportModel_Title());
+
         CheckboxItem cbiPageIndexes = new CheckboxItem(ImportBatchDataSource.FIELD_INDICES,
                 i18n.ImportSourceChooser_OptionPageIndices_Title());
         cbiPageIndexes.setValue(true);
 
+        SelectItem selectScanner = createScannerSelection();
+        SelectItem selectProfile = ProfileChooser.createProfileSelection(ProfileGroup.IMPORTS, i18n);
+        selectProfile.setName(ImportBatchDataSource.FIELD_PROFILE_ID);
+
+        form.setFields(selectScanner, cbiPageIndexes, selectProfile);
+        return form;
+    }
+
+    private SelectItem createScannerSelection() {
         final SelectItem selectScanner = new SelectItem(ImportBatchDataSource.FIELD_DEVICE,
                 i18n.ImportSourceChooser_OptionScanner_Title());
         DeviceDataSource.setOptionDataSource(selectScanner);
@@ -250,9 +260,7 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
                 }
             }
         });
-
-        form.setFields(selectScanner, cbiPageIndexes);
-        return form;
+        return selectScanner;
     }
 
     public interface ImportSourceChooserHandler {

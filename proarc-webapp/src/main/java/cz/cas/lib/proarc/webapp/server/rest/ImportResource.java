@@ -20,6 +20,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
@@ -34,6 +35,7 @@ import cz.cas.lib.proarc.common.imports.ImportDispatcher;
 import cz.cas.lib.proarc.common.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.imports.ImportFileScanner.Folder;
 import cz.cas.lib.proarc.common.imports.ImportProcess;
+import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
@@ -144,13 +146,6 @@ public class ImportResource {
         return new SmartGwtResponse<ImportFolder>(result);
     }
 
-    private ImportFolder create(File folder, ImportFileScanner.State state, URI userRoot) {
-        String name = folder.getName();
-        String path = userRoot.relativize(folder.toURI()).getPath();
-        String parentPath = userRoot.relativize(folder.getParentFile().toURI()).getPath();
-        return new ImportFolder(name, state.name(), parentPath, path);
-    }
-
     @POST
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
@@ -158,7 +153,8 @@ public class ImportResource {
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.NEWBATCH_MODEL_PARAM) @DefaultValue("model:page") String model,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
-            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices
+            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
             ) throws URISyntaxException, IOException {
         
         LOG.log(Level.FINE, "import path: {0} as model: {1}, indices: {2}, device: {3}",
@@ -170,8 +166,9 @@ public class ImportResource {
                 ? userRoot.resolve(new URI(null, null, folderPath, null))
                 : userRoot;
         File folder = new File(folderUri);
+        ConfigurationProfile profile = findImportProfile(null, profileId);
         ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                importManager, model, device, indices, appConfig.getImportConfiguration());
+                importManager, model, device, indices, appConfig.getImportConfiguration(profile));
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
         return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -235,7 +232,8 @@ public class ImportResource {
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
             // empty string stands for remove
             @FormParam(ImportResourceApi.IMPORT_BATCH_PARENTPID) String parentPid,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_STATE) Batch.State state
+            @FormParam(ImportResourceApi.IMPORT_BATCH_STATE) Batch.State state,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
             ) throws IOException, FedoraClientException, DigitalObjectException {
 
         Batch batch = importManager.get(batchId);
@@ -253,7 +251,9 @@ public class ImportResource {
             if (realState != Batch.State.LOADING_FAILED && realState != Batch.State.LOADED) {
                 throw new UnsupportedOperationException("Cannot reset: " + batch);
             }
-            ImportProcess resume = ImportProcess.resume(batch, importManager, appConfig.getImportConfiguration());
+            ConfigurationProfile profile = findImportProfile(batchId, profileId);
+            ImportProcess resume = ImportProcess.resume(batch, importManager,
+                    appConfig.getImportConfiguration(profile));
             ImportDispatcher.getDefault().addImport(resume);
         } else if (parentPid != null) {
             checkBatchState(batch);
@@ -367,6 +367,16 @@ public class ImportResource {
             throw RestException.plainText(Status.FORBIDDEN, String.format(
                     "Batch %s is not editable! Unexpected state: %s", batch.getId(), batch.getState()));
         }
+    }
+
+    private ConfigurationProfile findImportProfile(Integer batchId, String profileId) {
+        ConfigurationProfile profile = appConfig.getProfiles().getProfile(ImportProfile.PROFILES, profileId);
+        if (profile == null) {
+            LOG.log(Level.SEVERE,"Batch {3}: Unknown profile: {0}! Check {1} in proarc.cfg",
+                    new Object[]{ImportProfile.PROFILES, profileId, batchId});
+            throw RestException.plainText(Status.BAD_REQUEST, "Unknown profile: " + profileId);
+        }
+        return profile;
     }
 
 }

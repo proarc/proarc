@@ -34,6 +34,7 @@ public class BatchView {
     private Integer userId;
     private String userName;
     private String parentPid;
+    private String profileId;
     private String log;
 
     public Integer getId() {
@@ -120,9 +121,20 @@ public class BatchView {
         this.parentPid = parentPid;
     }
 
+    public String getProfileId() {
+        return profileId;
+    }
+
+    public void setProfileId(String profileId) {
+        this.profileId = profileId;
+    }
+
     @Override
     public String toString() {
-        return "BatchView{" + "id=" + id + ", folder=" + folder + ", title=" + title + ", timestamp=" + timestamp + ", create=" + create + ", state=" + state + ", userId=" + userId + ", username=" + userName + ", parentPid=" + parentPid + '}';
+        return "BatchView{" + "id=" + id + ", folder=" + folder + ", title=" + title
+                + ", timestamp=" + timestamp + ", create=" + create
+                + ", state=" + state + ", userId=" + userId + ", username=" + userName
+                + ", parentPid=" + parentPid + ", profileId=" + profileId + '}';
     }
 
 
