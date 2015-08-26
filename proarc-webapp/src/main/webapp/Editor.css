@@ -52,3 +52,11 @@
     color: red;
     font-style: italic;
 }
+
+/* issue 297: uncomment to render required fields with red color. */
+/*
+.formTitle b,
+.formTitleFocused b {
+    color:red;
+}
+*/
