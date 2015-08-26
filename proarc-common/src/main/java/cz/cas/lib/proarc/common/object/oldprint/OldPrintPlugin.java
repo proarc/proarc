@@ -88,7 +88,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
         List<MetaModel> models = new ArrayList<MetaModel>();
         models.add(new MetaModel(
                 MODEL_VOLUME, true, null,
-                Arrays.asList(new ElementType("Old Print Volume", "en"), new ElementType("Starý tisk - Svazek", "cs")),
+                Arrays.asList(new ElementType("Old Print Volume", "en"), new ElementType("STT Svazek monografie", "cs")),
                 ModsConstants.NS,
                 MODEL_VOLUME,
                 this,
@@ -98,7 +98,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 ));
         models.add(new MetaModel(
                 MODEL_SUPPLEMENT, true, null,
-                Arrays.asList(new ElementType("Old Print Supplement", "en"), new ElementType("Starý tisk - Příloha", "cs")),
+                Arrays.asList(new ElementType("Old Print Supplement", "en"), new ElementType("STT Příloha monografie", "cs")),
                 ModsConstants.NS,
                 MODEL_SUPPLEMENT,
                 this,
@@ -108,7 +108,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
-                Arrays.asList(new ElementType("Old Print Page", "en"), new ElementType("Starý tisk - Strana", "cs")),
+                Arrays.asList(new ElementType("Old Print Page", "en"), new ElementType("STT Strana", "cs")),
                 ModsConstants.NS,
                 MODEL_PAGE,
                 this,
