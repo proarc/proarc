@@ -329,6 +329,22 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
+    @Override
+    public void setPage(PageViewItem page, String message) throws DigitalObjectException {
+        String modelId = handler.relations().getModel();
+        if (modelId.equals(NdkPlugin.MODEL_PAGE)) {
+            DescriptionMetadata<ModsDefinition> metadata = new DescriptionMetadata<ModsDefinition>();
+            metadata.setTimestamp(editor.getLastModified());
+            NdkPageMapper mapper = new NdkPageMapper();
+            ModsDefinition mods = mapper.createPage(
+                    page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
+            metadata.setIgnoreValidation(true);
+            write(modelId, mods, metadata, message);
+        } else {
+            throw new DigitalObjectException(fobject.getPid(), "Unexpected model for NDK page: " + modelId);
+        }
+    }
+
     private void checkBeforeWrite(ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations) throws DigitalObjectException {
         ModsStreamEditor.addPid(mods, fobject.getPid());
         if (ignoreValidations) {
@@ -365,7 +381,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    private void write(String modelId, ModsDefinition mods,
+    protected void write(String modelId, ModsDefinition mods,
             DescriptionMetadata<?> options, String message) throws DigitalObjectException {
         ModsDefinition oldMods = null;
         long timestamp = options.getTimestamp();

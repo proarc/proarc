@@ -38,7 +38,6 @@ public final class ImportResourceApi {
     public static final String BATCH_PATH = "batch";
     public static final String NEWBATCH_DEVICE_PARAM = "device";
     public static final String NEWBATCH_INDICES_PARAM = "indices";
-    public static final String NEWBATCH_MODEL_PARAM = "model";
 
     // ImportBatch
     public static final String IMPORT_BATCH_ELEMENT = "batch";

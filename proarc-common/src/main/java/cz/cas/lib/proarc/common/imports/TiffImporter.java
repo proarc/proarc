@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
-import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -26,19 +25,20 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
+import cz.cas.lib.proarc.common.fedora.PageView.PageViewHandler;
+import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
-import cz.cas.lib.proarc.common.mods.Mods33Utils;
-import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.ExternalProcess;
-import cz.cas.lib.proarc.common.process.GenericExternalProcess;
 import cz.cas.lib.proarc.common.process.KakaduCompress;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
@@ -98,15 +98,16 @@ public final class TiffImporter {
             if (!InputUtils.isTiff(f)) {
                 throw new IllegalStateException("Not a TIFF content: " + f);
             }
-            createMetadata(localObj, ctx);
-            createRelsExt(localObj, f, ctx);
+            DigitalObjectHandler dobjHandler = DigitalObjectManager.getDefault().createHandler(localObj);
+            createRelsExt(dobjHandler, f, ctx);
+            createMetadata(dobjHandler, ctx);
             createImages(ctx.getTargetFolder(), f, originalFilename, localObj, config);
             importArchivalCopy(fileSet, f, localObj, ctx);
             importUserCopy(fileSet, f, localObj, ctx);
             importOcr(fileSet, localObj, ctx);
             createTechnicalMetadata(localObj, ctx);
             // writes FOXML
-            localObj.flush();
+            dobjHandler.commit();
             ibm.addChildRelation(ctx.getBatch(), null, localObj.getPid());
             batchLocalObject.setState(ObjectState.LOADED);
         } catch (Throwable ex) {
@@ -128,24 +129,24 @@ public final class TiffImporter {
         return localObj;
     }
 
-    private void createMetadata(LocalObject localObj, ImportOptions ctx) throws DigitalObjectException {
-        String fedoraModel = ctx.getModel();
-        // MODS
-        ModsStreamEditor modsEditor = new ModsStreamEditor(localObj);
-        String pageIndex = ctx.isGenerateIndices() ? String.valueOf(ctx.getConsumedFileCounter() + 1) : null;
-        ModsType mods = modsEditor.createPage(localObj.getPid(), pageIndex, null, null);
-        modsEditor.write(mods, 0, null);
-
-        // DC
-        DcStreamEditor dcEditor = new DcStreamEditor(localObj);
-        dcEditor.write(mods, fedoraModel, 0, null);
-
-        localObj.setLabel(Mods33Utils.getLabel(mods, fedoraModel));
+    private void createMetadata(DigitalObjectHandler objHandler, ImportOptions ctx) throws DigitalObjectException {
+        MetadataHandler<Object> mHandler = objHandler.metadata();
+        if (mHandler instanceof PageViewHandler) {
+            // requires RELS-EXT model in place
+            // creates MODS + DC + LABEL
+            PageViewHandler pvHandler = (PageViewHandler) mHandler;
+            String pageIndex = ctx.isGenerateIndices() ? String.valueOf(ctx.getConsumedFileCounter() + 1) : null;
+            PageViewItem page = new PageViewItem();
+            page.setPageIndex(pageIndex);
+            pvHandler.setPage(page, null);
+        } else {
+            throw new IllegalStateException("Unsupported metadata handler: " + mHandler);
+        }
     }
 
-    private void createRelsExt(LocalObject localObj, File f, ImportOptions ctx) throws DigitalObjectException {
+    private void createRelsExt(DigitalObjectHandler objHandler, File f, ImportOptions ctx) throws DigitalObjectException {
         String fedoraModel = ctx.getModel();
-        RelationEditor relEditor = new RelationEditor(localObj);
+        RelationEditor relEditor = objHandler.relations();
         relEditor.setModel(fedoraModel);
         relEditor.setDevice(ctx.getDevice());
         relEditor.setImportFile(f.getName());

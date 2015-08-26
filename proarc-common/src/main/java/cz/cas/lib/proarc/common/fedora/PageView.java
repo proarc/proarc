@@ -118,7 +118,12 @@ public final class PageView {
     }
 
     public interface PageViewHandler {
+
         PageViewItem createPageViewItem(Locale locale) throws DigitalObjectException;
+
+        /** Rewrites metadata with page. */
+        void setPage(PageViewItem page, String message) throws DigitalObjectException;
+
     }
 
     public static class PageViewItem {

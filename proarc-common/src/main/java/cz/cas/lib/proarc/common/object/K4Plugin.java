@@ -278,6 +278,20 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
             }
         }
 
+        @Override
+        public void setPage(PageViewItem page, String message) throws DigitalObjectException {
+            String modelId = handler.relations().getModel();
+            if (modelId.equals(NdkPlugin.MODEL_PAGE)) {
+                DescriptionMetadata<ModsType> metadata = new DescriptionMetadata<ModsType>();
+                metadata.setTimestamp(editor.getLastModified());
+                ModsType mods = editor.createPage(fobject.getPid(),
+                        page.getPageIndex(), page.getPageNumber(), page.getPageType());
+                write(modelId, mods, metadata.getTimestamp(), message);
+            } else {
+                throw new DigitalObjectException(fobject.getPid(), "Unexpected model for K4 page: " + modelId);
+            }
+        }
+
         private void write(String modelId, ModsType mods, long timestamp, String message) throws DigitalObjectException {
             editor.write(mods, timestamp, message);
 

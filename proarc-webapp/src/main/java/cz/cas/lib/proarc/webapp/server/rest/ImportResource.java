@@ -151,14 +151,13 @@ public class ImportResource {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public SmartGwtResponse<BatchView> newBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
-            @FormParam(ImportResourceApi.NEWBATCH_MODEL_PARAM) @DefaultValue("model:page") String model,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
             ) throws URISyntaxException, IOException {
         
-        LOG.log(Level.FINE, "import path: {0} as model: {1}, indices: {2}, device: {3}",
-                new Object[] {path, model, indices, device});
+        LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
+                new Object[] {path, indices, device});
         String folderPath = validateParentPath(path);
         URI userRoot = user.getImportFolder();
         URI folderUri = (folderPath != null)
@@ -168,7 +167,7 @@ public class ImportResource {
         File folder = new File(folderUri);
         ConfigurationProfile profile = findImportProfile(null, profileId);
         ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                importManager, model, device, indices, appConfig.getImportConfiguration(profile));
+                importManager, device, indices, appConfig.getImportConfiguration(profile));
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
         return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));

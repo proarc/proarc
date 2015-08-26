@@ -36,7 +36,13 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.K4Plugin;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
+import cz.cas.lib.proarc.common.user.UserManager;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -78,6 +84,8 @@ public class TiffImporterTest {
     private AppConfiguration config;
     private ArrayList<Object> toVerify = new ArrayList<Object>();;
     private JhoveContext jhoveContext;
+    private UserProfile junit;
+    private ImportBatchManager ibm;
 
     public TiffImporterTest() {
     }
@@ -92,6 +100,8 @@ public class TiffImporterTest {
 
     @Before
     public void setUp() throws Exception {
+        junit = new UserProfile();
+        junit.setUserName("junit");
         File root = temp.getRoot();
         System.out.println("root: " + root.toString());
         tiff1 = new File(root, "img1.tiff");
@@ -123,6 +133,18 @@ public class TiffImporterTest {
         }});
 
         jhoveContext = JhoveUtility.createContext(temp.newFolder("jhove"));
+
+        DaoFactory daos = createMockDaoFactory();
+        ibm = new ImportBatchManager(config, daos);
+        
+//        MetaModelRepository.setInstance(new String[]{K4Plugin.ID});
+        MetaModelRepository.setInstance(new String[]{NdkPlugin.ID});
+        DigitalObjectManager.setDefault(new DigitalObjectManager(config,
+                ibm,
+                null,
+                MetaModelRepository.getInstance(),
+                EasyMock.createNiceMock(UserManager.class))
+        );
     }
 
     @After
@@ -138,14 +160,11 @@ public class TiffImporterTest {
         File targetFolder = ImportProcess.createTargetFolder(temp.getRoot());
         assertTrue(targetFolder.exists());
 
-        DaoFactory daos = createMockDaoFactory();
-        ImportBatchManager ibm = new ImportBatchManager(config, daos);
-
         String mimetype = ImportProcess.findMimeType(tiff1);
         assertNotNull(mimetype);
 
-        ImportOptions ctx = new ImportOptions(tiff1.getParentFile(), "model:page",
-                "scanner:scanner1", true, "junit", config.getImportConfiguration());
+        ImportOptions ctx = new ImportOptions(tiff1.getParentFile(),
+                "scanner:scanner1", true, junit, config.getImportConfiguration());
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);
@@ -215,14 +234,11 @@ public class TiffImporterTest {
         File targetFolder = ImportProcess.createTargetFolder(temp.getRoot());
         assertTrue(targetFolder.exists());
 
-        DaoFactory daos = createMockDaoFactory();
-        ImportBatchManager ibm = new ImportBatchManager(config, daos);
-
         String mimetype = ImportProcess.findMimeType(tiff1);
         assertNotNull(mimetype);
 
-        ImportOptions ctx = new ImportOptions(tiff1.getParentFile(), "model:page",
-                "scanner:scanner1", true, "junit", config.getImportConfiguration());
+        ImportOptions ctx = new ImportOptions(tiff1.getParentFile(),
+                "scanner:scanner1", true, junit, config.getImportConfiguration());
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);

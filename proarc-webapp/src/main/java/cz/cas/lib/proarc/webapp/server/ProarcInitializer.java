@@ -80,6 +80,7 @@ public final class ProarcInitializer {
      * @param env config params
      */
     public void start(Map<String, String> env) {
+//        LOG.info("Starting " + AppConfiguration.FULL_VERSION);
         AppConfiguration config = initConfig(env);
         initProarcModel(config);
         DataSource proarcSource = initProarcDb();
@@ -104,6 +105,7 @@ public final class ProarcInitializer {
      * Releases referenced resources.
      */
     public void destroy() {
+//        LOG.info("Destroing " + AppConfiguration.FULL_VERSION);
         ImportDispatcher importDispatcher = ImportDispatcher.getDefault();
         importDispatcher.stop();
         daoFactory = null;
@@ -171,7 +173,7 @@ public final class ProarcInitializer {
         ImportDispatcher importDispatcher = new ImportDispatcher();
         ImportDispatcher.setDefault(importDispatcher);
         importDispatcher.init();
-        ImportProcess.resumeAll(ibm, importDispatcher, config.getImportConfiguration());
+        ImportProcess.resumeAll(ibm, importDispatcher, config);
     }
 
 }

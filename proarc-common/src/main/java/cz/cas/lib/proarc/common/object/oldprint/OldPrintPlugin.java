@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.i18n.BundleValueMap;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
+import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
@@ -151,9 +152,26 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                     item.setPageTypeLabel(OldPrintPageMapper.getPageTypeLabel(item.getPageType(), locale));
                     return item;
                 } else {
-                    throw new DigitalObjectException(fobject.getPid(), "Unexpected model for NDK page: " + modelId);
+                    throw new DigitalObjectException(fobject.getPid(), "Unexpected model for oldprint page: " + modelId);
                 }
             }
+
+            @Override
+            public void setPage(PageViewItem page, String message) throws DigitalObjectException {
+                String modelId = handler.relations().getModel();
+                if (modelId.equals(MODEL_PAGE)) {
+                    DescriptionMetadata<ModsDefinition> metadata = new DescriptionMetadata<ModsDefinition>();
+                    metadata.setTimestamp(editor.getLastModified());
+                    OldPrintPageMapper mapper = new OldPrintPageMapper();
+                    ModsDefinition mods = mapper.createPage(
+                            page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
+                    metadata.setIgnoreValidation(true);
+                    write(modelId, mods, metadata, message);
+                } else {
+                    throw new DigitalObjectException(fobject.getPid(), "Unexpected model for oldprint page: " + modelId);
+                }
+            }
+
 
         };
     }

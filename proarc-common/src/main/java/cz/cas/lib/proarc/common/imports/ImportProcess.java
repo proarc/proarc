@@ -25,7 +25,6 @@ import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -74,13 +73,12 @@ public final class ImportProcess implements Runnable {
     public static ImportProcess prepare(
             File importFolder, String description,
             UserProfile user, ImportBatchManager batchManager,
-            String importAs, String device, boolean generateIndices,
+            String device, boolean generateIndices,
             ImportProfile profile
             ) throws IOException {
 
-        importAs = NdkPlugin.MODEL_PAGE; // for now use default
-        ImportOptions options = new ImportOptions(importFolder, importAs, device,
-                generateIndices, user.getUserName(), profile);
+        ImportOptions options = new ImportOptions(importFolder, device,
+                generateIndices, user, profile);
         ImportProcess process = new ImportProcess(options, batchManager);
         process.prepare(description, user);
         return process;
@@ -96,7 +94,7 @@ public final class ImportProcess implements Runnable {
         UserProfile user = users.find(batch.getUserId());
         File importFolder = ibm.resolveBatchFile(batch.getFolder());
         ImportOptions options = ImportOptions.fromBatch(
-                batch, importFolder, user.getUserName(), profile);
+                batch, importFolder, user, profile);
         // if necessary reset old computed batch items
         ImportProcess process = new ImportProcess(batch, options, ibm);
         process.removeCaches(options.getImportFolder());
@@ -372,21 +370,19 @@ public final class ImportProcess implements Runnable {
         private String device;
         private boolean generateIndices;
         private int consumedFileCounter;
-        private final String username;
-        private String model;
+        private final UserProfile user;
         private Batch batch;
         private final ImportProfile profile;
         private JhoveContext jhoveContext;
 
-        ImportOptions(File importFolder, String model, String device,
-                boolean generateIndices, String username,
+        ImportOptions(File importFolder, String device,
+                boolean generateIndices, UserProfile username,
                 ImportProfile profile
                 ) {
             this.device = device;
             this.generateIndices = generateIndices;
-            this.username = username;
+            this.user = username;
             this.importFolder = importFolder;
-            this.model = model;
             this.profile = profile;
         }
 
@@ -411,7 +407,7 @@ public final class ImportProcess implements Runnable {
         }
 
         public String getModel() {
-            return model;
+            return profile.getModelId();
         }
 
         public int getConsumedFileCounter() {
@@ -419,7 +415,11 @@ public final class ImportProcess implements Runnable {
         }
 
         public String getUsername() {
-            return username;
+            return user != null ? user.getUserName() : null;
+        }
+
+        public UserProfile getUser() {
+            return user;
         }
 
         public Batch getBatch() {
@@ -443,10 +443,10 @@ public final class ImportProcess implements Runnable {
         }
 
         public static ImportOptions fromBatch(Batch batch, File importFolder,
-                String username, ImportProfile profile) {
+                UserProfile username, ImportProfile profile) {
 
             ImportOptions options = new ImportOptions(
-                    importFolder, NdkPlugin.MODEL_PAGE, batch.getDevice(),
+                    importFolder, batch.getDevice(),
                     batch.isGenerateIndices(), username, profile);
             options.setBatch(batch);
             return options;

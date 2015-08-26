@@ -154,6 +154,7 @@ public final class ModsStreamEditor {
         return mods;
     }
 
+    @Deprecated
     public ModsType createPage(String pid, String pageIndex, String pageNumber, String pageType) {
         ModsType mods = defaultMods33(pid);
         PageMapper mapper = new PageMapper();
@@ -165,6 +166,7 @@ public final class ModsStreamEditor {
         return mods;
     }
 
+    @Deprecated
     public static ModsType create(String pid, String model) {
         ModsType mods = defaultMods33(pid);
         return create(pid, model, mods);

@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.imports;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.util.List;
 import org.apache.commons.configuration.Configuration;
@@ -36,6 +37,7 @@ public final class ImportProfile {
     public static final String PROFILES = "import.profiles";
 
     public static final String ALTO_SUFFIX = "import.alto.file.suffix";
+    public static final String MODEL_ID = "import.page.modelId";
     public static final String NDK_ARCHIVAL_PROCESSOR = "import.ndk_archival.processor";
     public static final String NDK_ARCHIVAL_SUFFIX = "import.ndk_archival.file.suffix";
     public static final String NDK_USER_PROCESSOR = "import.ndk_user.processor";
@@ -66,6 +68,11 @@ public final class ImportProfile {
 
     public String getProfileId() {
         return profileId;
+    }
+
+    public String getModelId() {
+        String val = config.getString(MODEL_ID, NdkPlugin.MODEL_PAGE);
+        return val;
     }
 
     public String getPlainOcrCharset() {
