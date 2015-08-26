@@ -265,6 +265,8 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
         private final PageMetadataEditor editor;
         /** An increment of the job item index used to process only required pages. */
         private int batchApplyTo;
+        /** If {@code 0} then values are applied from the first item, otherwise use {@code 1}. */
+        private int batchApplyFromFirstItem;
         private Integer batchIndexStart;
         private Iterator<String> batchSequence;
         private String batchNumberFormat;
@@ -325,6 +327,7 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
                 }
             }
             batchApplyTo = editor.getApplyTo();
+            batchApplyFromFirstItem = editor.getApplyFromFirstItem() ? 0 : 1;
             if (batchApplyTo > getSelection().length) {
                 stop(i18n.PageMetadataEditor_ApplyToErrOutOfBounds_Msg(String.valueOf(batchApplyTo)));
             }
@@ -350,7 +353,7 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
 
         @Override
         protected void processStep() {
-            if ((getCurrentIndex() + 1) % batchApplyTo == 0) {
+            if ((getCurrentIndex() + batchApplyFromFirstItem) % batchApplyTo == 0) {
                 fetchMods(getCurrent());
             } else {
                 next();

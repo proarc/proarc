@@ -96,6 +96,7 @@ public final class PageMetadataEditor {
     private int applyToMaxValue = 16;
     private IntegerRangeValidator applyToValidator;
     private String typeValueMapId;
+    private CheckboxItem applyFromFirst;
 
     public PageMetadataEditor() {
         this.i18n = GWT.create(ClientMessages.class);
@@ -292,7 +293,19 @@ public final class PageMetadataEditor {
         applyToValidator.setMin(1);
         applyToValidator.setMax(applyToMaxValue);
         applyTo.setValidators(new IsIntegerValidator(), applyToValidator);
-        formApply.setItems(applyTo);
+
+        applyFromFirst = new CheckboxItem("applyFromFirst", i18n.PageMetadataEditor_ApplyFromFirst_Title());
+        applyFromFirst.setPrompt(i18n.PageMetadataEditor_ApplyFromFirst_Hint());
+
+        formApply.setItems(applyTo, applyFromFirst);
+
+        applyTo.addChangedHandler(new ChangedHandler() {
+
+            @Override
+            public void onChanged(ChangedEvent event) {
+                applyFromFirst.setDisabled("1".equals(applyTo.getValueAsString()));
+            }
+        });
     }
 
     private void initPageIndex() {
@@ -322,6 +335,8 @@ public final class PageMetadataEditor {
 
     private void initApplyTo() {
         formApply.clearValues();
+        applyFromFirst.setValue(false);
+        applyFromFirst.setDisabled(true);
     }
 
     /**
@@ -405,6 +420,10 @@ public final class PageMetadataEditor {
 
     public boolean getAllowPageTypes() {
         return allowPageTypes.getValueAsBoolean();
+    }
+
+    public boolean getApplyFromFirstItem() {
+        return applyFromFirst.getValueAsBoolean();
     }
 
     /**
