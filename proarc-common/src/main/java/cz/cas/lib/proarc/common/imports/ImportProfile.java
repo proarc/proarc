@@ -35,22 +35,22 @@ public final class ImportProfile {
     /** The configuration key to register import configuration profiles. */
     public static final String PROFILES = "import.profiles";
 
-    public static final String PREVIEW_MAX_HEIGHT = "import.image.preview.maxHeight";
-    public static final String PREVIEW_MAX_WIDTH = "import.image.preview.maxWidth";
-    public static final String PREVIEW_JAVA_SCALING = "import.image.preview.java.scalingMethod";
-    public static final String THUMBNAIL_PROCESSOR = "import.thumbnail.processor";
-    public static final String THUMBNAIL_MAX_HEIGHT = "import.image.thumbnail.maxHeight";
-    public static final String THUMBNAIL_MAX_WIDTH = "import.image.thumbnail.maxWidth";
-    public static final String THUMBNAIL_JAVA_SCALING = "import.image.thumbnail.java.scalingMethod";
-    public static final String PLAIN_OCR_CHARSET = "import.text_ocr.file.charset";
-    public static final String PLAIN_OCR_SUFFIX = "import.text_ocr.file.suffix";
     public static final String ALTO_SUFFIX = "import.alto.file.suffix";
     public static final String NDK_ARCHIVAL_PROCESSOR = "import.ndk_archival.processor";
     public static final String NDK_ARCHIVAL_SUFFIX = "import.ndk_archival.file.suffix";
     public static final String NDK_USER_PROCESSOR = "import.ndk_user.processor";
     public static final String NDK_USER_SUFFIX = "import.ndk_user.file.suffix";
+    public static final String PLAIN_OCR_CHARSET = "import.text_ocr.file.charset";
+    public static final String PLAIN_OCR_SUFFIX = "import.text_ocr.file.suffix";
+    public static final String PREVIEW_JAVA_SCALING = "import.image.preview.java.scalingMethod";
+    public static final String PREVIEW_MAX_HEIGHT = "import.image.preview.maxHeight";
+    public static final String PREVIEW_MAX_WIDTH = "import.image.preview.maxWidth";
     public static final String PROCESSOR = "processor";
     public static final String REQUIRED_DATASTREAM = "import.requiredDatastreamId";
+    public static final String THUMBNAIL_JAVA_SCALING = "import.image.thumbnail.java.scalingMethod";
+    public static final String THUMBNAIL_MAX_HEIGHT = "import.image.thumbnail.maxHeight";
+    public static final String THUMBNAIL_MAX_WIDTH = "import.image.thumbnail.maxWidth";
+    public static final String THUMBNAIL_PROCESSOR = "import.thumbnail.processor";
 
     private final Configuration config;
     private final String profileId;
