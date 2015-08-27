@@ -14,8 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.widget.mods;
+package cz.cas.lib.proarc.webapp.client.widget.mods.bdm;
 
+import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;

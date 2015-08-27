@@ -14,12 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.widget.mods;
+package cz.cas.lib.proarc.webapp.client.widget.mods.bdm;
 
 import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.cas.lib.proarc.webapp.client.widget.mods.NdkFormGenerator;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
 
 /**

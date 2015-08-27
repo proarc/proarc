@@ -48,7 +48,7 @@ import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.dc.DcEditor;
-import cz.cas.lib.proarc.webapp.client.widget.mods.BornDigitalForms;
+import cz.cas.lib.proarc.webapp.client.widget.mods.bdm.BornDigitalForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.MonographForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.MonographUnitForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
