@@ -189,15 +189,15 @@ public final class OldPrintSupplementForm {
 
     private Field typeOfResource() {
         // typeOfResource, typeOfResourceDefinition extends resourceTypeDefinition
-        return new FieldBuilder("typeOfResource").setTitle("Types of Resource - M").setMaxOccurrences(1)
+        return new FieldBuilder("typeOfResource").setTitle("Types of Resource - R").setMaxOccurrences(1)
                 // typeOfResourceDefinition
                 //   collection
                 //   displayLabel
                 //   altRepGroup
                 //   usage
                 // resourceTypeDefinition
-                .addField(new FieldBuilder("value").setTitle("Type of Resource - M").setMaxOccurrences(1).setType(Field.SELECT)
-                    .setRequired(true)
+                .addField(new FieldBuilder("value").setTitle("Type of Resource - R").setMaxOccurrences(1).setType(Field.SELECT)
+                    .setRequired(false)
                     .setType(Field.SELECT).setWidth("200")
                     .setHint("Popis charakteristiky typu nebo obsahu zdroje.")
                     .addMapValue("text", "text")
@@ -214,8 +214,9 @@ public final class OldPrintSupplementForm {
 //                    .addMapValue("mixed material", "mixed material")
                 .createField())
                 //   manuscript
-                .addField(new FieldBuilder("manuscript").setTitle("Manuscript - M").setMaxOccurrences(1).setType(Field.SELECT)
-                    .setRequired(true)
+                .addField(new FieldBuilder("manuscript").setTitle("Manuscript - R").setMaxOccurrences(1).setType(Field.SELECT)
+                    .setRequired(false)
+                    .setHint("Rukopis")
                     .addMapValue("yes", "yes")
                 .createField()) // manuscript
         .createField(); // typeOfResource

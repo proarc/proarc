@@ -27,9 +27,10 @@ public class OldPrintVolumeMapper extends NdkMonographVolumeMapper {
 
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
+        setAddTextResource(false);
         super.createMods(mods, ctx);
         //  mods/typeOfResource="text"
-        OldPrintMapperUtils.addTypeOfResource(mods);
+//        OldPrintMapperUtils.addTypeOfResource(mods);
     }
 
 }

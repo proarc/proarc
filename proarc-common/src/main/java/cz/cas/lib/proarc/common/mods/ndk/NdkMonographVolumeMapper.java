@@ -47,6 +47,16 @@ import java.util.List;
  */
 public class NdkMonographVolumeMapper extends NdkMapper {
 
+    private boolean addTextResource = true;
+
+    public boolean isAddTextResource() {
+        return addTextResource;
+    }
+
+    public void setAddTextResource(boolean addTextResource) {
+        this.addTextResource = addTextResource;
+    }
+
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
@@ -74,7 +84,7 @@ public class NdkMonographVolumeMapper extends NdkMapper {
                 break;
             }
         }
-        if (reqTypeOfResource == null) {
+        if (addTextResource && reqTypeOfResource == null) {
             TypeOfResourceDefinition type = new TypeOfResourceDefinition();
             type.setValue("text");
             typeOfResources.add(0, type);
