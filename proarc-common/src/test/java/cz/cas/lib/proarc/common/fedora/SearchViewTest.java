@@ -105,7 +105,7 @@ public class SearchViewTest {
 
         item.setLabel("[1], 1, TitlePage");
         instance.resolveObjectLabel(item);
-        assertEquals("[1], 1, Titulní strana", item.getLabel());
+        assertEquals("[1], 1, Titulní strana (TitlePage)", item.getLabel());
 
         // model:periodical
         item.setModel("model:periodical");
