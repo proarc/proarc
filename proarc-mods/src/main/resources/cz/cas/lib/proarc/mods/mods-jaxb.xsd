@@ -1051,7 +1051,29 @@ Detailed usage rules are supplied in the guidelines.
     <xs:element name="relatedItem" type="relatedItemDefinition"/>
     <!-- -->
     <xs:complexType name="relatedItemDefinition">
-        <xs:group ref="modsGroup" minOccurs="0" maxOccurs="unbounded"/>
+        <!--<xs:group ref="modsGroup" minOccurs="0" maxOccurs="unbounded"/>-->
+        <xs:sequence>
+            <xs:element ref="abstract" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="accessCondition" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="classification" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="extension" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="genre" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="identifier" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="language" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="location" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="name" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="note" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="originInfo" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="part" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="physicalDescription" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="recordInfo" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="relatedItem" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="subject" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="tableOfContents" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="targetAudience" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="titleInfo" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="typeOfResource" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
         <xs:attribute name="type">
             <xs:simpleType>
                 <xs:restriction base="xs:string">

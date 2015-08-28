@@ -24,9 +24,11 @@ import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DesDesaPlugin.DesMetadataHandler;
 import cz.cas.lib.proarc.common.object.DesDesaPlugin.DesObjectWrapper;
 import cz.cas.lib.proarc.common.object.ValueMap;
+import cz.cas.lib.proarc.common.object.emods.BdmArticleMapper.BdmModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures.RecCls;
@@ -141,12 +143,54 @@ public class JacksonProviderTest {
     }
 
     @Test
+    public void testBdmModsDefinition() throws Exception {
+        String toJson = "{\"BdmModsWrapper\":{\n" +
+"    \"mods\":{\n" +
+"        \"identifier\":{\n" +
+"            \"value\":\"8232b78c-345b-40ae-9dc0-17bbb101d304\", \n" +
+"            \"type\":\"uuid\"\n" +
+"        }, \n" +
+"        \"version\":\"3.5\", \n" +
+"        \"relatedItem\":{\n" +
+"            \"part\":{\n" +
+"                \"extent\":{\n" +
+"                    \"start\":{\n" +
+"                        \"value\":\"1\"\n" +
+"                    }, \n" +
+"                    \"end\":{\n" +
+"                        \"value\":\"2\"\n" +
+"                    }\n" +
+"                }\n" +
+"            }\n" +
+"        }\n" +
+"    }, \n" +
+"    \"reviewed\":true\n" +
+"}}";
+        ObjectMapper om = new JacksonProvider().locateMapper(BdmModsWrapper.class, MediaType.APPLICATION_JSON_TYPE);
+        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+//        System.out.println(toJson);
+
+        BdmModsWrapper result = om.readValue(toJson, BdmModsWrapper.class);
+        assertNotNull(result);
+        ModsDefinition resultMods = result.getMods();
+        assertNotNull(resultMods);
+        String toXml = ModsUtils.toXml(resultMods, true);
+        IdentifierDefinition resultPid = resultMods.getIdentifier().get(0);
+        assertEquals(toXml, "uuid", resultPid.getType());
+        assertEquals(toXml, "8232b78c-345b-40ae-9dc0-17bbb101d304", resultPid.getValue());
+        assertFalse(toXml, resultMods.getRelatedItem().isEmpty());
+        assertEquals(toXml, "1", resultMods.getRelatedItem().get(0).getPart().get(0).getExtent().get(0).getStart().getValue());
+//        System.out.println("---");
+//        System.out.println(toXml);
+    }
+
+    @Test
     public void testModsDefinition() throws Exception {
         ObjectMapper om = new JacksonProvider().locateMapper(ModsWrapper.class, MediaType.APPLICATION_JSON_TYPE);
         om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
         ModsDefinition mods = ModsStreamEditor.defaultMods("uuid:test");
         String toJson = om.writeValueAsString(new ModsWrapper(mods));
-//        System.out.println(toJson);
+        System.out.println(toJson);
 
         ModsWrapper result = om.readValue(toJson, ModsWrapper.class);
         assertNotNull(result);
