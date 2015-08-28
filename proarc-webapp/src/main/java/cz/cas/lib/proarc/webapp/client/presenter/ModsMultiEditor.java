@@ -79,6 +79,10 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
     private final ClientMessages i18n;
     private DigitalObject[] digitalObjects;
     private MenuItem customEditorButton;
+    /**
+     * The simplified simple form. See issue 321.
+     */
+    private MenuItem customEditorButton2;
     private final ActionSource actionSource;
     private HandlerRegistration submitCustomValuesRegistration;
     private final SubmitValuesHandler submitCustomValuesHandler = new SubmitValuesHandler() {
@@ -130,7 +134,7 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         if (items == null || items.length == 0) {
             // show nothing or throw exception!
         } else if (items.length == 1) {
-            loadCustom(items[0]);
+            loadTabData(modsCustomEditor, items[0]);
         } else {
             String firstModelId = null;
             boolean unsupportedBatch = false;
@@ -257,8 +261,37 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
                         i18n.ModsMultiEditor_TabSimple_Title(),
                         Page.getAppDir() + "images/silk/16/application_form_edit.png",
                         i18n.ModsMultiEditor_TabSimple_Hint()
-                ), actionSource, false));
+                ) {
+
+                    @Override
+                    public void performAction(ActionEvent event) {
+                        modsCustomEditor.setFormPrefix("");
+                        super.performAction(event);
+                    }
+                }, actionSource, false));
         customEditorButton = menuMods.getItem(0);
+
+        menuMods.addItem(Actions.asMenuItem(
+                new SwitchAction(modsCustomEditor,
+                        i18n.ModsMultiEditor_TabSimpleSimple_Title(),
+                        Page.getAppDir() + "images/silk/16/application_form_edit.png",
+                        i18n.ModsMultiEditor_TabSimpleSimple_Hint()
+                ) {
+
+                    @Override
+                    boolean accept(DigitalObject obj) {
+                        return "model:bdmarticle".equals(obj.getModelId());
+                    }
+
+                    @Override
+                    public void performAction(ActionEvent event) {
+                        modsCustomEditor.setFormPrefix("simple:");
+                        super.performAction(event);
+                    }
+
+                }, actionSource, false));
+        customEditorButton2 = menuMods.getItem(1);
+
         menuMods.addItem(Actions.asMenuItem(
                 new SwitchAction(modsFullEditor,
                         i18n.ModsMultiEditor_TabFull_Title(),
@@ -306,6 +339,7 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
     }
 
     private void loadTabData(DatastreamEditor tab, DigitalObject digitalObject) {
+        setEnabledCustom2();
         if (tab == modsCustomEditor) {
             loadCustom(digitalObject);
         } else {
@@ -319,6 +353,9 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         if (modsCustomEditor.getCustomForm() != null) {
             setActiveEditor(modsCustomEditor);
             setEnabledCustom(true);
+        } else if (!modsCustomEditor.getFormPrefix().isEmpty()) {
+            modsCustomEditor.setFormPrefix("");
+            loadCustom(digitalObject);
         } else {
             // unknown model, use full form
             setEnabledCustom(false);
@@ -358,6 +395,15 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         }
     }
 
+    private void setEnabledCustom2() {
+        if (customEditorButton2 != null) {
+            DigitalObject[] selection = getSelection();;
+            boolean enable = selection != null && selection.length == 1
+                    && "model:bdmarticle".equals(selection[0].getModelId());
+            customEditorButton2.setEnabled(enable);
+        }
+    }
+
     private void saveFullData(BooleanCallback callback) {
         modsFullEditor.save(callback);
     }
@@ -389,7 +435,7 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         });
     }
 
-    private final class SwitchAction extends AbstractAction {
+    private class SwitchAction extends AbstractAction {
 
         private final DatastreamEditor tab;
         private final String format;
@@ -412,10 +458,14 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         @Override
         public boolean accept(ActionEvent event) {
             DigitalObject[] selections = getSelection();
-            return selections != null && selections.length == 1 && acceptFormat(selections[0]);
+            return selections != null && selections.length == 1 && accept(selections[0]);
         }
 
-        private boolean acceptFormat(DigitalObject obj) {
+        boolean accept(DigitalObject obj) {
+            return acceptFormat(obj);
+        }
+
+        boolean acceptFormat(DigitalObject obj) {
             return format == null || format != null && format.equals(obj.getModel().getMetadataFormat());
         }
 

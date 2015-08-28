@@ -37,11 +37,13 @@ public class BornDigitalForms {
         activeLocale = LanguagesDataSource.activeLocale();
     }
 
-    public DynamicForm getForm(MetaModelRecord model) {
-        String modelId = model.getId();
+    public DynamicForm getForm(MetaModelRecord model, String prefix) {
+        String modelId = prefix + model.getId();
         Form f;
         if ("model:bdmarticle".equals(modelId)) {
             f = new BornDigitalArticleForm().build();
+        } else if ("simple:model:bdmarticle".equals(modelId)) {
+            f = new SimpleCejshArticleForm().build();
         } else {
             return null;
         }

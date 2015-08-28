@@ -80,6 +80,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
     private final VLayout widget;
     private Boolean showFetchPrompt;
     private DigitalObject digitalObject;
+    private String formPrefix = "";
 
     public ModsCustomEditor(ClientMessages i18n) {
         this.i18n = i18n;
@@ -275,8 +276,20 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
         return activeEditor;
     }
 
+    public String getFormPrefix() {
+        return formPrefix;
+    }
+
+    /**
+     * Sets prefix to address other than the prime form in
+     * {@link #getCustomForm(MetaModelDataSource.MetaModelRecord)}.
+     */
+    public void setFormPrefix(String formPrefix) {
+        this.formPrefix = formPrefix;
+    }
+
     private DynamicForm getCustomForm(MetaModelRecord model) {
-        final String editorId = model.getEditorId();
+        final String editorId = getFormPrefix() + model.getEditorId();
         DynamicForm editor = editorCache.get(editorId);
         if (editor == null) {
             editor = createCustomForm(model);
@@ -291,7 +304,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
         if (ModsConstants.NS.equals(metadataFormat)) {
             form = new NdkForms(i18n).getForm(model);
             if (form == null) {
-                form = new BornDigitalForms(i18n).getForm(model);
+                form = new BornDigitalForms(i18n).getForm(model, getFormPrefix());
             }
             if (form == null) {
                 form = new OldPrintForms(i18n).getForm(model);

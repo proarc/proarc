@@ -33,7 +33,7 @@ public final class SimpleCejshArticleForm {
         Form f = new Form();
 
         // CEJSH, issue 234
-        f.getFields().add(new FieldBuilder("reviewed").setTitle("Peer Review").setMaxOccurrences(1)
+        f.getFields().add(new FieldBuilder("reviewed").setTitle("Status recenzování - M").setMaxOccurrences(1)
                 .setType(Field.RADIOGROUP).setRequired(true)
                 .addMapValue("true", "recenzovaný článek")
                 .addMapValue("false", "nerecenzovaný článek")
@@ -44,27 +44,33 @@ public final class SimpleCejshArticleForm {
         List<Field> modsFields = mods.getFields();
 
         modsFields.add(genre());
+        modsFields.add(language());
+//        modsFields.add(part());
         modsFields.add(titleInfo(f.getItemWidth()));
         modsFields.add(name());
-        modsFields.add(language());
-        modsFields.add(physicalDescription());
         modsFields.add(abstracts());
-        modsFields.add(note());
         modsFields.add(subject());
-        modsFields.add(classification());
+        modsFields.add(note());
         modsFields.add(identifier());
-        modsFields.add(part());
         modsFields.add(recordInfo());
+        // XXX Element pro recenzovaný dokument relatedItem/*
+        modsFields.add(new FieldBuilder("relatedItem").setTitle("Recenze na - R").setMaxOccurrences(10)
+                .addField(part())
+                .addField(relatedTitleInfo(f.getItemWidth()))
+                .addField(relatedName())
+                .addField(relatedOriginInfo())
+                .createField());
+        modsFields.add(new FieldBuilder("version").setType(Field.TEXT).setHidden(true).setMaxOccurrences(1).createField());
 
         return f;
     }
 
     private Field titleInfo(String width) {
         // titleInfo, titleInfoDefinition
-        return new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
+        return new FieldBuilder("titleInfo").setTitle("Názvové údaje - M").setMaxOccurrences(10)
                 .setHint("Názvová informace vnitřní části.")
                 // titleInfo@type, enum
-                .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
+                .addField(new FieldBuilder("type").setTitle("Typ - MA").setMaxOccurrences(1).setType(Field.SELECT)
                     .setHint("Hlavní název bez type.<dl>Hodnoty:"
                         + "<dt>abbreviated</dt><dd>zkrácený název</dd>"
                         + "<dt>alternative</dt><dd>alternativní název</dd>"
@@ -76,10 +82,16 @@ public final class SimpleCejshArticleForm {
                     .addMapValue("translated", "Translated")
                     .addMapValue("uniform", "Uniform")
                 .createField()) // type
+                // nonSort, type="stringPlusLanguage"
+                .addField(new FieldBuilder("nonSort").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setTitle("Člen, jímž začíná název - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                    .createField()) // value
+                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                .createField()) // nonSort
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
                     // lang, issue 235
-                    .addField(new FieldBuilder("lang").setTitle("Title Language - O").setMaxOccurrences(1).setType(Field.COMBO).setRequired(false)
+                    .addField(new FieldBuilder("lang").setTitle("Jazyk názvu - O").setMaxOccurrences(1).setType(Field.COMBO).setRequired(false)
                         .setHint("Kód jazyka podle  ISO 639-2/b.")
                         .setOptionDataSource(new FieldBuilder("ndk.mods.languageTerms").setWidth("300")
                                 .addField(new FieldBuilder("title").setTitle("Name").createField())
@@ -87,7 +99,7 @@ public final class SimpleCejshArticleForm {
                             .createField(),
                             "value")
                     .createField()) // title@lang
-                    .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true).setWidth(width)
+                    .addField(new FieldBuilder("value").setTitle("Název - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true).setWidth(width)
                         .setHint("Vlastní název článku."
                             + "<p>Pokud není titul, nutno vyplnit hodnotu „untitled“")
                         .addMapValue("untitled", "untitled")
@@ -99,7 +111,7 @@ public final class SimpleCejshArticleForm {
                 .createField()) // title
                 // subTitle, type="stringPlusLanguage"
                 .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Subtitle - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setTitle("Podnázev - MA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Podnázev článku. Za podnázev lze považovat i perex.")
                     .createField()) // value
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
@@ -107,57 +119,71 @@ public final class SimpleCejshArticleForm {
                 // partNumber, type="stringPlusLanguage"
                 .addField(new FieldBuilder("partNumber").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Part Number - RA").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setTitle("Číslo části - RA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Číslo článku. Např. článek na pokračování.")
                     .createField()) // value
                 .createField()) // partNumber
                 // partName, type="stringPlusLanguage"
                 .addField(new FieldBuilder("partName").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Part Name - RA").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setTitle("Název části - RA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Název pokračování článku.")
                     .createField()) // value
                 .createField()) // partName
-                // nonSort, type="stringPlusLanguage"
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
+            .createField(); // titleInfo
+    }
+
+    private Field relatedTitleInfo(String width) {
+        // titleInfo, titleInfoDefinition
+        return new FieldBuilder("titleInfo").setMaxOccurrences(1)
+                // title, type="stringPlusLanguage"
+                .addField(new FieldBuilder("title").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setTitle("Název recenzovaného díla")
+                        .setRequired(false).setWidth(width)
+                    .createField()) // title/value
+                .createField()) // title
             .createField(); // titleInfo
     }
 
     private Field name() {
         // name, nameDefinition
-        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Údaje o autorech - MA")
                 .setHint("Údaje o odpovědnosti za článek.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
-                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
-                    .setHint("<dl>"
-                        + "<dt>personal</dt><dd>celé jméno osoby</dd>"
-                        + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
-                        + "<dt>conference</dt><dd>název konference nebo související typ setkání</dd>"
-                        + "<dt>family</dt><dd>rodina/rod</dd>"
-                        + "</dl>")
-                    .addMapValue("personal", "personal")
-                    .addMapValue("corporate", "corporate")
-                    .addMapValue("conference", "conference")
-                    .addMapValue("family", "family")
+                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.TEXT)
+                    .setDefaultValue("personal")
+                    .setHidden(true)
+//                    .setHint("<dl>"
+//                        + "<dt>personal</dt><dd>celé jméno osoby</dd>"
+//                        + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
+//                        + "<dt>conference</dt><dd>název konference nebo související typ setkání</dd>"
+//                        + "<dt>family</dt><dd>rodina/rod</dd>"
+//                        + "</dl>")
+//                    .addMapValue("personal", "personal")
+//                    .addMapValue("corporate", "corporate")
+//                    .addMapValue("conference", "conference")
+//                    .addMapValue("family", "family")
                 .createField()) // @type
                 // @usage(fixed="primary")
-                .addField(new FieldBuilder("usage").setTitle("Usage - O").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
-                    .setHint("Hodnota “primary” pro označení primární autority.")
-                    .addMapValue("", "")
-                    .addMapValue("primary", "primary")
-                .createField()) // usage
+//                .addField(new FieldBuilder("usage").setTitle("Usage - O").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
+//                    .setHint("Hodnota “primary” pro označení primární autority.")
+//                    .addMapValue("", "")
+//                    .addMapValue("primary", "primary")
+//                .createField()) // usage
                 // namePart, namePartDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("namePart").setTitle("Name Parts - MA").setMaxOccurrences(5)
                     // @type(date, family, given, termsOfAddress)
                     .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("<dl>"
-                            + "<dt>date</dt><dd>RA - datum</dd>"
+//                            + "<dt>date</dt><dd>RA - datum</dd>"
                             + "<dt>family</dt><dd>MA -příjmení </dd>"
                             + "<dt>given</dt><dd>MA - jméno/křestní jméno</dd>"
                             + "<dt>termsOfAddress</dt><dd>RA - tituly a jiná slova nebo čísla související se jménem</dd>"
                             + "</dl>")
-                        .addMapValue("date", "date")
+//                        .addMapValue("date", "date")
                         .addMapValue("family", "family")
                         .addMapValue("given", "given")
                         .addMapValue("termsOfAddress", "termsOfAddress")
@@ -175,38 +201,74 @@ public final class SimpleCejshArticleForm {
                 // etal
                 // affiliation
                 // role, roleDefinition
-                .addField(new FieldBuilder("role").setTitle("Role - RA").setMaxOccurrences(5)
-                    .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
-                    // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
-                    .addField(new FieldBuilder("roleTerm").setMaxOccurrences(1)
-                        // @type, codeOrText(code, text)
-                        .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("CODE")
-                            .addMapValue("CODE", "code")
-                            .addMapValue("TEXT", "text")
-                        .createField()) // @type
-                        // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200").setDefaultValue("marcrelator")
-                            .setHint("Údaje o kontrolovaném slovníku využitém k popisu role."
-                                + "<p>K popisu výše uvedeného MARC seznamu nutno uvést authority=“marcrelator“.")
-                        .createField()) // authority
-                        .addField(new FieldBuilder("value").setTitle("Role Term - MA").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
-                            .setHint("Kód role z kontrolovaného slovníku.")
-                            // XXX use http://www.loc.gov/marc/relators/relacode.html
-                            .addMapValue("cre", "Creator")
-                            .addMapValue("crp", "Correspondent")
-                        .createField()) // value
-                    .createField()) // roleTerm
-                .createField()) // role
+                // description
+            .createField(); // name
+    }
+
+    private Field relatedName() {
+        // name, nameDefinition
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Autor recenzovaného díla")
+//                .setHint("Údaje o odpovědnosti za článek.")
+                // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
+                // @type(personal, corporate, conference, family)
+                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.TEXT)
+                    .setDefaultValue("personal")
+                    .setHidden(true)
+//                    .setHint("<dl>"
+//                        + "<dt>personal</dt><dd>celé jméno osoby</dd>"
+//                        + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
+//                        + "<dt>conference</dt><dd>název konference nebo související typ setkání</dd>"
+//                        + "<dt>family</dt><dd>rodina/rod</dd>"
+//                        + "</dl>")
+//                    .addMapValue("personal", "personal")
+//                    .addMapValue("corporate", "corporate")
+//                    .addMapValue("conference", "conference")
+//                    .addMapValue("family", "family")
+                .createField()) // @type
+                // @usage(fixed="primary")
+//                .addField(new FieldBuilder("usage").setTitle("Usage - O").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
+//                    .setHint("Hodnota “primary” pro označení primární autority.")
+//                    .addMapValue("", "")
+//                    .addMapValue("primary", "primary")
+//                .createField()) // usage
+                // namePart, namePartDefinition extends stringPlusLanguage
+                .addField(new FieldBuilder("namePart").setTitle("Name Parts - MA").setMaxOccurrences(5)
+                    // @type(date, family, given, termsOfAddress)
+                    .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
+                        .setHint("<dl>"
+//                            + "<dt>date</dt><dd>RA - datum</dd>"
+                            + "<dt>family</dt><dd>MA -příjmení </dd>"
+                            + "<dt>given</dt><dd>MA - jméno/křestní jméno</dd>"
+                            + "<dt>termsOfAddress</dt><dd>RA - tituly a jiná slova nebo čísla související se jménem</dd>"
+                            + "</dl>")
+//                        .addMapValue("date", "date")
+                        .addMapValue("family", "family")
+                        .addMapValue("given", "given")
+                        .addMapValue("termsOfAddress", "termsOfAddress")
+                    .createField()) // @type
+                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                    .addField(new FieldBuilder("value").setTitle("Name Part - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Údaje o křestním jméně, příjmení apod."
+                            + "<p>Nutno vyjádřit pro křestní jméno i příjmení."
+                            + "<p>Pokud nelze rozlišit křestní jméno a příjmení,"
+                            + " nepoužije se type a jméno se zaznamená"
+                            + " v podobě jaké je do jednoho elementu &lt;namePart>")
+                    .createField()) // value
+                .createField()) // namePart
+                // displayForm
+                // etal
+                // affiliation
+                // role, roleDefinition
                 // description
             .createField(); // name
     }
 
     private Field genre() {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
-        return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(10)
+        return new FieldBuilder("genre").setMaxOccurrences(1)
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
-                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
+                .addField(new FieldBuilder("type").setTitle("Typ obsahu - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
+                    .addMapValue("main article", "hlavní článek")
                     .addMapValue("news", "zpráva")
                     .addMapValue("table of content", "obsah")
                     .addMapValue("advertisement", "reklama")
@@ -217,21 +279,20 @@ public final class SimpleCejshArticleForm {
                     .addMapValue("bibliography", "bibliografie")
                     .addMapValue("editorsNote", "úvodník")
                     .addMapValue("preface", "předmluva")
-                    .addMapValue("main article", "hlavní článek")
                     .addMapValue("index", "rejstřík")
                     .addMapValue("unspecified", "nespecifikován")
                 .createField()) // @type
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                .addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setDefaultValue("article")
-                    .setHint("Bližší údaj o typu vnitřní části.<p>Hodnota „article“.")
+                .addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(1).setType(Field.TEXT)
+                    .setHidden(true)
                 .createField()) // value
         .createField(); // genre
     }
 
     private Field language() {
         // language, languageDefinition
-        return new FieldBuilder("language").setTitle("Languages - MA").setMaxOccurrences(10)
+        return new FieldBuilder("language").setMaxOccurrences(1)
                 .setHint("Údaje o jazyce dokumentu; v případě vícenásobného výskytu nutno element &lt;language> opakovat")
                 // @objectPart, @displayLabel, @altRepGroup, @usage
                 // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
@@ -240,21 +301,14 @@ public final class SimpleCejshArticleForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @authorityURI, @valueURI
                     // @authority, enum
-                    .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
-                        .setHint("Použít hodnotu „iso639-2b“.")
-                        .addMapValue("iso639-2b", "ISO 639-2B")
-                        .addMapValue("rfc3066", "RFC 3066")
-                        .addMapValue("iso639-3", "ISO 639-3")
-                        .addMapValue("rfc4646", "RFC 4646")
-                        .addMapValue("rfc5646", "RFC 5646")
+                    .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHidden(true)
                     .createField()) // authority
                     // type, codeOrText('code', 'text')
-                    .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
-                        .setHint("Typ popisu.")
-                        .addMapValue("CODE", "code")
-                        .addMapValue("TEXT", "text")
+                    .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHidden(true)
                     .createField()) // type
-                    .addField(NdkForms.createLangTermValue()
+                    .addField(NdkForms.createLangTermValue().setTitle("Jazyk článku - M")
                     .createField()) // value
                 .createField()) // languageTerm
                 // scriptTerm
@@ -296,10 +350,18 @@ public final class SimpleCejshArticleForm {
 
     private Field abstracts() {
         // abstract, abstractDefinition extends stringPlusLanguage
-        return new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
+        return new FieldBuilder("abstract").setTitle("Abstrakt - R").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
+                .addField(new FieldBuilder("lang").setTitle("Jazyk abstraktu").setMaxOccurrences(1).setType(Field.COMBO).setRequired(false)
+                    .setHint("Kód jazyka podle  ISO 639-2/b.")
+                    .setOptionDataSource(new FieldBuilder("ndk.mods.languageTerms").setWidth("300")
+                            .addField(new FieldBuilder("title").setTitle("Name").createField())
+                            .addField(new FieldBuilder("value").setTitle("Language").createField())
+                        .createField(),
+                        "value")
+                .createField()) // @lang
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
                     .setHint("Shrnutí obsahu článku.")
                 .createField()) // value
@@ -308,7 +370,7 @@ public final class SimpleCejshArticleForm {
 
     private Field note() {
         // note, noteDefinition extends stringPlusLanguage
-        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        return new FieldBuilder("note").setTitle("Poznámka - R").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
@@ -320,13 +382,13 @@ public final class SimpleCejshArticleForm {
 
     private Field subject() {
         // subject, subjectDefinition
-        return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
+        return new FieldBuilder("subject").setTitle("Klíčová slova - R").setMaxOccurrences(10)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
-                .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.TEXT)
-                    .addMapValue("czenas", "czenas")
-                    .addMapValue("eczenas", "eczenas")
-                .createField()) // authority
+//                .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.TEXT)
+//                    .addMapValue("czenas", "czenas")
+//                    .addMapValue("eczenas", "eczenas")
+//                .createField()) // authority
 
                 // topic, stringPlusLanguagePlusAuthority
                 .addField(new FieldBuilder("topic").setMaxOccurrences(1)
@@ -334,62 +396,70 @@ public final class SimpleCejshArticleForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @type
                     // XXX autority.nkp.cz datasource
-                    .addField(new FieldBuilder("value").setTitle("Topic - M").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("lang").setTitle("Jazyk").setMaxOccurrences(1).setType(Field.COMBO).setRequired(false)
+                        .setHint("Kód jazyka podle  ISO 639-2/b.")
+                        .setOptionDataSource(new FieldBuilder("ndk.mods.languageTerms").setWidth("300")
+                                .addField(new FieldBuilder("title").setTitle("Name").createField())
+                                .addField(new FieldBuilder("value").setTitle("Language").createField())
+                            .createField(),
+                            "value")
+                    .createField()) // @lang
+                    .addField(new FieldBuilder("value").setTitle("Klíčové slovo").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Libovolný výraz specifikující nebo charakterizující obsah článku."
                             + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (věcné téma)"
                             + " nebo obsah pole 650 záznamu MARC21.")
                     .createField()) // value
                 .createField()) // topic
 
-                // geographic, stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("geographic").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    // @type
-                    // XXX autority.nkp.cz datasource
-                    .addField(new FieldBuilder("value").setTitle("Geographic - R").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Geografické věcné třídění."
-                            + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (geografický termín)"
-                            + " nebo obsah pole 651 záznamu MARC21.")
-                    .createField()) // value
-                .createField()) // geographic
-
-                // temporal, temporalDefinition extends dateDefinition extends stringPlusLanguage
-                .addField(new FieldBuilder("temporal").setMaxOccurrences(1)
-                    // authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    // @encoding, @qualifier, @point, @keyDate
-                    // XXX autority.nkp.cz datasource
-                    .addField(new FieldBuilder("value").setTitle("Temporal - R").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
-                        .setHint("Chronologické věcné třídění."
-                            + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (chronologický údaj)"
-                            + " nebo obsah pole 648 záznamu MARC21.")
-                    .createField()) // value
-                .createField()) // temporal
-
-                // titleInfo, subjectTitleInfoDefinition
-                // name, subjectNameDefinition
-                .addField(new FieldBuilder("name").setMaxOccurrences(1)
-                    // @type, enum: personal, corporate, ...
-                    // @ID, @xlink:simpleLink, displayLabel
-                    // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
-                    // authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    // namePart, namePartDefinition extends stringPlusLanguage
-                    .addField(new FieldBuilder("namePart").setMaxOccurrences(1)
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        // @type, enum: date, family, given, termsOfAddress
-                        .addField(new FieldBuilder("value").setTitle("Name Part - R").setMaxOccurrences(1).setType(Field.TEXT)
-                            .setHint("Jméno použité jako věcné záhlaví."
-                                + "<p>Použít kontrolovaný slovník ‐ např. z báze autorit AUT NK ČR (jméno osobní)"
-                                + " nebo obsah pole 600 záznamu MARC21."
-                                + "<p>Celé jméno se zapíše do tohoto elementu.")
-                        .createField()) // value
-                    .createField()) // namePart
-                    // displayForm
-                    // affiliation
-                    // role
-                    // description
-                .createField()) // name
+//                // geographic, stringPlusLanguagePlusAuthority
+//                .addField(new FieldBuilder("geographic").setMaxOccurrences(1)
+//                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+//                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+//                    // @type
+//                    // XXX autority.nkp.cz datasource
+//                    .addField(new FieldBuilder("value").setTitle("Geographic - R").setMaxOccurrences(1).setType(Field.TEXT)
+//                        .setHint("Geografické věcné třídění."
+//                            + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (geografický termín)"
+//                            + " nebo obsah pole 651 záznamu MARC21.")
+//                    .createField()) // value
+//                .createField()) // geographic
+//
+//                // temporal, temporalDefinition extends dateDefinition extends stringPlusLanguage
+//                .addField(new FieldBuilder("temporal").setMaxOccurrences(1)
+//                    // authorityAttributeGroup: @authority, @authorityURI, @valueURI
+//                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+//                    // @encoding, @qualifier, @point, @keyDate
+//                    // XXX autority.nkp.cz datasource
+//                    .addField(new FieldBuilder("value").setTitle("Temporal - R").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
+//                        .setHint("Chronologické věcné třídění."
+//                            + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (chronologický údaj)"
+//                            + " nebo obsah pole 648 záznamu MARC21.")
+//                    .createField()) // value
+//                .createField()) // temporal
+//
+//                // titleInfo, subjectTitleInfoDefinition
+//                // name, subjectNameDefinition
+//                .addField(new FieldBuilder("name").setMaxOccurrences(1)
+//                    // @type, enum: personal, corporate, ...
+//                    // @ID, @xlink:simpleLink, displayLabel
+//                    // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
+//                    // authorityAttributeGroup: @authority, @authorityURI, @valueURI
+//                    // namePart, namePartDefinition extends stringPlusLanguage
+//                    .addField(new FieldBuilder("namePart").setMaxOccurrences(1)
+//                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+//                        // @type, enum: date, family, given, termsOfAddress
+//                        .addField(new FieldBuilder("value").setTitle("Name Part - R").setMaxOccurrences(1).setType(Field.TEXT)
+//                            .setHint("Jméno použité jako věcné záhlaví."
+//                                + "<p>Použít kontrolovaný slovník ‐ např. z báze autorit AUT NK ČR (jméno osobní)"
+//                                + " nebo obsah pole 600 záznamu MARC21."
+//                                + "<p>Celé jméno se zapíše do tohoto elementu.")
+//                        .createField()) // value
+//                    .createField()) // namePart
+//                    // displayForm
+//                    // affiliation
+//                    // role
+//                    // description
+//                .createField()) // name
 
                 // geographicCode
                 // hierarchicalGeographic
@@ -415,64 +485,65 @@ public final class SimpleCejshArticleForm {
 
     private Field identifier() {
         // identifier, identifierDefinition, [0,*]
-        return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
-                .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
-                    + " mezinárodní nebo lokální."
-                    + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
-                // stringPlusLanguage@languageAttributeGroup
-                //   lang, xs:string
-                //   xml:lang
-                //   script, xs:string
-                //   transliteration, xs:string
-                //   type, xs:string
-                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
-                    .setHint("UUID - M - vygeneruje dodavatel"
-                            + "<br>URN:NBN - O - zápis ve tvaru urn:nbn:cz:ndk-123456 pro projekt NDK"
-                            + "<br>jiný interní identifikátor - R - type = barcode, oclc, sysno, permalink apod.")
-                    .addMapValue("barcode", "Čárový kód")
-//                    .addMapValue("ccnb", "čČNB")
-                    .addMapValue("doi", "DOI")
-                    .addMapValue("hdl", "Handle")
-//                    .addMapValue("isbn", "ISBN")
-//                    .addMapValue("issn", "ISSN")
-                    .addMapValue("permalink", "Permalink")
-                    .addMapValue("sici", "SICI")
-                    .addMapValue("url", "URL")
-                    .addMapValue("urnnbn", "URN:NBN")
-                    .addMapValue("uuid", "UUID")
-                .createField())
-                // stringPlusLanguage/value
-                .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
-                // identifierDefinition
-                //   displayLabel, xs:string
-                //   typeURI, xs:anyURI
-                //   invalid, fixed="yes"
-                .addField(new FieldBuilder("invalid").setTitle("Invalid - MA").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
-                    .addMapValue("", "Platný")
-                    .addMapValue("yes", "Neplatný")
-                .createField()) // invalid
-                //   altRepGroup, xs:string
+        return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(1)
+                .setHidden(true).setType(Field.TEXT)
+//                .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
+//                    + " mezinárodní nebo lokální."
+//                    + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
+//                // stringPlusLanguage@languageAttributeGroup
+//                //   lang, xs:string
+//                //   xml:lang
+//                //   script, xs:string
+//                //   transliteration, xs:string
+//                //   type, xs:string
+//                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+//                    .setHint("UUID - M - vygeneruje dodavatel"
+//                            + "<br>URN:NBN - O - zápis ve tvaru urn:nbn:cz:ndk-123456 pro projekt NDK"
+//                            + "<br>jiný interní identifikátor - R - type = barcode, oclc, sysno, permalink apod.")
+//                    .addMapValue("barcode", "Čárový kód")
+////                    .addMapValue("ccnb", "čČNB")
+//                    .addMapValue("doi", "DOI")
+//                    .addMapValue("hdl", "Handle")
+////                    .addMapValue("isbn", "ISBN")
+////                    .addMapValue("issn", "ISSN")
+//                    .addMapValue("permalink", "Permalink")
+//                    .addMapValue("sici", "SICI")
+//                    .addMapValue("url", "URL")
+//                    .addMapValue("urnnbn", "URN:NBN")
+//                    .addMapValue("uuid", "UUID")
+//                .createField())
+//                // stringPlusLanguage/value
+//                .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
+//                // identifierDefinition
+//                //   displayLabel, xs:string
+//                //   typeURI, xs:anyURI
+//                //   invalid, fixed="yes"
+//                .addField(new FieldBuilder("invalid").setTitle("Invalid - MA").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
+//                    .addMapValue("", "Platný")
+//                    .addMapValue("yes", "Neplatný")
+//                .createField()) // invalid
+//                //   altRepGroup, xs:string
         .createField(); // identifier
     }
 
     private Field part() {
         // part, type="partDefinition"
-        return new FieldBuilder("part").setTitle("Part - RA").setMaxOccurrences(1)
-                .setHint("Popis rozsahu.")
+        return new FieldBuilder("part").setTitle("Rozsah článku - MA").setMaxOccurrences(1)
+//                .setHint("Popis rozsahu.")
                 // @ID, @type, @order, @displayLabel, @altRepGroup
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 // detail, type="detailDefinition"
                 // extent, type="extentDefinition"
-                .addField(new FieldBuilder("extent").setTitle("Extent - MA").setMaxOccurrences(10)
+                .addField(new FieldBuilder("extent").setMaxOccurrences(1)
                     // start, type="stringPlusLanguage"
                     .addField(new FieldBuilder("start").setMaxOccurrences(1)
-                        .addField(new FieldBuilder("value").setTitle("Start - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                        .addField(new FieldBuilder("value").setTitle("První stránka článku - MA").setMaxOccurrences(1).setType(Field.TEXT)
                             .setHint("První stránka, na které článek začíná.")
                         .createField()) // value
                     .createField()) // start
                     // end, type="stringPlusLanguage"
                     .addField(new FieldBuilder("end").setMaxOccurrences(1)
-                        .addField(new FieldBuilder("value").setTitle("End - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                        .addField(new FieldBuilder("value").setTitle("Poslední stránka článku - MA").setMaxOccurrences(1).setType(Field.TEXT)
                             .setHint("Poslední stránka, na které článek končí.")
                         .createField()) // value
                     .createField()) // end
@@ -487,43 +558,54 @@ public final class SimpleCejshArticleForm {
     private Field recordInfo() {
         // recordInfo, recordInfoDefinition
         return new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
-                .setHint("Údaje o metadatovém záznamu - jeho vzniku, změnách apod.")
-                // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
-                // @displayLabel, @altRepGroup
-                // recordContentSource, stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("recordContentSource").setTitle("Record Content Source - R").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("marcorg").createField())
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Kód nebo jméno instituce, která záznam vytvořila nebo změnila.")
-                    .createField()) // value
-                .createField()) // recordContentSource
-                // recordCreationDate, dateDefinition
-                .addField(new FieldBuilder("recordCreationDate").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    // @encoding, @qualifier, @point, @keyDate
-                    .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
-                    .addField(new FieldBuilder("value").setTitle("Record Creation Date - M").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
-                .createField()) // recordCreationDate
-                // recordChangeDate, dateDefinition
-                .addField(new FieldBuilder("recordChangeDate").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    // @encoding, @qualifier, @point, @keyDate
-                    .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
-                    .addField(new FieldBuilder("value").setTitle("Record Change Date - R").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
-                .createField()) // recordChangeDate
-                // recordIdentifier
-                // languageOfCataloging
-                // recordOrigin, extends stringPlusLanguage
-                .addField(new FieldBuilder("recordOrigin").setMaxOccurrences(1)
-                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Record Origin - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
-                        .setHint("Údaje o vzniku záznamu.")
-                        .addMapValue("machine generated", "machine generated")
-                        .addMapValue("human prepared", "human prepared")
-                    .createField()) // value
-                .createField()) // recordOrigin
-                // descriptionStandard
+                    .setHidden(true).setType(Field.TEXT)
+//            .setHint("Údaje o metadatovém záznamu - jeho vzniku, změnách apod.")
+//                // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
+//                // @displayLabel, @altRepGroup
+//                // recordContentSource, stringPlusLanguagePlusAuthority
+//                .addField(new FieldBuilder("recordContentSource").setTitle("Record Content Source - R").setMaxOccurrences(1)
+//                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+//                    .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("marcorg").createField())
+//                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
+//                        .setHint("Kód nebo jméno instituce, která záznam vytvořila nebo změnila.")
+//                    .createField()) // value
+//                .createField()) // recordContentSource
+//                // recordCreationDate, dateDefinition
+//                .addField(new FieldBuilder("recordCreationDate").setMaxOccurrences(1)
+//                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+//                    // @encoding, @qualifier, @point, @keyDate
+//                    .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
+//                    .addField(new FieldBuilder("value").setTitle("Record Creation Date - M").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
+//                .createField()) // recordCreationDate
+//                // recordChangeDate, dateDefinition
+//                .addField(new FieldBuilder("recordChangeDate").setMaxOccurrences(1)
+//                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+//                    // @encoding, @qualifier, @point, @keyDate
+//                    .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
+//                    .addField(new FieldBuilder("value").setTitle("Record Change Date - R").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
+//                .createField()) // recordChangeDate
+//                // recordIdentifier
+//                // languageOfCataloging
+//                // recordOrigin, extends stringPlusLanguage
+//                .addField(new FieldBuilder("recordOrigin").setMaxOccurrences(1)
+//                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+//                    .addField(new FieldBuilder("value").setTitle("Record Origin - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
+//                        .setHint("Údaje o vzniku záznamu.")
+//                        .addMapValue("machine generated", "machine generated")
+//                        .addMapValue("human prepared", "human prepared")
+//                    .createField()) // value
+//                .createField()) // recordOrigin
+//                // descriptionStandard
         .createField(); // recordInfo
+    }
+
+    private Field relatedOriginInfo() {
+        return new FieldBuilder("originInfo").setMaxOccurrences(1)
+                .addField(new FieldBuilder("publisher").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setTitle("Nakladatelské údaje")
+                    .createField()) // value
+                .createField()) // publisher
+            .createField(); // originInfo
     }
 }
