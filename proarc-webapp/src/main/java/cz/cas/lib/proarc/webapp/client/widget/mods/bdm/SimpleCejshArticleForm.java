@@ -77,10 +77,8 @@ public final class SimpleCejshArticleForm {
                         + "<dt>translated</dt><dd>přeložený název</dd>"
                         + "<dt>uniform</dt><dd>stejný/jednotný název</dd>"
                         + "</dl>")
-                    .addMapValue("abbreviated", "Abbreviated")
-                    .addMapValue("alternative", "Alternative")
-                    .addMapValue("translated", "Translated")
-                    .addMapValue("uniform", "Uniform")
+                    .addMapValue("alternative", "Variantní")
+                    .addMapValue("translated", "Přeložený")
                 .createField()) // type
                 // nonSort, type="stringPlusLanguage"
                 .addField(new FieldBuilder("nonSort").setMaxOccurrences(1)
