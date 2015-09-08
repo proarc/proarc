@@ -78,17 +78,17 @@ public final class BornDigitalArticleForm {
                     .addMapValue("translated", "Translated")
                     .addMapValue("uniform", "Uniform")
                 .createField()) // type
+                // lang, issue 235
+                .addField(new FieldBuilder("lang").setTitle("Title Language - O").setMaxOccurrences(1).setType(Field.COMBO).setRequired(false)
+                    .setHint("Kód jazyka podle  ISO 639-2/b.")
+                    .setOptionDataSource(new FieldBuilder("ndk.mods.languageTerms").setWidth("300")
+                            .addField(new FieldBuilder("title").setTitle("Name").createField())
+                            .addField(new FieldBuilder("value").setTitle("Language").createField())
+                        .createField(),
+                        "value")
+                .createField()) // title@lang
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
-                    // lang, issue 235
-                    .addField(new FieldBuilder("lang").setTitle("Title Language - O").setMaxOccurrences(1).setType(Field.COMBO).setRequired(false)
-                        .setHint("Kód jazyka podle  ISO 639-2/b.")
-                        .setOptionDataSource(new FieldBuilder("ndk.mods.languageTerms").setWidth("300")
-                                .addField(new FieldBuilder("title").setTitle("Name").createField())
-                                .addField(new FieldBuilder("value").setTitle("Language").createField())
-                            .createField(),
-                            "value")
-                    .createField()) // title@lang
                     .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true).setWidth(width)
                         .setHint("Vlastní název článku."
                             + "<p>Pokud není titul, nutno vyplnit hodnotu „untitled“")
