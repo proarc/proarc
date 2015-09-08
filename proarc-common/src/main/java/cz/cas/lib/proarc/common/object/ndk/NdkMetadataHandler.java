@@ -115,7 +115,11 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         write(modelId, mods, data, message);
     }
 
-    private ModsDefinition createDefault(String modelId) throws DigitalObjectException {
+    /**
+     * Creates a new MODS with required default values according to model ID.
+     * Override to support custom models.
+     */
+    protected ModsDefinition createDefault(String modelId) throws DigitalObjectException {
         ModsDefinition defaultMods = ModsStreamEditor.defaultMods(fobject.getPid());
         DigitalObjectHandler parent = handler.getParameterParent();
         if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)) {
@@ -161,7 +165,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         return defaultMods;
     }
 
-    private void inheritIdentifier(ModsDefinition mods, List<IdentifierDefinition> ids, String... includeIdTypes) {
+    protected final void inheritIdentifier(ModsDefinition mods, List<IdentifierDefinition> ids, String... includeIdTypes) {
         for (IdentifierDefinition id : ids) {
             String type = id.getType();
             if (includeIdTypes == null) {
@@ -187,7 +191,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    private void inheritOriginInfoDateIssued(ModsDefinition mods, List<OriginInfoDefinition> ois) {
+    protected final void inheritOriginInfoDateIssued(ModsDefinition mods, List<OriginInfoDefinition> ois) {
         for (OriginInfoDefinition oi : ois) {
             OriginInfoDefinition newOi = null;
             for (DateDefinition dateIssued : oi.getDateIssued()) {
@@ -200,7 +204,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    private void inheritPhysicalDescriptionForm(ModsDefinition mods, List<PhysicalDescriptionDefinition> pds) {
+    protected final void inheritPhysicalDescriptionForm(ModsDefinition mods, List<PhysicalDescriptionDefinition> pds) {
         for (PhysicalDescriptionDefinition pd : pds) {
             PhysicalDescriptionDefinition newPd = null;
             for (FormDefinition form : pd.getForm()) {
@@ -224,7 +228,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    private void inheritSupplementTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
+    protected final void inheritSupplementTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
         for (TitleInfoDefinition ti : tis) {
             if (ti.getType() == null) {
                 ti.getPartNumber().clear();
@@ -414,7 +418,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         fobject.setLabel(label);
     }
 
-    private DigitalObjectHandler findEnclosingObject(
+    protected final DigitalObjectHandler findEnclosingObject(
             DigitalObjectHandler obj, String searcModelId) throws DigitalObjectException {
 
         if (obj != null) {

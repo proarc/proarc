@@ -139,6 +139,25 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
         return new NdkMetadataHandler(handler, new OldPrintMapperFactory()) {
 
             @Override
+            protected ModsDefinition createDefault(String modelId) throws DigitalObjectException {
+                ModsDefinition defaultMods = super.createDefault(modelId);
+                DigitalObjectHandler parent = handler.getParameterParent();
+                if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
+                    // issue 329
+                    DigitalObjectHandler title = findEnclosingObject(parent, OldPrintPlugin.MODEL_VOLUME);
+                    if (title != null) {
+                        ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                        inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
+                        defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                        inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
+                        inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
+                        inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
+                    }
+                }
+                return defaultMods;
+            }
+
+            @Override
             public PageViewItem createPageViewItem(Locale locale) throws DigitalObjectException {
                 String modelId = handler.relations().getModel();
                 if (modelId.equals(MODEL_PAGE)) {
