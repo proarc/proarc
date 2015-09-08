@@ -607,7 +607,7 @@ public class ImportPresenter {
 
                 @Override
                 public void execute(Boolean value) {
-                    StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
+                    StatusView.getInstance().show(i18n.ImportParentChooser_SaveAction_Done_Msg());
                     canStep();
                 }
             });
