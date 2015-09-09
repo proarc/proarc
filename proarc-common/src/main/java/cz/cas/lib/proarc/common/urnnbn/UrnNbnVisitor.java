@@ -544,7 +544,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
     MixType getMix(DigitalObjectElement elm, UrnNbnContext p) {
         try {
-            MixType mix = MixEditor.raw(elm.getHandler().getFedoraObject()).read();
+            MixType mix = MixEditor.ndkArchival(elm.getHandler().getFedoraObject()).read();
             if (mix != null) {
                 return mix;
             }
@@ -552,7 +552,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             throw new IllegalStateException(ex);
         }
         String pid = elm.getPid();
-        Object entity = getPageImageStream(elm, p.getStatus(), BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.RAW_ID);
+        Object entity = getPageImageStream(elm, p.getStatus(), BinaryEditor.NDK_ARCHIVAL_ID);
         if (entity != null) {
             JhoveContext jhoveCtx = p.getJhoveContext();
             File temp = null;
