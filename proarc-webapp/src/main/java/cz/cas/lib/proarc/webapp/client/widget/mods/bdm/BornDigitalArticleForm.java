@@ -55,7 +55,6 @@ public final class BornDigitalArticleForm {
         modsFields.add(subject());
         modsFields.add(classification());
         modsFields.add(identifier());
-        modsFields.add(part());
         modsFields.add(recordInfo());
         modsFields.add(relatedItem(f.getItemWidth()));
 
@@ -64,6 +63,7 @@ public final class BornDigitalArticleForm {
 
     private Field relatedItem(String width) {
         return new FieldBuilder("relatedItem").setTitle("Related Item - MA").setMaxOccurrences(10)
+                .addField(part())
                 .addField(relatedTitleInfo(width))
                 .addField(relatedName())
                 .addField(relatedOriginInfo())
