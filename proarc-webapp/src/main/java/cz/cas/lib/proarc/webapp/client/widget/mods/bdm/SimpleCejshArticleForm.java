@@ -53,16 +53,19 @@ public final class SimpleCejshArticleForm {
         modsFields.add(note());
         modsFields.add(identifier());
         modsFields.add(recordInfo());
-        // XXX Element pro recenzovaný dokument relatedItem/*
-        modsFields.add(new FieldBuilder("relatedItem").setTitle("Recenze na - R").setMaxOccurrences(10)
-                .addField(part())
-                .addField(relatedTitleInfo(f.getItemWidth()))
-                .addField(relatedName())
-                .addField(relatedOriginInfo())
-                .createField());
+        modsFields.add(relatedItem(f.getItemWidth()));
         modsFields.add(new FieldBuilder("version").setType(Field.TEXT).setHidden(true).setMaxOccurrences(1).createField());
 
         return f;
+    }
+
+    private Field relatedItem(String width) {
+        return new FieldBuilder("relatedItem").setTitle("Recenze na - MA").setMaxOccurrences(10)
+                .addField(part())
+                .addField(relatedTitleInfo(width))
+                .addField(relatedName())
+                .addField(relatedOriginInfo())
+                .createField();
     }
 
     private Field titleInfo(String width) {
@@ -138,7 +141,8 @@ public final class SimpleCejshArticleForm {
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
                     .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setTitle("Název recenzovaného díla")
+                        .setTitle("Název recenzovaného díla - M")
+                        .setHint("Název recenzovaného díla. Odpovídá poli 787$t")
                         .setRequired(false).setWidth(width)
                     .createField()) // title/value
                 .createField()) // title
@@ -205,41 +209,24 @@ public final class SimpleCejshArticleForm {
 
     private Field relatedName() {
         // name, nameDefinition
-        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Autor recenzovaného díla")
-//                .setHint("Údaje o odpovědnosti za článek.")
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Autor recenzovaného díla - M")
+                .setHint("Autor recenzovaného díla ve tvaru: \"Příjmení, Jméno\". Odpovídá poli 787$a")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
                 .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.TEXT)
                     .setDefaultValue("personal")
                     .setHidden(true)
-//                    .setHint("<dl>"
-//                        + "<dt>personal</dt><dd>celé jméno osoby</dd>"
-//                        + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
-//                        + "<dt>conference</dt><dd>název konference nebo související typ setkání</dd>"
-//                        + "<dt>family</dt><dd>rodina/rod</dd>"
-//                        + "</dl>")
-//                    .addMapValue("personal", "personal")
-//                    .addMapValue("corporate", "corporate")
-//                    .addMapValue("conference", "conference")
-//                    .addMapValue("family", "family")
                 .createField()) // @type
                 // @usage(fixed="primary")
-//                .addField(new FieldBuilder("usage").setTitle("Usage - O").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
-//                    .setHint("Hodnota “primary” pro označení primární autority.")
-//                    .addMapValue("", "")
-//                    .addMapValue("primary", "primary")
-//                .createField()) // usage
                 // namePart, namePartDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("namePart").setTitle("Name Parts - MA").setMaxOccurrences(5)
                     // @type(date, family, given, termsOfAddress)
                     .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("<dl>"
-//                            + "<dt>date</dt><dd>RA - datum</dd>"
                             + "<dt>family</dt><dd>MA -příjmení </dd>"
                             + "<dt>given</dt><dd>MA - jméno/křestní jméno</dd>"
                             + "<dt>termsOfAddress</dt><dd>RA - tituly a jiná slova nebo čísla související se jménem</dd>"
                             + "</dl>")
-//                        .addMapValue("date", "date")
                         .addMapValue("family", "family")
                         .addMapValue("given", "given")
                         .addMapValue("termsOfAddress", "termsOfAddress")
@@ -601,9 +588,11 @@ public final class SimpleCejshArticleForm {
         return new FieldBuilder("originInfo").setMaxOccurrences(1)
                 .addField(new FieldBuilder("publisher").setMaxOccurrences(1)
                     .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setTitle("Nakladatelské údaje")
+                        .setTitle("Nakladatelské údaje - M")
+                        .setHint("Vydavatel recenzovaného díla ve tvaru: \"město : nakladatelství, rok vydání\". Odpovídá poli 787$d.")
                     .createField()) // value
                 .createField()) // publisher
             .createField(); // originInfo
     }
+
 }
