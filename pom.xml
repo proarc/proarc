@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
     <version>2.1-SNAPSHOT</version>
     <name>ProArc</name>
-    <url>https://code.google.com/p/archivacni-system</url>
+    <url>https://github.com/proarc/proarc/wiki</url>
 
     <licenses>
         <license>
@@ -20,8 +20,8 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:https://code.google.com/p/archivacni-system</connection>
-        <url>https://code.google.com/p/archivacni-system/source/browse</url>
+        <connection>scm:git:git@github.com:proarc/proarc.git</connection>
+        <url>https://github.com/proarc/proarc</url>
     </scm>
 
     <modules>
@@ -62,7 +62,7 @@
         <repository>
             <id>proarc.repository</id>
             <name>ProArc Repository</name>
-            <url>http://mvnrepo.archivacni-system.googlecode.com/git</url>
+            <url>https://github.com/proarc/proarc.mvnrepo/raw/master</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
@@ -71,7 +71,7 @@
         <repository>
             <id>rd.repository</id>
             <name>RD Repository</name>
-            <url>http://mvnrepo.registrdigitalizace.googlecode.com/git</url>
+            <url>https://github.com/incad/registrdigitalizace.mvnrepo/raw/master</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
