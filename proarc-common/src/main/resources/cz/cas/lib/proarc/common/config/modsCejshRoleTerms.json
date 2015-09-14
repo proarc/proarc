@@ -1,0 +1,8 @@
+{
+    "data":[
+        {"type": "CODE", "authority":"marcrelator", "value":"aut", "label":"autor"},
+        {"type": "CODE", "authority":"marcrelator", "value":"rev", "label":"recenzent"},
+        {"type": "CODE", "authority":"marcrelator", "value":"trl", "label":"překladatel"},
+        {"type": "CODE", "authority":"marcrelator", "value":"ill", "label":"ilustrátor"}
+    ]
+}

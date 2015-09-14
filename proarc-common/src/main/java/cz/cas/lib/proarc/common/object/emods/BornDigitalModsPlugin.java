@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.object.emods;
 
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.i18n.BundleName;
+import cz.cas.lib.proarc.common.i18n.JsonValueMap;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DefaultDisseminationHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -35,7 +37,6 @@ import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -87,7 +88,9 @@ public class BornDigitalModsPlugin implements DigitalObjectPlugin, HasMetadataHa
 
     @Override
     public List<ValueMap> getValueMaps(ValueMap.Context context) {
-        return Collections.emptyList();
+        final ArrayList<ValueMap> maps = new ArrayList<ValueMap>();
+        maps.add(JsonValueMap.fromBundle(BundleName.CEJSH_ROLES, context.getLocale()));
+        return maps;
     }
 
     @Override

@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.object;
 
 import cz.cas.lib.proarc.common.user.UserProfile;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -37,6 +38,7 @@ public class ValueMap<T> {
     }
 
     public ValueMap() {
+        this(null, Collections.<T>emptyList());
     }
 
     /**

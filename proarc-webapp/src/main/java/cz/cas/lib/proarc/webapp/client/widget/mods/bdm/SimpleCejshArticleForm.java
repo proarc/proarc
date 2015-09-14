@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods.bdm;
 
+import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
@@ -180,6 +181,31 @@ public final class SimpleCejshArticleForm {
                 // etal
                 // affiliation
                 // role, roleDefinition
+                .addField(new FieldBuilder("role").setMaxOccurrences(1)
+                    // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
+                    .addField(new FieldBuilder("roleTerm").setMaxOccurrences(1)
+                        // @type, codeOrText(code, text)
+                        .addField(new FieldBuilder("type").setMaxOccurrences(1)
+                            .setType(Field.TEXT)
+                            .setHidden(true)
+                        .createField()) // @type
+                        // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("authority").setMaxOccurrences(1)
+                            .setType(Field.TEXT)
+                            .setHidden(true)
+                        .createField()) // authority
+                        .addField(new FieldBuilder("value").setTitle("Role - M").setMaxOccurrences(1)
+                            // issue 344
+                            // it cannot be combo as @type and @authority are hidden!
+                            .setType(Field.SELECT).setWidth("200")
+                            .setOptionDataSource(new FieldBuilder(BundleName.CEJSH_ROLES.getValueMapId())
+                                .addField(new FieldBuilder("value").setTitle("Kód").createField())
+                                .addField(new FieldBuilder("label").setTitle("Popis").createField())
+                            .createField(), "value", "type", "authority")
+                        .createField()) // value
+                    .createField()) // roleTerm
+                .createField()) // role
                 // description
             .createField(); // name
     }

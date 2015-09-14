@@ -93,6 +93,9 @@ public class LocalizationResource {
         ArrayList<Item> result = new ArrayList<Item>();
         for (BundleName bundleName : bundleNames) {
             try {
+                if (!BundleName.PROPERTIES.equals(bundleName.getFormat())) {
+                    continue;
+                }
                 result.addAll(readBundle(bundleName, localeObj, control, sorted));
             } catch (MissingResourceException ex) {
                 LOG.log(Level.WARNING, bundleNames.toString(), ex);

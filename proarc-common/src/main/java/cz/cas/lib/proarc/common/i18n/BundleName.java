@@ -23,6 +23,7 @@ package cz.cas.lib.proarc.common.i18n;
  */
 public enum BundleName {
 
+    CEJSH_ROLES("cz.cas.lib.proarc.common.config.modsCejshRoleTerms", "cejsh.mods.RoleTerms", "json"),
     /**
      * @see <a href='https://docs.google.com/document/d/1cmV1LqlZGepNDZEPmTcOpqHaaI0L5wwxq6jj73eHG_M/edit?usp=sharing'>Old print page types</a>
      */
@@ -38,12 +39,19 @@ public enum BundleName {
      */
     LANGUAGES_ISO639_2("cz.cas.lib.proarc.common.config.languagesIso639-2", "ndk.mods.languageTerms");
 
+    public static final String PROPERTIES = "properties";
     private String bundleName;
     private String valueMapId;
+    private String format;
 
     private BundleName(String bundleName, String valueMapId) {
+        this(bundleName, valueMapId, PROPERTIES);
+    }
+
+    private BundleName(String bundleName, String valueMapId, String format) {
         this.bundleName = bundleName;
         this.valueMapId = valueMapId;
+        this.format = format;
     }
 
     @Override
@@ -53,6 +61,10 @@ public enum BundleName {
 
     public String getValueMapId() {
         return valueMapId;
+    }
+
+    public String getFormat() {
+        return format;
     }
 
     public static BundleName fromString(String bundleName) {
