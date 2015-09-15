@@ -14,7 +14,7 @@
     </journal>
     <journal issn="1211-4413">
         <title>Acta Onomastica</title>
-        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <discipline>PHILOLOGY___LINGUISTICS</discipline>
         <publisherAddress>Acta onomastica, redakce, Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51  Praha 1, Czech Republic</publisherAddress>
         <journalId>7bb33933-19b8-30c2-b6e2-0001b3e8b6fc</journalId>
         <publisherId>c72cc013-68ec-3954-9ac5-9a760e1d62e9</publisherId>
@@ -25,7 +25,7 @@
     </journal>
     <journal issn="0862-8459">
         <title>Časopis pro moderní filologii (The Journal for Modern Philology)</title>
-        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <discipline>PHILOLOGY___LINGUISTICS</discipline>
         <publisherAddress>Časopis pro moderní filologii, redakce, Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51 Praha 1, Czech Republic</publisherAddress>
         <publisher>Institute of the Czech Language, Academy of Sciences of the Czech Republic</publisher>
         <journalId>d4e6be36-e1a4-32d8-bcdd-d5c3f785b523</journalId>
@@ -37,7 +37,7 @@
     </journal>
     <journal issn="0009-0468">
         <title>Česká literatura (Czech Literature)</title>
-        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <discipline>PHILOLOGY___LINGUISTICS</discipline>
         <publisherAddress>Československá psychologie, redakce, Psychologický ústav AV ČR, v.v.i., Politických vězňů 7, 110 00 Praha 1, Czech Republic</publisherAddress>
         <publisher>Institute of Czech Literature of the Academy of Sciences of the Czech Republic</publisher>
         <journalId>9e1cae7e-bcec-3aa5-9fc5-088078515ea5</journalId>
@@ -241,7 +241,7 @@
     </journal>
     <journal issn="0862-8432">
         <title>Linguistica Pragensia</title>
-        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <discipline>PHILOLOGY___LINGUISTICS</discipline>
         <publisherAddress>Linguistica Pragensia, Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51 Praha 1, Czech Republic</publisherAddress>
         <publisher>Institute of the Czech Language, Academy of Sciences of the Czech Republic</publisher>
         <journalId>d41f195e-4a9a-31ac-9d96-8da8369fcd15</journalId>
@@ -253,7 +253,7 @@
     </journal>
     <journal issn="0024-4457">
         <title>Listy filologické (Folia philologica)</title>
-        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <discipline>PHILOLOGY___LINGUISTICS</discipline>
         <publisherAddress>Listy filologické, redakce, Filosofický ústav AV ČR, v.v.i., Kabinet pro klasická studia, Na Florenci 3, 110 00 Praha 1, Czech Republic</publisherAddress>
         <publisher>Institute of Philosophy, Academy of Sciences of the Czech Republic</publisher>
         <journalId>eab77fae-44e5-398b-ab8f-ecb2aa8b5a66</journalId>
@@ -289,7 +289,7 @@
     </journal>
     <journal issn="0027-8203">
         <title>Naše řeč (Our Speech)</title>
-        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <discipline>PHILOLOGY___LINGUISTICS</discipline>
         <publisherAddress>Naše řeč, redakce, Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51 Praha 1, Czech Republic</publisherAddress>
         <publisher>Institute of the Czech Language, Academy of Sciences of the Czech Republic</publisher>
         <journalId>0a0dc341-afa4-3343-9168-87329146c725</journalId>
@@ -313,7 +313,7 @@
     </journal>
     <journal issn="0231-6625">
         <title>Právník (The Lawyer)</title>
-        <discipline>LAW_&amp;_ADMINISTRATION</discipline>
+        <discipline>LAW___ADMINISTRATION</discipline>
         <publisherAddress>Právník, redakce, Ústav státu a práva AV ČR, v.v.i., Národní 18, 116 00 Praha 1, Czech Republic</publisherAddress>
         <publisher>Institute of State and Law, Academy of Sciences of the Czech Republic</publisher>
         <journalId>43bd8a20-6585-36ec-bf4d-05e090a1242b</journalId>
@@ -349,7 +349,7 @@
     </journal>
     <journal issn="0037-7031">
         <title>Slovo a slovesnost: časopis pro otázky teorie a kultury jazyka (Slovo a slovesnost: A journal for the theory of language and language cultivation)</title>
-        <discipline>PHILOLOGY_&amp;_LINGUISTICS</discipline>
+        <discipline>PHILOLOGY___LINGUISTICS</discipline>
         <publisherAddress>Slovo a slovesnost, redakce, Ústav pro jazyk český AV ČR, v.v.i., Letenská 4, 118 51 Praha 1, Czech Republic</publisherAddress>
         <publisher>Institute of the Czech Language, Academy of Sciences of the Czech Republic</publisher>
         <journalId>32c56366-5e72-37d3-bd39-7890034e5104</journalId>
@@ -421,7 +421,7 @@
     </journal>
     <journal issn="1803-845X">
         <title>Theatralia: Revue současného myšlení o divadelní kultuře (Theatralia: The revue of contemporary thought on theatre culture)</title>
-        <discipline>ARTS_&amp;_ARCHITECTURE</discipline>
+        <discipline>ARTS___ARCHITECTURE</discipline>
         <publisherAddress>Theatralia, redakce, Masarykova univerzita, Filozofická fakulta, Katedra divadelních studií, Arna Nováka 1, 602 00 Brno, Czech Republic</publisherAddress>
         <publisher>Masaryk University, Faculty of Arts</publisher>
         <journalId>dd23d01d-d2bd-4555-bc63-a85ef16d5db5</journalId>
@@ -433,7 +433,7 @@
     </journal>
     <journal issn="0049-5123">
         <title>Umění (Art)</title>
-        <discipline>ARTS_&amp;_ARCHITECTURE</discipline>
+        <discipline>ARTS___ARCHITECTURE</discipline>
         <publisherAddress>Umění, redakce, Ústav dějin umění AV ČR, v.v.i., Husova 4, 110 00 Praha 1, Czech Republic</publisherAddress>
         <publisher>Institute of Art History, Academy of Sciences of the Czech Republic</publisher>
         <journalId>7b27774f-cbec-3412-8f69-cd0b7a61338b</journalId>
