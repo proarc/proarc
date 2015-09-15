@@ -77,6 +77,61 @@ final class MapperUtils {
         return reqGenre;
     }
 
+    /**
+     * Creates title according to LoC {@code MODS->DC} mapping.
+     * @param ti MODS titleInfo
+     * @return string for DC title
+     */
+    static String createTitleString(TitleInfoDefinition ti) {
+        StringBuilder title = new StringBuilder();
+        addNonSort(title, ti);
+        addTitle(title, ti);
+        addSubTitle(title, ti);
+        addPartNumber(title, ti);
+        addPartName(title, ti);
+        return title.toString();
+    }
+
+    /**
+     * Builds title from {@code titleInfo} subelements.
+     * @param title the result title
+     * @param titleParts parts to add
+     * @param prefix an optional parts prefix. Added in case the passed title is not empty.
+     * @return the result title
+     */
+    static StringBuilder addTitlePart(StringBuilder title, List<StringPlusLanguage> titleParts, String prefix) {
+        if (!titleParts.isEmpty()) {
+            String value = toValue(titleParts.get(0).getValue());
+            if (value != null) {
+                if (prefix != null && title.length() > 0) {
+                    title.append(prefix);
+                }
+                title.append(value);
+            }
+        }
+        return title;
+    }
+
+    static StringBuilder addNonSort(StringBuilder title, TitleInfoDefinition ti) {
+        return addTitlePart(title, ti.getNonSort(), null);
+    }
+
+    static StringBuilder addTitle(StringBuilder title, TitleInfoDefinition ti) {
+        return addTitlePart(title, ti.getTitle(), " ");
+    }
+
+    static StringBuilder addSubTitle(StringBuilder title, TitleInfoDefinition ti) {
+        return addTitlePart(title, ti.getSubTitle(), ": ");
+    }
+
+    static StringBuilder addPartName(StringBuilder title, TitleInfoDefinition ti) {
+        return addTitlePart(title, ti.getPartName(), ". ");
+    }
+
+    static StringBuilder addPartNumber(StringBuilder title, TitleInfoDefinition ti) {
+        return addTitlePart(title, ti.getPartNumber(), ". ");
+    }
+
     // mods/language/languageTerm @type=code, @authority="iso639‐2b"
     // XXX should it be really checked?
     static void fillLanguage(ModsDefinition mods) {

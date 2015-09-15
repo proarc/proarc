@@ -95,8 +95,12 @@ public final class NdkPeriodicalIssueMapper extends NdkMapper {
     protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
         OaiDcType dc = super.createDc(mods, ctx);
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            addStringPlusLanguage(dc.getTitles(), titleInfo.getTitle());
-            addStringPlusLanguage(dc.getTitles(), titleInfo.getSubTitle());
+            StringBuilder title = new StringBuilder();
+            addNonSort(title, titleInfo);
+            addTitle(title, titleInfo);
+            addSubTitle(title, titleInfo);
+            addElementType(dc.getTitles(), title.toString());
+
             addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartNumber());
             addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartName());
         }

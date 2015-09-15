@@ -83,58 +83,10 @@ public class NdkChapterMapper extends NdkMapper {
     }
 
     @Override
-    protected String createObjectLabel(ModsDefinition mods) {
-        StringBuilder label = new StringBuilder();
-        for (TitleInfoDefinition ti : mods.getTitleInfo()) {
-            if (toValue(ti.getType()) != null) {
-                continue;
-            }
-            if (!ti.getTitle().isEmpty()) {
-                String value = toValue(ti.getTitle().get(0).getValue());
-                if (value != null) {
-                    label.append(value);
-                }
-            }
-            if (!ti.getSubTitle().isEmpty()) {
-                String value = toValue(ti.getSubTitle().get(0).getValue());
-                if (value != null) {
-                    if (label.length() > 0) {
-                        label.append(": ");
-                    }
-                    label.append(value);
-                }
-            }
-            if (!ti.getPartNumber().isEmpty()) {
-                String value = toValue(ti.getPartNumber().get(0).getValue());
-                if (value != null) {
-                    if (label.length() > 0) {
-                        label.append(", ");
-                    }
-                    label.append(value);
-                }
-            }
-            if (!ti.getPartName().isEmpty()) {
-                String value = toValue(ti.getPartName().get(0).getValue());
-                if (value != null) {
-                    if (label.length() > 0) {
-                        label.append(", ");
-                    }
-                    label.append(value);
-                }
-            }
-            break;
-        }
-        return label.toString();
-    }
-
-    @Override
     protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
         OaiDcType dc = super.createDc(mods, ctx);
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            addStringPlusLanguage(dc.getTitles(), titleInfo.getTitle());
-            addStringPlusLanguage(dc.getTitles(), titleInfo.getSubTitle());
-            addStringPlusLanguage(dc.getTitles(), titleInfo.getPartNumber());
-            addStringPlusLanguage(dc.getTitles(), titleInfo.getPartName());
+            addElementType(dc.getTitles(), createTitleString(titleInfo));
         }
         addName(mods.getName(), dc.getCreators());
         for (GenreDefinition genre : mods.getGenre()) {

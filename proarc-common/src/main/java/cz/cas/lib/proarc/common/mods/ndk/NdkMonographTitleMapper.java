@@ -37,38 +37,10 @@ public final class NdkMonographTitleMapper extends NdkMapper {
     }
 
     @Override
-    protected String createObjectLabel(ModsDefinition mods) {
-        StringBuilder label = new StringBuilder();
-        for (TitleInfoDefinition ti : mods.getTitleInfo()) {
-            if (toValue(ti.getType()) != null) {
-                continue;
-            }
-            if (!ti.getTitle().isEmpty()) {
-                String value = toValue(ti.getTitle().get(0).getValue());
-                if (value != null) {
-                    label.append(value);
-                }
-            }
-            if (!ti.getSubTitle().isEmpty()) {
-                String value = toValue(ti.getSubTitle().get(0).getValue());
-                if (value != null) {
-                    if (label.length() > 0) {
-                        label.append(": ");
-                    }
-                    label.append(value);
-                }
-            }
-            break;
-        }
-        return label.toString();
-    }
-
-    @Override
     protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
         OaiDcType dc = super.createDc(mods, ctx);
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            addStringPlusLanguage(dc.getTitles(), titleInfo.getTitle());
-            addStringPlusLanguage(dc.getTitles(), titleInfo.getSubTitle());
+            addElementType(dc.getTitles(), createTitleString(titleInfo));
         }
         for (GenreDefinition genre : mods.getGenre()) {
             addElementType(dc.getTypes(), genre.getValue());

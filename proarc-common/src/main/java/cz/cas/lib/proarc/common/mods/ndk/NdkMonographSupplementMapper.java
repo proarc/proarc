@@ -68,9 +68,13 @@ public class NdkMonographSupplementMapper extends NdkMapper {
     protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
         OaiDcType dc = super.createDc(mods, ctx);
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            addStringPlusLanguage(dc.getTitles(), titleInfo.getTitle());
+            StringBuilder title = new StringBuilder();
+            addNonSort(title, titleInfo);
+            addTitle(title, titleInfo);
+            addPartName(title, titleInfo);
+            addElementType(dc.getTitles(), title.toString());
+
             addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartNumber());
-            addStringPlusLanguage(dc.getTitles(), titleInfo.getPartName());
         }
         addName(mods.getName(), dc.getCreators());
         for (TypeOfResourceDefinition resType : mods.getTypeOfResource()) {

@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
@@ -155,7 +156,17 @@ public abstract class NdkMapper {
         return label;
     }
 
+    /**
+     * The default implementation creates label from titleInfo subelements.
+     * @return label or {@code null}
+     */
     protected String createObjectLabel(ModsDefinition mods) {
+        for (TitleInfoDefinition ti : mods.getTitleInfo()) {
+            if (toValue(ti.getType()) != null) {
+                continue;
+            }
+            return createTitleString(ti);
+        }
         return null;
     }
 

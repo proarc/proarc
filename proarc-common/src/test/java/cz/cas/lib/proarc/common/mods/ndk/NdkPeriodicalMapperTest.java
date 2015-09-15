@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
@@ -24,8 +25,11 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
+import javax.xml.transform.stream.StreamSource;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -138,6 +142,45 @@ public class NdkPeriodicalMapperTest {
         mapper.createMods(mods, ctx);
 
         assertEquals(Arrays.asList(IssuanceDefinition.CONTINUING), mods.getOriginInfo().get(0).getIssuance());
+    }
+
+    @Test
+    public void testCreateLabel() {
+        String xml = "<mods version='3.5' xmlns='http://www.loc.gov/mods/v3'>"
+                + "<titleInfo>"
+                    + "<nonSort>NS1</nonSort><title>T1</title><subTitle>S1</subTitle><partName>PNam1</partName><partNumber>PNum1</partNumber>"
+                + "</titleInfo>"
+                + "<titleInfo>"
+                    + "<title>T2</title><subTitle>S2</subTitle>"
+                + "</titleInfo>"
+                + "</mods>";
+        ModsDefinition mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xml)));
+        NdkPeriodicalMapper mapper = new NdkPeriodicalMapper();
+
+        String result = mapper.createObjectLabel(mods);
+        assertEquals("NS1 T1: S1. PNum1. PNam1", result);
+    }
+
+    @Test
+    public void testCreateDc() {
+        String xml = "<mods version='3.5' xmlns='http://www.loc.gov/mods/v3'>"
+                + "<titleInfo>"
+                    + "<nonSort>NS1</nonSort><title>T1</title><subTitle>S1</subTitle><partName>PNam1</partName><partNumber>PNum1</partNumber>"
+                + "</titleInfo>"
+                + "<titleInfo>"
+                    + "<title>T2</title><subTitle>S2</subTitle>"
+                + "</titleInfo>"
+                + "</mods>";
+        ModsDefinition mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xml)));
+        NdkPeriodicalMapper mapper = new NdkPeriodicalMapper();
+        Context ctx = new Context("uuid:testId");
+
+        OaiDcType result = mapper.createDc(mods, ctx);
+        assertEquals("NS1 T1: S1", result.getTitles().get(0).getValue());
+        assertEquals("T2: S2", result.getTitles().get(1).getValue());
+        assertEquals("PNum1", result.getDescriptions().get(0).getValue());
+        assertEquals("PNam1", result.getDescriptions().get(1).getValue());
+
     }
 
 }
