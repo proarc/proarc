@@ -1,0 +1,27 @@
+{
+    "__comment":"NDK roleTerms according to https://www.loc.gov/marc/relators/relaterm.html.",
+    "data":[
+        {"type": "CODE", "authority":"marcrelator", "value":"adp", "label":"Adapter"},
+        {"type": "CODE", "authority":"marcrelator", "value":"ant", "label":"Bibliographic antecedent"},
+        {"type": "CODE", "authority":"marcrelator", "value":"aui", "label":"Author of introduction, etc."},
+        {"type": "CODE", "authority":"marcrelator", "value":"aut", "label":"Author"},
+        {"type": "CODE", "authority":"marcrelator", "value":"com", "label":"Compiler"},
+        {"type": "CODE", "authority":"marcrelator", "value":"cre", "label":"Creator"},
+        {"type": "CODE", "authority":"marcrelator", "value":"crp", "label":"Correspondent"},
+        {"type": "CODE", "authority":"marcrelator", "value":"dst", "label":"Distributor"},
+        {"type": "CODE", "authority":"marcrelator", "value":"dte", "label":"Dedicatee"},
+        {"type": "CODE", "authority":"marcrelator", "value":"dto", "label":"Dedicator"},
+        {"type": "CODE", "authority":"marcrelator", "value":"dub", "label":"Dubious author"},
+        {"type": "CODE", "authority":"marcrelator", "value":"edt", "label":"Editor"},
+        {"type": "CODE", "authority":"marcrelator", "value":"egr", "label":"Engraver"},
+        {"type": "CODE", "authority":"marcrelator", "value":"fmo", "label":"Former owner"},
+        {"type": "CODE", "authority":"marcrelator", "value":"ill", "label":"Illustrator"},
+        {"type": "CODE", "authority":"marcrelator", "value":"lbt", "label":"Librettist"},
+        {"type": "CODE", "authority":"marcrelator", "value":"oth", "label":"Other"},
+        {"type": "CODE", "authority":"marcrelator", "value":"pbl", "label":"Publisher"},
+        {"type": "CODE", "authority":"marcrelator", "value":"prt", "label":"Printer"},
+        {"type": "CODE", "authority":"marcrelator", "value":"red", "label":"Redaktor"},
+        {"type": "CODE", "authority":"marcrelator", "value":"rev", "label":"Reviewer"},
+        {"type": "CODE", "authority":"marcrelator", "value":"trl", "label":"Translator"}
+    ]
+}

@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.i18n.BundleValueMap;
+import cz.cas.lib.proarc.common.i18n.JsonValueMap;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
@@ -244,6 +245,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
         ArrayList<ValueMap> maps = new ArrayList<ValueMap>();
         maps.add(readLangs(locale));
         maps.add(readPageTypes(locale));
+        maps.add(JsonValueMap.fromBundle(BundleName.MODS_ROLES, locale));
         return maps;
     }
 

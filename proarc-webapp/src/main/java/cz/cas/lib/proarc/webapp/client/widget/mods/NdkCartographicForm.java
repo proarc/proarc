@@ -145,28 +145,9 @@ public final class NdkCartographicForm {
                 .addField(new FieldBuilder("role").setTitle("Role - M").setMaxOccurrences(5)
                     .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                     // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
-                    .addField(new FieldBuilder("roleTerm").setMaxOccurrences(1)
-                        // @type, codeOrText(code, text)
-                        .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
-                            .setType(Field.SELECT).setDefaultValue("CODE").setRequired(true)
-                            .addMapValue("CODE", "code")
-                            .addMapValue("TEXT", "text")
-                        .createField()) // @type
-                        // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1)
-                            .setType(Field.TEXT).setWidth("200").setDefaultValue("marcrelator").setRequired(true)
-                            .setHint("Údaje o kontrolovaném slovníku využitém k popisu role."
-                                + "<p>K popisu výše uvedeného MARC seznamu nutno uvést authority=“marcrelator“.")
-                        .createField()) // authority
-                        .addField(new FieldBuilder("value").setTitle("Role Term - M").setMaxOccurrences(1)
-                            .setType(Field.COMBO).setWidth("200").setRequired(true)
-                            .setHint("Kód role z kontrolovaného slovníku.")
-                            // XXX use http://www.loc.gov/marc/relators/relacode.html
-                            .addMapValue("cre", "Creator")
-                            .addMapValue("crp", "Correspondent")
-                        .createField()) // value
-                    .createField()) // roleTerm
+                    .addField(NdkForms.roleTerm(
+                            "Role Term - M", true, "Authority - M", true, "Type - M", true
+                    )) // roleTerm
                 .createField()) // role
                 // description
             .createField()); // name

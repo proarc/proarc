@@ -1,0 +1,27 @@
+{
+    "__comment":"NDK roleTerms according to https://www.loc.gov/marc/relators/relaterm.html. Czech localization.",
+    "data":[
+        {"type": "CODE", "authority":"marcrelator", "value":"adp", "label":"Autor adaptace, upravovatel"},
+        {"type": "CODE", "authority":"marcrelator", "value":"ant", "label":"Bibliografický předchůdce"},
+        {"type": "CODE", "authority":"marcrelator", "value":"aui", "label":"Autor úvodu atd."},
+        {"type": "CODE", "authority":"marcrelator", "value":"aut", "label":"Autor"},
+        {"type": "CODE", "authority":"marcrelator", "value":"com", "label":"Sestavovatel, kompilátor"},
+        {"type": "CODE", "authority":"marcrelator", "value":"cre", "label":"Tvůrce"},
+        {"type": "CODE", "authority":"marcrelator", "value":"crp", "label":"Korespondent"},
+        {"type": "CODE", "authority":"marcrelator", "value":"dst", "label":"Distributor"},
+        {"type": "CODE", "authority":"marcrelator", "value":"dte", "label":"Dedikant"},
+        {"type": "CODE", "authority":"marcrelator", "value":"dto", "label":"Dedikátor"},
+        {"type": "CODE", "authority":"marcrelator", "value":"dub", "label":"Domnělý (pochybný) autor"},
+        {"type": "CODE", "authority":"marcrelator", "value":"edt", "label":"Editor"},
+        {"type": "CODE", "authority":"marcrelator", "value":"egr", "label":"Rytec"},
+        {"type": "CODE", "authority":"marcrelator", "value":"fmo", "label":"Dřívější majitel"},
+        {"type": "CODE", "authority":"marcrelator", "value":"ill", "label":"Ilustrátor"},
+        {"type": "CODE", "authority":"marcrelator", "value":"lbt", "label":"Libretista"},
+        {"type": "CODE", "authority":"marcrelator", "value":"oth", "label":"Jiná role"},
+        {"type": "CODE", "authority":"marcrelator", "value":"pbl", "label":"Nakladatel, vydavatel"},
+        {"type": "CODE", "authority":"marcrelator", "value":"prt", "label":"Tiskař"},
+        {"type": "CODE", "authority":"marcrelator", "value":"red", "label":"Redaktor, výkonný redaktor"},
+        {"type": "CODE", "authority":"marcrelator", "value":"rev", "label":"Reviewer"},
+        {"type": "CODE", "authority":"marcrelator", "value":"trl", "label":"Recenzent"}
+    ]
+}

@@ -33,6 +33,7 @@ public enum BundleName {
      * @see <a href='http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd'>PeriodicalPage[@Type]</a>
      */
     MODS_PAGE_TYPES("cz.cas.lib.proarc.common.config.modsPageTypes", "ndk.mods.pageTypes"),
+    MODS_ROLES("cz.cas.lib.proarc.common.config.modsRoleTerms", "ndk.mods.roleTerms", "json"),
     MODS_IDENTIFIER_TYPES("cz.cas.lib.proarc.common.config.modsIdentifierTypes", "ndk.mods.IdentifierTypes"),
     /**
      * <a href='http://www.loc.gov/standards/iso639-2/php/English_list.php'>ISO 639-2 Languages</a>
