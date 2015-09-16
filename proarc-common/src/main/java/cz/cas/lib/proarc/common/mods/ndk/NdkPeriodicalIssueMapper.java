@@ -18,11 +18,13 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.mods.CodeOrText;
+import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NameDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
@@ -88,7 +90,10 @@ public final class NdkPeriodicalIssueMapper extends NdkMapper {
     @Override
     protected String createObjectLabel(ModsDefinition mods) {
         String partNumber = findPartNumber(mods);
-        return partNumber;
+        partNumber = partNumber == null ? "?" : partNumber;
+        String dateIssued = findFullDateIssued(mods);
+        dateIssued = dateIssued == null ? "?" : dateIssued;
+        return String.format("%s, %s", partNumber, dateIssued);
     }
 
     @Override
@@ -134,6 +139,20 @@ public final class NdkPeriodicalIssueMapper extends NdkMapper {
             addStringPlusLanguage(dc.getSources(), location.getShelfLocator());
         }
         return dc;
+    }
+
+    /** Searches first dateIssued without {@code @point}. */
+    private static String findFullDateIssued(ModsDefinition mods) {
+        List<OriginInfoDefinition> originInfos = mods.getOriginInfo();
+        for (OriginInfoDefinition originInfo : originInfos) {
+            if (!originInfo.getDateIssued().isEmpty()) {
+                DateDefinition dateIssued = originInfo.getDateIssued().get(0);
+                if (dateIssued.getPoint() == null) {
+                    return toValue(dateIssued.getValue());
+                }
+            }
+        }
+        return null;
     }
 
 }
