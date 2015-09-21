@@ -101,10 +101,13 @@ public final class SimpleCejshArticleForm {
                 .createField()) // nonSort
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Název - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true).setWidth(width)
+                    .addField(new FieldBuilder("value").setTitle("Název - M").setMaxOccurrences(1)
+                        .setType(Field.TEXTAREA)
+                        .setRequired(true)
+                        .setHeight("50")
+                        .setWidth(width)
                         .setHint("Vlastní název článku."
                             + "<p>Pokud není titul, nutno vyplnit hodnotu „untitled“")
-                        .addMapValue("untitled", "untitled")
                     .createField()) // title/value
                     // lang, String
                     // xmlLang, lang
@@ -113,7 +116,10 @@ public final class SimpleCejshArticleForm {
                 .createField()) // title
                 // subTitle, type="stringPlusLanguage"
                 .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Podnázev - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setTitle("Podnázev - MA").setMaxOccurrences(1)
+                        .setType(Field.TEXTAREA)
+                        .setRequired(true)
+                        .setHeight("50")
                         .setHint("Podnázev článku. Za podnázev lze považovat i perex.")
                     .createField()) // value
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
@@ -141,10 +147,12 @@ public final class SimpleCejshArticleForm {
         return new FieldBuilder("titleInfo").setMaxOccurrences(1)
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1)
                         .setTitle("Název recenzovaného díla - M")
                         .setHint("Název recenzovaného díla. Odpovídá poli 787$t")
-                        .setRequired(false).setWidth(width)
+                        .setType(Field.TEXTAREA)
+                        .setHeight("50")
+                        .setWidth(width)
                     .createField()) // title/value
                 .createField()) // title
             .createField(); // titleInfo

@@ -98,7 +98,11 @@ public final class BornDigitalArticleForm {
                 .createField()) // title@lang
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true).setWidth(width)
+                    .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1)
+                        .setType(Field.TEXTAREA)
+                        .setRequired(true)
+                        .setHeight("50")
+                        .setWidth(width)
                         .setHint("Vlastní název článku."
                             + "<p>Pokud není titul, nutno vyplnit hodnotu „untitled“")
                         .addMapValue("untitled", "untitled")
@@ -110,7 +114,10 @@ public final class BornDigitalArticleForm {
                 .createField()) // title
                 // subTitle, type="stringPlusLanguage"
                 .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Subtitle - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setTitle("Subtitle - MA").setMaxOccurrences(1)
+                        .setType(Field.TEXTAREA)
+                        .setRequired(true)
+                        .setHeight("50")
                         .setHint("Podnázev článku. Za podnázev lze považovat i perex.")
                     .createField()) // value
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
@@ -139,10 +146,12 @@ public final class BornDigitalArticleForm {
         return new FieldBuilder("titleInfo").setMaxOccurrences(1)
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1)
                         .setTitle("Title Info - M")
                         .setHint("Název recenzovaného díla. Odpovídá poli 787$t")
-                        .setRequired(false).setWidth(width)
+                        .setType(Field.TEXTAREA)
+                        .setHeight("50")
+                        .setWidth(width)
                     .createField()) // title/value
                 .createField()) // title
             .createField(); // titleInfo

@@ -44,6 +44,7 @@ public class Field {
     private Boolean required;
     private Boolean hidden;
     private Boolean readOnly;
+    private String height;
     private String width;
     private Integer length;
     private LinkedHashMap<String, String> valueMap;
@@ -57,7 +58,7 @@ public class Field {
     public Field(String name, String type, List<Localized> title,
             List<Localized> hint, Integer maxOccurrences,
             Boolean required, Boolean hidden, Boolean readOnly,
-            Integer length, String width,
+            Integer length, String height, String width,
             LinkedHashMap<String, String> valueMap, String defaultValue,
             Field optionDataSource, String[] valueFieldNames, Map<String, String> valueFieldMap,
             List<Field> fields) {
@@ -71,6 +72,7 @@ public class Field {
         this.hidden = hidden;
         this.readOnly = readOnly;
         this.length = length;
+        this.height = height;
         this.width = width;
         this.valueMap = valueMap;
         this.defaultValue = defaultValue;
@@ -125,6 +127,10 @@ public class Field {
 
     public Integer getLength() {
         return length;
+    }
+
+    public String getHeight() {
+        return height;
     }
 
     public String getWidth() {
@@ -193,7 +199,7 @@ public class Field {
         return "Field{" + "name=" + name + ", type=" + type + ", title=" + title
                 + ", hint=" + hint + ", maxOccurrences=" + maxOccurrences
                 + ", required=" + required + ", hidden=" + hidden + ", readOnly=" + readOnly
-                + ", width=" + width + ", length=" + length
+                + ", height=" + height + ", width=" + width + ", length=" + length
                 + ", defaultValue=" + defaultValue + ", valueMap=" + valueMap
                 + ", optionDataSource=" + optionDataSource + ", valueFields=" + Arrays.toString(valueFieldNames)
                 + '}';

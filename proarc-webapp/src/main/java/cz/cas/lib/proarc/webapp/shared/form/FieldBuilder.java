@@ -34,6 +34,7 @@ public final class FieldBuilder {
     private Boolean hidden;
     private Boolean readOnly;
     private Integer length;
+    private String height;
     private String width;
     private LinkedHashMap<String, String> valueMap = new LinkedHashMap<String, String>();
     private final List<Field> fields = new ArrayList<Field>();
@@ -65,6 +66,11 @@ public final class FieldBuilder {
     public FieldBuilder setHint(String hint) {
         this.hint.clear();
         this.hint.add(new Localized(null, hint));
+        return this;
+    }
+
+    public FieldBuilder setHeight(String height) {
+        this.height = height;
         return this;
     }
 
@@ -130,7 +136,7 @@ public final class FieldBuilder {
 
     public Field createField() {
         return new Field(name, type, title, hint, maxOccurrences,
-                required, hidden, readOnly, length, width,
+                required, hidden, readOnly, length, height, width,
                 valueMap, defaultValue,
                 optionDataSource, valueFieldNames, valueFieldMap,
                 fields);
