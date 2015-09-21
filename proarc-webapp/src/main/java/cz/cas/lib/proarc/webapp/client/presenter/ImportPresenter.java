@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.client.presenter;
 
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -30,6 +31,7 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.ErrorHandler;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.Action;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -419,7 +421,17 @@ public class ImportPresenter {
                         ImportPresenter.this.getImportContext().setBatch(batch);
                         importSourceChooser.updateCache(ImportTreeDataSource.FolderState.IMPORTED);
                         placeController.goTo(new ImportPlace(Type.EDIT_ITEMS, batch.getId()));
+                    } else if (batch.getState() == ImportBatchDataSource.State.LOADING) {
+                        SC.warn("The import batch is still loading!");
+                        importSourceChooser.refreshSelectedNode();
                     } else {
+                        String error = batch.getLog();
+                        if (error != null && !error.isEmpty()) {
+                            error = SafeHtmlUtils.htmlEscape(error);
+                        } else {
+                            error = "The import batch loading failed!";
+                        }
+                        ErrorHandler.warn(error);
                         importSourceChooser.refreshSelectedNode();
                     }
                 }

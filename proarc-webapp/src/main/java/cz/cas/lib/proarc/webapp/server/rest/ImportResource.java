@@ -276,6 +276,7 @@ public class ImportResource {
 
         startRow = Math.max(0, startRow);
         List<BatchItemObject> imports = null;
+        final boolean listLoadedItems = pid == null || pid.isEmpty();
 
         Batch batch = null;
         if (batchId != null) {
@@ -285,21 +286,25 @@ public class ImportResource {
                 throw RestException.plainText(Status.FORBIDDEN,
                         ServerMessages.get(locale).ImportResource_BatchLoadingFailed_Msg());
             }
-            imports = pid != null && !pid.isEmpty()
-                    ? importManager.findBatchObjects(batchId, pid)
-                    : importManager.findLoadedObjects(batch);
+            imports = listLoadedItems
+                    ? importManager.findLoadedObjects(batch)
+                    : importManager.findBatchObjects(batchId, pid);
         }
         if (imports == null) {
             throw RestException.plainText(Status.NOT_FOUND, String.format("Not found! batchId: %s, pid: %s", batchId, pid));
         }
 
         int totalImports = imports.size();
-        int totalRows = (batch.getState() == Batch.State.LOADING) ? batch.getEstimateItemNumber(): totalImports;
-        if (totalImports == 0) {
-            return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, totalRows, null);
-        }
+        if (listLoadedItems && batch.getState() == Batch.State.LOADING
+                && totalImports > 0 && totalImports >= batch.getEstimateItemNumber()) {
 
-        if (startRow >= totalImports) {
+            // #fix a situation when all items are already loaded but the batch has not been closed yet.
+            --totalImports;
+            imports.subList(0, totalImports);
+        }
+        int totalRows = (batch.getState() == Batch.State.LOADING) ? batch.getEstimateItemNumber(): totalImports;
+
+        if (totalImports == 0 || startRow >= totalImports) {
             return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, startRow, totalRows, null);
         }
 

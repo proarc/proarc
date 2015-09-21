@@ -107,19 +107,24 @@ public class ImportBatchManager {
         return result.isEmpty() ? null : result.get(0);
     }
 
+    public List<BatchItemObject> findBatchObjects(int batchId, String pid) {
+        return findBatchObjects(batchId, pid, null);
+    }
+
     /**
      * Finds all objects of given batch.
      * @param batchId batch to find
      * @param pid object ID to find; can be {@code null}
      * @return list of objects in unspecified order.
      */
-    public List<BatchItemObject> findBatchObjects(int batchId, String pid) {
+    public List<BatchItemObject> findBatchObjects(int batchId, String pid, BatchItem.ObjectState state) {
         BatchItemDao itemDao = daos.createBatchItem();
         Transaction tx = daos.createTransaction();
         itemDao.setTransaction(tx);
         pid = (pid == null || pid.isEmpty()) ? null : pid;
+        String stateParam = state == null ? null : state.name();
         try {
-            List<BatchItem> result = itemDao.find(batchId, pid, null, null, BatchItem.Type.OBJECT.name());
+            List<BatchItem> result = itemDao.find(batchId, pid, null, stateParam, BatchItem.Type.OBJECT.name());
             tx.commit();
             return toBatchObjects(result);
         } catch (Throwable t) {
@@ -136,7 +141,7 @@ public class ImportBatchManager {
      * @return objects sorted according to RELS-EXT.
      */
     public List<BatchItemObject> findLoadedObjects(Batch batch) {
-        List<BatchItemObject> items = findBatchObjects(batch.getId(), null);
+        List<BatchItemObject> items = findBatchObjects(batch.getId(), null, ObjectState.LOADED);
         if (batch.getState() == State.LOADING) {
             // issue 245: scheduled or loading batches do not have created or complete
             //      the root object! Timestamp order should be sufficient here.
