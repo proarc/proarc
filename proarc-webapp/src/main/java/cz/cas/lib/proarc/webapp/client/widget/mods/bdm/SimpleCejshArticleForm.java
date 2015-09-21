@@ -75,12 +75,6 @@ public final class SimpleCejshArticleForm {
                 .setHint("Názvová informace vnitřní části.")
                 // titleInfo@type, enum
                 .addField(new FieldBuilder("type").setTitle("Typ - MA").setMaxOccurrences(1).setType(Field.SELECT)
-                    .setHint("Hlavní název bez type.<dl>Hodnoty:"
-                        + "<dt>abbreviated</dt><dd>zkrácený název</dd>"
-                        + "<dt>alternative</dt><dd>alternativní název</dd>"
-                        + "<dt>translated</dt><dd>přeložený název</dd>"
-                        + "<dt>uniform</dt><dd>stejný/jednotný název</dd>"
-                        + "</dl>")
                     .addMapValue("alternative", "Variantní")
                     .addMapValue("translated", "Přeložený")
                 .createField()) // type
