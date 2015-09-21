@@ -255,7 +255,9 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
                     if (length == 1) {
                         // issue 190: select in case of single device
                         Record device = data.get(0);
-                        selectScanner.setValue(device.getAttribute(DeviceDataSource.FIELD_ID));
+                        String deviceId = device.getAttribute(DeviceDataSource.FIELD_ID);
+                        selectScanner.setValue(deviceId);
+                        selectScanner.setDefaultValue(deviceId);
                     }
                 }
             }

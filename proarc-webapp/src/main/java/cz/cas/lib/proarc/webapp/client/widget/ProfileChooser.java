@@ -95,8 +95,10 @@ public class ProfileChooser {
                     int length = data.getLength();
                     if (length == 1) {
                         // issue 190: select in case of single device
-                        Record device = data.get(0);
-                        selectProfile.setValue(device.getAttribute(ConfigurationProfileResourceApi.PROFILE_ID));
+                        Record profile = data.get(0);
+                        String profileId = profile.getAttribute(ConfigurationProfileResourceApi.PROFILE_ID);
+                        selectProfile.setValue(profileId);
+                        selectProfile.setDefaultValue(profileId);
                     }
                 }
             }
