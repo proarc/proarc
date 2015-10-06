@@ -43,7 +43,7 @@ import java.util.Set;
 /**
  * Exports born-digital articles in CEJSH format.
  *
- * @see <a href='https://code.google.com/p/archivacni-system/issues/detail?id=286'>issue 286</a>
+ * @see <a href='https://github.com/proarc/proarc/issues/286'>issue 286</a>
  * @author Jan Pokorsky
  */
 public class CejshExport {

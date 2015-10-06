@@ -33,7 +33,7 @@ import javax.xml.bind.annotation.XmlElement;
 /**
  * pairs of {@code mods/physicalDescription/extenet}s.
  * <p/><b>NOTE: KNAV Kramerius 3 format</b>
- * @see <a href='http://code.google.com/p/kramerius/source/browse/trunk/import-cmdtool/src/main/resources/model_periodical_MODS.xsl'>model_periodical_MODS.xsl</a>
+ * @see <a href='https://github.com/ceskaexpedice/kramerius/blob/master/import-cmdtool/src/main/resources/model_periodical_MODS.xsl'>model_periodical_MODS.xsl</a>
  *
  * @author Jan Pokorsky
  */

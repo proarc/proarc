@@ -286,7 +286,7 @@ final class PeriodicalMapper implements Mapping.Mapper<Periodical> {
         /**
          * keywords from first mods/subject/topic*
          * <p/><b>NOTE: KNAV Kramerius 3 format</b>
-         * @see <a href='http://code.google.com/p/kramerius/source/browse/trunk/import-cmdtool/src/main/resources/model_periodical_MODS.xsl'>model_periodical_MODS.xsl</a>
+         * @see <a href='https://github.com/ceskaexpedice/kramerius/blob/master/import-cmdtool/src/main/resources/model_periodical_MODS.xsl'>model_periodical_MODS.xsl</a>
          */
         @XmlElement(name = ModsConstants.FIELD_KEYWORDS)
         private List<StringItem> keywords;
@@ -295,7 +295,7 @@ final class PeriodicalMapper implements Mapping.Mapper<Periodical> {
         /**
          * Record origin info from first {@code mods/recordInfo/recordOrigin}.
          * <p/><b>NOTE: KNAV Kramerius 3 format /Periodical/DescriptionBasedIssue</b>
-         * @see <a href='http://code.google.com/p/kramerius/source/browse/trunk/import-cmdtool/src/main/resources/model_periodical_MODS.xsl'>model_periodical_MODS.xsl</a>
+         * @see <a href='https://github.com/ceskaexpedice/kramerius/blob/master/import-cmdtool/src/main/resources/model_periodical_MODS.xsl'>model_periodical_MODS.xsl</a>
          */
         @XmlElement(name = ModsConstants.FIELD_RECORD_ORIGIN)
         private String recordOrigin;
