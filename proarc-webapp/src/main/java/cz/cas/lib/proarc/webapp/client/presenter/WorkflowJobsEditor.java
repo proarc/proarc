@@ -47,6 +47,7 @@ import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor.WorkflowMaterialView;
 
 /**
  * Edits jobs of the workflow.
@@ -221,6 +222,7 @@ public class WorkflowJobsEditor {
         private final ClientMessages i18n;
         private final Canvas widget;
         private DynamicForm jobForm;
+        private WorkflowMaterialView materialView;
 
         public WorkflowJobFormView(ClientMessages i18n) {
             this.i18n = i18n;
@@ -234,8 +236,11 @@ public class WorkflowJobsEditor {
         public void setJob(Record job) {
             if (job != null) {
                 jobForm.editRecord(job);
+                Record[] materials = job.getAttributeAsRecordArray(WorkflowJobDataSource.FIELD_MATERIALS);
+                materialView.getMaterialGrid().setData(materials);
             } else {
                 jobForm.clearValues();
+                materialView.getMaterialGrid().setData(new Record[0]);
             }
         }
 
@@ -293,14 +298,8 @@ public class WorkflowJobsEditor {
         }
 
         private Widget createMaterialList() {
-            final ListGrid grid = new ListGrid();
-            grid.setFields(
-                    new ListGridField("label","Název materiálu"),
-                    new ListGridField("type", "Typ"),
-                    new ListGridField("value", "Hodnota"),
-                    new ListGridField("note", "Poznámka")
-            );
-            return grid;
+            materialView = new WorkflowMaterialView(i18n, true);
+            return materialView.getWidget();
         }
 
     }

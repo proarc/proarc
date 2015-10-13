@@ -42,7 +42,7 @@ public class WorkflowTaskDataSource extends RestDataSource {
     public static final String FIELD_JOB_ID = "jobId";
     public static final String FIELD_JOB_LABEL = "jobLabel";
     public static final String FIELD_ID = "id";
-    // LABEL stands for i18n of TYPE?
+    // LABEL stands for i18n of TYPE
     public static final String FIELD_LABEL = "label";
     public static final String FIELD_MATERIALS = "materials";
     public static final String FIELD_MODIFIED = "modified";
@@ -76,12 +76,8 @@ public class WorkflowTaskDataSource extends RestDataSource {
         fieldId.setCanEdit(false);
 
         DataSourceTextField label = new DataSourceTextField(FIELD_LABEL);
-        label.setTitle("Název");
+        label.setTitle("Typ úkolu");
         label.setLength(255);
-
-//        DataSourceTextField profileId = new DataSourceTextField(FIELD_PROFILE_ID);
-//        profileId.setTitle("ID profilu");
-//        profileId.setDetail(true);
 
         DataSourceTextField jobId = new DataSourceTextField(FIELD_JOB_ID);
         jobId.setTitle("ID záměru");
@@ -105,19 +101,21 @@ public class WorkflowTaskDataSource extends RestDataSource {
         state.setRequired(true);
 
         DataSourceTextField owner = new DataSourceTextField(FIELD_OWNER);
-        owner.setTitle("Vlastník");
+        owner.setTitle("Pracovník");
 
         DataSourceTextField note = new DataSourceTextField(FIELD_NOTE);
         note.setTitle("Poznámka");
         note.setDetail(true);
 
         DataSourceTextField type = new DataSourceTextField(FIELD_TYPE);
-        type.setTitle("Typ");
+        type.setTitle("Typ ID");
+        type.setDetail(true);
         type.setCanEdit(false);
 
         DataSourceEnumField priority = new DataSourceEnumField(FIELD_PRIORITY);
         priority.setTitle("Priorita");
-        priority.setRequired(true);
+        priority.setCanEdit(false);
+        priority.setDetail(true);
         String[] priorities = new String[10];
         for (int i = 0; i < priorities.length; i++) {
             priorities[i] = String.valueOf(i + 1);
@@ -167,7 +165,7 @@ public class WorkflowTaskDataSource extends RestDataSource {
         task.setAttribute(WorkflowTaskDataSource.FIELD_STATE, "ready");
         task.setAttribute(WorkflowTaskDataSource.FIELD_PRIORITY, "5");
         task.setAttribute(WorkflowTaskDataSource.FIELD_JOB_ID, "1");
-        task.setAttribute(WorkflowTaskDataSource.FIELD_JOB_LABEL, "Záměr - Babička");
+        task.setAttribute(WorkflowTaskDataSource.FIELD_JOB_LABEL, "Babička");
         task.setAttribute(WorkflowTaskDataSource.FIELD_CREATED, new Date());
         task.setAttribute(WorkflowTaskDataSource.FIELD_MODIFIED, new Date());
 
@@ -178,27 +176,34 @@ public class WorkflowTaskDataSource extends RestDataSource {
         params[1].setAttribute("value", "2048x1024");
         task.setAttribute(FIELD_PARAMETERS, params);
 
+        task.setAttribute(FIELD_MATERIALS, createDemoMaterials());
+        return task;
+    }
+
+    static Record[] createDemoMaterials() {
         Record[] materials = new Record[]{new Record(), new Record(), new Record()};
-        materials[0].setAttribute("label", "Adresář");
+        materials[0].setAttribute("ID", "1");
         materials[0].setAttribute("type", "folder");
+        materials[0].setAttribute("way", "input");
         materials[0].setAttribute("value", "tmp");
         materials[0].setAttribute("note", "vzkaz");
-        materials[0].setAttribute("path", "C:\\tmp");
+        materials[0].setAttribute("folderPath", "C:\\tmp");
 
-        materials[1].setAttribute("label", "Předloha");
+        materials[1].setAttribute("ID", "2");
         materials[1].setAttribute("type", "physicalDocument");
+        materials[1].setAttribute("way", "input");
         materials[1].setAttribute("value", "Babička");
-        materials[1].setAttribute("barCode", "123456");
-        materials[1].setAttribute("field001", "Cz123456");
-        materials[1].setAttribute("rdczId", "321");
-        materials[1].setAttribute("xml", "<mods></mods>");
+        materials[1].setAttribute("physicalBarCode", "123456");
+        materials[1].setAttribute("physicalField001", "Cz123456");
+        materials[1].setAttribute("physicalRdCzId", "321");
+        materials[1].setAttribute("physicalMetadata", "<mods></mods>");
 
-        materials[2].setAttribute("label", "Dig. objekt");
+        materials[2].setAttribute("ID", "3");
         materials[2].setAttribute("type", "digitalDocument");
+        materials[2].setAttribute("way", "output");
         materials[2].setAttribute("value", "Babička");
-        materials[2].setAttribute("pid", "uuid:d0667b41-ef19-445b-afae-873ebe5756d8");
-        task.setAttribute(FIELD_MATERIALS, materials);
-        return task;
+        materials[2].setAttribute("digitalPid", "uuid:d0667b41-ef19-445b-afae-873ebe5756d8");
+        return materials;
     }
 
 }

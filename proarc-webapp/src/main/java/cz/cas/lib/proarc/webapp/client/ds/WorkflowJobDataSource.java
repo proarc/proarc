@@ -40,6 +40,7 @@ public class WorkflowJobDataSource extends RestDataSource {
     public static final String FIELD_ID = "id";
     public static final String FIELD_FINANCED = "financed";
     public static final String FIELD_LABEL = "label";
+    public static final String FIELD_MATERIALS = "materials";
     public static final String FIELD_MODIFIED = "modified";
     public static final String FIELD_NOTE = "note";
     public static final String FIELD_OWNER = "owner";
@@ -82,8 +83,8 @@ public class WorkflowJobDataSource extends RestDataSource {
         state.setTitle("Stav");
         state.setValueMap(new LinkedHashMap<String,String>() {{
             put("open", "Otevřený");
-            put("finished", "Hotovo");
-            put("canceled", "Zrušeno");
+            put("finished", "Hotový");
+            put("canceled", "Zrušený");
         }});
         state.setRequired(true);
 
@@ -139,6 +140,7 @@ public class WorkflowJobDataSource extends RestDataSource {
         job.setAttribute(FIELD_PRIORITY, "1");
         job.setAttribute(FIELD_PROFILE_ID, "ndk");
         job.setAttribute(FIELD_STATE, "open");
+        job.setAttribute(FIELD_MATERIALS, WorkflowTaskDataSource.createDemoMaterials());
         return job;
     }
 

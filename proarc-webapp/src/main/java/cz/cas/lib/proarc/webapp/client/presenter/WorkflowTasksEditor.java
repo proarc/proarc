@@ -27,11 +27,12 @@ import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.events.DrawEvent;
 import com.smartgwt.client.widgets.events.DrawHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.fields.AutoFitTextAreaItem;
+import com.smartgwt.client.widgets.form.fields.LinkItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
-import com.smartgwt.client.widgets.form.fields.StaticTextItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
+import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
@@ -45,13 +46,14 @@ import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
-import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
 
 /**
  * Edits tasks of the workflow.
@@ -62,17 +64,23 @@ public class WorkflowTasksEditor {
 
     private final ClientMessages i18n;
     private WorkflowTasksView view;
+    private final PlaceController places;
 
     public WorkflowTasksEditor(ClientMessages i18n, PlaceController places) {
         this.i18n = i18n;
+        this.places = places;
     }
 
     public Canvas getUI() {
         if (view == null) {
-            view = new WorkflowTasksView(i18n);
+            view = new WorkflowTasksView(i18n, this);
             view.init();
         }
         return view.getWidget();
+    }
+
+    private void onOpenJob() {
+        places.goTo(new WorkflowJobPlace());
     }
 
     private static final class WorkflowTasksView {
@@ -81,9 +89,11 @@ public class WorkflowTasksEditor {
         private final Canvas widget;
         private ListGrid taskGrid;
         private WorkflowTaskFormView taskFormView;
+        private final WorkflowTasksEditor handler;
 
-        public WorkflowTasksView(ClientMessages i18n) {
+        public WorkflowTasksView(ClientMessages i18n, WorkflowTasksEditor handler) {
             this.i18n = i18n;
+            this.handler = handler;
             this.widget = createMainLayout();
         }
 
@@ -101,13 +111,13 @@ public class WorkflowTasksEditor {
             // filter
             main.addMember(createFilter());
             // toolbar
-            main.addMember(createJobsToolbar());
+            main.addMember(createTasksToolbar());
             // list + item
-            main.addMember(createJobLayout());
+            main.addMember(createTaskLayout());
             return main;
         }
 
-        private Canvas createJobLayout() {
+        private Canvas createTaskLayout() {
             HLayout l = new HLayout();
             l.addMember(createTaskList());
             l.addMember(createTaskFormLayout());
@@ -136,7 +146,7 @@ public class WorkflowTasksEditor {
             return form;
         }
 
-        private ToolStrip createJobsToolbar() {
+        private ToolStrip createTasksToolbar() {
             ToolStrip toolbar = Actions.createToolStrip();
             RefreshAction refreshAction = new RefreshAction(i18n);
             SaveAction saveAction = new SaveAction(i18n) {
@@ -146,15 +156,7 @@ public class WorkflowTasksEditor {
                 }
             };
 
-            AbstractAction addAction = new AbstractAction("Nový",//i18n.DeviceManager_Add_Title(),
-                    "[SKIN]/actions/add.png", "Nový záměr") {//i18n.DeviceManager_Add_Hint()) {
-
-                @Override
-                public void performAction(ActionEvent event) {
-                }
-            };
             toolbar.addMember(Actions.asIconButton(refreshAction, this));
-//            toolbar.addMember(Actions.asIconButton(addAction, this));
             toolbar.addMember(Actions.asIconButton(saveAction, this));
             return toolbar;
         }
@@ -203,7 +205,7 @@ public class WorkflowTasksEditor {
         }
 
         private Canvas createTaskFormLayout() {
-            taskFormView = new WorkflowTaskFormView(i18n);
+            taskFormView = new WorkflowTaskFormView(i18n, handler);
             return taskFormView.getWidget();
         }
 
@@ -215,10 +217,12 @@ public class WorkflowTasksEditor {
         private final Canvas widget;
         private DynamicForm taskForm;
         private ListGrid paramGrid;
-        private ListGrid materialGrid;
+        private WorkflowMaterialView materialView;
+        private final WorkflowTasksEditor handler;
 
-        public WorkflowTaskFormView(ClientMessages i18n) {
+        public WorkflowTaskFormView(ClientMessages i18n, WorkflowTasksEditor handler) {
             this.i18n = i18n;
+            this.handler = handler;
             this.widget = createMainLayout();
         }
 
@@ -245,7 +249,7 @@ public class WorkflowTasksEditor {
         }
 
         private void setMaterials(Record[] records) {
-            materialGrid.setData(records);
+            materialView.getMaterialGrid().setData(records);
         }
 
         private Canvas createMainLayout() {
@@ -263,11 +267,22 @@ public class WorkflowTasksEditor {
             taskForm.setColWidths("*", "*", "*");
             taskForm.setTitleOrientation(TitleOrientation.TOP);
 
-            StaticTextItem jobLabel = new StaticTextItem(WorkflowTaskDataSource.FIELD_JOB_LABEL);
+//            StaticTextItem jobLabel = new StaticTextItem(WorkflowTaskDataSource.FIELD_JOB_LABEL);
+            LinkItem jobLabel = new LinkItem(WorkflowTaskDataSource.FIELD_JOB_LABEL);
             jobLabel.setColSpan("*");
             jobLabel.setWidth("*");
             jobLabel.setShowTitle(false);
             jobLabel.setTextBoxStyle(Editor.CSS_PANEL_DESCRIPTION_TITLE);
+            jobLabel.setReadOnlyTextBoxStyle(Editor.CSS_PANEL_DESCRIPTION_TITLE);
+            jobLabel.setTarget("javascript");
+            jobLabel.setTooltip("Kliknutím přejdete na záměr.");
+            jobLabel.addClickHandler(new ClickHandler() {
+
+                @Override
+                public void onClick(ClickEvent event) {
+                    handler.onOpenJob();
+                }
+            });
 
             SelectItem owner = new SelectItem(WorkflowTaskDataSource.FIELD_OWNER);
             owner.setOptionDataSource(UserDataSource.getInstance());
@@ -275,25 +290,22 @@ public class WorkflowTasksEditor {
             owner.setDisplayField(UserDataSource.FIELD_USERNAME);
             owner.setWidth("*");
 
-            AutoFitTextAreaItem note = new AutoFitTextAreaItem(WorkflowTaskDataSource.FIELD_NOTE);
+            TextAreaItem note = new TextAreaItem(WorkflowTaskDataSource.FIELD_NOTE);
             note.setStartRow(true);
             note.setColSpan("*");
             note.setWidth("*");
-
-            SelectItem priority = new SelectItem(WorkflowTaskDataSource.FIELD_PRIORITY);
+            note.setHeight(40);
 
             TextItem label = new TextItem(WorkflowTaskDataSource.FIELD_LABEL);
             label.setWidth("*");
 
             taskForm.setFields(jobLabel,
                     label,
-                    new TextItem(WorkflowTaskDataSource.FIELD_ID),
-                    new TextItem(WorkflowTaskDataSource.FIELD_TYPE),
                     owner,
                     new SelectItem(WorkflowTaskDataSource.FIELD_STATE),
-                    priority,
                     new TextItem(WorkflowTaskDataSource.FIELD_CREATED),
                     new TextItem(WorkflowTaskDataSource.FIELD_MODIFIED),
+                    new TextItem(WorkflowTaskDataSource.FIELD_PRIORITY),
                     note);
             return taskForm;
         }
@@ -303,7 +315,40 @@ public class WorkflowTasksEditor {
             ListGridField value = new ListGridField("value","Hodnota");
             value.setCanEdit(true);
             paramGrid.setFields(new ListGridField("label", "Název parametru"), value);
+            paramGrid.setHeight("30%");
             return paramGrid;
+        }
+
+        private Widget createMaterialList() {
+            materialView = new WorkflowMaterialView(i18n);
+            return materialView.getWidget();
+        }
+
+    }
+
+    public static class WorkflowMaterialView {
+
+        private final ClientMessages i18n;
+        private ListGrid materialGrid;
+        private final Widget widget;
+        private final boolean jobMaterial;
+
+        public WorkflowMaterialView(ClientMessages i18n) {
+            this(i18n, false);
+        }
+
+        public WorkflowMaterialView(ClientMessages i18n, boolean jobMaterial) {
+            this.i18n = i18n;
+            this.jobMaterial = jobMaterial;
+            widget = createMaterialList();
+        }
+
+        public Widget getWidget() {
+            return widget;
+        }
+
+        public ListGrid getMaterialGrid() {
+            return materialGrid;
         }
 
         private Widget createMaterialList() {
@@ -311,7 +356,7 @@ public class WorkflowTasksEditor {
 
                 @Override
                 protected Canvas getExpansionComponent(final ListGridRecord record) {
-                    String type = record.getAttribute("type");
+                    String type = record.getAttribute(WorkflowMaterialDataSource.FIELD_TYPE);
                     DynamicForm form = null;
                     if ("folder".equals(type)) {
                         form = createFolderForm();
@@ -328,14 +373,17 @@ public class WorkflowTasksEditor {
                 }
 
             };
-            materialGrid.setFields(
-                    new ListGridField("label","Název materiálu"),
-                    new ListGridField("type", "Typ"),
-                    new ListGridField("value", "Hodnota"),
-                    new ListGridField("note", "Poznámka")
+            materialGrid.setDataSource(WorkflowMaterialDataSource.getInstance(),
+                    new ListGridField(WorkflowMaterialDataSource.FIELD_TYPE),
+                    new ListGridField(WorkflowMaterialDataSource.FIELD_VALUE),
+                    new ListGridField(WorkflowMaterialDataSource.FIELD_WAY),
+                    new ListGridField(WorkflowMaterialDataSource.FIELD_NOTE),
+                    new ListGridField(WorkflowMaterialDataSource.FIELD_ID)
             );
+            materialGrid.getField(WorkflowMaterialDataSource.FIELD_WAY).setHidden(jobMaterial);
             materialGrid.setExpansionMode(ExpansionMode.DETAIL_FIELD);
             materialGrid.setCanExpandRecords(true);
+            materialGrid.setCanExpandMultipleRecords(false);
             return materialGrid;
         }
 
@@ -357,30 +405,32 @@ public class WorkflowTasksEditor {
 
         private DynamicForm createFolderForm() {
             DynamicForm form = createExpansionForm();
-            TextItem path = new TextItem("path", "Cesta");
+            TextItem path = new TextItem(WorkflowMaterialDataSource.FIELD_FOLDER_PATH);
             path.setWidth("*");
-            form.setItems(path);
+            form.setDataSource(WorkflowMaterialDataSource.getInstance(),
+                    path);
             return form;
         }
 
         private DynamicForm createPhysicalDocumentForm() {
             DynamicForm form = createExpansionForm();
-            TextAreaItem xml = new TextAreaItem("xml", "XML");
+            TextAreaItem xml = new TextAreaItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_METADATA);
             xml.setWidth("*");
-            form.setItems(new TextItem("barCode", "Čárový kód"),
-                    new TextItem("field001", "Pole 001"),
-                    new TextItem("rdczId", "RD CZ ID"),
+            form.setDataSource(WorkflowMaterialDataSource.getInstance(),
+                    new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_BARCODE),
+                    new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_FIELD001),
+                    new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_RDCZID),
                     xml);
             return form;
         }
 
         private DynamicForm createDigitalDocumentForm() {
             DynamicForm form = createExpansionForm();
-            TextItem pid = new TextItem("pid", "PID");
+            TextItem pid = new TextItem(WorkflowMaterialDataSource.FIELD_DIGITAL_PID);
             pid.setWidth("*");
-            form.setItems(pid);
+            form.setDataSource(WorkflowMaterialDataSource.getInstance(),
+                    pid);
             return form;
         }
-
     }
 }
