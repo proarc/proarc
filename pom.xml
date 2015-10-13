@@ -41,9 +41,9 @@
 
     <properties>
         <proarc.version>${project.version}</proarc.version>
-        <gwtVersion>2.5.1</gwtVersion>
+        <gwtVersion>2.7.0</gwtVersion>
         <jerseyVersion>1.11.1</jerseyVersion>
-        <smartGwtVersion>4.0</smartGwtVersion>
+        <smartGwtVersion>5.0-p20151013</smartGwtVersion>
         <maven.compiler.source>1.6</maven.compiler.source>
         <maven.compiler.target>1.6</maven.compiler.target>
         <!--

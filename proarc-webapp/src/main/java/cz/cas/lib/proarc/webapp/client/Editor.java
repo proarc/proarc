@@ -33,6 +33,7 @@ import com.smartgwt.client.types.Autofit;
 import com.smartgwt.client.types.ClickMaskMode;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.SelectionStyle;
+import com.smartgwt.client.util.DateDisplayFormatter;
 import com.smartgwt.client.util.DateUtil;
 import com.smartgwt.client.util.I18nUtil;
 import com.smartgwt.client.util.Page;
@@ -150,8 +151,9 @@ public class Editor implements EntryPoint {
                 );
 
         // replace default DateDisplayFormat.TOUSSHORTDATE
-        DateUtil.setShortDateDisplayFormat(DateDisplayFormat.TOEUROPEANSHORTDATE);
-        DateUtil.setShortDatetimeDisplayFormat(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
+//        DateUtil.setShortDateDisplayFormatter(DateDisplayFormatter.);
+//        DateUtil.setShortDateDisplayFormat(DateDisplayFormat.TOEUROPEANSHORTDATE);
+//        DateUtil.setShortDatetimeDisplayFormat(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
         I18nUtil.initMessages(ClientUtils.createSmartGwtMessages());
         i18n = GWT.create(ClientMessages.class);
