@@ -45,6 +45,8 @@ import cz.cas.lib.proarc.webapp.client.presenter.Importing;
 import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.UserManaging;
 import cz.cas.lib.proarc.webapp.client.presenter.UserManaging.UsersPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowPlace;
 import cz.cas.lib.proarc.webapp.client.widget.AboutWindow;
 
 /**
@@ -117,6 +119,8 @@ public final class EditorWorkFlow {
                 a = new DigitalObjectManaging((DigitalObjectManagerPlace) place, presenterFactory);
             } else if (place instanceof DeviceManagerPlace) {
                 a = new DeviceManaging((DeviceManagerPlace) place, presenterFactory);
+            } else if (place instanceof WorkflowPlace) {
+                a = new WorkflowManaging((WorkflowPlace) place, presenterFactory);
             }
             return a;
         }
@@ -152,6 +156,7 @@ public final class EditorWorkFlow {
         DigitalObjectManagerPlace.Tokenizer.class,
         ImportPlace.Tokenizer.class,
         UsersPlace.Tokenizer.class,
+        WorkflowPlace.Tokenizer.class,
     })
     static interface EditorPlaceHistoryMapper extends PlaceHistoryMapper {
     }

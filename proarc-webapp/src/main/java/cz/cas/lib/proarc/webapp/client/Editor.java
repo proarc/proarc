@@ -77,6 +77,12 @@ import cz.cas.lib.proarc.webapp.client.presenter.ImportPresenter;
 import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace.Type;
 import cz.cas.lib.proarc.webapp.client.presenter.UserManaging.UsersPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowTaskPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJobEditor;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor;
 import cz.cas.lib.proarc.webapp.client.widget.AboutWindow;
 import cz.cas.lib.proarc.webapp.client.widget.LoginWindow;
 import cz.cas.lib.proarc.webapp.client.widget.UserInfoView;
@@ -368,6 +374,11 @@ public class Editor implements EntryPoint {
                         createTreeNode("New Object", i18n.MainMenu_Edit_NewObject_Title(), new DigitalObjectCreatorPlace()),
                         createTreeNode("Search", i18n.MainMenu_Edit_Edit_Title(), new DigitalObjectManagerPlace())
                 ),
+                createTreeNode("RDFlow", "Workflow",
+                        createTreeNode("New Job", "Nový záměr", new WorkflowNewJobPlace()),
+                        createTreeNode("Jobs", "Záměry", new WorkflowJobPlace()),
+                        createTreeNode("Tasks", "Úkoly", new WorkflowTaskPlace())
+                ),
                 createTreeNode("Devices", i18n.MainMenu_Devices_Title(), new DeviceManagerPlace()),
 //                createTreeNode("Statistics", i18n.MainMenu_Statistics_Title()),
                 createProtectedTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
@@ -537,8 +548,11 @@ public class Editor implements EntryPoint {
         private DigitalObjectEditor digitalObjectEditor;
         private DigitalObjectManager digitalObjectManager;
         private UsersView users;
+        private WorkflowJobsEditor workflowJobs;
+        private WorkflowTasksEditor workflowTasks;
         private final ClientMessages i18n;
         private PlaceController placeController;
+        private WorkflowNewJobEditor workflowNew;
 
         PresenterFactory(ClientMessages i18n) {
             this.i18n = i18n;
@@ -588,6 +602,27 @@ public class Editor implements EntryPoint {
                 users = new UsersView(i18n);
             }
             return users;
+        }
+
+        public WorkflowJobsEditor getWorkflowJobs() {
+            if (workflowJobs == null) {
+                workflowJobs = new WorkflowJobsEditor(i18n, placeController);
+            }
+            return workflowJobs;
+        }
+
+        public WorkflowNewJobEditor getWorkflowNewJob() {
+            if (workflowNew == null) {
+                workflowNew = new WorkflowNewJobEditor(i18n, placeController);
+            }
+            return workflowNew;
+        }
+
+        public WorkflowTasksEditor getWorkflowTasks() {
+            if (workflowTasks == null) {
+                workflowTasks = new WorkflowTasksEditor(i18n, placeController);
+            }
+            return workflowTasks;
         }
 
     }
