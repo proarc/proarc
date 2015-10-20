@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+The default workflow profiles configuration.
+-->
+<workflow xmlns="http://proarc.lib.cas.cz/xml/common/workflow/v1">
+</workflow>

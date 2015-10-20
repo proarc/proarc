@@ -1,0 +1,76 @@
+/*
+ * Copyright (C) 2015 Jan Pokorsky
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package cz.cas.lib.proarc.common.workflow.profile;
+
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
+/**
+ *
+ * @author Jan Pokorsky
+ */
+@XmlType
+@XmlRootElement(name = WorkflowProfileConsts.WORKFLOW_EL)
+@XmlAccessorType(XmlAccessType.FIELD)
+public class WorkflowDefinition {
+
+    @XmlElement(name = WorkflowProfileConsts.WORKFLOW_JOB_EL)
+    private List<JobDefinition> jobs;
+
+    @XmlElement(name = WorkflowProfileConsts.WORKFLOW_MATERIALTYPE_EL)
+    private List<MaterialTypeDefinition> materials;
+
+    @XmlElement(name = WorkflowProfileConsts.WORKFLOW_TASKTYPE_EL)
+    private List<TaskTypeDefinition> tasks;
+
+    @XmlElement(name = WorkflowProfileConsts.WORKFLOW_VALUEMAP_EL)
+    private List<ValueMapDefinition> valueMaps;
+
+    public List<JobDefinition> getJobs() {
+        if (jobs == null) {
+            jobs = new ArrayList<JobDefinition>();
+        }
+        return jobs;
+    }
+
+    public List<MaterialTypeDefinition> getMaterials() {
+        if (materials == null) {
+            materials = new ArrayList<MaterialTypeDefinition>();
+        }
+        return materials;
+    }
+
+    public List<TaskTypeDefinition> getTasks() {
+        if (tasks == null) {
+            tasks = new ArrayList<TaskTypeDefinition>();
+        }
+        return tasks;
+    }
+
+    public List<ValueMapDefinition> getValueMaps() {
+        if (valueMaps == null) {
+            valueMaps = new ArrayList<ValueMapDefinition>();
+        }
+        return valueMaps;
+    }
+
+}

@@ -1,0 +1,144 @@
+<?xml version="1.0" standalone="yes"?>
+<!--
+Copyright (C) 2015 Jan Pokorsky
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<xs:schema elementFormDefault="qualified" version="1.0"
+           targetNamespace="http://proarc.lib.cas.cz/xml/common/workflow/v1"
+           xmlns:tns="http://proarc.lib.cas.cz/xml/common/workflow/v1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!-- root element -->
+    <xs:element name="workflow" type="tns:workflowDefinition"/>
+
+    <xs:complexType name="workflowDefinition">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="job" type="tns:jobDefinition"/>
+            <xs:element name="materialType" type="tns:materialTypeDefinition"/>
+            <xs:element name="taskType" type="tns:taskTypeDefinition"/>
+            <xs:element name="valuemap" type="tns:valueMapDefinition"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <!-- job profile -->
+    <xs:complexType name="jobDefinition">
+        <xs:sequence>
+            <xs:element name="worker" type="xs:string" minOccurs="0" />
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="task" type="tns:taskDefinition"/>
+                <xs:element name="hint" type="tns:i18NString"/>
+                <xs:element name="title" type="tns:i18NString"/>
+            </xs:choice>
+        </xs:sequence>
+        <xs:attribute name="disabled" type="xs:boolean"/>
+        <xs:attribute name="name" type="xs:ID" use="required"/>
+        <xs:attribute name="priority" type="xs:int" default="2"/>
+    </xs:complexType>
+
+    <xs:complexType name="taskDefinition">
+        <xs:sequence>
+            <xs:element name="worker" type="xs:string" minOccurs="0"/>
+            <xs:element name="param" type="tns:paramDefinition" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="type" type="xs:IDREF" use="required"/>
+    </xs:complexType>
+
+    <!-- task profile -->
+    <xs:complexType name="taskTypeDefinition">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="material" type="tns:materialDefinition"/>
+            <xs:element name="paramType" type="tns:paramTypeDefinition"/>
+            <xs:element name="hint" type="tns:i18NString"/>
+            <xs:element name="title" type="tns:i18NString"/>
+        </xs:choice>
+        <xs:attribute name="name" type="xs:ID" use="required"/>
+        <xs:attribute name="disabled" type="xs:boolean"/>
+    </xs:complexType>
+
+    <xs:complexType name="materialDefinition">
+        <xs:attribute name="type" type="xs:IDREF" use="required"/>
+        <xs:attribute name="way" type="tns:materialWayType" use="required"/>
+    </xs:complexType>
+
+    <xs:simpleType name="materialWayType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="input"/>
+            <xs:enumeration value="output"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- material profile -->
+    <xs:complexType name="materialTypeDefinition">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="hint" type="tns:i18NString"/>
+            <xs:element name="title" type="tns:i18NString"/>
+        </xs:choice>
+        <xs:attribute name="name" type="xs:ID" use="required"/>
+        <xs:attribute name="disabled" type="xs:boolean"/>
+    </xs:complexType>
+
+    <xs:complexType name="i18NString">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="lang" type="xs:string"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- parameter profiles -->
+    <xs:complexType name="paramTypeDefinition">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="hint" type="tns:i18NString"/>
+            <xs:element name="title" type="tns:i18NString"/>
+        </xs:choice>
+        <xs:attribute name="name" type="xs:ID" use="required"/>
+        <xs:attribute name="disabled" type="xs:boolean"/>
+        <xs:attribute name="required" type="xs:boolean"/>
+        <xs:attribute name="datasource" type="xs:IDREF"/>
+    </xs:complexType>
+
+    <xs:complexType name="paramDefinition">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="type" type="xs:IDREF" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="valueMapDefinition">
+        <xs:sequence>
+            <xs:element name="value" type="tns:valueMapItemDefinition" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:ID" use="required"/>
+        <xs:attribute name="source" type="tns:valueMapSourceType" default="internal" />
+    </xs:complexType>
+
+    <xs:simpleType name="valueMapSourceType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="internal"/>
+            <xs:enumeration value="proarc"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="valueMapItemDefinition">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="key" type="xs:string"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+</xs:schema>
