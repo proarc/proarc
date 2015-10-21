@@ -124,7 +124,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 ));
         models.add(new MetaModel(
                 MODEL_PERIODICALSUPPLEMENT, null, null,
-                Arrays.asList(new ElementType("NDK Periodical Supplement", "en"), new ElementType("NDK Příloha Periodika", "cs")),
+                Arrays.asList(new ElementType("NDK Periodical Supplement", "en"), new ElementType("NDK Příloha periodika", "cs")),
                 ModsConstants.NS,
                 MODEL_PERIODICALSUPPLEMENT,
                 this,
@@ -175,7 +175,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 ));
         models.add(new MetaModel(
                 MODEL_MONOGRAPHSUPPLEMENT, null, null,
-                Arrays.asList(new ElementType("NDK Monograph Supplement", "en"), new ElementType("NDK Příloha Monografie", "cs")),
+                Arrays.asList(new ElementType("NDK Monograph Supplement", "en"), new ElementType("NDK Příloha monografie", "cs")),
                 ModsConstants.NS,
                 MODEL_MONOGRAPHSUPPLEMENT,
                 this,
