@@ -156,11 +156,14 @@ public final class DigitalObjectFormValidateAction extends AbstractAction {
 
         private void closeTask() {
             if (invalidItemsCount == 0) {
-                progress.setDone(i18n.DigitalObjectFormValidateAction_NoError_Msg());
+                progress.setDone(i18n.DigitalObjectFormValidateAction_NoError_Msg(
+                        String.valueOf(length)));
             } else {
                 progress.setDone(
                         i18n.DigitalObjectFormValidateAction_Errors_Msg(
-                            String.valueOf(invalidItemsCount)),
+                                String.valueOf(invalidItemsCount),
+                                String.valueOf(length)
+                        ),
                         true);
             }
             validatable.onFinish(index != length);
