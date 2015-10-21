@@ -21,7 +21,7 @@
         {"type": "CODE", "authority":"marcrelator", "value":"pbl", "label":"Nakladatel, vydavatel"},
         {"type": "CODE", "authority":"marcrelator", "value":"prt", "label":"Tiskař"},
         {"type": "CODE", "authority":"marcrelator", "value":"red", "label":"Redaktor, výkonný redaktor"},
-        {"type": "CODE", "authority":"marcrelator", "value":"rev", "label":"Reviewer"},
-        {"type": "CODE", "authority":"marcrelator", "value":"trl", "label":"Recenzent"}
+        {"type": "CODE", "authority":"marcrelator", "value":"rev", "label":"Recenzent"},
+        {"type": "CODE", "authority":"marcrelator", "value":"trl", "label":"Překladatel"}
     ]
 }
