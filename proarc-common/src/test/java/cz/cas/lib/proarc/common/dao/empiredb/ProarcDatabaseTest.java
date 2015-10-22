@@ -106,10 +106,12 @@ public class ProarcDatabaseTest {
     public void testUpgrade() throws Exception {
         ProarcDatabaseV1 v1 = new ProarcDatabaseV1();
         ProarcDatabaseV2 v2 = new ProarcDatabaseV2();
+        ProarcDatabaseV3 v3 = new ProarcDatabaseV3();
         final IDatabaseConnection con = support.getConnection();
         try {
             // clear DB
             dropSchema(schema);
+            dropSchema(v3);
             dropSchema(v2);
             dropSchema(v1);
             v1.init(emireCfg);
