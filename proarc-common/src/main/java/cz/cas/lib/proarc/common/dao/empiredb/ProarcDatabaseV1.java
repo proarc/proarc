@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.dao.empiredb;
 
 import cz.cas.lib.proarc.common.dao.BatchItem;
-import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.EnhancedDBTable;
+import cz.cas.lib.proarc.common.dao.empiredb.EmpireUtils.EnhancedDBTable;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import java.sql.Connection;
 import java.sql.SQLException;
