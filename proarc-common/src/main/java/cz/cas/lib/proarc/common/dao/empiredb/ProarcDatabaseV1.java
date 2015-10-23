@@ -130,10 +130,10 @@ public class ProarcDatabaseV1 extends DBDatabase {
             script.run(driver, conn);
             // drop table references
             script.clear();
-            schema.dropRelation(script, schemaV1.relUsername2TomcatUser);
-            schema.dropRelation(script, schemaV1.relUsername2TomcatUserAlias);
-            schema.dropRelation(script, schemaV1.relTomcatRoleUser2TomcatUser);
-            schema.dropRelation(script, schemaV1.relTomcatRoleUser2TomcatUserAlias);
+            EmpireUtils.dropRelation(schemaV1.relUsername2TomcatUser, schema.getDriver(), script);
+            EmpireUtils.dropRelation(schemaV1.relUsername2TomcatUserAlias, schema.getDriver(), script);
+            EmpireUtils.dropRelation(schemaV1.relTomcatRoleUser2TomcatUser, schema.getDriver(), script);
+            EmpireUtils.dropRelation(schemaV1.relTomcatRoleUser2TomcatUserAlias, schema.getDriver(), script);
             script.run(driver, conn, true);
         } finally {
             conn.setAutoCommit(false);

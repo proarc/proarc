@@ -20,7 +20,6 @@ import java.sql.Connection;
 import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBDatabase;
 import org.apache.empire.db.DBDatabaseDriver;
-import org.apache.empire.db.DBExpr;
 import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
@@ -87,7 +86,7 @@ public class ProarcDatabaseTest {
         try {
             schema.open(driver, conn);
             DBSQLScript script = new DBSQLScript();
-            dropConstraint(schema, script);
+            dropConstraints(schema, script);
             dropTables(schema, script);
             System.out.println("### drop script:\n" + script);
         } finally {
@@ -162,7 +161,7 @@ public class ProarcDatabaseTest {
         try {
             schema.open(driver, conn);
             DBSQLScript script = new DBSQLScript();
-            dropConstraint(schema, script);
+            dropConstraints(schema, script);
             dropTables(schema, script);
 //            System.out.println("### drop script:\n" + script);
             conn.setAutoCommit(true);
@@ -182,22 +181,9 @@ public class ProarcDatabaseTest {
         }
     }
 
-    private void dropConstraint(DBDatabase schema, DBSQLScript script) {
-        StringBuilder sql = new StringBuilder();
-        DBSQLScript helper = new DBSQLScript();
+    private void dropConstraints(DBDatabase schema, DBSQLScript script) {
         for (DBRelation relation : schema.getRelations()) {
-            DBTable sourceTable = (DBTable) relation.getReferences()[0].getSourceColumn().getRowSet();
-            sql.append("-- drop foreign key constraint ");
-            sql.append(relation.getName());
-            sql.append(" --\r\n");
-            sql.append("ALTER TABLE ");
-            sourceTable.addSQL(sql, DBExpr.CTX_FULLNAME);
-
-            driver.getDDLScript(DBCmdType.DROP, relation, helper);
-            sql.append(' ');
-            sql.append(helper.getStmt(0));
-            script.addStmt(sql);
-            helper.clear();
+            EmpireUtils.dropRelation(relation, driver, script);
         }
     }
 

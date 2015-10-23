@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 
 import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBDatabaseDriver;
+import org.apache.empire.db.DBExpr;
 import org.apache.empire.db.DBIndex;
 import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
@@ -42,6 +43,25 @@ class EmpireUtils {
         for (DBIndex index : table.getIndexes()) {
             driver.getDDLScript(DBCmdType.CREATE, index, script);
         }
+    }
+
+    /**
+     * Adds DDL statement to the script to remove a table constraint.
+     */
+    public static void dropRelation(DBRelation relation, DBDatabaseDriver driver, DBSQLScript script) {
+        StringBuilder sql = new StringBuilder();
+        DBSQLScript helper = new DBSQLScript();
+        DBTable sourceTable = relation.getForeignKeyTable();
+        sql.append("-- drop foreign key constraint ");
+        sql.append(relation.getName());
+        sql.append(" --\r\n");
+        sql.append("ALTER TABLE ");
+        sourceTable.addSQL(sql, DBExpr.CTX_FULLNAME);
+
+        driver.getDDLScript(DBCmdType.DROP, relation, helper);
+        sql.append(' ');
+        sql.append(helper.getStmt(0));
+        script.addStmt(sql);
     }
 
 }

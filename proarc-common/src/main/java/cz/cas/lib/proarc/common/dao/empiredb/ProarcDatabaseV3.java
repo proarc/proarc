@@ -25,15 +25,12 @@ import org.apache.empire.commons.OptionEntry;
 import org.apache.empire.commons.Options;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
-import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
 import static org.apache.empire.db.DBDatabase.SYSDATE;
 import org.apache.empire.db.DBDatabaseDriver;
-import org.apache.empire.db.DBExpr;
 import org.apache.empire.db.DBRecord;
-import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
@@ -327,22 +324,6 @@ public class ProarcDatabaseV3 extends DBDatabase {
         addRelation(tableGroupMember.groupid.referenceOn(tableUserGroup.id));
         addRelation(tableGroupMember.userid.referenceOn(tableUser.id));
         addRelation(tableGroupPermission.groupid.referenceOn(tableUserGroup.id));
-    }
-
-    void dropRelation(DBSQLScript script, DBRelation relation) {
-        StringBuilder sql = new StringBuilder();
-        DBSQLScript helper = new DBSQLScript();
-        DBTable sourceTable = relation.getForeignKeyTable();
-        sql.append("-- drop foreign key constraint ");
-        sql.append(relation.getName());
-        sql.append(" --\r\n");
-        sql.append("ALTER TABLE ");
-        sourceTable.addSQL(sql, DBExpr.CTX_FULLNAME);
-
-        driver.getDDLScript(DBCmdType.DROP, relation, helper);
-        sql.append(' ');
-        sql.append(helper.getStmt(0));
-        script.addStmt(sql);
     }
 
     void init(EmpireConfiguration conf) throws SQLException {
