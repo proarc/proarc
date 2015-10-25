@@ -88,6 +88,7 @@ public class ExportResource {
 
     @POST
     @Path(ExportResourceApi.DATASTREAM_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> datastream(
             @FormParam(ExportResourceApi.DATASTREAM_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.DATASTREAM_DSID_PARAM) List<String> dsIds,
@@ -110,6 +111,7 @@ public class ExportResource {
 
     @POST
     @Path(ExportResourceApi.KRAMERIUS4_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> kramerius4(
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
@@ -141,6 +143,7 @@ public class ExportResource {
      */
     @POST
     @Path(ExportResourceApi.DESA_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newDesaExport(
             @FormParam(ExportResourceApi.DESA_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.DESA_HIERARCHY_PARAM) @DefaultValue("false") boolean hierarchy,
@@ -218,6 +221,7 @@ public class ExportResource {
 
     @POST
     @Path(ExportResourceApi.NDK_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newNdkExport(
             @FormParam(ExportResourceApi.NDK_PID_PARAM) List<String> pids
 //            @FormParam(ExportResourceApi.DESA_HIERARCHY_PARAM) @DefaultValue("false") boolean hierarchy,
@@ -251,6 +255,7 @@ public class ExportResource {
      */
     @POST
     @Path(ExportResourceApi.CEJSH_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newCejshExport(
             @FormParam(ExportResourceApi.CEJSH_PID_PARAM) List<String> pids
             ) {
