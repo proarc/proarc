@@ -65,4 +65,6 @@ public class WorkflowProfileConsts {
     
     public static final String I18N_LANG_ATT = "lang";
 
+    public static final String WORKER_ACTUAL_ATT = "actual";
+
 }

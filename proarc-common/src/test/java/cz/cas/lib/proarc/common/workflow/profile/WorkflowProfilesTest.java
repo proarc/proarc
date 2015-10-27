@@ -72,7 +72,7 @@ public class WorkflowProfilesTest {
         String xml = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"
                 + "<workflow xmlns='http://proarc.lib.cas.cz/xml/common/workflow/v1'>\n"
                 + "    <job name='ndk' priority='1'>\n"
-                + "        <worker>worker</worker>\n"
+                + "        <worker actual='true'/>\n"
                 + "        <step taskRef='task.id1'>\n"
                 + "            <worker>step1Worker</worker>\n"
                 + "            <setParam paramRef='param.id1'>param.id1.value</setParam>\n"
@@ -113,11 +113,12 @@ public class WorkflowProfilesTest {
         assertFalse(jobs.isEmpty());
         JobDefinition job0 = jobs.get(0);
         assertEquals("ndk", job0.getName());
-        assertEquals("worker", job0.getWorker());
+        assertTrue(job0.getWorker().getActual());
         assertEquals(1, job0.getPriority());
         assertEquals("csTitle", job0.getTitles().get("cs"));
         assertEquals("defaultTitle", job0.getTitles().get(null));
-        assertEquals("step1Worker", job0.getSteps().get(0).getWorker());
+        assertEquals("step1Worker", job0.getSteps().get(0).getWorker().getUsername());
+        assertFalse(job0.getSteps().get(0).getWorker().getActual());
 
         List<SetParamDefinition> paramSetters = job0.getSteps().get(0).getParamSetters();
         assertFalse(paramSetters.isEmpty());
@@ -186,13 +187,13 @@ public class WorkflowProfilesTest {
 
         JobDefinition job = new JobDefinition()
                 .setName("job0")
-                .setWorker("worker")
+                .setWorker(new WorkerDefinition().setUsername("worker"))
                 .setPriority(3)
                 .setDisabled(true);
         job.getTitles().put("cs", "csTitle");
         job.getTitles().put("en", "enTitle");
         job.getTitles().put(null, "defaultTitle");
-        StepDefinition step1 = new StepDefinition().setTask(task1).setWorker("operator2");
+        StepDefinition step1 = new StepDefinition().setTask(task1).setWorker(new WorkerDefinition().setActual(true));
         step1.getParamSetters().add(new SetParamDefinition().setParam(param1).setValue("param1.value"));
         job.getSteps().add(step1);
         wf.getJobs().add(job);

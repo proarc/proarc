@@ -16,54 +16,43 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlIDREF;
+import javax.xml.bind.annotation.XmlValue;
 
 /**
  *
  * @author Jan Pokorsky
  */
 @XmlAccessorType(value = XmlAccessType.FIELD)
-public class StepDefinition {
+public class WorkerDefinition {
 
-    @XmlAttribute(name = WorkflowProfileConsts.STEP_TASKREF_ATT, required = true)
-    @XmlIDREF
-    private TaskDefinition task;
+    @XmlAttribute(name = WorkflowProfileConsts.WORKER_ACTUAL_ATT)
+    private Boolean actual;
 
-    @XmlElement(name = WorkflowProfileConsts.STEP_WORKER_EL)
-    private WorkerDefinition worker;
+    @XmlValue
+    private String username;
 
-    @XmlElement(name = WorkflowProfileConsts.STEP_PARAM_EL)
-    private List<SetParamDefinition> paramSetters;
-
-    public TaskDefinition getTask() {
-        return task;
+    /**
+     * Gets whether to use the user that creates the workflow.
+     */
+    public boolean getActual() {
+        return actual != null && actual;
     }
 
-    public StepDefinition setTask(TaskDefinition type) {
-        this.task = type;
+    public WorkerDefinition setActual(boolean actual) {
+        this.actual = actual ? actual : null;
         return this;
     }
 
-    public WorkerDefinition getWorker() {
-        return worker;
+    public String getUsername() {
+        return username;
     }
 
-    public StepDefinition setWorker(WorkerDefinition worker) {
-        this.worker = worker;
+    public WorkerDefinition setUsername(String username) {
+        this.username = username;
         return this;
-    }
-
-    public List<SetParamDefinition> getParamSetters() {
-        if (paramSetters == null) {
-            paramSetters = new ArrayList<SetParamDefinition>();
-        }
-        return paramSetters;
     }
 
 }

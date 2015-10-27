@@ -36,7 +36,7 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
     private String name;
 
     @XmlElement(name = WorkflowProfileConsts.JOB_WORKER_EL)
-    private String worker;
+    private WorkerDefinition worker;
 
     @XmlAttribute(name = WorkflowProfileConsts.JOB_PRIORITY_AT)
     private Integer priority;
@@ -62,11 +62,11 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
         return this;
     }
 
-    public String getWorker() {
+    public WorkerDefinition getWorker() {
         return worker;
     }
 
-    public JobDefinition setWorker(String worker) {
+    public JobDefinition setWorker(WorkerDefinition worker) {
         this.worker = worker;
         return this;
     }
