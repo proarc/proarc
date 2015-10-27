@@ -27,7 +27,7 @@ public class WorkflowProfileConsts {
     public static final String WORKFLOW_EL = "workflow";
     public static final String WORKFLOW_JOB_EL = "job";
     public static final String WORKFLOW_MATERIALTYPE_EL = "materialType";
-    public static final String WORKFLOW_TASKTYPE_EL = "taskType";
+    public static final String WORKFLOW_TASK_EL = "task";
     public static final String WORKFLOW_VALUEMAP_EL = "valuemap";
 
     public static final String JOB_NAME_ATT = "name";
@@ -39,9 +39,9 @@ public class WorkflowProfileConsts {
     public static final String STEP_TASKREF_ATT = "taskRef";
     public static final String STEP_WORKER_EL = "worker";
 
-    public static final String TASKTYPE_MATERIAL_EL = "material";
-    public static final String TASKTYPE_PARAMTYPE_EL = "paramType";
-    public static final String TASKTYPE_NAME_ATT = "name";
+    public static final String TASK_MATERIAL_EL = "material";
+    public static final String TASK_PARAMTYPE_EL = "paramType";
+    public static final String TASK_NAME_ATT = "name";
 
     public static final String SETPARAM_PARAMREF_ATT = "paramRef";
 

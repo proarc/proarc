@@ -29,23 +29,23 @@ import javax.xml.bind.annotation.XmlID;
  * @author Jan Pokorsky
  */
 @XmlAccessorType(value = XmlAccessType.FIELD)
-public class TaskTypeDefinition extends DisplayableType<TaskTypeDefinition> {
+public class TaskDefinition extends DisplayableType<TaskDefinition> {
 
-    @XmlAttribute(name = WorkflowProfileConsts.TASKTYPE_NAME_ATT, required = true)
+    @XmlAttribute(name = WorkflowProfileConsts.TASK_NAME_ATT, required = true)
     @XmlID
     private String name;
 
-    @XmlElement(name = WorkflowProfileConsts.TASKTYPE_MATERIAL_EL)
+    @XmlElement(name = WorkflowProfileConsts.TASK_MATERIAL_EL)
     private List<MaterialDefinition> materials;
 
-    @XmlElement(name = WorkflowProfileConsts.TASKTYPE_PARAMTYPE_EL)
+    @XmlElement(name = WorkflowProfileConsts.TASK_PARAMTYPE_EL)
     private List<ParamTypeDefinition> params;
 
     public String getName() {
         return name;
     }
 
-    public TaskTypeDefinition setName(String name) {
+    public TaskDefinition setName(String name) {
         this.name = name;
         return this;
     }

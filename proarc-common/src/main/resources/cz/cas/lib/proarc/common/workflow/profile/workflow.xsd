@@ -28,7 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
         <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element name="job" type="tns:jobDefinition"/>
             <xs:element name="materialType" type="tns:materialTypeDefinition"/>
-            <xs:element name="taskType" type="tns:taskTypeDefinition"/>
+            <xs:element name="task" type="tns:taskDefinition"/>
             <xs:element name="valuemap" type="tns:valueMapDefinition"/>
         </xs:choice>
     </xs:complexType>
@@ -57,7 +57,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:complexType>
 
     <!-- task profile -->
-    <xs:complexType name="taskTypeDefinition">
+    <xs:complexType name="taskDefinition">
         <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element name="material" type="tns:materialDefinition"/>
             <xs:element name="paramType" type="tns:paramTypeDefinition"/>

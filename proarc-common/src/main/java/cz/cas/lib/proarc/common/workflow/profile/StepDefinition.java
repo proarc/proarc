@@ -33,7 +33,7 @@ public class StepDefinition {
 
     @XmlAttribute(name = WorkflowProfileConsts.STEP_TASKREF_ATT, required = true)
     @XmlIDREF
-    private TaskTypeDefinition task;
+    private TaskDefinition task;
 
     @XmlElement(name = WorkflowProfileConsts.STEP_WORKER_EL)
     private String worker;
@@ -41,11 +41,11 @@ public class StepDefinition {
     @XmlElement(name = WorkflowProfileConsts.STEP_PARAM_EL)
     private List<SetParamDefinition> paramSetters;
 
-    public TaskTypeDefinition getTask() {
+    public TaskDefinition getTask() {
         return task;
     }
 
-    public StepDefinition setTask(TaskTypeDefinition type) {
+    public StepDefinition setTask(TaskDefinition type) {
         this.task = type;
         return this;
     }

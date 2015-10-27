@@ -84,13 +84,13 @@ public class WorkflowProfilesTest {
                 + "    <materialType name='material0'/>\n"
                 + "    <materialType name='material1'/>\n"
 
-                + "    <taskType name='task.id1'>\n"
+                + "    <task name='task.id1'>\n"
                 + "        <paramType name='param.id1' required='true' datasource='workflow.valuemap.colors'/>\n"
                 + "        <paramType name='param.id2' required='true' datasource='proarc.devices'/>\n"
                 + "        <material type='material0' way='input'/>\n"
                 + "        <title lang='cs'>Úkol 1</title>\n"
                 + "        <title lang='en'>Task 1</title>\n"
-                + "    </taskType>"
+                + "    </task>"
 
                 + "    <valuemap name='workflow.valuemap.colors'>\n"
                 + "      <value>barevně</value>\n"
@@ -128,10 +128,10 @@ public class WorkflowProfilesTest {
         assertFalse(materials.isEmpty());
         assertEquals("material0", materials.get(0).getName());
 
-        List<TaskTypeDefinition> taskTypes = wf.getTasks();
-        assertFalse(taskTypes.isEmpty());
-        assertEquals(job0.getSteps().get(0).getTask(), taskTypes.get(0));
-        assertEquals("task.id1", taskTypes.get(0).getName());
+        List<TaskDefinition> tasks = wf.getTasks();
+        assertFalse(tasks.isEmpty());
+        assertEquals(job0.getSteps().get(0).getTask(), tasks.get(0));
+        assertEquals("task.id1", tasks.get(0).getName());
 
         assertEquals("workflow.valuemap.colors", wf.getValueMaps().get(0).getId());
         assertEquals(ValueMapSource.INTERNAL, wf.getValueMaps().get(0).getSource());
@@ -174,13 +174,13 @@ public class WorkflowProfilesTest {
         material1.getTitles().put("cs", "csMaterialTitle");
         material1.getHints().put("cs", "csMaterialDescription");
 
-        TaskTypeDefinition taskType1 = new TaskTypeDefinition().setName("task.id1");
-        taskType1.getTitles().put("cs", "Úkol 1");
-        taskType1.getTitles().put("en", "Task 1");
-        taskType1.getMaterials().add(new MaterialDefinition().setType(material1).setWay("input"));
+        TaskDefinition task1 = new TaskDefinition().setName("task.id1");
+        task1.getTitles().put("cs", "Úkol 1");
+        task1.getTitles().put("en", "Task 1");
+        task1.getMaterials().add(new MaterialDefinition().setType(material1).setWay("input"));
 
         ParamTypeDefinition param1 = new ParamTypeDefinition().setName("param.id1").setRequired(true);
-        taskType1.getParams().add(param1);
+        task1.getParams().add(param1);
 
         JobDefinition job = new JobDefinition()
                 .setName("job0")
@@ -190,14 +190,14 @@ public class WorkflowProfilesTest {
         job.getTitles().put("cs", "csTitle");
         job.getTitles().put("en", "enTitle");
         job.getTitles().put(null, "defaultTitle");
-        StepDefinition step1 = new StepDefinition().setTask(taskType1).setWorker("operator2");
+        StepDefinition step1 = new StepDefinition().setTask(task1).setWorker("operator2");
         step1.getParamSetters().add(new SetParamDefinition().setParam(param1).setValue("param1.value"));
         job.getSteps().add(step1);
         wf.getJobs().add(job);
 
         wf.getMaterials().add(material1);
 
-        wf.getTasks().add(taskType1);
+        wf.getTasks().add(task1);
 
         ValueMapDefinition vmap = new ValueMapDefinition().setId("workflow.valuemap.id1");
         vmap.getItems().add(new ValueMapItemDefinition().setKey("grey").setValue("v šedi"));

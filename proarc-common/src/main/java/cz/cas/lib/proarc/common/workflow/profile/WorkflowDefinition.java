@@ -39,8 +39,8 @@ public class WorkflowDefinition {
     @XmlElement(name = WorkflowProfileConsts.WORKFLOW_MATERIALTYPE_EL)
     private List<MaterialTypeDefinition> materials;
 
-    @XmlElement(name = WorkflowProfileConsts.WORKFLOW_TASKTYPE_EL)
-    private List<TaskTypeDefinition> tasks;
+    @XmlElement(name = WorkflowProfileConsts.WORKFLOW_TASK_EL)
+    private List<TaskDefinition> tasks;
 
     @XmlElement(name = WorkflowProfileConsts.WORKFLOW_VALUEMAP_EL)
     private List<ValueMapDefinition> valueMaps;
@@ -59,9 +59,9 @@ public class WorkflowDefinition {
         return materials;
     }
 
-    public List<TaskTypeDefinition> getTasks() {
+    public List<TaskDefinition> getTasks() {
         if (tasks == null) {
-            tasks = new ArrayList<TaskTypeDefinition>();
+            tasks = new ArrayList<TaskDefinition>();
         }
         return tasks;
     }
