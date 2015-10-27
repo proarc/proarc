@@ -31,9 +31,9 @@ import javax.xml.bind.annotation.XmlIDREF;
 @XmlAccessorType(value = XmlAccessType.FIELD)
 public class StepDefinition {
 
-    @XmlAttribute(name = WorkflowProfileConsts.STEP_TYPE_ATT, required = true)
+    @XmlAttribute(name = WorkflowProfileConsts.STEP_TASKREF_ATT, required = true)
     @XmlIDREF
-    private TaskTypeDefinition type;
+    private TaskTypeDefinition task;
 
     @XmlElement(name = WorkflowProfileConsts.STEP_WORKER_EL)
     private String worker;
@@ -41,12 +41,12 @@ public class StepDefinition {
     @XmlElement(name = WorkflowProfileConsts.STEP_PARAM_EL)
     private List<ParamDefinition> params;
 
-    public TaskTypeDefinition getType() {
-        return type;
+    public TaskTypeDefinition getTask() {
+        return task;
     }
 
-    public StepDefinition setType(TaskTypeDefinition type) {
-        this.type = type;
+    public StepDefinition setTask(TaskTypeDefinition type) {
+        this.task = type;
         return this;
     }
 

@@ -53,7 +53,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
             <xs:element name="worker" type="xs:string" minOccurs="0"/>
             <xs:element name="param" type="tns:paramDefinition" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
-        <xs:attribute name="type" type="xs:IDREF" use="required"/>
+        <xs:attribute name="taskRef" type="xs:IDREF" use="required"/>
     </xs:complexType>
 
     <!-- task profile -->
