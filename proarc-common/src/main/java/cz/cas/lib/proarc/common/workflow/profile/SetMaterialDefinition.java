@@ -26,20 +26,20 @@ import javax.xml.bind.annotation.XmlIDREF;
  * @author Jan Pokorsky
  */
 @XmlAccessorType(value = XmlAccessType.FIELD)
-public class MaterialDefinition {
+public class SetMaterialDefinition {
 
-    @XmlAttribute(name = WorkflowProfileConsts.MATERIAL_TYPE_ATT, required = true)
+    @XmlAttribute(name = WorkflowProfileConsts.SETMATERIAL_TYPE_ATT, required = true)
     @XmlIDREF
     private MaterialTypeDefinition type;
 
-    @XmlAttribute(name = WorkflowProfileConsts.MATERIAL_WAY_ATT, required = true)
+    @XmlAttribute(name = WorkflowProfileConsts.SETMATERIAL_WAY_ATT, required = true)
     private String way;
 
     public MaterialTypeDefinition getType() {
         return type;
     }
 
-    public MaterialDefinition setType(MaterialTypeDefinition type) {
+    public SetMaterialDefinition setType(MaterialTypeDefinition type) {
         this.type = type;
         return this;
     }
@@ -48,7 +48,7 @@ public class MaterialDefinition {
         return way;
     }
 
-    public MaterialDefinition setWay(String way) {
+    public SetMaterialDefinition setWay(String way) {
         this.way = way;
         return this;
     }

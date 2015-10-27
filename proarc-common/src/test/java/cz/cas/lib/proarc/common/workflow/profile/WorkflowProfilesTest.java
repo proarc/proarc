@@ -87,7 +87,7 @@ public class WorkflowProfilesTest {
                 + "    <task name='task.id1'>\n"
                 + "        <param name='param.id1' required='true' datasource='workflow.valuemap.colors'/>\n"
                 + "        <param name='param.id2' required='true' datasource='proarc.devices'/>\n"
-                + "        <material type='material0' way='input'/>\n"
+                + "        <setMaterial type='material0' way='input'/>\n"
                 + "        <title lang='cs'>Úkol 1</title>\n"
                 + "        <title lang='en'>Task 1</title>\n"
                 + "    </task>"
@@ -132,6 +132,8 @@ public class WorkflowProfilesTest {
         assertFalse(tasks.isEmpty());
         assertEquals(job0.getSteps().get(0).getTask(), tasks.get(0));
         assertEquals("task.id1", tasks.get(0).getName());
+        assertEquals("input", tasks.get(0).getMaterialSetters().get(0).getWay());
+        assertEquals("material0", tasks.get(0).getMaterialSetters().get(0).getType().getName());
 
         assertEquals("workflow.valuemap.colors", wf.getValueMaps().get(0).getId());
         assertEquals(ValueMapSource.INTERNAL, wf.getValueMaps().get(0).getSource());
@@ -177,7 +179,7 @@ public class WorkflowProfilesTest {
         TaskDefinition task1 = new TaskDefinition().setName("task.id1");
         task1.getTitles().put("cs", "Úkol 1");
         task1.getTitles().put("en", "Task 1");
-        task1.getMaterials().add(new MaterialDefinition().setType(material1).setWay("input"));
+        task1.getMaterialSetters().add(new SetMaterialDefinition().setType(material1).setWay("input"));
 
         ParamDefinition param1 = new ParamDefinition().setName("param.id1").setRequired(true);
         task1.getParams().add(param1);
