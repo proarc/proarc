@@ -43,7 +43,7 @@ public class WorkflowProfileConsts {
     public static final String TASKTYPE_PARAMTYPE_EL = "paramType";
     public static final String TASKTYPE_NAME_ATT = "name";
 
-    public static final String SETPARAM_TYPE_ATT = "type";
+    public static final String SETPARAM_PARAMREF_ATT = "paramRef";
 
     public static final String PARAMTYPE_NAME_ATT = "name";
     public static final String PARAMTYPE_REQUIRED_ATT = "required";

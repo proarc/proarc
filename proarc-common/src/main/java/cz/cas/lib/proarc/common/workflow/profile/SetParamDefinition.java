@@ -29,19 +29,19 @@ import javax.xml.bind.annotation.XmlValue;
 @XmlAccessorType(value = XmlAccessType.FIELD)
 public class SetParamDefinition {
 
-    @XmlAttribute(name = WorkflowProfileConsts.SETPARAM_TYPE_ATT, required = true)
+    @XmlAttribute(name = WorkflowProfileConsts.SETPARAM_PARAMREF_ATT, required = true)
     @XmlIDREF
-    private ParamTypeDefinition type;
+    private ParamTypeDefinition param;
 
     @XmlValue
     private String value;
 
-    public ParamTypeDefinition getType() {
-        return type;
+    public ParamTypeDefinition getParam() {
+        return param;
     }
 
-    public SetParamDefinition setType(ParamTypeDefinition type) {
-        this.type = type;
+    public SetParamDefinition setParam(ParamTypeDefinition param) {
+        this.param = param;
         return this;
     }
 
