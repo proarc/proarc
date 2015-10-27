@@ -31,16 +31,16 @@ public class SetParamDefinition {
 
     @XmlAttribute(name = WorkflowProfileConsts.SETPARAM_PARAMREF_ATT, required = true)
     @XmlIDREF
-    private ParamTypeDefinition param;
+    private ParamDefinition param;
 
     @XmlValue
     private String value;
 
-    public ParamTypeDefinition getParam() {
+    public ParamDefinition getParam() {
         return param;
     }
 
-    public SetParamDefinition setParam(ParamTypeDefinition param) {
+    public SetParamDefinition setParam(ParamDefinition param) {
         this.param = param;
         return this;
     }

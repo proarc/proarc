@@ -40,14 +40,14 @@ public class WorkflowProfileConsts {
     public static final String STEP_WORKER_EL = "worker";
 
     public static final String TASK_MATERIAL_EL = "material";
-    public static final String TASK_PARAMTYPE_EL = "paramType";
+    public static final String TASK_PARAM_EL = "param";
     public static final String TASK_NAME_ATT = "name";
 
     public static final String SETPARAM_PARAMREF_ATT = "paramRef";
 
-    public static final String PARAMTYPE_NAME_ATT = "name";
-    public static final String PARAMTYPE_REQUIRED_ATT = "required";
-    public static final String PARAMTYPE_DATASOURCE_ATT = "datasource";
+    public static final String PARAM_NAME_ATT = "name";
+    public static final String PARAM_REQUIRED_ATT = "required";
+    public static final String PARAM_DATASOURCE_ATT = "datasource";
 
     public static final String MATERIALTYPE_NAME_ATT = "name";
 

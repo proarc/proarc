@@ -85,8 +85,8 @@ public class WorkflowProfilesTest {
                 + "    <materialType name='material1'/>\n"
 
                 + "    <task name='task.id1'>\n"
-                + "        <paramType name='param.id1' required='true' datasource='workflow.valuemap.colors'/>\n"
-                + "        <paramType name='param.id2' required='true' datasource='proarc.devices'/>\n"
+                + "        <param name='param.id1' required='true' datasource='workflow.valuemap.colors'/>\n"
+                + "        <param name='param.id2' required='true' datasource='proarc.devices'/>\n"
                 + "        <material type='material0' way='input'/>\n"
                 + "        <title lang='cs'>Úkol 1</title>\n"
                 + "        <title lang='en'>Task 1</title>\n"
@@ -179,7 +179,7 @@ public class WorkflowProfilesTest {
         task1.getTitles().put("en", "Task 1");
         task1.getMaterials().add(new MaterialDefinition().setType(material1).setWay("input"));
 
-        ParamTypeDefinition param1 = new ParamTypeDefinition().setName("param.id1").setRequired(true);
+        ParamDefinition param1 = new ParamDefinition().setName("param.id1").setRequired(true);
         task1.getParams().add(param1);
 
         JobDefinition job = new JobDefinition()

@@ -60,7 +60,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     <xs:complexType name="taskDefinition">
         <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element name="material" type="tns:materialDefinition"/>
-            <xs:element name="paramType" type="tns:paramTypeDefinition"/>
+            <xs:element name="param" type="tns:paramDefinition"/>
             <xs:element name="hint" type="tns:i18NString"/>
             <xs:element name="title" type="tns:i18NString"/>
         </xs:choice>
@@ -99,7 +99,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:complexType>
 
     <!-- parameter profiles -->
-    <xs:complexType name="paramTypeDefinition">
+    <xs:complexType name="paramDefinition">
         <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element name="hint" type="tns:i18NString"/>
             <xs:element name="title" type="tns:i18NString"/>

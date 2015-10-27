@@ -26,23 +26,23 @@ import javax.xml.bind.annotation.XmlID;
  * @author Jan Pokorsky
  */
 @XmlAccessorType(value = XmlAccessType.FIELD)
-public class ParamTypeDefinition extends DisplayableType<ParamTypeDefinition> {
+public class ParamDefinition extends DisplayableType<ParamDefinition> {
 
-    @XmlAttribute(name = WorkflowProfileConsts.PARAMTYPE_NAME_ATT, required = true)
+    @XmlAttribute(name = WorkflowProfileConsts.PARAM_NAME_ATT, required = true)
     @XmlID
     private String name;
 
-    @XmlAttribute(name = WorkflowProfileConsts.PARAMTYPE_REQUIRED_ATT)
+    @XmlAttribute(name = WorkflowProfileConsts.PARAM_REQUIRED_ATT)
     private Boolean required;
 
-    @XmlAttribute(name = WorkflowProfileConsts.PARAMTYPE_DATASOURCE_ATT)
+    @XmlAttribute(name = WorkflowProfileConsts.PARAM_DATASOURCE_ATT)
     private String datasource;
 
     public String getName() {
         return name;
     }
 
-    public ParamTypeDefinition setName(String name) {
+    public ParamDefinition setName(String name) {
         this.name = name;
         return this;
     }
@@ -51,7 +51,7 @@ public class ParamTypeDefinition extends DisplayableType<ParamTypeDefinition> {
         return required != null && required;
     }
 
-    public ParamTypeDefinition setRequired(Boolean required) {
+    public ParamDefinition setRequired(Boolean required) {
         this.required = required;
         return this;
     }
@@ -60,7 +60,7 @@ public class ParamTypeDefinition extends DisplayableType<ParamTypeDefinition> {
         return datasource;
     }
 
-    public ParamTypeDefinition setDatasource(String datasource) {
+    public ParamDefinition setDatasource(String datasource) {
         this.datasource = datasource;
         return this;
     }
