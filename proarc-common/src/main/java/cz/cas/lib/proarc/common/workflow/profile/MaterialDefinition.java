@@ -26,9 +26,9 @@ import javax.xml.bind.annotation.XmlID;
  * @author Jan Pokorsky
  */
 @XmlAccessorType(value = XmlAccessType.FIELD)
-public class MaterialTypeDefinition extends DisplayableType<MaterialTypeDefinition> {
+public class MaterialDefinition extends DisplayableType<MaterialDefinition> {
 
-    @XmlAttribute(name = WorkflowProfileConsts.MATERIALTYPE_NAME_ATT, required = true)
+    @XmlAttribute(name = WorkflowProfileConsts.MATERIAL_NAME_ATT, required = true)
     @XmlID
     private String name;
 
@@ -36,7 +36,7 @@ public class MaterialTypeDefinition extends DisplayableType<MaterialTypeDefiniti
         return name;
     }
 
-    public MaterialTypeDefinition setName(String name) {
+    public MaterialDefinition setName(String name) {
         this.name = name;
         return this;
     }

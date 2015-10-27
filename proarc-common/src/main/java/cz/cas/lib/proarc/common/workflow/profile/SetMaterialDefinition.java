@@ -30,16 +30,16 @@ public class SetMaterialDefinition {
 
     @XmlAttribute(name = WorkflowProfileConsts.SETMATERIAL_MATREF_ATT, required = true)
     @XmlIDREF
-    private MaterialTypeDefinition material;
+    private MaterialDefinition material;
 
     @XmlAttribute(name = WorkflowProfileConsts.SETMATERIAL_WAY_ATT, required = true)
     private String way;
 
-    public MaterialTypeDefinition getMaterial() {
+    public MaterialDefinition getMaterial() {
         return material;
     }
 
-    public SetMaterialDefinition setMaterial(MaterialTypeDefinition material) {
+    public SetMaterialDefinition setMaterial(MaterialDefinition material) {
         this.material = material;
         return this;
     }

@@ -81,8 +81,8 @@ public class WorkflowProfilesTest {
                 + "        <title lang='cs'>csTitle</title>\n"
                 + "    </job>\n"
 
-                + "    <materialType name='material0'/>\n"
-                + "    <materialType name='material1'/>\n"
+                + "    <material name='material0'/>\n"
+                + "    <material name='material1'/>\n"
 
                 + "    <task name='task.id1'>\n"
                 + "        <param name='param.id1' required='true' datasource='workflow.valuemap.colors'/>\n"
@@ -124,7 +124,7 @@ public class WorkflowProfilesTest {
         assertEquals("param.id1", paramSetters.get(0).getParam().getName());
         assertEquals("param.id1.value", paramSetters.get(0).getValue());
 
-        List<MaterialTypeDefinition> materials = wf.getMaterials();
+        List<MaterialDefinition> materials = wf.getMaterials();
         assertFalse(materials.isEmpty());
         assertEquals("material0", materials.get(0).getName());
 
@@ -172,7 +172,7 @@ public class WorkflowProfilesTest {
     public void testWriteXml() {
         WorkflowDefinition wf = new WorkflowDefinition();
 
-        MaterialTypeDefinition material1 = new MaterialTypeDefinition().setName("material1");
+        MaterialDefinition material1 = new MaterialDefinition().setName("material1");
         material1.getTitles().put("cs", "csMaterialTitle");
         material1.getHints().put("cs", "csMaterialDescription");
 

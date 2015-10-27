@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     <xs:complexType name="workflowDefinition">
         <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element name="job" type="tns:jobDefinition"/>
-            <xs:element name="materialType" type="tns:materialTypeDefinition"/>
+            <xs:element name="material" type="tns:materialDefinition"/>
             <xs:element name="task" type="tns:taskDefinition"/>
             <xs:element name="valuemap" type="tns:valueMapDefinition"/>
         </xs:choice>
@@ -81,7 +81,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:simpleType>
 
     <!-- material profile -->
-    <xs:complexType name="materialTypeDefinition">
+    <xs:complexType name="materialDefinition">
         <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element name="hint" type="tns:i18NString"/>
             <xs:element name="title" type="tns:i18NString"/>
