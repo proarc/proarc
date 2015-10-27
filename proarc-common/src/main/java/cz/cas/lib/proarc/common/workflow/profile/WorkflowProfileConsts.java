@@ -51,7 +51,7 @@ public class WorkflowProfileConsts {
 
     public static final String MATERIALTYPE_NAME_ATT = "name";
 
-    public static final String SETMATERIAL_TYPE_ATT = "type";
+    public static final String SETMATERIAL_MATREF_ATT = "materialRef";
     public static final String SETMATERIAL_WAY_ATT = "way";
 
     public static final String VALUEMAP_NAME_ATT = "name";

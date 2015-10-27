@@ -28,19 +28,19 @@ import javax.xml.bind.annotation.XmlIDREF;
 @XmlAccessorType(value = XmlAccessType.FIELD)
 public class SetMaterialDefinition {
 
-    @XmlAttribute(name = WorkflowProfileConsts.SETMATERIAL_TYPE_ATT, required = true)
+    @XmlAttribute(name = WorkflowProfileConsts.SETMATERIAL_MATREF_ATT, required = true)
     @XmlIDREF
-    private MaterialTypeDefinition type;
+    private MaterialTypeDefinition material;
 
     @XmlAttribute(name = WorkflowProfileConsts.SETMATERIAL_WAY_ATT, required = true)
     private String way;
 
-    public MaterialTypeDefinition getType() {
-        return type;
+    public MaterialTypeDefinition getMaterial() {
+        return material;
     }
 
-    public SetMaterialDefinition setType(MaterialTypeDefinition type) {
-        this.type = type;
+    public SetMaterialDefinition setMaterial(MaterialTypeDefinition material) {
+        this.material = material;
         return this;
     }
 
