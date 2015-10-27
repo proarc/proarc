@@ -76,7 +76,10 @@ public class WorkflowProfilesTest {
                 + "        <step taskRef='task.id1'>\n"
                 + "            <worker>step1Worker</worker>\n"
                 + "            <setParam paramRef='param.id1'>param.id1.value</setParam>\n"
-                + "        </step>"
+                + "        </step>\n"
+                + "        <step taskRef='task.id2'>\n"
+                + "            <blocker taskRef='task.id1'/>\n"
+                + "        </step>\n"
                 + "        <title>defaultTitle</title>\n"
                 + "        <title lang='cs'>csTitle</title>\n"
                 + "    </job>\n"
@@ -90,6 +93,9 @@ public class WorkflowProfilesTest {
                 + "        <setMaterial materialRef='material0' way='input'/>\n"
                 + "        <title lang='cs'>Úkol 1</title>\n"
                 + "        <title lang='en'>Task 1</title>\n"
+                + "    </task>"
+                + "    <task name='task.id2'>\n"
+                + "        <setMaterial materialRef='material0' way='output'/>\n"
                 + "    </task>"
 
                 + "    <valuemap name='workflow.valuemap.colors'>\n"
@@ -131,9 +137,16 @@ public class WorkflowProfilesTest {
 
         List<TaskDefinition> tasks = wf.getTasks();
         assertFalse(tasks.isEmpty());
+        // step/task1
         assertEquals(job0.getSteps().get(0).getTask(), tasks.get(0));
         assertEquals("task.id1", tasks.get(0).getName());
         assertEquals("input", tasks.get(0).getMaterialSetters().get(0).getWay());
+        assertEquals("material0", tasks.get(0).getMaterialSetters().get(0).getMaterial().getName());
+        // step/task2
+        assertEquals(job0.getSteps().get(1).getTask(), tasks.get(1));
+        assertEquals(job0.getSteps().get(1).getBlockers().get(0).getTask(), tasks.get(0));
+        assertEquals("task.id2", tasks.get(1).getName());
+        assertEquals("output", tasks.get(1).getMaterialSetters().get(0).getWay());
         assertEquals("material0", tasks.get(0).getMaterialSetters().get(0).getMaterial().getName());
 
         assertEquals("workflow.valuemap.colors", wf.getValueMaps().get(0).getId());
@@ -185,6 +198,8 @@ public class WorkflowProfilesTest {
         ParamDefinition param1 = new ParamDefinition().setName("param.id1").setRequired(true);
         task1.getParams().add(param1);
 
+        TaskDefinition task2 = new TaskDefinition().setName("task.id2");
+
         JobDefinition job = new JobDefinition()
                 .setName("job0")
                 .setWorker(new WorkerDefinition().setUsername("worker"))
@@ -196,11 +211,15 @@ public class WorkflowProfilesTest {
         StepDefinition step1 = new StepDefinition().setTask(task1).setWorker(new WorkerDefinition().setActual(true));
         step1.getParamSetters().add(new SetParamDefinition().setParam(param1).setValue("param1.value"));
         job.getSteps().add(step1);
+        StepDefinition step2 = new StepDefinition().setTask(task2).setWorker(new WorkerDefinition().setActual(true));
+        step2.getBlockers().add(new BlockerDefinition().setTask(task1));
+        job.getSteps().add(step2);
         wf.getJobs().add(job);
 
         wf.getMaterials().add(material1);
 
         wf.getTasks().add(task1);
+        wf.getTasks().add(task2);
 
         ValueMapDefinition vmap = new ValueMapDefinition().setId("workflow.valuemap.id1");
         vmap.getItems().add(new ValueMapItemDefinition().setKey("grey").setValue("v šedi"));

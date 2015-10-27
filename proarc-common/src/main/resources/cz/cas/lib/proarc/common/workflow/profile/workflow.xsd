@@ -51,8 +51,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     <xs:complexType name="stepDefinition">
         <xs:sequence>
             <xs:element name="worker" type="tns:workerDefinition" minOccurs="0"/>
-            <xs:element name="setParam" type="tns:setParamDefinition" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="setParam" type="tns:setParamDefinition"/>
+                <xs:element name="blocker" type="tns:blockerDefinition"/>
+            </xs:choice>
         </xs:sequence>
+        <xs:attribute name="taskRef" type="xs:IDREF" use="required"/>
+    </xs:complexType>
+
+    <!--
+    Defines a dependency on all steps of a given task.
+    -->
+    <xs:complexType name="blockerDefinition">
         <xs:attribute name="taskRef" type="xs:IDREF" use="required"/>
     </xs:complexType>
 

@@ -35,9 +35,12 @@ public class WorkflowProfileConsts {
     public static final String JOB_WORKER_EL = "worker";
     public static final String JOB_PRIORITY_AT = "priority";
 
+    public static final String STEP_BLOCKER_EL = "blocker";
     public static final String STEP_PARAM_EL = "setParam";
     public static final String STEP_TASKREF_ATT = "taskRef";
     public static final String STEP_WORKER_EL = "worker";
+
+    public static final String BLOCKER_TASKREF_ATT = "taskRef";
 
     public static final String TASK_MATERIAL_EL = "setMaterial";
     public static final String TASK_PARAM_EL = "param";

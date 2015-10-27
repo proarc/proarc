@@ -41,6 +41,9 @@ public class StepDefinition {
     @XmlElement(name = WorkflowProfileConsts.STEP_PARAM_EL)
     private List<SetParamDefinition> paramSetters;
 
+    @XmlElement(name = WorkflowProfileConsts.STEP_BLOCKER_EL)
+    private List<BlockerDefinition> blockers;
+
     public TaskDefinition getTask() {
         return task;
     }
@@ -64,6 +67,13 @@ public class StepDefinition {
             paramSetters = new ArrayList<SetParamDefinition>();
         }
         return paramSetters;
+    }
+
+    public List<BlockerDefinition> getBlockers() {
+        if (blockers == null) {
+            blockers = new ArrayList<BlockerDefinition>();
+        }
+        return blockers;
     }
 
 }
