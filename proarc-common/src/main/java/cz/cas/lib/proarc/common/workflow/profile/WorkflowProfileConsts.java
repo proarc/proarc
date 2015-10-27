@@ -35,7 +35,7 @@ public class WorkflowProfileConsts {
     public static final String JOB_WORKER_EL = "worker";
     public static final String JOB_PRIORITY_EL = "priority";
 
-    public static final String STEP_PARAM_EL = "param";
+    public static final String STEP_PARAM_EL = "setParam";
     public static final String STEP_TASKREF_ATT = "taskRef";
     public static final String STEP_WORKER_EL = "worker";
 
@@ -43,7 +43,7 @@ public class WorkflowProfileConsts {
     public static final String TASKTYPE_PARAMTYPE_EL = "paramType";
     public static final String TASKTYPE_NAME_ATT = "name";
 
-    public static final String PARAM_TYPE_ATT = "type";
+    public static final String SETPARAM_TYPE_ATT = "type";
 
     public static final String PARAMTYPE_NAME_ATT = "name";
     public static final String PARAMTYPE_REQUIRED_ATT = "required";

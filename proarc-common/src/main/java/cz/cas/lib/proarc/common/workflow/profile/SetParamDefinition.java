@@ -27,9 +27,9 @@ import javax.xml.bind.annotation.XmlValue;
  * @author Jan Pokorsky
  */
 @XmlAccessorType(value = XmlAccessType.FIELD)
-public class ParamDefinition {
+public class SetParamDefinition {
 
-    @XmlAttribute(name = WorkflowProfileConsts.PARAM_TYPE_ATT, required = true)
+    @XmlAttribute(name = WorkflowProfileConsts.SETPARAM_TYPE_ATT, required = true)
     @XmlIDREF
     private ParamTypeDefinition type;
 
@@ -40,7 +40,7 @@ public class ParamDefinition {
         return type;
     }
 
-    public ParamDefinition setType(ParamTypeDefinition type) {
+    public SetParamDefinition setType(ParamTypeDefinition type) {
         this.type = type;
         return this;
     }
@@ -49,7 +49,7 @@ public class ParamDefinition {
         return value;
     }
 
-    public ParamDefinition setValue(String value) {
+    public SetParamDefinition setValue(String value) {
         this.value = value;
         return this;
     }

@@ -75,6 +75,7 @@ public class WorkflowProfilesTest {
                 + "        <worker>worker</worker>\n"
                 + "        <step taskRef='task.id1'>\n"
                 + "            <worker>step1Worker</worker>\n"
+                + "            <setParam type='param.id1'>param.id1.value</setParam>\n"
                 + "        </step>"
                 + "        <title>defaultTitle</title>\n"
                 + "        <title lang='cs'>csTitle</title>\n"
@@ -116,6 +117,11 @@ public class WorkflowProfilesTest {
         assertEquals("csTitle", job0.getTitles().get("cs"));
         assertEquals("defaultTitle", job0.getTitles().get(null));
         assertEquals("step1Worker", job0.getSteps().get(0).getWorker());
+
+        List<SetParamDefinition> paramSetters = job0.getSteps().get(0).getParamSetters();
+        assertFalse(paramSetters.isEmpty());
+        assertEquals("param.id1", paramSetters.get(0).getType().getName());
+        assertEquals("param.id1.value", paramSetters.get(0).getValue());
 
         List<MaterialTypeDefinition> materials = wf.getMaterials();
         assertFalse(materials.isEmpty());
@@ -184,7 +190,7 @@ public class WorkflowProfilesTest {
         job.getTitles().put("en", "enTitle");
         job.getTitles().put(null, "defaultTitle");
         StepDefinition step1 = new StepDefinition().setTask(taskType1).setWorker("operator2");
-        step1.getParams().add(new ParamDefinition().setType(param1).setValue("param1.value"));
+        step1.getParamSetters().add(new SetParamDefinition().setType(param1).setValue("param1.value"));
         job.getSteps().add(step1);
         wf.getJobs().add(job);
 

@@ -51,7 +51,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     <xs:complexType name="stepDefinition">
         <xs:sequence>
             <xs:element name="worker" type="xs:string" minOccurs="0"/>
-            <xs:element name="param" type="tns:paramDefinition" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="setParam" type="tns:setParamDefinition" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
         <xs:attribute name="taskRef" type="xs:IDREF" use="required"/>
     </xs:complexType>
@@ -110,7 +110,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
         <xs:attribute name="datasource" type="xs:IDREF"/>
     </xs:complexType>
 
-    <xs:complexType name="paramDefinition">
+    <xs:complexType name="setParamDefinition">
         <xs:simpleContent>
             <xs:extension base="xs:string">
                 <xs:attribute name="type" type="xs:IDREF" use="required"/>

@@ -39,7 +39,7 @@ public class StepDefinition {
     private String worker;
 
     @XmlElement(name = WorkflowProfileConsts.STEP_PARAM_EL)
-    private List<ParamDefinition> params;
+    private List<SetParamDefinition> paramSetters;
 
     public TaskTypeDefinition getTask() {
         return task;
@@ -59,11 +59,11 @@ public class StepDefinition {
         return this;
     }
 
-    public List<ParamDefinition> getParams() {
-        if (params == null) {
-            params = new ArrayList<ParamDefinition>();
+    public List<SetParamDefinition> getParamSetters() {
+        if (paramSetters == null) {
+            paramSetters = new ArrayList<SetParamDefinition>();
         }
-        return params;
+        return paramSetters;
     }
 
 }
