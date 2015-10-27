@@ -33,7 +33,7 @@ public class WorkflowProfileConsts {
     public static final String JOB_NAME_ATT = "name";
     public static final String JOB_STEP_EL = "step";
     public static final String JOB_WORKER_EL = "worker";
-    public static final String JOB_PRIORITY_EL = "priority";
+    public static final String JOB_PRIORITY_AT = "priority";
 
     public static final String STEP_PARAM_EL = "setParam";
     public static final String STEP_TASKREF_ATT = "taskRef";

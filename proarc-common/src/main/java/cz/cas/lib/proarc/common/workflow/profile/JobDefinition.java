@@ -38,7 +38,7 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
     @XmlElement(name = WorkflowProfileConsts.JOB_WORKER_EL)
     private String worker;
 
-    @XmlAttribute(name = WorkflowProfileConsts.JOB_NAME_ATT)
+    @XmlAttribute(name = WorkflowProfileConsts.JOB_PRIORITY_AT)
     private Integer priority;
 
     @XmlElement(name = WorkflowProfileConsts.JOB_STEP_EL)

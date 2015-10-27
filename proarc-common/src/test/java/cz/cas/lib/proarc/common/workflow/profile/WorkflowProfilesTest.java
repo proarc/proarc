@@ -71,7 +71,7 @@ public class WorkflowProfilesTest {
     public void testReadXmlFile() throws Exception {
         String xml = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"
                 + "<workflow xmlns='http://proarc.lib.cas.cz/xml/common/workflow/v1'>\n"
-                + "    <job name='ndk'>\n"
+                + "    <job name='ndk' priority='1'>\n"
                 + "        <worker>worker</worker>\n"
                 + "        <step taskRef='task.id1'>\n"
                 + "            <worker>step1Worker</worker>\n"
@@ -114,6 +114,7 @@ public class WorkflowProfilesTest {
         JobDefinition job0 = jobs.get(0);
         assertEquals("ndk", job0.getName());
         assertEquals("worker", job0.getWorker());
+        assertEquals(1, job0.getPriority());
         assertEquals("csTitle", job0.getTitles().get("cs"));
         assertEquals("defaultTitle", job0.getTitles().get(null));
         assertEquals("step1Worker", job0.getSteps().get(0).getWorker());
