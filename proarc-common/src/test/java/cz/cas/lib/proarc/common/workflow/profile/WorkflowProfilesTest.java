@@ -73,9 +73,9 @@ public class WorkflowProfilesTest {
                 + "<workflow xmlns='http://proarc.lib.cas.cz/xml/common/workflow/v1'>\n"
                 + "    <job name='ndk'>\n"
                 + "        <worker>worker</worker>\n"
-                + "        <task type='task.id1'>\n"
-                + "            <worker>task1Worker</worker>\n"
-                + "        </task>"
+                + "        <step type='task.id1'>\n"
+                + "            <worker>step1Worker</worker>\n"
+                + "        </step>"
                 + "        <title>defaultTitle</title>\n"
                 + "        <title lang='cs'>csTitle</title>\n"
                 + "    </job>\n"
@@ -115,7 +115,7 @@ public class WorkflowProfilesTest {
         assertEquals("worker", job0.getWorker());
         assertEquals("csTitle", job0.getTitles().get("cs"));
         assertEquals("defaultTitle", job0.getTitles().get(null));
-        assertEquals("task1Worker", job0.getTasks().get(0).getWorker());
+        assertEquals("step1Worker", job0.getSteps().get(0).getWorker());
 
         List<MaterialTypeDefinition> materials = wf.getMaterials();
         assertFalse(materials.isEmpty());
@@ -123,7 +123,7 @@ public class WorkflowProfilesTest {
 
         List<TaskTypeDefinition> taskTypes = wf.getTasks();
         assertFalse(taskTypes.isEmpty());
-        assertEquals(job0.getTasks().get(0).getType(), taskTypes.get(0));
+        assertEquals(job0.getSteps().get(0).getType(), taskTypes.get(0));
         assertEquals("task.id1", taskTypes.get(0).getName());
 
         assertEquals("workflow.valuemap.colors", wf.getValueMaps().get(0).getId());
@@ -183,9 +183,9 @@ public class WorkflowProfilesTest {
         job.getTitles().put("cs", "csTitle");
         job.getTitles().put("en", "enTitle");
         job.getTitles().put(null, "defaultTitle");
-        TaskDefinition task1 = new TaskDefinition().setType(taskType1).setWorker("operator2");
-        task1.getParams().add(new ParamDefinition().setType(param1).setValue("param1.value"));
-        job.getTasks().add(task1);
+        StepDefinition step1 = new StepDefinition().setType(taskType1).setWorker("operator2");
+        step1.getParams().add(new ParamDefinition().setType(param1).setValue("param1.value"));
+        job.getSteps().add(step1);
         wf.getJobs().add(job);
 
         wf.getMaterials().add(material1);

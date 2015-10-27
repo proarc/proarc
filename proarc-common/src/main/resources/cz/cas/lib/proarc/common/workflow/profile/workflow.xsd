@@ -38,7 +38,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
         <xs:sequence>
             <xs:element name="worker" type="xs:string" minOccurs="0" />
             <xs:choice minOccurs="0" maxOccurs="unbounded">
-                <xs:element name="task" type="tns:taskDefinition"/>
+                <xs:element name="step" type="tns:stepDefinition"/>
                 <xs:element name="hint" type="tns:i18NString"/>
                 <xs:element name="title" type="tns:i18NString"/>
             </xs:choice>
@@ -48,7 +48,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
         <xs:attribute name="priority" type="xs:int" default="2"/>
     </xs:complexType>
 
-    <xs:complexType name="taskDefinition">
+    <xs:complexType name="stepDefinition">
         <xs:sequence>
             <xs:element name="worker" type="xs:string" minOccurs="0"/>
             <xs:element name="param" type="tns:paramDefinition" minOccurs="0" maxOccurs="unbounded"/>

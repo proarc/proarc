@@ -31,13 +31,13 @@ public class WorkflowProfileConsts {
     public static final String WORKFLOW_VALUEMAP_EL = "valuemap";
 
     public static final String JOB_NAME_ATT = "name";
-    public static final String JOB_TASK_EL = "task";
+    public static final String JOB_STEP_EL = "step";
     public static final String JOB_WORKER_EL = "worker";
     public static final String JOB_PRIORITY_EL = "priority";
 
-    public static final String TASK_PARAM_EL = "param";
-    public static final String TASK_TYPE_ATT = "type";
-    public static final String TASK_WORKER_EL = "worker";
+    public static final String STEP_PARAM_EL = "param";
+    public static final String STEP_TYPE_ATT = "type";
+    public static final String STEP_WORKER_EL = "worker";
 
     public static final String TASKTYPE_MATERIAL_EL = "material";
     public static final String TASKTYPE_PARAMTYPE_EL = "paramType";

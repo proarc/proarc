@@ -29,23 +29,23 @@ import javax.xml.bind.annotation.XmlIDREF;
  * @author Jan Pokorsky
  */
 @XmlAccessorType(value = XmlAccessType.FIELD)
-public class TaskDefinition {
+public class StepDefinition {
 
-    @XmlAttribute(name = WorkflowProfileConsts.TASK_TYPE_ATT, required = true)
+    @XmlAttribute(name = WorkflowProfileConsts.STEP_TYPE_ATT, required = true)
     @XmlIDREF
     private TaskTypeDefinition type;
 
-    @XmlElement(name = WorkflowProfileConsts.TASK_WORKER_EL)
+    @XmlElement(name = WorkflowProfileConsts.STEP_WORKER_EL)
     private String worker;
 
-    @XmlElement(name = WorkflowProfileConsts.TASK_PARAM_EL)
+    @XmlElement(name = WorkflowProfileConsts.STEP_PARAM_EL)
     private List<ParamDefinition> params;
 
     public TaskTypeDefinition getType() {
         return type;
     }
 
-    public TaskDefinition setType(TaskTypeDefinition type) {
+    public StepDefinition setType(TaskTypeDefinition type) {
         this.type = type;
         return this;
     }
@@ -54,7 +54,7 @@ public class TaskDefinition {
         return worker;
     }
 
-    public TaskDefinition setWorker(String worker) {
+    public StepDefinition setWorker(String worker) {
         this.worker = worker;
         return this;
     }

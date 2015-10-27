@@ -41,8 +41,8 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
     @XmlAttribute(name = WorkflowProfileConsts.JOB_NAME_ATT)
     private Integer priority;
 
-    @XmlElement(name = WorkflowProfileConsts.JOB_TASK_EL)
-    private List<TaskDefinition> tasks;
+    @XmlElement(name = WorkflowProfileConsts.JOB_STEP_EL)
+    private List<StepDefinition> steps;
 
     public String getName() {
         return name;
@@ -71,11 +71,11 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
         return this;
     }
 
-    public List<TaskDefinition> getTasks() {
-        if (tasks == null) {
-            tasks = new ArrayList<TaskDefinition>();
+    public List<StepDefinition> getSteps() {
+        if (steps == null) {
+            steps = new ArrayList<StepDefinition>();
         }
-        return tasks;
+        return steps;
     }
 
 }
