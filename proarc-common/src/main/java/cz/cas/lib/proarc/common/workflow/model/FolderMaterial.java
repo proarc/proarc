@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Jan Pokorsky
+ * Copyright (C) 2015 Jan Pokorsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,32 +14,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.dao;
+package cz.cas.lib.proarc.common.workflow.model;
 
 /**
  *
  * @author Jan Pokorsky
  */
-public interface DaoFactory {
+public class FolderMaterial extends Material {
 
-    Transaction createTransaction();
+    private String path;
 
-    BatchDao createBatch();
+    public FolderMaterial() {
+        setType(Type.FOLDER);
+    }
 
-    BatchItemDao createBatchItem();
+    public String getPath() {
+        return path;
+    }
 
-    UserDao createUser();
-
-    GroupDao createUserGroup();
-
-    WorkflowJobDao createWorkflowJobDao();
-
-    WorkflowMaterialDao createWorkflowMaterialDao();
-
-    WorkflowParameterDao createWorkflowParameterDao();
-
-    WorkflowTaskDao createWorkflowTaskDao();
-
-    void init();
+    public void setPath(String path) {
+        this.path = path;
+    }
 
 }

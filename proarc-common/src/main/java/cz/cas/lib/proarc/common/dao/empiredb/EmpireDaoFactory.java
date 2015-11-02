@@ -81,4 +81,24 @@ public class EmpireDaoFactory implements DaoFactory {
         return new EmpireGroupDao(db);
     }
 
+    @Override
+    public EmpireWorkflowJobDao createWorkflowJobDao() {
+        return new EmpireWorkflowJobDao(db);
+    }
+
+    @Override
+    public EmpireWorkflowTaskDao createWorkflowTaskDao() {
+        return new EmpireWorkflowTaskDao(db);
+    }
+
+    @Override
+    public EmpireWorkflowParameterDao createWorkflowParameterDao() {
+        return new EmpireWorkflowParameterDao(db);
+    }
+
+    @Override
+    public EmpireWorkflowMaterialDao createWorkflowMaterialDao() {
+        return new EmpireWorkflowMaterialDao(db);
+    }
+    
 }

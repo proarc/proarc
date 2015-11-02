@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Jan Pokorsky
+ * Copyright (C) 2015 Jan Pokorsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,30 +16,22 @@
  */
 package cz.cas.lib.proarc.common.dao;
 
+import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
+import java.math.BigDecimal;
+import java.util.List;
+
 /**
  *
  * @author Jan Pokorsky
  */
-public interface DaoFactory {
+public interface WorkflowParameterDao extends Dao {
 
-    Transaction createTransaction();
+    void add(BigDecimal taskId, List<TaskParameter> params);
 
-    BatchDao createBatch();
+    TaskParameter create();
 
-    BatchItemDao createBatchItem();
+    List<TaskParameter> find(BigDecimal taskId);
 
-    UserDao createUser();
-
-    GroupDao createUserGroup();
-
-    WorkflowJobDao createWorkflowJobDao();
-
-    WorkflowMaterialDao createWorkflowMaterialDao();
-
-    WorkflowParameterDao createWorkflowParameterDao();
-
-    WorkflowTaskDao createWorkflowTaskDao();
-
-    void init();
+    void remove(BigDecimal taskId);
 
 }

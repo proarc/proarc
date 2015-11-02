@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<workflow xmlns='http://proarc.lib.cas.cz/xml/common/workflow/v1'>
+    <job name='ndk' priority='1'>
+        <worker actual='true'/>
+        <step taskRef='task.id1'>
+            <worker>step1Worker</worker>
+            <setParam paramRef='param.id1'>param.id1.value</setParam>
+        </step>
+        <step taskRef='task.id2'>
+            <blocker taskRef='task.id1'/>
+        </step>
+        <title>defaultTitle</title>
+        <title lang='cs'>csTitle</title>
+    </job>
+    <material name='material.folder'/>
+    <material name='material.physical'/>
+    <task name='task.id1'>
+        <param name='param.id1' required='true' datasource='workflow.valuemap.colors'/>
+        <param name='param.id2' required='true' datasource='proarc.devices'/>
+        <setMaterial materialRef='material.folder' way='input'/>
+        <title lang='cs'>Úkol 1</title>
+        <title lang='en'>Task 1</title>
+    </task>
+    <task name='task.id2'>
+        <setMaterial materialRef='material.folder' way='output'/>
+        <setMaterial materialRef='material.physical' way='input'/>
+    </task>
+    <valuemap name='workflow.valuemap.colors'>
+        <value>barevně</value>
+        <value>v šedi</value>
+    </valuemap>
+    <valuemap name='workflow.valuemap.colorsWithKeys' >
+        <value key='colorful'>barevně</value>
+        <value key='grey'>v šedi</value>
+    </valuemap>
+    <valuemap name='proarc.devices' source='proarc'/>
+</workflow>
+

@@ -18,6 +18,9 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireUtils.EnhancedDBTable;
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.Material;
+import cz.cas.lib.proarc.common.workflow.model.Task;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
@@ -296,6 +299,8 @@ public class ProarcDatabase extends DBDatabase {
             ownerId = addColumn("OWNER_ID", DataType.INTEGER, 0, false);
             profileName = addColumn("PROFILE_NAME", DataType.TEXT, 500, true);
             state = addColumn("STATE", DataType.TEXT, 100, true);
+            state.setOptions(toOptions(Job.State.values()));
+            state.setBeanPropertyName("stateAsString");
             priority = addColumn("PRIORITY", DataType.INTEGER, 0, true);
             label = addColumn("LABEL", DataType.TEXT, 2000, true);
             financed = addColumn("FINANCED", DataType.TEXT, 2000, false);
@@ -330,6 +335,8 @@ public class ProarcDatabase extends DBDatabase {
             jobId = addColumn("JOB_ID", DataType.INTEGER, 0, true);
             ownerId = addColumn("OWNER_ID", DataType.INTEGER, 0, false);
             state = addColumn("STATE", DataType.TEXT, 100, true);
+            state.setOptions(toOptions(Task.State.values()));
+            state.setBeanPropertyName("stateAsString");
             priority = addColumn("PRIORITY", DataType.INTEGER, 0, true);
 //            queueNumber = addColumn("QUEUE_NUMBER", DataType.DECIMAL, 0, true);
             note = addColumn("NOTE", DataType.TEXT, 2000, false);
@@ -345,13 +352,13 @@ public class ProarcDatabase extends DBDatabase {
 
         public final DBTableColumn taskId;
         /** The name of a parameter type in workflow profile. */
-        public final DBTableColumn typeRef;
+        public final DBTableColumn paramRef;
         public final DBTableColumn value;
 
         public WorkflowParameterTable(DBDatabase db) {
             super("PROARC_WF_PARAMETER", db);
             taskId = addColumn("TASK_ID", DataType.INTEGER, 0, true);
-            typeRef = addColumn("TYPE_REF", DataType.TEXT, 500, true);
+            paramRef = addColumn("PARAM_REF", DataType.TEXT, 500, true);
             value = addColumn("VALUE", DataType.TEXT, 2000, false);
         }
     }
@@ -366,11 +373,15 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn name;
         public final DBTableColumn note;
         public final DBTableColumn state;
+        public final DBTableColumn type;
 
         public WorkflowMaterialTable(DBDatabase db) {
             super("PROARC_WF_MATERIAL", db);
             id = addSequenceColumn("ID");
-            state = addColumn("STATE", DataType.TEXT, 100, true);
+            type = addColumn("TYPE", DataType.TEXT, 100, true);
+            type.setOptions(toOptions(Material.Type.values()));
+            type.setBeanPropertyName("typeAsString");
+            state = addColumn("STATE", DataType.TEXT, 100, false);
             name = addColumn("NAME", DataType.TEXT, 500, true);
             label = addColumn("LABEL", DataType.TEXT, 2000, false);
             note = addColumn("NOTE", DataType.TEXT, 2000, false);
@@ -388,7 +399,7 @@ public class ProarcDatabase extends DBDatabase {
         public WorkflowFolderTable(DBDatabase db) {
             super("PROARC_WF_FOLDER", db);
             materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
-            path = addColumn("PATH", DataType.TEXT, 2000, true);
+            path = addColumn("PATH", DataType.TEXT, 2000, false);
             setPrimaryKey(materialId);
         }
     }

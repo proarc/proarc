@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Jan Pokorsky
+ * Copyright (C) 2015 Jan Pokorsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,30 +16,17 @@
  */
 package cz.cas.lib.proarc.common.dao;
 
+import cz.cas.lib.proarc.common.workflow.model.Material;
+import cz.cas.lib.proarc.common.workflow.model.Task;
+
 /**
  *
  * @author Jan Pokorsky
  */
-public interface DaoFactory {
+public interface WorkflowMaterialDao extends Dao {
 
-    Transaction createTransaction();
+    void addTaskReference(Material m, Task t, String way);
 
-    BatchDao createBatch();
-
-    BatchItemDao createBatchItem();
-
-    UserDao createUser();
-
-    GroupDao createUserGroup();
-
-    WorkflowJobDao createWorkflowJobDao();
-
-    WorkflowMaterialDao createWorkflowMaterialDao();
-
-    WorkflowParameterDao createWorkflowParameterDao();
-
-    WorkflowTaskDao createWorkflowTaskDao();
-
-    void init();
+    void update(Material m);
 
 }
