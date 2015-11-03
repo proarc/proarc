@@ -54,9 +54,18 @@ import java.util.logging.Logger;
  */
 public class WorkflowManager {
 
+    private static WorkflowManager INSTANCE;
     private static final Logger LOG = Logger.getLogger(WorkflowManager.class.getName());
     private final DaoFactory daoFactory;
     private final UserManager userMgr;
+
+    public static WorkflowManager getInstance() {
+        return INSTANCE;
+    }
+
+    public static void setInstance(WorkflowManager instance) {
+        INSTANCE = instance;
+    }
 
     public WorkflowManager(DaoFactory daoFactory, UserManager users) {
         this.daoFactory = daoFactory;

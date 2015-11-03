@@ -33,6 +33,9 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.sql.DbUtils;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -90,6 +93,7 @@ public final class ProarcInitializer {
                 config, ImportBatchManager.getInstance(), null,
                 MetaModelRepository.getInstance(), UserUtil.getDefaultManger()));
         Authenticators.setInstance(new Authenticators(config.getAuthenticators()));
+        initWorkflow(config, daoFactory, UserUtil.getDefaultManger());
         asyncTask = executor.submit(new Callable<Void>() {
 
             @Override
@@ -174,6 +178,17 @@ public final class ProarcInitializer {
         ImportDispatcher.setDefault(importDispatcher);
         importDispatcher.init();
         ImportProcess.resumeAll(ibm, importDispatcher, config);
+    }
+
+    private void initWorkflow(AppConfiguration config, DaoFactory daoFactory, UserManager users) {
+        try {
+            WorkflowManager.setInstance(new WorkflowManager(daoFactory, users));
+            File workflowFile = config.getWorkflowConfiguration();
+            WorkflowProfiles.copyDefaultFile(config.getWorkflowConfiguration());
+            WorkflowProfiles.setInstance(new WorkflowProfiles(workflowFile));
+        } catch (Exception ex) {
+            throw new IllegalStateException("The workflow initialization failed!", ex);
+        }
     }
 
 }

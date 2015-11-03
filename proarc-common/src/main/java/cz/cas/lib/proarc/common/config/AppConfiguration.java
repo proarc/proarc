@@ -178,6 +178,11 @@ public final class AppConfiguration {
         return plugins;
     }
 
+    public File getWorkflowConfiguration() {
+        File file = new File(getConfigHome(), "workflow.xml");
+        return file;
+    }
+
     Configuration getConfiguration() {
         return config;
     }
