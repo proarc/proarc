@@ -63,6 +63,7 @@ public class WorkflowProfileConsts {
 
     public static final String VALUEMAPITEM_KEY_ATT = "value";
 
+    public static final String DISABLED = "disabled";
     public static final String HINT_EL = "hint";
     public static final String TITLE_EL = "title";
     

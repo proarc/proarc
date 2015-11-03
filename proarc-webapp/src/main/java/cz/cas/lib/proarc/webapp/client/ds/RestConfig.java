@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -99,6 +100,8 @@ public final class RestConfig {
     public static final String URL_DEVICE = path(URL_ROOT, DeviceResourceApi.PATH);
     public static final String URL_VALUEMAP = path(URL_ROOT, ValueMapResourceApi.PATH);
     public static final String URL_CONFIGPROFILE = path(URL_ROOT, ConfigurationProfileResourceApi.PATH);
+    public static final String URL_WORKFLOW = path(URL_ROOT, WorkflowResourceApi.PATH);
+    public static final String URL_WORKFLOW_PROFILE = path(URL_WORKFLOW, WorkflowResourceApi.PROFILE_PATH);
 
     public static DSRequest createRestRequest(DSDataFormat format) {
         DSRequest dsr = new DSRequest();

@@ -48,6 +48,7 @@ public class WorkflowManaging extends AbstractActivity {
         } else if (place instanceof WorkflowNewJobPlace) {
             WorkflowNewJobEditor presenter = presenterFactory.getWorkflowNewJob();
             panel.setWidget(presenter.getUI());
+            presenter.init();
         } else {
             WorkflowTasksEditor presenter = presenterFactory.getWorkflowTasks();
             panel.setWidget(presenter.getUI());

@@ -31,7 +31,7 @@ import javax.xml.bind.annotation.XmlTransient;
 @XmlTransient
 abstract class DisplayableType<T extends DisplayableType> {
 
-    @XmlAttribute(required = false)
+    @XmlAttribute(name = WorkflowProfileConsts.DISABLED, required = false)
     private Boolean disabled;
 
     @XmlTransient
