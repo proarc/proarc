@@ -101,8 +101,11 @@ public final class ErrorHandler {
     private String getClientMessage(TransportError te, DSResponse response, DSRequest request) {
         String contentType = String.valueOf(response.getHttpHeaders().get("Content-Type"));
         String result;
+        if (response.getStatus() == RPCResponse.STATUS_FAILURE) {
+            return response.getDataAsString();
+        }
         if (contentType.contains("text/plain")) {
-            result = te.getHttpResponseText();
+            result = te == null ? null: te.getHttpResponseText();
         } else {
             result = i18n.ErrorHandler_UnexpectedError_Msg();
         }
@@ -118,22 +121,7 @@ public final class ErrorHandler {
         String requestDump = ClientUtils.dump(request.getJsObj());
         // message from original error handler; contains URL
         Object smartGwtMsg = response.getDataAsString();
-        if (te != null && response.getTransactionNum() == te.getTransactionNum()) {
-//            boolean clientError = te.getHttpResponseCode() >= 400 && te.getHttpResponseCode() < 500;
-            String clientMsg = getClientMessage(te, response, request);
-            String debugInfo = ClientUtils.format("%s\nStatus: %s\nQuery: %s",
-                    smartGwtMsg,
-                    te.getStatus(),
-                    requestDump
-                    );
-            String htmlDebugInfo = ClientUtils.format("%s<br/>Status: %s<br/>Query: %s",
-                    smartGwtMsg,
-                    te.getStatus(),
-                    SafeHtmlUtils.htmlEscape(requestDump)
-                    );
-            warn(clientMsg, te.getHttpResponseText(), htmlDebugInfo);
-            SC.logWarn(debugInfo);
-        } else {
+        if (te == null || response.getTransactionNum() != te.getTransactionNum()) {
             String debugInfo = ClientUtils.format("Invalid transaction numbers %s != %s"
                     +"\n%s\nStatus: %s\nQuery: %s",
                     response.getTransactionNum(),
@@ -142,8 +130,22 @@ public final class ErrorHandler {
                     response.getStatus(),
                     requestDump
                     );
-            throw new IllegalStateException(debugInfo);
+            SC.logWarn(debugInfo);
         }
+//            boolean clientError = te.getHttpResponseCode() >= 400 && te.getHttpResponseCode() < 500;
+        String clientMsg = getClientMessage(te, response, request);
+        String debugInfo = ClientUtils.format("%s\nStatus: %s\nQuery: %s",
+                smartGwtMsg,
+                te == null ? response.getStatus() : te.getStatus(),
+                requestDump
+                );
+        String htmlDebugInfo = ClientUtils.format("%s<br/>Status: %s<br/>Query: %s",
+                smartGwtMsg,
+                te == null ? response.getStatus() : te.getStatus(),
+                SafeHtmlUtils.htmlEscape(requestDump)
+                );
+        warn(clientMsg, te == null ? response.getDataAsString(): te.getHttpResponseText(), htmlDebugInfo);
+        SC.logWarn(debugInfo);
     }
 
     /**
