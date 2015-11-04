@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modsCollection xmlns="http://www.loc.gov/mods/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-5.xsd">
+    <mods version="3.5">
+        <titleInfo>
+            <title>Nová vlna =</title>
+            <subTitle>La nouvelle vague : Truffaut, Godard, Chabrol, Rohmer, Rivette</subTitle>
+        </titleInfo>
+        <titleInfo type="alternative">
+            <title>Nouvelle vague</title>
+        </titleInfo>
+        <name type="personal" usage="primary" authorityURI="http://aut.nkp.cz" valueURI="http://aut.nkp.cz/xx0000206">
+            <namePart>Monaco, James</namePart>
+            <namePart type="date">1943-</namePart>
+            <role>
+                <roleTerm type="code" authority="marcrelator">aut</roleTerm>
+            </role>
+        </name>
+        <name type="personal" authorityURI="http://aut.nkp.cz" valueURI="http://aut.nkp.cz/jn20000401188">
+            <namePart>Janeček, Vít</namePart>
+            <namePart type="date">1970-</namePart>
+            <role>
+                <roleTerm type="code" authority="marcrelator">trl</roleTerm>
+            </role>
+        </name>
+        <name type="personal" authorityURI="http://aut.nkp.cz" valueURI="http://aut.nkp.cz/jx20060420003">
+            <namePart>Liška, Tomáš</namePart>
+            <role>
+                <roleTerm type="code" authority="marcrelator">trl</roleTerm>
+            </role>
+        </name>
+        <typeOfResource>text</typeOfResource>
+        <genre authority="marcgt">biography</genre>
+        <genre authority="czenas">studie</genre>
+        <originInfo>
+            <place>
+                <placeTerm type="code" authority="marccountry">xr</placeTerm>
+            </place>
+            <place>
+                <placeTerm type="text">V Praze</placeTerm>
+            </place>
+            <publisher>Akademie múzických umění</publisher>
+            <dateIssued>2001</dateIssued>
+            <edition>1. vyd.</edition>
+            <issuance>monographic</issuance>
+        </originInfo>
+        <language>
+            <languageTerm type="code" authority="iso639-2b">cze</languageTerm>
+        </language>
+        <language objectPart="translation">
+            <languageTerm type="code" authority="iso639-2b">eng</languageTerm>
+        </language>
+        <physicalDescription>
+            <form authority="marcform">print</form>
+            <extent>413 s. : il., portréty ; 21 cm</extent>
+        </physicalDescription>
+        <targetAudience authority="marctarget">adult</targetAudience>
+        <note type="statement of responsibility" altRepGroup="00">James Monaco ; [z anglického originálu ... přeložili Vít Janeček a Tomáš Liška]</note>
+        <note type="bibliography">Obsahuje bibliografie, bibliografické odkazy a rejstříky</note>
+        <subject>
+            <geographicCode authority="marcgac">e-fr---</geographicCode>
+        </subject>
+        <subject authority="Konspekt">
+            <topic>Film. Cirkus. Lidová zábava</topic>
+        </subject>
+        <subject authority="czenas">
+            <topic>filmoví režiséři</topic>
+            <geographic>Francie</geographic>
+        </subject>
+        <subject authority="czenas">
+            <topic>film</topic>
+            <geographic>Francie</geographic>
+        </subject>
+        <subject authority="eczenas">
+            <topic>New wave films</topic>
+            <geographic>France</geographic>
+        </subject>
+        <subject authority="eczenas">
+            <topic>Motion picture producers and directors</topic>
+            <geographic>France</geographic>
+            <topic>Biography</topic>
+        </subject>
+        <subject>
+            <topic>nová vlna</topic>
+        </subject>
+        <classification authority="udc">791.44.071.1</classification>
+        <classification authority="udc">791.43</classification>
+        <classification authority="udc">(44)</classification>
+        <classification authority="udc">(048.8)</classification>
+        <classification authority="Konspekt">3</classification>
+        <classification authority="udc" edition="Konspekt">791</classification>
+        <location>
+            <physicalLocation>ABA001</physicalLocation>
+        </location>
+        <relatedItem type="otherVersion">
+            <titleInfo>
+                <title>New wave</title>
+            </titleInfo>
+        </relatedItem>
+        <identifier type="ccnb">cnb001066638</identifier>
+        <identifier type="isbn">80-85883-89-9</identifier>
+        <identifier type="oclc">51186207</identifier>
+        <recordInfo>
+            <descriptionStandard>aacr</descriptionStandard>
+            <recordContentSource authority="marcorg">ABA001</recordContentSource>
+            <recordCreationDate encoding="marc">020227</recordCreationDate>
+            <recordChangeDate encoding="iso8601">20080312074017.0</recordChangeDate>
+            <recordIdentifier source="CZ PrNK">cpk20021066638</recordIdentifier>
+            <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
+                (Revision 1.97 2014/05/21, ProArc patch 9.313 2015/07/11)</recordOrigin>
+            <languageOfCataloging>
+                <languageTerm type="code" authority="iso639-2b">cze</languageTerm>
+            </languageOfCataloging>
+        </recordInfo>
+    </mods>
+</modsCollection>

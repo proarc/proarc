@@ -19,8 +19,12 @@ package cz.cas.lib.proarc.webapp.client.presenter;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.Widget;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.ReadOnlyDisplayAppearance;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.Canvas;
@@ -40,13 +44,19 @@ import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
+import cz.cas.lib.proarc.webapp.client.ErrorHandler;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.Action;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
 import cz.cas.lib.proarc.webapp.client.widget.CatalogBrowser;
+import cz.cas.lib.proarc.webapp.client.widget.StatusView;
+import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import java.util.Map;
 
 /**
  * Creates a new workflow job.
@@ -78,9 +88,26 @@ public class WorkflowNewJobEditor {
         }
     }
 
-    private void onCreateNew() {
-        view.catalogBrowser.getMods();
-        places.goTo(new WorkflowJobPlace());
+    private void onCreateNew(Record query) {
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setWillHandleError(true);
+        WorkflowJobDataSource.getInstance().addData(query, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                if (RestConfig.isStatusOk(dsResponse)) {
+                    StatusView.getInstance().show(i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
+                    places.goTo(new WorkflowJobPlace());
+                } else {
+                    if (RPCResponse.STATUS_VALIDATION_ERROR == dsResponse.getStatus()) {
+                        Map<?,?> errors = dsResponse.getErrors();
+                        view.optionForm.setErrors(errors, true);
+                    } else {
+                        ErrorHandler.warn(dsResponse, dsRequest);
+                    }
+                }
+            }
+        }, dsRequest);
     }
 
     private static final class WorkflowNewJobView {
@@ -102,7 +129,7 @@ public class WorkflowNewJobEditor {
 
         public void init() {
             optionForm.clearValues();
-            optionForm.getField("metadata").setVisible(false);
+            optionForm.getField(WorkflowResourceApi.NEWJOB_METADATA).setVisible(false);
             catalogBrowser.bind();
         }
 
@@ -138,15 +165,7 @@ public class WorkflowNewJobEditor {
 
                         @Override
                         public void performAction(ActionEvent event) {
-                            if (handler != null) {
-                                String mods = catalogBrowser.getMods();
-                                optionForm.setValue("metadata", mods);
-                                optionForm.getField("metadata").setVisible(mods == null);
-                                boolean valid = optionForm.validate();
-                                if (valid) {
-                                    handler.onCreateNew();
-                                }
-                            }
+                            fireOnCreateNew();
                         }
                     };
             ToolStrip toolbar = Actions.createToolStrip();
@@ -154,10 +173,23 @@ public class WorkflowNewJobEditor {
             return toolbar;
         }
 
-        private Widget createOptionForm() {
-            SelectItem profile = createProfileSelector();
+        private void fireOnCreateNew() {
+            if (handler != null) {
+                String mods = catalogBrowser.getMods();
+                optionForm.setValue(WorkflowResourceApi.NEWJOB_METADATA, mods);
+                optionForm.getField(WorkflowResourceApi.NEWJOB_METADATA).setVisible(mods == null);
+                optionForm.setValue(WorkflowResourceApi.NEWJOB_CATALOGID, catalogBrowser.getCatalogId());
+                boolean valid = optionForm.validate();
+                if (valid) {
+                    handler.onCreateNew(optionForm.getValuesAsRecord());
+                }
+            }
+        }
 
-            TextItem metadata = new TextItem("metadata", "Metadata");
+        private Widget createOptionForm() {
+            final SelectItem profile = createProfileSelector();
+
+            TextItem metadata = new TextItem(WorkflowResourceApi.NEWJOB_METADATA, "Metadata");
             metadata.setRequired(true);
             metadata.setShowTitle(false);
             metadata.setCanEdit(false);
@@ -173,16 +205,41 @@ public class WorkflowNewJobEditor {
                 }
             });
 
+//            HiddenItem catalog = new HiddenItem(WorkflowResourceApi.NEWJOB_CATALOGID);
+//            catalog.setRequired(true);
+//            catalog.setRequiredMessage("Nejsou vybrána žádná metadata!");
+
             optionForm = new DynamicForm();
             optionForm.setAutoWidth();
             optionForm.setWrapItemTitles(false);
             optionForm.setTitleOrientation(TitleOrientation.TOP);
             optionForm.setItems(profile, metadata);
+            // XXX HiddenValidationErrorsHandler does not work in smartgwt 4.0
+//            optionForm.addHiddenValidationErrorsHandler(new HiddenValidationErrorsHandler() {
+//
+//                @Override
+//                public void onHiddenValidationErrors(HiddenValidationErrorsEvent event) {
+//                    event.cancel();
+//                    String[] profileErrors = optionForm.getFieldErrors(profile.getName());
+//                    ArrayList<String> result = new ArrayList<String>();
+//                    result.addAll(Arrays.asList(profileErrors));
+//                    Map<?,?> errors = event.getErrors();
+//                    for (Entry<? extends Object, ? extends Object> entrySet : errors.entrySet()) {
+//                        StringBuilder sb = new StringBuilder();
+//                        Object key = entrySet.getKey();
+//                        Object value = entrySet.getValue();
+//                        result.add(String.valueOf(key) + " - " + String.valueOf(value));
+//                    }
+//                    System.out.println("## onHiddenValidationErrors. origErr: " + profileErrors +
+//                            "\n event.err: " + errors + "\n result: " + result);
+//                    optionForm.setFieldErrors(profile.getName(), result.toArray(new String[result.size()]), true);
+//                }
+//            });
             return optionForm;
         }
 
         private SelectItem createProfileSelector() {
-            final SelectItem profile = new SelectItem("profile", "Vybrat profil");
+            final SelectItem profile = new SelectItem(WorkflowResourceApi.NEWJOB_PROFILE, "Vybrat profil");
             profile.setOptionDataSource(WorkflowProfileDataSource.getInstance());
             profile.setValueField(WorkflowProfileDataSource.FIELD_ID);
             profile.setDisplayField(WorkflowProfileDataSource.FIELD_LABEL);

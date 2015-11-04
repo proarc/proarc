@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow;
 
+import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.Transaction;
@@ -72,9 +73,13 @@ public class WorkflowManager {
         this.userMgr = users;
     }
 
-    public void addJob(JobDefinition jobProfile, String xml, String catalog, UserProfile defaultUser) {
+    public Job addJob(JobDefinition jobProfile, String xml,
+            CatalogConfiguration catalog, UserProfile defaultUser
+    ) {
         Map<String, UserProfile> users = createUserMap();
-
+        PhysicalMaterial physicalMaterial = new PhysicalMaterialBuilder()
+                .setCatalog(catalog).setMetadata(xml)
+                .build();
         Transaction tx = daoFactory.createTransaction();
         WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
         WorkflowTaskDao taskDao = daoFactory.createWorkflowTaskDao();
@@ -85,7 +90,7 @@ public class WorkflowManager {
         paramDao.setTransaction(tx);
         materialDao.setTransaction(tx);
         Timestamp now = new Timestamp(System.currentTimeMillis());
-        String jobLabel = "XXX";
+        String jobLabel = physicalMaterial.getLabel();
 
         try {
             Job job = createJob(jobDao, now, jobLabel, jobProfile, users, defaultUser);
@@ -94,9 +99,10 @@ public class WorkflowManager {
             for (StepDefinition step : jobProfile.getSteps()) {
                 Task task = createTask(taskDao, now, job, step, users, defaultUser);
                 createTaskParams(paramDao, step, task);
-                createMaterials(materialDao, step, task, materialCache);
+                createMaterials(materialDao, step, task, materialCache, physicalMaterial);
             }
             tx.commit();
+            return job;
         } finally {
             tx.rollback();
         }
@@ -147,7 +153,7 @@ public class WorkflowManager {
     }
 
     private void createMaterials(WorkflowMaterialDao dao, StepDefinition step,
-            Task task, Map<String, Material> materialCache) {
+            Task task, Map<String, Material> materialCache, PhysicalMaterial origin) {
 
         TaskDefinition taskProfile = step.getTask();
         for (SetMaterialDefinition setter : taskProfile.getMaterialSetters()) {
@@ -160,8 +166,11 @@ public class WorkflowManager {
                 if (mName.contains("folder")) {
                     m = new FolderMaterial();
                 } else if (mName.contains("physical")) {
-                    m = new PhysicalMaterial();
-                    ((PhysicalMaterial) m).setBarcode("barcode");
+                    if (origin.getId() == null) {
+                        m = origin;
+                    } else {
+                        m = new PhysicalMaterial();
+                    }
                 } else if (mName.contains("digital")) {
                     m = new DigitalMaterial();
                 } else {

@@ -17,8 +17,10 @@
 package cz.cas.lib.proarc.common.workflow;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
+import cz.cas.lib.proarc.common.catalog.Z3950Catalog;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.dao.empiredb.DbUnitSupport;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase;
@@ -27,8 +29,8 @@ import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
+import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -85,7 +87,12 @@ public class WorkflowManagerTest {
         }});
         UserManager users = UserUtil.createUserManagerPostgressImpl(config, null, daos);
         WorkflowManager wm = new WorkflowManager(daos, users);
-        wm.addJob(jobProfile, "<mods></mods>", "http://catalog or catalogId", null);
+        CatalogConfiguration c = new CatalogConfiguration("testCatalogId", "", new BaseConfiguration() {{
+            addProperty(CatalogConfiguration.PROPERTY_URL, "tcp://localhost:9991");
+            addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
+            addProperty(CatalogConfiguration.PROPERTY_TYPE, Z3950Catalog.TYPE);
+        }});
+        wm.addJob(jobProfile, "<mods></mods>", c, null);
     }
 
 }

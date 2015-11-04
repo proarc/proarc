@@ -16,6 +16,12 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
@@ -27,7 +33,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -47,13 +55,52 @@ public class WorkflowResource {
 
     private final SessionContext session;
     private final HttpHeaders httpHeaders;
+    private final WorkflowManager workflowManager;
+    private final WorkflowProfiles workflowProfiles;
+    private final AppConfiguration appConfig;
 
     public WorkflowResource(
             @Context HttpHeaders httpHeaders,
             @Context HttpServletRequest httpRequest
-    ) {
+    ) throws AppConfigurationException {
         this.session = SessionContext.from(httpRequest);
         this.httpHeaders = httpHeaders;
+        this.workflowManager = WorkflowManager.getInstance();
+        this.workflowProfiles = WorkflowProfiles.getInstance();
+        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+    }
+
+    /**
+     * Creates a new workflow job.
+     * @param profileName profile name
+     * @param metadata MODS
+     * @param catalogId catalog ID
+     * @return the job
+     */
+    @POST
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Job> addJob(
+            @FormParam(WorkflowResourceApi.NEWJOB_PROFILE) String profileName,
+            @FormParam(WorkflowResourceApi.NEWJOB_METADATA) String metadata,
+            @FormParam(WorkflowResourceApi.NEWJOB_CATALOGID) String catalogId
+    ) {
+        if (metadata == null) {
+            return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_METADATA + " - missing value! ");
+        }
+        CatalogConfiguration catalog = appConfig.getCatalogs().findConfiguration(catalogId);
+        if (catalog == null) {
+            return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_CATALOGID + " - invalid value! " + catalogId);
+        }
+        WorkflowDefinition profiles = workflowProfiles.getProfiles();
+        if (profiles == null) {
+            return profileError();
+        }
+        JobDefinition profile = workflowProfiles.getProfile(profiles, profileName);
+        if (profile == null) {
+            return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
+        }
+        Job job = workflowManager.addJob(profile, metadata, catalog, session.getUser());
+        return new SmartGwtResponse<Job>(job);
     }
 
     /**
@@ -69,10 +116,9 @@ public class WorkflowResource {
             @QueryParam(WorkflowProfileConsts.JOB_NAME_ATT) String name,
             @QueryParam(WorkflowProfileConsts.DISABLED) Boolean disabled
     ) {
-        WorkflowProfiles wp = WorkflowProfiles.getInstance();
-        WorkflowDefinition workflowDefinition = wp.getProfiles();
+        WorkflowDefinition workflowDefinition = workflowProfiles.getProfiles();
         if (workflowDefinition == null) {
-            return SmartGwtResponse.asError("Invalid workflow.xml! Check server configuration.");
+            return profileError();
         }
         String lang = session.getLocale(httpHeaders).getLanguage();
         ArrayList<JobDefinitionView> profiles = new ArrayList<JobDefinitionView>();
@@ -88,6 +134,10 @@ public class WorkflowResource {
             }
         }
         return new SmartGwtResponse<JobDefinitionView>(profiles);
+    }
+
+    private static <T> SmartGwtResponse<T> profileError() {
+        return SmartGwtResponse.asError("Invalid workflow.xml! Check server configuration.");
     }
 
     private static String getI18n(Map<String, String> vals, String lang, String defaultValue) {

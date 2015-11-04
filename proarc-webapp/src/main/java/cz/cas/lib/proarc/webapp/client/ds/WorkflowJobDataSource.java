@@ -60,9 +60,9 @@ public class WorkflowJobDataSource extends RestDataSource {
     public WorkflowJobDataSource() {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
-        setClientOnly(true);
-        setTestData(createDemoJob());
-//        setDataURL(RestConfig.URL_DEVICE);
+//        setClientOnly(true);
+//        setTestData(createDemoJob());
+        setDataURL(RestConfig.URL_WORKFLOW);
 
         DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);
         fieldId.setPrimaryKey(Boolean.TRUE);

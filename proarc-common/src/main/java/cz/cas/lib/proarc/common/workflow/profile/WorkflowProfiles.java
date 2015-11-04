@@ -88,6 +88,15 @@ public class WorkflowProfiles {
         }
     }
 
+    public JobDefinition getProfile(WorkflowDefinition workflow, String name) {
+        for (JobDefinition job : workflow.getJobs()) {
+            if (job.getName().equals(name)) {
+                return job;
+            }
+        }
+        return null;
+    }
+
     private synchronized void setProfiles(WorkflowDefinition profiles, long time) {
         if (time > lastModified) {
             this.profiles = profiles;
