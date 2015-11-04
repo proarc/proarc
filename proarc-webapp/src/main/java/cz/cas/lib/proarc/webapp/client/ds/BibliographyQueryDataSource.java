@@ -24,6 +24,7 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
 import java.util.logging.Logger;
 
 /**
@@ -78,6 +79,12 @@ public final class BibliographyQueryDataSource extends DataSource {
             // jersye serialize empty JSON as null
             response.setData(new Record[0]);
             response.setStatus(DSResponse.STATUS_SUCCESS);
+        }
+        if (RestConfig.isStatusOk(response)) {
+            Object catalogId = request.getCriteria().getValues().get(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM);
+            for (Record r : response.getData()) {
+                r.setAttribute(BibliographicCatalogResourceApi.CATALOG_ID, catalogId);
+            }
         }
         super.transformResponse(response, request, data);
     }
