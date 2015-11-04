@@ -439,7 +439,7 @@ public class ProarcDatabase extends DBDatabase {
             barcode = addColumn("BARCODE", DataType.TEXT, 100, false);
             field001 = addColumn("FIELD001", DataType.TEXT, 100, false);
             source = addColumn("SOURCE", DataType.TEXT, 2000, false);
-            metadata = addColumn("METADATA", DataType.TEXT, 2000, false);
+            metadata = addColumn("METADATA", DataType.CLOB, 0, false);
             setPrimaryKey(materialId);
         }
     }
