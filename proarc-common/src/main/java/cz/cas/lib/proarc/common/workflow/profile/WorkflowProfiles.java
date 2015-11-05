@@ -97,6 +97,15 @@ public class WorkflowProfiles {
         return null;
     }
 
+    public TaskDefinition getTaskProfile(WorkflowDefinition workflow, String taskName) {
+        for (TaskDefinition task : workflow.getTasks()) {
+            if (task.getName().equals(taskName)) {
+                return task;
+            }
+        }
+        return null;
+    }
+
     private synchronized void setProfiles(WorkflowDefinition profiles, long time) {
         if (time > lastModified) {
             this.profiles = profiles;

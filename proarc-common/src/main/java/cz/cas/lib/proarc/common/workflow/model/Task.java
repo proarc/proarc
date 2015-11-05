@@ -18,22 +18,35 @@ package cz.cas.lib.proarc.common.workflow.model;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
  * @author Jan Pokorsky
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 public class Task {
 
+    @XmlElement(name = WorkflowModelConsts.TASK_CREATED)
     private Timestamp created;
+    @XmlElement(name = WorkflowModelConsts.TASK_ID)
     private BigDecimal id;
+    @XmlElement(name = WorkflowModelConsts.TASK_JOBID)
     private BigDecimal jobId;
+    @XmlElement(name = WorkflowModelConsts.TASK_NOTE)
     private String note;
+    @XmlElement(name = WorkflowModelConsts.TASK_OWNERID)
     private BigDecimal ownerId;
+    @XmlElement(name = WorkflowModelConsts.TASK_PRIORITY)
     private Integer priority;
+    @XmlElement(name = WorkflowModelConsts.TASK_STATE)
     private State state;
     /** The name of a task type in workflow profile. */
+    @XmlElement(name = WorkflowModelConsts.TASK_PROFILENAME)
     private String typeRef;
+    @XmlElement(name = WorkflowModelConsts.TASK_TIMESTAMP)
     private Timestamp timestamp;
 
     public Timestamp getCreated() {
@@ -127,8 +140,8 @@ public class Task {
         return state == null ? null : state.name();
     }
 
-    public Task setStateAsString(String state) {
-        return setState(State.valueOf(state));
+    public void setStateAsString(String state) {
+        setState(State.valueOf(state));
     }
 
     public String getTypeRef() {

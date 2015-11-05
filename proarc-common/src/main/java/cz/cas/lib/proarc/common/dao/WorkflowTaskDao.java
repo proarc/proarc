@@ -17,7 +17,10 @@
 package cz.cas.lib.proarc.common.dao;
 
 import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  *
@@ -30,5 +33,7 @@ public interface WorkflowTaskDao extends Dao {
     Task find(BigDecimal id);
 
     void update(Task task) throws ConcurrentModificationException;
+
+    List<TaskView> view(TaskFilter filter);
 
 }

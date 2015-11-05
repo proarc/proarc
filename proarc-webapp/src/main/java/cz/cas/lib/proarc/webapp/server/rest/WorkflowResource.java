@@ -24,6 +24,9 @@ import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
+import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
@@ -144,6 +147,45 @@ public class WorkflowResource {
                     + ", " + WorkflowResourceApi.NEWJOB_CATALOGID + ":" + catalogId
                     + ", " + WorkflowResourceApi.NEWJOB_METADATA + ":\n" + metadata,
                     ex);
+            return SmartGwtResponse.asError(ex.getMessage());
+        }
+    }
+
+    @Path(WorkflowResourceApi.TASK_PATH)
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<TaskView> getTask(
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_ID) BigDecimal id,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_JOBID) BigDecimal jobId,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_PRIORITY) Integer priority,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_PROFILENAME) String profileName,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_STATE) Task.State state,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_OWNERID) BigDecimal userId,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_OFFSET) int startRow,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_SORTBY) String sortBy
+    ) {
+        int pageSize = 100;
+        TaskFilter filter = new TaskFilter();
+        filter.setLocale(session.getLocale(httpHeaders));
+        filter.setMaxCount(pageSize);
+        filter.setOffset(startRow);
+        filter.setSortBy(sortBy);
+
+        filter.setId(id);
+        filter.setJobId(jobId);
+        filter.setPriority(priority);
+        filter.setProfileName(profileName);
+        filter.setState(state);
+        filter.setUserId(userId);
+        try {
+            List<TaskView> jobs = workflowManager.findTask(filter);
+            int resultSize = jobs.size();
+            int endRow = startRow + resultSize;
+            int total = (resultSize != pageSize) ? endRow : endRow + 1;
+            return new SmartGwtResponse<TaskView>(
+                    SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, jobs);
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, null, ex);
             return SmartGwtResponse.asError(ex.getMessage());
         }
     }

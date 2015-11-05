@@ -20,9 +20,19 @@ import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.WorkflowTaskDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.WorkflowTaskTable;
 import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import org.apache.empire.db.DBCommand;
+import org.apache.empire.db.DBJoinType;
+import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
+import org.apache.empire.db.DBRecordData;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
 import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 
@@ -74,6 +84,54 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
             return null;
         } finally {
             record.close();
+        }
+    }
+
+    @Override
+    public List<TaskView> view(TaskFilter filter) {
+        DBCommand cmd = db.createCommand();
+        cmd.select(tableTask.getColumns());
+        cmd.select(db.tableWorkflowJob.label.as("JOB_LABEL"));
+        cmd.select(db.tableUser.username);
+        cmd.join(tableTask.jobId, db.tableWorkflowJob.id);
+        cmd.join(tableTask.ownerId, db.tableUser.id, DBJoinType.LEFT);
+
+        if (filter.getId() != null) {
+            cmd.where(tableTask.id.is(filter.getId()));
+        }
+        if (filter.getJobId() != null) {
+            cmd.where(tableTask.jobId.is(filter.getJobId()));
+        }
+        if (filter.getPriority() != null) {
+            cmd.where(tableTask.priority.is(filter.getPriority()));
+        }
+        if (filter.getProfileName() != null) {
+            cmd.where(tableTask.typeRef.is(filter.getProfileName()));
+        }
+        if (filter.getState() != null) {
+            cmd.where(tableTask.state.is(filter.getState().name()));
+        }
+        if (filter.getUserId() != null) {
+            cmd.where(tableTask.ownerId.is(filter.getUserId()));
+        }
+        EmpireUtils.addOrderBy(cmd, tableTask, filter.getSortBy(), tableTask.timestamp, true);
+
+        DBReader reader = new DBReader();
+        try {
+            reader.open(cmd, getConnection());
+            if (!reader.skipRows(filter.getOffset())) {
+                return Collections.emptyList();
+            }
+            ArrayList<TaskView> viewItems = new ArrayList<TaskView>(filter.getMaxCount());
+            for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
+                DBRecordData rec = it.next();
+                TaskView view = new TaskView();
+                rec.getBeanProperties(view);
+                viewItems.add(view);
+            }
+            return viewItems;
+        } finally {
+            reader.close();
         }
     }
 

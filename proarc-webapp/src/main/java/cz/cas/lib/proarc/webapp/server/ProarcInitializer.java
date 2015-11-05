@@ -182,10 +182,11 @@ public final class ProarcInitializer {
 
     private void initWorkflow(AppConfiguration config, DaoFactory daoFactory, UserManager users) {
         try {
-            WorkflowManager.setInstance(new WorkflowManager(daoFactory, users));
             File workflowFile = config.getWorkflowConfiguration();
             WorkflowProfiles.copyDefaultFile(config.getWorkflowConfiguration());
             WorkflowProfiles.setInstance(new WorkflowProfiles(workflowFile));
+            WorkflowManager.setInstance(new WorkflowManager(
+                    WorkflowProfiles.getInstance(), daoFactory, users));
         } catch (Exception ex) {
             throw new IllegalStateException("The workflow initialization failed!", ex);
         }

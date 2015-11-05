@@ -43,4 +43,26 @@ public final class WorkflowModelConsts {
     public static final String JOB_FILTER_SORTBY = "_sortBy";
     public static final String JOB_FILTER_STATE = "state";
 
+    public static final String TASK_CREATED = "created";
+    public static final String TASK_ID = "id";
+    public static final String TASK_JOBID = "jobId";
+    public static final String TASK_JOBLABEL = "jobLabel";
+    public static final String TASK_NOTE = "note";
+    public static final String TASK_OWNERID = "ownerId";
+    public static final String TASK_OWNERNAME = "ownerName";
+    public static final String TASK_PRIORITY = "priority";
+    public static final String TASK_PROFILELABEL = "profileLabel";
+    public static final String TASK_PROFILENAME = "profileName";
+    public static final String TASK_STATE = "state";
+    public static final String TASK_TIMESTAMP = "timestamp";
+
+    public static final String TASK_FILTER_ID = "id";
+    public static final String TASK_FILTER_JOBID = "jobId";
+    public static final String TASK_FILTER_OFFSET = "_startRow";
+    public static final String TASK_FILTER_OWNERID = "ownerId";
+    public static final String TASK_FILTER_PRIORITY = "priority";
+    public static final String TASK_FILTER_PROFILENAME = "profileName";
+    public static final String TASK_FILTER_SORTBY = "_sortBy";
+    public static final String TASK_FILTER_STATE = "state";
+
 }

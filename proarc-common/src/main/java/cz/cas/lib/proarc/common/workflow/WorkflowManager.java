@@ -34,7 +34,9 @@ import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.MaterialDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.SetMaterialDefinition;
@@ -71,10 +73,12 @@ public class WorkflowManager {
     public static void setInstance(WorkflowManager instance) {
         INSTANCE = instance;
     }
+    private final WorkflowProfiles wp;
 
-    public WorkflowManager(DaoFactory daoFactory, UserManager users) {
+    public WorkflowManager(WorkflowProfiles wp, DaoFactory daoFactory, UserManager users) {
         this.daoFactory = daoFactory;
         this.userMgr = users;
+        this.wp = wp;
     }
 
     public Job getJob(BigDecimal id) {
@@ -89,7 +93,6 @@ public class WorkflowManager {
     }
 
     public List<JobView> findJob(JobFilter filter) {
-        WorkflowProfiles wp = WorkflowProfiles.getInstance();
         WorkflowDefinition wd = wp.getProfiles();
         Transaction tx = daoFactory.createTransaction();
         WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
@@ -100,9 +103,34 @@ public class WorkflowManager {
                 JobDefinition profile = wp.getProfile(wd, job.getProfileName());
                 if (profile != null) {
                     job.setProfileLabel(profile.getTitle(filter.getLocale().getLanguage(), profile.getName()));
+                } else {
+                    job.setProfileLabel("Unknown job profile: " + job.getProfileName());
                 }
             }
             return jobs;
+        } finally {
+            tx.close();
+        }
+    }
+
+    public List<TaskView> findTask(TaskFilter filter) {
+        WorkflowDefinition wd = wp.getProfiles();
+        Transaction tx = daoFactory.createTransaction();
+        WorkflowTaskDao taskDao = daoFactory.createWorkflowTaskDao();
+        taskDao.setTransaction(tx);
+        try {
+            List<TaskView> tasks = taskDao.view(filter);
+            for (TaskView task : tasks) {
+                TaskDefinition taskProfile = wp.getTaskProfile(wd, task.getTypeRef());
+                if (taskProfile != null) {
+                    task.setProfileLabel(taskProfile.getTitle(
+                            filter.getLocale().getLanguage(),
+                            taskProfile.getName()));
+                } else {
+                    task.setProfileLabel("Unknown task profile: " + task.getTypeRef());
+                }
+            }
+            return tasks;
         } finally {
             tx.close();
         }

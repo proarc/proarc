@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.client.presenter;
 
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.Widget;
+import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TitleOrientation;
@@ -36,6 +37,7 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -47,6 +49,7 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor.WorkflowMaterialView;
 
@@ -230,6 +233,7 @@ public class WorkflowJobsEditor {
         private final Canvas widget;
         private DynamicForm jobForm;
         private WorkflowMaterialView materialView;
+        private ListGrid taskView;
 
         public WorkflowJobFormView(ClientMessages i18n) {
             this.i18n = i18n;
@@ -243,11 +247,16 @@ public class WorkflowJobsEditor {
         public void setJob(Record job) {
             if (job != null) {
                 jobForm.editRecord(job);
+                taskView.fetchData(new Criteria(
+                        WorkflowModelConsts.TASK_FILTER_JOBID,
+                        job.getAttribute(WorkflowModelConsts.TASK_JOBID)
+                ));
                 Record[] materials = job.getAttributeAsRecordArray(WorkflowJobDataSource.FIELD_MATERIALS);
                 materialView.getMaterialGrid().setData(materials);
             } else {
                 jobForm.clearValues();
                 materialView.getMaterialGrid().setData(new Record[0]);
+                taskView.setData(new Record[0]);
             }
         }
 
@@ -268,7 +277,7 @@ public class WorkflowJobsEditor {
 
             SelectItem owner = new SelectItem(WorkflowJobDataSource.FIELD_OWNER);
             owner.setOptionDataSource(UserDataSource.getInstance());
-            owner.setValueField(UserDataSource.FIELD_USERNAME);
+            owner.setValueField(UserDataSource.FIELD_ID);
             owner.setDisplayField(UserDataSource.FIELD_USERNAME);
 
             AutoFitTextAreaItem note = new AutoFitTextAreaItem(WorkflowJobDataSource.FIELD_NOTE);
@@ -295,13 +304,13 @@ public class WorkflowJobsEditor {
         }
 
         private Widget createTaskList() {
-            final ListGrid grid = new ListGrid();
-            grid.setFields(
-                    new ListGridField("Typ úkolu"),
-                    new ListGridField("Kdo"),
-                    new ListGridField("Stav")
+            taskView = new ListGrid();
+            taskView.setDataSource(WorkflowTaskDataSource.getInstance(),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_LABEL, "Typ úkolu"),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_OWNER, "Kdo"),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_STATE, "Stav")
             );
-            return grid;
+            return taskView;
         }
 
         private Widget createMaterialList() {

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset>
+
+    <proarc_wf_task id="1" type_ref="task.id1" job_id="1" owner_id="1" state="STARTED"
+        priority="1" note="my task note1" created="2015-10-20" timestamp="{$now}" />
+
+    <proarc_wf_task id="10" type_ref="task.id2" job_id="2" owner_id="1" state="WAITING"
+        priority="3" note="my task note10" created="2015-10-26" timestamp="{$now}" />
+
+    <proarc_wf_parameter />
+    <proarc_wf_material_in_task />
+    <proarc_wf_folder />
+    <proarc_wf_digital_document />
+    <proarc_wf_physical_document />
+</dataset>

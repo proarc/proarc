@@ -26,6 +26,8 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
+import cz.cas.lib.proarc.common.workflow.model.Task.State;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import java.util.Date;
 import java.util.LinkedHashMap;
 
@@ -38,20 +40,20 @@ public class WorkflowTaskDataSource extends RestDataSource {
 
     public static final String ID = "WorkflowTaskDataSource";
 
-    public static final String FIELD_CREATED = "created";
-    public static final String FIELD_JOB_ID = "jobId";
-    public static final String FIELD_JOB_LABEL = "jobLabel";
-    public static final String FIELD_ID = "id";
+    public static final String FIELD_CREATED = WorkflowModelConsts.TASK_CREATED;
+    public static final String FIELD_JOB_ID = WorkflowModelConsts.TASK_JOBID;
+    public static final String FIELD_JOB_LABEL = WorkflowModelConsts.TASK_JOBLABEL;
+    public static final String FIELD_ID = WorkflowModelConsts.TASK_ID;
     // LABEL stands for i18n of TYPE
-    public static final String FIELD_LABEL = "label";
+    public static final String FIELD_LABEL = WorkflowModelConsts.TASK_PROFILELABEL;
     public static final String FIELD_MATERIALS = "materials";
-    public static final String FIELD_MODIFIED = "modified";
-    public static final String FIELD_NOTE = "note";
-    public static final String FIELD_OWNER = "owner";
+    public static final String FIELD_MODIFIED = WorkflowModelConsts.TASK_TIMESTAMP;
+    public static final String FIELD_NOTE = WorkflowModelConsts.TASK_NOTE;
+    public static final String FIELD_OWNER = WorkflowModelConsts.TASK_OWNERID;
     public static final String FIELD_PARAMETERS = "params";
-    public static final String FIELD_PRIORITY = "priority";
-    public static final String FIELD_STATE = "state";
-    public static final String FIELD_TYPE = "type";
+    public static final String FIELD_PRIORITY = WorkflowModelConsts.TASK_PRIORITY;
+    public static final String FIELD_STATE = WorkflowModelConsts.TASK_STATE;
+    public static final String FIELD_TYPE = WorkflowModelConsts.TASK_FILTER_PROFILENAME;
 
     private static WorkflowTaskDataSource INSTANCE;
 
@@ -65,9 +67,7 @@ public class WorkflowTaskDataSource extends RestDataSource {
     public WorkflowTaskDataSource() {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
-        setClientOnly(true);
-        setTestData(createDemoData());
-//        setDataURL(RestConfig.URL_DEVICE);
+        setDataURL(RestConfig.URL_WORKFLOW_TASK);
 
         DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);
         fieldId.setPrimaryKey(Boolean.TRUE);
@@ -92,16 +92,17 @@ public class WorkflowTaskDataSource extends RestDataSource {
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
         state.setTitle("Stav");
         state.setValueMap(new LinkedHashMap<String, String>() {{
-            put("waiting", "Čeká");
-            put("ready", "Připraven");
-            put("started", "Probíhá");
-            put("finished", "Dokončen");
-            put("canceled", "Zrušen");
+            put(State.WAITING.name(), "Čeká");
+            put(State.READY.name(), "Připraven");
+            put(State.STARTED.name(), "Probíhá");
+            put(State.FINISHED.name(), "Dokončen");
+            put(State.CANCELED.name(), "Zrušen");
         }});
         state.setRequired(true);
 
         DataSourceTextField owner = new DataSourceTextField(FIELD_OWNER);
         owner.setTitle("Pracovník");
+        owner.setDisplayField(WorkflowModelConsts.TASK_OWNERNAME);
 
         DataSourceTextField note = new DataSourceTextField(FIELD_NOTE);
         note.setTitle("Poznámka");

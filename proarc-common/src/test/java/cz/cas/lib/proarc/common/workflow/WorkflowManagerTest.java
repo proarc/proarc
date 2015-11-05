@@ -29,6 +29,8 @@ import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.File;
@@ -93,7 +95,7 @@ public class WorkflowManagerTest {
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
         }});
         UserManager users = UserUtil.createUserManagerPostgressImpl(config, null, daos);
-        WorkflowManager wm = new WorkflowManager(daos, users);
+        WorkflowManager wm = new WorkflowManager(wp, daos, users);
         CatalogConfiguration c = new CatalogConfiguration("testCatalogId", "", new BaseConfiguration() {{
             addProperty(CatalogConfiguration.PROPERTY_URL, "tcp://localhost:9991");
             addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
@@ -108,11 +110,19 @@ public class WorkflowManagerTest {
 
         JobFilter filter = new JobFilter();
         filter.setId(job.getId());
-        filter.setLocale(new Locale("cs"));
+        Locale locale = new Locale("cs");
+        filter.setLocale(locale);
 
         List<JobView> findJob = wm.findJob(filter);
         assertEquals(1, findJob.size());
         assertEquals("csTitle", findJob.get(0).getProfileLabel());
+
+        TaskFilter taskFilter = new TaskFilter();
+        taskFilter.setLocale(locale);
+        taskFilter.setProfileName("task.id1");
+        List<TaskView> findTask = wm.findTask(taskFilter);
+        assertEquals(1, findTask.size());
+        assertEquals(job.getId(), findTask.get(0).getJobId());
     }
 
 }
