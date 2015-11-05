@@ -10,4 +10,10 @@
         priority="3" label="STT Monograph" financed="OSN" note="my note2"
         created="2015-10-25" timestamp="{$now}" />
 
+    <proarc_wf_task />
+    <proarc_wf_parameter />
+    <proarc_wf_material_in_task />
+    <proarc_wf_folder />
+    <proarc_wf_digital_document />
+    <proarc_wf_physical_document />
 </dataset>
