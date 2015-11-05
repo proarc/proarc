@@ -43,6 +43,7 @@ import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
@@ -78,7 +79,7 @@ public class WorkflowJobsEditor {
         places.goTo(new WorkflowNewJobPlace());
     }
 
-    private static final class WorkflowJobView {
+    private static final class WorkflowJobView implements Refreshable {
 
         private final ClientMessages i18n;
         private final Canvas widget;
@@ -101,6 +102,12 @@ public class WorkflowJobsEditor {
 
         public void setHandler(WorkflowJobsEditor handler) {
             this.handler = handler;
+        }
+
+        @Override
+        public void refresh() {
+            jobGrid.invalidateCache();
+            init();
         }
 
         private Canvas createMainLayout() {

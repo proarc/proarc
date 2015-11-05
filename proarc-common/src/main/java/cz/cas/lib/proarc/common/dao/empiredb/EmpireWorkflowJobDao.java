@@ -20,10 +20,19 @@ import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.WorkflowJobDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.WorkflowJobTable;
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.JobFilter;
+import cz.cas.lib.proarc.common.workflow.model.JobView;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import org.apache.empire.db.DBCommand;
+import org.apache.empire.db.DBJoinType;
+import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
+import org.apache.empire.db.DBRecordData;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
 import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 
@@ -78,31 +87,45 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         }
     }
 
-    public void view(JobFilter filter) {
+    @Override
+    public List<JobView> view(JobFilter filter) {
         DBCommand cmd = db.createCommand();
         cmd.select(tableJob.getColumns());
         cmd.select(db.tableUser.username);
+        cmd.join(tableJob.ownerId, db.tableUser.id, DBJoinType.LEFT);
 
-        cmd.join(tableJob.ownerId, db.tableUser.id);
+        if (filter.getId() != null) {
+            cmd.where(tableJob.id.is(filter.getId()));
+        }
+        if (filter.getProfileName() != null) {
+            cmd.where(tableJob.profileName.is(filter.getProfileName()));
+        }
+        if (filter.getState() != null) {
+            cmd.where(tableJob.state.is(filter.getState().name()));
+        }
 
-        cmd.where(tableJob.ownerId.is(filter.getWorker()));
-
+        if (filter.getUserId() != null) {
+            cmd.where(tableJob.ownerId.is(filter.getUserId()));
+        }
         cmd.orderBy(tableJob.timestamp);
-    }
-
-    public static class JobFilter {
-
-        private String worker;
-
-        public String getWorker() {
-            return worker;
+        
+        DBReader reader = new DBReader();
+        try {
+            reader.open(cmd, getConnection());
+            if (!reader.skipRows(filter.getOffset())) {
+                return Collections.emptyList();
+            }
+            ArrayList<JobView> viewItems = new ArrayList<JobView>(filter.getMaxCount());
+            for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
+                DBRecordData rec = it.next();
+                JobView view = new JobView();
+                rec.getBeanProperties(view);
+                viewItems.add(view);
+            }
+            return viewItems;
+        } finally {
+            reader.close();
         }
-
-        public JobFilter setWorker(String worker) {
-            this.worker = worker;
-            return this;
-        }
-
     }
 
 }

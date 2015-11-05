@@ -26,12 +26,18 @@ import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.JobFilter;
+import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -80,7 +86,8 @@ public class WorkflowManagerTest {
     public void testAddJob() throws Exception {
         File xmlWorkflow = temp.newFile("workflowTest.xml");
         FileUtils.copyURLToFile(WorkflowManagerTest.class.getResource("WorkflowManagerAddProfile.xml"), xmlWorkflow);
-        WorkflowProfiles wp = new WorkflowProfiles(xmlWorkflow);
+        WorkflowProfiles.setInstance(new WorkflowProfiles(xmlWorkflow));
+        WorkflowProfiles wp = WorkflowProfiles.getInstance();
         JobDefinition jobProfile = wp.getProfiles().getJobs().get(0);
         AppConfiguration config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
@@ -92,7 +99,20 @@ public class WorkflowManagerTest {
             addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
             addProperty(CatalogConfiguration.PROPERTY_TYPE, Z3950Catalog.TYPE);
         }});
-        wm.addJob(jobProfile, "<mods></mods>", c, null);
+        String mods = IOUtils.toString(WorkflowManagerTest.class.getResource("rdczmods.xml"));
+        Job job = wm.addJob(jobProfile, mods, c, null);
+        assertNotNull(job);
+
+        Job getJob = wm.getJob(job.getId());
+        assertNotNull(getJob);
+
+        JobFilter filter = new JobFilter();
+        filter.setId(job.getId());
+        filter.setLocale(new Locale("cs"));
+
+        List<JobView> findJob = wm.findJob(filter);
+        assertEquals(1, findJob.size());
+        assertEquals("csTitle", findJob.get(0).getProfileLabel());
     }
 
 }

@@ -17,7 +17,10 @@
 package cz.cas.lib.proarc.common.dao;
 
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.JobFilter;
+import cz.cas.lib.proarc.common.workflow.model.JobView;
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  *
@@ -30,5 +33,7 @@ public interface WorkflowJobDao extends Dao {
     Job find(BigDecimal id);
 
     void update(Job job) throws ConcurrentModificationException;
+
+    List<JobView> view(JobFilter filter);
 
 }

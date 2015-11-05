@@ -18,22 +18,37 @@ package cz.cas.lib.proarc.common.workflow.model;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
  * @author Jan Pokorsky
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 public class Job {
 
+    @XmlElement(name = WorkflowModelConsts.JOB_CREATED)
     private Timestamp created;
+    @XmlAttribute(name = WorkflowModelConsts.JOB_ID)
     private BigDecimal id;
+    @XmlElement(name = WorkflowModelConsts.JOB_FINANCED)
     private String financed;
+    @XmlElement(name = WorkflowModelConsts.JOB_LABEL)
     private String label;
+    @XmlElement(name = WorkflowModelConsts.JOB_NOTE)
     private String note;
+    @XmlElement(name = WorkflowModelConsts.JOB_OWNERID)
     private BigDecimal ownerId;
+    @XmlElement(name = WorkflowModelConsts.JOB_PRIORITY)
     private int priority;
+    @XmlElement(name = WorkflowModelConsts.JOB_PROFILENAME)
     private String profileName;
+    @XmlElement(name = WorkflowModelConsts.JOB_STATE)
     private State state;
+    @XmlElement(name = WorkflowModelConsts.JOB_TIMESTAMP)
     private Timestamp timestamp;
 
     public Timestamp getCreated() {
@@ -153,8 +168,8 @@ public class Job {
         return state == null ? null : state.name();
     }
 
-    public Job setStateAsString(String state) {
-        return setState(State.fromValue(state));
+    public void setStateAsString(String state) {
+        setState(State.fromValue(state));
     }
 
     public Timestamp getTimestamp() {

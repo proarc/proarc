@@ -18,9 +18,13 @@
         <include name="model/DatastreamEditorType.java" />
     </source>
 
+    <source path="workflow/model">
+        <include name="*.java" />
+    </source>
+
     <source path="workflow/profile">
-        <include name="model/*View.java" />
-        <include name="model/WorkflowProfileConsts.java" />
+        <include name="*View.java" />
+        <include name="WorkflowProfileConsts.java" />
     </source>
 
 </module>

@@ -24,6 +24,8 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import java.util.Date;
 import java.util.LinkedHashMap;
 
@@ -36,17 +38,17 @@ public class WorkflowJobDataSource extends RestDataSource {
 
     public static final String ID = "WorkflowJobDataSource";
 
-    public static final String FIELD_CREATED = "created";
-    public static final String FIELD_ID = "id";
-    public static final String FIELD_FINANCED = "financed";
-    public static final String FIELD_LABEL = "label";
+    public static final String FIELD_CREATED = WorkflowModelConsts.JOB_CREATED;
+    public static final String FIELD_ID = WorkflowModelConsts.JOB_ID;
+    public static final String FIELD_FINANCED = WorkflowModelConsts.JOB_FINANCED;
+    public static final String FIELD_LABEL = WorkflowModelConsts.JOB_LABEL;
     public static final String FIELD_MATERIALS = "materials";
-    public static final String FIELD_MODIFIED = "modified";
-    public static final String FIELD_NOTE = "note";
-    public static final String FIELD_OWNER = "owner";
-    public static final String FIELD_PRIORITY = "priority";
-    public static final String FIELD_PROFILE_ID = "profileId";
-    public static final String FIELD_STATE = "state";
+    public static final String FIELD_MODIFIED = WorkflowModelConsts.JOB_TIMESTAMP;
+    public static final String FIELD_NOTE = WorkflowModelConsts.JOB_NOTE;
+    public static final String FIELD_OWNER = WorkflowModelConsts.JOB_OWNERID;
+    public static final String FIELD_PRIORITY = WorkflowModelConsts.JOB_PRIORITY;
+    public static final String FIELD_PROFILE_ID = WorkflowModelConsts.JOB_PROFILENAME;
+    public static final String FIELD_STATE = WorkflowModelConsts.JOB_STATE;
 
     private static WorkflowJobDataSource INSTANCE;
 
@@ -60,8 +62,6 @@ public class WorkflowJobDataSource extends RestDataSource {
     public WorkflowJobDataSource() {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
-//        setClientOnly(true);
-//        setTestData(createDemoJob());
         setDataURL(RestConfig.URL_WORKFLOW);
 
         DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);
@@ -78,18 +78,20 @@ public class WorkflowJobDataSource extends RestDataSource {
         DataSourceTextField profileId = new DataSourceTextField(FIELD_PROFILE_ID);
         profileId.setTitle("Profil");
         profileId.setCanEdit(false);
+        profileId.setDisplayField(WorkflowModelConsts.JOB_PROFILELABEL);
 
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
         state.setTitle("Stav");
         state.setValueMap(new LinkedHashMap<String,String>() {{
-            put("open", "Otevřený");
-            put("finished", "Hotový");
-            put("canceled", "Zrušený");
+            put(Job.State.OPEN.name(), "Otevřený");
+            put(Job.State.FINISHED.name(), "Hotový");
+            put(Job.State.CANCELED.name(), "Zrušený");
         }});
         state.setRequired(true);
 
         DataSourceTextField owner = new DataSourceTextField(FIELD_OWNER);
         owner.setTitle("Vlastník");
+        owner.setDisplayField(WorkflowModelConsts.JOB_OWNERNAME);
 
         DataSourceEnumField priority = new DataSourceEnumField(FIELD_PRIORITY);
         priority.setTitle("Priorita");

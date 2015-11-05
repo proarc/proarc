@@ -27,9 +27,11 @@ import cz.cas.lib.proarc.common.dao.WorkflowTaskDao;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
-import cz.cas.lib.proarc.common.workflow.model.Job;
-import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.FolderMaterial;
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.JobFilter;
+import cz.cas.lib.proarc.common.workflow.model.JobView;
+import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
@@ -40,6 +42,8 @@ import cz.cas.lib.proarc.common.workflow.profile.SetParamDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.StepDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.TaskDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkerDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -73,6 +77,37 @@ public class WorkflowManager {
         this.userMgr = users;
     }
 
+    public Job getJob(BigDecimal id) {
+        Transaction tx = daoFactory.createTransaction();
+        WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
+        jobDao.setTransaction(tx);
+        try {
+            return jobDao.find(id);
+        } finally {
+            tx.close();
+        }
+    }
+
+    public List<JobView> findJob(JobFilter filter) {
+        WorkflowProfiles wp = WorkflowProfiles.getInstance();
+        WorkflowDefinition wd = wp.getProfiles();
+        Transaction tx = daoFactory.createTransaction();
+        WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
+        jobDao.setTransaction(tx);
+        try {
+            List<JobView> jobs = jobDao.view(filter);
+            for (JobView job : jobs) {
+                JobDefinition profile = wp.getProfile(wd, job.getProfileName());
+                if (profile != null) {
+                    job.setProfileLabel(profile.getTitle(filter.getLocale().getLanguage(), profile.getName()));
+                }
+            }
+            return jobs;
+        } finally {
+            tx.close();
+        }
+    }
+
     public Job addJob(JobDefinition jobProfile, String xml,
             CatalogConfiguration catalog, UserProfile defaultUser
     ) {
@@ -103,8 +138,11 @@ public class WorkflowManager {
             }
             tx.commit();
             return job;
-        } finally {
+        } catch (Throwable t) {
             tx.rollback();
+            throw new IllegalStateException(jobProfile.getName(), t);
+        } finally {
+            tx.close();
         }
     }
 

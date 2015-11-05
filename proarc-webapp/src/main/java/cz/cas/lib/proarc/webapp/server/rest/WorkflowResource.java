@@ -22,13 +22,18 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.JobFilter;
+import cz.cas.lib.proarc.common.workflow.model.JobView;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -67,6 +72,38 @@ public class WorkflowResource {
         this.workflowManager = WorkflowManager.getInstance();
         this.workflowProfiles = WorkflowProfiles.getInstance();
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+    }
+
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<JobView> getJob(
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) BigDecimal id,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_PROFILENAME) String profileName,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_OWNERID) BigDecimal userId,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_OFFSET) int startRow,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_SORTBY) String sortBy
+    ) {
+        int pageSize = 100;
+        JobFilter filter = new JobFilter();
+        filter.setLocale(session.getLocale(httpHeaders));
+        filter.setMaxCount(pageSize);
+        filter.setOffset(startRow);
+        filter.setSortBy(sortBy);
+
+        filter.setId(id);
+        filter.setProfileName(profileName);
+        filter.setUserId(userId);
+        try {
+            List<JobView> jobs = workflowManager.findJob(filter);
+            int resultSize = jobs.size();
+            int endRow = startRow + resultSize;
+            int total = (resultSize != pageSize) ? endRow : endRow + 1;
+            return new SmartGwtResponse<JobView>(
+                    SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, jobs);
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            return SmartGwtResponse.asError(ex.getMessage());
+        }
     }
 
     /**
