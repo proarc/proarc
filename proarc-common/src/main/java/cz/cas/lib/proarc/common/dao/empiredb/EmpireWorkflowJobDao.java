@@ -107,8 +107,8 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         if (filter.getUserId() != null) {
             cmd.where(tableJob.ownerId.is(filter.getUserId()));
         }
-        cmd.orderBy(tableJob.timestamp);
-        
+        EmpireUtils.addOrderBy(cmd, tableJob, filter.getSortBy(), tableJob.timestamp, true);
+
         DBReader reader = new DBReader();
         try {
             reader.open(cmd, getConnection());

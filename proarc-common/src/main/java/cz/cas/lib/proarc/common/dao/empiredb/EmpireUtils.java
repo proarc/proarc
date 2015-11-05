@@ -22,6 +22,7 @@ import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
 import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
+import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBExpr;
@@ -69,6 +70,53 @@ class EmpireUtils {
         sql.append(' ');
         sql.append(helper.getStmt(0));
         script.addStmt(sql);
+    }
+
+    /**
+     * Adds a column to the {@code order by} clause of the command.
+     * @param cmd SQL command
+     * @param table table to search the column name
+     * @param columnBeanPropertyName a property name of the sort column prefixed
+     *          with {@code '-'} to make the sorting ascending.
+     * @param defaultSortByColumn {@code null} or a column to use in case of
+     *          missing {@code columnBeanPropertyName}
+     * @param defaultDescending {@code true} to sort {@code defaultSortByColumn} top down
+     */
+    public static void addOrderBy(DBCommand cmd, DBTable table,
+            String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
+            boolean defaultDescending
+    ) {
+        DBColumn sortByCol = getSortColumn(table, columnBeanPropertyName);
+        boolean descending;
+        if (sortByCol != null) {
+            descending = isDescendingSort(columnBeanPropertyName);
+        } else if (defaultSortByColumn != null) {
+            sortByCol = defaultSortByColumn;
+            descending = defaultDescending;
+        } else {
+            return ;
+        }
+        cmd.orderBy(sortByCol, descending);
+    }
+
+    private static boolean isDescendingSort(String beanPropertyName) {
+        return beanPropertyName.charAt(0) == '-';
+    }
+
+    private static DBColumn getSortColumn(DBTable table, String beanPropertyName) {
+        if (beanPropertyName == null) {
+            return null;
+        }
+        return findColumn(table, beanPropertyName.charAt(0) == '-' ? beanPropertyName.substring(1) : beanPropertyName);
+    }
+
+    private static DBColumn findColumn(DBTable table, String beanPropertyName) {
+        for (DBColumn col : table.getColumns()) {
+            if (beanPropertyName.equals(col.getBeanPropertyName())) {
+                return col;
+            }
+        }
+        return null;
     }
 
     /**

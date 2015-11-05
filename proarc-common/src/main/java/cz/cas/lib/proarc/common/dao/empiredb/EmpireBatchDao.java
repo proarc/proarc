@@ -37,12 +37,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.apache.empire.data.bean.BeanResult;
-import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
-import org.apache.empire.db.DBTable;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
 import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 import org.apache.empire.db.expr.compare.DBCompareExpr;
@@ -202,15 +200,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
                     .or(bitems.type.is(BatchItem.Type.FILE).and(bitems.file.like('%' + filePattern + '%')))
             );
         }
-        DBColumn sortByCol = getSortColumn(table, filter.getSortBy());
-        boolean descending;
-        if (sortByCol != null) {
-            descending = isDescendingSort(filter.getSortBy());
-        } else {
-            sortByCol = table.create;
-            descending = true;
-        }
-        cmd.orderBy(sortByCol, descending);
+        EmpireUtils.addOrderBy(cmd, table, filter.getSortBy(), table.create, true);
         DBReader reader = new DBReader();
         try {
             reader.open(cmd, getConnection());
@@ -231,26 +221,6 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         } finally {
             reader.close();
         }
-    }
-
-    private static boolean isDescendingSort(String beanPropertyName) {
-        return beanPropertyName.charAt(0) == '-';
-    }
-
-    private static DBColumn getSortColumn(DBTable table, String beanPropertyName) {
-        if (beanPropertyName == null) {
-            return null;
-        }
-        return findColumn(table, beanPropertyName.charAt(0) == '-' ? beanPropertyName.substring(1) : beanPropertyName);
-    }
-
-    private static DBColumn findColumn(DBTable table, String beanPropertyName) {
-        for (DBColumn col : table.getColumns()) {
-            if (beanPropertyName.equals(col.getBeanPropertyName())) {
-                return col;
-            }
-        }
-        return null;
     }
 
 }
