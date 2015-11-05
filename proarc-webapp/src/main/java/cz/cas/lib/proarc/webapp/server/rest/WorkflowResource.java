@@ -29,6 +29,7 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.FormParam;
@@ -97,8 +98,17 @@ public class WorkflowResource {
         if (profile == null) {
             return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
         }
-        Job job = workflowManager.addJob(profile, metadata, catalog, session.getUser());
-        return new SmartGwtResponse<Job>(job);
+        try {
+            Job job = workflowManager.addJob(profile, metadata, catalog, session.getUser());
+            return new SmartGwtResponse<Job>(job);
+        } catch (Throwable ex) {
+            LOG.log(Level.SEVERE,
+                    WorkflowResourceApi.NEWJOB_PROFILE + ":" + profileName
+                    + ", " + WorkflowResourceApi.NEWJOB_CATALOGID + ":" + catalogId
+                    + ", " + WorkflowResourceApi.NEWJOB_METADATA + ":\n" + metadata,
+                    ex);
+            return SmartGwtResponse.asError(ex.getMessage());
+        }
     }
 
     /**
