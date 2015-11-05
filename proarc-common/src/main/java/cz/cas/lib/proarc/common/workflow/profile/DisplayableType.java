@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,10 @@ abstract class DisplayableType<T extends DisplayableType> {
         return (T) this;
     }
 
+    public String getTitle(String lang, String defaultValue) {
+        return getI18n(getTitles(), lang, defaultValue);
+    }
+
     public Map<String, String> getTitles() {
         if (titles == null) {
             titles = new LinkedHashMap<String, String>();
@@ -56,11 +61,26 @@ abstract class DisplayableType<T extends DisplayableType> {
         return titles;
     }
 
+    public String getHint(String lang, String defaultValue) {
+        return getI18n(getHints(), lang, defaultValue);
+    }
+
     public Map<String, String> getHints() {
         if (hints == null) {
             hints = new LinkedHashMap<String, String>();
         }
         return hints;
+    }
+
+    static String getI18n(Map<String, String> vals, String lang, String defaultValue) {
+        String i18n = vals.get(lang);
+        if (i18n == null) {
+            Iterator<String> i18ns = vals.values().iterator();
+            if (i18ns.hasNext()) {
+                i18n = i18ns.next();
+            }
+        }
+        return i18n != null ? i18n : defaultValue;
     }
 
     @XmlElement(name = WorkflowProfileConsts.TITLE_EL)

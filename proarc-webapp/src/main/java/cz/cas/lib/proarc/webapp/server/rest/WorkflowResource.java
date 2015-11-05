@@ -29,8 +29,6 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.FormParam;
@@ -127,8 +125,8 @@ public class WorkflowResource {
                     && (disabled == null || disabled == job.isDisabled())) {
                 JobDefinitionView p = new JobDefinitionView();
                 p.setName(job.getName());
-                p.setTitle(getI18n(job.getTitles(), lang, job.getName()));
-                p.setHint(getI18n(job.getHints(), lang, null));
+                p.setTitle(job.getTitle(lang, job.getName()));
+                p.setHint(job.getHint(lang, null));
                 p.setDisabled(job.isDisabled());
                 profiles.add(p);
             }
@@ -140,14 +138,4 @@ public class WorkflowResource {
         return SmartGwtResponse.asError("Invalid workflow.xml! Check server configuration.");
     }
 
-    private static String getI18n(Map<String, String> vals, String lang, String defaultValue) {
-        String i18n = vals.get(lang);
-        if (i18n == null) {
-            Iterator<String> i18ns = vals.values().iterator();
-            if (i18ns.hasNext()) {
-                i18n = i18ns.next();
-            }
-        }
-        return i18n != null ? i18n : defaultValue;
-    }
 }
