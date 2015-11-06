@@ -414,7 +414,7 @@ public class ProarcDatabase extends DBDatabase {
         public WorkflowDigObjTable(DBDatabase db) {
             super("PROARC_WF_DIGITAL_DOCUMENT", db);
             materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
-            pid = addColumn("PID", DataType.TEXT, 41, true);
+            pid = addColumn("PID", DataType.TEXT, 100, false);
             setPrimaryKey(materialId);
         }
     }
@@ -457,7 +457,7 @@ public class ProarcDatabase extends DBDatabase {
             taskId = addColumn("TASK_ID", DataType.INTEGER, 0, true);
             materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
             way = addColumn("WAY", DataType.TEXT, 100, true);
-            setPrimaryKey(taskId, materialId);
+            setPrimaryKey(taskId, materialId, way);
         }
     }
 
