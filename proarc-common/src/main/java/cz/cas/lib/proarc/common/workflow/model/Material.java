@@ -17,25 +17,35 @@
 package cz.cas.lib.proarc.common.workflow.model;
 
 import java.math.BigDecimal;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
  * @author Jan Pokorsky
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 public class Material {
 
     public enum Type {
         FOLDER, DIGITAL_OBJECT, PHYSICAL_DOCUMENT;
     }
 
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_ID)
     private BigDecimal id;
     /**
      * The description of a material's value
      */
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_LABEL)
     private String label;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_NAME)
     private String name;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_NOTE)
     private String note;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_STATE)
     private String state;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_TYPE)
     private Type type;
 
     public BigDecimal getId() {

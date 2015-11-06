@@ -17,8 +17,12 @@
 package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.smartgwt.client.data.DataSource;
+import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
+import com.smartgwt.client.types.DSDataFormat;
+import cz.cas.lib.proarc.common.workflow.model.Material;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import java.util.LinkedHashMap;
 
 /**
@@ -26,24 +30,26 @@ import java.util.LinkedHashMap;
  *
  * @author Jan Pokorsky
  */
-public class WorkflowMaterialDataSource extends DataSource {
+public class WorkflowMaterialDataSource extends RestDataSource {
 
     public static final String ID = "WorkflowMaterialDataSource";
-    public static final String FIELD_ID = "id";
+    public static final String FIELD_ID = WorkflowModelConsts.MATERIAL_ID;
     public static final String FIELD_JOB_ID = "jobId";
-    public static final String FIELD_TASK_ID = "taskId";
-    public static final String FIELD_NOTE = "note";
-    public static final String FIELD_TYPE = "type";
-    public static final String FIELD_VALUE = "value";
-    public static final String FIELD_WAY = "way";
+    public static final String FIELD_TASK_ID = WorkflowModelConsts.MATERIAL_TASKID;
+    public static final String FIELD_NOTE = WorkflowModelConsts.MATERIAL_NOTE;
+    public static final String FIELD_TYPE = WorkflowModelConsts.MATERIAL_TYPE;
+    public static final String FIELD_VALUE = WorkflowModelConsts.MATERIAL_LABEL;
+    public static final String FIELD_PROFILENAME = WorkflowModelConsts.MATERIAL_NAME;
+    public static final String FIELD_WAY = WorkflowModelConsts.MATERIAL_WAY;
 
     // custom fields
-    public static final String FIELD_FOLDER_PATH = "folderPath";
-    public static final String FIELD_PHYSICAL_BARCODE = "physicalBarCode";
-    public static final String FIELD_PHYSICAL_FIELD001 = "physicalField001";
-    public static final String FIELD_PHYSICAL_RDCZID = "physicalRdCzId";
-    public static final String FIELD_PHYSICAL_METADATA = "physicalMetadata";
-    public static final String FIELD_DIGITAL_PID = "digitalPid";
+    public static final String FIELD_FOLDER_PATH = WorkflowModelConsts.MATERIAL_PATH;
+    public static final String FIELD_PHYSICAL_BARCODE = WorkflowModelConsts.MATERIAL_BARCODE;
+    public static final String FIELD_PHYSICAL_CATALOG = WorkflowModelConsts.MATERIAL_CATALOG;
+    public static final String FIELD_PHYSICAL_FIELD001 = WorkflowModelConsts.MATERIAL_FIELD001;
+    public static final String FIELD_PHYSICAL_RDCZID = WorkflowModelConsts.MATERIAL_RDCZID;
+    public static final String FIELD_PHYSICAL_METADATA = WorkflowModelConsts.MATERIAL_METADATA;
+    public static final String FIELD_DIGITAL_PID = WorkflowModelConsts.MATERIAL_PID;
 
     public static WorkflowMaterialDataSource INSTANCE;
 
@@ -56,7 +62,9 @@ public class WorkflowMaterialDataSource extends DataSource {
 
     public WorkflowMaterialDataSource() {
         setID(ID);
-        setClientOnly(true);
+        setDataFormat(DSDataFormat.JSON);
+        setDataURL(RestConfig.URL_WORKFLOW_MATERIAL);
+
         DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);
         fieldId.setCanEdit(false);
         fieldId.setDetail(true);
@@ -68,12 +76,16 @@ public class WorkflowMaterialDataSource extends DataSource {
         DataSourceTextField value = new DataSourceTextField(FIELD_VALUE);
         value.setTitle("Obsah");
 
+        DataSourceTextField profile = new DataSourceTextField(FIELD_PROFILENAME);
+        profile.setTitle("Popis");
+        profile.setDisplayField(WorkflowModelConsts.MATERIAL_PROFILELABEL);
+
         DataSourceEnumField type = new DataSourceEnumField(FIELD_TYPE);
         type.setTitle("Typ materiálu");
         type.setValueMap(new LinkedHashMap<String, String>() {{
-            put("folder", "Adresář");
-            put("physicalDocument", "Předloha");
-            put("digitalDocument", "Dig. objekt");
+            put(Material.Type.FOLDER.name(), "Adresář");
+            put(Material.Type.PHYSICAL_DOCUMENT.name(), "Předloha");
+            put(Material.Type.DIGITAL_OBJECT.name(), "Dig. objekt");
         }});
 
         DataSourceEnumField way = new DataSourceEnumField(FIELD_WAY);
@@ -86,6 +98,10 @@ public class WorkflowMaterialDataSource extends DataSource {
         DataSourceTextField path = new DataSourceTextField(FIELD_FOLDER_PATH);
         path.setTitle("Cesta");
         path.setDetail(true);
+
+        DataSourceTextField catalog = new DataSourceTextField(FIELD_PHYSICAL_CATALOG);
+        catalog.setTitle("Zdroj");
+        catalog.setDetail(true);
 
         DataSourceTextField barcode = new DataSourceTextField(FIELD_PHYSICAL_BARCODE);
         barcode.setTitle("Čárový kód");
@@ -107,11 +123,15 @@ public class WorkflowMaterialDataSource extends DataSource {
         metadata.setTitle("Metadata");
         metadata.setDetail(true);
 
-        setFields(type, value, way, note, fieldId,
+        setFields(profile, type, value, way, note, fieldId,
                 path,
-                barcode, field001, rdCzId, metadata,
+                barcode, field001, rdCzId, catalog, metadata,
                 pid
         );
+        setOperationBindings(
+                RestConfig.createAddOperation(),
+//                RestConfig.createDeleteOperation(),
+                RestConfig.createUpdateOperation());
     }
 
 }

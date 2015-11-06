@@ -32,6 +32,8 @@ import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.Material;
+import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
@@ -131,6 +133,29 @@ public class WorkflowManager {
                 }
             }
             return tasks;
+        } finally {
+            tx.close();
+        }
+    }
+
+    public List<MaterialView> findMaterial(MaterialFilter filter) {
+        WorkflowDefinition wd = wp.getProfiles();
+        Transaction tx = daoFactory.createTransaction();
+        WorkflowMaterialDao dao = daoFactory.createWorkflowMaterialDao();
+        dao.setTransaction(tx);
+        try {
+            List<MaterialView> mats = dao.view(filter);
+            for (MaterialView m : mats) {
+                MaterialDefinition matProfile = wp.getMaterialProfile(wd, m.getName());
+                if (matProfile != null) {
+                    m.setProfileLabel(matProfile.getTitle(
+                            filter.getLocale().getLanguage(),
+                            matProfile.getName()));
+                } else {
+                    m.setProfileLabel("Unknown material profile: " + m.getName());
+                }
+            }
+            return mats;
         } finally {
             tx.close();
         }

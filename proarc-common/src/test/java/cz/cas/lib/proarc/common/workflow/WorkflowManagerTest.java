@@ -23,23 +23,34 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.dao.empiredb.DbUnitSupport;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
+import cz.cas.lib.proarc.common.dao.empiredb.EmpireWorkflowJobDaoTest;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
+import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.File;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.dbunit.database.IDatabaseConnection;
+import org.dbunit.dataset.CompositeDataSet;
+import org.dbunit.dataset.DefaultDataSet;
+import org.dbunit.dataset.DefaultTable;
+import org.dbunit.dataset.IDataSet;
+import org.dbunit.dataset.ITable;
+import org.dbunit.dataset.ReplacementDataSet;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -84,8 +95,38 @@ public class WorkflowManagerTest {
     public void tearDown() {
     }
 
+    private static IDataSet emptyBatchSet(ProarcDatabase schema) throws Exception {
+        ITable[] tables = {
+            new DefaultTable(schema.tableWorkflowJob.getName()),
+            new DefaultTable(schema.tableWorkflowTask.getName()),
+            new DefaultTable(schema.tableWorkflowParameter.getName()),
+            new DefaultTable(schema.tableWorkflowMaterial.getName()),
+            new DefaultTable(schema.tableWorkflowDigObj.getName()),
+            new DefaultTable(schema.tableWorkflowFolder.getName()),
+            new DefaultTable(schema.tableWorkflowPhysicalDoc.getName()),
+            new DefaultTable(schema.tableWorkflowMaterialInTask.getName()),
+        };
+        return new DefaultDataSet(tables);
+    }
+
+    private IDataSet database(IDataSet... ds) throws Exception {
+        ReplacementDataSet rds = new ReplacementDataSet(new CompositeDataSet(ds));
+        rds.addReplacementObject("{$user.home}", "relative/path/");
+        Timestamp dbTimestamp = new Timestamp(System.currentTimeMillis());
+        rds.addReplacementObject("{$now}", dbTimestamp);
+        return rds;
+    }
+
     @Test
     public void testAddJob() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(EmpireWorkflowJobDaoTest.class, "user.xml"),
+                emptyBatchSet(schema)
+                );
+        final IDatabaseConnection dbcon = support.getConnection();
+        support.cleanInsert(dbcon, db);
+        dbcon.close();
+
         File xmlWorkflow = temp.newFile("workflowTest.xml");
         FileUtils.copyURLToFile(WorkflowManagerTest.class.getResource("WorkflowManagerAddProfile.xml"), xmlWorkflow);
         WorkflowProfiles.setInstance(new WorkflowProfiles(xmlWorkflow));
@@ -119,10 +160,17 @@ public class WorkflowManagerTest {
 
         TaskFilter taskFilter = new TaskFilter();
         taskFilter.setLocale(locale);
-        taskFilter.setProfileName("task.id1");
+        taskFilter.setJobId(job.getId());
         List<TaskView> findTask = wm.findTask(taskFilter);
-        assertEquals(1, findTask.size());
+        assertEquals(2, findTask.size());
         assertEquals(job.getId(), findTask.get(0).getJobId());
+
+        MaterialFilter materialFilter = new MaterialFilter();
+        materialFilter.setJobId(job.getId());
+        materialFilter.setLocale(locale);
+        List<MaterialView> findMaterial = wm.findMaterial(materialFilter);
+        assertEquals(2, findMaterial.size());
+
     }
 
 }

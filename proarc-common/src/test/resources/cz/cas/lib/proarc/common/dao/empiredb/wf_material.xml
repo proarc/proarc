@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset>
+
+    <proarc_wf_task id="2" type_ref="task.id2" job_id="1" owner_id="1" state="STARTED"
+        priority="1" note="my task note2" created="2015-10-22" timestamp="{$now}" />
+
+    <proarc_wf_material id="1" type="FOLDER" name="material.folder" label="/folder1" note="note m1" />
+    <proarc_wf_material id="2" type="DIGITAL_OBJECT" name="material.digital" label="Dig Obj" note="note d1" />
+    <proarc_wf_material id="3" type="PHYSICAL_DOCUMENT" name="material.physical" label="Phys Doc" note="note p1" />
+
+    <proarc_wf_material id="10" type="FOLDER" name="material.folder" label="/folder10" note="note m10" />
+
+    <proarc_wf_folder material_id="1" path="file:///folder1" />
+    <proarc_wf_folder material_id="10" path="file:///folder10" />
+
+    <proarc_wf_digital_document material_id="2" pid="uuid:ebfd7bf2-169d-476e-a230-0cc39f01764c" />
+
+    <proarc_wf_physical_document material_id="3" barcode="1234" rdcz_id="3" field001="001" source="http://catalog" metadata="Metadata" />
+
+    <proarc_wf_material_in_task task_id="1" material_id="1" way="output" />
+    <proarc_wf_material_in_task task_id="1" material_id="2" way="input" />
+    <proarc_wf_material_in_task task_id="1" material_id="3" way="input" />
+
+    <proarc_wf_material_in_task task_id="2" material_id="1" way="input" />
+
+    <proarc_wf_material_in_task task_id="10" material_id="10" way="input" />
+
+</dataset>

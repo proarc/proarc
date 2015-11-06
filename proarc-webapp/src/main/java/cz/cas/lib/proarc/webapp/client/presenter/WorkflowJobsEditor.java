@@ -246,13 +246,15 @@ public class WorkflowJobsEditor {
 
         public void setJob(Record job) {
             if (job != null) {
+                String jobId = job.getAttribute(WorkflowJobDataSource.FIELD_ID);
                 jobForm.editRecord(job);
+                taskView.invalidateCache();
                 taskView.fetchData(new Criteria(
-                        WorkflowModelConsts.TASK_FILTER_JOBID,
-                        job.getAttribute(WorkflowModelConsts.TASK_JOBID)
+                        WorkflowModelConsts.TASK_FILTER_JOBID, jobId
                 ));
-                Record[] materials = job.getAttributeAsRecordArray(WorkflowJobDataSource.FIELD_MATERIALS);
-                materialView.getMaterialGrid().setData(materials);
+                materialView.getMaterialGrid().invalidateCache();
+                materialView.getMaterialGrid().fetchData(
+                        new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, jobId));
             } else {
                 jobForm.clearValues();
                 materialView.getMaterialGrid().setData(new Record[0]);

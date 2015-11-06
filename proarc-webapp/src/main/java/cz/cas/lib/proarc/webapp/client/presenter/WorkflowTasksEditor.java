@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.client.presenter;
 
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.Widget;
+import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.ExpansionMode;
 import com.smartgwt.client.types.SelectionStyle;
@@ -43,6 +44,8 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import cz.cas.lib.proarc.common.workflow.model.Material;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -234,8 +237,10 @@ public class WorkflowTasksEditor {
             if (task != null) {
                 taskForm.clearErrors(true);
                 taskForm.editRecord(task);
+                String taskId = task.getAttribute(WorkflowTaskDataSource.FIELD_ID);
                 setParameters(task.getAttributeAsRecordArray(WorkflowTaskDataSource.FIELD_PARAMETERS));
-                setMaterials(task.getAttributeAsRecordArray(WorkflowTaskDataSource.FIELD_MATERIALS));
+                materialView.getMaterialGrid().fetchData(
+                        new Criteria(WorkflowModelConsts.MATERIALFILTER_TASKID, taskId));
             } else {
                 taskForm.clearValues();
                 setParameters(new Record[0]);
@@ -358,11 +363,11 @@ public class WorkflowTasksEditor {
                 protected Canvas getExpansionComponent(final ListGridRecord record) {
                     String type = record.getAttribute(WorkflowMaterialDataSource.FIELD_TYPE);
                     DynamicForm form = null;
-                    if ("folder".equals(type)) {
+                    if (Material.Type.FOLDER.name().equals(type)) {
                         form = createFolderForm();
-                    } else if ("physicalDocument".equals(type)) {
+                    } else if (Material.Type.PHYSICAL_DOCUMENT.name().equals(type)) {
                         form = createPhysicalDocumentForm();
-                    } else if ("digitalDocument".equals(type)) {
+                    } else if (Material.Type.DIGITAL_OBJECT.name().equals(type)) {
                         form = createDigitalDocumentForm();
                     }
                     if (form != null) {
@@ -374,7 +379,7 @@ public class WorkflowTasksEditor {
 
             };
             materialGrid.setDataSource(WorkflowMaterialDataSource.getInstance(),
-                    new ListGridField(WorkflowMaterialDataSource.FIELD_TYPE),
+                    new ListGridField(WorkflowMaterialDataSource.FIELD_PROFILENAME),
                     new ListGridField(WorkflowMaterialDataSource.FIELD_VALUE),
                     new ListGridField(WorkflowMaterialDataSource.FIELD_WAY),
                     new ListGridField(WorkflowMaterialDataSource.FIELD_NOTE),
@@ -417,6 +422,7 @@ public class WorkflowTasksEditor {
             TextAreaItem xml = new TextAreaItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_METADATA);
             xml.setWidth("*");
             form.setDataSource(WorkflowMaterialDataSource.getInstance(),
+                    new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_CATALOG),
                     new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_BARCODE),
                     new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_FIELD001),
                     new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_RDCZID),

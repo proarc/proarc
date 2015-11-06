@@ -17,7 +17,12 @@
 package cz.cas.lib.proarc.common.dao;
 
 import cz.cas.lib.proarc.common.workflow.model.Material;
+import cz.cas.lib.proarc.common.workflow.model.Material.Type;
+import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
+import java.math.BigDecimal;
+import java.util.List;
 
 /**
  *
@@ -26,6 +31,12 @@ import cz.cas.lib.proarc.common.workflow.model.Task;
 public interface WorkflowMaterialDao extends Dao {
 
     void addTaskReference(Material m, Task t, String way);
+
+    <T extends Material> T create(Type type);
+
+    <T extends Material> T find(BigDecimal id);
+
+    List<MaterialView> view(MaterialFilter filter);
 
     void update(Material m);
 

@@ -65,4 +65,32 @@ public final class WorkflowModelConsts {
     public static final String TASK_FILTER_SORTBY = "_sortBy";
     public static final String TASK_FILTER_STATE = "state";
 
+    // common material attributes
+    public static final String MATERIAL_ID = "id";
+    public static final String MATERIAL_JOB_ID = "jobId";
+    public static final String MATERIAL_LABEL = "label";
+    public static final String MATERIAL_NAME = "name";
+    public static final String MATERIAL_NOTE = "note";
+    public static final String MATERIAL_PROFILELABEL = "profileLabel";
+    public static final String MATERIAL_STATE = "state";
+    public static final String MATERIAL_TASKID = "taskId";
+    public static final String MATERIAL_TYPE = "type";
+    public static final String MATERIAL_WAY = "way";
+    // folder material attributes
+    public static final String MATERIAL_PATH = "path";
+    // digital material attributes
+    public static final String MATERIAL_PID = "pid";
+    // physical material attributes
+    public static final String MATERIAL_BARCODE = "barcode";
+    public static final String MATERIAL_CATALOG = "source";
+    public static final String MATERIAL_FIELD001 = "field001";
+    public static final String MATERIAL_METADATA = "metadata";
+    public static final String MATERIAL_RDCZID = "rdczId";
+
+    public static final String MATERIALFILTER_ID = "id";
+    public static final String MATERIALFILTER_JOBID = "jobId";
+    public static final String MATERIALFILTER_OFFSET = "_startRow";
+    public static final String MATERIALFILTER_SORTBY = "_sortBy";
+    public static final String MATERIALFILTER_TASKID = "taskId";
+
 }

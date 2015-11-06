@@ -106,6 +106,15 @@ public class WorkflowProfiles {
         return null;
     }
 
+    public MaterialDefinition getMaterialProfile(WorkflowDefinition workflow, String materialName) {
+        for (MaterialDefinition md : workflow.getMaterials()) {
+            if (md.getName().equals(materialName)) {
+                return md;
+            }
+        }
+        return null;
+    }
+
     private synchronized void setProfiles(WorkflowDefinition profiles, long time) {
         if (time > lastModified) {
             this.profiles = profiles;

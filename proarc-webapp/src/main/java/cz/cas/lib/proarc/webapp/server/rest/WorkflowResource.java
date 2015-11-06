@@ -24,6 +24,8 @@ import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
+import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
@@ -184,6 +186,39 @@ public class WorkflowResource {
             int total = (resultSize != pageSize) ? endRow : endRow + 1;
             return new SmartGwtResponse<TaskView>(
                     SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, jobs);
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            return SmartGwtResponse.asError(ex.getMessage());
+        }
+    }
+
+    @Path(WorkflowResourceApi.MATERIAL_PATH)
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<MaterialView> getMaterial(
+            @QueryParam(WorkflowModelConsts.MATERIALFILTER_ID) BigDecimal id,
+            @QueryParam(WorkflowModelConsts.MATERIALFILTER_JOBID) BigDecimal jobId,
+            @QueryParam(WorkflowModelConsts.MATERIALFILTER_TASKID) BigDecimal taskId,
+            @QueryParam(WorkflowModelConsts.MATERIALFILTER_OFFSET) int startRow,
+            @QueryParam(WorkflowModelConsts.MATERIALFILTER_SORTBY) String sortBy
+    ) {
+        int pageSize = 100;
+        MaterialFilter filter = new MaterialFilter();
+        filter.setLocale(session.getLocale(httpHeaders));
+        filter.setMaxCount(pageSize);
+        filter.setOffset(startRow);
+        filter.setSortBy(sortBy);
+
+        filter.setId(id);
+        filter.setJobId(jobId);
+        filter.setTaskId(taskId);
+        try {
+            List<MaterialView> mvs = workflowManager.findMaterial(filter);
+            int resultSize = mvs.size();
+            int endRow = startRow + resultSize;
+            int total = (resultSize != pageSize) ? endRow : endRow + 1;
+            return new SmartGwtResponse<MaterialView>(
+                    SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, mvs);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
             return SmartGwtResponse.asError(ex.getMessage());
