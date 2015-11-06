@@ -114,7 +114,7 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         if (filter.getUserId() != null) {
             cmd.where(tableTask.ownerId.is(filter.getUserId()));
         }
-        EmpireUtils.addOrderBy(cmd, tableTask, filter.getSortBy(), tableTask.timestamp, true);
+        EmpireUtils.addOrderBy(cmd, filter.getSortBy(), tableTask.timestamp, false);
 
         DBReader reader = new DBReader();
         try {

@@ -16,12 +16,15 @@
  */
 package cz.cas.lib.proarc.common.dao.empiredb;
 
+import java.util.Arrays;
+import java.util.List;
 import org.apache.empire.commons.OptionEntry;
 import org.apache.empire.commons.Options;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
 import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
+import org.apache.empire.db.DBColumnExpr;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
 import org.apache.empire.db.DBDatabaseDriver;
@@ -75,18 +78,26 @@ class EmpireUtils {
     /**
      * Adds a column to the {@code order by} clause of the command.
      * @param cmd SQL command
-     * @param table table to search the column name
-     * @param columnBeanPropertyName a property name of the sort column prefixed
-     *          with {@code '-'} to make the sorting ascending.
+     * @param columnBeanPropertyName a property name of the sort column,
+     *          possibly prefixed with {@code '-'} to make the sorting descending.
      * @param defaultSortByColumn {@code null} or a column to use in case of
      *          missing {@code columnBeanPropertyName}
      * @param defaultDescending {@code true} to sort {@code defaultSortByColumn} top down
      */
-    public static void addOrderBy(DBCommand cmd, DBTable table,
+    public static void addOrderBy(DBCommand cmd,
             String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
             boolean defaultDescending
     ) {
-        DBColumn sortByCol = getSortColumn(table, columnBeanPropertyName);
+        DBColumnExpr[] selectExprList = cmd.getSelectExprList();
+        List<? extends DBColumnExpr> selections = Arrays.asList(selectExprList);
+        addOrderBy(cmd, selections, columnBeanPropertyName, defaultSortByColumn, defaultDescending);
+    }
+
+    private static void addOrderBy(DBCommand cmd, List<? extends DBColumnExpr> selections,
+            String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
+            boolean defaultDescending
+    ) {
+        DBColumnExpr sortByCol = findSelection(selections, columnBeanPropertyName);
         boolean descending;
         if (sortByCol != null) {
             descending = isDescendingSort(columnBeanPropertyName);
@@ -99,21 +110,19 @@ class EmpireUtils {
         cmd.orderBy(sortByCol, descending);
     }
 
-    private static boolean isDescendingSort(String beanPropertyName) {
-        return beanPropertyName.charAt(0) == '-';
+    private static boolean isDescendingSort(String prefixedBeanPropertyName) {
+        return prefixedBeanPropertyName.charAt(0) == '-';
     }
 
-    private static DBColumn getSortColumn(DBTable table, String beanPropertyName) {
-        if (beanPropertyName == null) {
+    private static DBColumnExpr findSelection(List<? extends DBColumnExpr> selections, String prefixedBeanPropertyName) {
+        if (prefixedBeanPropertyName == null) {
             return null;
         }
-        return findColumn(table, beanPropertyName.charAt(0) == '-' ? beanPropertyName.substring(1) : beanPropertyName);
-    }
-
-    private static DBColumn findColumn(DBTable table, String beanPropertyName) {
-        for (DBColumn col : table.getColumns()) {
-            if (beanPropertyName.equals(col.getBeanPropertyName())) {
-                return col;
+        String beanPropertyName = prefixedBeanPropertyName.charAt(0) == '-'
+                ? prefixedBeanPropertyName.substring(1) : prefixedBeanPropertyName;
+        for (DBColumnExpr selection : selections) {
+            if (beanPropertyName.equals(selection.getBeanPropertyName())) {
+                return selection;
             }
         }
         return null;

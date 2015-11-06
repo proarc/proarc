@@ -200,7 +200,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
                     .or(bitems.type.is(BatchItem.Type.FILE).and(bitems.file.like('%' + filePattern + '%')))
             );
         }
-        EmpireUtils.addOrderBy(cmd, table, filter.getSortBy(), table.create, true);
+        EmpireUtils.addOrderBy(cmd, filter.getSortBy(), table.create, true);
         DBReader reader = new DBReader();
         try {
             reader.open(cmd, getConnection());
