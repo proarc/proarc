@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset>
+
+    <proarc_wf_parameter task_id="1" param_ref="param.t1.p1" value_string="p1Val" value_type="STRING" />
+    <proarc_wf_parameter task_id="1" param_ref="param.t1.p2" value_string="p2Val" value_type="STRING" />
+
+    <proarc_wf_parameter task_id="10" param_ref="param.t10.p1" value_number="10.1" value_type="NUMBER" />
+
+</dataset>

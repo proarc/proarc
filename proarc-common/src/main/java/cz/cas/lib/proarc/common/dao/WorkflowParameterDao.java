@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.dao;
 
 import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
+import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -33,5 +35,7 @@ public interface WorkflowParameterDao extends Dao {
     List<TaskParameter> find(BigDecimal taskId);
 
     void remove(BigDecimal taskId);
+
+    List<TaskParameterView> view(TaskParameterFilter filter);
 
 }

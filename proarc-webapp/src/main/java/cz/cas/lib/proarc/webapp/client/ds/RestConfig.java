@@ -102,6 +102,7 @@ public final class RestConfig {
     public static final String URL_CONFIGPROFILE = path(URL_ROOT, ConfigurationProfileResourceApi.PATH);
     public static final String URL_WORKFLOW = path(URL_ROOT, WorkflowResourceApi.PATH);
     public static final String URL_WORKFLOW_MATERIAL = path(URL_WORKFLOW, WorkflowResourceApi.MATERIAL_PATH);
+    public static final String URL_WORKFLOW_PARAMETER = path(URL_WORKFLOW, WorkflowResourceApi.PARAMETER_PATH);
     public static final String URL_WORKFLOW_PROFILE = path(URL_WORKFLOW, WorkflowResourceApi.PROFILE_PATH);
     public static final String URL_WORKFLOW_TASK = path(URL_WORKFLOW, WorkflowResourceApi.TASK_PATH);
 

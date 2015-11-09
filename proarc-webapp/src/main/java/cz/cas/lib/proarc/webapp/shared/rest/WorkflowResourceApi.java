@@ -32,6 +32,8 @@ public class WorkflowResourceApi {
 
     public static final String MATERIAL_PATH = "material";
 
+    public static final String PARAMETER_PATH = "parameter";
+
     public static final String PROFILE_PATH = "profile";
 
     public static final String TASK_PATH = "task";

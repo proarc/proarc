@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.dao.empiredb.EmpireUtils.EnhancedDBTable;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
@@ -353,13 +354,22 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn taskId;
         /** The name of a parameter type in workflow profile. */
         public final DBTableColumn paramRef;
+        public final DBTableColumn valueType;
         public final DBTableColumn value;
+        public final DBTableColumn number;
+        public final DBTableColumn dateTime;
 
         public WorkflowParameterTable(DBDatabase db) {
             super("PROARC_WF_PARAMETER", db);
             taskId = addColumn("TASK_ID", DataType.INTEGER, 0, true);
             paramRef = addColumn("PARAM_REF", DataType.TEXT, 500, true);
-            value = addColumn("VALUE", DataType.TEXT, 2000, false);
+            valueType = addColumn("VALUE_TYPE", DataType.TEXT, 20, true);
+            valueType.setOptions(toOptions(TaskParameter.Type.values()));
+            valueType.setBeanPropertyName("valueTypeAsString");
+            value = addColumn("VALUE_STRING", DataType.TEXT, 2000, false);
+            number = addColumn("VALUE_NUMBER", DataType.DECIMAL, 20.9, false);
+            dateTime = addColumn("VALUE_DATETIME", DataType.DATETIME, 0, false);
+            dateTime.setBeanPropertyName("valueDateTime");
         }
     }
 

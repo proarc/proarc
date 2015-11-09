@@ -17,19 +17,52 @@
 package cz.cas.lib.proarc.common.workflow.model;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlValue;
+import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 
 /**
  *
  * @author Jan Pokorsky
  */
+@XmlAccessorType(XmlAccessType.NONE)
 public class TaskParameter {
 
+    public enum Type {
+
+        STRING, NUMBER, DATETIME;
+
+        public static Type fromString(String s) {
+            s = s == null ? null : s.toUpperCase();
+            for (Type type : values()) {
+                if (type.name().equals(s)) {
+                    return type;
+                }
+            }
+            return STRING;
+        }
+    }
+
+
+    @XmlAttribute(name = WorkflowModelConsts.PARAMETER_TASKID)
     private BigDecimal taskId;
     /**
      * The name of a parameter in workflow profile.
      */
+    @XmlElement(name = WorkflowModelConsts.PARAMETER_PROFILENAME)
     private String paramRef;
-    private String value;
+    @XmlElement(name = WorkflowModelConsts.PARAMETER_VALUETYPE)
+    private Type valueType;
+
+    // Typed values are XML transient for now. See getValue.
+    private String valueString;
+    private BigDecimal valueNumber;
+    private Timestamp valueDateTime;
 
     public BigDecimal getTaskId() {
         return taskId;
@@ -57,17 +90,114 @@ public class TaskParameter {
         this.paramRef = paramRef;
     }
 
+    @XmlValue
     public String getValue() {
+        String value = null;
+        if (valueType == Type.NUMBER) {
+            BigDecimal n = getValueNumber();
+            value = n == null ? null : n.toPlainString();
+        } else if (valueType == Type.DATETIME) {
+            Timestamp t = getValueDateTime();
+            if (t != null) {
+                value = ISODateTimeFormat.dateTime().withZoneUTC().print(t.getTime());
+            }
+        } else if (valueType == Type.STRING) {
+            value = getValueString();
+        } else {
+            throw new IllegalStateException("Unsuported type: " + valueType);
+        }
         return value;
     }
 
-    public TaskParameter addValue(String value) {
+    public void setValue(String value) {
+        if (valueType == Type.NUMBER) {
+            setValueNumber(value == null ? null : new BigDecimal(value));
+        } else if (valueType == Type.DATETIME) {
+            Timestamp t = null;
+            if (value != null) {
+                DateTime dateTime = ISODateTimeFormat.dateOptionalTimeParser().withZoneUTC().parseDateTime(value);
+                t = new Timestamp(dateTime.getMillis());
+            }
+            setValueDateTime(t);
+        } else { // valueType == Type.STRING and others
+            setValueString(value);
+        }
+    }
+
+    public TaskParameter addValue(Type type, String value) {
+        setValueType(type);
         setValue(value);
         return this;
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public String getValueTypeAsString() {
+        return valueType == null ? null : valueType.name();
+    }
+
+    public void setValueTypeAsString(String type) {
+        setValueType(Type.fromString(type));
+    }
+
+    public Type getValueType() {
+        return valueType;
+    }
+
+    public void setValueType(Type valueType) {
+        this.valueType = valueType;
+    }
+
+    public TaskParameter addValueType(Type type) {
+        setValueType(type);
+        return this;
+    }
+
+    public String getValueString() {
+        return valueString;
+    }
+
+    public void setValueString(String val) {
+        this.valueString = val;
+    }
+
+    public TaskParameter addValueString(String value) {
+        setValueType(Type.STRING);
+        this.valueNumber = null;
+        this.valueDateTime = null;
+        setValueString(value);
+        return this;
+    }
+
+    public BigDecimal getValueNumber() {
+        return valueNumber;
+    }
+
+    public void setValueNumber(BigDecimal val) {
+        // postgresql adds trailing zeros on jdbc read -> strip them
+        this.valueNumber = val == null ? null : val.stripTrailingZeros();
+    }
+
+    public TaskParameter addValueNumber(BigDecimal value) {
+        setValueType(Type.NUMBER);
+        this.valueString = null;
+        this.valueDateTime = null;
+        setValueNumber(value);
+        return this;
+    }
+
+    public Timestamp getValueDateTime() {
+        return valueDateTime;
+    }
+
+    public void setValueDateTime(Timestamp val) {
+        this.valueDateTime = val;
+    }
+
+    public TaskParameter addValueDateTime(Timestamp value) {
+        setValueType(Type.DATETIME);
+        this.valueNumber = null;
+        this.valueString = null;
+        setValueDateTime(value);
+        return this;
     }
 
 }

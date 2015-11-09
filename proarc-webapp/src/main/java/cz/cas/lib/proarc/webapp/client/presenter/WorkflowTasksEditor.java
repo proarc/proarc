@@ -55,6 +55,7 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowParameterDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
 
@@ -238,19 +239,24 @@ public class WorkflowTasksEditor {
                 taskForm.clearErrors(true);
                 taskForm.editRecord(task);
                 String taskId = task.getAttribute(WorkflowTaskDataSource.FIELD_ID);
-                setParameters(task.getAttributeAsRecordArray(WorkflowTaskDataSource.FIELD_PARAMETERS));
+                setParameters(taskId);
                 materialView.getMaterialGrid().fetchData(
                         new Criteria(WorkflowModelConsts.MATERIALFILTER_TASKID, taskId));
             } else {
                 taskForm.clearValues();
-                setParameters(new Record[0]);
+                setParameters(null);
                 setMaterials(new Record[0]);
             }
 //            taskForm.fetchData();
         }
 
-        private void setParameters(Record[] records) {
-            paramGrid.setData(records);
+        private void setParameters(String taskId) {
+            if (taskId != null) {
+                paramGrid.invalidateCache();
+                paramGrid.fetchData(new Criteria(WorkflowModelConsts.PARAMETERPROFILE_TASKID, taskId));
+            } else {
+                paramGrid.setData(new Record[0]);
+            }
         }
 
         private void setMaterials(Record[] records) {
@@ -317,10 +323,10 @@ public class WorkflowTasksEditor {
 
         private Widget createParameterList() {
             paramGrid = new ListGrid();
-            ListGridField value = new ListGridField("value","Hodnota");
-            value.setCanEdit(true);
-            paramGrid.setFields(new ListGridField("label", "Název parametru"), value);
+            paramGrid.setDataSource(WorkflowParameterDataSource.getInstance());
+            paramGrid.setCanEdit(true);
             paramGrid.setHeight("30%");
+            paramGrid.setAutoSaveEdits(false);
             return paramGrid;
         }
 

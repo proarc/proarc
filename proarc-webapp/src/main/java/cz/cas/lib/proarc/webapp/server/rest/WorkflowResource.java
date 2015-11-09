@@ -28,6 +28,8 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
@@ -180,12 +182,12 @@ public class WorkflowResource {
         filter.setState(state);
         filter.setUserId(userId);
         try {
-            List<TaskView> jobs = workflowManager.findTask(filter);
-            int resultSize = jobs.size();
+            List<TaskView> tasks = workflowManager.findTask(filter);
+            int resultSize = tasks.size();
             int endRow = startRow + resultSize;
             int total = (resultSize != pageSize) ? endRow : endRow + 1;
             return new SmartGwtResponse<TaskView>(
-                    SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, jobs);
+                    SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, tasks);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
             return SmartGwtResponse.asError(ex.getMessage());
@@ -219,6 +221,31 @@ public class WorkflowResource {
             int total = (resultSize != pageSize) ? endRow : endRow + 1;
             return new SmartGwtResponse<MaterialView>(
                     SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, mvs);
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            return SmartGwtResponse.asError(ex.getMessage());
+        }
+    }
+
+    @Path(WorkflowResourceApi.PARAMETER_PATH)
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<TaskParameterView> getParameter(
+            @QueryParam(WorkflowModelConsts.PARAMETERPROFILE_TASKID) BigDecimal taskId
+    ) {
+        if (taskId == null) {
+            return SmartGwtResponse.asError("taskId is required!");
+        }
+        int pageSize = 100;
+        TaskParameterFilter filter = new TaskParameterFilter();
+        filter.setLocale(session.getLocale(httpHeaders));
+        filter.setMaxCount(pageSize);
+        filter.setOffset(0);
+
+        filter.setTaskId(taskId);
+        try {
+            List<TaskParameterView> params = workflowManager.findParameter(filter);
+            return new SmartGwtResponse<TaskParameterView>(params);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
             return SmartGwtResponse.asError(ex.getMessage());

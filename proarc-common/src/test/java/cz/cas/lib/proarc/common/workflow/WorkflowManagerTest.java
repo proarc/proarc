@@ -33,6 +33,8 @@ import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
@@ -125,6 +127,7 @@ public class WorkflowManagerTest {
                 );
         final IDatabaseConnection dbcon = support.getConnection();
         support.cleanInsert(dbcon, db);
+        dbcon.getConnection().commit();
         dbcon.close();
 
         File xmlWorkflow = temp.newFile("workflowTest.xml");
@@ -171,6 +174,12 @@ public class WorkflowManagerTest {
         List<MaterialView> findMaterial = wm.findMaterial(materialFilter);
         assertEquals(2, findMaterial.size());
 
+        TaskParameterFilter paramFilter = new TaskParameterFilter();
+        paramFilter.setLocale(locale);
+        paramFilter.setProfileName("param.id1");
+        List<TaskParameterView> findParameter = wm.findParameter(paramFilter);
+        assertEquals(1, findParameter.size());
+        assertEquals("param.id1.value", findParameter.get(0).getValue());
     }
 
 }

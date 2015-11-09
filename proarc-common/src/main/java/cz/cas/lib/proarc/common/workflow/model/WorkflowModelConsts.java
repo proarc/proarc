@@ -65,6 +65,17 @@ public final class WorkflowModelConsts {
     public static final String TASK_FILTER_SORTBY = "_sortBy";
     public static final String TASK_FILTER_STATE = "state";
 
+    public static final String PARAMETER_JOBID = "jobId";
+    public static final String PARAMETER_PROFILELABEL = "profileLabel";
+    public static final String PARAMETER_PROFILENAME = "profileName";
+    /** JSON. */
+    public static final String PARAMETER_VALUE = "value";
+    public static final String PARAMETER_VALUETYPE = "valueType";
+    public static final String PARAMETER_TASKID = "taskId";
+//    public static final String PARAMETER_TASKPROFILENAME = "taskProfileName";
+
+    public static final String PARAMETERPROFILE_TASKID = "taskId";
+
     // common material attributes
     public static final String MATERIAL_ID = "id";
     public static final String MATERIAL_JOB_ID = "jobId";

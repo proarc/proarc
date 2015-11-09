@@ -38,9 +38,12 @@ import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
+import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.MaterialDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.ParamDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.SetMaterialDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.SetParamDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.StepDefinition;
@@ -161,6 +164,32 @@ public class WorkflowManager {
         }
     }
 
+    public List<TaskParameterView> findParameter(TaskParameterFilter filter) {
+        WorkflowDefinition wd = wp.getProfiles();
+        Transaction tx = daoFactory.createTransaction();
+        WorkflowParameterDao dao = daoFactory.createWorkflowParameterDao();
+        dao.setTransaction(tx);
+        try {
+            List<TaskParameterView> params = dao.view(filter);
+            for (TaskParameterView param : params) {
+                String taskProfileName = param.getTaskProfileName();
+                String label = "Unknow parameter profile: " + param.getParamRef() + " in task " + taskProfileName;
+                TaskDefinition taskProfile = wp.getTaskProfile(wd, taskProfileName);
+                if (taskProfile != null) {
+                    for (ParamDefinition pdef : taskProfile.getParams()) {
+                        if (pdef.getName().equals(param.getParamRef())) {
+                            label = pdef.getTitle(filter.getLocale().getLanguage(), param.getParamRef());
+                        }
+                    }
+                }
+                param.setProfileLabel(label);
+            }
+            return params;
+        } finally {
+            tx.close();
+        }
+    }
+
     public Job addJob(JobDefinition jobProfile, String xml,
             CatalogConfiguration catalog, UserProfile defaultUser
     ) {
@@ -237,7 +266,8 @@ public class WorkflowManager {
             params.add(paramDao.create()
                     .addParamRef(param.getParam().getName())
                     .addTaskId(task.getId())
-                    .addValue(param.getValue()));
+                    // XXX add param type to profile schema!
+                    .addValue(TaskParameter.Type.STRING, param.getValue()));
         }
         paramDao.add(task.getId(), params);
         return params;
