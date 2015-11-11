@@ -48,8 +48,22 @@ public class TaskParameterTest {
         assertEquals(0, new BigDecimal("1.00").compareTo(new BigDecimal("1.0")));
         assertEquals(0, BigDecimal.ONE.compareTo(tp.getValueNumber()));
         assertEquals("1", tp.getValue());
-        
-        System.out.println(new BigDecimal("1.00").stripTrailingZeros());
+    }
+
+    @Test
+    public void testBooleanTrue() {
+        TaskParameter tp = new TaskParameter().addValue(Type.NUMBER, "true");
+        // DO NOT use equals for BigDecimal!
+        assertEquals(0, BigDecimal.ONE.compareTo(tp.getValueNumber()));
+        assertEquals("1", tp.getValue());
+    }
+
+    @Test
+    public void testBooleanFalse() {
+        TaskParameter tp = new TaskParameter().addValue(Type.NUMBER, "false");
+        // DO NOT use equals for BigDecimal!
+        assertEquals(0, BigDecimal.ZERO.compareTo(tp.getValueNumber()));
+        assertEquals("0", tp.getValue());
     }
 
 }

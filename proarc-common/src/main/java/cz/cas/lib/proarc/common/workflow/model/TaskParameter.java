@@ -111,7 +111,17 @@ public class TaskParameter {
 
     public void setValue(String value) {
         if (valueType == Type.NUMBER) {
-            setValueNumber(value == null ? null : new BigDecimal(value));
+            BigDecimal number = null;
+            if (value != null) {
+                if ("true".equals(value)) {
+                    number = BigDecimal.ONE;
+                } else if ("false".equals(value)) {
+                    number = BigDecimal.ZERO;
+                } else {
+                    number = new BigDecimal(value);
+                }
+            }
+            setValueNumber(number);
         } else if (valueType == Type.DATETIME) {
             Timestamp t = null;
             if (value != null) {
