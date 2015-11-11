@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
-import cz.cas.lib.proarc.common.workflow.model.TaskParameter.Type;
+import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import org.junit.Test;
@@ -32,18 +32,18 @@ public class TaskParameterTest {
     public void testDateTime() {
         TaskParameter tp = new TaskParameter().addValueDateTime(new Timestamp(System.currentTimeMillis()));
         Timestamp now = tp.getValueDateTime();
-        assertEquals(Type.DATETIME, tp.getValueType());
+        assertEquals(ValueType.DATETIME, tp.getValueType());
         assertEquals(now, tp.getValueDateTime());
 
-        tp = new TaskParameter().addValue(Type.DATETIME, "2011-01-13");
-        assertEquals(Type.DATETIME, tp.getValueType());
+        tp = new TaskParameter().addValue(ValueType.DATETIME, "2011-01-13");
+        assertEquals(ValueType.DATETIME, tp.getValueType());
         assertEquals("2011-01-13T00:00:00.000Z", tp.getValue());
         assertNotNull(tp.getValueDateTime());
     }
 
     @Test
     public void testNumber() {
-        TaskParameter tp = new TaskParameter().addValue(Type.NUMBER, "1");
+        TaskParameter tp = new TaskParameter().addValue(ValueType.NUMBER, "1");
         // DO NOT use equals for BigDecimal!
         assertEquals(0, new BigDecimal("1.00").compareTo(new BigDecimal("1.0")));
         assertEquals(0, BigDecimal.ONE.compareTo(tp.getValueNumber()));
@@ -52,7 +52,7 @@ public class TaskParameterTest {
 
     @Test
     public void testBooleanTrue() {
-        TaskParameter tp = new TaskParameter().addValue(Type.NUMBER, "true");
+        TaskParameter tp = new TaskParameter().addValue(ValueType.NUMBER, "true");
         // DO NOT use equals for BigDecimal!
         assertEquals(0, BigDecimal.ONE.compareTo(tp.getValueNumber()));
         assertEquals("1", tp.getValue());
@@ -60,7 +60,7 @@ public class TaskParameterTest {
 
     @Test
     public void testBooleanFalse() {
-        TaskParameter tp = new TaskParameter().addValue(Type.NUMBER, "false");
+        TaskParameter tp = new TaskParameter().addValue(ValueType.NUMBER, "false");
         // DO NOT use equals for BigDecimal!
         assertEquals(0, BigDecimal.ZERO.compareTo(tp.getValueNumber()));
         assertEquals("0", tp.getValue());

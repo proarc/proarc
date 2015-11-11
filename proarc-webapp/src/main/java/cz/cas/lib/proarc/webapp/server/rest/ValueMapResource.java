@@ -20,11 +20,11 @@ import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -55,21 +55,23 @@ public class ValueMapResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ValueMap> getValueMaps() {
+        ValueMap.Context context = new ValueMap.Context();
+        context.setUser(session.getUser());
+        context.setLocale(session.getLocale(httpHeaders));
+
         ArrayList<ValueMap> result = new ArrayList<ValueMap>();
-        result.addAll(searchPlugins(session.getLocale(httpHeaders)));
+        result.addAll(searchPlugins(context));
+        result.addAll(WorkflowProfiles.getInstance().getValueMap(context));
         return new SmartGwtResponse<ValueMap>(result);
     }
 
-    private List<ValueMap> searchPlugins(Locale locale) {
+    private List<ValueMap> searchPlugins(ValueMap.Context context) {
         ArrayList<ValueMap> result = new ArrayList<ValueMap>();
         HashMap<String, DigitalObjectPlugin> pluginCache = new HashMap<String, DigitalObjectPlugin>();
         for (MetaModel model : MetaModelRepository.getInstance().find()) {
             DigitalObjectPlugin plugin = model.getPlugin();
             pluginCache.put(plugin.getId(), plugin);
         }
-        ValueMap.Context context = new ValueMap.Context();
-        context.setUser(session.getUser());
-        context.setLocale(locale);
         for (DigitalObjectPlugin plugin : pluginCache.values()) {
             List<ValueMap> vms = plugin.getValueMaps(context);
             result.addAll(vms);

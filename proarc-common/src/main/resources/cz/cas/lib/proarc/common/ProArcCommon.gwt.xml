@@ -19,11 +19,16 @@
     </source>
 
     <source path="workflow/model">
-        <include name="*.java" />
+        <include name="Job.java" />
+        <include name="Material.java" />
+        <include name="Task.java" />
+        <include name="ValueType.java" />
+        <include name="WorkflowModelConsts.java" />
     </source>
 
     <source path="workflow/profile">
         <include name="*View.java" />
+        <include name="DisplayType.java" />
         <include name="WorkflowProfileConsts.java" />
     </source>
 

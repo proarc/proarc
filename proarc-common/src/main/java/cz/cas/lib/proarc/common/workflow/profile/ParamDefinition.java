@@ -16,10 +16,14 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import cz.cas.lib.proarc.common.i18n.BundleValue;
+import cz.cas.lib.proarc.common.workflow.model.ValueType;
+import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapSource;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlID;
+import javax.xml.bind.annotation.XmlIDREF;
 
 /**
  *
@@ -36,7 +40,20 @@ public class ParamDefinition extends DisplayableType<ParamDefinition> {
     private Boolean required;
 
     @XmlAttribute(name = WorkflowProfileConsts.PARAM_DATASOURCE_ATT)
-    private String datasource;
+    @XmlIDREF
+    private ValueMapDefinition datasource;
+
+    @XmlAttribute(name = WorkflowProfileConsts.PARAM_VALUETYPE)
+    private String valueType;
+
+    @XmlAttribute(name = WorkflowProfileConsts.PARAM_DISPLAYTYPE)
+    private String displayType;
+
+    @XmlAttribute(name = WorkflowProfileConsts.PARAM_OPTIONVALUEFIELD)
+    private String optionValueField;
+
+    @XmlAttribute(name = WorkflowProfileConsts.PARAM_OPTIONDISPLAYFIELD)
+    private String optionDisplayField;
 
     public String getName() {
         return name;
@@ -56,12 +73,61 @@ public class ParamDefinition extends DisplayableType<ParamDefinition> {
         return this;
     }
 
-    public String getDatasource() {
+    public ValueMapDefinition getDatasource() {
         return datasource;
     }
 
-    public ParamDefinition setDatasource(String datasource) {
-        this.datasource = datasource;
+    /** See {@link cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles#getValueMap}. */
+    public String getOptionValueField() {
+        if (optionValueField == null && datasource != null
+                && datasource.getSource() == ValueMapSource.INTERNAL) {
+            return BundleValue.KEY;
+        }
+        return optionValueField;
+    }
+
+    public void setOptionValueField(String optionValueField) {
+        this.optionValueField = optionValueField;
+    }
+
+    /** See {@link cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles#getValueMap}. */
+    public String getOptionDisplayField() {
+        if (optionDisplayField == null && datasource != null
+                && datasource.getSource() == ValueMapSource.INTERNAL) {
+            return BundleValue.VALUE;
+        }
+        return optionDisplayField;
+    }
+
+    public void setOptionDisplayField(String optionDisplayField) {
+        this.optionDisplayField = optionDisplayField;
+    }
+
+
+    public ValueType getValueType() {
+        return ValueType.fromString(valueType);
+    }
+
+    public ParamDefinition setValueType(ValueType valueType) {
+        setValueType(valueType == null ? null : valueType.name());
+        return this;
+    }
+
+    public void setValueType(String valueType) {
+        this.valueType = valueType;
+    }
+
+    public DisplayType getDisplayType() {
+        return DisplayType.fromString(displayType);
+    }
+
+    public ParamDefinition setDisplayType(DisplayType displayType) {
+        setDisplayType(displayType == null ? null : displayType.name());
+        return this;
+    }
+
+    public ParamDefinition setDisplayType(String displayType) {
+        this.displayType = displayType;
         return this;
     }
 

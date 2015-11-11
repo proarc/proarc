@@ -65,11 +65,17 @@ public final class WorkflowModelConsts {
     public static final String TASK_FILTER_SORTBY = "_sortBy";
     public static final String TASK_FILTER_STATE = "state";
 
+    public static final String PARAMETER_DISPLAYTYPE = "displayType";
     public static final String PARAMETER_JOBID = "jobId";
+    public static final String PARAMETER_OPTION_DISPLAY_FIELD = "optionDisplayField";
+    public static final String PARAMETER_OPTION_VALUE_FIELD = "optionValueField";
     public static final String PARAMETER_PROFILELABEL = "profileLabel";
     public static final String PARAMETER_PROFILENAME = "profileName";
     /** JSON. */
+    public static final String PARAMETER_REQUIRED = "required";
     public static final String PARAMETER_VALUE = "value";
+    public static final String PARAMETER_VALUEMAPID = "valueMapId";
+    public static final String PARAMETER_VALUEMAPTYPE = "valueMapType";
     public static final String PARAMETER_VALUETYPE = "valueType";
     public static final String PARAMETER_TASKID = "taskId";
 //    public static final String PARAMETER_TASKPROFILENAME = "taskProfileName";

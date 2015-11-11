@@ -126,7 +126,40 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
         <xs:attribute name="disabled" type="xs:boolean"/>
         <xs:attribute name="required" type="xs:boolean"/>
         <xs:attribute name="datasource" type="xs:IDREF"/>
+        <!--
+        A data source field name that will be used as value for a given selection.
+        Do not set for internal value maps.
+        -->
+        <xs:attribute name="optionValueField" type="xs:string"/>
+        <!--
+        A data source field name that will be used to present options.
+        Do not set for internal value maps.
+        -->
+        <xs:attribute name="optionDisplayField" type="xs:string"/>
+        <!--the param value type-->
+        <xs:attribute name="type" type="tns:valueTypeDefinition" default="STRING"/>
+        <!--specifies how to display the param value-->
+        <xs:attribute name="displayType" type="tns:displayTypeDefinition" default="TEXT"/>
     </xs:complexType>
+
+    <xs:simpleType name="valueTypeDefinition">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="DATETIME"/>
+            <xs:enumeration value="NUMBER"/>
+            <xs:enumeration value="STRING"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="displayTypeDefinition">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CHECKBOX"/>
+            <xs:enumeration value="COMBOBOX"/>
+            <xs:enumeration value="DATETIME"/>
+            <xs:enumeration value="SELECT"/>
+            <xs:enumeration value="TEXT"/>
+            <xs:enumeration value="TEXTAREA"/>
+        </xs:restriction>
+    </xs:simpleType>
 
     <xs:complexType name="setParamDefinition">
         <xs:simpleContent>

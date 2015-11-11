@@ -51,6 +51,10 @@ public class WorkflowProfileConsts {
     public static final String PARAM_NAME_ATT = "name";
     public static final String PARAM_REQUIRED_ATT = "required";
     public static final String PARAM_DATASOURCE_ATT = "datasource";
+    public static final String PARAM_VALUETYPE = "type";
+    public static final String PARAM_DISPLAYTYPE = "displayType";
+    public static final String PARAM_OPTIONVALUEFIELD = "optionValueField";
+    public static final String PARAM_OPTIONDISPLAYFIELD = "optionDisplayField";
 
     public static final String MATERIAL_NAME_ATT = "name";
 
@@ -61,7 +65,8 @@ public class WorkflowProfileConsts {
     public static final String VALUEMAP_SOURCE_ATT = "source";
     public static final String VALUEMAP_VALUE_EL = "value";
 
-    public static final String VALUEMAPITEM_KEY_ATT = "value";
+    public static final String VALUEMAPITEM_KEY_ATT = "key";
+    public static final String VALUEMAPITEM_VALUE = "value";
 
     public static final String DISABLED = "disabled";
     public static final String HINT_EL = "hint";

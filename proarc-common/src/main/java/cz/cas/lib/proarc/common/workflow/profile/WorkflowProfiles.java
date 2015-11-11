@@ -16,9 +16,17 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import cz.cas.lib.proarc.common.i18n.BundleValue;
+import cz.cas.lib.proarc.common.i18n.BundleValueMap;
+import cz.cas.lib.proarc.common.object.ValueMap;
+import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapItemDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapSource;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.XMLConstants;
@@ -113,6 +121,31 @@ public class WorkflowProfiles {
             }
         }
         return null;
+    }
+
+    public List<ValueMap> getValueMap(ValueMap.Context ctx) {
+        WorkflowDefinition wd = getProfiles();
+        if (wd == null) {
+            return Collections.emptyList();
+        }
+        ArrayList<ValueMap> result = new ArrayList<ValueMap>();
+        for (ValueMapDefinition vmd : wd.getValueMaps()) {
+            if (vmd.getSource() == ValueMapSource.INTERNAL) {
+                String id = vmd.getId();
+                List<ValueMapItemDefinition> items = vmd.getItems();
+                ArrayList<BundleValue> bitems = new ArrayList<BundleValue>();
+                for (ValueMapItemDefinition vmitem : items) {
+                    String key = vmitem.getKey() != null ? vmitem.getKey() : vmitem.getValue();
+                    bitems.add(new BundleValue(key, vmitem.getValue()));
+                }
+
+                BundleValueMap bundleValueMap = new BundleValueMap();
+                bundleValueMap.setMapId(id);
+                bundleValueMap.setValues(bitems);
+                result.add(bundleValueMap);
+            }
+        }
+        return result;
     }
 
     private synchronized void setProfiles(WorkflowDefinition profiles, long time) {

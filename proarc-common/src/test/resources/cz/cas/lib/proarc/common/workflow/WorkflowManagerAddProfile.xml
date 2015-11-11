@@ -15,7 +15,9 @@
     <material name='material.folder'/>
     <material name='material.physical'/>
     <task name='task.id1'>
-        <param name='param.id1' required='true' datasource='workflow.valuemap.colors'/>
+        <param name='param.id1' required='true' datasource='workflow.valuemap.colors'>
+            <title>Param1</title>
+        </param>
         <param name='param.id2' required='true' datasource='proarc.devices'/>
         <setMaterial materialRef='material.folder' way='input'/>
         <title lang='cs'>Úkol 1</title>

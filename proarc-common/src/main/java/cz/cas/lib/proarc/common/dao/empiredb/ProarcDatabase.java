@@ -21,7 +21,7 @@ import cz.cas.lib.proarc.common.dao.empiredb.EmpireUtils.EnhancedDBTable;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.Task;
-import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
+import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
@@ -364,7 +364,7 @@ public class ProarcDatabase extends DBDatabase {
             taskId = addColumn("TASK_ID", DataType.INTEGER, 0, true);
             paramRef = addColumn("PARAM_REF", DataType.TEXT, 500, true);
             valueType = addColumn("VALUE_TYPE", DataType.TEXT, 20, true);
-            valueType.setOptions(toOptions(TaskParameter.Type.values()));
+            valueType.setOptions(toOptions(ValueType.values()));
             valueType.setBeanPropertyName("valueTypeAsString");
             value = addColumn("VALUE_STRING", DataType.TEXT, 2000, false);
             number = addColumn("VALUE_NUMBER", DataType.DECIMAL, 20.9, false);

@@ -16,6 +16,9 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import cz.cas.lib.proarc.common.workflow.profile.DisplayType;
+import cz.cas.lib.proarc.common.workflow.profile.ParamDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapSource;
 import java.math.BigDecimal;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -33,6 +36,8 @@ public class TaskParameterView extends TaskParameter {
     private BigDecimal jobId;
     @XmlElement(name = WorkflowModelConsts.PARAMETER_PROFILELABEL)
     private String profileLabel;
+    @XmlTransient
+    private ParamDefinition profile;
     @XmlTransient
     private String taskProfileName;
 
@@ -52,6 +57,14 @@ public class TaskParameterView extends TaskParameter {
         this.profileLabel = profileLabel;
     }
 
+    public ParamDefinition getProfile() {
+        return profile;
+    }
+
+    public void setProfile(ParamDefinition profile) {
+        this.profile = profile;
+    }
+
     public String getTaskProfileName() {
         return taskProfileName;
     }
@@ -60,4 +73,35 @@ public class TaskParameterView extends TaskParameter {
         this.taskProfileName = taskProfileName;
     }
 
+    @XmlElement(name = WorkflowModelConsts.PARAMETER_REQUIRED)
+    public Boolean getRequired() {
+        return profile == null ? null : profile.isRequired();
+    }
+
+    @XmlElement(name = WorkflowModelConsts.PARAMETER_DISPLAYTYPE)
+    public DisplayType getDisplayType() {
+        return profile == null ? null : profile.getDisplayType();
+    }
+
+    @XmlElement(name = WorkflowModelConsts.PARAMETER_OPTION_VALUE_FIELD)
+    public String getOptionValueField() {
+        return profile == null ? null : profile.getOptionValueField();
+    }
+
+    @XmlElement(name = WorkflowModelConsts.PARAMETER_OPTION_DISPLAY_FIELD)
+    public String getOptionDisplayField() {
+        return profile == null ? null : profile.getOptionDisplayField();
+    }
+
+    @XmlElement(name = WorkflowModelConsts.PARAMETER_VALUEMAPID)
+    public String getValueMapId() {
+        return profile == null || profile.getDatasource() == null ? null
+                : profile.getDatasource().getId();
+    }
+
+    @XmlElement(name = WorkflowModelConsts.PARAMETER_VALUEMAPTYPE)
+    public ValueMapSource getValueMapType() {
+        return profile == null || profile.getDatasource() == null ? null
+                : profile.getDatasource().getSource();
+    }
 }

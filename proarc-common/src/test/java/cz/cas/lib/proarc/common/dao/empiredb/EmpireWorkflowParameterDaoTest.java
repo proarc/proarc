@@ -18,9 +18,9 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
-import cz.cas.lib.proarc.common.workflow.model.TaskParameter.Type;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
+import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -84,12 +84,11 @@ public class EmpireWorkflowParameterDaoTest {
         tx.commit();
 
         Task task = new Task().addId(BigDecimal.ONE);
-        List<TaskParameter> params = Arrays.asList(
-                dao.create().addParamRef("param.p1").addValue(Type.STRING, "p1Val"),
-                dao.create().addParamRef("param.p2").addValue(Type.NUMBER, "1"),
-                dao.create().addParamRef("param.p3").addValue(Type.NUMBER, null),
-                dao.create().addParamRef("param.p4").addValue(Type.DATETIME, "2011-12-31T15:05:50+0100"),
-                dao.create().addParamRef("param.p5").addValue(Type.NUMBER, "1.01")
+        List<TaskParameter> params = Arrays.asList(dao.create().addParamRef("param.p1").addValue(ValueType.STRING, "p1Val"),
+                dao.create().addParamRef("param.p2").addValue(ValueType.NUMBER, "1"),
+                dao.create().addParamRef("param.p3").addValue(ValueType.NUMBER, null),
+                dao.create().addParamRef("param.p4").addValue(ValueType.DATETIME, "2011-12-31T15:05:50+0100"),
+                dao.create().addParamRef("param.p5").addValue(ValueType.NUMBER, "1.01")
         );
         dao.add(task.getId(), params);
         tx.commit();
@@ -172,7 +171,7 @@ public class EmpireWorkflowParameterDaoTest {
         assertEquals(BigDecimal.TEN, params.get(0).getTaskId());
         assertEquals("task.id2", params.get(0).getTaskProfileName());
         assertEquals(new BigDecimal(2), params.get(0).getJobId());
-        assertEquals(Type.NUMBER, params.get(0).getValueType());
+        assertEquals(ValueType.NUMBER, params.get(0).getValueType());
         assertEquals("10.1", params.get(0).getValue());
     }
 

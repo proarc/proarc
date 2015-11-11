@@ -36,7 +36,9 @@ import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
+import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapSource;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.File;
 import java.sql.Timestamp;
@@ -178,8 +180,22 @@ public class WorkflowManagerTest {
         paramFilter.setLocale(locale);
         paramFilter.setProfileName("param.id1");
         List<TaskParameterView> findParameter = wm.findParameter(paramFilter);
-        assertEquals(1, findParameter.size());
+        assertEquals(2, findParameter.size());
+        assertEquals("param.id1", findParameter.get(0).getParamRef());
         assertEquals("param.id1.value", findParameter.get(0).getValue());
+        assertEquals(job.getId(), findParameter.get(0).getJobId());
+        assertEquals("Param1", findParameter.get(0).getProfileLabel());
+        // param.id2 comes just from the profile not db!
+        assertEquals("param.id2", findParameter.get(1).getParamRef());
+        assertNull(findParameter.get(1).getValue());
+        assertEquals(job.getId(), findParameter.get(1).getJobId());
+        assertEquals("param.id2", findParameter.get(1).getProfileLabel());
+        assertEquals(findParameter.get(0).getTaskId(), findParameter.get(1).getTaskId());
+        assertEquals("task.id1", findParameter.get(1).getTaskProfileName());
+        assertEquals("proarc.devices", findParameter.get(1).getValueMapId());
+        assertEquals(ValueMapSource.PROARC, findParameter.get(1).getValueMapType());
+        assertEquals(Boolean.TRUE, findParameter.get(1).getRequired());
+        assertEquals(ValueType.STRING, findParameter.get(1).getValueType());
     }
 
 }

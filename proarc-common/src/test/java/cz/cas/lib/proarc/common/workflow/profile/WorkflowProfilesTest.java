@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.workflow.profile;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
+import cz.cas.lib.proarc.common.workflow.model.ValueType;
+import cz.cas.lib.proarc.common.workflow.profile.DisplayType;
 import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapItemDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapSource;
 import java.io.File;
@@ -89,14 +91,15 @@ public class WorkflowProfilesTest {
 
                 + "    <task name='task.id1'>\n"
                 + "        <param name='param.id1' required='true' datasource='workflow.valuemap.colors'/>\n"
-                + "        <param name='param.id2' required='true' datasource='proarc.devices'/>\n"
+                + "        <param name='param.id2' required='false' datasource='proarc.devices'\n"
+                + "            type='NUMBER' displayType='SELECT'/>\n"
                 + "        <setMaterial materialRef='material0' way='input'/>\n"
                 + "        <title lang='cs'>Úkol 1</title>\n"
                 + "        <title lang='en'>Task 1</title>\n"
-                + "    </task>"
+                + "    </task>\n"
                 + "    <task name='task.id2'>\n"
                 + "        <setMaterial materialRef='material0' way='output'/>\n"
-                + "    </task>"
+                + "    </task>\n"
 
                 + "    <valuemap name='workflow.valuemap.colors'>\n"
                 + "      <value>barevně</value>\n"
@@ -107,7 +110,7 @@ public class WorkflowProfilesTest {
                 + "      <value key='grey'>v šedi</value>\n"
                 + "    </valuemap>\n"
                 + "    <valuemap name='proarc.devices' source='proarc'/>\n"
-                + "</workflow>"
+                + "</workflow>\n"
                 ;
         File xmlFile = new File(temp.getRoot(), "workflow.xml");
         FileUtils.write(xmlFile, xml);
@@ -142,6 +145,18 @@ public class WorkflowProfilesTest {
         assertEquals("task.id1", tasks.get(0).getName());
         assertEquals("input", tasks.get(0).getMaterialSetters().get(0).getWay());
         assertEquals("material0", tasks.get(0).getMaterialSetters().get(0).getMaterial().getName());
+        // step/task1/param1
+        assertEquals("param.id1", tasks.get(0).getParams().get(0).getName());
+        assertEquals(DisplayType.TEXT, tasks.get(0).getParams().get(0).getDisplayType());
+        assertEquals(ValueType.STRING, tasks.get(0).getParams().get(0).getValueType());
+        assertEquals("workflow.valuemap.colors", tasks.get(0).getParams().get(0).getDatasource().getId());
+        assertEquals(true, tasks.get(0).getParams().get(0).isRequired());
+        // step/task1/param2
+        assertEquals("param.id2", tasks.get(0).getParams().get(1).getName());
+        assertEquals(DisplayType.SELECT, tasks.get(0).getParams().get(1).getDisplayType());
+        assertEquals(ValueType.NUMBER, tasks.get(0).getParams().get(1).getValueType());
+        assertEquals("proarc.devices", tasks.get(0).getParams().get(1).getDatasource().getId());
+        assertEquals(false, tasks.get(0).getParams().get(1).isRequired());
         // step/task2
         assertEquals(job0.getSteps().get(1).getTask(), tasks.get(1));
         assertEquals(job0.getSteps().get(1).getBlockers().get(0).getTask(), tasks.get(0));
@@ -149,10 +164,16 @@ public class WorkflowProfilesTest {
         assertEquals("output", tasks.get(1).getMaterialSetters().get(0).getWay());
         assertEquals("material0", tasks.get(0).getMaterialSetters().get(0).getMaterial().getName());
 
+        // valuemap1
         assertEquals("workflow.valuemap.colors", wf.getValueMaps().get(0).getId());
         assertEquals(ValueMapSource.INTERNAL, wf.getValueMaps().get(0).getSource());
         assertEquals("v šedi", wf.getValueMaps().get(0).getItems().get(1).getValue());
         assertNull(wf.getValueMaps().get(0).getItems().get(1).getKey());
+        // valuemap2
+        assertEquals("workflow.valuemap.colorsWithKeys", wf.getValueMaps().get(1).getId());
+        assertEquals(ValueMapSource.INTERNAL, wf.getValueMaps().get(1).getSource());
+        assertEquals("v šedi", wf.getValueMaps().get(1).getItems().get(1).getValue());
+        assertEquals("grey", wf.getValueMaps().get(1).getItems().get(1).getKey());
     }
 
     @Test

@@ -43,7 +43,6 @@ import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.MaterialDefinition;
-import cz.cas.lib.proarc.common.workflow.profile.ParamDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.SetMaterialDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.SetParamDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.StepDefinition;
@@ -171,20 +170,7 @@ public class WorkflowManager {
         dao.setTransaction(tx);
         try {
             List<TaskParameterView> params = dao.view(filter);
-            for (TaskParameterView param : params) {
-                String taskProfileName = param.getTaskProfileName();
-                String label = "Unknow parameter profile: " + param.getParamRef() + " in task " + taskProfileName;
-                TaskDefinition taskProfile = wp.getTaskProfile(wd, taskProfileName);
-                if (taskProfile != null) {
-                    for (ParamDefinition pdef : taskProfile.getParams()) {
-                        if (pdef.getName().equals(param.getParamRef())) {
-                            label = pdef.getTitle(filter.getLocale().getLanguage(), param.getParamRef());
-                        }
-                    }
-                }
-                param.setProfileLabel(label);
-            }
-            return params;
+            return new FilterFindParameterQuery(wp).filter(params, filter, wd);
         } finally {
             tx.close();
         }
@@ -262,12 +248,11 @@ public class WorkflowManager {
             StepDefinition step, Task task) {
 
         ArrayList<TaskParameter> params = new ArrayList<TaskParameter>();
-        for (SetParamDefinition param : step.getParamSetters()) {
+        for (SetParamDefinition setter : step.getParamSetters()) {
             params.add(paramDao.create()
-                    .addParamRef(param.getParam().getName())
+                    .addParamRef(setter.getParam().getName())
                     .addTaskId(task.getId())
-                    // XXX add param type to profile schema!
-                    .addValue(TaskParameter.Type.STRING, param.getValue()));
+                    .addValue(setter.getParam().getValueType(), setter.getValue()));
         }
         paramDao.add(task.getId(), params);
         return params;
@@ -280,7 +265,6 @@ public class WorkflowManager {
         for (SetMaterialDefinition setter : taskProfile.getMaterialSetters()) {
             MaterialDefinition mProfile = setter.getMaterial();
             String mName = mProfile.getName();
-            // cache.get(mName)
             Material m = materialCache.get(mName);
             if (m == null) {
                 // XXX add material type to profile

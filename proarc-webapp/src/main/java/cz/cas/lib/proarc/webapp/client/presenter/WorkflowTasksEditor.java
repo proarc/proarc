@@ -19,8 +19,10 @@ package cz.cas.lib.proarc.webapp.client.presenter;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.Widget;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.ExpansionMode;
+import com.smartgwt.client.types.ListGridEditEvent;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.Canvas;
@@ -28,13 +30,19 @@ import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.events.DrawEvent;
 import com.smartgwt.client.widgets.events.DrawHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.fields.CheckboxItem;
+import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
+import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.LinkItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
 import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
+import com.smartgwt.client.widgets.form.validator.IsFloatValidator;
 import com.smartgwt.client.widgets.grid.ListGrid;
+import com.smartgwt.client.widgets.grid.ListGridEditorContext;
+import com.smartgwt.client.widgets.grid.ListGridEditorCustomizer;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
@@ -45,7 +53,9 @@ import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.common.workflow.model.Material;
+import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
+import cz.cas.lib.proarc.common.workflow.profile.DisplayType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -54,6 +64,7 @@ import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowParameterDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
@@ -252,7 +263,9 @@ public class WorkflowTasksEditor {
 
         private void setParameters(String taskId) {
             if (taskId != null) {
+                paramGrid.discardAllEdits();
                 paramGrid.invalidateCache();
+                paramGrid.invalidateRecordComponents();
                 paramGrid.fetchData(new Criteria(WorkflowModelConsts.PARAMETERPROFILE_TASKID, taskId));
             } else {
                 paramGrid.setData(new Record[0]);
@@ -325,9 +338,81 @@ public class WorkflowTasksEditor {
             paramGrid = new ListGrid();
             paramGrid.setDataSource(WorkflowParameterDataSource.getInstance());
             paramGrid.setCanEdit(true);
+//            paramGrid.setEditByCell(true);
+            paramGrid.setEditEvent(ListGridEditEvent.CLICK);
+//            paramGrid.setValidateByCell(true);
+//            paramGrid.setValidateOnChange(true);
             paramGrid.setHeight("30%");
             paramGrid.setAutoSaveEdits(false);
+//            paramGrid.setAlwaysShowEditors(true);
+            paramGrid.setEditorCustomizer(new ListGridEditorCustomizer() {
+
+                @Override
+                public FormItem getEditor(ListGridEditorContext context) {
+                    return getParamValueEditor(context);
+                }
+            });
             return paramGrid;
+        }
+
+        private FormItem getParamValueEditor(ListGridEditorContext context) {
+            ListGridField editField = context.getEditField();
+            if (!WorkflowParameterDataSource.FIELD_VALUE.equals(editField.getName())) {
+                return context.getDefaultProperties();
+            }
+            ListGridRecord editedRecord = context.getEditedRecord();
+            ValueType valueType = ValueType.fromString(
+                    editedRecord.getAttribute(WorkflowModelConsts.PARAMETER_VALUETYPE));
+            DisplayType displayType = DisplayType.fromString(
+                    editedRecord.getAttribute(WorkflowModelConsts.PARAMETER_DISPLAYTYPE));
+
+            FormItem fi = createFormItem(displayType, editedRecord);
+
+            System.out.println("###" + editedRecord.getAttribute(WorkflowModelConsts.PARAMETER_PROFILENAME)
+                    + ", required: " + editedRecord.getAttributeAsBoolean(WorkflowModelConsts.PARAMETER_REQUIRED));
+            fi.setRequired(editedRecord.getAttributeAsBoolean(WorkflowModelConsts.PARAMETER_REQUIRED));
+            if (valueType == ValueType.NUMBER && displayType != DisplayType.CHECKBOX) {
+                fi.setValidators(new IsFloatValidator());
+            }
+//            fi.setValidateOnExit(true);
+            return fi;
+        }
+
+        private FormItem createFormItem(DisplayType displayType, Record profile) {
+            switch (displayType) {
+                case SELECT:
+                    SelectItem si = new SelectItem();
+                    setOptions(si, profile);
+                    return si;
+                case COMBOBOX:
+                    ComboBoxItem cbi = new ComboBoxItem();
+                    setOptions(cbi, profile);
+                    cbi.setLength(2000);
+                    return cbi;
+                case CHECKBOX:
+                    CheckboxItem ci = new CheckboxItem();
+                    ci.setShowLabel(false);
+                    return ci;
+                case TEXTAREA:
+                    TextAreaItem tai = new TextAreaItem();
+                    tai.setLength(2000);
+                    return tai;
+                case TEXT:
+                default:
+                    TextItem ti = new TextItem();
+                    ti.setLength(2);
+                    return ti;
+            }
+        }
+
+        private void setOptions(FormItem item, Record profile) {
+            String dataSourceId = profile.getAttribute(WorkflowModelConsts.PARAMETER_VALUEMAPID);
+            if (dataSourceId != null) {
+                DataSource ds = ValueMapDataSource.getInstance().getOptionDataSource(dataSourceId);
+                item.setValueField(profile.getAttribute(WorkflowModelConsts.PARAMETER_OPTION_VALUE_FIELD));
+                item.setOptionDataSource(ds);
+                item.setDisplayField(profile.getAttribute(WorkflowModelConsts.PARAMETER_OPTION_DISPLAY_FIELD));
+            }
         }
 
         private Widget createMaterialList() {

@@ -33,22 +33,6 @@ import org.joda.time.format.ISODateTimeFormat;
 @XmlAccessorType(XmlAccessType.NONE)
 public class TaskParameter {
 
-    public enum Type {
-
-        STRING, NUMBER, DATETIME;
-
-        public static Type fromString(String s) {
-            s = s == null ? null : s.toUpperCase();
-            for (Type type : values()) {
-                if (type.name().equals(s)) {
-                    return type;
-                }
-            }
-            return STRING;
-        }
-    }
-
-
     @XmlAttribute(name = WorkflowModelConsts.PARAMETER_TASKID)
     private BigDecimal taskId;
     /**
@@ -57,7 +41,7 @@ public class TaskParameter {
     @XmlElement(name = WorkflowModelConsts.PARAMETER_PROFILENAME)
     private String paramRef;
     @XmlElement(name = WorkflowModelConsts.PARAMETER_VALUETYPE)
-    private Type valueType;
+    private ValueType valueType;
 
     // Typed values are XML transient for now. See getValue.
     private String valueString;
@@ -93,24 +77,24 @@ public class TaskParameter {
     @XmlValue
     public String getValue() {
         String value = null;
-        if (valueType == Type.NUMBER) {
+        if (valueType == ValueType.NUMBER) {
             BigDecimal n = getValueNumber();
             value = n == null ? null : n.toPlainString();
-        } else if (valueType == Type.DATETIME) {
+        } else if (valueType == ValueType.DATETIME) {
             Timestamp t = getValueDateTime();
             if (t != null) {
                 value = ISODateTimeFormat.dateTime().withZoneUTC().print(t.getTime());
             }
-        } else if (valueType == Type.STRING) {
+        } else if (valueType == ValueType.STRING) {
             value = getValueString();
         } else {
-            throw new IllegalStateException("Unsuported type: " + valueType);
+            throw new IllegalStateException("Unsupported type: " + valueType);
         }
         return value;
     }
 
     public void setValue(String value) {
-        if (valueType == Type.NUMBER) {
+        if (valueType == ValueType.NUMBER) {
             BigDecimal number = null;
             if (value != null) {
                 if ("true".equals(value)) {
@@ -122,7 +106,7 @@ public class TaskParameter {
                 }
             }
             setValueNumber(number);
-        } else if (valueType == Type.DATETIME) {
+        } else if (valueType == ValueType.DATETIME) {
             Timestamp t = null;
             if (value != null) {
                 DateTime dateTime = ISODateTimeFormat.dateOptionalTimeParser().withZoneUTC().parseDateTime(value);
@@ -134,7 +118,7 @@ public class TaskParameter {
         }
     }
 
-    public TaskParameter addValue(Type type, String value) {
+    public TaskParameter addValue(ValueType type, String value) {
         setValueType(type);
         setValue(value);
         return this;
@@ -145,18 +129,18 @@ public class TaskParameter {
     }
 
     public void setValueTypeAsString(String type) {
-        setValueType(Type.fromString(type));
+        setValueType(ValueType.fromString(type));
     }
 
-    public Type getValueType() {
+    public ValueType getValueType() {
         return valueType;
     }
 
-    public void setValueType(Type valueType) {
+    public void setValueType(ValueType valueType) {
         this.valueType = valueType;
     }
 
-    public TaskParameter addValueType(Type type) {
+    public TaskParameter addValueType(ValueType type) {
         setValueType(type);
         return this;
     }
@@ -170,7 +154,7 @@ public class TaskParameter {
     }
 
     public TaskParameter addValueString(String value) {
-        setValueType(Type.STRING);
+        setValueType(ValueType.STRING);
         this.valueNumber = null;
         this.valueDateTime = null;
         setValueString(value);
@@ -187,7 +171,7 @@ public class TaskParameter {
     }
 
     public TaskParameter addValueNumber(BigDecimal value) {
-        setValueType(Type.NUMBER);
+        setValueType(ValueType.NUMBER);
         this.valueString = null;
         this.valueDateTime = null;
         setValueNumber(value);
@@ -203,7 +187,7 @@ public class TaskParameter {
     }
 
     public TaskParameter addValueDateTime(Timestamp value) {
-        setValueType(Type.DATETIME);
+        setValueType(ValueType.DATETIME);
         this.valueNumber = null;
         this.valueString = null;
         setValueDateTime(value);
