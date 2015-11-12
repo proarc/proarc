@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -179,12 +180,12 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
     }
 
     @Override
-    public void addTaskReference(Material m, Task t, String way) {
+    public void addTaskReference(Material m, Task t, Way way) {
         DBRecord r = new DBRecord();
         r.create(db.tableWorkflowMaterialInTask);
         r.setValue(db.tableWorkflowMaterialInTask.materialId, m.getId());
         r.setValue(db.tableWorkflowMaterialInTask.taskId, t.getId());
-        r.setValue(db.tableWorkflowMaterialInTask.way, way);
+        r.setValue(db.tableWorkflowMaterialInTask.way, way.name());
         r.update(getConnection());
     }
 

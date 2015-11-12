@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlIDREF;
  *
  * @author Jan Pokorsky
  */
-@XmlAccessorType(value = XmlAccessType.FIELD)
+@XmlAccessorType(value = XmlAccessType.NONE)
 public class SetMaterialDefinition {
 
     @XmlAttribute(name = WorkflowProfileConsts.SETMATERIAL_MATREF_ATT, required = true)
@@ -44,12 +44,12 @@ public class SetMaterialDefinition {
         return this;
     }
 
-    public String getWay() {
-        return way;
+    public Way getWay() {
+        return Way.fromString(way);
     }
 
-    public SetMaterialDefinition setWay(String way) {
-        this.way = way;
+    public SetMaterialDefinition setWay(Way way) {
+        this.way = way.name();
         return this;
     }
 

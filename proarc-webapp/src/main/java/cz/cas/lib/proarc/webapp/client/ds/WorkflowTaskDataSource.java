@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.smartgwt.client.data.DataSourceField;
-import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
@@ -25,10 +24,8 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
-import com.smartgwt.client.widgets.grid.ListGridRecord;
 import cz.cas.lib.proarc.common.workflow.model.Task.State;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
-import java.util.Date;
 import java.util.LinkedHashMap;
 
 /**
@@ -148,63 +145,6 @@ public class WorkflowTaskDataSource extends RestDataSource {
                 RestConfig.createAddOperation(),
 //                RestConfig.createDeleteOperation(),
                 RestConfig.createUpdateOperation());
-    }
-
-    private static Record[] createDemoData() {
-        return new Record[] {
-            createDemoTask()
-        };
-    }
-
-    private static Record createDemoTask() {
-        Record task = new ListGridRecord();
-        task.setAttribute(WorkflowTaskDataSource.FIELD_ID, "1");
-        task.setAttribute(WorkflowTaskDataSource.FIELD_LABEL, "OCR");
-        task.setAttribute(WorkflowTaskDataSource.FIELD_PRIORITY, "1");
-        task.setAttribute(WorkflowTaskDataSource.FIELD_OWNER, "operator");
-        task.setAttribute(WorkflowTaskDataSource.FIELD_TYPE, "ocrTask");
-        task.setAttribute(WorkflowTaskDataSource.FIELD_STATE, "ready");
-        task.setAttribute(WorkflowTaskDataSource.FIELD_PRIORITY, "5");
-        task.setAttribute(WorkflowTaskDataSource.FIELD_JOB_ID, "1");
-        task.setAttribute(WorkflowTaskDataSource.FIELD_JOB_LABEL, "Babička");
-        task.setAttribute(WorkflowTaskDataSource.FIELD_CREATED, new Date());
-        task.setAttribute(WorkflowTaskDataSource.FIELD_MODIFIED, new Date());
-
-        Record[] params = new Record[]{new Record(), new Record()};
-        params[0].setAttribute("label", "dpi");
-        params[0].setAttribute("value", "300");
-        params[1].setAttribute("label", "resolution");
-        params[1].setAttribute("value", "2048x1024");
-        task.setAttribute(FIELD_PARAMETERS, params);
-
-        task.setAttribute(FIELD_MATERIALS, createDemoMaterials());
-        return task;
-    }
-
-    static Record[] createDemoMaterials() {
-        Record[] materials = new Record[]{new Record(), new Record(), new Record()};
-        materials[0].setAttribute("ID", "1");
-        materials[0].setAttribute("type", "folder");
-        materials[0].setAttribute("way", "input");
-        materials[0].setAttribute("value", "tmp");
-        materials[0].setAttribute("note", "vzkaz");
-        materials[0].setAttribute("folderPath", "C:\\tmp");
-
-        materials[1].setAttribute("ID", "2");
-        materials[1].setAttribute("type", "physicalDocument");
-        materials[1].setAttribute("way", "input");
-        materials[1].setAttribute("value", "Babička");
-        materials[1].setAttribute("physicalBarCode", "123456");
-        materials[1].setAttribute("physicalField001", "Cz123456");
-        materials[1].setAttribute("physicalRdCzId", "321");
-        materials[1].setAttribute("physicalMetadata", "<mods></mods>");
-
-        materials[2].setAttribute("ID", "3");
-        materials[2].setAttribute("type", "digitalDocument");
-        materials[2].setAttribute("way", "output");
-        materials[2].setAttribute("value", "Babička");
-        materials[2].setAttribute("digitalPid", "uuid:d0667b41-ef19-445b-afae-873ebe5756d8");
-        return materials;
     }
 
 }

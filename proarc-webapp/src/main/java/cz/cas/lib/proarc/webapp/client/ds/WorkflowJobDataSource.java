@@ -16,17 +16,14 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DateDisplayFormat;
-import com.smartgwt.client.widgets.grid.ListGridRecord;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
-import java.util.Date;
 import java.util.LinkedHashMap;
 
 /**
@@ -128,22 +125,6 @@ public class WorkflowJobDataSource extends RestDataSource {
                 RestConfig.createAddOperation(),
 //                RestConfig.createDeleteOperation(),
                 RestConfig.createUpdateOperation());
-    }
-
-    private static Record createDemoJob() {
-        Record job = new ListGridRecord();
-        job.setAttribute(FIELD_CREATED, new Date());
-        job.setAttribute(FIELD_FINANCED, "VISK");
-        job.setAttribute(FIELD_ID, "1");
-        job.setAttribute(FIELD_LABEL, "Záměr - Babička");
-        job.setAttribute(FIELD_MODIFIED, new Date());
-        job.setAttribute(FIELD_NOTE, "spěchá");
-        job.setAttribute(FIELD_OWNER, "proarc");
-        job.setAttribute(FIELD_PRIORITY, "1");
-        job.setAttribute(FIELD_PROFILE_ID, "ndk");
-        job.setAttribute(FIELD_STATE, "open");
-        job.setAttribute(FIELD_MATERIALS, WorkflowTaskDataSource.createDemoMaterials());
-        return job;
     }
 
 }

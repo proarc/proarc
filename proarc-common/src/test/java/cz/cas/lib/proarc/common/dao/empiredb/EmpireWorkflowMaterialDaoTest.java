@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
@@ -212,7 +213,7 @@ public class EmpireWorkflowMaterialDaoTest {
         assertNull(ms.get(0).getPath());
         assertEquals(filter.getTaskId(), ms.get(0).getTaskId());
         assertEquals(Type.DIGITAL_OBJECT, ms.get(0).getType());
-        assertEquals("input", ms.get(0).getWay());
+        assertEquals(Way.INPUT, ms.get(0).getWay());
 
         // view a task's physical material
         filter = new MaterialFilter();
@@ -234,7 +235,7 @@ public class EmpireWorkflowMaterialDaoTest {
         assertNull(ms.get(0).getPath());
         assertEquals(filter.getTaskId(), ms.get(0).getTaskId());
         assertEquals(Type.PHYSICAL_DOCUMENT, ms.get(0).getType());
-        assertEquals("input", ms.get(0).getWay());
+        assertEquals(Way.INPUT, ms.get(0).getWay());
 
         // view job's materials
         filter = new MaterialFilter();
@@ -266,7 +267,7 @@ public class EmpireWorkflowMaterialDaoTest {
 
         Material m1 = dao.find(BigDecimal.ONE);
         Task t1 = daoTask.find(BigDecimal.ONE);
-        dao.addTaskReference(m1, t1, "input");
+        dao.addTaskReference(m1, t1, Way.INPUT);
         tx.commit();
 
         MaterialFilter filter = new MaterialFilter();
@@ -276,9 +277,9 @@ public class EmpireWorkflowMaterialDaoTest {
         List<MaterialView> result = dao.view(filter);
         assertEquals(2, result.size());
         assertEquals(BigDecimal.ONE, result.get(0).getId());
-        assertEquals("input", result.get(0).getWay());
+        assertEquals(Way.INPUT, result.get(0).getWay());
         assertEquals(BigDecimal.ONE, result.get(1).getId());
-        assertEquals("output", result.get(1).getWay());
+        assertEquals(Way.OUTPUT, result.get(1).getWay());
     }
 
     private void assertMaterial(Material exp, Material result) {

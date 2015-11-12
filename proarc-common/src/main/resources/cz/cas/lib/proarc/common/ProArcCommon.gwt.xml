@@ -29,6 +29,7 @@
     <source path="workflow/profile">
         <include name="*View.java" />
         <include name="DisplayType.java" />
+        <include name="Way.java" />
         <include name="WorkflowProfileConsts.java" />
     </source>
 

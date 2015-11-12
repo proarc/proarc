@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.math.BigDecimal;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -36,7 +37,7 @@ public class MaterialView extends Material {
     @XmlElement(name = WorkflowModelConsts.MATERIAL_TASKID)
     private BigDecimal taskId;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_WAY)
-    private String way;
+    private Way way;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_PATH)
     private String path;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_PID)
@@ -76,12 +77,20 @@ public class MaterialView extends Material {
         this.taskId = taskId;
     }
 
-    public String getWay() {
+    public Way getWay() {
         return way;
     }
 
-    public void setWay(String way) {
+    public void setWay(Way way) {
         this.way = way;
+    }
+
+    public String getWayAsString() {
+        return way == null ? null : way.name();
+    }
+
+    public void setWayAsString(String way) {
+        this.way = Way.fromString(way);
     }
 
     public String getPath() {

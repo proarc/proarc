@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
+import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.util.LinkedHashMap;
 
 /**
@@ -91,8 +91,8 @@ public class WorkflowMaterialDataSource extends RestDataSource {
         DataSourceEnumField way = new DataSourceEnumField(FIELD_WAY);
         way.setTitle("IO");
         way.setValueMap(new LinkedHashMap<String, String>() {{
-            put("input", "Vstupní");
-            put("output", "Výstupní");
+            put(Way.INPUT.name(), "Vstupní");
+            put(Way.OUTPUT.name(), "Výstupní");
         }});
 
         DataSourceTextField path = new DataSourceTextField(FIELD_FOLDER_PATH);

@@ -93,12 +93,12 @@ public class WorkflowProfilesTest {
                 + "        <param name='param.id1' required='true' datasource='workflow.valuemap.colors'/>\n"
                 + "        <param name='param.id2' required='false' datasource='proarc.devices'\n"
                 + "            type='NUMBER' displayType='SELECT'/>\n"
-                + "        <setMaterial materialRef='material0' way='input'/>\n"
+                + "        <setMaterial materialRef='material0' way='INPUT'/>\n"
                 + "        <title lang='cs'>Úkol 1</title>\n"
                 + "        <title lang='en'>Task 1</title>\n"
                 + "    </task>\n"
                 + "    <task name='task.id2'>\n"
-                + "        <setMaterial materialRef='material0' way='output'/>\n"
+                + "        <setMaterial materialRef='material0' way='OUTPUT'/>\n"
                 + "    </task>\n"
 
                 + "    <valuemap name='workflow.valuemap.colors'>\n"
@@ -143,7 +143,7 @@ public class WorkflowProfilesTest {
         // step/task1
         assertEquals(job0.getSteps().get(0).getTask(), tasks.get(0));
         assertEquals("task.id1", tasks.get(0).getName());
-        assertEquals("input", tasks.get(0).getMaterialSetters().get(0).getWay());
+        assertEquals(Way.INPUT, tasks.get(0).getMaterialSetters().get(0).getWay());
         assertEquals("material0", tasks.get(0).getMaterialSetters().get(0).getMaterial().getName());
         // step/task1/param1
         assertEquals("param.id1", tasks.get(0).getParams().get(0).getName());
@@ -161,7 +161,7 @@ public class WorkflowProfilesTest {
         assertEquals(job0.getSteps().get(1).getTask(), tasks.get(1));
         assertEquals(job0.getSteps().get(1).getBlockers().get(0).getTask(), tasks.get(0));
         assertEquals("task.id2", tasks.get(1).getName());
-        assertEquals("output", tasks.get(1).getMaterialSetters().get(0).getWay());
+        assertEquals(Way.OUTPUT, tasks.get(1).getMaterialSetters().get(0).getWay());
         assertEquals("material0", tasks.get(0).getMaterialSetters().get(0).getMaterial().getName());
 
         // valuemap1
@@ -214,7 +214,7 @@ public class WorkflowProfilesTest {
         TaskDefinition task1 = new TaskDefinition().setName("task.id1");
         task1.getTitles().put("cs", "Úkol 1");
         task1.getTitles().put("en", "Task 1");
-        task1.getMaterialSetters().add(new SetMaterialDefinition().setMaterial(material1).setWay("input"));
+        task1.getMaterialSetters().add(new SetMaterialDefinition().setMaterial(material1).setWay(Way.INPUT));
 
         ParamDefinition param1 = new ParamDefinition().setName("param.id1").setRequired(true);
         task1.getParams().add(param1);

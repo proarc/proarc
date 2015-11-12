@@ -80,13 +80,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
     <xs:complexType name="setMaterialDefinition">
         <xs:attribute name="materialRef" type="xs:IDREF" use="required"/>
+        <!--The way how is the material used.-->
         <xs:attribute name="way" type="tns:materialWayType" use="required"/>
     </xs:complexType>
 
     <xs:simpleType name="materialWayType">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="input"/>
-            <xs:enumeration value="output"/>
+            <xs:enumeration value="INPUT"/>
+            <xs:enumeration value="OUTPUT"/>
         </xs:restriction>
     </xs:simpleType>
 

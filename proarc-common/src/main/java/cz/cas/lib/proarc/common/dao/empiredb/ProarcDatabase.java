@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
+import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
@@ -467,6 +468,8 @@ public class ProarcDatabase extends DBDatabase {
             taskId = addColumn("TASK_ID", DataType.INTEGER, 0, true);
             materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
             way = addColumn("WAY", DataType.TEXT, 100, true);
+            way.setBeanPropertyName("wayAsString");
+            way.setOptions(toOptions(Way.values()));
             setPrimaryKey(taskId, materialId, way);
         }
     }

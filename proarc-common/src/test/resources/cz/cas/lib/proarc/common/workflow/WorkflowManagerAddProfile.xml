@@ -19,13 +19,13 @@
             <title>Param1</title>
         </param>
         <param name='param.id2' required='true' datasource='proarc.devices'/>
-        <setMaterial materialRef='material.folder' way='input'/>
+        <setMaterial materialRef='material.folder' way='INPUT'/>
         <title lang='cs'>Úkol 1</title>
         <title lang='en'>Task 1</title>
     </task>
     <task name='task.id2'>
-        <setMaterial materialRef='material.folder' way='output'/>
-        <setMaterial materialRef='material.physical' way='input'/>
+        <setMaterial materialRef='material.folder' way='OUTPUT'/>
+        <setMaterial materialRef='material.physical' way='INPUT'/>
     </task>
     <valuemap name='workflow.valuemap.colors'>
         <value>barevně</value>

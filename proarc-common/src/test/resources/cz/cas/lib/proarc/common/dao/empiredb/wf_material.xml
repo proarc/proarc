@@ -18,12 +18,12 @@
 
     <proarc_wf_physical_document material_id="3" barcode="1234" rdcz_id="3" field001="001" source="http://catalog" metadata="Metadata" />
 
-    <proarc_wf_material_in_task task_id="1" material_id="1" way="output" />
-    <proarc_wf_material_in_task task_id="1" material_id="2" way="input" />
-    <proarc_wf_material_in_task task_id="1" material_id="3" way="input" />
+    <proarc_wf_material_in_task task_id="1" material_id="1" way="OUTPUT" />
+    <proarc_wf_material_in_task task_id="1" material_id="2" way="INPUT" />
+    <proarc_wf_material_in_task task_id="1" material_id="3" way="INPUT" />
 
-    <proarc_wf_material_in_task task_id="2" material_id="1" way="input" />
+    <proarc_wf_material_in_task task_id="2" material_id="1" way="INPUT" />
 
-    <proarc_wf_material_in_task task_id="10" material_id="10" way="input" />
+    <proarc_wf_material_in_task task_id="10" material_id="10" way="INPUT" />
 
 </dataset>

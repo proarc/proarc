@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.workflow.model.Material.Type;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -30,7 +31,7 @@ import java.util.List;
  */
 public interface WorkflowMaterialDao extends Dao {
 
-    void addTaskReference(Material m, Task t, String way);
+    void addTaskReference(Material m, Task t, Way way);
 
     <T extends Material> T create(Type type);
 
