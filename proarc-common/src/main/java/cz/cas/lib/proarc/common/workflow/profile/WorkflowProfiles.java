@@ -20,7 +20,7 @@ import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.i18n.BundleValueMap;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapItemDefinition;
-import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapSource;
+import cz.cas.lib.proarc.common.workflow.profile.ValueMapSource;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;

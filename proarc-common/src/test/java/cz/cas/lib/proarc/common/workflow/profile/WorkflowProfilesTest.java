@@ -18,9 +18,7 @@ package cz.cas.lib.proarc.common.workflow.profile;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
-import cz.cas.lib.proarc.common.workflow.profile.DisplayType;
 import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapItemDefinition;
-import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapSource;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -109,7 +107,7 @@ public class WorkflowProfilesTest {
                 + "      <value key='colorful'>barevně</value>\n"
                 + "      <value key='grey'>v šedi</value>\n"
                 + "    </valuemap>\n"
-                + "    <valuemap name='proarc.devices' source='proarc'/>\n"
+                + "    <valuemap name='proarc.devices' source='PROARC'/>\n"
                 + "</workflow>\n"
                 ;
         File xmlFile = new File(temp.getRoot(), "workflow.xml");

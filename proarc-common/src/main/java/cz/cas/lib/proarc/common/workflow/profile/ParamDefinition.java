@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.workflow.profile;
 
 import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
-import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapSource;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;

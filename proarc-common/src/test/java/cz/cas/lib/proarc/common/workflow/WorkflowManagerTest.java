@@ -38,7 +38,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
-import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapSource;
+import cz.cas.lib.proarc.common.workflow.profile.ValueMapSource;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.File;
 import java.sql.Timestamp;

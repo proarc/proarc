@@ -175,13 +175,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
             <xs:element name="value" type="tns:valueMapItemDefinition" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
         <xs:attribute name="name" type="xs:ID" use="required"/>
-        <xs:attribute name="source" type="tns:valueMapSourceType" default="internal" />
+        <xs:attribute name="source" type="tns:valueMapSourceType" default="INTERNAL" />
     </xs:complexType>
 
     <xs:simpleType name="valueMapSourceType">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="internal"/>
-            <xs:enumeration value="proarc"/>
+            <xs:enumeration value="INTERNAL"/>
+            <xs:enumeration value="PROARC"/>
         </xs:restriction>
     </xs:simpleType>
 

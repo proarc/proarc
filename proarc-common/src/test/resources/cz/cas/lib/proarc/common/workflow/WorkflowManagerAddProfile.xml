@@ -35,6 +35,6 @@
         <value key='colorful'>barevně</value>
         <value key='grey'>v šedi</value>
     </valuemap>
-    <valuemap name='proarc.devices' source='proarc'/>
+    <valuemap name='proarc.devices' source='PROARC'/>
 </workflow>
 

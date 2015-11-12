@@ -56,8 +56,7 @@ public class ValueMapDefinition {
     }
 
     public void setSource(String source) {
-        ValueMapSource src = ValueMapSource.fromValue(source);
-        this.source = src == ValueMapSource.INTERNAL ? null : src.getValue();
+        this.source = ValueMapSource.fromValue(source).name();
     }
 
     public List<ValueMapItemDefinition> getItems() {
@@ -65,31 +64,6 @@ public class ValueMapDefinition {
             items = new ArrayList<ValueMapItemDefinition>();
         }
         return items;
-    }
-
-    public enum ValueMapSource {
-        INTERNAL("internal"), PROARC("proarc");
-        private String value;
-
-        private ValueMapSource(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        public static ValueMapSource fromValue(String s) {
-            if (s == null) {
-                return INTERNAL;
-            }
-            for (ValueMapSource item : values()) {
-                if (item.value.equals(s)) {
-                    return item;
-                }
-            }
-            throw new IllegalArgumentException(s);
-        }
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)

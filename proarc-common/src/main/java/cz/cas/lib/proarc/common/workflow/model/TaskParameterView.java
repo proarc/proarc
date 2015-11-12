@@ -18,7 +18,7 @@ package cz.cas.lib.proarc.common.workflow.model;
 
 import cz.cas.lib.proarc.common.workflow.profile.DisplayType;
 import cz.cas.lib.proarc.common.workflow.profile.ParamDefinition;
-import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapSource;
+import cz.cas.lib.proarc.common.workflow.profile.ValueMapSource;
 import java.math.BigDecimal;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
