@@ -39,6 +39,10 @@ import java.util.HashMap;
 public class ValueMapDataSource extends RestDataSource {
 
     private static ValueMapDataSource INSTANCE;
+    private static final DataSource EMPTY_DS = new DataSource();
+    static {
+        EMPTY_DS.setClientOnly(true);
+    }
 
     private ResultSet cache;
     private HashMap<String, DataSource> optionDataSources = new HashMap<String, DataSource>();
@@ -88,14 +92,23 @@ public class ValueMapDataSource extends RestDataSource {
      */
     public DataSource getOptionDataSource(String mapId) {
         DataSource dataSource = optionDataSources.get(mapId);
-        if (cache != null) {
-            dataSource = new DataSource();
-            dataSource.setClientOnly(true);
-            Record mapRecord = cache.findByKey(mapId);
-            if (mapRecord != null) {
-                Record[] attributeAsRecordArray = mapRecord.getAttributeAsRecordArray(
-                        ValueMapResourceApi.RESULT_VALUES);
-                dataSource.setTestData(attributeAsRecordArray);
+        if (dataSource == null) {
+            if ("proarc.devices".equals(mapId)) {
+                dataSource = DeviceDataSource.getInstance();
+            } else {
+                if (cache != null) {
+                    Record mapRecord = cache.findByKey(mapId);
+                    if (mapRecord != null) {
+                        dataSource = new DataSource();
+                        dataSource.setClientOnly(true);
+                        Record[] attributeAsRecordArray = mapRecord.getAttributeAsRecordArray(
+                                ValueMapResourceApi.RESULT_VALUES);
+                        dataSource.setTestData(attributeAsRecordArray);
+                    }
+                }
+                if (dataSource == null) {
+                    dataSource = EMPTY_DS;
+                }
             }
             optionDataSources.put(mapId, dataSource);
         }
