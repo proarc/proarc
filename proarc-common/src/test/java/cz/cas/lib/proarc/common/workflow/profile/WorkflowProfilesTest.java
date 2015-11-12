@@ -77,7 +77,7 @@ public class WorkflowProfilesTest {
                 + "            <worker>step1Worker</worker>\n"
                 + "            <setParam paramRef='param.id1'>param.id1.value</setParam>\n"
                 + "        </step>\n"
-                + "        <step taskRef='task.id2'>\n"
+                + "        <step taskRef='task.id2' optional='true'>\n"
                 + "            <blocker taskRef='task.id1'/>\n"
                 + "        </step>\n"
                 + "        <title>defaultTitle</title>\n"
@@ -126,6 +126,8 @@ public class WorkflowProfilesTest {
         assertEquals("defaultTitle", job0.getTitles().get(null));
         assertEquals("step1Worker", job0.getSteps().get(0).getWorker().getUsername());
         assertFalse(job0.getSteps().get(0).getWorker().getActual());
+        assertEquals(false, job0.getSteps().get(0).isOptional());
+        assertEquals(true, job0.getSteps().get(1).isOptional());
 
         List<SetParamDefinition> paramSetters = job0.getSteps().get(0).getParamSetters();
         assertFalse(paramSetters.isEmpty());

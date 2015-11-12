@@ -57,6 +57,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
             </xs:choice>
         </xs:sequence>
         <xs:attribute name="taskRef" type="xs:IDREF" use="required"/>
+        <!--
+        The optional step is not created automatically with new job,
+        but it can be added later by user.
+        -->
+        <xs:attribute name="optional" type="xs:boolean" default="false"/>
     </xs:complexType>
 
     <!--

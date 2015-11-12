@@ -35,6 +35,9 @@ public class StepDefinition {
     @XmlIDREF
     private TaskDefinition task;
 
+    @XmlAttribute(name = WorkflowProfileConsts.STEP_OPTIONAL)
+    private boolean optional;
+
     @XmlElement(name = WorkflowProfileConsts.STEP_WORKER_EL)
     private WorkerDefinition worker;
 
@@ -51,6 +54,14 @@ public class StepDefinition {
     public StepDefinition setTask(TaskDefinition type) {
         this.task = type;
         return this;
+    }
+
+    public boolean isOptional() {
+        return optional;
+    }
+
+    public void setOptional(boolean optional) {
+        this.optional = optional;
     }
 
     public WorkerDefinition getWorker() {
