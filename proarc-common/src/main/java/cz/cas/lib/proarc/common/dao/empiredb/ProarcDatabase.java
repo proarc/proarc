@@ -410,6 +410,7 @@ public class ProarcDatabase extends DBDatabase {
         public WorkflowFolderTable(DBDatabase db) {
             super("PROARC_WF_FOLDER", db);
             materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
+            materialId.setBeanPropertyName("id");
             path = addColumn("PATH", DataType.TEXT, 2000, false);
             setPrimaryKey(materialId);
         }
@@ -425,6 +426,7 @@ public class ProarcDatabase extends DBDatabase {
         public WorkflowDigObjTable(DBDatabase db) {
             super("PROARC_WF_DIGITAL_DOCUMENT", db);
             materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
+            materialId.setBeanPropertyName("id");
             pid = addColumn("PID", DataType.TEXT, 100, false);
             setPrimaryKey(materialId);
         }
@@ -446,6 +448,7 @@ public class ProarcDatabase extends DBDatabase {
         public WorkflowPhysicalDocTable(DBDatabase db) {
             super("PROARC_WF_PHYSICAL_DOCUMENT", db);
             materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
+            materialId.setBeanPropertyName("id");
             rdczId = addColumn("RDCZ_ID", DataType.INTEGER, 0, false);
             barcode = addColumn("BARCODE", DataType.TEXT, 100, false);
             field001 = addColumn("FIELD001", DataType.TEXT, 100, false);

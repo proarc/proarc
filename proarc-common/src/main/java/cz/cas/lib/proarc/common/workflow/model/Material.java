@@ -56,20 +56,6 @@ public class Material {
         this.id = id;
     }
 
-    /**
-     * An alias for {@link #getId()}.
-     */
-    public BigDecimal getMaterialId() {
-        return getId();
-    }
-
-    /**
-     * An alias for {@link #setId(java.math.BigDecimal)}.
-     */
-    public void setMaterialId(BigDecimal materialId) {
-        setId(materialId);
-    }
-
     public String getLabel() {
         return label;
     }
