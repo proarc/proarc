@@ -98,7 +98,7 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
         cmd.select(db.tableWorkflowMaterial.getColumns());
         cmd.select(db.tableWorkflowFolder.path);
         cmd.select(db.tableWorkflowDigObj.pid);
-        List<DBColumn> physicalSelections = db.tableWorkflowPhysicalDoc.getColumns();
+        List<DBColumn> physicalSelections = new ArrayList<DBColumn>(db.tableWorkflowPhysicalDoc.getColumns());
         physicalSelections.remove(db.tableWorkflowPhysicalDoc.materialId);
         cmd.select(physicalSelections);
 
