@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.Job.State;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.List;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
@@ -131,6 +132,27 @@ public class EmpireWorkflowJobDaoTest {
         assertEquals(BigDecimal.ONE, job0.getId());
         assertEquals("job.ndk", job0.getProfileName());
         assertEquals("test", job0.getUserName());
+    }
+
+    @Test
+    public void testViewDateFilter() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_job.xml")
+                );
+        support.cleanInsert(support.getConnection(tx), db);
+        tx.commit();
+
+        JobFilter filter = new JobFilter();
+        filter.setCreated(Arrays.asList(
+                ">", "2015-10-24T23:00:00",
+                "<", "2015-10-26T23:00:00"
+                ));
+        List<JobView> jobs = dao.view(filter);
+        assertEquals(1, jobs.size());
+        JobView job0 = jobs.get(0);
+        assertEquals(new BigDecimal(2), job0.getId());
+        assertEquals("job.stt", job0.getProfileName());
     }
 
 }

@@ -85,7 +85,11 @@ public class WorkflowResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<JobView> getJob(
             @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) BigDecimal id,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_CREATED) List<String> created,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_LABEL) String label,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_MODIFIED) List<String> modified,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_PROFILENAME) String profileName,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_STATE) Job.State state,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_OWNERID) BigDecimal userId,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_SORTBY) String sortBy
@@ -98,7 +102,11 @@ public class WorkflowResource {
         filter.setSortBy(sortBy);
 
         filter.setId(id);
+        filter.setCreated(created);
+        filter.setLabel(label);
+        filter.setModified(modified);
         filter.setProfileName(profileName);
+        filter.setState(state);
         filter.setUserId(userId);
         try {
             List<JobView> jobs = workflowManager.findJob(filter);

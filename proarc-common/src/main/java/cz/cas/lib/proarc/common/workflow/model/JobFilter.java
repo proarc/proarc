@@ -18,6 +18,8 @@ package cz.cas.lib.proarc.common.workflow.model;
 
 import cz.cas.lib.proarc.common.workflow.model.Job.State;
 import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -30,8 +32,14 @@ import javax.xml.bind.annotation.XmlElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class JobFilter {
 
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_CREATED)
+    private List<String> created;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_ID)
     private BigDecimal id;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_LABEL)
+    private String label;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MODIFIED)
+    private List<String> modified;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_OWNERID)
     private BigDecimal userId;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_PROFILENAME)
@@ -45,12 +53,36 @@ public class JobFilter {
     private int maxCount = 100;
     private Locale locale;
 
+    public List<String> getCreated() {
+        return created == null ? Collections.<String>emptyList() : created;
+    }
+
+    public void setCreated(List<String> created) {
+        this.created = created;
+    }
+
+    public List<String> getModified() {
+        return modified == null ? Collections.<String>emptyList() : modified;
+    }
+
+    public void setModified(List<String> modified) {
+        this.modified = modified;
+    }
+
     public BigDecimal getId() {
         return id;
     }
 
     public void setId(BigDecimal id) {
         this.id = id;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public BigDecimal getUserId() {

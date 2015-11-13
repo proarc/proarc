@@ -97,6 +97,12 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         if (filter.getId() != null) {
             cmd.where(tableJob.id.is(filter.getId()));
         }
+        if (filter.getLabel() != null) {
+            String pattern = filter.getLabel().trim().replace("%", "\\%");
+            if (!pattern.isEmpty()) {
+                cmd.where(tableJob.label.like('%' + pattern + '%'));
+            }
+        }
         if (filter.getProfileName() != null) {
             cmd.where(tableJob.profileName.is(filter.getProfileName()));
         }
@@ -107,6 +113,10 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         if (filter.getUserId() != null) {
             cmd.where(tableJob.ownerId.is(filter.getUserId()));
         }
+
+        EmpireUtils.addWhereDate(cmd, tableJob.created, filter.getCreated());
+        EmpireUtils.addWhereDate(cmd, tableJob.timestamp, filter.getModified());
+
         EmpireUtils.addOrderBy(cmd, filter.getSortBy(), tableJob.timestamp, true);
 
         DBReader reader = new DBReader();

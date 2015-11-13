@@ -20,6 +20,9 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.Widget;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.types.CriteriaPolicy;
+import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.Canvas;
@@ -49,6 +52,7 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor.WorkflowMaterialView;
@@ -110,7 +114,6 @@ public class WorkflowJobsEditor {
         @Override
         public void refresh() {
             jobGrid.invalidateCache();
-            init();
         }
 
         private Canvas createMainLayout() {
@@ -183,19 +186,57 @@ public class WorkflowJobsEditor {
         private ListGrid createJobList() {
             jobGrid = new ListGrid();
             jobGrid.setSelectionType(SelectionStyle.SINGLE);
-            jobGrid.setCanSort(false);
+            jobGrid.setShowFilterEditor(true);
+            jobGrid.setFilterOnKeypress(true);
+            jobGrid.setFilterLocalData(false);
+            jobGrid.setCanSort(true);
+            jobGrid.setDataFetchMode(FetchMode.PAGED);
+            ResultSet rs = new ResultSet();
+            rs.setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
+            rs.setUseClientFiltering(false);
+            rs.setUseClientSorting(false);
+            jobGrid.setDataProperties(rs);
             jobGrid.setDataSource(WorkflowJobDataSource.getInstance(),
-                    new ListGridField(WorkflowJobDataSource.FIELD_LABEL, 150),
-                    new ListGridField(WorkflowJobDataSource.FIELD_ID),
-                    new ListGridField(WorkflowJobDataSource.FIELD_STATE),
-                    new ListGridField(WorkflowJobDataSource.FIELD_PROFILE_ID),
-                    new ListGridField(WorkflowJobDataSource.FIELD_OWNER),
-                    new ListGridField(WorkflowJobDataSource.FIELD_PRIORITY),
-                    new ListGridField(WorkflowJobDataSource.FIELD_CREATED),
-                    new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED),
-                    new ListGridField(WorkflowJobDataSource.FIELD_FINANCED),
+                    new ListGridField(WorkflowJobDataSource.FIELD_LABEL),
+                    new ListGridField(WorkflowJobDataSource.FIELD_ID, 30),
+                    new ListGridField(WorkflowJobDataSource.FIELD_STATE, 50),
+                    new ListGridField(WorkflowJobDataSource.FIELD_PROFILE_ID, 80),
+                    new ListGridField(WorkflowJobDataSource.FIELD_OWNER, 50),
+                    new ListGridField(WorkflowJobDataSource.FIELD_PRIORITY, 50),
+                    new ListGridField(WorkflowJobDataSource.FIELD_CREATED, 100),
+                    new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100),
+                    new ListGridField(WorkflowJobDataSource.FIELD_FINANCED, 100),
                     new ListGridField(WorkflowJobDataSource.FIELD_NOTE)
                     );
+
+            jobGrid.getField(WorkflowJobDataSource.FIELD_LABEL).setWidth("80%");
+            jobGrid.getField(WorkflowJobDataSource.FIELD_LABEL).setFilterOnKeypress(false);
+
+            jobGrid.getField(WorkflowJobDataSource.FIELD_STATE).setCanSort(false);
+
+            jobGrid.getField(WorkflowJobDataSource.FIELD_PROFILE_ID).setCanSort(false);
+            SelectItem profileFilter = new SelectItem();
+            profileFilter.setOptionDataSource(WorkflowProfileDataSource.getInstance());
+            profileFilter.setValueField(WorkflowProfileDataSource.FIELD_ID);
+            profileFilter.setDisplayField(WorkflowProfileDataSource.FIELD_LABEL);
+            jobGrid.getField(WorkflowJobDataSource.FIELD_PROFILE_ID).setFilterEditorProperties(profileFilter);
+
+            jobGrid.getField(WorkflowJobDataSource.FIELD_OWNER).setCanSort(false);
+            SelectItem owner = new SelectItem();
+            owner.setOptionDataSource(UserDataSource.getInstance());
+            owner.setValueField(UserDataSource.FIELD_ID);
+            owner.setDisplayField(UserDataSource.FIELD_USERNAME);
+            jobGrid.getField(WorkflowJobDataSource.FIELD_OWNER).setFilterEditorProperties(owner);
+
+//            jobGrid.getField(WorkflowJobDataSource.FIELD_CREATED).setCanFilter(true);
+//            jobGrid.getField(WorkflowJobDataSource.FIELD_MODIFIED).setCanFilter(true);
+
+            jobGrid.getField(WorkflowJobDataSource.FIELD_FINANCED).setCanFilter(false);
+            jobGrid.getField(WorkflowJobDataSource.FIELD_FINANCED).setCanSort(false);
+
+            jobGrid.getField(WorkflowJobDataSource.FIELD_NOTE).setCanFilter(false);
+            jobGrid.getField(WorkflowJobDataSource.FIELD_NOTE).setCanSort(false);
+
             jobGrid.addDataArrivedHandler(new DataArrivedHandler() {
 
                 @Override

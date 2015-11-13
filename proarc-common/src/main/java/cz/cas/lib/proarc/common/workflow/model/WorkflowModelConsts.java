@@ -36,6 +36,9 @@ public final class WorkflowModelConsts {
     public static final String JOB_TIMESTAMP = "timestamp";
 
     public static final String JOB_FILTER_ID = "id";
+    public static final String JOB_FILTER_CREATED = "created";
+    public static final String JOB_FILTER_LABEL = "label";
+    public static final String JOB_FILTER_MODIFIED = "modified";
     public static final String JOB_FILTER_OFFSET = "_startRow";
     public static final String JOB_FILTER_OWNERID = "ownerId";
     public static final String JOB_FILTER_PRIORITY = "priority";

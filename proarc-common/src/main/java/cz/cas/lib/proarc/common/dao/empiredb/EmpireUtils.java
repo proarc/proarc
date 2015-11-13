@@ -16,8 +16,13 @@
  */
 package cz.cas.lib.proarc.common.dao.empiredb;
 
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.apache.empire.commons.OptionEntry;
 import org.apache.empire.commons.Options;
 import org.apache.empire.data.DataMode;
@@ -34,6 +39,8 @@ import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
+import org.apache.empire.db.expr.compare.DBCompareColExpr;
+import org.apache.empire.db.expr.compare.DBCompareExpr;
 
 /**
  * EmpireDb helpers.
@@ -126,6 +133,66 @@ class EmpireUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Adds datetime filters.to the where statement.
+     *
+     * @param column a DB to filter
+     * @param dateFilter list of date filters as (operator, datetime) or single datetime
+     */
+    public static void addWhereDate(DBCommand cmd, DBTableColumn column, List<String> dateFilter) {
+        List<DBCompareExpr> exprs = createWhereDateExpr(column, parseDateFilter(dateFilter));
+        if (!exprs.isEmpty()) {
+            cmd.addWhereConstraints(exprs);
+        }
+    }
+
+    /**
+     *
+     * @param column a DB to filter
+     * @param dateEntries list of entries with date (key) and optional operator (value).
+     */
+    static List<DBCompareExpr> createWhereDateExpr(DBTableColumn column, List<Entry<String, String>> dateEntries) {
+        ArrayList<DBCompareExpr> exprs = new ArrayList<DBCompareExpr>(dateEntries.size());
+        for (Entry<String, String> entry : dateEntries) {
+            String operator = entry.getValue();
+            String date = entry.getKey();
+            DBCompareColExpr expr = null;
+            if (operator == null || "=".equals(operator)) {
+                expr = column.is(date);
+            } else if (">".equals(operator)) {
+                expr = column.isGreaterThan(date);
+            } else if ("<".equals(operator)) {
+                expr = column.isSmallerThan(date);
+            } else if (">=".equals(operator)) {
+                expr = column.isMoreOrEqual(date);
+            } else if ("<=".equals(operator)) {
+                expr = column.isLessOrEqual(date);
+            } else {
+                throw new IllegalStateException(String.format("date: '%s', operand: '%s'", date, operator));
+            }
+            if (expr != null) {
+                exprs.add(expr);
+            }
+        }
+        return exprs;
+    }
+
+    static List<Entry<String, String>> parseDateFilter(List<String> dateFilter) {
+        ArrayList<Entry<String, String>> dExpressions = new ArrayList<Map.Entry<String, String>>();
+        for (Iterator<String> dfit = dateFilter.iterator(); dfit.hasNext();) {
+            String dateOrOperand = dfit.next();
+            if (dfit.hasNext()) {
+                String operand = dateOrOperand;
+                String date = dfit.next();
+                dExpressions.add(new SimpleImmutableEntry<String, String>(date, operand));
+            } else {
+                String date = dateOrOperand;
+                dExpressions.add(new SimpleImmutableEntry<String, String>(date, null));
+            }
+        }
+        return dExpressions;
     }
 
     /**

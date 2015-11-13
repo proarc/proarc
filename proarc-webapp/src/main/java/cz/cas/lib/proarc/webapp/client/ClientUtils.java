@@ -23,6 +23,8 @@ import com.google.gwt.dom.client.Node;
 import com.google.gwt.dom.client.NodeList;
 import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.regexp.shared.SplitResult;
+import com.smartgwt.client.data.AdvancedCriteria;
+import com.smartgwt.client.data.Criterion;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
@@ -35,8 +37,10 @@ import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.tile.TileGrid;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkFormGenerator;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -54,6 +58,15 @@ import java.util.logging.Logger;
 public final class ClientUtils {
 
     private static final Logger LOG = Logger.getLogger(ClientUtils.class.getName());
+    private static final EnumMap<OperatorId, String> OPERATORS;
+    static {
+        OPERATORS = new EnumMap<OperatorId, String>(OperatorId.class);
+        OPERATORS.put(OperatorId.LESS_OR_EQUAL, "<=");
+        OPERATORS.put(OperatorId.LESS_THAN, "<");
+        OPERATORS.put(OperatorId.GREATER_OR_EQUAL, ">=");
+        OPERATORS.put(OperatorId.GREATER_THAN, ">");
+        OPERATORS.put(OperatorId.EQUALS, "=");
+    }
 
     /**
      * Helper to get modified {@link SmartGwtMessages }.
@@ -463,6 +476,40 @@ public final class ClientUtils {
             items[i] = records[i].getAttribute(attributeName);
         }
         return items;
+    }
+
+    /**
+     * Gets advanced criteria as HTTP GET params.
+     * @param ac advanced criteria
+     * @param map map of params
+     */
+    public static void advanceCriteriaAsParams(AdvancedCriteria ac, HashMap<String, Object> map, HashMap<String, String> dateFields) {
+        Criterion[] criteria = ac.getCriteria();
+        if (criteria == null) {
+            return ;
+        }
+        for (Criterion criterion : criteria) {
+            String fieldName = criterion.getFieldName();
+            if (criterion.isAdvanced() && fieldName == null) {
+                advanceCriteriaAsParams(criterion.asAdvancedCriteria(), map, dateFields);
+            } else {
+                String filterName = dateFields.get(fieldName);
+                if (filterName != null) {
+                    ArrayList<Object> dates = (ArrayList<Object>) map.get(filterName);
+                    if (dates == null) {
+                        dates = new ArrayList<Object>();
+                        map.put(filterName, dates);
+                    }
+                    String operatorStr = OPERATORS.get(criterion.getOperator());
+                    if (operatorStr != null) {
+                        dates.add(operatorStr);
+                    }
+                    dates.add(criterion.getValueAsDate());
+                } else {
+                    map.put(fieldName, criterion.getValueAsString());
+                }
+            }
+        }
     }
 
     public static final class DataSourceFieldBuilder<T extends DataSourceField> {

@@ -16,14 +16,19 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 /**
@@ -125,6 +130,23 @@ public class WorkflowJobDataSource extends RestDataSource {
                 RestConfig.createAddOperation(),
 //                RestConfig.createDeleteOperation(),
                 RestConfig.createUpdateOperation());
+    }
+
+    @Override
+    protected Object transformRequest(DSRequest dsRequest) {
+        if (dsRequest.getOperationType() == DSOperationType.FETCH) {
+            Criteria criteria = dsRequest.getCriteria();
+            if (criteria.isAdvanced()) {
+                HashMap<String, Object> record = new HashMap<String, Object>();
+                ClientUtils.advanceCriteriaAsParams(
+                        criteria.asAdvancedCriteria(), record, new HashMap<String, String>(){{
+                            put(FIELD_CREATED, WorkflowModelConsts.JOB_FILTER_CREATED);
+                            put(FIELD_MODIFIED, WorkflowModelConsts.JOB_FILTER_MODIFIED);
+                        }});
+                dsRequest.setData(record);
+            }
+        }
+        return super.transformRequest(dsRequest);
     }
 
 }
