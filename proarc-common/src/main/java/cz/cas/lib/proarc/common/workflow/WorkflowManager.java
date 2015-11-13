@@ -200,7 +200,7 @@ public class WorkflowManager {
             Map<String, Material> materialCache = new HashMap<String, Material>();
 
             for (StepDefinition step : jobProfile.getSteps()) {
-                if (step.isOptional()) {
+                if (!step.isOptional()) {
                     Task task = createTask(taskDao, now, job, step, users, defaultUser);
                     createTaskParams(paramDao, step, task);
                     createMaterials(materialDao, step, task, materialCache, physicalMaterial);
