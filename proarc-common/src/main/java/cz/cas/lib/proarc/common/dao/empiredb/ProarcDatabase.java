@@ -19,7 +19,7 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireUtils.EnhancedDBTable;
 import cz.cas.lib.proarc.common.workflow.model.Job;
-import cz.cas.lib.proarc.common.workflow.model.Material;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
@@ -390,7 +390,7 @@ public class ProarcDatabase extends DBDatabase {
             super("PROARC_WF_MATERIAL", db);
             id = addSequenceColumn("ID");
             type = addColumn("TYPE", DataType.TEXT, 100, true);
-            type.setOptions(toOptions(Material.Type.values()));
+            type.setOptions(toOptions(MaterialType.values()));
             type.setBeanPropertyName("typeAsString");
             state = addColumn("STATE", DataType.TEXT, 100, false);
             name = addColumn("NAME", DataType.TEXT, 500, true);

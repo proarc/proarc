@@ -20,7 +20,7 @@ import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
-import cz.cas.lib.proarc.common.workflow.model.Material;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.util.LinkedHashMap;
@@ -83,9 +83,9 @@ public class WorkflowMaterialDataSource extends RestDataSource {
         DataSourceEnumField type = new DataSourceEnumField(FIELD_TYPE);
         type.setTitle("Typ materiálu");
         type.setValueMap(new LinkedHashMap<String, String>() {{
-            put(Material.Type.FOLDER.name(), "Adresář");
-            put(Material.Type.PHYSICAL_DOCUMENT.name(), "Předloha");
-            put(Material.Type.DIGITAL_OBJECT.name(), "Dig. objekt");
+            put(MaterialType.FOLDER.name(), "Adresář");
+            put(MaterialType.PHYSICAL_DOCUMENT.name(), "Předloha");
+            put(MaterialType.DIGITAL_OBJECT.name(), "Dig. objekt");
         }});
 
         DataSourceEnumField way = new DataSourceEnumField(FIELD_WAY);

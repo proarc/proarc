@@ -20,7 +20,7 @@
 
     <source path="workflow/model">
         <include name="Job.java" />
-        <include name="Material.java" />
+        <include name="MaterialType.java" />
         <include name="Task.java" />
         <include name="ValueType.java" />
         <include name="WorkflowModelConsts.java" />

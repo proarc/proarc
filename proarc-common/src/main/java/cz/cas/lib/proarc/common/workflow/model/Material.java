@@ -28,10 +28,6 @@ import javax.xml.bind.annotation.XmlElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Material {
 
-    public enum Type {
-        FOLDER, DIGITAL_OBJECT, PHYSICAL_DOCUMENT;
-    }
-
     @XmlElement(name = WorkflowModelConsts.MATERIAL_ID)
     private BigDecimal id;
     /**
@@ -46,7 +42,7 @@ public class Material {
     @XmlElement(name = WorkflowModelConsts.MATERIAL_STATE)
     private String state;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_TYPE)
-    private Type type;
+    private MaterialType type;
 
     public BigDecimal getId() {
         return id;
@@ -88,11 +84,11 @@ public class Material {
         this.state = state;
     }
 
-    public Type getType() {
+    public MaterialType getType() {
         return type;
     }
 
-    public void setType(Type type) {
+    public void setType(MaterialType type) {
         this.type = type;
     }
 
@@ -101,7 +97,7 @@ public class Material {
     }
 
     public void setTypeAsString(String type) throws IllegalArgumentException {
-        this.type = Type.valueOf(type);
+        this.type = MaterialType.valueOf(type);
     }
 
 }

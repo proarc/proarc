@@ -103,8 +103,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
             <xs:element name="title" type="tns:i18NString"/>
         </xs:choice>
         <xs:attribute name="name" type="xs:ID" use="required"/>
+        <xs:attribute name="type" type="tns:materialType" use="required"/>
         <xs:attribute name="disabled" type="xs:boolean"/>
     </xs:complexType>
+
+    <xs:simpleType name="materialType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="DIGITAL_OBJECT"/>
+            <xs:enumeration value="FOLDER"/>
+            <xs:enumeration value="PHYSICAL_DOCUMENT"/>
+        </xs:restriction>
+    </xs:simpleType>
 
     <xs:complexType name="workerDefinition">
         <xs:simpleContent>

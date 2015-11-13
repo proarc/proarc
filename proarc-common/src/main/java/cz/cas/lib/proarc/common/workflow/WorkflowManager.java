@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Task;
@@ -267,18 +268,18 @@ public class WorkflowManager {
         for (SetMaterialDefinition setter : taskProfile.getMaterialSetters()) {
             MaterialDefinition mProfile = setter.getMaterial();
             String mName = mProfile.getName();
+            MaterialType mType = mProfile.getType();
             Material m = materialCache.get(mName);
             if (m == null) {
-                // XXX add material type to profile
-                if (mName.contains("folder")) {
+                if (mType == MaterialType.FOLDER) {
                     m = new FolderMaterial();
-                } else if (mName.contains("physical")) {
+                } else if (mType == MaterialType.PHYSICAL_DOCUMENT) {
                     if (origin.getId() == null) {
                         m = origin;
                     } else {
                         m = new PhysicalMaterial();
                     }
-                } else if (mName.contains("digital")) {
+                } else if (mType == MaterialType.DIGITAL_OBJECT) {
                     m = new DigitalMaterial();
                 } else {
                     LOG.log(Level.WARNING, "Unknown material: {0}", mName);

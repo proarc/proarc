@@ -20,20 +20,8 @@ package cz.cas.lib.proarc.common.workflow.model;
  *
  * @author Jan Pokorsky
  */
-public class FolderMaterial extends Material {
+public enum MaterialType {
 
-    private String path;
-
-    public FolderMaterial() {
-        setType(MaterialType.FOLDER);
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
+    FOLDER, DIGITAL_OBJECT, PHYSICAL_DOCUMENT
 
 }

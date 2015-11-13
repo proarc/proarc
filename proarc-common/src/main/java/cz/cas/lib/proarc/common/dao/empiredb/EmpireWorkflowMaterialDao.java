@@ -20,7 +20,7 @@ import cz.cas.lib.proarc.common.dao.WorkflowMaterialDao;
 import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.FolderMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Material;
-import cz.cas.lib.proarc.common.workflow.model.Material.Type;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
@@ -54,10 +54,10 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
     }
 
     @Override
-    public <T extends Material> T create(Type type) {
-        Material m = type == Type.FOLDER ? new FolderMaterial()
-                : type == Type.DIGITAL_OBJECT ? new DigitalMaterial()
-                : type == Type.PHYSICAL_DOCUMENT ? new PhysicalMaterial()
+    public <T extends Material> T create(MaterialType type) {
+        Material m = type == MaterialType.FOLDER ? new FolderMaterial()
+                : type == MaterialType.DIGITAL_OBJECT ? new DigitalMaterial()
+                : type == MaterialType.PHYSICAL_DOCUMENT ? new PhysicalMaterial()
                 : null;
         return (T) m;
     }
@@ -67,7 +67,7 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
         DBRecord record = new DBRecord();
         try {
             record.read(db.tableWorkflowMaterial, id, getConnection());
-            Type type = Type.valueOf(record.getString(db.tableWorkflowMaterial.type));
+            MaterialType type = MaterialType.valueOf(record.getString(db.tableWorkflowMaterial.type));
             Material m = create(type);
             record.getBeanProperties(m);
             return (T) fetchCustom(m);
@@ -189,10 +189,10 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
         r.update(getConnection());
     }
 
-    DBTable getMaterialTable(Type type) {
-        return type == Type.FOLDER ? db.tableWorkflowFolder
-                : type == Type.DIGITAL_OBJECT ? db.tableWorkflowDigObj
-                : type == Type.PHYSICAL_DOCUMENT ? db.tableWorkflowPhysicalDoc
+    DBTable getMaterialTable(MaterialType type) {
+        return type == MaterialType.FOLDER ? db.tableWorkflowFolder
+                : type == MaterialType.DIGITAL_OBJECT ? db.tableWorkflowDigObj
+                : type == MaterialType.PHYSICAL_DOCUMENT ? db.tableWorkflowPhysicalDoc
                 : null;
     }
 

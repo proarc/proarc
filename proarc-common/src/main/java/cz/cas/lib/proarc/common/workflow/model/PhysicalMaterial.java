@@ -31,7 +31,7 @@ public class PhysicalMaterial extends Material {
     private String metadata;
 
     public PhysicalMaterial() {
-        setType(Type.PHYSICAL_DOCUMENT);
+        setType(MaterialType.PHYSICAL_DOCUMENT);
     }
 
     public String getBarcode() {

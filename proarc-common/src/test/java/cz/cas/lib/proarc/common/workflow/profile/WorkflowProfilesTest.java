@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.workflow.profile;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapItemDefinition;
 import java.io.File;
@@ -84,8 +85,8 @@ public class WorkflowProfilesTest {
                 + "        <title lang='cs'>csTitle</title>\n"
                 + "    </job>\n"
 
-                + "    <material name='material0'/>\n"
-                + "    <material name='material1'/>\n"
+                + "    <material name='material0' type='FOLDER'/>\n"
+                + "    <material name='material1' type='DIGITAL_OBJECT'/>\n"
 
                 + "    <task name='task.id1'>\n"
                 + "        <param name='param.id1' required='true' datasource='workflow.valuemap.colors'/>\n"
@@ -145,6 +146,7 @@ public class WorkflowProfilesTest {
         assertEquals("task.id1", tasks.get(0).getName());
         assertEquals(Way.INPUT, tasks.get(0).getMaterialSetters().get(0).getWay());
         assertEquals("material0", tasks.get(0).getMaterialSetters().get(0).getMaterial().getName());
+        assertEquals(MaterialType.FOLDER, tasks.get(0).getMaterialSetters().get(0).getMaterial().getType());
         // step/task1/param1
         assertEquals("param.id1", tasks.get(0).getParams().get(0).getName());
         assertEquals(DisplayType.TEXT, tasks.get(0).getParams().get(0).getDisplayType());

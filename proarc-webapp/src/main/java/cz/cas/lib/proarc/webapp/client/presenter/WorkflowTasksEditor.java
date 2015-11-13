@@ -52,7 +52,7 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
-import cz.cas.lib.proarc.common.workflow.model.Material;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.DisplayType;
@@ -489,11 +489,11 @@ public class WorkflowTasksEditor {
                 protected Canvas getExpansionComponent(final ListGridRecord record) {
                     String type = record.getAttribute(WorkflowMaterialDataSource.FIELD_TYPE);
                     DynamicForm form = null;
-                    if (Material.Type.FOLDER.name().equals(type)) {
+                    if (MaterialType.FOLDER.name().equals(type)) {
                         form = createFolderForm();
-                    } else if (Material.Type.PHYSICAL_DOCUMENT.name().equals(type)) {
+                    } else if (MaterialType.PHYSICAL_DOCUMENT.name().equals(type)) {
                         form = createPhysicalDocumentForm();
-                    } else if (Material.Type.DIGITAL_OBJECT.name().equals(type)) {
+                    } else if (MaterialType.DIGITAL_OBJECT.name().equals(type)) {
                         form = createDigitalDocumentForm();
                     }
                     if (form != null) {

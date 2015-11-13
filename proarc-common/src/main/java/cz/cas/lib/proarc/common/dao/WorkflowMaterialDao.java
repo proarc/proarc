@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.dao;
 
 import cz.cas.lib.proarc.common.workflow.model.Material;
-import cz.cas.lib.proarc.common.workflow.model.Material.Type;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
@@ -33,7 +33,7 @@ public interface WorkflowMaterialDao extends Dao {
 
     void addTaskReference(Material m, Task t, Way way);
 
-    <T extends Material> T create(Type type);
+    <T extends Material> T create(MaterialType type);
 
     <T extends Material> T find(BigDecimal id);
 

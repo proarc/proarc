@@ -12,8 +12,8 @@
         <title>defaultTitle</title>
         <title lang='cs'>csTitle</title>
     </job>
-    <material name='material.folder'/>
-    <material name='material.physical'/>
+    <material name='material.folder' type="FOLDER"/>
+    <material name='material.physical' type="PHYSICAL_DOCUMENT"/>
     <task name='task.id1'>
         <param name='param.id1' required='true' datasource='workflow.valuemap.colors'>
             <title>Param1</title>

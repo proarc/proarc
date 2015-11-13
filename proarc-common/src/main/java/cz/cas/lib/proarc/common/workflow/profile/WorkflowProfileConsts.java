@@ -58,6 +58,7 @@ public class WorkflowProfileConsts {
     public static final String PARAM_OPTIONDISPLAYFIELD = "optionDisplayField";
 
     public static final String MATERIAL_NAME_ATT = "name";
+    public static final String MATERIAL_TYPE = "type";
 
     public static final String SETMATERIAL_MATREF_ATT = "materialRef";
     public static final String SETMATERIAL_WAY_ATT = "way";

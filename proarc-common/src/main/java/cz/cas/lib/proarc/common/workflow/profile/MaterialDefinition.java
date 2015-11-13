@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -25,12 +26,15 @@ import javax.xml.bind.annotation.XmlID;
  *
  * @author Jan Pokorsky
  */
-@XmlAccessorType(value = XmlAccessType.FIELD)
+@XmlAccessorType(value = XmlAccessType.NONE)
 public class MaterialDefinition extends DisplayableType<MaterialDefinition> {
 
     @XmlAttribute(name = WorkflowProfileConsts.MATERIAL_NAME_ATT, required = true)
     @XmlID
     private String name;
+
+    @XmlAttribute(name = WorkflowProfileConsts.MATERIAL_TYPE, required = true)
+    private String type;
 
     public String getName() {
         return name;
@@ -39,6 +43,14 @@ public class MaterialDefinition extends DisplayableType<MaterialDefinition> {
     public MaterialDefinition setName(String name) {
         this.name = name;
         return this;
+    }
+
+    public MaterialType getType() {
+        return MaterialType.valueOf(type);
+    }
+
+    public void setType(MaterialType type) {
+        this.type = type.name();
     }
 
 }

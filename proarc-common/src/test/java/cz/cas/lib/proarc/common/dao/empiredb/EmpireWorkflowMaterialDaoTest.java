@@ -19,7 +19,7 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.FolderMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Material;
-import cz.cas.lib.proarc.common.workflow.model.Material.Type;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
@@ -101,12 +101,12 @@ public class EmpireWorkflowMaterialDaoTest {
         support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
-        FolderMaterial m = dao.create(Type.FOLDER);
+        FolderMaterial m = dao.create(MaterialType.FOLDER);
         m.setName("material.folder");
         m.setNote("mnote");
         dao.update(m);
         assertNotNull(m.getId());
-        assertEquals(Type.FOLDER, m.getType());
+        assertEquals(MaterialType.FOLDER, m.getType());
 
         FolderMaterial result = dao.find(m.getId());
         assertNotNull(result);
@@ -129,8 +129,8 @@ public class EmpireWorkflowMaterialDaoTest {
         support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
-        DigitalMaterial m = dao.create(Type.DIGITAL_OBJECT);
-        assertEquals(Type.DIGITAL_OBJECT, m.getType());
+        DigitalMaterial m = dao.create(MaterialType.DIGITAL_OBJECT);
+        assertEquals(MaterialType.DIGITAL_OBJECT, m.getType());
         m.setName("material.digital");
         m.setNote("dnote");
         dao.update(m);
@@ -158,8 +158,8 @@ public class EmpireWorkflowMaterialDaoTest {
         support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
-        PhysicalMaterial m = dao.create(Type.PHYSICAL_DOCUMENT);
-        assertEquals(Type.PHYSICAL_DOCUMENT, m.getType());
+        PhysicalMaterial m = dao.create(MaterialType.PHYSICAL_DOCUMENT);
+        assertEquals(MaterialType.PHYSICAL_DOCUMENT, m.getType());
         m.setLabel("Label");
         m.setName("material.physical");
         m.setNote("pnote");
@@ -212,7 +212,7 @@ public class EmpireWorkflowMaterialDaoTest {
         assertEquals("uuid:ebfd7bf2-169d-476e-a230-0cc39f01764c", ms.get(0).getPid());
         assertNull(ms.get(0).getPath());
         assertEquals(filter.getTaskId(), ms.get(0).getTaskId());
-        assertEquals(Type.DIGITAL_OBJECT, ms.get(0).getType());
+        assertEquals(MaterialType.DIGITAL_OBJECT, ms.get(0).getType());
         assertEquals(Way.INPUT, ms.get(0).getWay());
 
         // view a task's physical material
@@ -234,7 +234,7 @@ public class EmpireWorkflowMaterialDaoTest {
         assertNull(ms.get(0).getPid());
         assertNull(ms.get(0).getPath());
         assertEquals(filter.getTaskId(), ms.get(0).getTaskId());
-        assertEquals(Type.PHYSICAL_DOCUMENT, ms.get(0).getType());
+        assertEquals(MaterialType.PHYSICAL_DOCUMENT, ms.get(0).getType());
         assertEquals(Way.INPUT, ms.get(0).getWay());
 
         // view job's materials
@@ -250,7 +250,7 @@ public class EmpireWorkflowMaterialDaoTest {
         assertEquals("note m1", ms.get(0).getNote());
         assertEquals("file:///folder1", ms.get(0).getPath());
         assertNull(ms.get(0).getTaskId());
-        assertEquals(Type.FOLDER, ms.get(0).getType());
+        assertEquals(MaterialType.FOLDER, ms.get(0).getType());
         assertNull(ms.get(0).getWay());
     }
 

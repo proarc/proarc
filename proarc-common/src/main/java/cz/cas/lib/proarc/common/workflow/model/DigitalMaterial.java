@@ -25,7 +25,7 @@ public class DigitalMaterial extends Material {
     private String pid;
 
     public DigitalMaterial() {
-        setType(Type.DIGITAL_OBJECT);
+        setType(MaterialType.DIGITAL_OBJECT);
     }
 
     public String getPid() {
