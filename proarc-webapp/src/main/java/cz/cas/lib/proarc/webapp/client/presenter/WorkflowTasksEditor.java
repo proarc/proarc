@@ -62,6 +62,7 @@ import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
@@ -98,7 +99,7 @@ public class WorkflowTasksEditor {
         places.goTo(new WorkflowJobPlace());
     }
 
-    private static final class WorkflowTasksView {
+    private static final class WorkflowTasksView implements Refreshable {
 
         private final ClientMessages i18n;
         private final Canvas widget;
@@ -118,6 +119,11 @@ public class WorkflowTasksEditor {
 
         public void init() {
             taskGrid.fetchData();
+        }
+
+        @Override
+        public void refresh() {
+            taskGrid.invalidateCache();
         }
 
         private Canvas createMainLayout() {
@@ -178,19 +184,49 @@ public class WorkflowTasksEditor {
 
         private ListGrid createTaskList() {
             final ListGrid grid = new ListGrid();
+            grid.setShowFilterEditor(true);
+            grid.setFilterOnKeypress(true);
+            grid.setCanSort(true);
             grid.setDataSource(WorkflowTaskDataSource.getInstance(),
-                    new ListGridField(WorkflowTaskDataSource.FIELD_LABEL, 150),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_LABEL),
                     new ListGridField(WorkflowTaskDataSource.FIELD_TYPE),
-                    new ListGridField(WorkflowTaskDataSource.FIELD_STATE),
-                    new ListGridField(WorkflowTaskDataSource.FIELD_PRIORITY),
-                    new ListGridField(WorkflowTaskDataSource.FIELD_OWNER),
-                    new ListGridField(WorkflowTaskDataSource.FIELD_CREATED),
-                    new ListGridField(WorkflowTaskDataSource.FIELD_MODIFIED),
-                    new ListGridField(WorkflowTaskDataSource.FIELD_ID),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_STATE, 50),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_PRIORITY, 50),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_OWNER, 50),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_CREATED, 100),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_MODIFIED, 100),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_ID, 30),
                     new ListGridField(WorkflowTaskDataSource.FIELD_NOTE),
-                    new ListGridField(WorkflowTaskDataSource.FIELD_JOB_ID),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_JOB_ID, 30),
                     new ListGridField(WorkflowTaskDataSource.FIELD_JOB_LABEL)
                     );
+
+            grid.getField(WorkflowTaskDataSource.FIELD_LABEL).setWidth("80%");
+            grid.getField(WorkflowTaskDataSource.FIELD_LABEL).setCanFilter(false);
+            grid.getField(WorkflowTaskDataSource.FIELD_LABEL).setCanSort(false);
+
+            grid.getField(WorkflowTaskDataSource.FIELD_OWNER).setCanFilter(true);
+            grid.getField(WorkflowTaskDataSource.FIELD_OWNER).setCanSort(false);
+            SelectItem owner = new SelectItem();
+            owner.setOptionDataSource(UserDataSource.getInstance());
+            owner.setValueField(UserDataSource.FIELD_ID);
+            owner.setDisplayField(UserDataSource.FIELD_USERNAME);
+            grid.getField(WorkflowTaskDataSource.FIELD_OWNER).setFilterEditorProperties(owner);
+
+            grid.getField(WorkflowTaskDataSource.FIELD_STATE).setCanFilter(true);
+            grid.getField(WorkflowTaskDataSource.FIELD_STATE).setCanSort(false);
+
+            grid.getField(WorkflowTaskDataSource.FIELD_CREATED).setCanFilter(false);
+            grid.getField(WorkflowTaskDataSource.FIELD_CREATED).setCanSort(true);
+
+            grid.getField(WorkflowTaskDataSource.FIELD_MODIFIED).setCanFilter(false);
+            grid.getField(WorkflowTaskDataSource.FIELD_MODIFIED).setCanSort(true);
+
+            grid.getField(WorkflowTaskDataSource.FIELD_NOTE).setCanFilter(false);
+            grid.getField(WorkflowTaskDataSource.FIELD_NOTE).setCanSort(false);
+
+            grid.getField(WorkflowTaskDataSource.FIELD_JOB_LABEL).setCanFilter(false);
+            grid.getField(WorkflowTaskDataSource.FIELD_JOB_LABEL).setCanSort(true);
 
             grid.addDataArrivedHandler(new DataArrivedHandler() {
 
@@ -207,7 +243,6 @@ public class WorkflowTasksEditor {
                 }
             });
             grid.setSelectionType(SelectionStyle.SINGLE);
-            grid.setCanSort(false);
             grid.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
                 @Override
