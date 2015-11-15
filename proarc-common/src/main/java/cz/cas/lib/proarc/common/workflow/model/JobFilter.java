@@ -40,6 +40,8 @@ public class JobFilter {
     private String label;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MODIFIED)
     private List<String> modified;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_PRIORITY)
+    private Integer priority;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_OWNERID)
     private BigDecimal userId;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_PROFILENAME)
@@ -91,6 +93,14 @@ public class JobFilter {
 
     public void setUserId(BigDecimal userId) {
         this.userId = userId;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
     }
 
     public String getProfileName() {

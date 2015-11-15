@@ -88,6 +88,7 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_CREATED) List<String> created,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_LABEL) String label,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_MODIFIED) List<String> modified,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_PRIORITY) Integer priority,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_PROFILENAME) String profileName,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_STATE) Job.State state,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_OWNERID) BigDecimal userId,

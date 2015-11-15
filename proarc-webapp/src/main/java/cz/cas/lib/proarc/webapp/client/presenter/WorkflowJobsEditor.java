@@ -202,7 +202,7 @@ public class WorkflowJobsEditor {
                     new ListGridField(WorkflowJobDataSource.FIELD_STATE, 50),
                     new ListGridField(WorkflowJobDataSource.FIELD_PROFILE_ID, 80),
                     new ListGridField(WorkflowJobDataSource.FIELD_OWNER, 50),
-                    new ListGridField(WorkflowJobDataSource.FIELD_PRIORITY, 50),
+                    new ListGridField(WorkflowJobDataSource.FIELD_PRIORITY, 60),
                     new ListGridField(WorkflowJobDataSource.FIELD_CREATED, 100),
                     new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100),
                     new ListGridField(WorkflowJobDataSource.FIELD_FINANCED, 100),

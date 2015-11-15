@@ -98,11 +98,12 @@ public class WorkflowJobDataSource extends RestDataSource {
         DataSourceEnumField priority = new DataSourceEnumField(FIELD_PRIORITY);
         priority.setTitle("Priorita");
         priority.setRequired(true);
-        String[] priorities = new String[10];
-        for (int i = 0; i < priorities.length; i++) {
-            priorities[i] = String.valueOf(i + 1);
-        }
-        priority.setValueMap(priorities);
+        priority.setValueMap(new LinkedHashMap() {{
+            put("1", "Spěchá");
+            put("2", "Normální");
+            put("3", "Nízká");
+            put("4", "Odloženo");
+        }});
 
         DataSourceTextField note = new DataSourceTextField(FIELD_NOTE);
         note.setTitle("Poznámka");

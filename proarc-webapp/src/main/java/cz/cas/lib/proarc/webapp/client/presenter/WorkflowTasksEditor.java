@@ -191,7 +191,7 @@ public class WorkflowTasksEditor {
                     new ListGridField(WorkflowTaskDataSource.FIELD_LABEL),
                     new ListGridField(WorkflowTaskDataSource.FIELD_TYPE),
                     new ListGridField(WorkflowTaskDataSource.FIELD_STATE, 50),
-                    new ListGridField(WorkflowTaskDataSource.FIELD_PRIORITY, 50),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_PRIORITY, 60),
                     new ListGridField(WorkflowTaskDataSource.FIELD_OWNER, 50),
                     new ListGridField(WorkflowTaskDataSource.FIELD_CREATED, 100),
                     new ListGridField(WorkflowTaskDataSource.FIELD_MODIFIED, 100),
@@ -364,7 +364,7 @@ public class WorkflowTasksEditor {
                     new SelectItem(WorkflowTaskDataSource.FIELD_STATE),
                     new TextItem(WorkflowTaskDataSource.FIELD_CREATED),
                     new TextItem(WorkflowTaskDataSource.FIELD_MODIFIED),
-                    new TextItem(WorkflowTaskDataSource.FIELD_PRIORITY),
+                    new SelectItem(WorkflowTaskDataSource.FIELD_PRIORITY),
                     note);
             return taskForm;
         }
