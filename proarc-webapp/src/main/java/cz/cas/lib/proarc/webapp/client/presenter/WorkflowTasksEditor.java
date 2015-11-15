@@ -216,10 +216,10 @@ public class WorkflowTasksEditor {
             grid.getField(WorkflowTaskDataSource.FIELD_STATE).setCanFilter(true);
             grid.getField(WorkflowTaskDataSource.FIELD_STATE).setCanSort(false);
 
-            grid.getField(WorkflowTaskDataSource.FIELD_CREATED).setCanFilter(false);
+            grid.getField(WorkflowTaskDataSource.FIELD_CREATED).setCanFilter(true);
             grid.getField(WorkflowTaskDataSource.FIELD_CREATED).setCanSort(true);
 
-            grid.getField(WorkflowTaskDataSource.FIELD_MODIFIED).setCanFilter(false);
+            grid.getField(WorkflowTaskDataSource.FIELD_MODIFIED).setCanFilter(true);
             grid.getField(WorkflowTaskDataSource.FIELD_MODIFIED).setCanSort(true);
 
             grid.getField(WorkflowTaskDataSource.FIELD_NOTE).setCanFilter(false);

@@ -167,8 +167,10 @@ public class WorkflowResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<TaskView> getTask(
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_CREATED) List<String> created,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_ID) BigDecimal id,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_JOBID) BigDecimal jobId,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_MODIFIED) List<String> modified,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_PRIORITY) Integer priority,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_PROFILENAME) String profileName,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_STATE) Task.State state,
@@ -183,8 +185,10 @@ public class WorkflowResource {
         filter.setOffset(startRow);
         filter.setSortBy(sortBy);
 
+        filter.setCreated(created);
         filter.setId(id);
         filter.setJobId(jobId);
+        filter.setModified(modified);
         filter.setPriority(priority);
         filter.setProfileName(profileName);
         filter.setState(state);

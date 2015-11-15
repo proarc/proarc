@@ -60,7 +60,9 @@ public final class WorkflowModelConsts {
     public static final String TASK_TIMESTAMP = "timestamp";
 
     public static final String TASK_FILTER_ID = "id";
+    public static final String TASK_FILTER_CREATED = "created";
     public static final String TASK_FILTER_JOBID = "jobId";
+    public static final String TASK_FILTER_MODIFIED = "modified";
     public static final String TASK_FILTER_OFFSET = "_startRow";
     public static final String TASK_FILTER_OWNERID = "ownerId";
     public static final String TASK_FILTER_PRIORITY = "priority";
