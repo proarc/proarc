@@ -289,7 +289,6 @@ public class WorkflowJobsEditor {
             if (job != null) {
                 String jobId = job.getAttribute(WorkflowJobDataSource.FIELD_ID);
                 jobForm.editRecord(job);
-                taskView.invalidateCache();
                 taskView.fetchData(new Criteria(
                         WorkflowModelConsts.TASK_FILTER_JOBID, jobId
                 ));
@@ -348,10 +347,19 @@ public class WorkflowJobsEditor {
 
         private Widget createTaskList() {
             taskView = new ListGrid();
+            taskView.setCanSort(true);
+            taskView.setDataFetchMode(FetchMode.BASIC);
+
+            ResultSet rs = new ResultSet();
+            rs.setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
+            rs.setUseClientFiltering(false);
+            rs.setUseClientSorting(true);
+            taskView.setDataProperties(rs);
+
             taskView.setDataSource(WorkflowTaskDataSource.getInstance(),
-                    new ListGridField(WorkflowTaskDataSource.FIELD_LABEL, "Typ úkolu"),
-                    new ListGridField(WorkflowTaskDataSource.FIELD_OWNER, "Kdo"),
-                    new ListGridField(WorkflowTaskDataSource.FIELD_STATE, "Stav")
+                    new ListGridField(WorkflowTaskDataSource.FIELD_LABEL),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_OWNER, 50),
+                    new ListGridField(WorkflowTaskDataSource.FIELD_STATE, 50)
             );
             return taskView;
         }

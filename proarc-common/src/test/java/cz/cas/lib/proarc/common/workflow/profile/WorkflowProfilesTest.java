@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapItem
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -176,6 +177,8 @@ public class WorkflowProfilesTest {
         assertEquals(ValueMapSource.INTERNAL, wf.getValueMaps().get(1).getSource());
         assertEquals("v šedi", wf.getValueMaps().get(1).getItems().get(1).getValue());
         assertEquals("grey", wf.getValueMaps().get(1).getItems().get(1).getKey());
+
+        assertEquals(Arrays.asList("task.id1", "task.id2"), profiles.getSortedTaskNames(job0));
     }
 
     @Test
@@ -249,6 +252,80 @@ public class WorkflowProfilesTest {
         wf.getValueMaps().add(vmap);
 
         JAXB.marshal(wf, System.out);
+    }
+
+    @Test
+    public void testBlockers() throws Exception {
+        String xml = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"
+                + "<workflow xmlns='http://proarc.lib.cas.cz/xml/common/workflow/v1'>\n"
+                + "    <job name='ndk'>\n"
+                + "        <step taskRef='task.id3'/>\n"
+                + "        <step taskRef='task.id6'>\n"
+                + "            <blocker taskRef='task.id5'/>\n"
+                + "            <blocker taskRef='task.id2'/>\n"
+                + "            <blocker taskRef='task.idNotStep'/>\n"
+                + "        </step>\n"
+                + "        <step taskRef='task.id1' optional='true'>\n"
+                + "            <blocker taskRef='task.id2'/>\n"
+                + "        </step>\n"
+                + "        <step taskRef='task.id5'>\n"
+                + "            <blocker taskRef='task.id3'/>\n"
+                + "        </step>\n"
+                + "        <step taskRef='task.id2'>\n"
+                + "            <blocker taskRef='task.id3'/>\n"
+                + "        </step>\n"
+                + "        <step taskRef='task.id4'/>\n"
+                + "    </job>\n"
+                + "    <task name='task.id2'/>\n"
+                + "    <task name='task.id1'/>\n"
+                + "    <task name='task.id4'/>\n"
+                + "    <task name='task.id3'/>\n"
+                + "    <task name='task.id5'/>\n"
+                + "    <task name='task.id6'/>\n"
+                + "    <task name='task.idNotStep'/>\n"
+                + "</workflow>\n"
+                ;
+        File xmlFile = new File(temp.getRoot(), "workflow.xml");
+        FileUtils.write(xmlFile, xml);
+        WorkflowProfiles profiles = new WorkflowProfiles(xmlFile);
+        WorkflowDefinition wf = profiles.getProfiles();
+        assertNotNull(wf);
+        assertEquals(Arrays.asList("task.id3", "task.id4", "task.id5", "task.id2", "task.id6", "task.id1"),
+                profiles.getSortedTaskNames(wf.getJobs().get(0)));
+    }
+
+    @Test
+    public void testBlockerCycle() throws Exception {
+        String xml = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"
+                + "<workflow xmlns='http://proarc.lib.cas.cz/xml/common/workflow/v1'>\n"
+                + "    <job name='ndk'>\n"
+                + "        <step taskRef='task.id1'/>\n"
+                + "        <step taskRef='task.id2'>\n"
+                + "            <blocker taskRef='task.id3'/>\n"
+                + "        </step>\n"
+                + "        <step taskRef='task.id3'>\n"
+                + "            <blocker taskRef='task.id4'/>\n"
+                + "            <blocker taskRef='task.id1'/>\n"
+                + "        </step>\n"
+                + "        <step taskRef='task.id4'>\n"
+                + "            <blocker taskRef='task.id2'/>\n"
+                + "        </step>\n"
+                + "    </job>\n"
+                + "    <task name='task.id1'/>\n"
+                + "    <task name='task.id2'/>\n"
+                + "    <task name='task.id3'/>\n"
+                + "    <task name='task.id4'/>\n"
+                + "</workflow>\n"
+                ;
+        File xmlFile = new File(temp.getRoot(), "workflow.xml");
+        FileUtils.write(xmlFile, xml);
+        WorkflowProfiles profiles = new WorkflowProfiles(xmlFile);
+        try {
+            WorkflowDefinition wf = profiles.getProfiles();
+            fail(String.valueOf(profiles.getSortedTaskNames(wf.getJobs().get(0))));
+        } catch (IllegalStateException ex) {
+            assertTrue(ex.getMessage(), ex.getMessage().startsWith("There must be a cycle"));
+        }
     }
 
 }

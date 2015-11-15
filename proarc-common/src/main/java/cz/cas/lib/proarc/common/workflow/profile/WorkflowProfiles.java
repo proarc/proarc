@@ -20,13 +20,18 @@ import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.i18n.BundleValueMap;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapItemDefinition;
-import cz.cas.lib.proarc.common.workflow.profile.ValueMapSource;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.XMLConstants;
@@ -148,6 +153,67 @@ public class WorkflowProfiles {
         return result;
     }
 
+    /**
+     * Gets a list of sorted job's task names. The order of tasks is driven by
+     * the position of their step declaration in XML and by their blockers.
+     */
+    public List<String> getSortedTaskNames(JobDefinition job) {
+        List<String> sortedTasks = new ArrayList<String>(job.getSteps().size());
+        // tasks sorted by step declaration; taskName->blockers
+        Map<String, Set<String>> taskDeps = new LinkedHashMap<String, Set<String>>();
+        for (StepDefinition step : job.getSteps()) {
+            String stepTaskName = step.getTask().getName();
+            Set<String> blockers = taskDeps.get(stepTaskName);
+            if (blockers == null) {
+                blockers = new HashSet<String>();
+                taskDeps.put(stepTaskName, blockers);
+            } else {
+                throw new IllegalStateException("A duplicate step declaration: "
+                        + job.getName() + ", " + stepTaskName);
+            }
+            for (BlockerDefinition blocker : step.getBlockers()) {
+                if (stepTaskName.equals(blocker.getTask().getName())) {
+                    // short cycle, ignore
+                    continue;
+                }
+                blockers.add(blocker.getTask().getName());
+            }
+        }
+        while (!taskDeps.isEmpty()) {
+            List<String> shakedOffDeps = shakeOffUnblockedTasks(taskDeps);
+            if (shakedOffDeps.isEmpty() && !taskDeps.isEmpty()) {
+                throw new IllegalStateException("There must be a cycle: "
+                        + job.getName() + ", " + taskDeps);
+            }
+            sortedTasks.addAll(shakedOffDeps);
+        }
+        return sortedTasks;
+    }
+
+    /**
+     * Removes unblocked tasks from the map and returns their ordered names.
+     */
+    private List<String> shakeOffUnblockedTasks(Map<String, Set<String>> taskDeps) {
+        List<String> sortedTasks = new ArrayList<String>();
+        for (Entry<String, Set<String>> taskEntry : taskDeps.entrySet()) {
+            String taskName = taskEntry.getKey();
+            Set<String> blockers = taskEntry.getValue();
+            for (Iterator<String> it = blockers.iterator(); it.hasNext();) {
+                if (!taskDeps.containsKey(it.next())) {
+                    it.remove();
+                }
+            }
+            if (blockers.isEmpty()) {
+                sortedTasks.add(taskName);
+            }
+        }
+        // remove resolved tasks
+        for (String sortedTask : sortedTasks) {
+            taskDeps.remove(sortedTask);
+        }
+        return sortedTasks;
+    }
+
     private synchronized void setProfiles(WorkflowDefinition profiles, long time) {
         if (time > lastModified) {
             this.profiles = profiles;
@@ -166,6 +232,7 @@ public class WorkflowProfiles {
         try {
             wf = (WorkflowDefinition) unmarshaller.unmarshal(file);
             wf = errors.hasEvents() ? null : wf;
+            readCaches(wf);
         } catch (UnmarshalException ex) {
             if (!errors.hasEvents()) {
                 throw ex;
@@ -179,6 +246,15 @@ public class WorkflowProfiles {
                 err.append(event).append('\n');
             }
             throw new JAXBException(err.toString());
+        }
+    }
+
+    private void readCaches(WorkflowDefinition wf) {
+        if (wf == null) {
+            return ;
+        }
+        for (JobDefinition job : wf.getJobs()) {
+            job.setTaskNamesSortedByBlockers(Collections.unmodifiableList(getSortedTaskNames(job)));
         }
     }
 

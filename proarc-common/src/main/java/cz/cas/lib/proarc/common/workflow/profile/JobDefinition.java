@@ -44,6 +44,8 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
     @XmlElement(name = WorkflowProfileConsts.JOB_STEP_EL)
     private List<StepDefinition> steps;
 
+    private transient List<String> taskNamesSortedByBlockers;
+
     public String getName() {
         return name;
     }
@@ -76,6 +78,14 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
             steps = new ArrayList<StepDefinition>();
         }
         return steps;
+    }
+
+    public List<String> getTaskNamesSortedByBlockers() {
+        return taskNamesSortedByBlockers;
+    }
+
+    void setTaskNamesSortedByBlockers(List<String> taskNamesSortedByBlockers) {
+        this.taskNamesSortedByBlockers = taskNamesSortedByBlockers;
     }
 
 }
