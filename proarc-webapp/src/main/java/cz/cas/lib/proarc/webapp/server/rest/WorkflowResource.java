@@ -106,6 +106,7 @@ public class WorkflowResource {
         filter.setCreated(created);
         filter.setLabel(label);
         filter.setModified(modified);
+        filter.setPriority(priority);
         filter.setProfileName(profileName);
         filter.setState(state);
         filter.setUserId(userId);
