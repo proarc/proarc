@@ -403,8 +403,6 @@ public class WorkflowTasksEditor {
 
             FormItem fi = createFormItem(displayType, editedRecord);
 
-            System.out.println("###" + editedRecord.getAttribute(WorkflowModelConsts.PARAMETER_PROFILENAME)
-                    + ", required: " + editedRecord.getAttributeAsBoolean(WorkflowModelConsts.PARAMETER_REQUIRED));
             fi.setRequired(editedRecord.getAttributeAsBoolean(WorkflowModelConsts.PARAMETER_REQUIRED));
             if (valueType == ValueType.NUMBER && displayType != DisplayType.CHECKBOX) {
                 fi.setValidators(new IsFloatValidator());
@@ -435,7 +433,7 @@ public class WorkflowTasksEditor {
                 case TEXT:
                 default:
                     TextItem ti = new TextItem();
-                    ti.setLength(2);
+                    ti.setLength(2000);
                     return ti;
             }
         }
