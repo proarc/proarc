@@ -132,7 +132,7 @@ public class WorkflowResource {
      */
     @POST
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Job> addJob(
+    public SmartGwtResponse<JobView> addJob(
             @FormParam(WorkflowResourceApi.NEWJOB_PROFILE) String profileName,
             @FormParam(WorkflowResourceApi.NEWJOB_METADATA) String metadata,
             @FormParam(WorkflowResourceApi.NEWJOB_CATALOGID) String catalogId
@@ -154,7 +154,11 @@ public class WorkflowResource {
         }
         try {
             Job job = workflowManager.addJob(profile, metadata, catalog, session.getUser());
-            return new SmartGwtResponse<Job>(job);
+            JobFilter filter = new JobFilter();
+            filter.setLocale(session.getLocale(httpHeaders));
+            filter.setId(job.getId());
+            List<JobView> views = workflowManager.findJob(filter);
+            return new SmartGwtResponse<JobView>(views);
         } catch (Throwable ex) {
             LOG.log(Level.SEVERE,
                     WorkflowResourceApi.NEWJOB_PROFILE + ":" + profileName
