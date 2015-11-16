@@ -56,7 +56,7 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
     }
 
     public int getPriority() {
-        return priority == null ? 3 : priority;
+        return priority == null ? 2 : priority;
     }
 
     public JobDefinition setPriority(int priority) {
