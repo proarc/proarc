@@ -24,7 +24,7 @@ import javax.xml.bind.annotation.XmlElement;
  *
  * @author Jan Pokorsky
  */
-@XmlAccessorType(XmlAccessType.FIELD)
+@XmlAccessorType(XmlAccessType.NONE)
 public class JobView extends Job {
 
     @XmlElement(name = WorkflowModelConsts.JOB_OWNERNAME)
@@ -46,6 +46,15 @@ public class JobView extends Job {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    /**
+     * The conversion to and from ISO timedate loses precision of the timestamp.
+     * Use this instead of {@link #getTimestamp() } for updates.
+     */
+    @XmlElement(name = WorkflowModelConsts.JOB_TIMESTAMP)
+    public long getTimestampAsLong() {
+        return getTimestamp().getTime();
     }
 
 }

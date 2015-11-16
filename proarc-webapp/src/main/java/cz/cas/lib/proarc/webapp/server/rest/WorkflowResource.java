@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -47,6 +48,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -167,6 +169,47 @@ public class WorkflowResource {
                     ex);
             return SmartGwtResponse.asError(ex.getMessage());
         }
+    }
+
+    @PUT
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<JobView> updateJob(
+            @FormParam(WorkflowModelConsts.JOB_ID) BigDecimal id,
+            @FormParam(WorkflowModelConsts.JOB_LABEL) String label,
+            @FormParam(WorkflowModelConsts.JOB_NOTE) String note,
+            @FormParam(WorkflowModelConsts.JOB_FINANCED) String financed,
+            @FormParam(WorkflowModelConsts.JOB_OWNERID) BigDecimal userId,
+            @FormParam(WorkflowModelConsts.JOB_PRIORITY) Integer priority,
+            @FormParam(WorkflowModelConsts.JOB_STATE) Job.State state,
+            @FormParam(WorkflowModelConsts.JOB_TIMESTAMP) long timestamp
+    ) {
+        if (id == null) {
+            return SmartGwtResponse.asError("Missing job ID!");
+        }
+        WorkflowDefinition profiles = workflowProfiles.getProfiles();
+        if (profiles == null) {
+            return profileError();
+        }
+        Job job = workflowManager.getJob(id);
+        if (job == null) {
+            return SmartGwtResponse.asError("Unknown job ID: " + id);
+        }
+        job.setFinanced(financed);
+        job.setLabel(label);
+        job.setNote(note);
+        job.setOwnerId(userId);
+        if (priority != null) {
+            job.setPriority(priority);
+        }
+        job.setState(state);
+        job.setTimestamp(new Timestamp(timestamp));
+        workflowManager.updateJob(job);
+
+        JobFilter jobFilter = new JobFilter();
+        jobFilter.setId(id);
+        jobFilter.setLocale(session.getLocale(httpHeaders));
+        List<JobView> result = workflowManager.findJob(jobFilter);
+        return new SmartGwtResponse<JobView>(result);
     }
 
     @Path(WorkflowResourceApi.TASK_PATH)

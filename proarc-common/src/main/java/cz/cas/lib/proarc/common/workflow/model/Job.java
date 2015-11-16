@@ -48,7 +48,7 @@ public class Job {
     private String profileName;
     @XmlElement(name = WorkflowModelConsts.JOB_STATE)
     private State state;
-    @XmlElement(name = WorkflowModelConsts.JOB_TIMESTAMP)
+    @XmlElement(name = WorkflowModelConsts.JOB_MODIFIED)
     private Timestamp timestamp;
 
     public Timestamp getCreated() {

@@ -19,15 +19,24 @@ package cz.cas.lib.proarc.webapp.client.presenter;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.Widget;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TitleOrientation;
+import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
+import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
+import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
+import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.form.fields.AutoFitTextAreaItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
@@ -44,18 +53,22 @@ import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
+import cz.cas.lib.proarc.webapp.client.ErrorHandler;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor.WorkflowMaterialView;
+import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 
 /**
  * Edits jobs of the workflow.
@@ -86,6 +99,38 @@ public class WorkflowJobsEditor {
         places.goTo(new WorkflowNewJobPlace());
     }
 
+    private void onSave(WorkflowJobFormView jobFormView) {
+        final DynamicForm vm = jobFormView.getValues();
+        if (vm.validate()) {
+            DSRequest req = new DSRequest();
+            req.setWillHandleError(true);
+            vm.saveData(new DSCallback() {
+
+                @Override
+                public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                    boolean statusOk = RestConfig.isStatusOk(dsResponse);
+                    if (statusOk) {
+                        StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
+                        view.refreshState();
+                    } else if (RestConfig.isConcurrentModification(dsResponse)) {
+                        SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), new BooleanCallback() {
+
+                            @Override
+                            public void execute(Boolean value) {
+                                if (value != null && value) {
+                                    view.editSelection();
+                                }
+                            }
+                        });
+                    } else {
+                        ErrorHandler.warn(dsResponse, dsRequest);
+                    }
+                    vm.focus();
+                }
+            }, req);
+        }
+    }
+
     private static final class WorkflowJobView implements Refreshable {
 
         private final ClientMessages i18n;
@@ -93,6 +138,7 @@ public class WorkflowJobsEditor {
         private ListGrid jobGrid;
         private WorkflowJobFormView jobFormView;
         private WorkflowJobsEditor handler;
+        private final ActionSource actionSource = new ActionSource(this);
 
         public WorkflowJobView(ClientMessages i18n) {
             this.i18n = i18n;
@@ -114,6 +160,15 @@ public class WorkflowJobsEditor {
         @Override
         public void refresh() {
             jobGrid.invalidateCache();
+        }
+
+        public void editSelection() {
+            jobFormView.setJob(jobGrid.getSelectedRecord());
+            refreshState();
+        }
+
+        public void refreshState() {
+            actionSource.fireEvent();
         }
 
         private Canvas createMainLayout() {
@@ -160,12 +215,7 @@ public class WorkflowJobsEditor {
         private ToolStrip createJobsToolbar() {
             ToolStrip toolbar = Actions.createToolStrip();
             RefreshAction refreshAction = new RefreshAction(i18n);
-            SaveAction saveAction = new SaveAction(i18n) {
-
-                @Override
-                public void performAction(ActionEvent event) {
-                }
-            };
+            SaveAction saveAction = createSaveAction();
 
             AbstractAction addAction = new AbstractAction("Nový",//i18n.DeviceManager_Add_Title(),
                     "[SKIN]/actions/add.png", "Nový záměr") {//i18n.DeviceManager_Add_Hint()) {
@@ -179,8 +229,27 @@ public class WorkflowJobsEditor {
             };
             toolbar.addMember(Actions.asIconButton(refreshAction, this));
             toolbar.addMember(Actions.asIconButton(addAction, this));
-            toolbar.addMember(Actions.asIconButton(saveAction, this));
+            toolbar.addMember(Actions.asIconButton(saveAction, actionSource));
             return toolbar;
+        }
+
+        private SaveAction createSaveAction() {
+            return new SaveAction(i18n) {
+
+                @Override
+                public boolean accept(ActionEvent event) {
+                    return handler != null
+                            && jobGrid.getSelectedRecords().length > 0
+                            && jobFormView.getValues().valuesHaveChanged();
+                }
+
+                @Override
+                public void performAction(ActionEvent event) {
+                    if (handler != null) {
+                        handler.onSave(jobFormView);
+                    }
+                }
+            };
         }
 
         private ListGrid createJobList() {
@@ -228,9 +297,6 @@ public class WorkflowJobsEditor {
             owner.setDisplayField(UserDataSource.FIELD_USERNAME);
             jobGrid.getField(WorkflowJobDataSource.FIELD_OWNER).setFilterEditorProperties(owner);
 
-//            jobGrid.getField(WorkflowJobDataSource.FIELD_CREATED).setCanFilter(true);
-//            jobGrid.getField(WorkflowJobDataSource.FIELD_MODIFIED).setCanFilter(true);
-
             jobGrid.getField(WorkflowJobDataSource.FIELD_FINANCED).setCanFilter(false);
             jobGrid.getField(WorkflowJobDataSource.FIELD_FINANCED).setCanSort(false);
 
@@ -255,7 +321,7 @@ public class WorkflowJobsEditor {
 
                 @Override
                 public void onSelectionUpdated(SelectionUpdatedEvent event) {
-                    jobFormView.setJob(jobGrid.getSelectedRecord());
+                    editSelection();
                 }
             });
             return jobGrid;
@@ -263,6 +329,23 @@ public class WorkflowJobsEditor {
 
         private Canvas createJobFormLayout() {
             jobFormView = new WorkflowJobFormView(i18n);
+            jobFormView.getValues().addItemChangedHandler(new ItemChangedHandler() {
+
+                @Override
+                public void onItemChanged(ItemChangedEvent event) {
+                    refreshState();
+                }
+            });
+            jobFormView.getValues().addSubmitValuesHandler(new SubmitValuesHandler() {
+
+                @Override
+                public void onSubmitValues(SubmitValuesEvent event) {
+                    if (handler != null) {
+                        handler.onSave(jobFormView);
+                    }
+                }
+            });
+            jobFormView.getValues().setSaveOnEnter(true);
             return jobFormView.getWidget();
         }
 
@@ -288,7 +371,8 @@ public class WorkflowJobsEditor {
         public void setJob(Record job) {
             if (job != null) {
                 String jobId = job.getAttribute(WorkflowJobDataSource.FIELD_ID);
-                jobForm.editRecord(job);
+                jobForm.clearErrors(true);
+                jobForm.fetchData(new Criteria(WorkflowJobDataSource.FIELD_ID, jobId));
                 taskView.fetchData(new Criteria(
                         WorkflowModelConsts.TASK_FILTER_JOBID, jobId
                 ));
@@ -300,6 +384,11 @@ public class WorkflowJobsEditor {
                 materialView.getMaterialGrid().setData(new Record[0]);
                 taskView.setData(new Record[0]);
             }
+            widget.setDisabled(job == null);
+        }
+
+        public DynamicForm getValues() {
+            return jobForm;
         }
 
         private Canvas createMainLayout() {

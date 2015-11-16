@@ -33,6 +33,10 @@ public final class WorkflowModelConsts {
     public static final String JOB_PROFILELABEL = "profileLabel";
     public static final String JOB_PROFILENAME = "profileName";
     public static final String JOB_STATE = "state";
+    public static final String JOB_MODIFIED = "modified";
+    /**
+     * It is same like {@link #JOB_MODIFIED} but in a long number format to keep precision.
+     */
     public static final String JOB_TIMESTAMP = "timestamp";
 
     public static final String JOB_FILTER_ID = "id";

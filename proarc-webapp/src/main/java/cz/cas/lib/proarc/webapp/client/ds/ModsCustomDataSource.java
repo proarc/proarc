@@ -264,7 +264,7 @@ public final class ModsCustomDataSource extends RestDataSource implements ModsCo
                 }
             } else if (response.getStatus() == RPCResponse.STATUS_VALIDATION_ERROR) {
                 onValidationError();
-            } else if (response.getHttpResponseCode() == 409) { // concurrency conflict
+            } else if (RestConfig.isConcurrentModification(response)) { // concurrency conflict
                 onConcurrencyError();
             } else {
                 onError();

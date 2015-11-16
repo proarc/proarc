@@ -45,7 +45,7 @@ public class WorkflowJobDataSource extends RestDataSource {
     public static final String FIELD_FINANCED = WorkflowModelConsts.JOB_FINANCED;
     public static final String FIELD_LABEL = WorkflowModelConsts.JOB_LABEL;
     public static final String FIELD_MATERIALS = "materials";
-    public static final String FIELD_MODIFIED = WorkflowModelConsts.JOB_TIMESTAMP;
+    public static final String FIELD_MODIFIED = WorkflowModelConsts.JOB_MODIFIED;
     public static final String FIELD_NOTE = WorkflowModelConsts.JOB_NOTE;
     public static final String FIELD_OWNER = WorkflowModelConsts.JOB_OWNERID;
     public static final String FIELD_PRIORITY = WorkflowModelConsts.JOB_PRIORITY;

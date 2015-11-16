@@ -212,6 +212,28 @@ public class WorkflowManager {
         }
     }
 
+    public Job updateJob(Job job) throws ConcurrentModificationException {
+        if (job.getId() == null) {
+            throw new IllegalArgumentException("Missing ID!");
+        }
+        Transaction tx = daoFactory.createTransaction();
+        WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
+        jobDao.setTransaction(tx);
+        try {
+            jobDao.update(job);
+            tx.commit();
+            return job;
+        } catch (ConcurrentModificationException t) {
+            tx.rollback();
+            throw t;
+        } catch (Throwable t) {
+            tx.rollback();
+            throw new IllegalStateException("Cannot update job: " + job.getId().toString(), t);
+        } finally {
+            tx.close();
+        }
+    }
+
     public Job addJob(JobDefinition jobProfile, String xml,
             CatalogConfiguration catalog, UserProfile defaultUser
     ) {

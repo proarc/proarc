@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.json.JsonUtils;
@@ -118,6 +119,17 @@ public class RestException extends WebApplicationException {
         public Response toResponse(DigitalObjectNotFoundException ex) {
             LOG.log(Level.INFO, null, ex);
             return plainText(Response.status(Status.NOT_FOUND), "Not found! " + ex.getMessage()).build();
+        }
+
+    }
+
+    @Provider
+    public static final class ConcurrentModificationExceptionMapper implements ExceptionMapper<ConcurrentModificationException> {
+
+        @Override
+        public Response toResponse(ConcurrentModificationException ex) {
+            LOG.log(Level.INFO, null, ex);
+            return plainText(Response.status(Status.CONFLICT), ex.getMessage()).build();
         }
 
     }

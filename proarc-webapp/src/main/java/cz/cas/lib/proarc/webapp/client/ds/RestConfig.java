@@ -195,6 +195,10 @@ public final class RestConfig {
         return status == RPCResponse.STATUS_SUCCESS && (httpStatus == null || httpStatus == 200);
     }
 
+    public static boolean isConcurrentModification(DSResponse response) {
+        return response.getHttpResponseCode() == 409;
+    }
+
     private static String path(String parent, String path) {
         return parent + '/' + path;
     }

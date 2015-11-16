@@ -111,8 +111,23 @@ public class EmpireWorkflowJobDaoTest {
         assertEquals(job.getTimestamp(), result.getTimestamp());
     }
 
-//    @Test
-    public void testUpdate() {
+    @Test
+    public void testUpdate() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_job.xml")
+                );
+        support.cleanInsert(support.getConnection(tx), db);
+        tx.commit();
+
+        Job job = dao.find(BigDecimal.ONE);
+        job.setLabel("new label");
+        job.setTimestamp(new Timestamp(job.getTimestamp().getTime()));
+        dao.update(job);
+        tx.commit();
+
+        Job result = dao.find(BigDecimal.ONE);
+        assertEquals("new label", result.getLabel());
     }
 
     @Test
