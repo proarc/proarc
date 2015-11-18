@@ -23,6 +23,7 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.FetchMode;
@@ -42,6 +43,7 @@ import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
+import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
 import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
@@ -102,6 +104,7 @@ public class WorkflowJobsEditor {
     private void onSave(WorkflowJobFormView jobFormView) {
         final DynamicForm vm = jobFormView.getValues();
         if (vm.validate()) {
+            view.setExpectUpdateOperation(true);
             DSRequest req = new DSRequest();
             req.setWillHandleError(true);
             vm.saveData(new DSCallback() {
@@ -139,6 +142,8 @@ public class WorkflowJobsEditor {
         private WorkflowJobFormView jobFormView;
         private WorkflowJobsEditor handler;
         private final ActionSource actionSource = new ActionSource(this);
+        private boolean isUpdateOperation;
+        private ListGridRecord lastSelection;
 
         public WorkflowJobView(ClientMessages i18n) {
             this.i18n = i18n;
@@ -169,6 +174,14 @@ public class WorkflowJobsEditor {
 
         public void refreshState() {
             actionSource.fireEvent();
+        }
+
+        /**
+         * Set to {@code true} before saving a job. It is a hack not to select
+         * the job again inside {@code onDataArrived}.
+         */
+        public void setExpectUpdateOperation(boolean isUpdateOperation) {
+            this.isUpdateOperation = isUpdateOperation;
         }
 
         private Canvas createMainLayout() {
@@ -307,11 +320,15 @@ public class WorkflowJobsEditor {
 
                 @Override
                 public void onDataArrived(DataArrivedEvent event) {
+                    if (isUpdateOperation) {
+                        isUpdateOperation = false;
+                        return ;
+                    }
                     int startRow = event.getStartRow();
                     int endRow = event.getEndRow();
                     if (startRow == 0 && endRow >= 0) {
                         jobGrid.focus();
-                        jobGrid.selectSingleRecord(0);
+                        updateSelection();
                     } else if (endRow < 0) {
                         jobGrid.deselectAllRecords();
                     }
@@ -321,10 +338,31 @@ public class WorkflowJobsEditor {
 
                 @Override
                 public void onSelectionUpdated(SelectionUpdatedEvent event) {
+                    lastSelection = jobGrid.getSelectedRecord();
                     editSelection();
                 }
             });
             return jobGrid;
+        }
+
+        private void updateSelection() {
+            RecordList rl = jobGrid.getRecordList();
+            if (rl.isEmpty()) {
+                return ;
+            }
+            if (lastSelection == null) {
+                jobGrid.selectSingleRecord(0);
+                return ;
+            }
+            Record newRec = rl.find(WorkflowJobDataSource.FIELD_ID,
+                    lastSelection.getAttribute(WorkflowJobDataSource.FIELD_ID));
+            if (newRec != null) {
+                jobGrid.selectSingleRecord(newRec);
+                int rowNum = jobGrid.getRecordIndex(newRec);
+                if (rowNum >= 0) {
+                    jobGrid.scrollToRow(rowNum);
+                }
+            }
         }
 
         private Canvas createJobFormLayout() {
