@@ -26,6 +26,7 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.CriteriaPolicy;
+import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TitleOrientation;
@@ -115,6 +116,11 @@ public class WorkflowJobsEditor {
                     if (statusOk) {
                         StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
                         view.refreshState();
+                        // invalidate the task cache as it may contain an outdated job name
+                        DSResponse resetCache = new DSResponse();
+                        resetCache.setInvalidateCache(true);
+                        resetCache.setOperationType(DSOperationType.UPDATE);
+                        WorkflowTaskDataSource.getInstance().updateCaches(resetCache);
                     } else if (RestConfig.isConcurrentModification(dsResponse)) {
                         SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), new BooleanCallback() {
 
