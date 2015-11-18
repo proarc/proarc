@@ -71,6 +71,7 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor.WorkflowMaterialView;
+import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 
 /**
@@ -145,6 +146,7 @@ public class WorkflowJobsEditor {
         private final ClientMessages i18n;
         private final Canvas widget;
         private ListGrid jobGrid;
+        private ListGridPersistance jobsPersistance;
         private WorkflowJobFormView jobFormView;
         private WorkflowJobsEditor handler;
         private final ActionSource actionSource = new ActionSource(this);
@@ -161,7 +163,7 @@ public class WorkflowJobsEditor {
         }
 
         public void init() {
-            jobGrid.fetchData();
+            jobGrid.fetchData(jobsPersistance.getFilterCriteria());
         }
 
         public void setHandler(WorkflowJobsEditor handler) {
@@ -273,6 +275,7 @@ public class WorkflowJobsEditor {
 
         private ListGrid createJobList() {
             jobGrid = new ListGrid();
+            jobsPersistance = new ListGridPersistance("WorkflowJobView.jobList", jobGrid);
             jobGrid.setSelectionType(SelectionStyle.SINGLE);
             jobGrid.setShowFilterEditor(true);
             jobGrid.setFilterOnKeypress(true);
@@ -348,6 +351,7 @@ public class WorkflowJobsEditor {
                     editSelection();
                 }
             });
+            jobGrid.setViewState(jobsPersistance.getViewState());
             return jobGrid;
         }
 
