@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow;
 
+import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
 import cz.cas.lib.proarc.common.workflow.profile.ParamDefinition;
@@ -40,14 +41,29 @@ public class FilterFindParameterQuery {
         this.wp = wp;
     }
 
+    /**
+     * @param params parameters fetched from DB
+     * @param filter query
+     * @param optionalTask the task necessary in case there is no fetched parameter or {@code null}
+     * @param wd workflow definition
+     * @return the list of parameters
+     */
     public List<TaskParameterView> filter(
             List<TaskParameterView> params,
             TaskParameterFilter filter,
+            Task optionalTask,
             WorkflowDefinition wd) {
 
         // outer join of db params with task params declared in workflow
         Map<String, Map<String, ParamEntry>> join
                 = new LinkedHashMap<String, Map<String, ParamEntry>>();
+        if (params.isEmpty() && optionalTask != null) {
+            TaskParameterView param = new TaskParameterView();
+            param.setJobId(optionalTask.getJobId());
+            param.setTaskId(optionalTask.getId());
+            param.setTaskProfileName(optionalTask.getTypeRef());
+            selectProfileTaskParams(join, param, wd);
+        }
         for (TaskParameterView param : params) {
             Map<String, ParamEntry> taskParamCache = selectProfileTaskParams(join, param, wd);
 

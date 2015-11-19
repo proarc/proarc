@@ -206,7 +206,13 @@ public class WorkflowManager {
         dao.setTransaction(tx);
         try {
             List<TaskParameterView> params = dao.view(filter);
-            return new FilterFindParameterQuery(wp).filter(params, filter, wd);
+            Task task = null;
+            if (params.isEmpty() && filter.getTaskId() != null) {
+                WorkflowTaskDao taskDao = daoFactory.createWorkflowTaskDao();
+                taskDao.setTransaction(tx);
+                task = taskDao.find(filter.getTaskId());
+            }
+            return new FilterFindParameterQuery(wp).filter(params, filter, task, wd);
         } finally {
             tx.close();
         }
