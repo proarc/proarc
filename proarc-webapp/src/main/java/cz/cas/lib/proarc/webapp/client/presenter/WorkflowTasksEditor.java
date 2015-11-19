@@ -21,7 +21,10 @@ import com.google.gwt.user.client.ui.Widget;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.ExpansionMode;
+import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.ListGridEditEvent;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TitleOrientation;
@@ -70,6 +73,7 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowParameterDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
+import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 
 /**
  * Edits tasks of the workflow.
@@ -106,6 +110,7 @@ public class WorkflowTasksEditor {
         private ListGrid taskGrid;
         private WorkflowTaskFormView taskFormView;
         private final WorkflowTasksEditor handler;
+        private ListGridPersistance taskListPersistance;
 
         public WorkflowTasksView(ClientMessages i18n, WorkflowTasksEditor handler) {
             this.i18n = i18n;
@@ -118,7 +123,7 @@ public class WorkflowTasksEditor {
         }
 
         public void init() {
-            taskGrid.fetchData();
+            taskGrid.fetchData(taskListPersistance.getFilterCriteria());
         }
 
         @Override
@@ -184,9 +189,18 @@ public class WorkflowTasksEditor {
 
         private ListGrid createTaskList() {
             final ListGrid grid = new ListGrid();
+            taskListPersistance = new ListGridPersistance("WorkflowTasksView.taskList", grid);
             grid.setShowFilterEditor(true);
             grid.setFilterOnKeypress(true);
             grid.setCanSort(true);
+
+            grid.setDataFetchMode(FetchMode.PAGED);
+            ResultSet rs = new ResultSet();
+            rs.setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
+            rs.setUseClientFiltering(false);
+            rs.setUseClientSorting(false);
+            grid.setDataProperties(rs);
+
             grid.setDataSource(WorkflowTaskDataSource.getInstance(),
                     new ListGridField(WorkflowTaskDataSource.FIELD_LABEL),
                     new ListGridField(WorkflowTaskDataSource.FIELD_TYPE),
@@ -250,6 +264,7 @@ public class WorkflowTasksEditor {
                     taskFormView.setTask(taskGrid.getSelectedRecord());
                 }
             });
+            grid.setViewState(taskListPersistance.getViewState());
             taskGrid = grid;
             return grid;
         }
