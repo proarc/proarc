@@ -55,8 +55,8 @@ public class WorkflowParameterDataSource extends RestDataSource {
         value.setTitle("Hodnota");
         value.setCanEdit(true);
 
-
         setFields(name, value);
+        setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
 //        setOperationBindings(
 //                RestConfig.createAddOperation(),
 //                RestConfig.createDeleteOperation(),

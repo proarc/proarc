@@ -128,6 +128,7 @@ public class WorkflowMaterialDataSource extends RestDataSource {
                 barcode, field001, rdCzId, catalog, metadata,
                 pid
         );
+        setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(
                 RestConfig.createAddOperation(),
 //                RestConfig.createDeleteOperation(),
