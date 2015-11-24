@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
-import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import org.junit.Test;
@@ -48,7 +47,12 @@ public class TaskParameterTest {
         assertEquals(0, new BigDecimal("1.00").compareTo(new BigDecimal("1.0")));
         assertEquals(0, BigDecimal.ONE.compareTo(tp.getValueNumber()));
         assertEquals("1", tp.getValue());
-    }
+
+        // test zero in format 0E-9 as it is fetched by Postgres; JDK bug 6480539
+        tp = new TaskParameter().addValue(ValueType.NUMBER, "0E-9");
+        assertEquals(0, BigDecimal.ZERO.compareTo(tp.getValueNumber()));
+        assertEquals("0", tp.getValue());
+}
 
     @Test
     public void testBooleanTrue() {

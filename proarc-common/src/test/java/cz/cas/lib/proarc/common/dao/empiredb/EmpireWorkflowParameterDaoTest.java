@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
@@ -88,7 +89,8 @@ public class EmpireWorkflowParameterDaoTest {
                 dao.create().addParamRef("param.p2").addValue(ValueType.NUMBER, "1"),
                 dao.create().addParamRef("param.p3").addValue(ValueType.NUMBER, null),
                 dao.create().addParamRef("param.p4").addValue(ValueType.DATETIME, "2011-12-31T15:05:50+0100"),
-                dao.create().addParamRef("param.p5").addValue(ValueType.NUMBER, "1.01")
+                dao.create().addParamRef("param.p5").addValue(ValueType.NUMBER, "1.01"),
+                dao.create().addParamRef("param.p6").addValue(ValueType.NUMBER, "0")
         );
         dao.add(task.getId(), params);
         tx.commit();
@@ -105,6 +107,16 @@ public class EmpireWorkflowParameterDaoTest {
         assertTrue(map.containsKey("param.p4"));
         assertEquals("2011-12-31T14:05:50.000Z", map.get("param.p4"));
         assertEquals("1.01", map.get("param.p5"));
+        assertEquals("0", map.get("param.p6"));
+
+        TaskParameterFilter filter = new TaskParameterFilter();
+        filter.setTaskId(task.getId());
+        filter.setLocale(Locale.ENGLISH);
+        filter.setProfileName("param.p6");
+        List<TaskParameterView> view = dao.view(filter);
+        assertEquals(1, view.size());
+        assertEquals("0", view.get(0).getValue());
+        assertEquals(0, BigDecimal.ZERO.compareTo(view.get(0).getValueNumber()));
 
         List<TaskParameter> result = dao.find(task.getId());
         assertEquals(task.getId(), result.get(0).getTaskId());

@@ -167,7 +167,9 @@ public class TaskParameter {
 
     public void setValueNumber(BigDecimal val) {
         // postgresql adds trailing zeros on jdbc read -> strip them
-        this.valueNumber = val == null ? null : val.stripTrailingZeros();
+        this.valueNumber = val == null ? null
+                // stripTrailingZeros does not work for zero, e.g. 0E-9; JDK bug 6480539
+                : BigDecimal.ZERO.compareTo(val) == 0 ? BigDecimal.ZERO : val.stripTrailingZeros();
     }
 
     public TaskParameter addValueNumber(BigDecimal value) {
