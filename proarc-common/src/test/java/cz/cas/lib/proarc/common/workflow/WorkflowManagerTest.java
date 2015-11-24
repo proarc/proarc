@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.ValueMapSource;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.File;
 import java.sql.Timestamp;
@@ -136,7 +137,8 @@ public class WorkflowManagerTest {
         FileUtils.copyURLToFile(WorkflowManagerTest.class.getResource("WorkflowManagerAddProfile.xml"), xmlWorkflow);
         WorkflowProfiles.setInstance(new WorkflowProfiles(xmlWorkflow));
         WorkflowProfiles wp = WorkflowProfiles.getInstance();
-        JobDefinition jobProfile = wp.getProfiles().getJobs().get(0);
+        WorkflowDefinition workflow = wp.getProfiles();
+        JobDefinition jobProfile = workflow.getJobs().get(0);
         AppConfiguration config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
         }});
@@ -166,7 +168,7 @@ public class WorkflowManagerTest {
         TaskFilter taskFilter = new TaskFilter();
         taskFilter.setLocale(locale);
         taskFilter.setJobId(job.getId());
-        List<TaskView> findTask = wm.findTask(taskFilter);
+        List<TaskView> findTask = wm.tasks().findTask(taskFilter, workflow);
         assertEquals(2, findTask.size());
         assertEquals(job.getId(), findTask.get(0).getJobId());
 

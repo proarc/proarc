@@ -37,11 +37,9 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Task;
-import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
-import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.MaterialDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.SetMaterialDefinition;
@@ -55,7 +53,6 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -117,63 +114,6 @@ public class WorkflowManager {
         } finally {
             tx.close();
         }
-    }
-
-    public List<TaskView> findTask(TaskFilter filter) {
-        final boolean findJobTasks = filter.getJobId() != null && filter.getId() == null;
-        if (findJobTasks) {
-            filter.setMaxCount(1000); // enough to read all tasks of a single job
-        }
-        WorkflowDefinition wd = wp.getProfiles();
-        Transaction tx = daoFactory.createTransaction();
-        WorkflowTaskDao taskDao = daoFactory.createWorkflowTaskDao();
-        taskDao.setTransaction(tx);
-        try {
-            List<TaskView> tasks = taskDao.view(filter);
-            for (TaskView task : tasks) {
-                TaskDefinition taskProfile = wp.getTaskProfile(wd, task.getTypeRef());
-                if (taskProfile != null) {
-                    task.setProfileLabel(taskProfile.getTitle(
-                            filter.getLocale().getLanguage(),
-                            taskProfile.getName()));
-                } else {
-                    task.setProfileLabel("Unknown task profile: " + task.getTypeRef());
-                }
-            }
-            if (findJobTasks && !tasks.isEmpty()) {
-                WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
-                jobDao.setTransaction(tx);
-                Job job = jobDao.find(filter.getJobId());
-                if (job != null) {
-                    JobDefinition jobDef = wp.getProfile(wd, job.getProfileName());
-                    if (jobDef != null) {
-                        tasks = sortJobTaskByBlockers(jobDef, tasks);
-                    }
-                }
-            }
-            return tasks;
-        } finally {
-            tx.close();
-        }
-    }
-
-    private List<TaskView> sortJobTaskByBlockers(JobDefinition job, List<TaskView> tasks) {
-        ArrayList<TaskView> sorted = new ArrayList<TaskView>(tasks.size());
-        for (String sortTaskName : job.getTaskNamesSortedByBlockers()) {
-            for (Iterator<TaskView> it = tasks.iterator(); it.hasNext();) {
-                TaskView task = it.next();
-                if (sortTaskName.equals(task.getTypeRef())) {
-                    sorted.add(task);
-                    it.remove();
-                }
-            }
-            if (tasks.isEmpty()) {
-                break;
-            }
-        }
-        // add tasks not found in the workflow definition
-        sorted.addAll(tasks);
-        return sorted;
     }
 
     public List<MaterialView> findMaterial(MaterialFilter filter) {
@@ -238,6 +178,10 @@ public class WorkflowManager {
         } finally {
             tx.close();
         }
+    }
+
+    public TaskManager tasks() {
+        return new TaskManager(daoFactory, wp);
     }
 
     public Job addJob(JobDefinition jobProfile, String xml,

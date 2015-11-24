@@ -119,6 +119,15 @@ public class WorkflowProfiles {
         return null;
     }
 
+    public ParamDefinition getParamProfile(TaskDefinition task, String paramName) {
+        for (ParamDefinition paramDef : task.getParams()) {
+            if (paramDef.getName().equals(paramName)) {
+                return paramDef;
+            }
+        }
+        return null;
+    }
+
     public MaterialDefinition getMaterialProfile(WorkflowDefinition workflow, String materialName) {
         for (MaterialDefinition md : workflow.getMaterials()) {
             if (md.getName().equals(materialName)) {

@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlElement;
  *
  * @author Jan Pokorsky
  */
-@XmlAccessorType(XmlAccessType.FIELD)
+@XmlAccessorType(XmlAccessType.NONE)
 public class Task {
 
     @XmlElement(name = WorkflowModelConsts.TASK_CREATED)

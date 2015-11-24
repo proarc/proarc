@@ -42,9 +42,11 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -55,9 +57,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
- * I allows to manage workflow remotely.
+ * It allows to manage workflow remotely.
  *
  * @author Jan Pokorsky
  */
@@ -242,8 +247,12 @@ public class WorkflowResource {
         filter.setProfileName(profileName);
         filter.setState(state);
         filter.setUserId(userId);
+        WorkflowDefinition workflow = workflowProfiles.getProfiles();
+        if (workflow == null) {
+            return profileError();
+        }
         try {
-            List<TaskView> tasks = workflowManager.findTask(filter);
+            List<TaskView> tasks = workflowManager.tasks().findTask(filter, workflow);
             int resultSize = tasks.size();
             int endRow = startRow + resultSize;
             int total = (resultSize != pageSize) ? endRow : endRow + 1;
@@ -253,6 +262,32 @@ public class WorkflowResource {
             LOG.log(Level.SEVERE, null, ex);
             return SmartGwtResponse.asError(ex.getMessage());
         }
+    }
+
+    @Path(WorkflowResourceApi.TASK_PATH)
+    @PUT
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<TaskView> updateTask(TaskUpdate task) {
+        if (task == null) {
+            return SmartGwtResponse.asError("No task!");
+        }
+        WorkflowDefinition workflow = workflowProfiles.getProfiles();
+        if (workflow == null) {
+            return profileError();
+        }
+        Task updatedTask = workflowManager.tasks().updateTask(task, task.params, workflow);
+        TaskFilter taskFilter = new TaskFilter();
+        taskFilter.setId(updatedTask.getId());
+        taskFilter.setLocale(session.getLocale(httpHeaders));
+        List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+        return new SmartGwtResponse<TaskView>(result);
+    }
+
+    @XmlAccessorType(XmlAccessType.NONE)
+    public static class TaskUpdate extends Task {
+        @XmlElement(name = WorkflowModelConsts.TASK_PARAMETERS)
+        public Map<String, Object> params;
     }
 
     @Path(WorkflowResourceApi.MATERIAL_PATH)

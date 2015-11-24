@@ -16,25 +16,36 @@
  */
 package cz.cas.lib.proarc.webapp.client.presenter;
 
+import com.google.gwt.i18n.client.DateTimeFormat;
+import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.Widget;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.ExpansionMode;
 import com.smartgwt.client.types.FetchMode;
-import com.smartgwt.client.types.ListGridEditEvent;
+import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TitleOrientation;
+import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.events.DrawEvent;
 import com.smartgwt.client.widgets.events.DrawHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
+import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
 import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
+import com.smartgwt.client.widgets.form.fields.DateTimeItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.LinkItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
@@ -44,8 +55,6 @@ import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
 import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.form.validator.IsFloatValidator;
 import com.smartgwt.client.widgets.grid.ListGrid;
-import com.smartgwt.client.widgets.grid.ListGridEditorContext;
-import com.smartgwt.client.widgets.grid.ListGridEditorCustomizer;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
@@ -62,11 +71,14 @@ import cz.cas.lib.proarc.common.workflow.profile.DisplayType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
+import cz.cas.lib.proarc.webapp.client.ErrorHandler;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
@@ -74,6 +86,10 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowParameterDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
+import cz.cas.lib.proarc.webapp.client.widget.StatusView;
+import java.math.BigDecimal;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Edits tasks of the workflow.
@@ -103,6 +119,41 @@ public class WorkflowTasksEditor {
         places.goTo(new WorkflowJobPlace());
     }
 
+    private void onSave(WorkflowTaskFormView taskFormView) {
+        if (taskFormView.validate()) {
+            view.setExpectUpdateOperation(true);
+            DSRequest req = new DSRequest();
+            req.setWillHandleError(true);
+            final DynamicForm taskForm = taskFormView.getTask();
+            taskForm.saveData(new DSCallback() {
+
+                @Override
+                public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                    boolean statusOk = RestConfig.isStatusOk(dsResponse);
+                    if (statusOk) {
+                        StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
+                        view.refreshState();
+                        String taskId = taskForm.getValueAsString(WorkflowTaskDataSource.FIELD_ID);
+                        view.refreshParameters(taskId);
+                    } else if (RestConfig.isConcurrentModification(dsResponse)) {
+                        SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), new BooleanCallback() {
+
+                            @Override
+                            public void execute(Boolean value) {
+                                if (value != null && value) {
+                                    view.editSelection();
+                                }
+                            }
+                        });
+                    } else {
+                        ErrorHandler.warn(dsResponse, dsRequest);
+                    }
+                    taskForm.focus();
+                }
+            }, req);
+        }
+    }
+
     private static final class WorkflowTasksView implements Refreshable {
 
         private final ClientMessages i18n;
@@ -111,6 +162,9 @@ public class WorkflowTasksEditor {
         private WorkflowTaskFormView taskFormView;
         private final WorkflowTasksEditor handler;
         private ListGridPersistance taskListPersistance;
+        private final ActionSource actionSource = new ActionSource(this);
+        private boolean isUpdateOperation;
+        private ListGridRecord lastSelection;
 
         public WorkflowTasksView(ClientMessages i18n, WorkflowTasksEditor handler) {
             this.i18n = i18n;
@@ -129,6 +183,27 @@ public class WorkflowTasksEditor {
         @Override
         public void refresh() {
             taskGrid.invalidateCache();
+        }
+
+        public void editSelection() {
+            taskFormView.setTask(taskGrid.getSelectedRecord());
+            refreshState();
+        }
+
+        public void refreshState() {
+            actionSource.fireEvent();
+        }
+
+        public void refreshParameters(String taskId) {
+            taskFormView.setParameters(taskId);
+        }
+
+        /**
+         * Set to {@code true} before saving a job. It is a hack not to select
+         * the job again inside {@code onDataArrived}.
+         */
+        public void setExpectUpdateOperation(boolean isUpdateOperation) {
+            this.isUpdateOperation = isUpdateOperation;
         }
 
         private Canvas createMainLayout() {
@@ -178,12 +253,20 @@ public class WorkflowTasksEditor {
             SaveAction saveAction = new SaveAction(i18n) {
 
                 @Override
+                public boolean accept(ActionEvent event) {
+                    return handler != null
+                            && taskGrid.getSelectedRecords().length > 0
+                            && taskFormView.isChanged();
+                }
+
+                @Override
                 public void performAction(ActionEvent event) {
+                    handler.onSave(taskFormView);
                 }
             };
 
             toolbar.addMember(Actions.asIconButton(refreshAction, this));
-            toolbar.addMember(Actions.asIconButton(saveAction, this));
+            toolbar.addMember(Actions.asIconButton(saveAction, actionSource));
             return toolbar;
         }
 
@@ -246,11 +329,15 @@ public class WorkflowTasksEditor {
 
                 @Override
                 public void onDataArrived(DataArrivedEvent event) {
+                    if (isUpdateOperation) {
+                        isUpdateOperation = false;
+                        return ;
+                    }
                     int startRow = event.getStartRow();
                     int endRow = event.getEndRow();
                     if (startRow == 0 && endRow >= 0) {
+                        updateSelection();
                         grid.focus();
-                        grid.selectSingleRecord(0);
                     } else if (endRow < 0) {
                         grid.deselectAllRecords();
                     }
@@ -261,7 +348,8 @@ public class WorkflowTasksEditor {
 
                 @Override
                 public void onSelectionUpdated(SelectionUpdatedEvent event) {
-                    taskFormView.setTask(taskGrid.getSelectedRecord());
+                    lastSelection = taskGrid.getSelectedRecord();
+                    editSelection();
                 }
             });
             grid.setViewState(taskListPersistance.getViewState());
@@ -269,8 +357,35 @@ public class WorkflowTasksEditor {
             return grid;
         }
 
+        private void updateSelection() {
+            RecordList rl = taskGrid.getRecordList();
+            if (rl.isEmpty()) {
+                return ;
+            }
+            if (lastSelection == null) {
+                taskGrid.selectSingleRecord(0);
+                return ;
+            }
+            Record newRec = rl.find(WorkflowTaskDataSource.FIELD_ID,
+                    lastSelection.getAttribute(WorkflowTaskDataSource.FIELD_ID));
+            if (newRec != null) {
+                taskGrid.selectSingleRecord(newRec);
+                int rowNum = taskGrid.getRecordIndex(newRec);
+                if (rowNum >= 0) {
+                    taskGrid.scrollToRow(rowNum);
+                }
+            }
+        }
+
         private Canvas createTaskFormLayout() {
             taskFormView = new WorkflowTaskFormView(i18n, handler);
+            taskFormView.setItemChangedHandler(new ItemChangedHandler() {
+
+                @Override
+                public void onItemChanged(ItemChangedEvent event) {
+                    refreshState();
+                }
+            });
             return taskFormView.getWidget();
         }
 
@@ -281,9 +396,11 @@ public class WorkflowTasksEditor {
         private final ClientMessages i18n;
         private final Canvas widget;
         private DynamicForm taskForm;
-        private ListGrid paramGrid;
         private WorkflowMaterialView materialView;
         private final WorkflowTasksEditor handler;
+        private DynamicForm paramForm;
+        private VLayout paramContainer;
+        private ItemChangedHandler itemChangedHandler;
 
         public WorkflowTaskFormView(ClientMessages i18n, WorkflowTasksEditor handler) {
             this.i18n = i18n;
@@ -295,11 +412,45 @@ public class WorkflowTasksEditor {
             return widget;
         }
 
+        /** Notifies about form changes. */
+        public void setItemChangedHandler(ItemChangedHandler itemChangedHandler) {
+            this.itemChangedHandler = itemChangedHandler;
+            taskForm.addItemChangedHandler(itemChangedHandler);
+        }
+
+        public boolean isChanged() {
+            return taskForm.valuesHaveChanged() || paramForm.valuesHaveChanged();
+        }
+
+        public DynamicForm getTask() {
+            return taskForm;
+        }
+
+        public boolean validate() {
+            if (taskForm.validate() && paramForm.validate()) {
+                Map<?,?> params = paramForm.getValues();
+                for (Iterator<?> it = params.values().iterator(); it.hasNext();) {
+                    Object paramValue = it.next();
+                    if (paramValue instanceof Map) {
+                        it.remove();
+                    }
+                }
+                if (params.isEmpty()) {
+                    taskForm.clearValue(WorkflowTaskDataSource.FIELD_PARAMETERS);
+                } else {
+                    taskForm.setValue(WorkflowTaskDataSource.FIELD_PARAMETERS, params);
+                }
+                return true;
+            } else {
+                return false;
+            }
+        }
+
         public void setTask(Record task) {
             if (task != null) {
-                taskForm.clearErrors(true);
-                taskForm.editRecord(task);
                 String taskId = task.getAttribute(WorkflowTaskDataSource.FIELD_ID);
+                taskForm.clearErrors(true);
+                taskForm.fetchData(new Criteria(WorkflowTaskDataSource.FIELD_ID, taskId));
                 setParameters(taskId);
                 materialView.getMaterialGrid().fetchData(
                         new Criteria(WorkflowModelConsts.MATERIALFILTER_TASKID, taskId));
@@ -308,17 +459,28 @@ public class WorkflowTasksEditor {
                 setParameters(null);
                 setMaterials(new Record[0]);
             }
-//            taskForm.fetchData();
         }
 
         private void setParameters(String taskId) {
             if (taskId != null) {
-                paramGrid.discardAllEdits();
-                paramGrid.invalidateCache();
-                paramGrid.invalidateRecordComponents();
-                paramGrid.fetchData(new Criteria(WorkflowModelConsts.PARAMETERPROFILE_TASKID, taskId));
+                DSRequest dsRequest = new DSRequest();
+                dsRequest.setWillHandleError(true);
+                WorkflowParameterDataSource.getInstance().fetchData(
+                        new Criteria(WorkflowModelConsts.PARAMETERPROFILE_TASKID, taskId),
+                        new DSCallback() {
+
+                    @Override
+                    public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                        if (RestConfig.isStatusOk(dsResponse)) {
+                            setParameterRecords(dsResponse.getData());
+                        } else {
+                            setParameterRecords(new Record[0]);
+                            ErrorHandler.warn(dsResponse, dsRequest);
+                        }
+                    }
+                }, dsRequest);
             } else {
-                paramGrid.setData(new Record[0]);
+                setParameterRecords(new Record[0]);
             }
         }
 
@@ -327,9 +489,13 @@ public class WorkflowTasksEditor {
         }
 
         private Canvas createMainLayout() {
+            VLayout forms = new VLayout();
+            forms.setOverflow(Overflow.AUTO);
+            forms.addMember(createForm());
+            forms.addMember(createParameterList());
+
             VLayout main = new VLayout();
-            main.addMember(createForm());
-            main.addMember(createParameterList());
+            main.addMember(forms);
             main.addMember(createMaterialList());
             return main;
         }
@@ -360,7 +526,7 @@ public class WorkflowTasksEditor {
 
             SelectItem owner = new SelectItem(WorkflowTaskDataSource.FIELD_OWNER);
             owner.setOptionDataSource(UserDataSource.getInstance());
-            owner.setValueField(UserDataSource.FIELD_USERNAME);
+            owner.setValueField(UserDataSource.FIELD_ID);
             owner.setDisplayField(UserDataSource.FIELD_USERNAME);
             owner.setWidth("*");
 
@@ -384,49 +550,102 @@ public class WorkflowTasksEditor {
             return taskForm;
         }
 
-        private Widget createParameterList() {
-            paramGrid = new ListGrid();
-            paramGrid.setDataSource(WorkflowParameterDataSource.getInstance());
-            paramGrid.setCanEdit(true);
-//            paramGrid.setEditByCell(true);
-            paramGrid.setEditEvent(ListGridEditEvent.CLICK);
-//            paramGrid.setValidateByCell(true);
-//            paramGrid.setValidateOnChange(true);
-            paramGrid.setHeight("30%");
-            paramGrid.setAutoSaveEdits(false);
-//            paramGrid.setAlwaysShowEditors(true);
-            paramGrid.setEditorCustomizer(new ListGridEditorCustomizer() {
-
-                @Override
-                public FormItem getEditor(ListGridEditorContext context) {
-                    return getParamValueEditor(context);
-                }
-            });
-            return paramGrid;
+        private DynamicForm createDefaultParameterForm() {
+            DynamicForm df = new DynamicForm();
+//            StaticTextItem msg = new StaticTextItem();
+//            msg.setShowTitle(false);
+//            msg.setValue("No parameter!");
+//            df.setItems(msg);
+            return df;
         }
 
-        private FormItem getParamValueEditor(ListGridEditorContext context) {
-            ListGridField editField = context.getEditField();
-            if (!WorkflowParameterDataSource.FIELD_VALUE.equals(editField.getName())) {
-                return context.getDefaultProperties();
+        private DynamicForm createParameterForm(Record[] records) {
+            if (records == null || records.length == 0) {
+                return createDefaultParameterForm();
             }
-            ListGridRecord editedRecord = context.getEditedRecord();
-            ValueType valueType = ValueType.fromString(
-                    editedRecord.getAttribute(WorkflowModelConsts.PARAMETER_VALUETYPE));
-            DisplayType displayType = DisplayType.fromString(
-                    editedRecord.getAttribute(WorkflowModelConsts.PARAMETER_DISPLAYTYPE));
+            DynamicForm df = new DynamicForm();
+            df.setUseFlatFields(true);
+            df.setWrapItemTitles(false);
+            df.setTitleOrientation(TitleOrientation.TOP);
+            df.setNumCols(2);
+            FormItem[] items = new FormItem[records.length];
+            Record values = new Record();
+            for (int i = 0; i < records.length; i++) {
+                Record record = records[i];
+                ValueType valueType = ValueType.fromString(
+                        record.getAttribute(WorkflowModelConsts.PARAMETER_VALUETYPE));
+                DisplayType displayType = DisplayType.fromString(
+                        record.getAttribute(WorkflowModelConsts.PARAMETER_DISPLAYTYPE));
+                displayType = valueType == ValueType.DATETIME ? DisplayType.DATETIME : displayType;
 
+                String paramName = record.getAttribute(WorkflowParameterDataSource.FIELD_NAME);
+                String fieldName = "f" + i;
+                items[i] = createFormItem(record, valueType, displayType);
+                items[i].setName(fieldName);
+                // use dataPath to solve cases here the valid JSON name is not a valid javascript ID (param.id).
+                items[i].setDataPath("/" + paramName);
+                items[i].setTitle(record.getAttribute(WorkflowModelConsts.PARAMETER_PROFILELABEL));
+                Object val = getParameterValue(record, valueType, displayType);
+                if (val != null) {
+                    values.setAttribute(paramName, val);
+                }
+            }
+            df.setItems(items);
+            df.editRecord(values);
+            df.addItemChangedHandler(itemChangedHandler);
+            return df;
+        }
+
+        private Object getParameterValue(Record record, ValueType valueType, DisplayType displayType) {
+            Object val = record.getAttributeAsObject(WorkflowParameterDataSource.FIELD_VALUE);
+            if (valueType == ValueType.DATETIME && val instanceof String) {
+                DateTimeFormat format = DateTimeFormat.getFormat(PredefinedFormat.ISO_8601);
+                val = format.parse((String) val);
+            } else if (displayType == DisplayType.CHECKBOX && val instanceof String) {
+                if (Boolean.TRUE.toString().equalsIgnoreCase((String) val)) {
+                    val = true;
+                } else if (Boolean.FALSE.toString().equalsIgnoreCase((String) val)) {
+                    val = false;
+                } else {
+                    try {
+                        val = new BigDecimal((String) val).compareTo(BigDecimal.ZERO) > 0;
+                    } catch (NumberFormatException e) {
+                        // ignore
+                    }
+                }
+            } else if (displayType == DisplayType.CHECKBOX && val instanceof Number) {
+                val = ((Number) val).doubleValue() > 0;
+            }
+            return val;
+        }
+
+        private Widget createParameterList() {
+            paramContainer = new VLayout();
+            paramContainer.setAutoHeight();
+            setParameterRecords(null);
+            return paramContainer;
+        }
+
+        private void setParameterRecords(Record[] records) {
+            if (paramForm != null) {
+                paramForm.markForDestroy();
+            }
+            paramForm = createParameterForm(records);
+            paramContainer.setMembers(paramForm);
+        }
+
+        private FormItem createFormItem(Record editedRecord, ValueType valueType, DisplayType displayType) {
             FormItem fi = createFormItem(displayType, editedRecord);
 
             fi.setRequired(editedRecord.getAttributeAsBoolean(WorkflowModelConsts.PARAMETER_REQUIRED));
             if (valueType == ValueType.NUMBER && displayType != DisplayType.CHECKBOX) {
                 fi.setValidators(new IsFloatValidator());
             }
-//            fi.setValidateOnExit(true);
             return fi;
         }
 
         private FormItem createFormItem(DisplayType displayType, Record profile) {
+            String name = profile.getAttribute(WorkflowParameterDataSource.FIELD_NAME);
             switch (displayType) {
                 case SELECT:
                     SelectItem si = new SelectItem();
@@ -439,15 +658,25 @@ public class WorkflowTasksEditor {
                     return cbi;
                 case CHECKBOX:
                     CheckboxItem ci = new CheckboxItem();
-                    ci.setShowLabel(false);
+                    // the width must be set otherwise it overflows the form
+                    ci.setWidth(150);
+                    ci.setAllowEmptyValue(true);
                     return ci;
                 case TEXTAREA:
                     TextAreaItem tai = new TextAreaItem();
+                    tai.setStartRow(true);
+                    tai.setEndRow(true);
                     tai.setLength(2000);
+                    tai.setColSpan("*");
+                    tai.setWidth("*");
+                    tai.setHeight(30);
                     return tai;
+                case DATETIME:
+                    DateTimeItem di = new DateTimeItem();
+                    return di;
                 case TEXT:
                 default:
-                    TextItem ti = new TextItem();
+                    TextItem ti = new TextItem(name);
                     ti.setLength(2000);
                     return ti;
             }

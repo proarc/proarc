@@ -75,6 +75,17 @@ public class TaskParameter {
     }
 
     @XmlValue
+    public Object getValueAsObject() {
+        switch (valueType) {
+            case DATETIME:
+                return getValueDateTime();
+            case NUMBER:
+                return getValueNumber();
+            default:
+                return getValueString();
+        }
+    }
+
     public String getValue() {
         String value = null;
         if (valueType == ValueType.NUMBER) {

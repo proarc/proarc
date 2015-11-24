@@ -49,10 +49,10 @@ public class WorkflowTaskDataSource extends RestDataSource {
     // LABEL stands for i18n of TYPE
     public static final String FIELD_LABEL = WorkflowModelConsts.TASK_PROFILELABEL;
     public static final String FIELD_MATERIALS = "materials";
-    public static final String FIELD_MODIFIED = WorkflowModelConsts.TASK_TIMESTAMP;
+    public static final String FIELD_MODIFIED = WorkflowModelConsts.TASK_MODIFIED;
     public static final String FIELD_NOTE = WorkflowModelConsts.TASK_NOTE;
     public static final String FIELD_OWNER = WorkflowModelConsts.TASK_OWNERID;
-    public static final String FIELD_PARAMETERS = "params";
+    public static final String FIELD_PARAMETERS = WorkflowModelConsts.TASK_PARAMETERS;
     public static final String FIELD_PRIORITY = WorkflowModelConsts.TASK_PRIORITY;
     public static final String FIELD_STATE = WorkflowModelConsts.TASK_STATE;
     public static final String FIELD_TYPE = WorkflowModelConsts.TASK_FILTER_PROFILENAME;
@@ -149,7 +149,7 @@ public class WorkflowTaskDataSource extends RestDataSource {
         setOperationBindings(
                 RestConfig.createAddOperation(),
 //                RestConfig.createDeleteOperation(),
-                RestConfig.createUpdateOperation());
+                RestConfig.createUpdatePostOperation());
     }
 
     @Override
@@ -165,6 +165,8 @@ public class WorkflowTaskDataSource extends RestDataSource {
                         }});
                 dsRequest.setData(record);
             }
+        } else if (dsRequest.getOperationType() == DSOperationType.UPDATE) {
+            return ClientUtils.dump(dsRequest.getData());
         }
         return super.transformRequest(dsRequest);
     }

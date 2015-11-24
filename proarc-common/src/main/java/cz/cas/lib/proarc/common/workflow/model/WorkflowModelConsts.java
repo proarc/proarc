@@ -57,10 +57,15 @@ public final class WorkflowModelConsts {
     public static final String TASK_NOTE = "note";
     public static final String TASK_OWNERID = "ownerId";
     public static final String TASK_OWNERNAME = "ownerName";
+    public static final String TASK_PARAMETERS = "params";
     public static final String TASK_PRIORITY = "priority";
     public static final String TASK_PROFILELABEL = "profileLabel";
     public static final String TASK_PROFILENAME = "profileName";
     public static final String TASK_STATE = "state";
+    public static final String TASK_MODIFIED = "modified";
+    /**
+     * It is same like {@link #TASK_MODIFIED} but in a long number format to keep precision.
+     */
     public static final String TASK_TIMESTAMP = "timestamp";
 
     public static final String TASK_FILTER_ID = "id";

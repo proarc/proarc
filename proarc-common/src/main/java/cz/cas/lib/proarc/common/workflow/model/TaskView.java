@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import java.sql.Timestamp;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -24,7 +25,7 @@ import javax.xml.bind.annotation.XmlElement;
  *
  * @author Jan Pokorsky
  */
-@XmlAccessorType(XmlAccessType.FIELD)
+@XmlAccessorType(XmlAccessType.NONE)
 public class TaskView extends Task {
 
     @XmlElement(name = WorkflowModelConsts.TASK_PROFILELABEL)
@@ -56,6 +57,21 @@ public class TaskView extends Task {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    /**
+     * The conversion to and from ISO timedate loses precision of the timestamp.
+     * Use this instead of {@link #getTimestamp() } for updates.
+     */
+    @XmlElement(name = WorkflowModelConsts.TASK_TIMESTAMP)
+    public long getTimestampAsLong() {
+        return getTimestamp().getTime();
+    }
+
+    @XmlElement(name = WorkflowModelConsts.TASK_MODIFIED)
+    @Override
+    public Timestamp getTimestamp() {
+        return super.getTimestamp();
     }
 
 }
