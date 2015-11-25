@@ -105,8 +105,8 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         if (filter.getPriority() != null) {
             cmd.where(tableTask.priority.is(filter.getPriority()));
         }
-        if (filter.getProfileName() != null) {
-            cmd.where(tableTask.typeRef.is(filter.getProfileName()));
+        if (filter.getProfileName() != null && !filter.getProfileName().isEmpty()) {
+            cmd.where(tableTask.typeRef.in(filter.getProfileName()));
         }
         if (filter.getState() != null) {
             cmd.where(tableTask.state.is(filter.getState().name()));

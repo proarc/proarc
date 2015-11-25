@@ -31,7 +31,7 @@ public class WorkflowProfileDataSource extends RestDataSource {
 
     public static final String ID = "WorkflowProfileDataSource";
 
-    public static final String FIELD_ID = WorkflowProfileConsts.JOB_NAME_ATT;
+    public static final String FIELD_ID = WorkflowProfileConsts.NAME;
     public static final String FIELD_LABEL = WorkflowProfileConsts.TITLE_EL;
     public static final String FIELD_HINT = WorkflowProfileConsts.HINT_EL;
     public static final String FIELD_DISABLED = WorkflowProfileConsts.DISABLED;

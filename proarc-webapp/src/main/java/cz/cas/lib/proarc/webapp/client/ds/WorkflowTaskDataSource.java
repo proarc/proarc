@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * The data source of workflow's tasks.
@@ -156,6 +157,7 @@ public class WorkflowTaskDataSource extends RestDataSource {
     protected Object transformRequest(DSRequest dsRequest) {
         if (dsRequest.getOperationType() == DSOperationType.FETCH) {
             Criteria criteria = dsRequest.getCriteria();
+            Map<String, Object> criteriaMap;
             if (criteria.isAdvanced()) {
                 HashMap<String, Object> record = new HashMap<String, Object>();
                 ClientUtils.advanceCriteriaAsParams(
@@ -163,8 +165,16 @@ public class WorkflowTaskDataSource extends RestDataSource {
                             put(FIELD_CREATED, WorkflowModelConsts.TASK_FILTER_CREATED);
                             put(FIELD_MODIFIED, WorkflowModelConsts.TASK_FILTER_MODIFIED);
                         }});
-                dsRequest.setData(record);
+                criteriaMap = record;
+            } else {
+                criteriaMap = criteria.getValues();
             }
+            if (criteriaMap.containsKey(FIELD_LABEL)) {
+                criteriaMap.put(WorkflowModelConsts.TASK_FILTER_PROFILENAME, criteriaMap.remove(FIELD_LABEL));
+            } else if (criteriaMap.containsKey(FIELD_TYPE)) {
+                criteriaMap.put(WorkflowModelConsts.TASK_FILTER_PROFILENAME, criteriaMap.remove(FIELD_TYPE));
+            }
+            dsRequest.setData(criteriaMap);
         } else if (dsRequest.getOperationType() == DSOperationType.UPDATE) {
             return ClientUtils.dump(dsRequest.getData());
         }

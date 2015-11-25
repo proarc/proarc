@@ -159,7 +159,18 @@ public class WorkflowProfiles {
                 result.add(bundleValueMap);
             }
         }
+        result.add(getAllTaskValueMap(wd, ctx));
         return result;
+    }
+
+    private ValueMap<WorkflowItemView> getAllTaskValueMap(WorkflowDefinition wd, ValueMap.Context ctx) {
+        String lang = ctx.getLocale().getLanguage();
+        ArrayList<WorkflowItemView> taskList = new ArrayList<WorkflowItemView>(wd.getTasks().size());
+        for (TaskDefinition task : wd.getTasks()) {
+            taskList.add(new WorkflowItemView(task, lang));
+        }
+        return new ValueMap<WorkflowItemView>(
+                WorkflowProfileConsts.WORKFLOWITEMVIEW_TASKS_VALUEMAP, taskList);
     }
 
     /**

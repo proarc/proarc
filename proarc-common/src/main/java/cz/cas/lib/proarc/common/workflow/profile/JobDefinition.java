@@ -22,7 +22,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlID;
 
 /**
  *
@@ -30,10 +29,6 @@ import javax.xml.bind.annotation.XmlID;
  */
 @XmlAccessorType(value = XmlAccessType.FIELD)
 public class JobDefinition extends DisplayableType<JobDefinition> {
-
-    @XmlAttribute(name = WorkflowProfileConsts.JOB_NAME_ATT, required = true)
-    @XmlID
-    private String name;
 
     @XmlElement(name = WorkflowProfileConsts.JOB_WORKER_EL)
     private WorkerDefinition worker;
@@ -45,15 +40,6 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
     private List<StepDefinition> steps;
 
     private transient List<String> taskNamesSortedByBlockers;
-
-    public String getName() {
-        return name;
-    }
-
-    public JobDefinition setName(String name) {
-        this.name = name;
-        return this;
-    }
 
     public int getPriority() {
         return priority == null ? 2 : priority;

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlTransient;
 
 /**
@@ -30,7 +31,11 @@ import javax.xml.bind.annotation.XmlTransient;
  */
 // @XmlTransient helps include XML elements in subclasses without creating a XML abstract type.
 @XmlTransient
-abstract class DisplayableType<T extends DisplayableType> {
+public abstract class DisplayableType<T extends DisplayableType> {
+
+    @XmlAttribute(name = WorkflowProfileConsts.NAME, required = true)
+    @XmlID
+    private String name;
 
     @XmlAttribute(name = WorkflowProfileConsts.DISABLED, required = false)
     private Boolean disabled;
@@ -40,6 +45,15 @@ abstract class DisplayableType<T extends DisplayableType> {
 
     @XmlTransient
     private Map<String, String> hints;
+
+    public String getName() {
+        return name;
+    }
+
+    public T setName(String name) {
+        this.name = name;
+        return (T) this;
+    }
 
     public boolean isDisabled() {
         return disabled != null && disabled;

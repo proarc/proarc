@@ -45,7 +45,7 @@ public class TaskFilter {
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_PRIORITY)
     private Integer priority;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_PROFILENAME)
-    private String profileName;
+    private List<String> profileName;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_STATE)
     private State state;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_SORTBY)
@@ -103,11 +103,11 @@ public class TaskFilter {
         this.priority = priority;
     }
 
-    public String getProfileName() {
+    public List<String> getProfileName() {
         return profileName;
     }
 
-    public void setProfileName(String profileName) {
+    public void setProfileName(List<String> profileName) {
         this.profileName = profileName;
     }
 

@@ -31,6 +31,7 @@ import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.ExpansionMode;
 import com.smartgwt.client.types.FetchMode;
+import com.smartgwt.client.types.MultipleAppearance;
 import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TitleOrientation;
@@ -54,6 +55,8 @@ import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
 import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.form.validator.IsFloatValidator;
+import com.smartgwt.client.widgets.grid.CellFormatter;
+import com.smartgwt.client.widgets.grid.HoverCustomizer;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
@@ -68,6 +71,7 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.DisplayType;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -299,8 +303,9 @@ public class WorkflowTasksEditor {
                     );
 
             grid.getField(WorkflowTaskDataSource.FIELD_LABEL).setWidth("80%");
-            grid.getField(WorkflowTaskDataSource.FIELD_LABEL).setCanFilter(false);
+            grid.getField(WorkflowTaskDataSource.FIELD_LABEL).setCanFilter(true);
             grid.getField(WorkflowTaskDataSource.FIELD_LABEL).setCanSort(false);
+            grid.getField(WorkflowTaskDataSource.FIELD_LABEL).setFilterEditorProperties(createTaskFilterEditor());
 
             grid.getField(WorkflowTaskDataSource.FIELD_OWNER).setCanFilter(true);
             grid.getField(WorkflowTaskDataSource.FIELD_OWNER).setCanSort(false);
@@ -324,6 +329,9 @@ public class WorkflowTasksEditor {
 
             grid.getField(WorkflowTaskDataSource.FIELD_JOB_LABEL).setCanFilter(false);
             grid.getField(WorkflowTaskDataSource.FIELD_JOB_LABEL).setCanSort(true);
+
+            grid.getField(WorkflowTaskDataSource.FIELD_TYPE).setCanFilter(false);
+            grid.getField(WorkflowTaskDataSource.FIELD_TYPE).setCanSort(false);
 
             grid.addDataArrivedHandler(new DataArrivedHandler() {
 
@@ -355,6 +363,54 @@ public class WorkflowTasksEditor {
             grid.setViewState(taskListPersistance.getViewState());
             taskGrid = grid;
             return grid;
+        }
+
+        private FormItem createTaskFilterEditor() {
+            SelectItem taskOptions = new SelectItem();
+            taskOptions.setMultiple(true);
+            taskOptions.setMultipleAppearance(MultipleAppearance.PICKLIST);
+            taskOptions.setOptionDataSource(ValueMapDataSource.getInstance()
+                    .getOptionDataSource(WorkflowProfileConsts.WORKFLOWITEMVIEW_TASKS_VALUEMAP));
+            taskOptions.setValueField(WorkflowProfileConsts.NAME);
+            taskOptions.setDisplayField(WorkflowProfileConsts.TITLE_EL);
+            taskOptions.setPickListFields(new ListGridField(WorkflowProfileConsts.TITLE_EL));
+            taskOptions.getPickListFields()[0].setCellFormatter(new CellFormatter() {
+
+                @Override
+                public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                    Boolean disabled = record.getAttributeAsBoolean(WorkflowProfileConsts.DISABLED);
+                    if (value == null) {
+                        return null;
+                    } else if (disabled != null && disabled) {
+                        return "<s>" + value + "</s>";
+                    } else {
+                        return value.toString();
+                    }
+                }
+            });
+
+            ListGrid profilePickListProperties = new ListGrid();
+            profilePickListProperties.setCanHover(true);
+            profilePickListProperties.setShowHover(true);
+            profilePickListProperties.setHoverWidth(300);
+            profilePickListProperties.setHoverCustomizer(new HoverCustomizer() {
+
+                @Override
+                public String hoverHTML(Object value, ListGridRecord record, int rowNum, int colNum) {
+                    String hint = record.getAttribute(WorkflowProfileConsts.HINT_EL);
+                    String name = record.getAttribute(WorkflowProfileConsts.NAME);
+                    String title = record.getAttribute(WorkflowProfileConsts.TITLE_EL);
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("<b>").append(title).append("</b>");
+                    sb.append("<br><i>").append(name).append("</i></br>");
+                    if (hint != null) {
+                        sb.append("<p>").append(hint).append("</p>");
+                    }
+                    return sb.toString();
+                }
+            });
+            taskOptions.setPickListProperties(profilePickListProperties);
+            return taskOptions;
         }
 
         private void updateSelection() {

@@ -24,13 +24,22 @@ public class WorkflowProfileConsts {
 
     public static final String NS_WORKFLOW_V1 = "http://proarc.lib.cas.cz/xml/common/workflow/v1";
 
+    /**
+     * The value map ID. It provides all declared tasks of the workflow.
+     */
+    public static final String WORKFLOWITEMVIEW_TASKS_VALUEMAP = "proarc.workflow.tasks";
+
+    public static final String DISABLED = "disabled";
+    public static final String HINT_EL = "hint";
+    public static final String NAME = "name";
+    public static final String TITLE_EL = "title";
+
     public static final String WORKFLOW_EL = "workflow";
     public static final String WORKFLOW_JOB_EL = "job";
     public static final String WORKFLOW_MATERIAL_EL = "material";
     public static final String WORKFLOW_TASK_EL = "task";
     public static final String WORKFLOW_VALUEMAP_EL = "valuemap";
 
-    public static final String JOB_NAME_ATT = "name";
     public static final String JOB_STEP_EL = "step";
     public static final String JOB_WORKER_EL = "worker";
     public static final String JOB_PRIORITY_AT = "priority";
@@ -45,11 +54,9 @@ public class WorkflowProfileConsts {
 
     public static final String TASK_MATERIAL_EL = "setMaterial";
     public static final String TASK_PARAM_EL = "param";
-    public static final String TASK_NAME_ATT = "name";
 
     public static final String SETPARAM_PARAMREF_ATT = "paramRef";
 
-    public static final String PARAM_NAME_ATT = "name";
     public static final String PARAM_REQUIRED_ATT = "required";
     public static final String PARAM_DATASOURCE_ATT = "datasource";
     public static final String PARAM_VALUETYPE = "type";
@@ -57,7 +64,6 @@ public class WorkflowProfileConsts {
     public static final String PARAM_OPTIONVALUEFIELD = "optionValueField";
     public static final String PARAM_OPTIONDISPLAYFIELD = "optionDisplayField";
 
-    public static final String MATERIAL_NAME_ATT = "name";
     public static final String MATERIAL_TYPE = "type";
 
     public static final String SETMATERIAL_MATREF_ATT = "materialRef";
@@ -69,10 +75,6 @@ public class WorkflowProfileConsts {
 
     public static final String VALUEMAPITEM_KEY_ATT = "key";
     public static final String VALUEMAPITEM_VALUE = "value";
-
-    public static final String DISABLED = "disabled";
-    public static final String HINT_EL = "hint";
-    public static final String TITLE_EL = "title";
     
     public static final String I18N_LANG_ATT = "lang";
 

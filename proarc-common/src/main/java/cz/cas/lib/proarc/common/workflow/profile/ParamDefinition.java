@@ -21,19 +21,14 @@ import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlIDREF;
 
 /**
  *
  * @author Jan Pokorsky
  */
-@XmlAccessorType(value = XmlAccessType.FIELD)
+@XmlAccessorType(value = XmlAccessType.NONE)
 public class ParamDefinition extends DisplayableType<ParamDefinition> {
-
-    @XmlAttribute(name = WorkflowProfileConsts.PARAM_NAME_ATT, required = true)
-    @XmlID
-    private String name;
 
     @XmlAttribute(name = WorkflowProfileConsts.PARAM_REQUIRED_ATT)
     private Boolean required;
@@ -53,15 +48,6 @@ public class ParamDefinition extends DisplayableType<ParamDefinition> {
 
     @XmlAttribute(name = WorkflowProfileConsts.PARAM_OPTIONDISPLAYFIELD)
     private String optionDisplayField;
-
-    public String getName() {
-        return name;
-    }
-
-    public ParamDefinition setName(String name) {
-        this.name = name;
-        return this;
-    }
 
     public boolean isRequired() {
         return required != null && required;

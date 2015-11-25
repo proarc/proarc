@@ -16,8 +16,6 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -26,27 +24,36 @@ import javax.xml.bind.annotation.XmlElement;
  *
  * @author Jan Pokorsky
  */
-@XmlAccessorType(value = XmlAccessType.FIELD)
-public class TaskDefinition extends DisplayableType<TaskDefinition> {
+@XmlAccessorType(XmlAccessType.NONE)
+public class WorkflowItemView {
 
-    @XmlElement(name = WorkflowProfileConsts.TASK_MATERIAL_EL)
-    private List<SetMaterialDefinition> materialSetters;
+    private final DisplayableType<?> item;
+    protected final String lang;
 
-    @XmlElement(name = WorkflowProfileConsts.TASK_PARAM_EL)
-    private List<ParamDefinition> params;
-
-    public List<SetMaterialDefinition> getMaterialSetters() {
-        if (materialSetters == null) {
-            materialSetters = new ArrayList<SetMaterialDefinition>();
-        }
-        return materialSetters;
+    public WorkflowItemView(DisplayableType<?> item, String lang) {
+        this.item = item;
+        this.lang = lang;
     }
 
-    public List<ParamDefinition> getParams() {
-        if (params == null) {
-            params = new ArrayList<ParamDefinition>();
-        }
-        return params;
+    @XmlElement(name = WorkflowProfileConsts.NAME)
+    public String getName() {
+        return item.getName();
     }
+
+    @XmlElement(name = WorkflowProfileConsts.TITLE_EL)
+    public String getTitle() {
+        return item.getTitle(lang, getName());
+    }
+
+    @XmlElement(name = WorkflowProfileConsts.HINT_EL)
+    public String getHint() {
+        return item.getHint(lang, null);
+    }
+
+    @XmlElement(name = WorkflowProfileConsts.DISABLED)
+    public boolean isDisabled() {
+        return item.isDisabled();
+    }
+
 
 }

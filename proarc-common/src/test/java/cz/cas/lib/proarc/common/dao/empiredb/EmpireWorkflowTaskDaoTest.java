@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.List;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
@@ -137,6 +138,11 @@ public class EmpireWorkflowTaskDaoTest {
         assertEquals(State.STARTED, t.getState());
         assertEquals("Monograph", t.getJobLabel());
         assertEquals("test", t.getUserName());
+
+        filter = new TaskFilter();
+        filter.setProfileName(Arrays.asList("task.id1", "task.id2"));
+        tasks = dao.view(filter);
+        assertEquals(2, tasks.size());
     }
 
 }

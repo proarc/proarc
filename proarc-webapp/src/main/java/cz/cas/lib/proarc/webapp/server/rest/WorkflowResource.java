@@ -226,7 +226,7 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.TASK_FILTER_JOBID) BigDecimal jobId,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_MODIFIED) List<String> modified,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_PRIORITY) Integer priority,
-            @QueryParam(WorkflowModelConsts.TASK_FILTER_PROFILENAME) String profileName,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_PROFILENAME) List<String> profileName,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_STATE) Task.State state,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_OWNERID) BigDecimal userId,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_OFFSET) int startRow,
@@ -358,7 +358,7 @@ public class WorkflowResource {
     @Produces({MediaType.APPLICATION_JSON})
     @GET
     public SmartGwtResponse<JobDefinitionView> getProfiles(
-            @QueryParam(WorkflowProfileConsts.JOB_NAME_ATT) String name,
+            @QueryParam(WorkflowProfileConsts.NAME) String name,
             @QueryParam(WorkflowProfileConsts.DISABLED) Boolean disabled
     ) {
         WorkflowDefinition workflowDefinition = workflowProfiles.getProfiles();
@@ -370,12 +370,7 @@ public class WorkflowResource {
         for (JobDefinition job : workflowDefinition.getJobs()) {
             if ((name == null || name.equals(job.getName()))
                     && (disabled == null || disabled == job.isDisabled())) {
-                JobDefinitionView p = new JobDefinitionView();
-                p.setName(job.getName());
-                p.setTitle(job.getTitle(lang, job.getName()));
-                p.setHint(job.getHint(lang, null));
-                p.setDisabled(job.isDisabled());
-                profiles.add(p);
+                profiles.add(new JobDefinitionView(job, lang));
             }
         }
         return new SmartGwtResponse<JobDefinitionView>(profiles);

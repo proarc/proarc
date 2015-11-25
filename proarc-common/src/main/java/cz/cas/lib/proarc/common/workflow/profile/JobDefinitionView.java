@@ -16,53 +16,20 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
  * @author Jan Pokorsky
  */
-public class JobDefinitionView {
+public class JobDefinitionView extends WorkflowItemView {
 
-    @XmlElement(name = WorkflowProfileConsts.JOB_NAME_ATT)
-    private String name;
-    @XmlElement(name = WorkflowProfileConsts.TITLE_EL)
-    private String title;
-    @XmlElement(name = WorkflowProfileConsts.HINT_EL)
-    private String hint;
-    @XmlElement(name = WorkflowProfileConsts.DISABLED)
-    private boolean disabled;
+//    @XmlElement(name = "params")
+//    private List<WorkflowItemView> params;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getHint() {
-        return hint;
-    }
-
-    public void setHint(String hint) {
-        this.hint = hint;
-    }
-
-    public boolean isDisabled() {
-        return disabled;
-    }
-
-    public void setDisabled(boolean disabled) {
-        this.disabled = disabled;
+    public JobDefinitionView(JobDefinition item, String lang) {
+        super(item, lang);
     }
 
 }
