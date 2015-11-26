@@ -51,8 +51,13 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItem;
+import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
+import com.smartgwt.client.widgets.menu.events.ItemClickHandler;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -101,6 +106,26 @@ public class WorkflowJobsEditor {
 
     private void onCreateNew() {
         places.goTo(new WorkflowNewJobPlace());
+    }
+
+    private void onCreateNewTask(final WorkflowJobFormView jobFormView, Record taskDef) {
+        DSRequest req = new DSRequest();
+        req.setWillHandleError(true);
+        jobFormView.taskView.addData(taskDef, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                boolean statusOk = RestConfig.isStatusOk(dsResponse);
+                if (statusOk) {
+                    StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
+                    // reload tasks to get the proper order of tasks
+                    jobFormView.refresh();
+//                } else if (RestConfig.isConcurrentModification(dsResponse)) {
+                } else {
+                    ErrorHandler.warn(dsResponse, dsRequest);
+                }
+            }
+        }, req);
     }
 
     private void onSave(WorkflowJobFormView jobFormView) {
@@ -168,6 +193,7 @@ public class WorkflowJobsEditor {
 
         public void setHandler(WorkflowJobsEditor handler) {
             this.handler = handler;
+            jobFormView.setHandler(handler);
         }
 
         @Override
@@ -399,13 +425,16 @@ public class WorkflowJobsEditor {
 
     }
 
-    private static final class WorkflowJobFormView {
+    private static final class WorkflowJobFormView implements Refreshable {
 
         private final ClientMessages i18n;
         private final Canvas widget;
         private DynamicForm jobForm;
         private WorkflowMaterialView materialView;
         private ListGrid taskView;
+        private Menu addTaskMenu;
+        private WorkflowJobsEditor handler;
+        private Record lastJob;
 
         public WorkflowJobFormView(ClientMessages i18n) {
             this.i18n = i18n;
@@ -416,7 +445,18 @@ public class WorkflowJobsEditor {
             return widget;
         }
 
+        public void setHandler(WorkflowJobsEditor handler) {
+            this.handler = handler;
+        }
+
+        @Override
+        public void refresh() {
+            taskView.invalidateCache();
+            setJob(lastJob);
+        }
+
         public void setJob(Record job) {
+            this.lastJob = job;
             if (job != null) {
                 String jobId = job.getAttribute(WorkflowJobDataSource.FIELD_ID);
                 jobForm.clearErrors(true);
@@ -424,6 +464,7 @@ public class WorkflowJobsEditor {
                 taskView.fetchData(new Criteria(
                         WorkflowModelConsts.TASK_FILTER_JOBID, jobId
                 ));
+                fetchAddTaskMenu(job.getAttribute(WorkflowJobDataSource.FIELD_PROFILE_ID));
                 materialView.getMaterialGrid().invalidateCache();
                 materialView.getMaterialGrid().fetchData(
                         new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, jobId));
@@ -431,12 +472,36 @@ public class WorkflowJobsEditor {
                 jobForm.clearValues();
                 materialView.getMaterialGrid().setData(new Record[0]);
                 taskView.setData(new Record[0]);
+                fetchAddTaskMenu(null);
             }
             widget.setDisabled(job == null);
         }
 
         public DynamicForm getValues() {
             return jobForm;
+        }
+
+        private void fetchAddTaskMenu(final String jobName) {
+            addTaskMenu.setData(new Record[0]);
+            if (jobName == null) {
+                return ;
+            }
+            WorkflowProfileDataSource.getInstance().fetchData(
+                    new Criteria(WorkflowProfileConsts.NAME, jobName),
+                    new DSCallback() {
+
+                @Override
+                public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                    Record[] taskRecs = new Record[0];
+                    if (RestConfig.isStatusOk(dsResponse)) {
+                        Record jobRec = dsResponse.getDataAsRecordList().find(WorkflowProfileConsts.NAME, jobName);
+                        if (jobRec != null) {
+                            taskRecs = jobRec.getAttributeAsRecordArray(WorkflowProfileConsts.JOBVIEW_TASK);
+                        }
+                    }
+                    addTaskMenu.setData(taskRecs);
+                }
+            }, null);
         }
 
         private Canvas createMainLayout() {
@@ -498,7 +563,40 @@ public class WorkflowJobsEditor {
                     new ListGridField(WorkflowTaskDataSource.FIELD_OWNER, 50),
                     new ListGridField(WorkflowTaskDataSource.FIELD_STATE, 50)
             );
+
+            Menu ctxMenu = Actions.createMenu();
+            ctxMenu.addItem(createAddTaskMenuItem());
+            taskView.setContextMenu(ctxMenu);
+            Actions.fixListGridContextMenu(taskView);
             return taskView;
+        }
+
+        private MenuItem createAddTaskMenuItem() {
+            addTaskMenu = new Menu();
+            addTaskMenu.addItemClickHandler(new ItemClickHandler() {
+
+                @Override
+                public void onItemClick(ItemClickEvent event) {
+                    if (handler != null) {
+                        Record taskDef = event.getRecord();
+                        Record newTask = new Record();
+                        newTask.setAttribute(WorkflowModelConsts.TASK_JOBID,
+                                jobForm.getValue(WorkflowModelConsts.JOB_ID));
+                        newTask.setAttribute(WorkflowModelConsts.TASK_PROFILENAME,
+                                taskDef.getAttribute(WorkflowProfileConsts.NAME));
+                        handler.onCreateNewTask(WorkflowJobFormView.this, newTask);
+                    }
+                }
+            });
+            MenuItem addTaskMenuItem = Actions.asMenuItem(new AbstractAction(
+                    "Přidat krok", "[SKIN]/actions/add.png", null) {
+
+                @Override
+                public void performAction(ActionEvent event) {
+                }
+            }, taskView);
+            addTaskMenuItem.setSubmenu(addTaskMenu);
+            return addTaskMenuItem;
         }
 
         private Widget createMaterialList() {

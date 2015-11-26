@@ -44,6 +44,8 @@ public class WorkflowProfileConsts {
     public static final String JOB_WORKER_EL = "worker";
     public static final String JOB_PRIORITY_AT = "priority";
 
+    public static final String JOBVIEW_TASK = "task";
+
     public static final String STEP_BLOCKER_EL = "blocker";
     public static final String STEP_OPTIONAL = "optional";
     public static final String STEP_PARAM_EL = "setParam";

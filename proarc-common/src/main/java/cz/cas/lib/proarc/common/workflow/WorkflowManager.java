@@ -181,7 +181,7 @@ public class WorkflowManager {
     }
 
     public TaskManager tasks() {
-        return new TaskManager(daoFactory, wp);
+        return new TaskManager(daoFactory, wp, this);
     }
 
     public Job addJob(JobDefinition jobProfile, String xml,
@@ -254,7 +254,7 @@ public class WorkflowManager {
         return task;
     }
 
-    private List<TaskParameter> createTaskParams(WorkflowParameterDao paramDao,
+    List<TaskParameter> createTaskParams(WorkflowParameterDao paramDao,
             StepDefinition step, Task task) {
 
         ArrayList<TaskParameter> params = new ArrayList<TaskParameter>();
@@ -268,7 +268,7 @@ public class WorkflowManager {
         return params;
     }
 
-    private void createMaterials(WorkflowMaterialDao dao, StepDefinition step,
+    void createMaterials(WorkflowMaterialDao dao, StepDefinition step,
             Task task, Map<String, Material> materialCache, PhysicalMaterial origin) {
 
         TaskDefinition taskProfile = step.getTask();
@@ -281,7 +281,7 @@ public class WorkflowManager {
                 if (mType == MaterialType.FOLDER) {
                     m = new FolderMaterial();
                 } else if (mType == MaterialType.PHYSICAL_DOCUMENT) {
-                    if (origin.getId() == null) {
+                    if (origin != null && origin.getId() == null) {
                         m = origin;
                     } else {
                         m = new PhysicalMaterial();
@@ -300,7 +300,7 @@ public class WorkflowManager {
         }
     }
 
-    private static BigDecimal resolveUserId(WorkerDefinition worker,
+    static BigDecimal resolveUserId(WorkerDefinition worker,
             Map<String, UserProfile> users, UserProfile defaultUser,
             boolean emptyUserAsDefault) {
 
@@ -324,7 +324,7 @@ public class WorkflowManager {
                 : emptyUserAsDefault ? defaultUser : null;
     }
 
-    private Map<String, UserProfile> createUserMap() {
+    Map<String, UserProfile> createUserMap() {
         HashMap<String, UserProfile> map = new HashMap<String, UserProfile>();
         for (UserProfile up : userMgr.findAll()) {
             map.put(up.getUserName(), up);

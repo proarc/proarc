@@ -20,19 +20,28 @@ import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.dao.WorkflowJobDao;
+import cz.cas.lib.proarc.common.dao.WorkflowMaterialDao;
 import cz.cas.lib.proarc.common.dao.WorkflowParameterDao;
 import cz.cas.lib.proarc.common.dao.WorkflowTaskDao;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.Material;
+import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.ParamDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.StepDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.TaskDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -46,10 +55,12 @@ public class TaskManager {
 
     private final DaoFactory daoFactory;
     private final WorkflowProfiles wp;
+    private final WorkflowManager wmgr;
 
-    public TaskManager(DaoFactory daoFactory, WorkflowProfiles wp) {
+    public TaskManager(DaoFactory daoFactory, WorkflowProfiles wp, WorkflowManager wmgr) {
         this.daoFactory = daoFactory;
         this.wp = wp;
+        this.wmgr = wmgr;
     }
 
     public List<TaskView> findTask(TaskFilter filter, WorkflowDefinition wd) {
@@ -181,6 +192,83 @@ public class TaskManager {
         } finally {
             tx.close();
         }
+    }
+
+    public Task addTask(BigDecimal jobId, String taskName, WorkflowDefinition workflow, UserProfile defaultUser) {
+        Map<String, UserProfile> users = wmgr.createUserMap();
+        Transaction tx = daoFactory.createTransaction();
+        WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
+        WorkflowTaskDao taskDao = daoFactory.createWorkflowTaskDao();
+        WorkflowParameterDao paramDao = daoFactory.createWorkflowParameterDao();
+        WorkflowMaterialDao materialDao = daoFactory.createWorkflowMaterialDao();
+        jobDao.setTransaction(tx);
+        taskDao.setTransaction(tx);
+        paramDao.setTransaction(tx);
+        materialDao.setTransaction(tx);
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        try {
+            Job job = jobDao.find(jobId);
+            if (job == null) {
+                throw new IllegalArgumentException("Job not found: " + jobId);
+            }
+            Job.State jobState = job.getState();
+            if (jobState != Job.State.OPEN ) {
+                throw new IllegalArgumentException("Job already closed: " + jobState);
+            }
+            JobDefinition jobDef = wp.getProfile(workflow, job.getProfileName());
+            if (jobDef == null || jobDef.isDisabled()) {
+                throw new IllegalArgumentException("Job definition not found: " + job.getProfileName());
+            }
+            StepDefinition step = getStepDefinition(jobDef, taskName);
+            Task task = createTask(taskDao, now, job, step, users, defaultUser);
+            wmgr.createTaskParams(paramDao, step, task);
+            if (!step.getTask().getMaterialSetters().isEmpty()) {
+                Map<String, Material> materialCache = new HashMap<String, Material>();
+                MaterialFilter mFilter = new MaterialFilter();
+                mFilter.setJobId(jobId);
+                List<MaterialView> materials = materialDao.view(mFilter);
+                for (MaterialView material : materials) {
+                    materialCache.put(material.getName(), material);
+                }
+                wmgr.createMaterials(materialDao, step, task, materialCache, null);
+            }
+            tx.commit();
+            return task;
+        } catch (Throwable t) {
+            tx.rollback();
+            throw new IllegalStateException("Cannot add task: " + taskName, t);
+        } finally {
+            tx.close();
+        }
+    }
+
+    private StepDefinition getStepDefinition(JobDefinition jobDef, String taskName) {
+        for (StepDefinition step : jobDef.getSteps()) {
+            if (step.getTask().getName().equals(taskName)) {
+                if (step.getTask().isDisabled()) {
+                    throw new IllegalArgumentException("Task disabled: " + taskName);
+                }
+                return step;
+            }
+        }
+        throw new IllegalArgumentException("Step definition not found: " + taskName
+                + " for " + jobDef.getName());
+    }
+
+    private Task createTask(WorkflowTaskDao taskDao, Timestamp now, Job job,
+            StepDefinition step, Map<String, UserProfile> users, UserProfile defaultUser
+    ) throws ConcurrentModificationException {
+
+        Task task = taskDao.create().addCreated(now)
+                .addJobId(job.getId())
+                .addOwnerId(WorkflowManager.resolveUserId(step.getWorker(), users, defaultUser, false))
+                .addPriority(job.getPriority())
+                // XXX check state of existing blockers
+                .setState(step.getBlockers().isEmpty() ? Task.State.READY : Task.State.WAITING)
+                .addTimestamp(now)
+                .addTypeRef(step.getTask().getName());
+        taskDao.update(task);
+        return task;
     }
 
 }

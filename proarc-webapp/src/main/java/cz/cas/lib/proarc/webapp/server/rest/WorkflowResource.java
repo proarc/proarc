@@ -265,6 +265,29 @@ public class WorkflowResource {
     }
 
     @Path(WorkflowResourceApi.TASK_PATH)
+    @POST
+    @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<TaskView> addTask(
+            @FormParam(WorkflowModelConsts.TASK_JOBID) BigDecimal jobId,
+            @FormParam(WorkflowModelConsts.TASK_PROFILENAME) String taskName
+    ) {
+        if (jobId == null || taskName == null) {
+            return SmartGwtResponse.asError("Invalid parameters!");
+        }
+        WorkflowDefinition workflow = workflowProfiles.getProfiles();
+        if (workflow == null) {
+            return profileError();
+        }
+        Task updatedTask = workflowManager.tasks().addTask(jobId, taskName, workflow, session.getUser());
+        TaskFilter taskFilter = new TaskFilter();
+        taskFilter.setId(updatedTask.getId());
+        taskFilter.setLocale(session.getLocale(httpHeaders));
+        List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+        return new SmartGwtResponse<TaskView>(result);
+    }
+
+    @Path(WorkflowResourceApi.TASK_PATH)
     @PUT
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})

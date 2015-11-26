@@ -16,20 +16,36 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import java.util.ArrayList;
 import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
  * @author Jan Pokorsky
  */
+@XmlAccessorType(XmlAccessType.NONE)
 public class JobDefinitionView extends WorkflowItemView {
 
-//    @XmlElement(name = "params")
-//    private List<WorkflowItemView> params;
+    private JobDefinition item;
 
     public JobDefinitionView(JobDefinition item, String lang) {
         super(item, lang);
+        this.item = item;
+    }
+
+    @XmlElement(name = WorkflowProfileConsts.JOBVIEW_TASK)
+    public List<WorkflowItemView> getTasks() {
+        ArrayList<WorkflowItemView> tasks = new ArrayList<WorkflowItemView>();
+        for (StepDefinition step : item.getSteps()) {
+            TaskDefinition td = step.getTask();
+            if (!td.isDisabled()) {
+                tasks.add(new WorkflowItemView(td, lang));
+            }
+        }
+        return tasks;
     }
 
 }
