@@ -97,7 +97,9 @@ public class WorkflowNewJobEditor {
             public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
                 if (RestConfig.isStatusOk(dsResponse)) {
                     StatusView.getInstance().show(i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
-                    places.goTo(new WorkflowJobPlace());
+                    Record[] records = dsResponse.getData();
+                    String jobId = records.length == 0 ? null : records[0].getAttribute(WorkflowJobDataSource.FIELD_ID);
+                    places.goTo(new WorkflowJobPlace().setJobId(jobId));
                 } else {
                     if (RPCResponse.STATUS_VALIDATION_ERROR == dsResponse.getStatus()) {
                         Map<?,?> errors = dsResponse.getErrors();
