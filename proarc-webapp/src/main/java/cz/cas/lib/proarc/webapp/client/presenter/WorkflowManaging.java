@@ -44,15 +44,16 @@ public class WorkflowManaging extends AbstractActivity {
         if (place instanceof WorkflowJobPlace) {
             WorkflowJobsEditor presenter = presenterFactory.getWorkflowJobs();
             panel.setWidget(presenter.getUI());
-//        presenter.init();
         } else if (place instanceof WorkflowNewJobPlace) {
             WorkflowNewJobEditor presenter = presenterFactory.getWorkflowNewJob();
             panel.setWidget(presenter.getUI());
             presenter.init();
-        } else {
+        } else if (place instanceof WorkflowTaskPlace) {
             WorkflowTasksEditor presenter = presenterFactory.getWorkflowTasks();
             panel.setWidget(presenter.getUI());
-//        presenter.init();
+            presenter.open((WorkflowTaskPlace) place);
+        } else {
+            panel.setWidget(null);
         }
     }
 
@@ -75,6 +76,17 @@ public class WorkflowManaging extends AbstractActivity {
     }
 
     public static class WorkflowTaskPlace extends WorkflowPlace {
+
+        private String taskId;
+
+        public String getTaskId() {
+            return taskId;
+        }
+
+        public WorkflowTaskPlace setTaskId(String taskId) {
+            this.taskId = taskId;
+            return this;
+        }
 
         @Override
         public String toToken() {

@@ -20,6 +20,7 @@ import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.Widget;
+import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -32,6 +33,7 @@ import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.ExpansionMode;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.MultipleAppearance;
+import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TitleOrientation;
@@ -89,6 +91,7 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowParameterDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowTaskPlace;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import java.math.BigDecimal;
@@ -114,9 +117,14 @@ public class WorkflowTasksEditor {
     public Canvas getUI() {
         if (view == null) {
             view = new WorkflowTasksView(i18n, this);
-            view.init();
         }
         return view.getWidget();
+    }
+
+    public void open(WorkflowTaskPlace place) {
+        if (view != null) {
+            view.edit(place.getTaskId());
+        }
     }
 
     private void onOpenJob() {
@@ -168,6 +176,7 @@ public class WorkflowTasksEditor {
         private ListGridPersistance taskListPersistance;
         private final ActionSource actionSource = new ActionSource(this);
         private boolean isUpdateOperation;
+        private boolean isDataInitialized;
         private ListGridRecord lastSelection;
 
         public WorkflowTasksView(ClientMessages i18n, WorkflowTasksEditor handler) {
@@ -180,13 +189,39 @@ public class WorkflowTasksEditor {
             return widget;
         }
 
-        public void init() {
-            taskGrid.fetchData(taskListPersistance.getFilterCriteria());
+        private void init() {
+            if (!isDataInitialized) {
+                isDataInitialized = true;
+                taskGrid.fetchData(taskListPersistance.getFilterCriteria());
+            }
         }
 
         @Override
         public void refresh() {
-            taskGrid.invalidateCache();
+            if (isDataInitialized) {
+                taskGrid.invalidateCache();
+            } else {
+                init();
+            }
+        }
+
+        public void edit(String taskId) {
+            if (taskId == null) {
+                init();
+                return ;
+            }
+            int taskRec = taskGrid.findIndex(
+                    new AdvancedCriteria(WorkflowTaskDataSource.FIELD_ID, OperatorId.EQUALS, taskId));
+            if (taskRec >= 0) {
+                taskGrid.selectSingleRecord(taskRec);
+                taskGrid.scrollToRow(taskRec);
+            } else {
+                lastSelection = null;
+                taskGrid.deselectAllRecords();
+                Record r = new Record();
+                r.setAttribute(WorkflowTaskDataSource.FIELD_ID, taskId);
+                taskFormView.setTask(r);
+            }
         }
 
         public void editSelection() {

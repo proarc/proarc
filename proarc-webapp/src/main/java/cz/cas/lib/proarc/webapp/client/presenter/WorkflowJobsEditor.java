@@ -47,6 +47,8 @@ import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
 import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
+import com.smartgwt.client.widgets.grid.events.RecordDoubleClickEvent;
+import com.smartgwt.client.widgets.grid.events.RecordDoubleClickHandler;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
@@ -63,6 +65,7 @@ import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.ErrorHandler;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
+import cz.cas.lib.proarc.webapp.client.action.Action;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
@@ -75,6 +78,7 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowTaskPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor.WorkflowMaterialView;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
@@ -102,6 +106,10 @@ public class WorkflowJobsEditor {
             view.setHandler(this);
         }
         return view.getWidget();
+    }
+
+    private void onGotoTask(String taskId) {
+        places.goTo(new WorkflowTaskPlace().setTaskId(taskId));
     }
 
     private void onCreateNew() {
@@ -435,6 +443,8 @@ public class WorkflowJobsEditor {
         private Menu addTaskMenu;
         private WorkflowJobsEditor handler;
         private Record lastJob;
+        private final ActionSource actionSource = new ActionSource(this);
+        private Action editTaskAction;
 
         public WorkflowJobFormView(ClientMessages i18n) {
             this.i18n = i18n;
@@ -475,6 +485,7 @@ public class WorkflowJobsEditor {
                 fetchAddTaskMenu(null);
             }
             widget.setDisabled(job == null);
+            actionSource.fireEvent();
         }
 
         public DynamicForm getValues() {
@@ -549,8 +560,9 @@ public class WorkflowJobsEditor {
 
         private Widget createTaskList() {
             taskView = new ListGrid();
-            taskView.setCanSort(true);
+            taskView.setCanSort(false);
             taskView.setDataFetchMode(FetchMode.BASIC);
+            taskView.setGenerateDoubleClickOnEnter(true);
 
             ResultSet rs = new ResultSet();
             rs.setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
@@ -563,9 +575,40 @@ public class WorkflowJobsEditor {
                     new ListGridField(WorkflowTaskDataSource.FIELD_OWNER, 50),
                     new ListGridField(WorkflowTaskDataSource.FIELD_STATE, 50)
             );
+            taskView.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
+                @Override
+                public void onSelectionUpdated(SelectionUpdatedEvent event) {
+                    actionSource.fireEvent();
+                }
+            });
+            taskView.addRecordDoubleClickHandler(new RecordDoubleClickHandler() {
+
+                @Override
+                public void onRecordDoubleClick(RecordDoubleClickEvent event) {
+                    ActionEvent evt = new ActionEvent(actionSource);
+                    if (editTaskAction.accept(evt)) {
+                        editTaskAction.performAction(evt);
+                    }
+                }
+            });
+
+            this.editTaskAction = new AbstractAction("Editovat", "[SKIN]/actions/edit.png", null) {
+
+                @Override
+                public boolean accept(ActionEvent event) {
+                    return taskView.getSelectedRecords().length == 1;
+                }
+
+                @Override
+                public void performAction(ActionEvent event) {
+                    ListGridRecord selectedRecord = taskView.getSelectedRecord();
+                    handler.onGotoTask(selectedRecord.getAttribute(WorkflowTaskDataSource.FIELD_ID));
+                }
+            };
             Menu ctxMenu = Actions.createMenu();
             ctxMenu.addItem(createAddTaskMenuItem());
+            ctxMenu.addItem(Actions.asMenuItem(editTaskAction, actionSource, false));
             taskView.setContextMenu(ctxMenu);
             Actions.fixListGridContextMenu(taskView);
             return taskView;
