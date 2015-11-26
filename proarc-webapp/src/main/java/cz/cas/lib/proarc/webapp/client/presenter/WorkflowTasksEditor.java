@@ -127,8 +127,8 @@ public class WorkflowTasksEditor {
         }
     }
 
-    private void onOpenJob() {
-        places.goTo(new WorkflowJobPlace());
+    private void onOpenJob(String jobId) {
+        places.goTo(new WorkflowJobPlace().setJobId(jobId));
     }
 
     private void onSave(WorkflowTaskFormView taskFormView) {
@@ -611,7 +611,8 @@ public class WorkflowTasksEditor {
 
                 @Override
                 public void onClick(ClickEvent event) {
-                    handler.onOpenJob();
+                    String jobId = taskForm.getValueAsString(WorkflowTaskDataSource.FIELD_JOB_ID);
+                    handler.onOpenJob(jobId);
                 }
             });
 

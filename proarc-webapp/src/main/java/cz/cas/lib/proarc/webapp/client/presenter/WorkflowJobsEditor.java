@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.client.presenter;
 
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.Widget;
+import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -28,6 +29,7 @@ import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.FetchMode;
+import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.util.BooleanCallback;
@@ -77,6 +79,7 @@ import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowTaskPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor.WorkflowMaterialView;
@@ -102,10 +105,15 @@ public class WorkflowJobsEditor {
     public Canvas getUI() {
         if (view == null) {
             view = new WorkflowJobView(i18n);
-            view.init();
             view.setHandler(this);
         }
         return view.getWidget();
+    }
+
+    public void open(WorkflowJobPlace place) {
+        if (view != null) {
+            view.edit(place.getJobId());
+        }
     }
 
     private void onGotoTask(String taskId) {
@@ -184,6 +192,7 @@ public class WorkflowJobsEditor {
         private WorkflowJobsEditor handler;
         private final ActionSource actionSource = new ActionSource(this);
         private boolean isUpdateOperation;
+        private boolean isDataInitialized;
         private ListGridRecord lastSelection;
 
         public WorkflowJobView(ClientMessages i18n) {
@@ -195,8 +204,30 @@ public class WorkflowJobsEditor {
             return widget;
         }
 
-        public void init() {
-            jobGrid.fetchData(jobsPersistance.getFilterCriteria());
+        private void init() {
+            if (!isDataInitialized) {
+                isDataInitialized = true;
+                jobGrid.fetchData(jobsPersistance.getFilterCriteria());
+            }
+        }
+
+        public void edit(String jobId) {
+            if (jobId == null) {
+                init();
+                return ;
+            }
+            int jobRec = jobGrid.findIndex(
+                    new AdvancedCriteria(WorkflowJobDataSource.FIELD_ID, OperatorId.EQUALS, jobId));
+            if (jobRec >= 0) {
+                jobGrid.selectSingleRecord(jobRec);
+                jobGrid.scrollToRow(jobRec);
+            } else {
+                lastSelection = null;
+                jobGrid.deselectAllRecords();
+                Record r = new Record();
+                r.setAttribute(WorkflowJobDataSource.FIELD_ID, jobId);
+                jobFormView.setJob(r);
+            }
         }
 
         public void setHandler(WorkflowJobsEditor handler) {
@@ -206,7 +237,11 @@ public class WorkflowJobsEditor {
 
         @Override
         public void refresh() {
-            jobGrid.invalidateCache();
+            if (isDataInitialized) {
+                jobGrid.invalidateCache();
+            } else {
+                init();
+            }
         }
 
         public void editSelection() {
@@ -467,14 +502,25 @@ public class WorkflowJobsEditor {
 
         public void setJob(Record job) {
             this.lastJob = job;
+            fetchAddTaskMenu(null);
             if (job != null) {
                 String jobId = job.getAttribute(WorkflowJobDataSource.FIELD_ID);
                 jobForm.clearErrors(true);
                 jobForm.fetchData(new Criteria(WorkflowJobDataSource.FIELD_ID, jobId));
-                taskView.fetchData(new Criteria(
-                        WorkflowModelConsts.TASK_FILTER_JOBID, jobId
-                ));
-                fetchAddTaskMenu(job.getAttribute(WorkflowJobDataSource.FIELD_PROFILE_ID));
+                taskView.fetchData(
+                        new Criteria(WorkflowModelConsts.TASK_FILTER_JOBID, jobId),
+                        new DSCallback() {
+
+                    @Override
+                    public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                        if (RestConfig.isStatusOk(dsResponse)) {
+                            Record[] records = dsResponse.getData();
+                            if (records.length > 0) {
+                                fetchAddTaskMenu(records[0].getAttribute(WorkflowJobDataSource.FIELD_PROFILE_ID));
+                            }
+                        }
+                    }
+                });
                 materialView.getMaterialGrid().invalidateCache();
                 materialView.getMaterialGrid().fetchData(
                         new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, jobId));
@@ -482,7 +528,6 @@ public class WorkflowJobsEditor {
                 jobForm.clearValues();
                 materialView.getMaterialGrid().setData(new Record[0]);
                 taskView.setData(new Record[0]);
-                fetchAddTaskMenu(null);
             }
             widget.setDisabled(job == null);
             actionSource.fireEvent();
