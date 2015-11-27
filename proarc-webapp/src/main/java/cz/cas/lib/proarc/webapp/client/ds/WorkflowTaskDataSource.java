@@ -81,6 +81,7 @@ public class WorkflowTaskDataSource extends RestDataSource {
         DataSourceTextField label = new DataSourceTextField(FIELD_LABEL);
         label.setTitle("Typ úkolu");
         label.setLength(255);
+        label.setCanEdit(false);
 
         DataSourceTextField jobId = new DataSourceTextField(FIELD_JOB_ID);
         jobId.setTitle("ID záměru");

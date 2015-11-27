@@ -29,6 +29,7 @@ import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
 import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
 import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
@@ -42,12 +43,19 @@ import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
 import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.form.validator.IsFloatValidator;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.DisplayType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.ErrorHandler;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
@@ -62,7 +70,7 @@ import java.util.Map;
  *
  * @author Jan Pokorsky
  */
-public class WorkflowTaskFormView {
+public class WorkflowTaskFormView implements Refreshable {
 
     private final ClientMessages i18n;
     private final Canvas widget;
@@ -72,21 +80,17 @@ public class WorkflowTaskFormView {
     private DynamicForm paramForm;
     private VLayout paramContainer;
     private ItemChangedHandler itemChangedHandler;
+    private final ActionSource actionSource = new ActionSource(this);
 
     public WorkflowTaskFormView(ClientMessages i18n, WorkflowTasksEditor handler) {
         this.i18n = i18n;
         this.handler = handler;
         this.widget = createMainLayout();
+        setItemChangedHandler();
     }
 
     public Canvas getWidget() {
         return widget;
-    }
-
-    /** Notifies about form changes. */
-    public void setItemChangedHandler(ItemChangedHandler itemChangedHandler) {
-        this.itemChangedHandler = itemChangedHandler;
-        taskForm.addItemChangedHandler(itemChangedHandler);
     }
 
     public boolean isChanged() {
@@ -95,6 +99,18 @@ public class WorkflowTaskFormView {
 
     public DynamicForm getTask() {
         return taskForm;
+    }
+
+    @Override
+    public void refresh() {
+        Record task = taskForm.getValuesAsRecord();
+        if (task.getAttribute(WorkflowTaskDataSource.FIELD_ID) != null) {
+            setTask(task);
+        }
+    }
+
+    public void refreshState() {
+        actionSource.fireEvent();
     }
 
     public boolean validate() {
@@ -130,6 +146,8 @@ public class WorkflowTaskFormView {
             setParameters(null);
             setMaterials(new Record[0]);
         }
+        widget.setDisabled(task == null);
+        refreshState();
     }
 
     public void setParameters(String taskId) {
@@ -159,6 +177,18 @@ public class WorkflowTaskFormView {
         materialView.getMaterialGrid().setData(records);
     }
 
+    /** Notifies about form changes. */
+    private void setItemChangedHandler() {
+        this.itemChangedHandler = new ItemChangedHandler() {
+
+            @Override
+            public void onItemChanged(ItemChangedEvent event) {
+                refreshState();
+            }
+        };
+        taskForm.addItemChangedHandler(itemChangedHandler);
+    }
+
     private Canvas createMainLayout() {
         VLayout forms = new VLayout();
         forms.setOverflow(Overflow.AUTO);
@@ -166,9 +196,33 @@ public class WorkflowTaskFormView {
         forms.addMember(createParameterList());
 
         VLayout main = new VLayout();
+        main.addMember(createTaskToolbar());
         main.addMember(forms);
         main.addMember(createMaterialList());
         return main;
+    }
+
+    private ToolStrip createTaskToolbar() {
+        ToolStrip toolbar = Actions.createToolStrip();
+        RefreshAction refreshAction = new RefreshAction(i18n);
+        SaveAction saveAction = new SaveAction(i18n) {
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                return handler != null
+                        && taskForm.getValue(WorkflowTaskDataSource.FIELD_ID) != null
+                        && isChanged();
+            }
+
+            @Override
+            public void performAction(ActionEvent event) {
+                handler.onSave(WorkflowTaskFormView.this);
+            }
+        };
+
+        toolbar.addMember(Actions.asIconButton(refreshAction, this));
+        toolbar.addMember(Actions.asIconButton(saveAction, actionSource));
+        return toolbar;
     }
 
     private Widget createForm() {

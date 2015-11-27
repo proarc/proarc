@@ -28,8 +28,6 @@ import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
-import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.grid.CellFormatter;
@@ -48,12 +46,10 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
-import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
-import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
@@ -129,6 +125,7 @@ public class WorkflowTasksView implements Refreshable {
 
     public void refreshState() {
         actionSource.fireEvent();
+        taskFormView.refreshState();
     }
 
     public void refreshParameters(String taskId) {
@@ -147,17 +144,17 @@ public class WorkflowTasksView implements Refreshable {
         VLayout main = new VLayout();
         main.addMember(createPanelLabel());
         // filter
-        main.addMember(createFilter());
-        // toolbar
-        main.addMember(createTasksToolbar());
-        // list + item
+//        main.addMember(createFilter());
         main.addMember(createTaskLayout());
         return main;
     }
 
     private Canvas createTaskLayout() {
+        VLayout left = new VLayout();
+        left.addMember(createToolbar());
+        left.addMember(createTaskList());
         HLayout l = new HLayout();
-        l.addMember(createTaskList());
+        l.addMember(left);
         l.addMember(createTaskFormLayout());
         return l;
     }
@@ -184,26 +181,11 @@ public class WorkflowTasksView implements Refreshable {
         return form;
     }
 
-    private ToolStrip createTasksToolbar() {
+    private ToolStrip createToolbar() {
         ToolStrip toolbar = Actions.createToolStrip();
         RefreshAction refreshAction = new RefreshAction(i18n);
-        SaveAction saveAction = new SaveAction(i18n) {
-
-            @Override
-            public boolean accept(ActionEvent event) {
-                return handler != null
-                        && taskGrid.getSelectedRecords().length > 0
-                        && taskFormView.isChanged();
-            }
-
-            @Override
-            public void performAction(ActionEvent event) {
-                handler.onSave(taskFormView);
-            }
-        };
 
         toolbar.addMember(Actions.asIconButton(refreshAction, this));
-        toolbar.addMember(Actions.asIconButton(saveAction, actionSource));
         return toolbar;
     }
 
@@ -368,13 +350,6 @@ public class WorkflowTasksView implements Refreshable {
 
     private Canvas createTaskFormLayout() {
         taskFormView = new WorkflowTaskFormView(i18n, handler);
-        taskFormView.setItemChangedHandler(new ItemChangedHandler() {
-
-            @Override
-            public void onItemChanged(ItemChangedEvent event) {
-                refreshState();
-            }
-        });
         return taskFormView.getWidget();
     }
 
