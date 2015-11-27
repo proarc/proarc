@@ -1,0 +1,294 @@
+/*
+ * Copyright (C) 2015 Jan Pokorsky
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package cz.cas.lib.proarc.webapp.client.widget.workflow;
+
+import com.google.gwt.user.client.ui.Widget;
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.types.CriteriaPolicy;
+import com.smartgwt.client.types.FetchMode;
+import com.smartgwt.client.types.TitleOrientation;
+import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.fields.AutoFitTextAreaItem;
+import com.smartgwt.client.widgets.form.fields.SelectItem;
+import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.grid.ListGrid;
+import com.smartgwt.client.widgets.grid.ListGridField;
+import com.smartgwt.client.widgets.grid.ListGridRecord;
+import com.smartgwt.client.widgets.grid.events.RecordDoubleClickEvent;
+import com.smartgwt.client.widgets.grid.events.RecordDoubleClickHandler;
+import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
+import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
+import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItem;
+import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
+import com.smartgwt.client.widgets.menu.events.ItemClickHandler;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
+import cz.cas.lib.proarc.webapp.client.action.Action;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
+
+/**
+ *
+ * @author Jan Pokorsky
+ */
+public class WorkflowJobFormView implements Refreshable {
+
+    private final ClientMessages i18n;
+    private final Canvas widget;
+    private DynamicForm jobForm;
+    private WorkflowMaterialView materialView;
+    private ListGrid taskView;
+    private Menu addTaskMenu;
+    private WorkflowJobsEditor handler;
+    private Record lastJob;
+    private final ActionSource actionSource = new ActionSource(this);
+    private Action editTaskAction;
+
+    public WorkflowJobFormView(ClientMessages i18n) {
+        this.i18n = i18n;
+        this.widget = createMainLayout();
+    }
+
+    public Canvas getWidget() {
+        return widget;
+    }
+
+    public DynamicForm getTaskValues() {
+        return jobForm;
+    }
+
+    public ListGrid getTasks() {
+        return taskView;
+    }
+
+    public void setHandler(WorkflowJobsEditor handler) {
+        this.handler = handler;
+    }
+
+    @Override
+    public void refresh() {
+        taskView.invalidateCache();
+        setJob(lastJob);
+    }
+
+    public void setJob(Record job) {
+        this.lastJob = job;
+        fetchAddTaskMenu(null);
+        if (job != null) {
+            String jobId = job.getAttribute(WorkflowJobDataSource.FIELD_ID);
+            jobForm.clearErrors(true);
+            jobForm.fetchData(new Criteria(WorkflowJobDataSource.FIELD_ID, jobId));
+            taskView.fetchData(
+                    new Criteria(WorkflowModelConsts.TASK_FILTER_JOBID, jobId),
+                    new DSCallback() {
+
+                @Override
+                public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                    if (RestConfig.isStatusOk(dsResponse)) {
+                        Record[] records = dsResponse.getData();
+                        if (records.length > 0) {
+                            fetchAddTaskMenu(records[0].getAttribute(WorkflowJobDataSource.FIELD_PROFILE_ID));
+                        }
+                    }
+                }
+            });
+            materialView.getMaterialGrid().invalidateCache();
+            materialView.getMaterialGrid().fetchData(
+                    new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, jobId));
+        } else {
+            jobForm.clearValues();
+            materialView.getMaterialGrid().setData(new Record[0]);
+            taskView.setData(new Record[0]);
+        }
+        widget.setDisabled(job == null);
+        actionSource.fireEvent();
+    }
+
+    private void fetchAddTaskMenu(final String jobName) {
+        addTaskMenu.setData(new Record[0]);
+        if (jobName == null) {
+            return ;
+        }
+        WorkflowProfileDataSource.getInstance().fetchData(
+                new Criteria(WorkflowProfileConsts.NAME, jobName),
+                new DSCallback() {
+
+            @Override
+            public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                Record[] taskRecs = new Record[0];
+                if (RestConfig.isStatusOk(dsResponse)) {
+                    Record jobRec = dsResponse.getDataAsRecordList().find(WorkflowProfileConsts.NAME, jobName);
+                    if (jobRec != null) {
+                        taskRecs = jobRec.getAttributeAsRecordArray(WorkflowProfileConsts.JOBVIEW_TASK);
+                    }
+                }
+                addTaskMenu.setData(taskRecs);
+            }
+        }, null);
+    }
+
+    private Canvas createMainLayout() {
+        VLayout main = new VLayout();
+        main.addMember(createForm());
+        main.addMember(createTaskList());
+        main.addMember(createMaterialList());
+        return main;
+    }
+
+    private Widget createForm() {
+        jobForm = new DynamicForm();
+        jobForm.setDataSource(WorkflowJobDataSource.getInstance());
+        jobForm.setNumCols(3);
+        jobForm.setColWidths("*", "*", "*");
+        jobForm.setTitleOrientation(TitleOrientation.TOP);
+
+        SelectItem owner = new SelectItem(WorkflowJobDataSource.FIELD_OWNER);
+        owner.setOptionDataSource(UserDataSource.getInstance());
+        owner.setValueField(UserDataSource.FIELD_ID);
+        owner.setDisplayField(UserDataSource.FIELD_USERNAME);
+
+        AutoFitTextAreaItem note = new AutoFitTextAreaItem(WorkflowJobDataSource.FIELD_NOTE);
+        note.setStartRow(true);
+        note.setColSpan("*");
+        note.setWidth("*");
+
+        TextItem label = new TextItem(WorkflowJobDataSource.FIELD_LABEL);
+        label.setColSpan("*");
+        label.setWidth("*");
+
+        jobForm.setFields(label,
+                new SelectItem(WorkflowJobDataSource.FIELD_STATE),
+                new SelectItem(WorkflowJobDataSource.FIELD_PRIORITY),
+                new TextItem(WorkflowJobDataSource.FIELD_PROFILE_ID),
+                owner,
+                new TextItem(WorkflowJobDataSource.FIELD_FINANCED),
+                new TextItem(WorkflowJobDataSource.FIELD_ID),
+                new TextItem(WorkflowJobDataSource.FIELD_CREATED),
+                new TextItem(WorkflowJobDataSource.FIELD_MODIFIED),
+                note
+                );
+        return jobForm;
+    }
+
+    private Widget createTaskList() {
+        taskView = new ListGrid();
+        taskView.setCanSort(false);
+        taskView.setDataFetchMode(FetchMode.BASIC);
+        taskView.setGenerateDoubleClickOnEnter(true);
+
+        ResultSet rs = new ResultSet();
+        rs.setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
+        rs.setUseClientFiltering(false);
+        rs.setUseClientSorting(true);
+        taskView.setDataProperties(rs);
+
+        taskView.setDataSource(WorkflowTaskDataSource.getInstance(),
+                new ListGridField(WorkflowTaskDataSource.FIELD_LABEL),
+                new ListGridField(WorkflowTaskDataSource.FIELD_OWNER, 50),
+                new ListGridField(WorkflowTaskDataSource.FIELD_STATE, 50)
+        );
+        taskView.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
+
+            @Override
+            public void onSelectionUpdated(SelectionUpdatedEvent event) {
+                actionSource.fireEvent();
+            }
+        });
+        taskView.addRecordDoubleClickHandler(new RecordDoubleClickHandler() {
+
+            @Override
+            public void onRecordDoubleClick(RecordDoubleClickEvent event) {
+                ActionEvent evt = new ActionEvent(actionSource);
+                if (editTaskAction.accept(evt)) {
+                    editTaskAction.performAction(evt);
+                }
+            }
+        });
+
+        this.editTaskAction = new AbstractAction("Editovat", "[SKIN]/actions/edit.png", null) {
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                return taskView.getSelectedRecords().length == 1;
+            }
+
+            @Override
+            public void performAction(ActionEvent event) {
+                ListGridRecord selectedRecord = taskView.getSelectedRecord();
+                handler.onGotoTask(selectedRecord.getAttribute(WorkflowTaskDataSource.FIELD_ID));
+            }
+        };
+        Menu ctxMenu = Actions.createMenu();
+        ctxMenu.addItem(createAddTaskMenuItem());
+        ctxMenu.addItem(Actions.asMenuItem(editTaskAction, actionSource, false));
+        taskView.setContextMenu(ctxMenu);
+        Actions.fixListGridContextMenu(taskView);
+        return taskView;
+    }
+
+    private MenuItem createAddTaskMenuItem() {
+        addTaskMenu = new Menu();
+        addTaskMenu.addItemClickHandler(new ItemClickHandler() {
+
+            @Override
+            public void onItemClick(ItemClickEvent event) {
+                if (handler != null) {
+                    Record taskDef = event.getRecord();
+                    Record newTask = new Record();
+                    newTask.setAttribute(WorkflowModelConsts.TASK_JOBID,
+                            jobForm.getValue(WorkflowModelConsts.JOB_ID));
+                    newTask.setAttribute(WorkflowModelConsts.TASK_PROFILENAME,
+                            taskDef.getAttribute(WorkflowProfileConsts.NAME));
+                    handler.onCreateNewTask(WorkflowJobFormView.this, newTask);
+                }
+            }
+        });
+        MenuItem addTaskMenuItem = Actions.asMenuItem(new AbstractAction(
+                "Přidat krok", "[SKIN]/actions/add.png", null) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+            }
+        }, taskView);
+        addTaskMenuItem.setSubmenu(addTaskMenu);
+        return addTaskMenuItem;
+    }
+
+    private Widget createMaterialList() {
+        materialView = new WorkflowMaterialView(i18n, true);
+        return materialView.getWidget();
+    }
+
+}
