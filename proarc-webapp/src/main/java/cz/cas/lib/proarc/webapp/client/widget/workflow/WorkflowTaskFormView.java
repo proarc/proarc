@@ -35,12 +35,10 @@ import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.DateTimeItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
-import com.smartgwt.client.widgets.form.fields.LinkItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
+import com.smartgwt.client.widgets.form.fields.StaticTextItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
-import com.smartgwt.client.widgets.form.fields.events.ClickEvent;
-import com.smartgwt.client.widgets.form.fields.events.ClickHandler;
 import com.smartgwt.client.widgets.form.validator.IsFloatValidator;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
@@ -50,6 +48,7 @@ import cz.cas.lib.proarc.common.workflow.profile.DisplayType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.ErrorHandler;
+import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
@@ -137,7 +136,13 @@ public class WorkflowTaskFormView implements Refreshable {
         if (task != null) {
             String taskId = task.getAttribute(WorkflowTaskDataSource.FIELD_ID);
             taskForm.clearErrors(true);
-            taskForm.fetchData(new Criteria(WorkflowTaskDataSource.FIELD_ID, taskId));
+            taskForm.fetchData(new Criteria(WorkflowTaskDataSource.FIELD_ID, taskId), new DSCallback() {
+
+                @Override
+                public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                    refreshState();
+                }
+            });
             setParameters(taskId);
             materialView.getMaterialGrid().fetchData(
                     new Criteria(WorkflowModelConsts.MATERIALFILTER_TASKID, taskId));
@@ -219,8 +224,23 @@ public class WorkflowTaskFormView implements Refreshable {
                 handler.onSave(WorkflowTaskFormView.this);
             }
         };
+        AbstractAction openJobActin = new AbstractAction("Záměr", "[SKIN]/actions/edit.png", "Otevře záměr úkolu.") {
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                return handler != null
+                        && taskForm.getValue(WorkflowTaskDataSource.FIELD_ID) != null;
+            }
+
+            @Override
+            public void performAction(ActionEvent event) {
+                String jobId = taskForm.getValueAsString(WorkflowTaskDataSource.FIELD_JOB_ID);
+                handler.onOpenJob(jobId);
+            }
+        };
 
         toolbar.addMember(Actions.asIconButton(refreshAction, this));
+        toolbar.addMember(Actions.asIconButton(openJobActin, actionSource));
         toolbar.addMember(Actions.asIconButton(saveAction, actionSource));
         return toolbar;
     }
@@ -232,23 +252,12 @@ public class WorkflowTaskFormView implements Refreshable {
         taskForm.setColWidths("*", "*", "*");
         taskForm.setTitleOrientation(TitleOrientation.TOP);
 
-//            StaticTextItem jobLabel = new StaticTextItem(WorkflowTaskDataSource.FIELD_JOB_LABEL);
-        LinkItem jobLabel = new LinkItem(WorkflowTaskDataSource.FIELD_JOB_LABEL);
+        StaticTextItem jobLabel = new StaticTextItem(WorkflowTaskDataSource.FIELD_JOB_LABEL);
         jobLabel.setColSpan("*");
         jobLabel.setWidth("*");
         jobLabel.setShowTitle(false);
-        jobLabel.setTextBoxStyle(Editor.CSS_PANEL_DESCRIPTION_TITLE);
-        jobLabel.setReadOnlyTextBoxStyle(Editor.CSS_PANEL_DESCRIPTION_TITLE);
-        jobLabel.setTarget("javascript");
-        jobLabel.setTooltip("Kliknutím přejdete na záměr.");
-        jobLabel.addClickHandler(new ClickHandler() {
-
-            @Override
-            public void onClick(ClickEvent event) {
-                String jobId = taskForm.getValueAsString(WorkflowTaskDataSource.FIELD_JOB_ID);
-                handler.onOpenJob(jobId);
-            }
-        });
+        jobLabel.setReadOnlyTextBoxStyle(Editor.CSS_HEADER_INSIDE_FORM);
+        jobLabel.setTextBoxStyle(Editor.CSS_HEADER_INSIDE_FORM);
 
         SelectItem owner = new SelectItem(WorkflowTaskDataSource.FIELD_OWNER);
         owner.setOptionDataSource(UserDataSource.getInstance());

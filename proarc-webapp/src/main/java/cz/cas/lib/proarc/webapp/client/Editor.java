@@ -97,6 +97,7 @@ import java.util.logging.Logger;
 public class Editor implements EntryPoint {
 
     public static final String CSS_PANEL_DESCRIPTION_TITLE = "proarcPanelDescriptionTitle";
+    public static final String CSS_HEADER_INSIDE_FORM = "proarcHeaderInsideForm";
 
     private static final Logger LOG = Logger.getLogger(Editor.class.getName());
     

@@ -18,6 +18,14 @@
     background-color: #dedede;
 }
 
+.proarcHeaderInsideForm {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border-bottom: 2px lightgray solid;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
 /* ModsEditor */
 .metadata-elements {
         padding-left: 30px;
