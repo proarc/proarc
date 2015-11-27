@@ -28,6 +28,10 @@ import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
+import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
+import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
+import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.form.fields.AutoFitTextAreaItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
@@ -43,6 +47,7 @@ import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
 import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
 import com.smartgwt.client.widgets.menu.events.ItemClickHandler;
+import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
@@ -51,7 +56,9 @@ import cz.cas.lib.proarc.webapp.client.action.Action;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
@@ -85,7 +92,7 @@ public class WorkflowJobFormView implements Refreshable {
         return widget;
     }
 
-    public DynamicForm getTaskValues() {
+    public DynamicForm getJobValues() {
         return jobForm;
     }
 
@@ -103,13 +110,23 @@ public class WorkflowJobFormView implements Refreshable {
         setJob(lastJob);
     }
 
+    public void refreshState() {
+        actionSource.fireEvent();
+    }
+
     public void setJob(Record job) {
         this.lastJob = job;
         fetchAddTaskMenu(null);
         if (job != null) {
             String jobId = job.getAttribute(WorkflowJobDataSource.FIELD_ID);
             jobForm.clearErrors(true);
-            jobForm.fetchData(new Criteria(WorkflowJobDataSource.FIELD_ID, jobId));
+            jobForm.fetchData(new Criteria(WorkflowJobDataSource.FIELD_ID, jobId), new DSCallback() {
+
+                @Override
+                public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                    refreshState();
+                }
+            });
             taskView.fetchData(
                     new Criteria(WorkflowModelConsts.TASK_FILTER_JOBID, jobId),
                     new DSCallback() {
@@ -133,7 +150,7 @@ public class WorkflowJobFormView implements Refreshable {
             taskView.setData(new Record[0]);
         }
         widget.setDisabled(job == null);
-        actionSource.fireEvent();
+        refreshState();
     }
 
     private void fetchAddTaskMenu(final String jobName) {
@@ -161,10 +178,40 @@ public class WorkflowJobFormView implements Refreshable {
 
     private Canvas createMainLayout() {
         VLayout main = new VLayout();
+        main.addMember(createJobToolbar());
         main.addMember(createForm());
         main.addMember(createTaskList());
         main.addMember(createMaterialList());
         return main;
+    }
+
+    private ToolStrip createJobToolbar() {
+        ToolStrip toolbar = Actions.createToolStrip();
+        RefreshAction refreshAction = new RefreshAction(i18n);
+        SaveAction saveAction = createSaveAction();
+
+        toolbar.addMember(Actions.asIconButton(refreshAction, this));
+        toolbar.addMember(Actions.asIconButton(saveAction, actionSource));
+        return toolbar;
+    }
+
+    private SaveAction createSaveAction() {
+        return new SaveAction(i18n) {
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                return handler != null
+                        && jobForm.getValue(WorkflowJobDataSource.FIELD_ID) != null
+                        && getJobValues().valuesHaveChanged();
+            }
+
+            @Override
+            public void performAction(ActionEvent event) {
+                if (handler != null) {
+                    handler.onSave(WorkflowJobFormView.this);
+                }
+            }
+        };
     }
 
     private Widget createForm() {
@@ -199,6 +246,23 @@ public class WorkflowJobFormView implements Refreshable {
                 new TextItem(WorkflowJobDataSource.FIELD_MODIFIED),
                 note
                 );
+        jobForm.addItemChangedHandler(new ItemChangedHandler() {
+
+            @Override
+            public void onItemChanged(ItemChangedEvent event) {
+                refreshState();
+            }
+        });
+        jobForm.addSubmitValuesHandler(new SubmitValuesHandler() {
+
+            @Override
+            public void onSubmitValues(SubmitValuesEvent event) {
+                if (handler != null) {
+                    handler.onSave(WorkflowJobFormView.this);
+                }
+            }
+        });
+        jobForm.setSaveOnEnter(true);
         return jobForm;
     }
 
@@ -223,7 +287,7 @@ public class WorkflowJobFormView implements Refreshable {
 
             @Override
             public void onSelectionUpdated(SelectionUpdatedEvent event) {
-                actionSource.fireEvent();
+                refreshState();
             }
         });
         taskView.addRecordDoubleClickHandler(new RecordDoubleClickHandler() {

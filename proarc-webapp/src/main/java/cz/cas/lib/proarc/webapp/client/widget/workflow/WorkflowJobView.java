@@ -27,10 +27,6 @@ import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
-import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
-import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
-import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
@@ -51,7 +47,6 @@ import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
-import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
@@ -131,6 +126,7 @@ public class WorkflowJobView implements Refreshable {
 
     public void refreshState() {
         actionSource.fireEvent();
+        jobFormView.refreshState();
     }
 
     /**
@@ -146,16 +142,18 @@ public class WorkflowJobView implements Refreshable {
         main.addMember(createPanelLabel());
         // filter
         main.addMember(createFilter());
-        // toolbar
-        main.addMember(createJobsToolbar());
         // list + item
         main.addMember(createJobLayout());
         return main;
     }
 
     private Canvas createJobLayout() {
+        VLayout left = new VLayout();
+        left.addMember(createJobsToolbar());
+        left.addMember(createJobList());
+
         HLayout l = new HLayout();
-        l.addMember(createJobList());
+        l.addMember(left);
         l.addMember(createJobFormLayout());
         return l;
     }
@@ -185,7 +183,6 @@ public class WorkflowJobView implements Refreshable {
     private ToolStrip createJobsToolbar() {
         ToolStrip toolbar = Actions.createToolStrip();
         RefreshAction refreshAction = new RefreshAction(i18n);
-        SaveAction saveAction = createSaveAction();
 
         AbstractAction addAction = new AbstractAction("Nový",//i18n.DeviceManager_Add_Title(),
                 "[SKIN]/actions/add.png", "Nový záměr") {//i18n.DeviceManager_Add_Hint()) {
@@ -199,27 +196,7 @@ public class WorkflowJobView implements Refreshable {
         };
         toolbar.addMember(Actions.asIconButton(refreshAction, this));
         toolbar.addMember(Actions.asIconButton(addAction, this));
-        toolbar.addMember(Actions.asIconButton(saveAction, actionSource));
         return toolbar;
-    }
-
-    private SaveAction createSaveAction() {
-        return new SaveAction(i18n) {
-
-            @Override
-            public boolean accept(ActionEvent event) {
-                return handler != null
-                        && jobGrid.getSelectedRecords().length > 0
-                        && jobFormView.getTaskValues().valuesHaveChanged();
-            }
-
-            @Override
-            public void performAction(ActionEvent event) {
-                if (handler != null) {
-                    handler.onSave(jobFormView);
-                }
-            }
-        };
     }
 
     private ListGrid createJobList() {
@@ -326,23 +303,6 @@ public class WorkflowJobView implements Refreshable {
 
     private Canvas createJobFormLayout() {
         jobFormView = new WorkflowJobFormView(i18n);
-        jobFormView.getTaskValues().addItemChangedHandler(new ItemChangedHandler() {
-
-            @Override
-            public void onItemChanged(ItemChangedEvent event) {
-                refreshState();
-            }
-        });
-        jobFormView.getTaskValues().addSubmitValuesHandler(new SubmitValuesHandler() {
-
-            @Override
-            public void onSubmitValues(SubmitValuesEvent event) {
-                if (handler != null) {
-                    handler.onSave(jobFormView);
-                }
-            }
-        });
-        jobFormView.getTaskValues().setSaveOnEnter(true);
         return jobFormView.getWidget();
     }
 

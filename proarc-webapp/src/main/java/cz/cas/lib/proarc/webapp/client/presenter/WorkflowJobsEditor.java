@@ -96,7 +96,7 @@ public class WorkflowJobsEditor {
     }
 
     public void onSave(WorkflowJobFormView jobFormView) {
-        final DynamicForm vm = jobFormView.getTaskValues();
+        final DynamicForm vm = jobFormView.getJobValues();
         if (vm.validate()) {
             view.setExpectUpdateOperation(true);
             DSRequest req = new DSRequest();
