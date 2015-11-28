@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 
 import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.FolderMaterial;
+import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
@@ -252,6 +253,23 @@ public class EmpireWorkflowMaterialDaoTest {
         assertNull(ms.get(0).getTaskId());
         assertEquals(MaterialType.FOLDER, ms.get(0).getType());
         assertNull(ms.get(0).getWay());
+
+        // view job's  single material
+        filter = new MaterialFilter();
+        filter.setJobId(BigDecimal.ONE);
+        filter.setId(BigDecimal.ONE);
+        filter.setSortBy(schema.tableWorkflowMaterial.id.getBeanPropertyName());
+        ms = dao.view(filter);
+        assertEquals(1, ms.size());
+        assertEquals(BigDecimal.ONE, ms.get(0).getId());
+        assertEquals(BigDecimal.ONE, ms.get(0).getJobId());
+        assertEquals("/folder1", ms.get(0).getLabel());
+        assertEquals("material.folder", ms.get(0).getName());
+        assertEquals("note m1", ms.get(0).getNote());
+        assertEquals("file:///folder1", ms.get(0).getPath());
+        assertNull(ms.get(0).getTaskId());
+        assertEquals(MaterialType.FOLDER, ms.get(0).getType());
+        assertNull(ms.get(0).getWay());
     }
 
     @Test
@@ -280,6 +298,24 @@ public class EmpireWorkflowMaterialDaoTest {
         assertEquals(Way.INPUT, result.get(0).getWay());
         assertEquals(BigDecimal.ONE, result.get(1).getId());
         assertEquals(Way.OUTPUT, result.get(1).getWay());
+    }
+
+    @Test
+    public void testFindJob() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_task.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_material.xml")
+                );
+        support.cleanInsert(support.getConnection(tx), db);
+        tx.commit();
+
+        Material m = new Material();
+        m.setId(BigDecimal.ONE);
+        Job job = dao.findJob(m);
+        assertNotNull(job);
+        assertEquals(BigDecimal.ONE, job.getId());
     }
 
     private void assertMaterial(Material exp, Material result) {

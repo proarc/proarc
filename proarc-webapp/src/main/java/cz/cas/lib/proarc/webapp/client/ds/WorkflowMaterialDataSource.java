@@ -16,13 +16,18 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DSOperationType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import java.util.LinkedHashMap;
 
 /**
@@ -33,6 +38,7 @@ import java.util.LinkedHashMap;
 public class WorkflowMaterialDataSource extends RestDataSource {
 
     public static final String ID = "WorkflowMaterialDataSource";
+    public static final String PRIMARY_KEY = "__syntheticPrimaryKey";
     public static final String FIELD_ID = WorkflowModelConsts.MATERIAL_ID;
     public static final String FIELD_JOB_ID = "jobId";
     public static final String FIELD_TASK_ID = WorkflowModelConsts.MATERIAL_TASKID;
@@ -65,6 +71,12 @@ public class WorkflowMaterialDataSource extends RestDataSource {
         setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_WORKFLOW_MATERIAL);
 
+        DataSourceTextField primaryKey = new DataSourceTextField(PRIMARY_KEY);
+        primaryKey.setCanEdit(false);
+        primaryKey.setCanSave(false);
+        primaryKey.setHidden(true);
+        primaryKey.setPrimaryKey(true);
+
         DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);
         fieldId.setCanEdit(false);
         fieldId.setDetail(true);
@@ -89,7 +101,8 @@ public class WorkflowMaterialDataSource extends RestDataSource {
         }});
 
         DataSourceEnumField way = new DataSourceEnumField(FIELD_WAY);
-        way.setTitle("IO");
+        way.setTitle("V/V");
+        way.setPrompt("Vstupní/Výstupní");
         way.setValueMap(new LinkedHashMap<String, String>() {{
             put(Way.INPUT.name(), "Vstupní");
             put(Way.OUTPUT.name(), "Výstupní");
@@ -123,16 +136,39 @@ public class WorkflowMaterialDataSource extends RestDataSource {
         metadata.setTitle("Metadata");
         metadata.setDetail(true);
 
-        setFields(profile, type, value, way, note, fieldId,
+        setFields(profile, type, value, way, note, fieldId, primaryKey,
                 path,
                 barcode, field001, rdCzId, catalog, metadata,
                 pid
         );
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(
-                RestConfig.createAddOperation(),
-//                RestConfig.createDeleteOperation(),
-                RestConfig.createUpdateOperation());
+                RestConfig.createUpdatePostOperation());
+    }
+
+    @Override
+    protected Object transformRequest(DSRequest dsRequest) {
+        if (dsRequest.getOperationType() == DSOperationType.UPDATE) {
+            return ClientUtils.dump(dsRequest.getData());
+        }
+        return super.transformRequest(dsRequest);
+    }
+
+    @Override
+    protected void transformResponse(DSResponse dsResponse, DSRequest dsRequest, Object data) {
+        if (RestConfig.isStatusOk(dsResponse)) {
+            Record[] records = dsResponse.getData();
+            for (Record record : records) {
+                String mid = record.getAttribute(FIELD_ID);
+                String way = record.getAttribute(FIELD_WAY);
+                String pk = mid;
+                if (way != null) {
+                    pk = mid + way;
+                }
+                record.setAttribute(PRIMARY_KEY, pk);
+            }
+        }
+        super.transformResponse(dsResponse, dsRequest, data);
     }
 
 }

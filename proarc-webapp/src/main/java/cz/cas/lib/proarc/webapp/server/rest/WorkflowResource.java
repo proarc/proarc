@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
+import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
@@ -344,6 +345,30 @@ public class WorkflowResource {
             LOG.log(Level.SEVERE, null, ex);
             return SmartGwtResponse.asError(ex.getMessage());
         }
+    }
+
+    @Path(WorkflowResourceApi.MATERIAL_PATH)
+    @PUT
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<MaterialView> updateMaterial(
+            MaterialView mv
+    ) {
+        if (mv == null || mv.getId() == null) {
+            return SmartGwtResponse.asError("Invalid parameters!");
+        }
+        WorkflowDefinition workflow = workflowProfiles.getProfiles();
+        if (workflow == null) {
+            return profileError();
+        }
+        Material updateMaterial = workflowManager.updateMaterial(mv);
+        MaterialFilter filter = new MaterialFilter();
+        filter.setLocale(session.getLocale(httpHeaders));
+        filter.setId(updateMaterial.getId());
+        filter.setJobId(mv.getJobId());
+        filter.setTaskId(mv.getTaskId());
+        List<MaterialView> result = workflowManager.findMaterial(filter);
+        return new SmartGwtResponse<MaterialView>(result);
     }
 
     @Path(WorkflowResourceApi.PARAMETER_PATH)

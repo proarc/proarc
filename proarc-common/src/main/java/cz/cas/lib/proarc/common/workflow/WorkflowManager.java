@@ -24,11 +24,14 @@ import cz.cas.lib.proarc.common.dao.WorkflowJobDao;
 import cz.cas.lib.proarc.common.dao.WorkflowMaterialDao;
 import cz.cas.lib.proarc.common.dao.WorkflowParameterDao;
 import cz.cas.lib.proarc.common.dao.WorkflowTaskDao;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.FolderMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.Job.State;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.Material;
@@ -134,6 +137,77 @@ public class WorkflowManager {
                 }
             }
             return mats;
+        } finally {
+            tx.close();
+        }
+    }
+
+    public Material updateMaterial(MaterialView view) throws ConcurrentModificationException {
+        Transaction tx = daoFactory.createTransaction();
+        WorkflowMaterialDao dao = daoFactory.createWorkflowMaterialDao();
+        WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
+        dao.setTransaction(tx);
+        jobDao.setTransaction(tx);
+        try {
+            Material m = dao.find(view.getId());
+            if (m == null) {
+                throw new IllegalArgumentException("Material not found: " + view.getId());
+            }
+            if (m.getType() != view.getType()) {
+                throw new IllegalArgumentException("Material type mismatch: " + view.getId() + ", " + m.getType() + "!=" + view.getType());
+            }
+            // check job state
+            Job job = dao.findJob(m);
+            if (m == null) {
+                throw new IllegalArgumentException("Job not found! Material: " + view.getId());
+            }
+            if (job.getState() != State.OPEN) {
+                throw new IllegalArgumentException("Job is closed!");
+            }
+            m.setNote(view.getNote());
+            if (m.getType() == MaterialType.FOLDER) {
+                FolderMaterial fm = (FolderMaterial) m;
+                fm.setPath(view.getPath());
+                fm.setLabel(view.getPath());
+            } else if (m.getType() == MaterialType.DIGITAL_OBJECT) {
+                DigitalMaterial dm = (DigitalMaterial) m;
+                String label = view.getPid();
+                if (view.getPid() != null && !view.getPid().equals(dm.getPid())) {
+                    List<Item> items = RemoteStorage.getInstance().getSearch().find(view.getPid());
+                    if (!items.isEmpty()) {
+                        label = items.get(0).getLabel();
+                    }
+                }
+                dm.setPid(view.getPid());
+                dm.setLabel(label);
+            } else if (m.getType() == MaterialType.PHYSICAL_DOCUMENT) {
+                PhysicalMaterial pm = (PhysicalMaterial) m;
+                pm.setBarcode(view.getBarcode());
+                pm.setField001(view.getField001());
+                String newMetadata = view.getMetadata();
+                String oldMetadata = pm.getMetadata();
+                if (newMetadata == null ? oldMetadata != null : !newMetadata.equals(oldMetadata)) {
+                    PhysicalMaterial t = new PhysicalMaterialBuilder().setMetadata(newMetadata).build();
+                    pm.setMetadata(t.getMetadata());
+                    pm.setLabel(t.getLabel());
+                    job.setLabel(pm.getLabel());
+                    jobDao.update(job);
+                }
+                pm.setRdczId(view.getRdczId());
+                pm.setSource(view.getSource());
+            }
+            dao.update(m);
+            tx.commit();
+            return m;
+        } catch (ConcurrentModificationException t) {
+            tx.rollback();
+            throw t;
+        } catch (IllegalArgumentException t) {
+            tx.rollback();
+            throw t;
+        } catch (Throwable t) {
+            tx.rollback();
+            throw new IllegalStateException("Cannot update material: " + view.getId(), t);
         } finally {
             tx.close();
         }

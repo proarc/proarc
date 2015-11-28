@@ -17,20 +17,35 @@
 package cz.cas.lib.proarc.webapp.client.widget.workflow;
 
 import com.google.gwt.user.client.ui.Widget;
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.ExpansionMode;
+import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.events.DrawEvent;
 import com.smartgwt.client.widgets.events.DrawHandler;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
+import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
+import com.smartgwt.client.widgets.form.fields.AutoFitTextAreaItem;
+import com.smartgwt.client.widgets.form.fields.SubmitItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
+import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 
 /**
  *
@@ -57,8 +72,21 @@ public class WorkflowMaterialView {
         return widget;
     }
 
-    public ListGrid getMaterialGrid() {
-        return materialGrid;
+    public void setEmptyMaterials() {
+        materialGrid.setData(new Record[0]);
+    }
+
+    public void setTaskMaterials(String taskId) {
+        setMaterials(new Criteria(WorkflowModelConsts.MATERIALFILTER_TASKID, taskId));
+    }
+
+    public void setJobMaterials(String jobId) {
+        setMaterials(new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, jobId));
+    }
+
+    private void setMaterials(Criteria c) {
+        materialGrid.invalidateCache();
+        materialGrid.fetchData(c);
     }
 
     private Widget createMaterialList() {
@@ -83,6 +111,14 @@ public class WorkflowMaterialView {
             }
 
         };
+        materialGrid.setSelectionType(SelectionStyle.SINGLE);
+        materialGrid.setExpansionMode(ExpansionMode.DETAIL_FIELD);
+        materialGrid.setCanExpandRecords(true);
+        materialGrid.setCanExpandMultipleRecords(false);
+        materialGrid.setAutoSaveEdits(false);
+        materialGrid.setCanSort(false);
+        materialGrid.setCanGroupBy(false);
+        materialGrid.setWrapCells(true);
         materialGrid.setDataSource(WorkflowMaterialDataSource.getInstance(),
                 new ListGridField(WorkflowMaterialDataSource.FIELD_PROFILENAME),
                 new ListGridField(WorkflowMaterialDataSource.FIELD_VALUE),
@@ -91,9 +127,11 @@ public class WorkflowMaterialView {
                 new ListGridField(WorkflowMaterialDataSource.FIELD_ID)
         );
         materialGrid.getField(WorkflowMaterialDataSource.FIELD_WAY).setHidden(jobMaterial);
-        materialGrid.setExpansionMode(ExpansionMode.DETAIL_FIELD);
-        materialGrid.setCanExpandRecords(true);
-        materialGrid.setCanExpandMultipleRecords(false);
+        String dbPrefix = jobMaterial ? "WorkflowJobFormView.WorkflowMaterialView"
+                : "WorkflowTaskFormView.WorkflowMaterialView";
+        ListGridPersistance listGridPersistance = new ListGridPersistance(
+                dbPrefix, materialGrid);
+        materialGrid.setViewState(listGridPersistance.getViewState());
         return materialGrid;
     }
 
@@ -110,7 +148,35 @@ public class WorkflowMaterialView {
 
     private DynamicForm createExpansionForm() {
         DynamicForm form = new DynamicForm();
+        form.setDataSource(WorkflowMaterialDataSource.getInstance());
+        form.addSubmitValuesHandler(new SubmitValuesHandler() {
+
+            @Override
+            public void onSubmitValues(SubmitValuesEvent event) {
+                save(event.getForm());
+            }
+        });
         return form;
+    }
+
+    private void save(DynamicForm form) {
+        final String type = form.getValueAsString(WorkflowMaterialDataSource.FIELD_TYPE);
+        form.saveData(new DSCallback() {
+
+            @Override
+            public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                if (RestConfig.isStatusOk(dsResponse)) {
+                    if (MaterialType.PHYSICAL_DOCUMENT.name().equals(type)) {
+                        // the name of job might be changed, refresh the job and task
+                        DSResponse resetCache = new DSResponse();
+                        resetCache.setInvalidateCache(true);
+                        resetCache.setOperationType(DSOperationType.UPDATE);
+                        WorkflowTaskDataSource.getInstance().updateCaches(resetCache);
+                        WorkflowJobDataSource.getInstance().updateCaches(dsResponse);
+                    }
+                }
+            }
+        });
     }
 
     private DynamicForm createFolderForm() {
@@ -118,7 +184,7 @@ public class WorkflowMaterialView {
         TextItem path = new TextItem(WorkflowMaterialDataSource.FIELD_FOLDER_PATH);
         path.setWidth("*");
         form.setDataSource(WorkflowMaterialDataSource.getInstance(),
-                path);
+                path, createNoteItem(), createSaveItem());
         return form;
     }
 
@@ -131,7 +197,9 @@ public class WorkflowMaterialView {
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_BARCODE),
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_FIELD001),
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_RDCZID),
-                xml);
+                createNoteItem(),
+                xml,
+                createSaveItem());
         return form;
     }
 
@@ -140,7 +208,24 @@ public class WorkflowMaterialView {
         TextItem pid = new TextItem(WorkflowMaterialDataSource.FIELD_DIGITAL_PID);
         pid.setWidth("*");
         form.setDataSource(WorkflowMaterialDataSource.getInstance(),
-                pid);
+                pid, createNoteItem(), createSaveItem());
         return form;
     }
+
+    private SubmitItem createSaveItem() {
+        SubmitItem submit = new SubmitItem();
+        submit.setTitle(i18n.SaveAction_Title());
+        submit.setStartRow(true);
+        submit.setEndRow(false);
+        return submit;
+    }
+
+    private AutoFitTextAreaItem createNoteItem() {
+        AutoFitTextAreaItem note = new AutoFitTextAreaItem(WorkflowMaterialDataSource.FIELD_NOTE);
+        note.setStartRow(true);
+        note.setColSpan("*");
+        note.setWidth("*");
+        return note;
+    }
+
 }

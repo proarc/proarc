@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 import cz.cas.lib.proarc.common.dao.WorkflowMaterialDao;
 import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.FolderMaterial;
+import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
@@ -42,6 +43,7 @@ import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
+import org.apache.empire.db.expr.compare.DBCompareExpr;
 
 /**
  *
@@ -75,6 +77,29 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
             return null;
         } finally {
             record.close();
+        }
+    }
+
+    @Override
+    public Job findJob(Material m) {
+        DBCommand cmd = db.createCommand();
+        cmd.select(db.tableWorkflowJob.getColumns());
+        cmd.selectDistinct();
+        cmd.join(db.tableWorkflowMaterialInTask.taskId, db.tableWorkflowTask.id);
+        cmd.join(db.tableWorkflowTask.jobId, db.tableWorkflowJob.id);
+        cmd.where(db.tableWorkflowMaterialInTask.materialId.is(m.getId()));
+        DBReader reader = new DBReader();
+        try {
+            reader.open(cmd, getConnection());
+            for (Iterator<DBRecordData> it = reader.iterator(1); it.hasNext();) {
+                DBRecordData rec = it.next();
+                Job job = new Job();
+                rec.getBeanProperties(job);
+                return job;
+            }
+            return null;
+        } finally {
+            reader.close();
         }
     }
 
@@ -113,7 +138,9 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
             cmd.select(db.tableWorkflowMaterialInTask.taskId);
             cmd.select(db.tableWorkflowMaterialInTask.way);
             cmd.join(db.tableWorkflowMaterial.id, db.tableWorkflowMaterialInTask.materialId);
-            cmd.where(db.tableWorkflowMaterialInTask.taskId.is(filter.getTaskId()));
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    db.tableWorkflowMaterialInTask.taskId.is(filter.getTaskId())
+            ));
         } else if (filter.getJobId() != null) {
             DBCommand subcmd = db.createCommand();
             subcmd.select(db.tableWorkflowMaterialInTask.materialId);
@@ -122,7 +149,9 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
             subcmd.where(db.tableWorkflowTask.jobId.is(filter.getJobId()));
             DBQuery materialIds = new DBQuery(subcmd);
 
-            cmd.where(db.tableWorkflowMaterial.id.in(materialIds.findQueryColumn(db.tableWorkflowMaterialInTask.materialId)));
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    db.tableWorkflowMaterial.id.in(materialIds.findQueryColumn(db.tableWorkflowMaterialInTask.materialId))
+            ));
             cmd.select(db.getValueExpr(filter.getJobId(), DataType.DECIMAL).as(db.tableWorkflowTask.jobId));
         } else {
             cmd.select(db.tableWorkflowMaterialInTask.taskId);

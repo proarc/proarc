@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.dao;
 
+import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
@@ -40,5 +41,7 @@ public interface WorkflowMaterialDao extends Dao {
     List<MaterialView> view(MaterialFilter filter);
 
     void update(Material m);
+
+    Job findJob(Material m);
 
 }

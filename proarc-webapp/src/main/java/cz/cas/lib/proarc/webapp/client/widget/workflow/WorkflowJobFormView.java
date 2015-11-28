@@ -141,12 +141,10 @@ public class WorkflowJobFormView implements Refreshable {
                     }
                 }
             });
-            materialView.getMaterialGrid().invalidateCache();
-            materialView.getMaterialGrid().fetchData(
-                    new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, jobId));
+            materialView.setJobMaterials(jobId);
         } else {
             jobForm.clearValues();
-            materialView.getMaterialGrid().setData(new Record[0]);
+            materialView.setEmptyMaterials();
             taskView.setData(new Record[0]);
         }
         widget.setDisabled(job == null);

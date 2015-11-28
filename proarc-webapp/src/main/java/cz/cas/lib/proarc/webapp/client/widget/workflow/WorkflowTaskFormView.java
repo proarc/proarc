@@ -144,12 +144,11 @@ public class WorkflowTaskFormView implements Refreshable {
                 }
             });
             setParameters(taskId);
-            materialView.getMaterialGrid().fetchData(
-                    new Criteria(WorkflowModelConsts.MATERIALFILTER_TASKID, taskId));
+            materialView.setTaskMaterials(taskId);
         } else {
             taskForm.clearValues();
             setParameters(null);
-            setMaterials(new Record[0]);
+            materialView.setEmptyMaterials();
         }
         widget.setDisabled(task == null);
         refreshState();
@@ -176,10 +175,6 @@ public class WorkflowTaskFormView implements Refreshable {
         } else {
             setParameterRecords(new Record[0]);
         }
-    }
-
-    private void setMaterials(Record[] records) {
-        materialView.getMaterialGrid().setData(records);
     }
 
     /** Notifies about form changes. */
