@@ -440,6 +440,7 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn barcode;
         public final DBTableColumn field001;
         public final DBTableColumn rdczId;
+        public final DBTableColumn signature;
         /** The URL to a catalog. */
         public final DBTableColumn source;
         /** MODS. */
@@ -452,6 +453,7 @@ public class ProarcDatabase extends DBDatabase {
             rdczId = addColumn("RDCZ_ID", DataType.INTEGER, 0, false);
             barcode = addColumn("BARCODE", DataType.TEXT, 100, false);
             field001 = addColumn("FIELD001", DataType.TEXT, 100, false);
+            signature = addColumn("SIGNATURE", DataType.TEXT, 2000, false);
             source = addColumn("SOURCE", DataType.TEXT, 2000, false);
             metadata = addColumn("METADATA", DataType.CLOB, 0, false);
             setPrimaryKey(materialId);

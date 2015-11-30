@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
+import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
@@ -200,4 +201,48 @@ public class WorkflowManagerTest {
         assertEquals(ValueType.STRING, findParameter.get(1).getValueType());
     }
 
+    @Test
+    public void testUpdateMaterialSignature() {
+        PhysicalMaterial matetial = new PhysicalMaterial();
+
+        // add new
+        String jobLabel = "?";
+        String newSignature = "S1";
+        matetial.setSignature(null);
+        String result = WorkflowManager.updateMaterialSignature(newSignature, matetial, jobLabel);
+        assertEquals("S1", result);
+        assertEquals("S1", matetial.getSignature());
+
+        // add new
+        newSignature = "S1";
+        matetial.setSignature(null);
+        jobLabel = "Title";
+        result = WorkflowManager.updateMaterialSignature(newSignature, matetial, jobLabel);
+        assertEquals("S1 Title", result);
+        assertEquals("S1", matetial.getSignature());
+
+        // remove existing
+        newSignature = null;
+        matetial.setSignature("S1");
+        jobLabel = "S1";
+        result = WorkflowManager.updateMaterialSignature(newSignature, matetial, jobLabel);
+        assertEquals("?", result);
+        assertEquals(null, matetial.getSignature());
+
+        // replace
+        newSignature = "S2";
+        matetial.setSignature("S1");
+        jobLabel = "S1 Title";
+        result = WorkflowManager.updateMaterialSignature(newSignature, matetial, jobLabel);
+        assertEquals("S2 Title", result);
+        assertEquals("S2", matetial.getSignature());
+
+        // replace
+        newSignature = "S1";
+        matetial.setSignature(null);
+        jobLabel = "Title";
+        result = WorkflowManager.updateMaterialSignature(newSignature, matetial, jobLabel);
+        assertEquals("S1 Title", result);
+        assertEquals("S1", matetial.getSignature());
+    }
 }

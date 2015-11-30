@@ -25,6 +25,7 @@ public class PhysicalMaterial extends Material {
     private String barcode;
     private String field001;
     private String rdczId;
+    private String signature;
     /** The URL to a catalog. */
     private String source;
     /** MODS. */
@@ -56,6 +57,14 @@ public class PhysicalMaterial extends Material {
 
     public void setRdczId(String rdczId) {
         this.rdczId = rdczId;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
     }
 
     public String getSource() {

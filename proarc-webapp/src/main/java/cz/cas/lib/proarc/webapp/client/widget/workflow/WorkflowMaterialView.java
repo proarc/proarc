@@ -172,7 +172,7 @@ public class WorkflowMaterialView {
                         resetCache.setInvalidateCache(true);
                         resetCache.setOperationType(DSOperationType.UPDATE);
                         WorkflowTaskDataSource.getInstance().updateCaches(resetCache);
-                        WorkflowJobDataSource.getInstance().updateCaches(dsResponse);
+                        WorkflowJobDataSource.getInstance().updateCaches(resetCache);
                     }
                 }
             }
@@ -196,6 +196,7 @@ public class WorkflowMaterialView {
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_CATALOG),
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_BARCODE),
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_FIELD001),
+                new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_SIGNATURE),
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_RDCZID),
                 createNoteItem(),
                 xml,

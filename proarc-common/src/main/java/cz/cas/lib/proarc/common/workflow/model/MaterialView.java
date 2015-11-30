@@ -50,6 +50,8 @@ public class MaterialView extends Material {
     private String rdczId;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_CATALOG)
     private String source;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_SIGNATURE)
+    private String signature;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_METADATA)
     private String metadata;
 
@@ -148,5 +150,13 @@ public class MaterialView extends Material {
     public void setMetadata(String metadata) {
         this.metadata = metadata;
     }
-    
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
 }

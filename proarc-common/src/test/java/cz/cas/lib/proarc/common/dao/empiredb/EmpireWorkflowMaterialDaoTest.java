@@ -231,6 +231,7 @@ public class EmpireWorkflowMaterialDaoTest {
         assertEquals("001", ms.get(0).getField001());
         assertEquals("Metadata", ms.get(0).getMetadata());
         assertEquals("3", ms.get(0).getRdczId());
+        assertEquals("sig123", ms.get(0).getSignature());
         assertEquals("http://catalog", ms.get(0).getSource());
         assertNull(ms.get(0).getPid());
         assertNull(ms.get(0).getPath());

@@ -54,6 +54,7 @@ public class WorkflowMaterialDataSource extends RestDataSource {
     public static final String FIELD_PHYSICAL_CATALOG = WorkflowModelConsts.MATERIAL_CATALOG;
     public static final String FIELD_PHYSICAL_FIELD001 = WorkflowModelConsts.MATERIAL_FIELD001;
     public static final String FIELD_PHYSICAL_RDCZID = WorkflowModelConsts.MATERIAL_RDCZID;
+    public static final String FIELD_PHYSICAL_SIGNATURE = WorkflowModelConsts.MATERIAL_SIGNATURE;
     public static final String FIELD_PHYSICAL_METADATA = WorkflowModelConsts.MATERIAL_METADATA;
     public static final String FIELD_DIGITAL_PID = WorkflowModelConsts.MATERIAL_PID;
 
@@ -128,6 +129,10 @@ public class WorkflowMaterialDataSource extends RestDataSource {
         rdCzId.setTitle("RD CZ ID");
         rdCzId.setDetail(true);
 
+        DataSourceTextField signature = new DataSourceTextField(FIELD_PHYSICAL_SIGNATURE);
+        signature.setTitle("Signatura");
+        signature.setDetail(true);
+
         DataSourceTextField pid = new DataSourceTextField(FIELD_DIGITAL_PID);
         pid.setTitle("PID");
         pid.setDetail(true);
@@ -138,7 +143,7 @@ public class WorkflowMaterialDataSource extends RestDataSource {
 
         setFields(profile, type, value, way, note, fieldId, primaryKey,
                 path,
-                barcode, field001, rdCzId, catalog, metadata,
+                barcode, field001, signature, rdCzId, catalog, metadata,
                 pid
         );
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));

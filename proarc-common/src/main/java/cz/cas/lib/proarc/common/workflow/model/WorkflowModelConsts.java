@@ -116,6 +116,7 @@ public final class WorkflowModelConsts {
     public static final String MATERIAL_CATALOG = "source";
     public static final String MATERIAL_FIELD001 = "field001";
     public static final String MATERIAL_METADATA = "metadata";
+    public static final String MATERIAL_SIGNATURE = "signature";
     public static final String MATERIAL_RDCZID = "rdczId";
 
     public static final String MATERIALFILTER_ID = "id";
