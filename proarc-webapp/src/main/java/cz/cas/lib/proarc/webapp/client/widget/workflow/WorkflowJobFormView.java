@@ -114,7 +114,7 @@ public class WorkflowJobFormView implements Refreshable {
         actionSource.fireEvent();
     }
 
-    public void setJob(Record job) {
+    public void setJob(final Record job) {
         this.lastJob = job;
         fetchAddTaskMenu(null);
         if (job != null) {
@@ -136,7 +136,7 @@ public class WorkflowJobFormView implements Refreshable {
                     if (RestConfig.isStatusOk(dsResponse)) {
                         Record[] records = dsResponse.getData();
                         if (records.length > 0) {
-                            fetchAddTaskMenu(records[0].getAttribute(WorkflowJobDataSource.FIELD_PROFILE_ID));
+                            fetchAddTaskMenu(job.getAttribute(WorkflowJobDataSource.FIELD_PROFILE_ID));
                         }
                     }
                 }
