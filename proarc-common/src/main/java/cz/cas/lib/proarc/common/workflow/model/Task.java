@@ -144,6 +144,10 @@ public class Task {
         setState(State.valueOf(state));
     }
 
+    public boolean isClosed() {
+        return getState() == State.CANCELED || getState() == State.FINISHED;
+    }
+
     public String getTypeRef() {
         return typeRef;
     }

@@ -196,17 +196,13 @@ public class WorkflowResource {
         if (profiles == null) {
             return profileError();
         }
-        Job job = workflowManager.getJob(id);
-        if (job == null) {
-            return SmartGwtResponse.asError("Unknown job ID: " + id);
-        }
+        Job job = new Job();
+        job.setId(id);
         job.setFinanced(financed);
         job.setLabel(label);
         job.setNote(note);
         job.setOwnerId(userId);
-        if (priority != null) {
-            job.setPriority(priority);
-        }
+        job.setPriority(priority != null ? priority : 2);
         job.setState(state);
         job.setTimestamp(new Timestamp(timestamp));
         workflowManager.updateJob(job);

@@ -155,6 +155,10 @@ public class Job {
         this.profileName = profileName;
     }
 
+    public boolean isClosed() {
+        return getState() == State.FINISHED || getState() == State.CANCELED;
+    }
+
     public State getState() {
         return state;
     }

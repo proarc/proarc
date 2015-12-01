@@ -40,9 +40,11 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.MaterialDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.SetMaterialDefinition;
@@ -263,9 +265,27 @@ public class WorkflowManager {
         }
         Transaction tx = daoFactory.createTransaction();
         WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
+        WorkflowTaskDao taskDao = daoFactory.createWorkflowTaskDao();
         jobDao.setTransaction(tx);
+        taskDao.setTransaction(tx);
         try {
+            Job old = jobDao.find(job.getId());
+            // readonly properties
+            job.setCreated(old.getCreated());
+            job.setProfileName(old.getProfileName());
             jobDao.update(job);
+            if (old.getState() != job.getState() && job.isClosed()) {
+                // close all open tasks
+                TaskFilter taskFilter = new TaskFilter();
+                taskFilter.setJobId(job.getId());
+                for (TaskView task : taskDao.view(taskFilter)) {
+                    if (!task.isClosed()) {
+                        task.setState(job.getState() == State.FINISHED
+                                ? Task.State.FINISHED : Task.State.CANCELED);
+                        taskDao.update(task);
+                    }
+                }
+            }
             tx.commit();
             return job;
         } catch (ConcurrentModificationException t) {
