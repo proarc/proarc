@@ -217,7 +217,7 @@ public class TaskManager {
             if (jobTask.getState() != State.CANCELED) {
                 allCanceled = false;
             }
-            if (jobTask.getState() != State.FINISHED && jobTask.getState() != State.CANCELED) {
+            if (!jobTask.isClosed()) {
                 allClosed = false;
             }
         }
@@ -283,8 +283,7 @@ public class TaskManager {
 
     private boolean isBlocker(String name, List<? extends Task> tasks) {
         for (Task task : tasks) {
-            if (name.equals(task.getTypeRef()) && task.getState() != State.FINISHED
-                    && task.getState() != State.CANCELED) {
+            if (name.equals(task.getTypeRef()) && !task.isClosed()) {
                 return true;
             }
         }
