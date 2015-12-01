@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset>
+
+    <proarc_wf_job id="1" owner_id="1" profile_name="job1" state="OPEN"
+        priority="2" label="Monograph" financed="OSN" note="my note"
+        created="2015-10-20" timestamp="{$now}" />
+
+    <proarc_wf_job id="2" owner_id="1" profile_name="job1" state="FINISHED"
+        priority="3" label="STT Monograph" financed="OSN" note="my note2"
+        created="2015-10-25" timestamp="{$now}" />
+
+    <proarc_wf_task id="1" type_ref="task.id1" job_id="1" owner_id="1" state="FINISHED"
+        priority="1" note="my task note1" created="2015-10-20" timestamp="{$now}" />
+    <proarc_wf_task id="2" type_ref="task.id2" job_id="1" owner_id="1" state="WAITING"
+        priority="3" note="my task note10" created="2015-10-26" timestamp="{$now}" />
+    <proarc_wf_task id="3" type_ref="task.id3" job_id="1" owner_id="1" state="WAITING"
+        priority="3" note="my task note10" created="2015-10-26" timestamp="{$now}" />
+    <proarc_wf_task id="4" type_ref="task.id4" job_id="1" owner_id="1" state="WAITING"
+        priority="3" note="my task note10" created="2015-10-26" timestamp="{$now}" />
+
+    <proarc_wf_task id="11" type_ref="task.id1" job_id="2" owner_id="1" state="READY"
+        priority="1" note="my task note1" created="2015-10-20" timestamp="{$now}" />
+    <proarc_wf_task id="12" type_ref="task.id2" job_id="2" owner_id="1" state="WAITING"
+        priority="3" note="my task note10" created="2015-10-26" timestamp="{$now}" />
+    <proarc_wf_task id="13" type_ref="task.id3" job_id="2" owner_id="1" state="WAITING"
+        priority="3" note="my task note10" created="2015-10-26" timestamp="{$now}" />
+    <proarc_wf_task id="14" type_ref="task.id4" job_id="2" owner_id="1" state="WAITING"
+        priority="3" note="my task note10" created="2015-10-26" timestamp="{$now}" />
+
+    <proarc_wf_parameter />
+    <proarc_wf_material />
+    <proarc_wf_folder />
+    <proarc_wf_digital_document />
+    <proarc_wf_physical_document />
+    <proarc_wf_material_in_task />
+</dataset>

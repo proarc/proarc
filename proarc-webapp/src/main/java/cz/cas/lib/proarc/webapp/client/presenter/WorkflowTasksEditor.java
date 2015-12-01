@@ -20,6 +20,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
@@ -27,6 +28,7 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ErrorHandler;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowTaskPlace;
@@ -73,6 +75,9 @@ public class WorkflowTasksEditor {
             DSRequest req = new DSRequest();
             req.setWillHandleError(true);
             final DynamicForm taskForm = taskFormView.getTask();
+            Object oldState = taskForm.getOldValues().get(WorkflowTaskDataSource.FIELD_STATE);
+            String newState = taskForm.getValueAsString(WorkflowTaskDataSource.FIELD_STATE);
+            final boolean stateChanged = !newState.equals(oldState);
             taskForm.saveData(new DSCallback() {
 
                 @Override
@@ -83,6 +88,13 @@ public class WorkflowTasksEditor {
                         view.refreshState();
                         String taskId = taskForm.getValueAsString(WorkflowTaskDataSource.FIELD_ID);
                         view.refreshParameters(taskId);
+                        if (stateChanged) {
+                            DSResponse reset = new DSResponse();
+                            reset.setOperationType(DSOperationType.UPDATE);
+                            reset.setInvalidateCache(true);
+                            WorkflowTaskDataSource.getInstance().updateCaches(reset);
+                            WorkflowJobDataSource.getInstance().updateCaches(reset);
+                        }
                     } else if (RestConfig.isConcurrentModification(dsResponse)) {
                         SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), new BooleanCallback() {
 

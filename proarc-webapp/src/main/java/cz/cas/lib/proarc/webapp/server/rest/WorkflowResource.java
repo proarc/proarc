@@ -300,12 +300,16 @@ public class WorkflowResource {
         if (workflow == null) {
             return profileError();
         }
-        Task updatedTask = workflowManager.tasks().updateTask(task, task.params, workflow);
-        TaskFilter taskFilter = new TaskFilter();
-        taskFilter.setId(updatedTask.getId());
-        taskFilter.setLocale(session.getLocale(httpHeaders));
-        List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
-        return new SmartGwtResponse<TaskView>(result);
+        try {
+            Task updatedTask = workflowManager.tasks().updateTask(task, task.params, workflow);
+            TaskFilter taskFilter = new TaskFilter();
+            taskFilter.setId(updatedTask.getId());
+            taskFilter.setLocale(session.getLocale(httpHeaders));
+            List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+            return new SmartGwtResponse<TaskView>(result);
+        } catch (IllegalArgumentException ex) {
+            return SmartGwtResponse.asError(ex.getMessage());
+        }
     }
 
     @XmlAccessorType(XmlAccessType.NONE)

@@ -42,6 +42,7 @@ import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.validator.IsFloatValidator;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import cz.cas.lib.proarc.common.workflow.model.Task.State;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.DisplayType;
@@ -62,7 +63,9 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowParameterDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor;
 import java.math.BigDecimal;
+import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -74,6 +77,7 @@ public class WorkflowTaskFormView implements Refreshable {
     private final ClientMessages i18n;
     private final Canvas widget;
     private DynamicForm taskForm;
+    private SelectItem stateItem;
     private WorkflowMaterialView materialView;
     private final WorkflowTasksEditor handler;
     private DynamicForm paramForm;
@@ -140,6 +144,14 @@ public class WorkflowTaskFormView implements Refreshable {
 
                 @Override
                 public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
+                    Record dataRecord = null;
+                    if (RestConfig.isStatusOk(dsResponse)) {
+                        Record[] records = dsResponse.getData();
+                        if (records.length > 0) {
+                            dataRecord = records[0];
+                        }
+                    }
+                    setPermitedTaskStates(dataRecord);
                     refreshState();
                 }
             });
@@ -152,6 +164,44 @@ public class WorkflowTaskFormView implements Refreshable {
         }
         widget.setDisabled(task == null);
         refreshState();
+    }
+
+    private void setPermitedTaskStates(Record task) {
+        State state = State.WAITING;
+        try {
+            if (task != null) {
+                state = State.valueOf(task.getAttribute(WorkflowTaskDataSource.FIELD_STATE));
+            }
+        } catch (IllegalArgumentException e) {
+            state = State.WAITING;
+        }
+        EnumSet<State> permitted;
+        switch(state) {
+            case READY:
+            case STARTED:
+                permitted = EnumSet.of(State.READY, State.STARTED, State.FINISHED, State.CANCELED);
+                break;
+            case CANCELED:
+            case FINISHED:
+                permitted = EnumSet.of(State.FINISHED, State.CANCELED);
+                break;
+            case WAITING:
+            default:
+                permitted = EnumSet.of(State.WAITING, State.READY, State.STARTED, State.FINISHED, State.CANCELED);
+                break;
+        }
+        stateItem.setValueMap(fillTaskStates(permitted));
+    }
+
+    private LinkedHashMap<String, String> fillTaskStates(EnumSet<State> permitted) {
+        LinkedHashMap<String, String> vm = new LinkedHashMap<String, String>();
+        LinkedHashMap<String, String> allTaskStates = WorkflowTaskDataSource.getInstance().getAllTaskStates();
+        for (State s : permitted) {
+            String label = allTaskStates.get(s.name());
+            label = label != null ? label : s.name();
+            vm.put(s.name(), label);
+        }
+        return vm;
     }
 
     public void setParameters(String taskId) {
@@ -269,10 +319,12 @@ public class WorkflowTaskFormView implements Refreshable {
         TextItem label = new TextItem(WorkflowTaskDataSource.FIELD_LABEL);
         label.setWidth("*");
 
+        stateItem = new SelectItem(WorkflowTaskDataSource.FIELD_STATE);
+
         taskForm.setFields(jobLabel,
                 label,
                 owner,
-                new SelectItem(WorkflowTaskDataSource.FIELD_STATE),
+                stateItem,
                 new TextItem(WorkflowTaskDataSource.FIELD_CREATED),
                 new TextItem(WorkflowTaskDataSource.FIELD_MODIFIED),
                 new SelectItem(WorkflowTaskDataSource.FIELD_PRIORITY),

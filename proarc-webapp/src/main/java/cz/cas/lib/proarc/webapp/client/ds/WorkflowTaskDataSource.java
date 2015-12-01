@@ -57,8 +57,8 @@ public class WorkflowTaskDataSource extends RestDataSource {
     public static final String FIELD_PRIORITY = WorkflowModelConsts.TASK_PRIORITY;
     public static final String FIELD_STATE = WorkflowModelConsts.TASK_STATE;
     public static final String FIELD_TYPE = WorkflowModelConsts.TASK_FILTER_PROFILENAME;
-
     private static WorkflowTaskDataSource INSTANCE;
+    private final LinkedHashMap<String, String> allTaskStates;
 
     public static WorkflowTaskDataSource getInstance() {
         if (INSTANCE == null) {
@@ -72,6 +72,13 @@ public class WorkflowTaskDataSource extends RestDataSource {
         setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_WORKFLOW_TASK);
 
+        allTaskStates = new LinkedHashMap<String, String>() {{
+            put(State.WAITING.name(), "Čeká");
+            put(State.READY.name(), "Připraven");
+            put(State.STARTED.name(), "Probíhá");
+            put(State.FINISHED.name(), "Dokončen");
+            put(State.CANCELED.name(), "Zrušen");
+        }};
         DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);
         fieldId.setPrimaryKey(Boolean.TRUE);
         fieldId.setDetail(true);
@@ -95,13 +102,7 @@ public class WorkflowTaskDataSource extends RestDataSource {
 
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
         state.setTitle("Stav");
-        state.setValueMap(new LinkedHashMap<String, String>() {{
-            put(State.WAITING.name(), "Čeká");
-            put(State.READY.name(), "Připraven");
-            put(State.STARTED.name(), "Probíhá");
-            put(State.FINISHED.name(), "Dokončen");
-            put(State.CANCELED.name(), "Zrušen");
-        }});
+        state.setValueMap(allTaskStates);
         state.setRequired(true);
 
         DataSourceTextField owner = new DataSourceTextField(FIELD_OWNER);
@@ -152,6 +153,10 @@ public class WorkflowTaskDataSource extends RestDataSource {
                 RestConfig.createAddOperation(),
 //                RestConfig.createDeleteOperation(),
                 RestConfig.createUpdatePostOperation());
+    }
+
+    public LinkedHashMap<String, String> getAllTaskStates() {
+        return allTaskStates;
     }
 
     @Override

@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<workflow xmlns='http://proarc.lib.cas.cz/xml/common/workflow/v1'>
+    <job name='job1' priority='1'>
+        <worker actual='true'/>
+        <step taskRef='task.id1' />
+        <step taskRef='task.id2'>
+            <blocker taskRef='task.id1'/>
+        </step>
+        <step taskRef='task.id3'>
+            <blocker taskRef='task.id2'/>
+        </step>
+        <step taskRef='task.id4'>
+            <blocker taskRef='task.id2'/>
+        </step>
+    </job>
+    <task name='task.id1' />
+    <task name='task.id2' />
+    <task name='task.id3' />
+    <task name='task.id4' />
+</workflow>
+

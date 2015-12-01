@@ -33,6 +33,8 @@ import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
+import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.Task.State;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
@@ -43,10 +45,12 @@ import cz.cas.lib.proarc.common.workflow.profile.ValueMapSource;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.File;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -77,6 +81,7 @@ public class WorkflowManagerTest {
     private DbUnitSupport support;
     private ProarcDatabase schema;
     private EmpireDaoFactory daos;
+    private WorkflowProfiles wp;
 
     public WorkflowManagerTest() {
     }
@@ -123,6 +128,19 @@ public class WorkflowManagerTest {
         return rds;
     }
 
+    private WorkflowManager initWorkflowManager(String profilesResourceName) throws Exception {
+        File xmlWorkflow = temp.newFile("workflowTest.xml");
+        FileUtils.copyURLToFile(WorkflowManagerTest.class.getResource(profilesResourceName), xmlWorkflow);
+        WorkflowProfiles.setInstance(new WorkflowProfiles(xmlWorkflow));
+        wp = WorkflowProfiles.getInstance();
+        AppConfiguration config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
+            put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
+        }});
+        UserManager users = UserUtil.createUserManagerPostgressImpl(config, null, daos);
+        WorkflowManager wm = new WorkflowManager(wp, daos, users);
+        return wm;
+    }
+
     @Test
     public void testAddJob() throws Exception {
         IDataSet db = database(
@@ -134,17 +152,11 @@ public class WorkflowManagerTest {
         dbcon.getConnection().commit();
         dbcon.close();
 
-        File xmlWorkflow = temp.newFile("workflowTest.xml");
-        FileUtils.copyURLToFile(WorkflowManagerTest.class.getResource("WorkflowManagerAddProfile.xml"), xmlWorkflow);
-        WorkflowProfiles.setInstance(new WorkflowProfiles(xmlWorkflow));
-        WorkflowProfiles wp = WorkflowProfiles.getInstance();
+        WorkflowManager wm = initWorkflowManager("WorkflowManagerAddProfile.xml");
         WorkflowDefinition workflow = wp.getProfiles();
+        assertNotNull(workflow);
         JobDefinition jobProfile = workflow.getJobs().get(0);
-        AppConfiguration config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
-        }});
-        UserManager users = UserUtil.createUserManagerPostgressImpl(config, null, daos);
-        WorkflowManager wm = new WorkflowManager(wp, daos, users);
+        assertNotNull(jobProfile);
         CatalogConfiguration c = new CatalogConfiguration("testCatalogId", "", new BaseConfiguration() {{
             addProperty(CatalogConfiguration.PROPERTY_URL, "tcp://localhost:9991");
             addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
@@ -199,6 +211,66 @@ public class WorkflowManagerTest {
         assertEquals(ValueMapSource.PROARC, findParameter.get(1).getValueMapType());
         assertEquals(Boolean.TRUE, findParameter.get(1).getRequired());
         assertEquals(ValueType.STRING, findParameter.get(1).getValueType());
+    }
+
+    @Test
+    public void testUpdateTaskState() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(EmpireWorkflowJobDaoTest.class, "user.xml"),
+                support.loadFlatXmlDataStream(WorkflowManagerTest.class, "WorkflowManagerUpdateTaskState.xml")
+                );
+        final IDatabaseConnection dbcon = support.getConnection();
+        support.cleanInsert(dbcon, db);
+        dbcon.getConnection().commit();
+        dbcon.close();
+
+        WorkflowManager wm = initWorkflowManager("WorkflowManagerUpdateTaskStateProfile.xml");
+        TaskManager tm = wm.tasks();
+        WorkflowDefinition workflow = wp.getProfiles();
+        assertNotNull(workflow);
+        JobDefinition jobProfile = wp.getProfile(workflow, "job1");
+        assertNotNull(jobProfile);
+        Map<String, Object> params = null;
+
+        TaskFilter taskFilter = new TaskFilter();
+        taskFilter.setId(new BigDecimal(3));
+        taskFilter.setLocale(Locale.ENGLISH);
+        List<TaskView> tasks = tm.findTask(taskFilter, workflow);
+        TaskView task = tasks.get(0);
+        assertEquals(Task.State.WAITING, task.getState());
+        task.setState(State.READY);
+        try {
+            Task update = tm.updateTask(task, params, workflow);
+            fail("Cannot update blocked state! " + update.getStateAsString());
+        } catch (IllegalArgumentException ex) {
+            assertEquals("Task is blocked by other tasks!", ex.getMessage());
+        }
+
+        // t2 waiting->ready
+        taskFilter.setId(new BigDecimal(2));
+        tasks = tm.findTask(taskFilter, workflow);
+        task = tasks.get(0);
+        assertEquals(Task.State.WAITING, tm.findTask(taskFilter, workflow).get(0).getState());
+        task.setState(State.READY);
+        Task update = tm.updateTask(task, params, workflow);
+        assertEquals(Task.State.READY, update.getState());
+        taskFilter.setId(new BigDecimal(3));
+        assertEquals(Task.State.WAITING, tm.findTask(taskFilter, workflow).get(0).getState());
+
+        // t2 ready->finished
+        taskFilter.setId(new BigDecimal(2));
+        tasks = tm.findTask(taskFilter, workflow);
+        task = tasks.get(0);
+        assertEquals(Task.State.READY, tm.findTask(taskFilter, workflow).get(0).getState());
+        task.setState(State.FINISHED);
+        update = tm.updateTask(task, params, workflow);
+        assertEquals(Task.State.FINISHED, update.getState());
+        taskFilter.setId(new BigDecimal(4));
+        assertEquals(Task.State.READY, tm.findTask(taskFilter, workflow).get(0).getState());
+        taskFilter.setId(new BigDecimal(12));
+        assertEquals(Task.State.WAITING, tm.findTask(taskFilter, workflow).get(0).getState());
+        taskFilter.setId(new BigDecimal(13));
+        assertEquals(Task.State.WAITING, tm.findTask(taskFilter, workflow).get(0).getState());
     }
 
     @Test

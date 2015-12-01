@@ -29,9 +29,11 @@ import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.Task.State;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
+import cz.cas.lib.proarc.common.workflow.profile.BlockerDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.ParamDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.StepDefinition;
@@ -41,6 +43,7 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -100,11 +103,11 @@ public class TaskManager {
         }
     }
 
-    private List<TaskView> sortJobTaskByBlockers(JobDefinition job, List<TaskView> tasks) {
-        ArrayList<TaskView> sorted = new ArrayList<TaskView>(tasks.size());
+    private <T extends Task> List<T> sortJobTaskByBlockers(JobDefinition job, List<T> tasks) {
+        ArrayList<T> sorted = new ArrayList<T>(tasks.size());
         for (String sortTaskName : job.getTaskNamesSortedByBlockers()) {
-            for (Iterator<TaskView> it = tasks.iterator(); it.hasNext();) {
-                TaskView task = it.next();
+            for (Iterator<T> it = tasks.iterator(); it.hasNext();) {
+                T task = it.next();
                 if (sortTaskName.equals(task.getTypeRef())) {
                     sorted.add(task);
                     it.remove();
@@ -144,10 +147,10 @@ public class TaskManager {
                 }
             }
         }
-        return updateTask(task, params);
+        return updateTask(task, params, workflow);
     }
 
-    public Task updateTask(Task task, List<TaskParameter> params) throws ConcurrentModificationException {
+    public Task updateTask(Task task, List<TaskParameter> params, WorkflowDefinition workflow) throws ConcurrentModificationException {
         if (task.getId() == null) {
             throw new IllegalArgumentException("Missing ID!");
         }
@@ -175,7 +178,17 @@ public class TaskManager {
             if (jobState != Job.State.OPEN ) {
                 throw new IllegalArgumentException("Job already closed: " + jobState);
             }
-            // XXX check task state
+            WorkflowDefinition profiles = wp.getProfiles();
+            JobDefinition jobDef = wp.getProfile(profiles, job.getProfileName());
+            if (jobDef == null) {
+                throw new IllegalArgumentException("Job name definiton not found! " + job.getProfileName());
+            }
+            // check task state
+            TaskFilter taskFilter = new TaskFilter();
+            taskFilter.setJobId(job.getId());
+            List<TaskView> jobTasks = sortJobTaskByBlockers(jobDef, taskDao.view(taskFilter));
+            updateTaskState(taskDao, getTaskStateUpdates(task.getState(), old.getState(), task, jobDef, jobTasks));
+            updateJobState(jobTasks, job, jobDao);
             taskDao.update(task);
             if (params != null) {
                 paramDao.remove(task.getId());
@@ -186,12 +199,96 @@ public class TaskManager {
         } catch (ConcurrentModificationException t) {
             tx.rollback();
             throw t;
+        } catch (IllegalArgumentException t) {
+            tx.rollback();
+            throw t;
         } catch (Throwable t) {
             tx.rollback();
             throw new IllegalStateException("Cannot update task: " + task.getId().toString(), t);
         } finally {
             tx.close();
         }
+    }
+
+    private void updateJobState(List<TaskView> jobTasks, Job job, WorkflowJobDao jobDao) throws ConcurrentModificationException {
+        boolean allCanceled = true;
+        boolean allClosed = true;
+        for (TaskView jobTask : jobTasks) {
+            if (jobTask.getState() != State.CANCELED) {
+                allCanceled = false;
+            }
+            if (jobTask.getState() != State.FINISHED && jobTask.getState() != State.CANCELED) {
+                allClosed = false;
+            }
+        }
+        if (allClosed) {
+            job.setState(allCanceled ? Job.State.CANCELED : Job.State.FINISHED);
+            jobDao.update(job);
+        }
+    }
+
+    private void updateTaskState(WorkflowTaskDao dao, List<Task> updates) {
+        for (Task update : updates) {
+            dao.update(update);
+        }
+    }
+
+    private List<Task> getTaskStateUpdates(State newState, State oldState,
+            Task t, JobDefinition job, List<? extends Task> sortedTasks) {
+        if (oldState == newState) {
+            return Collections.emptyList();
+        }
+        if (oldState == State.WAITING) {
+            if (newState == State.READY || newState == State.STARTED || newState == State.FINISHED) {
+                if (isBlocked(getStepDefinition(job, t.getTypeRef()), sortedTasks)) {
+                    throw new IllegalArgumentException("Task is blocked by other tasks!");
+                }
+            } else {
+            }
+        } else if (newState == State.WAITING) {
+            throw new IllegalArgumentException("The task cannot be waiting again!");
+        } else {
+
+        }
+        // set new state
+        t.setState(newState);
+        List<Task> updates = new ArrayList<Task>();
+        // resolve waiters
+        for (Task jobTask : sortedTasks) {
+            if (t.getId().compareTo(jobTask.getId()) == 0) {
+                jobTask.setState(newState);
+                continue;
+            }
+            if (jobTask.getState() == State.WAITING) {
+                boolean blocked = isBlocked(getStepDefinition(job, jobTask.getTypeRef()), sortedTasks);
+                if (!blocked) {
+                    jobTask.setState(State.READY);
+                    updates.add(jobTask);
+                }
+            }
+        }
+        return updates;
+    }
+
+    private boolean isBlocked(StepDefinition step, List<? extends Task> sortedTasks) {
+        if (step != null) {
+            for (BlockerDefinition blocker : step.getBlockers()) {
+                if (isBlocker(blocker.getTask().getName(), sortedTasks)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isBlocker(String name, List<? extends Task> tasks) {
+        for (Task task : tasks) {
+            if (name.equals(task.getTypeRef()) && task.getState() != State.FINISHED
+                    && task.getState() != State.CANCELED) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Task addTask(BigDecimal jobId, String taskName, WorkflowDefinition workflow, UserProfile defaultUser) {
