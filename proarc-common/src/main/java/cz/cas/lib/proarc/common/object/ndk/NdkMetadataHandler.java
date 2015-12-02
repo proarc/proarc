@@ -350,19 +350,27 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     }
 
     private void checkBeforeWrite(ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations) throws DigitalObjectException {
-        ModsStreamEditor.addPid(mods, fobject.getPid());
         if (ignoreValidations) {
+            checkIdentifiers(mods, oldMods, null);
             return ;
         }
-        List<IdentifierDefinition> oldIds = oldMods != null ? oldMods.getIdentifier()
-                : Collections.<IdentifierDefinition>emptyList();
         DigitalObjectValidationException ex = new DigitalObjectValidationException(fobject.getPid(), null,
                 DESCRIPTION_DATASTREAM_ID, "MODS validation", null);
+        checkIdentifiers(oldMods, mods, ex);
         RelationEditor relations = handler.relations();
         List<String> members = relations.getMembers();
         if (HAS_MEMBER_VALIDATION_MODELS.contains(relations.getModel()) && !members.isEmpty()) {
             ex.addValidation("mods", ERR_NDK_CHANGE_MODS_WITH_MEMBERS);
         }
+        if (!ex.getValidations().isEmpty()) {
+            throw ex;
+        }
+    }
+
+    private void checkIdentifiers(ModsDefinition mods, ModsDefinition oldMods, DigitalObjectValidationException ex) {
+        ModsStreamEditor.addPid(mods, fobject.getPid());
+        List<IdentifierDefinition> oldIds = oldMods != null ? oldMods.getIdentifier()
+                : Collections.<IdentifierDefinition>emptyList();
         // check URN:NBN
         for (IdentifierDefinition oldId : oldIds) {
             if ("urnnbn".equals(oldId.getType()) && oldId.getValue() != null && !oldId.getValue().trim().isEmpty()) {
@@ -374,14 +382,15 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                     }
                 }
                 if (missingId) {
-                    ex.addValidation("mods.identifier", ERR_NDK_REMOVE_URNNBN, oldId.getValue());
-                } else {
+                    if (ex != null) {
+                        ex.addValidation("mods.identifier", ERR_NDK_REMOVE_URNNBN, oldId.getValue());
+                    } else {
+                        mods.getIdentifier().add(oldId);
+                    }
+                } else if (ex != null) {
                     ex.addValidation("mods.identifier", ERR_NDK_CHANGE_MODS_WITH_URNNBN, oldId.getValue());
                 }
             }
-        }
-        if (!ex.getValidations().isEmpty()) {
-            throw ex;
         }
     }
 
