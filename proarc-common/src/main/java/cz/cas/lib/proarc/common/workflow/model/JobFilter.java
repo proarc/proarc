@@ -21,6 +21,8 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -31,6 +33,9 @@ import javax.xml.bind.annotation.XmlElement;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class JobFilter {
+
+    private static final Pattern SORTBY_MODIFIED_PATTERN = Pattern.compile(
+            "([-+]?)(" + WorkflowModelConsts.JOB_FILTER_MODIFIED + ")");
 
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_CREATED)
     private List<String> created;
@@ -124,6 +129,12 @@ public class JobFilter {
     }
 
     public void setSortBy(String sortBy) {
+        if (sortBy != null) {
+            Matcher matcher = SORTBY_MODIFIED_PATTERN.matcher(sortBy);
+            if (matcher.matches()) {
+                sortBy = matcher.group(1) + WorkflowModelConsts.JOB_TIMESTAMP;
+            }
+        }
         this.sortBy = sortBy;
     }
 
