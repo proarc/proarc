@@ -317,7 +317,6 @@ public class WorkflowTaskFormView implements Refreshable {
         note.setStartRow(true);
         note.setColSpan("*");
         note.setWidth("*");
-        note.setHeight(40);
 
         TextItem label = new TextItem(WorkflowTaskDataSource.FIELD_LABEL);
         label.setWidth("*");

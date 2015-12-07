@@ -32,8 +32,8 @@ import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
 import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
-import com.smartgwt.client.widgets.form.fields.AutoFitTextAreaItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
+import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
@@ -225,7 +225,9 @@ public class WorkflowJobFormView implements Refreshable {
         owner.setValueField(UserDataSource.FIELD_ID);
         owner.setDisplayField(UserDataSource.FIELD_USERNAME);
 
-        AutoFitTextAreaItem note = new AutoFitTextAreaItem(WorkflowJobDataSource.FIELD_NOTE);
+//        AutoFitTextAreaItem note = new AutoFitTextAreaItem(WorkflowJobDataSource.FIELD_NOTE);
+        // There is a bug in AutoFitTextAreaItem. It does not resize properly.
+        TextAreaItem note = new TextAreaItem(WorkflowJobDataSource.FIELD_NOTE);
         note.setStartRow(true);
         note.setColSpan("*");
         note.setWidth("*");
