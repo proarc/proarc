@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
@@ -27,6 +28,7 @@ import com.smartgwt.client.types.DSOperationType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import java.util.LinkedHashMap;
 
@@ -40,7 +42,7 @@ public class WorkflowMaterialDataSource extends RestDataSource {
     public static final String ID = "WorkflowMaterialDataSource";
     public static final String PRIMARY_KEY = "__syntheticPrimaryKey";
     public static final String FIELD_ID = WorkflowModelConsts.MATERIAL_ID;
-    public static final String FIELD_JOB_ID = "jobId";
+    public static final String FIELD_JOB_ID = WorkflowModelConsts.MATERIAL_JOB_ID;
     public static final String FIELD_TASK_ID = WorkflowModelConsts.MATERIAL_TASKID;
     public static final String FIELD_NOTE = WorkflowModelConsts.MATERIAL_NOTE;
     public static final String FIELD_TYPE = WorkflowModelConsts.MATERIAL_TYPE;
@@ -71,6 +73,7 @@ public class WorkflowMaterialDataSource extends RestDataSource {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_WORKFLOW_MATERIAL);
+        final ClientMessages i18n = GWT.create(ClientMessages.class);
 
         DataSourceTextField primaryKey = new DataSourceTextField(PRIMARY_KEY);
         primaryKey.setCanEdit(false);
@@ -81,64 +84,64 @@ public class WorkflowMaterialDataSource extends RestDataSource {
         DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);
         fieldId.setCanEdit(false);
         fieldId.setDetail(true);
-        fieldId.setTitle("ID");
+        fieldId.setTitle(i18n.WorkflowMaterial_Field_Id_Title());
 
         DataSourceTextField note = new DataSourceTextField(FIELD_NOTE);
-        note.setTitle("Poznámka");
+        note.setTitle(i18n.WorkflowMaterial_Field_Note_Title());
 
         DataSourceTextField value = new DataSourceTextField(FIELD_VALUE);
-        value.setTitle("Obsah");
+        value.setTitle(i18n.WorkflowMaterial_Field_Label_Title());
 
         DataSourceTextField profile = new DataSourceTextField(FIELD_PROFILENAME);
-        profile.setTitle("Popis");
+        profile.setTitle(i18n.WorkflowMaterial_Field_Profile_Title());
         profile.setDisplayField(WorkflowModelConsts.MATERIAL_PROFILELABEL);
 
         DataSourceEnumField type = new DataSourceEnumField(FIELD_TYPE);
-        type.setTitle("Typ materiálu");
+        type.setTitle(i18n.WorkflowMaterial_Field_Type_Title());
         type.setValueMap(new LinkedHashMap<String, String>() {{
-            put(MaterialType.FOLDER.name(), "Adresář");
-            put(MaterialType.PHYSICAL_DOCUMENT.name(), "Předloha");
-            put(MaterialType.DIGITAL_OBJECT.name(), "Dig. objekt");
+            put(MaterialType.FOLDER.name(), i18n.WorkflowMaterial_Type_Folder_Title());
+            put(MaterialType.PHYSICAL_DOCUMENT.name(), i18n.WorkflowMaterial_Type_Physical_Title());
+            put(MaterialType.DIGITAL_OBJECT.name(), i18n.WorkflowMaterial_Type_Digital_Title());
         }});
 
         DataSourceEnumField way = new DataSourceEnumField(FIELD_WAY);
-        way.setTitle("V/V");
-        way.setPrompt("Vstupní/Výstupní");
+        way.setTitle(i18n.WorkflowMaterial_Field_Way_Title());
+        way.setPrompt(i18n.WorkflowMaterial_Field_Way_Hint());
         way.setValueMap(new LinkedHashMap<String, String>() {{
-            put(Way.INPUT.name(), "Vstupní");
-            put(Way.OUTPUT.name(), "Výstupní");
+            put(Way.INPUT.name(), i18n.WorkflowMaterial_Way_Input_Title());
+            put(Way.OUTPUT.name(), i18n.WorkflowMaterial_Way_Output_Title());
         }});
 
         DataSourceTextField path = new DataSourceTextField(FIELD_FOLDER_PATH);
-        path.setTitle("Cesta");
+        path.setTitle(i18n.WorkflowMaterial_Field_Path_Title());
         path.setDetail(true);
 
         DataSourceTextField catalog = new DataSourceTextField(FIELD_PHYSICAL_CATALOG);
-        catalog.setTitle("Zdroj");
+        catalog.setTitle(i18n.WorkflowMaterial_Field_Catalog_Title());
         catalog.setDetail(true);
 
         DataSourceTextField barcode = new DataSourceTextField(FIELD_PHYSICAL_BARCODE);
-        barcode.setTitle("Čárový kód");
+        barcode.setTitle(i18n.WorkflowMaterial_Field_Barcode_Title());
         barcode.setDetail(true);
 
         DataSourceTextField field001 = new DataSourceTextField(FIELD_PHYSICAL_FIELD001);
-        field001.setTitle("Pole 001");
+        field001.setTitle(i18n.WorkflowMaterial_Field_Field001_Title());
         field001.setDetail(true);
 
         DataSourceTextField rdCzId = new DataSourceTextField(FIELD_PHYSICAL_RDCZID);
-        rdCzId.setTitle("RD CZ ID");
+        rdCzId.setTitle(i18n.WorkflowMaterial_Field_RdCzId_Title());
         rdCzId.setDetail(true);
 
         DataSourceTextField signature = new DataSourceTextField(FIELD_PHYSICAL_SIGNATURE);
-        signature.setTitle("Signatura");
+        signature.setTitle(i18n.WorkflowMaterial_Field_Signature_Title());
         signature.setDetail(true);
 
         DataSourceTextField pid = new DataSourceTextField(FIELD_DIGITAL_PID);
-        pid.setTitle("PID");
+        pid.setTitle(i18n.WorkflowMaterial_Field_Pid_Title());
         pid.setDetail(true);
 
         DataSourceTextField metadata = new DataSourceTextField(FIELD_PHYSICAL_METADATA);
-        metadata.setTitle("Metadata");
+        metadata.setTitle(i18n.WorkflowMaterial_Field_Metadata_Title());
         metadata.setDetail(true);
 
         setFields(profile, type, value, way, note, fieldId, primaryKey,

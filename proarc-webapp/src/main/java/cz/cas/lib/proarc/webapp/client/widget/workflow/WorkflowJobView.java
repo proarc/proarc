@@ -160,7 +160,7 @@ public class WorkflowJobView implements Refreshable {
 
     private Label createPanelLabel() {
         Label lblHeader = new Label();
-        String title = ClientUtils.format("<b>%s</b>", "Správa záměrů");//i18n.DigitalObjectManager_Title());
+        String title = ClientUtils.format("<b>%s</b>", i18n.WorkflowJob_View_Title());
         lblHeader.setContents(title);
         lblHeader.setAutoHeight();
         lblHeader.setPadding(4);
@@ -184,8 +184,8 @@ public class WorkflowJobView implements Refreshable {
         ToolStrip toolbar = Actions.createToolStrip();
         RefreshAction refreshAction = new RefreshAction(i18n);
 
-        AbstractAction addAction = new AbstractAction("Nový",//i18n.DeviceManager_Add_Title(),
-                "[SKIN]/actions/add.png", "Nový záměr") {//i18n.DeviceManager_Add_Hint()) {
+        AbstractAction addAction = new AbstractAction(i18n.WorkflowJob_View_NewAction_Title(),
+                "[SKIN]/actions/add.png", i18n.WorkflowJob_View_NewAction_Hint()) {
 
             @Override
             public void performAction(ActionEvent event) {

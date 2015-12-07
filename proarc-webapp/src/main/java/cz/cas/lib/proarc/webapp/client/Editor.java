@@ -375,10 +375,10 @@ public class Editor implements EntryPoint {
                         createTreeNode("New Object", i18n.MainMenu_Edit_NewObject_Title(), new DigitalObjectCreatorPlace()),
                         createTreeNode("Search", i18n.MainMenu_Edit_Edit_Title(), new DigitalObjectManagerPlace())
                 ),
-                createTreeNode("RDFlow", "Workflow",
-                        createTreeNode("New Job", "Nový záměr", new WorkflowNewJobPlace()),
-                        createTreeNode("Jobs", "Záměry", new WorkflowJobPlace()),
-                        createTreeNode("Tasks", "Úkoly", new WorkflowTaskPlace())
+                createTreeNode("RDFlow", i18n.MainMenu_Workflow_Title(),
+                        createTreeNode("New Job", i18n.MainMenu_Workflow_NewJob_Title(), new WorkflowNewJobPlace()),
+                        createTreeNode("Jobs", i18n.MainMenu_Workflow_Jobs_Title(), new WorkflowJobPlace()),
+                        createTreeNode("Tasks", i18n.MainMenu_Workflow_Tasks_Title(), new WorkflowTaskPlace())
                 ),
                 createTreeNode("Devices", i18n.MainMenu_Devices_Title(), new DeviceManagerPlace()),
 //                createTreeNode("Statistics", i18n.MainMenu_Statistics_Title()),

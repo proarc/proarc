@@ -94,7 +94,7 @@ public class WorkflowNewJobView {
 
     private Label createPanelLabel() {
         Label lblHeader = new Label();
-        String title = ClientUtils.format("<b>%s</b>", "Nový záměr");//i18n.DigitalObjectManager_Title());
+        String title = ClientUtils.format("<b>%s</b>", i18n.WorkflowJob_NewJobView_Title());
         lblHeader.setContents(title);
         lblHeader.setAutoHeight();
         lblHeader.setPadding(4);
@@ -104,10 +104,9 @@ public class WorkflowNewJobView {
 
     private ToolStrip createToolbar() {
         Action actionNew = new AbstractAction(
-                "Vytvořit nový záměr",
-//                i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title(),
+                i18n.WorkflowJob_NewJobView_NewAction_Title(),
                 "[SKIN]/actions/save.png",
-                null) {
+                i18n.WorkflowJob_NewJobView_NewAction_Hint()) {
 
                     @Override
                     public void performAction(ActionEvent event) {
@@ -141,7 +140,7 @@ public class WorkflowNewJobView {
         metadata.setCanEdit(false);
         metadata.setStartRow(true);
         metadata.setReadOnlyDisplay(ReadOnlyDisplayAppearance.STATIC);
-        metadata.setRequiredMessage("Nejsou vybrána žádná metadata!");
+        metadata.setRequiredMessage(i18n.WorkflowJob_NewJobView_Err_NoMetadata_Msg());
         // show empty value instead of XML
         metadata.setEditorValueFormatter(new FormItemValueFormatter() {
 
@@ -185,7 +184,7 @@ public class WorkflowNewJobView {
     }
 
     private SelectItem createProfileSelector() {
-        final SelectItem profile = new SelectItem(WorkflowResourceApi.NEWJOB_PROFILE, "Vybrat profil");
+        final SelectItem profile = new SelectItem(WorkflowResourceApi.NEWJOB_PROFILE, i18n.WorkflowJob_NewJobView_Field_Profile_Title());
         profile.setOptionDataSource(WorkflowProfileDataSource.getInstance());
         profile.setValueField(WorkflowProfileDataSource.FIELD_ID);
         profile.setDisplayField(WorkflowProfileDataSource.FIELD_LABEL);

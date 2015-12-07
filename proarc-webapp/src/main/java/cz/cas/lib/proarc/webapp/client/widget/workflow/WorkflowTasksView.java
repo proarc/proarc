@@ -161,7 +161,7 @@ public class WorkflowTasksView implements Refreshable {
 
     private Label createPanelLabel() {
         Label lblHeader = new Label();
-        String title = ClientUtils.format("<b>%s</b>", "Správa úkolů");//i18n.DigitalObjectManager_Title());
+        String title = ClientUtils.format("<b>%s</b>", i18n.WorkflowTask_View_Title());
         lblHeader.setContents(title);
         lblHeader.setAutoHeight();
         lblHeader.setPadding(4);

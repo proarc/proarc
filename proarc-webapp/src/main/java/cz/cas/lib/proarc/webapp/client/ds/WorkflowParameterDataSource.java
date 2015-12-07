@@ -47,12 +47,10 @@ public class WorkflowParameterDataSource extends RestDataSource {
         setDataURL(RestConfig.URL_WORKFLOW_PARAMETER);
 
         DataSourceTextField name = new DataSourceTextField(FIELD_NAME);
-        name.setTitle("Název parametru");
         name.setDisplayField(WorkflowModelConsts.PARAMETER_PROFILELABEL);
         name.setCanEdit(false);
 
         DataSourceTextField value = new DataSourceTextField(FIELD_VALUE);
-        value.setTitle("Hodnota");
         value.setCanEdit(true);
 
         setFields(name, value);

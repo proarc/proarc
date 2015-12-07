@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DataSourceField;
@@ -29,6 +30,7 @@ import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
 import cz.cas.lib.proarc.common.workflow.model.Task.State;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -71,71 +73,72 @@ public class WorkflowTaskDataSource extends RestDataSource {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_WORKFLOW_TASK);
+        final ClientMessages i18n = GWT.create(ClientMessages.class);
 
         allTaskStates = new LinkedHashMap<String, String>() {{
-            put(State.WAITING.name(), "Čeká");
-            put(State.READY.name(), "Připraven");
-            put(State.STARTED.name(), "Probíhá");
-            put(State.FINISHED.name(), "Dokončen");
-            put(State.CANCELED.name(), "Zrušen");
+            put(State.WAITING.name(), i18n.WorkflowTask_State_Waiting_Title());
+            put(State.READY.name(), i18n.WorkflowTask_State_Ready_Title());
+            put(State.STARTED.name(), i18n.WorkflowTask_State_Started_Title());
+            put(State.FINISHED.name(), i18n.WorkflowTask_State_Finished_Title());
+            put(State.CANCELED.name(), i18n.WorkflowTask_State_Canceled_Title());
         }};
         DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);
         fieldId.setPrimaryKey(Boolean.TRUE);
         fieldId.setDetail(true);
-        fieldId.setTitle("ID");
+        fieldId.setTitle(i18n.WorkflowTask_Field_Id_Title());
         fieldId.setCanEdit(false);
 
         DataSourceTextField label = new DataSourceTextField(FIELD_LABEL);
-        label.setTitle("Typ úkolu");
+        label.setTitle(i18n.WorkflowTask_Field_Label_Title());
         label.setLength(255);
         label.setCanEdit(false);
 
         DataSourceTextField jobId = new DataSourceTextField(FIELD_JOB_ID);
-        jobId.setTitle("ID záměru");
+        jobId.setTitle(i18n.WorkflowTask_Field_JobId_Title());
         jobId.setDetail(true);
         jobId.setCanEdit(false);
 
         DataSourceTextField jobLabel = new DataSourceTextField(FIELD_JOB_LABEL);
-        jobLabel.setTitle("Záměr");
+        jobLabel.setTitle(i18n.WorkflowTask_Field_JobLabel_Title());
         jobLabel.setDetail(true);
         jobLabel.setCanEdit(false);
 
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
-        state.setTitle("Stav");
+        state.setTitle(i18n.WorkflowTask_Field_State_Title());
         state.setValueMap(allTaskStates);
         state.setRequired(true);
 
         DataSourceTextField owner = new DataSourceTextField(FIELD_OWNER);
-        owner.setTitle("Pracovník");
+        owner.setTitle(i18n.WorkflowTask_Field_Owner_Title());
         owner.setDisplayField(WorkflowModelConsts.TASK_OWNERNAME);
 
         DataSourceTextField note = new DataSourceTextField(FIELD_NOTE);
-        note.setTitle("Poznámka");
+        note.setTitle(i18n.WorkflowTask_Field_Note_Title());
         note.setDetail(true);
 
         DataSourceTextField type = new DataSourceTextField(FIELD_TYPE);
-        type.setTitle("Typ ID");
+        type.setTitle(i18n.WorkflowTask_Field_Profile_Title());
         type.setDetail(true);
         type.setCanEdit(false);
 
         DataSourceEnumField priority = new DataSourceEnumField(FIELD_PRIORITY);
-        priority.setTitle("Priorita");
+        priority.setTitle(i18n.WorkflowTask_Field_Priority_Title());
         priority.setDetail(true);
         priority.setValueMap(new LinkedHashMap() {{
-            put("1", "Spěchá");
-            put("2", "Normální");
-            put("3", "Nízká");
-            put("4", "Odloženo");
+            put("1", i18n.Workflow_Priority_1_Title());
+            put("2", i18n.Workflow_Priority_2_Title());
+            put("3", i18n.Workflow_Priority_3_Title());
+            put("4", i18n.Workflow_Priority_4_Title());
         }});
 
         DataSourceDateTimeField created = new DataSourceDateTimeField(FIELD_CREATED);
-        created.setTitle("Vytvořeno");
+        created.setTitle(i18n.WorkflowTask_Field_Created_Title());
         created.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
         created.setCanEdit(false);
         created.setDetail(true);
 
         DataSourceDateTimeField modified = new DataSourceDateTimeField(FIELD_MODIFIED);
-        modified.setTitle("Změněno");
+        modified.setTitle(i18n.WorkflowTask_Field_Modified_Title());
         modified.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
         modified.setCanEdit(false);
         modified.setDetail(true);

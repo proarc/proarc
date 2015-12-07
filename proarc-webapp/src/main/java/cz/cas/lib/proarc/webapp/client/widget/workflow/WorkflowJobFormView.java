@@ -299,7 +299,10 @@ public class WorkflowJobFormView implements Refreshable {
             }
         });
 
-        this.editTaskAction = new AbstractAction("Editovat", "[SKIN]/actions/edit.png", null) {
+        this.editTaskAction = new AbstractAction(
+                i18n.WorkflowJob_FormView_EditTaskAction_Title(),
+                "[SKIN]/actions/edit.png",
+                i18n.WorkflowJob_FormView_EditTaskAction_Hint()) {
 
             @Override
             public boolean accept(ActionEvent event) {
@@ -338,7 +341,9 @@ public class WorkflowJobFormView implements Refreshable {
             }
         });
         MenuItem addTaskMenuItem = Actions.asMenuItem(new AbstractAction(
-                "Přidat krok", "[SKIN]/actions/add.png", null) {
+                i18n.WorkflowJob_FormView_AddTaskAction_Title(),
+                "[SKIN]/actions/add.png",
+                i18n.WorkflowJob_FormView_AddTaskAction_Hint()) {
 
             @Override
             public void performAction(ActionEvent event) {

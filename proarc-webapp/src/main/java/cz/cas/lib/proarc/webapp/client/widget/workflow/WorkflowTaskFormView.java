@@ -269,7 +269,10 @@ public class WorkflowTaskFormView implements Refreshable {
                 handler.onSave(WorkflowTaskFormView.this);
             }
         };
-        AbstractAction openJobActin = new AbstractAction("Záměr", "[SKIN]/actions/edit.png", "Otevře záměr úkolu.") {
+        AbstractAction openJobAction = new AbstractAction(
+                i18n.WorkflowTask_View_OpenJobAction_Title(),
+                "[SKIN]/actions/edit.png",
+                i18n.WorkflowTask_View_OpenJobAction_Hint()) {
 
             @Override
             public boolean accept(ActionEvent event) {
@@ -285,7 +288,7 @@ public class WorkflowTaskFormView implements Refreshable {
         };
 
         toolbar.addMember(Actions.asIconButton(refreshAction, this));
-        toolbar.addMember(Actions.asIconButton(openJobActin, actionSource));
+        toolbar.addMember(Actions.asIconButton(openJobAction, actionSource));
         toolbar.addMember(Actions.asIconButton(saveAction, actionSource));
         return toolbar;
     }
