@@ -65,6 +65,7 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
+import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 
 /**
  *
@@ -269,6 +270,7 @@ public class WorkflowJobFormView implements Refreshable {
         taskView.setCanSort(false);
         taskView.setDataFetchMode(FetchMode.BASIC);
         taskView.setGenerateDoubleClickOnEnter(true);
+        ListGridPersistance taskViewPersistance = new ListGridPersistance("WorkflowJobFormView.taskList", taskView);
 
         ResultSet rs = new ResultSet();
         rs.setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
@@ -279,8 +281,22 @@ public class WorkflowJobFormView implements Refreshable {
         taskView.setDataSource(WorkflowTaskDataSource.getInstance(),
                 new ListGridField(WorkflowTaskDataSource.FIELD_LABEL),
                 new ListGridField(WorkflowTaskDataSource.FIELD_OWNER, 50),
-                new ListGridField(WorkflowTaskDataSource.FIELD_STATE, 50)
+                new ListGridField(WorkflowTaskDataSource.FIELD_STATE, 50),
+                new ListGridField(WorkflowTaskDataSource.FIELD_TYPE),
+                new ListGridField(WorkflowTaskDataSource.FIELD_PRIORITY, 60),
+                new ListGridField(WorkflowTaskDataSource.FIELD_CREATED, 100),
+                new ListGridField(WorkflowTaskDataSource.FIELD_MODIFIED, 100),
+                new ListGridField(WorkflowTaskDataSource.FIELD_ID, 30),
+                new ListGridField(WorkflowTaskDataSource.FIELD_NOTE)
         );
+        taskView.getField(WorkflowTaskDataSource.FIELD_TYPE).setHidden(true);
+        taskView.getField(WorkflowTaskDataSource.FIELD_PRIORITY).setHidden(true);
+        taskView.getField(WorkflowTaskDataSource.FIELD_CREATED).setHidden(true);
+        taskView.getField(WorkflowTaskDataSource.FIELD_MODIFIED).setHidden(true);
+        taskView.getField(WorkflowTaskDataSource.FIELD_ID).setHidden(true);
+        taskView.getField(WorkflowTaskDataSource.FIELD_NOTE).setHidden(true);
+        taskView.setViewState(taskViewPersistance.getViewState());
+
         taskView.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
             @Override
