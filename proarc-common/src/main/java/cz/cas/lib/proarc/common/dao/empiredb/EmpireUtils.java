@@ -51,15 +51,12 @@ class EmpireUtils {
 
     /**
      * Adds DDL statements for a new table. In addition to {@link DBDatabaseDriver#getDDLScript}
-     * it adds also DDL statements for references and indices .
+     * it adds also DDL statements for references.
      */
     public static void addTable(DBTable table, DBDatabaseDriver driver, DBSQLScript script) {
         driver.getDDLScript(DBCmdType.CREATE, table, script);
         for (DBRelation relation : table.getForeignKeyRelations()) {
             driver.getDDLScript(DBCmdType.CREATE, relation, script);
-        }
-        for (DBIndex index : table.getIndexes()) {
-            driver.getDDLScript(DBCmdType.CREATE, index, script);
         }
     }
 
