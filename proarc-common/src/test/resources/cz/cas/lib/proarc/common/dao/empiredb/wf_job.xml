@@ -3,11 +3,11 @@
 <dataset>
 
     <proarc_wf_job id="1" owner_id="1" profile_name="job.ndk" state="OPEN"
-        priority="2" label="Monograph" financed="OSN" note="my note"
+        priority="2" label="Monograph1" financed="OSN" note="my note"
         created="2015-10-20" timestamp="{$now}" />
 
     <proarc_wf_job id="2" owner_id="1" profile_name="job.stt" state="FINISHED"
-        priority="3" label="STT Monograph" financed="OSN" note="my note2"
+        priority="3" label="STT Monograph2" financed="OSN" note="my note2"
         created="2015-10-25" timestamp="{$now}" />
 
     <proarc_wf_task />

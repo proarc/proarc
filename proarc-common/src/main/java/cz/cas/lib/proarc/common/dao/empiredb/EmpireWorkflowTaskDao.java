@@ -102,6 +102,12 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         if (filter.getJobId() != null) {
             cmd.where(tableTask.jobId.is(filter.getJobId()));
         }
+        if (filter.getJobLabel() != null) {
+            String pattern = filter.getJobLabel().trim().replace("%", "\\%");
+            if (!pattern.isEmpty()) {
+                cmd.where(db.tableWorkflowJob.label.likeUpper('%' + pattern + '%'));
+            }
+        }
         if (!filter.getPriority().isEmpty()) {
             cmd.where(tableTask.priority.in(filter.getPriority()));
         }

@@ -141,6 +141,7 @@ public class EmpireWorkflowJobDaoTest {
 
         JobFilter filter = new JobFilter();
         filter.setId(BigDecimal.ONE);
+        filter.setLabel("Monograph1");
         List<JobView> jobs = dao.view(filter);
         assertEquals(1, jobs.size());
         JobView job0 = jobs.get(0);

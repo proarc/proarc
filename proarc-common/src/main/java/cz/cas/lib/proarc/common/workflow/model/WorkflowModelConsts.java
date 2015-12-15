@@ -71,6 +71,7 @@ public final class WorkflowModelConsts {
     public static final String TASK_FILTER_ID = "id";
     public static final String TASK_FILTER_CREATED = "created";
     public static final String TASK_FILTER_JOBID = "jobId";
+    public static final String TASK_FILTER_JOBLABEL = "jobLabel";
     public static final String TASK_FILTER_MODIFIED = "modified";
     public static final String TASK_FILTER_OFFSET = "_startRow";
     public static final String TASK_FILTER_OWNERID = "ownerId";

@@ -131,12 +131,13 @@ public class EmpireWorkflowTaskDaoTest {
 
         TaskFilter filter = new TaskFilter();
         filter.setJobId(BigDecimal.ONE);
+        filter.setJobLabel("Monograph1");
         List<TaskView> tasks = dao.view(filter);
         assertEquals(1, tasks.size());
         TaskView t = tasks.get(0);
         assertEquals(BigDecimal.ONE, t.getId());
         assertEquals(State.STARTED, t.getState());
-        assertEquals("Monograph", t.getJobLabel());
+        assertEquals("Monograph1", t.getJobLabel());
         assertEquals("test", t.getUserName());
 
         filter = new TaskFilter();

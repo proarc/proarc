@@ -227,6 +227,7 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.TASK_FILTER_CREATED) List<String> created,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_ID) BigDecimal id,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_JOBID) BigDecimal jobId,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_JOBLABEL) String jobLabel,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_MODIFIED) List<String> modified,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_PRIORITY) List<Integer> priority,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_PROFILENAME) List<String> profileName,
@@ -245,6 +246,7 @@ public class WorkflowResource {
         filter.setCreated(created);
         filter.setId(id);
         filter.setJobId(jobId);
+        filter.setJobLabel(jobLabel);
         filter.setModified(modified);
         filter.setPriority(priority);
         filter.setProfileName(profileName);

@@ -46,6 +46,8 @@ public class TaskFilter {
     private BigDecimal id;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_JOBID)
     private BigDecimal jobId;
+    @XmlElement(name = WorkflowModelConsts.TASK_FILTER_JOBLABEL)
+    private String jobLabel;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_OWNERID)
     private List<BigDecimal> userId;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_PRIORITY)
@@ -75,6 +77,14 @@ public class TaskFilter {
 
     public void setJobId(BigDecimal jobId) {
         this.jobId = jobId;
+    }
+
+    public String getJobLabel() {
+        return jobLabel;
+    }
+
+    public void setJobLabel(String jobLabel) {
+        this.jobLabel = jobLabel;
     }
 
     public List<String> getCreated() {

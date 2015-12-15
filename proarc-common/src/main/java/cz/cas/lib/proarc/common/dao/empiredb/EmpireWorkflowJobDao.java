@@ -100,7 +100,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         if (filter.getLabel() != null) {
             String pattern = filter.getLabel().trim().replace("%", "\\%");
             if (!pattern.isEmpty()) {
-                cmd.where(tableJob.label.like('%' + pattern + '%'));
+                cmd.where(tableJob.label.likeUpper('%' + pattern + '%'));
             }
         }
         if (filter.getProfileName() != null) {
