@@ -39,7 +39,12 @@ import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.StaticTextItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.fields.events.ChangedEvent;
+import com.smartgwt.client.widgets.form.fields.events.ChangedHandler;
 import com.smartgwt.client.widgets.form.validator.IsFloatValidator;
+import com.smartgwt.client.widgets.form.validator.RequiredIfFunction;
+import com.smartgwt.client.widgets.form.validator.RequiredIfValidator;
+import com.smartgwt.client.widgets.form.validator.Validator;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.common.workflow.model.Task.State;
@@ -63,6 +68,7 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowParameterDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -81,6 +87,7 @@ public class WorkflowTaskFormView implements Refreshable {
     private WorkflowMaterialView materialView;
     private final WorkflowTasksEditor handler;
     private DynamicForm paramForm;
+    private final RequiredIfFunction requiredFunc;
     private VLayout paramContainer;
     private ItemChangedHandler itemChangedHandler;
     private final ActionSource actionSource = new ActionSource(this);
@@ -88,6 +95,15 @@ public class WorkflowTaskFormView implements Refreshable {
     public WorkflowTaskFormView(ClientMessages i18n, WorkflowTasksEditor handler) {
         this.i18n = i18n;
         this.handler = handler;
+        // params are required just in case of the finished state of the task
+        this.requiredFunc = new RequiredIfFunction() {
+
+            @Override
+            public boolean execute(FormItem formItem, Object value) {
+                return State.FINISHED.name().equals(
+                        taskForm.getValueAsString(WorkflowTaskDataSource.FIELD_STATE));
+            }
+        };
         this.widget = createMainLayout();
         setItemChangedHandler();
     }
@@ -307,11 +323,12 @@ public class WorkflowTaskFormView implements Refreshable {
         jobLabel.setReadOnlyTextBoxStyle(Editor.CSS_HEADER_INSIDE_FORM);
         jobLabel.setTextBoxStyle(Editor.CSS_HEADER_INSIDE_FORM);
 
-        SelectItem owner = new SelectItem(WorkflowTaskDataSource.FIELD_OWNER);
+        final SelectItem owner = new SelectItem(WorkflowTaskDataSource.FIELD_OWNER);
         owner.setOptionDataSource(UserDataSource.getInstance());
         owner.setValueField(UserDataSource.FIELD_ID);
         owner.setDisplayField(UserDataSource.FIELD_USERNAME);
         owner.setWidth("*");
+        owner.setValidators(new RequiredIfValidator(requiredFunc));
 
         TextAreaItem note = new TextAreaItem(WorkflowTaskDataSource.FIELD_NOTE);
         note.setStartRow(true);
@@ -322,6 +339,14 @@ public class WorkflowTaskFormView implements Refreshable {
         label.setWidth("*");
 
         stateItem = new SelectItem(WorkflowTaskDataSource.FIELD_STATE);
+        stateItem.addChangedHandler(new ChangedHandler() {
+
+            @Override
+            public void onChanged(ChangedEvent event) {
+                owner.redraw();
+                paramForm.markForRedraw();
+            }
+        });
 
         taskForm.setFields(jobLabel,
                 label,
@@ -366,7 +391,7 @@ public class WorkflowTaskFormView implements Refreshable {
             String fieldName = "f" + i;
             items[i] = createFormItem(record, valueType, displayType);
             items[i].setName(fieldName);
-            // use dataPath to solve cases here the valid JSON name is not a valid javascript ID (param.id).
+            // use dataPath to solve cases where the valid JSON name is not a valid javascript ID (param.id).
             items[i].setDataPath("/" + paramName);
             items[i].setTitle(record.getAttribute(WorkflowModelConsts.PARAMETER_PROFILELABEL));
             Object val = getParameterValue(record, valueType, displayType);
@@ -421,9 +446,16 @@ public class WorkflowTaskFormView implements Refreshable {
     private FormItem createFormItem(Record editedRecord, ValueType valueType, DisplayType displayType) {
         FormItem fi = createFormItem(displayType, editedRecord);
 
-        fi.setRequired(editedRecord.getAttributeAsBoolean(WorkflowModelConsts.PARAMETER_REQUIRED));
+        Boolean required = editedRecord.getAttributeAsBoolean(WorkflowModelConsts.PARAMETER_REQUIRED);
+        ArrayList<Validator> validators = new ArrayList<Validator>();
+        if (required != null && required) {
+            validators.add(new RequiredIfValidator(requiredFunc));
+        }
         if (valueType == ValueType.NUMBER && displayType != DisplayType.CHECKBOX) {
-            fi.setValidators(new IsFloatValidator());
+            validators.add(new IsFloatValidator());
+        }
+        if (!validators.isEmpty()) {
+            fi.setValidators(validators.toArray(new Validator[validators.size()]));
         }
         return fi;
     }
