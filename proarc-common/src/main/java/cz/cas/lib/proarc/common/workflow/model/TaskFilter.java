@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.workflow.model;
 
 import cz.cas.lib.proarc.common.workflow.model.Task.State;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -46,13 +47,13 @@ public class TaskFilter {
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_JOBID)
     private BigDecimal jobId;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_OWNERID)
-    private BigDecimal userId;
+    private List<BigDecimal> userId;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_PRIORITY)
-    private Integer priority;
+    private List<Integer> priority;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_PROFILENAME)
     private List<String> profileName;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_STATE)
-    private State state;
+    private List<State> state;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_SORTBY)
     private String sortBy;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_OFFSET)
@@ -92,35 +93,47 @@ public class TaskFilter {
         this.modified = modified;
     }
 
-    public BigDecimal getUserId() {
-        return userId;
+    public List<BigDecimal> getUserId() {
+        return userId != null ? userId : Collections.<BigDecimal>emptyList();
     }
 
-    public void setUserId(BigDecimal userId) {
+    public void setUserId(List<BigDecimal> userId) {
         this.userId = userId;
     }
 
-    public Integer getPriority() {
-        return priority;
+    public List<Integer> getPriority() {
+        return priority != null ? priority : Collections.<Integer>emptyList();
     }
 
-    public void setPriority(Integer priority) {
+    public void setPriority(List<Integer> priority) {
         this.priority = priority;
     }
 
     public List<String> getProfileName() {
-        return profileName;
+        return profileName != null ? profileName : Collections.<String>emptyList();
     }
 
     public void setProfileName(List<String> profileName) {
         this.profileName = profileName;
     }
 
-    public State getState() {
-        return state;
+    public List<String> getStateAsString() {
+        if (state != null) {
+            ArrayList<String> stateNames = new ArrayList<String>(state.size());
+            for (State s : state) {
+                stateNames.add(s.name());
+            }
+            return stateNames;
+        } else {
+            return Collections.emptyList();
+        }
     }
 
-    public void setState(State state) {
+    public List<State> getState() {
+        return state != null ? state : Collections.<State>emptyList();
+    }
+
+    public void setState(List<State> state) {
         this.state = state;
     }
 

@@ -224,14 +224,17 @@ public class WorkflowTasksView implements Refreshable {
 
         grid.getField(WorkflowTaskDataSource.FIELD_OWNER).setCanFilter(true);
         grid.getField(WorkflowTaskDataSource.FIELD_OWNER).setCanSort(false);
-        SelectItem owner = new SelectItem();
+        SelectItem owner = createMultiSelectColumnFilter();
         owner.setOptionDataSource(UserDataSource.getInstance());
         owner.setValueField(UserDataSource.FIELD_ID);
         owner.setDisplayField(UserDataSource.FIELD_USERNAME);
         grid.getField(WorkflowTaskDataSource.FIELD_OWNER).setFilterEditorProperties(owner);
 
+        grid.getField(WorkflowTaskDataSource.FIELD_PRIORITY).setFilterEditorProperties(createMultiSelectColumnFilter());
+
         grid.getField(WorkflowTaskDataSource.FIELD_STATE).setCanFilter(true);
         grid.getField(WorkflowTaskDataSource.FIELD_STATE).setCanSort(false);
+        grid.getField(WorkflowTaskDataSource.FIELD_STATE).setFilterEditorProperties(createMultiSelectColumnFilter());
 
         grid.getField(WorkflowTaskDataSource.FIELD_CREATED).setCanFilter(true);
         grid.getField(WorkflowTaskDataSource.FIELD_CREATED).setCanSort(true);
@@ -280,8 +283,15 @@ public class WorkflowTasksView implements Refreshable {
         return grid;
     }
 
+    private SelectItem createMultiSelectColumnFilter() {
+        SelectItem options = new SelectItem();
+        options.setMultiple(true);
+        options.setMultipleAppearance(MultipleAppearance.PICKLIST);
+        return options;
+    }
+
     private FormItem createTaskFilterEditor() {
-        SelectItem taskOptions = new SelectItem();
+        SelectItem taskOptions = createMultiSelectColumnFilter();
         taskOptions.setMultiple(true);
         taskOptions.setMultipleAppearance(MultipleAppearance.PICKLIST);
         taskOptions.setOptionDataSource(ValueMapDataSource.getInstance()

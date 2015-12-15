@@ -102,17 +102,17 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         if (filter.getJobId() != null) {
             cmd.where(tableTask.jobId.is(filter.getJobId()));
         }
-        if (filter.getPriority() != null) {
-            cmd.where(tableTask.priority.is(filter.getPriority()));
+        if (!filter.getPriority().isEmpty()) {
+            cmd.where(tableTask.priority.in(filter.getPriority()));
         }
-        if (filter.getProfileName() != null && !filter.getProfileName().isEmpty()) {
+        if (!filter.getProfileName().isEmpty()) {
             cmd.where(tableTask.typeRef.in(filter.getProfileName()));
         }
-        if (filter.getState() != null) {
-            cmd.where(tableTask.state.is(filter.getState().name()));
+        if (!filter.getState().isEmpty()) {
+            cmd.where(tableTask.state.in(filter.getStateAsString()));
         }
-        if (filter.getUserId() != null) {
-            cmd.where(tableTask.ownerId.is(filter.getUserId()));
+        if (!filter.getUserId().isEmpty()) {
+            cmd.where(tableTask.ownerId.in(filter.getUserId()));
         }
         EmpireUtils.addWhereDate(cmd, tableTask.created, filter.getCreated());
         EmpireUtils.addWhereDate(cmd, tableTask.timestamp, filter.getModified());

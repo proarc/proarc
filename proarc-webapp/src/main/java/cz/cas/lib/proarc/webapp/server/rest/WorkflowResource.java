@@ -228,10 +228,10 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.TASK_FILTER_ID) BigDecimal id,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_JOBID) BigDecimal jobId,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_MODIFIED) List<String> modified,
-            @QueryParam(WorkflowModelConsts.TASK_FILTER_PRIORITY) Integer priority,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_PRIORITY) List<Integer> priority,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_PROFILENAME) List<String> profileName,
-            @QueryParam(WorkflowModelConsts.TASK_FILTER_STATE) Task.State state,
-            @QueryParam(WorkflowModelConsts.TASK_FILTER_OWNERID) BigDecimal userId,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_STATE) List<Task.State> state,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_OWNERID) List<BigDecimal> userId,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_SORTBY) String sortBy
     ) {
