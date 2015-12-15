@@ -122,7 +122,9 @@ public class TaskManager {
         return sorted;
     }
 
-    public Task updateTask(Task task, Map<String, Object> paramMap, WorkflowDefinition workflow) throws ConcurrentModificationException {
+    public Task updateTask(
+            Task task, Map<String, Object> paramMap, WorkflowDefinition workflow
+    ) throws ConcurrentModificationException, WorkflowException {
         List<TaskParameter> params = null;
         if (paramMap != null) {
             params = new ArrayList<TaskParameter>();
@@ -150,7 +152,9 @@ public class TaskManager {
         return updateTask(task, params, workflow);
     }
 
-    public Task updateTask(Task task, List<TaskParameter> params, WorkflowDefinition workflow) throws ConcurrentModificationException {
+    public Task updateTask(
+            Task task, List<TaskParameter> params, WorkflowDefinition workflow
+    ) throws ConcurrentModificationException, WorkflowException {
         if (task.getId() == null) {
             throw new IllegalArgumentException("Missing ID!");
         }
@@ -164,7 +168,7 @@ public class TaskManager {
         try {
             Task old = taskDao.find(task.getId());
             if (old == null) {
-                throw new IllegalArgumentException("Task not found: " + task.getId());
+                throw new WorkflowException("Task not found: " + task.getId()).addTaskNotFound(task.getId());
             }
             // keep read-only properties
             task.setCreated(old.getCreated());
@@ -172,16 +176,18 @@ public class TaskManager {
             task.setTypeRef(old.getTypeRef());
             Job job = jobDao.find(task.getJobId());
             if (job == null) {
-                throw new IllegalArgumentException("Job not found: " + task.getJobId());
+                throw new WorkflowException("Job not found: " + task.getJobId()).addJobNotFound(task.getJobId());
             }
             Job.State jobState = job.getState();
             if (jobState != Job.State.OPEN ) {
-                throw new IllegalArgumentException("Job already closed: " + jobState);
+                throw new WorkflowException("Job already closed: " + jobState).addJobIsClosed();
             }
             WorkflowDefinition profiles = wp.getProfiles();
             JobDefinition jobDef = wp.getProfile(profiles, job.getProfileName());
             if (jobDef == null) {
-                throw new IllegalArgumentException("Job name definiton not found! " + job.getProfileName());
+                throw new WorkflowException("Job name definiton not found! " + job.getProfileName())
+                        .addInvalidXmlId(job.getProfileName())
+                        .addUnexpectedError();
             }
             // check task state
             TaskFilter taskFilter = new TaskFilter();
@@ -199,7 +205,7 @@ public class TaskManager {
         } catch (ConcurrentModificationException t) {
             tx.rollback();
             throw t;
-        } catch (IllegalArgumentException t) {
+        } catch (WorkflowException t) {
             tx.rollback();
             throw t;
         } catch (Throwable t) {
@@ -234,19 +240,20 @@ public class TaskManager {
     }
 
     private List<Task> getTaskStateUpdates(State newState, State oldState,
-            Task t, JobDefinition job, List<? extends Task> sortedTasks) {
+            Task t, JobDefinition job, List<? extends Task> sortedTasks
+    ) throws WorkflowException {
         if (oldState == newState) {
             return Collections.emptyList();
         }
         if (oldState == State.WAITING) {
             if (newState == State.READY || newState == State.STARTED || newState == State.FINISHED) {
                 if (isBlocked(getStepDefinition(job, t.getTypeRef()), sortedTasks)) {
-                    throw new IllegalArgumentException("Task is blocked by other tasks!");
+                    throw new WorkflowException("Task is blocked by other tasks!").addTaskBlocked();
                 }
             } else {
             }
         } else if (newState == State.WAITING) {
-            throw new IllegalArgumentException("The task cannot be waiting again!");
+            throw new WorkflowException("The task cannot be waiting again!").addTaskCannotWaitAgain();
         } else {
 
         }
@@ -290,7 +297,9 @@ public class TaskManager {
         return false;
     }
 
-    public Task addTask(BigDecimal jobId, String taskName, WorkflowDefinition workflow, UserProfile defaultUser) {
+    public Task addTask(
+            BigDecimal jobId, String taskName, WorkflowDefinition workflow, UserProfile defaultUser
+    ) throws WorkflowException {
         Map<String, UserProfile> users = wmgr.createUserMap();
         Transaction tx = daoFactory.createTransaction();
         WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
@@ -305,15 +314,16 @@ public class TaskManager {
         try {
             Job job = jobDao.find(jobId);
             if (job == null) {
-                throw new IllegalArgumentException("Job not found: " + jobId);
+                throw new WorkflowException("Job not found: " + jobId).addJobNotFound(jobId);
             }
             Job.State jobState = job.getState();
             if (jobState != Job.State.OPEN ) {
-                throw new IllegalArgumentException("Job already closed: " + jobState);
+                throw new WorkflowException("Job already closed: " + jobState).addJobIsClosed();
             }
             JobDefinition jobDef = wp.getProfile(workflow, job.getProfileName());
             if (jobDef == null || jobDef.isDisabled()) {
-                throw new IllegalArgumentException("Job definition not found: " + job.getProfileName());
+                throw new WorkflowException("Job definition not found: " + job.getProfileName())
+                        .addInvalidXmlId(job.getProfileName());
             }
             StepDefinition step = getStepDefinition(jobDef, taskName);
             Task task = createTask(taskDao, now, job, step, users, defaultUser);
@@ -330,25 +340,29 @@ public class TaskManager {
             }
             tx.commit();
             return task;
+        } catch (WorkflowException t) {
+            tx.rollback();
+            throw t;
         } catch (Throwable t) {
             tx.rollback();
-            throw new IllegalStateException("Cannot add task: " + taskName, t);
+            throw new WorkflowException("Cannot add task: " + taskName, t).addUnexpectedError();
         } finally {
             tx.close();
         }
     }
 
-    private StepDefinition getStepDefinition(JobDefinition jobDef, String taskName) {
+    private StepDefinition getStepDefinition(JobDefinition jobDef, String taskName) throws WorkflowException {
         for (StepDefinition step : jobDef.getSteps()) {
             if (step.getTask().getName().equals(taskName)) {
                 if (step.getTask().isDisabled()) {
-                    throw new IllegalArgumentException("Task disabled: " + taskName);
+                    throw new WorkflowException("Task disabled: " + taskName).addTaskDisabled(taskName);
                 }
                 return step;
             }
         }
-        throw new IllegalArgumentException("Step definition not found: " + taskName
-                + " for " + jobDef.getName());
+        throw new WorkflowException("Step definition not found: " + taskName
+                + " for " + jobDef.getName())
+                .addInvalidXmlId(taskName).addUnexpectedError();
     }
 
     private Task createTask(WorkflowTaskDao taskDao, Timestamp now, Job job,

@@ -144,7 +144,7 @@ public class WorkflowManager {
         }
     }
 
-    public Material updateMaterial(MaterialView view) throws ConcurrentModificationException {
+    public Material updateMaterial(MaterialView view) throws ConcurrentModificationException, WorkflowException {
         Transaction tx = daoFactory.createTransaction();
         WorkflowMaterialDao dao = daoFactory.createWorkflowMaterialDao();
         WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
@@ -153,18 +153,20 @@ public class WorkflowManager {
         try {
             Material m = dao.find(view.getId());
             if (m == null) {
-                throw new IllegalArgumentException("Material not found: " + view.getId());
+                throw new WorkflowException("Material not found: " + view.getId())
+                        .addMaterialNotFound(view.getId());
             }
             if (m.getType() != view.getType()) {
-                throw new IllegalArgumentException("Material type mismatch: " + view.getId() + ", " + m.getType() + "!=" + view.getType());
+                throw new WorkflowException("Material type mismatch: "
+                        + view.getId() + ", " + m.getType() + "!=" + view.getType());
             }
             // check job state
             Job job = dao.findJob(m);
             if (m == null) {
-                throw new IllegalArgumentException("Job not found! Material: " + view.getId());
+                throw new WorkflowException("Job not found! Material: " + view.getId());
             }
             if (job.getState() != State.OPEN) {
-                throw new IllegalArgumentException("Job is closed!");
+                throw new WorkflowException("Job is closed!").addJobIsClosed();
             }
             m.setNote(view.getNote());
             if (m.getType() == MaterialType.FOLDER) {
@@ -209,12 +211,12 @@ public class WorkflowManager {
         } catch (ConcurrentModificationException t) {
             tx.rollback();
             throw t;
-        } catch (IllegalArgumentException t) {
+        } catch (WorkflowException t) {
             tx.rollback();
             throw t;
         } catch (Throwable t) {
             tx.rollback();
-            throw new IllegalStateException("Cannot update material: " + view.getId(), t);
+            throw new WorkflowException("Cannot update material: " + view.getId(), t).addUnexpectedError();
         } finally {
             tx.close();
         }
@@ -259,9 +261,9 @@ public class WorkflowManager {
         }
     }
 
-    public Job updateJob(Job job) throws ConcurrentModificationException {
+    public Job updateJob(Job job) throws ConcurrentModificationException, WorkflowException {
         if (job.getId() == null) {
-            throw new IllegalArgumentException("Missing ID!");
+            throw new WorkflowException("Missing ID!");
         }
         Transaction tx = daoFactory.createTransaction();
         WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
@@ -270,6 +272,10 @@ public class WorkflowManager {
         taskDao.setTransaction(tx);
         try {
             Job old = jobDao.find(job.getId());
+            if (old == null) {
+                throw new WorkflowException("Not found " + job.getId())
+                        .addJobNotFound(job.getId());
+            }
             // readonly properties
             job.setCreated(old.getCreated());
             job.setProfileName(old.getProfileName());
@@ -291,9 +297,13 @@ public class WorkflowManager {
         } catch (ConcurrentModificationException t) {
             tx.rollback();
             throw t;
+        } catch (WorkflowException ex) {
+            tx.rollback();
+            throw ex;
         } catch (Throwable t) {
             tx.rollback();
-            throw new IllegalStateException("Cannot update job: " + job.getId().toString(), t);
+            throw new WorkflowException("Cannot update job: " + job.getId(), t)
+                    .addUnexpectedError();
         } finally {
             tx.close();
         }
@@ -305,7 +315,7 @@ public class WorkflowManager {
 
     public Job addJob(JobDefinition jobProfile, String xml,
             CatalogConfiguration catalog, UserProfile defaultUser
-    ) {
+    ) throws WorkflowException {
         Map<String, UserProfile> users = createUserMap();
         PhysicalMaterial physicalMaterial = new PhysicalMaterialBuilder()
                 .setCatalog(catalog).setMetadata(xml)
@@ -335,9 +345,14 @@ public class WorkflowManager {
             }
             tx.commit();
             return job;
+        } catch (WorkflowException ex) {
+            tx.rollback();
+            throw new WorkflowException("Cannot add job: " + jobProfile.getName(), ex)
+                    .copy(ex);
         } catch (Throwable t) {
             tx.rollback();
-            throw new IllegalStateException(jobProfile.getName(), t);
+            throw new WorkflowException("Cannot add job: " + jobProfile.getName(), t)
+                    .addUnexpectedError();
         } finally {
             tx.close();
         }
@@ -374,7 +389,7 @@ public class WorkflowManager {
     }
 
     List<TaskParameter> createTaskParams(WorkflowParameterDao paramDao,
-            StepDefinition step, Task task) {
+            StepDefinition step, Task task) throws WorkflowException {
 
         ArrayList<TaskParameter> params = new ArrayList<TaskParameter>();
         for (SetParamDefinition setter : step.getParamSetters()) {

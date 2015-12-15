@@ -28,7 +28,7 @@ import static org.junit.Assert.*;
 public class TaskParameterTest {
 
     @Test
-    public void testDateTime() {
+    public void testDateTime() throws Exception {
         TaskParameter tp = new TaskParameter().addValueDateTime(new Timestamp(System.currentTimeMillis()));
         Timestamp now = tp.getValueDateTime();
         assertEquals(ValueType.DATETIME, tp.getValueType());
@@ -41,7 +41,7 @@ public class TaskParameterTest {
     }
 
     @Test
-    public void testNumber() {
+    public void testNumber() throws Exception {
         TaskParameter tp = new TaskParameter().addValue(ValueType.NUMBER, "1");
         // DO NOT use equals for BigDecimal!
         assertEquals(0, new BigDecimal("1.00").compareTo(new BigDecimal("1.0")));
@@ -55,7 +55,7 @@ public class TaskParameterTest {
 }
 
     @Test
-    public void testBooleanTrue() {
+    public void testBooleanTrue() throws Exception {
         TaskParameter tp = new TaskParameter().addValue(ValueType.NUMBER, "true");
         // DO NOT use equals for BigDecimal!
         assertEquals(0, BigDecimal.ONE.compareTo(tp.getValueNumber()));
@@ -63,7 +63,7 @@ public class TaskParameterTest {
     }
 
     @Test
-    public void testBooleanFalse() {
+    public void testBooleanFalse() throws Exception {
         TaskParameter tp = new TaskParameter().addValue(ValueType.NUMBER, "false");
         // DO NOT use equals for BigDecimal!
         assertEquals(0, BigDecimal.ZERO.compareTo(tp.getValueNumber()));

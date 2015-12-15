@@ -242,7 +242,7 @@ public class WorkflowManagerTest {
         try {
             Task update = tm.updateTask(task, params, workflow);
             fail("Cannot update blocked state! " + update.getStateAsString());
-        } catch (IllegalArgumentException ex) {
+        } catch (WorkflowException ex) {
             assertEquals("Task is blocked by other tasks!", ex.getMessage());
         }
 

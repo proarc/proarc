@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -104,7 +105,7 @@ public class TaskParameter {
         return value;
     }
 
-    public void setValue(String value) {
+    public void setValue(String value) throws WorkflowException {
         if (valueType == ValueType.NUMBER) {
             BigDecimal number = null;
             if (value != null) {
@@ -113,15 +114,25 @@ public class TaskParameter {
                 } else if ("false".equals(value)) {
                     number = BigDecimal.ZERO;
                 } else {
-                    number = new BigDecimal(value);
+                    try {
+                        number = new BigDecimal(value);
+                    } catch (NumberFormatException ex) {
+                        throw new WorkflowException(value, ex)
+                                .addParamNumberFormat(paramRef, value);
+                    }
                 }
             }
             setValueNumber(number);
         } else if (valueType == ValueType.DATETIME) {
             Timestamp t = null;
             if (value != null) {
-                DateTime dateTime = ISODateTimeFormat.dateOptionalTimeParser().withZoneUTC().parseDateTime(value);
-                t = new Timestamp(dateTime.getMillis());
+                try {
+                    DateTime dateTime = ISODateTimeFormat.dateOptionalTimeParser().withZoneUTC().parseDateTime(value);
+                    t = new Timestamp(dateTime.getMillis());
+                } catch (IllegalArgumentException ex) {
+                    throw new WorkflowException(value, ex)
+                            .addParamDateTimeFormat(paramRef, value);
+                }
             }
             setValueDateTime(t);
         } else { // valueType == Type.STRING and others
@@ -129,7 +140,7 @@ public class TaskParameter {
         }
     }
 
-    public TaskParameter addValue(ValueType type, String value) {
+    public TaskParameter addValue(ValueType type, String value) throws WorkflowException {
         setValueType(type);
         setValue(value);
         return this;

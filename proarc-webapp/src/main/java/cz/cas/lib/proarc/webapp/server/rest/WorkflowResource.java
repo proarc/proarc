@@ -20,6 +20,8 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
@@ -38,12 +40,15 @@ import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -167,13 +172,10 @@ public class WorkflowResource {
             filter.setId(job.getId());
             List<JobView> views = workflowManager.findJob(filter);
             return new SmartGwtResponse<JobView>(views);
-        } catch (Throwable ex) {
-            LOG.log(Level.SEVERE,
-                    WorkflowResourceApi.NEWJOB_PROFILE + ":" + profileName
+        } catch (WorkflowException ex) {
+            return toError(ex, WorkflowResourceApi.NEWJOB_PROFILE + ":" + profileName
                     + ", " + WorkflowResourceApi.NEWJOB_CATALOGID + ":" + catalogId
-                    + ", " + WorkflowResourceApi.NEWJOB_METADATA + ":\n" + metadata,
-                    ex);
-            return SmartGwtResponse.asError(ex.getMessage());
+                    + ", " + WorkflowResourceApi.NEWJOB_METADATA + ":\n" + metadata);
         }
     }
 
@@ -205,13 +207,17 @@ public class WorkflowResource {
         job.setPriority(priority != null ? priority : 2);
         job.setState(state);
         job.setTimestamp(new Timestamp(timestamp));
-        workflowManager.updateJob(job);
+        try {
+            workflowManager.updateJob(job);
 
-        JobFilter jobFilter = new JobFilter();
-        jobFilter.setId(id);
-        jobFilter.setLocale(session.getLocale(httpHeaders));
-        List<JobView> result = workflowManager.findJob(jobFilter);
-        return new SmartGwtResponse<JobView>(result);
+            JobFilter jobFilter = new JobFilter();
+            jobFilter.setId(id);
+            jobFilter.setLocale(session.getLocale(httpHeaders));
+            List<JobView> result = workflowManager.findJob(jobFilter);
+            return new SmartGwtResponse<JobView>(result);
+        } catch (WorkflowException ex) {
+            return toError(ex, null);
+        }
     }
 
     @Path(WorkflowResourceApi.TASK_PATH)
@@ -276,12 +282,16 @@ public class WorkflowResource {
         if (workflow == null) {
             return profileError();
         }
-        Task updatedTask = workflowManager.tasks().addTask(jobId, taskName, workflow, session.getUser());
-        TaskFilter taskFilter = new TaskFilter();
-        taskFilter.setId(updatedTask.getId());
-        taskFilter.setLocale(session.getLocale(httpHeaders));
-        List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
-        return new SmartGwtResponse<TaskView>(result);
+        try {
+            Task updatedTask = workflowManager.tasks().addTask(jobId, taskName, workflow, session.getUser());
+            TaskFilter taskFilter = new TaskFilter();
+            taskFilter.setId(updatedTask.getId());
+            taskFilter.setLocale(session.getLocale(httpHeaders));
+            List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+            return new SmartGwtResponse<TaskView>(result);
+        } catch (WorkflowException ex) {
+            return toError(ex, "jobId: " + jobId + ", taskName: " + taskName);
+        }
     }
 
     @Path(WorkflowResourceApi.TASK_PATH)
@@ -303,8 +313,8 @@ public class WorkflowResource {
             taskFilter.setLocale(session.getLocale(httpHeaders));
             List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
             return new SmartGwtResponse<TaskView>(result);
-        } catch (IllegalArgumentException ex) {
-            return SmartGwtResponse.asError(ex.getMessage());
+        } catch (WorkflowException ex) {
+            return toError(ex, null);
         }
     }
 
@@ -361,14 +371,18 @@ public class WorkflowResource {
         if (workflow == null) {
             return profileError();
         }
-        Material updateMaterial = workflowManager.updateMaterial(mv);
-        MaterialFilter filter = new MaterialFilter();
-        filter.setLocale(session.getLocale(httpHeaders));
-        filter.setId(updateMaterial.getId());
-        filter.setJobId(mv.getJobId());
-        filter.setTaskId(mv.getTaskId());
-        List<MaterialView> result = workflowManager.findMaterial(filter);
-        return new SmartGwtResponse<MaterialView>(result);
+        try {
+            Material updateMaterial = workflowManager.updateMaterial(mv);
+            MaterialFilter filter = new MaterialFilter();
+            filter.setLocale(session.getLocale(httpHeaders));
+            filter.setId(updateMaterial.getId());
+            filter.setJobId(mv.getJobId());
+            filter.setTaskId(mv.getTaskId());
+            List<MaterialView> result = workflowManager.findMaterial(filter);
+            return new SmartGwtResponse<MaterialView>(result);
+        } catch (WorkflowException ex) {
+            return toError(ex, null);
+        }
     }
 
     @Path(WorkflowResourceApi.PARAMETER_PATH)
@@ -424,8 +438,39 @@ public class WorkflowResource {
         return new SmartGwtResponse<JobDefinitionView>(profiles);
     }
 
-    private static <T> SmartGwtResponse<T> profileError() {
-        return SmartGwtResponse.asError("Invalid workflow.xml! Check server configuration.");
+    private <T> SmartGwtResponse<T> profileError() {
+        return toError(
+                new WorkflowException("Invalid workflow.xml!")
+                        .addInvalidXml(),
+                null);
+    }
+
+    private <T> SmartGwtResponse<T> toError(WorkflowException ex, String log) {
+        if (ex.getValidations().isEmpty()) {
+            LOG.log(Level.SEVERE, log, ex);
+            return SmartGwtResponse.asError(ex.getMessage());
+        }
+        StringBuilder sb = new StringBuilder();
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        for (ValidationResult validation : ex.getValidations()) {
+            String msg;
+            try {
+                msg = msgs.getFormattedMessage(validation.getBundleKey(), validation.getValues());
+            } catch (MissingResourceException mrex) {
+                LOG.log(Level.WARNING, validation.getBundleKey(), mrex);
+                msg = validation.getBundleKey();
+            }
+            if (sb.length() > 0) {
+                sb.append("<p>");
+            }
+            sb.append(msg);
+            // log only unexpected errors
+            if (WorkflowException.UNEXPECTED_ERROR_MSG_MSG.equals(validation.getBundleKey())) {
+                LOG.log(Level.SEVERE, log, ex);
+            }
+        }
+        return SmartGwtResponse.asError(sb.toString());
     }
 
 }
