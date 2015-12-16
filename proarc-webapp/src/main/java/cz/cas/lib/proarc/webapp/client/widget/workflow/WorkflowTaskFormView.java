@@ -397,6 +397,7 @@ public class WorkflowTaskFormView implements Refreshable {
             // use dataPath to solve cases where the valid JSON name is not a valid javascript ID (param.id).
             items[i].setDataPath("/" + paramName);
             items[i].setTitle(record.getAttribute(WorkflowModelConsts.PARAMETER_PROFILELABEL));
+            items[i].setTooltip(record.getAttribute(WorkflowModelConsts.PARAMETER_PROFILEHINT));
             Object val = getParameterValue(record, valueType, displayType);
             if (val != null) {
                 values.setAttribute(paramName, val);

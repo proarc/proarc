@@ -36,6 +36,8 @@ public class TaskParameterView extends TaskParameter {
     private BigDecimal jobId;
     @XmlElement(name = WorkflowModelConsts.PARAMETER_PROFILELABEL)
     private String profileLabel;
+    @XmlElement(name = WorkflowModelConsts.PARAMETER_PROFILEHINT)
+    private String profileHint;
     @XmlTransient
     private ParamDefinition profile;
     @XmlTransient
@@ -55,6 +57,14 @@ public class TaskParameterView extends TaskParameter {
 
     public void setProfileLabel(String profileLabel) {
         this.profileLabel = profileLabel;
+    }
+
+    public String getProfileHint() {
+        return profileHint;
+    }
+
+    public void setProfileHint(String profileHint) {
+        this.profileHint = profileHint;
     }
 
     public ParamDefinition getProfile() {

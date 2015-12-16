@@ -107,15 +107,19 @@ public class FilterFindParameterQuery {
         ParamEntry paramEntry = taskParams.get(param.getParamRef());
         if (paramEntry != null) {
             ParamDefinition profile = paramEntry.getDefinition();
-            String label = profile.getTitle(filter.getLocale().getLanguage(), param.getParamRef());
+            String lang = filter.getLocale().getLanguage();
+            String label = profile.getTitle(lang, param.getParamRef());
+            String hint = profile.getHint(lang, null);
             param.setProfileLabel(label);
+            param.setProfileHint(hint);
             param.setProfile(profile);
             paramEntry.setParam(param);
         } else {
             // no param definition
-            String label = "Unknow parameter profile: " + param.getParamRef()
+            String hint = "Unknow parameter profile: " + param.getParamRef()
                     + " in task: " + param.getTaskProfileName();
-            param.setProfileLabel(label);
+            param.setProfileLabel(param.getParamRef());
+            param.setProfileHint(hint);
             paramEntry = new ParamEntry(param, null, param);
             taskParams.put(param.getParamRef(), paramEntry);
         }
@@ -132,6 +136,7 @@ public class FilterFindParameterQuery {
             TaskParameterFilter filter
     ) {
         // right outer join of db param with param profiles
+        String lang = filter.getLocale().getLanguage();
         ArrayList<TaskParameterView> result = new ArrayList<TaskParameterView>();
         for (Map<String, ParamEntry> taskParams : join.values()) {
             for (ParamEntry entry : taskParams.values()) {
@@ -142,7 +147,8 @@ public class FilterFindParameterQuery {
                     param.setJobId(entry.getPrototype().getJobId());
                     param.setParamRef(profile.getName());
                     param.setProfile(profile);
-                    param.setProfileLabel(profile.getTitle(filter.getLocale().getLanguage(), profile.getName()));
+                    param.setProfileLabel(profile.getTitle(lang, profile.getName()));
+                    param.setProfileHint(profile.getHint(lang, null));
                     param.setTaskId(entry.getPrototype().getTaskId());
                     param.setTaskProfileName(entry.getPrototype().getTaskProfileName());
                     param.setValueType(profile.getValueType());

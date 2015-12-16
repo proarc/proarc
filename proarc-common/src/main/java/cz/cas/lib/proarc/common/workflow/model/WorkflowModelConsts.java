@@ -84,6 +84,7 @@ public final class WorkflowModelConsts {
     public static final String PARAMETER_JOBID = "jobId";
     public static final String PARAMETER_OPTION_DISPLAY_FIELD = "optionDisplayField";
     public static final String PARAMETER_OPTION_VALUE_FIELD = "optionValueField";
+    public static final String PARAMETER_PROFILEHINT = "profileHint";
     public static final String PARAMETER_PROFILELABEL = "profileLabel";
     public static final String PARAMETER_PROFILENAME = "profileName";
     /** JSON. */
