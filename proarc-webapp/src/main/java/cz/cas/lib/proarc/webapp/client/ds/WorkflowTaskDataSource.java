@@ -50,6 +50,7 @@ public class WorkflowTaskDataSource extends RestDataSource {
     public static final String FIELD_JOB_LABEL = WorkflowModelConsts.TASK_JOBLABEL;
     public static final String FIELD_ID = WorkflowModelConsts.TASK_ID;
     // LABEL stands for i18n of TYPE
+    public static final String FIELD_HINT = WorkflowModelConsts.TASK_PROFILEHINT;
     public static final String FIELD_LABEL = WorkflowModelConsts.TASK_PROFILELABEL;
     public static final String FIELD_MATERIALS = "materials";
     public static final String FIELD_MODIFIED = WorkflowModelConsts.TASK_MODIFIED;

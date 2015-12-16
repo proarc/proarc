@@ -30,6 +30,8 @@ public class TaskView extends Task {
 
     @XmlElement(name = WorkflowModelConsts.TASK_PROFILELABEL)
     private String profileLabel;
+    @XmlElement(name = WorkflowModelConsts.TASK_PROFILEHINT)
+    private String profileHint;
     @XmlElement(name = WorkflowModelConsts.TASK_JOBLABEL)
     private String jobLabel;
     @XmlElement(name = WorkflowModelConsts.TASK_OWNERNAME)
@@ -41,6 +43,14 @@ public class TaskView extends Task {
 
     public void setProfileLabel(String profileLabel) {
         this.profileLabel = profileLabel;
+    }
+
+    public String getProfileHint() {
+        return profileHint;
+    }
+
+    public void setProfileHint(String profileHint) {
+        this.profileHint = profileHint;
     }
 
     public String getJobLabel() {

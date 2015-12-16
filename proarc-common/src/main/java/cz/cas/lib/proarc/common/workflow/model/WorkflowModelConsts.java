@@ -60,6 +60,7 @@ public final class WorkflowModelConsts {
     public static final String TASK_OWNERNAME = "ownerName";
     public static final String TASK_PARAMETERS = "params";
     public static final String TASK_PRIORITY = "priority";
+    public static final String TASK_PROFILEHINT = "profileHint";
     public static final String TASK_PROFILELABEL = "profileLabel";
     public static final String TASK_PROFILENAME = "profileName";
     public static final String TASK_STATE = "state";

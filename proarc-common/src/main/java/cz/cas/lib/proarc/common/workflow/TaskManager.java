@@ -75,15 +75,16 @@ public class TaskManager {
         WorkflowTaskDao taskDao = daoFactory.createWorkflowTaskDao();
         taskDao.setTransaction(tx);
         try {
+            String lang = filter.getLocale().getLanguage();
             List<TaskView> tasks = taskDao.view(filter);
             for (TaskView task : tasks) {
                 TaskDefinition taskProfile = wp.getTaskProfile(wd, task.getTypeRef());
                 if (taskProfile != null) {
-                    task.setProfileLabel(taskProfile.getTitle(
-                            filter.getLocale().getLanguage(),
-                            taskProfile.getName()));
+                    task.setProfileLabel(taskProfile.getTitle(lang, taskProfile.getName()));
+                    task.setProfileHint(taskProfile.getHint(lang, null));
                 } else {
-                    task.setProfileLabel("Unknown task profile: " + task.getTypeRef());
+                    task.setProfileLabel(task.getTypeRef());
+                    task.setProfileHint("Unknown task XML ID: " + task.getTypeRef());
                 }
             }
             if (findJobTasks && !tasks.isEmpty()) {

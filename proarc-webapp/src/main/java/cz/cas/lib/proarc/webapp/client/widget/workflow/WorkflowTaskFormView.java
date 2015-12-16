@@ -29,12 +29,14 @@ import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.FormItemIfFunction;
 import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
 import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
 import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.DateTimeItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
+import com.smartgwt.client.widgets.form.fields.FormItemIcon;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.StaticTextItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
@@ -317,6 +319,7 @@ public class WorkflowTaskFormView implements Refreshable {
         taskForm.setNumCols(3);
         taskForm.setColWidths("*", "*", "*");
         taskForm.setTitleOrientation(TitleOrientation.TOP);
+        taskForm.setItemHoverWidth(300);
 
         StaticTextItem jobLabel = new StaticTextItem(WorkflowTaskDataSource.FIELD_JOB_LABEL);
         jobLabel.setColSpan("*");
@@ -337,8 +340,23 @@ public class WorkflowTaskFormView implements Refreshable {
         note.setColSpan("*");
         note.setWidth("*");
 
+        // title tooltip is broken in SmartGWT 4.0
+        final FormItemIcon taskHelpIcon = new FormItemIcon();
+        taskHelpIcon.setSrc("[SKIN]/actions/help.png");
+        taskHelpIcon.setTabIndex(-1);
+        taskHelpIcon.setNeverDisable(true);
+        taskHelpIcon.setShowIfCondition(new FormItemIfFunction() {
+
+            @Override
+            public boolean execute(FormItem item, Object value, DynamicForm form) {
+                String hint = taskForm.getValueAsString(WorkflowTaskDataSource.FIELD_HINT);
+                taskHelpIcon.setPrompt(hint);
+                return hint != null;
+            }
+        });
         TextItem label = new TextItem(WorkflowTaskDataSource.FIELD_LABEL);
         label.setWidth("*");
+        label.setIcons(taskHelpIcon);
 
         stateItem = new SelectItem(WorkflowTaskDataSource.FIELD_STATE);
         stateItem.addChangedHandler(new ChangedHandler() {
@@ -380,6 +398,7 @@ public class WorkflowTaskFormView implements Refreshable {
         df.setTitleOrientation(TitleOrientation.TOP);
         df.setNumCols(3);
         df.setColWidths("*", "*", "*");
+        df.setItemHoverWidth(300);
         FormItem[] items = new FormItem[records.length];
         Record values = new Record();
         for (int i = 0; i < records.length; i++) {
