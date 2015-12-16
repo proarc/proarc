@@ -260,6 +260,8 @@ public class WorkflowTaskFormView implements Refreshable {
         forms.setOverflow(Overflow.AUTO);
         forms.addMember(createForm());
         forms.addMember(createParameterList());
+        forms.setShowResizeBar(true);
+        forms.setResizeBarTarget("next");
 
         VLayout main = new VLayout();
         main.addMember(createTaskToolbar());
