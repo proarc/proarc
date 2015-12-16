@@ -376,7 +376,8 @@ public class WorkflowTaskFormView implements Refreshable {
         df.setUseFlatFields(true);
         df.setWrapItemTitles(false);
         df.setTitleOrientation(TitleOrientation.TOP);
-        df.setNumCols(2);
+        df.setNumCols(3);
+        df.setColWidths("*", "*", "*");
         FormItem[] items = new FormItem[records.length];
         Record values = new Record();
         for (int i = 0; i < records.length; i++) {
@@ -466,11 +467,13 @@ public class WorkflowTaskFormView implements Refreshable {
             case SELECT:
                 SelectItem si = new SelectItem();
                 setOptions(si, profile);
+                si.setWidth("*");
                 return si;
             case COMBOBOX:
                 ComboBoxItem cbi = new ComboBoxItem();
                 setOptions(cbi, profile);
                 cbi.setLength(2000);
+                cbi.setWidth("*");
                 return cbi;
             case CHECKBOX:
                 CheckboxItem ci = new CheckboxItem();
@@ -494,6 +497,7 @@ public class WorkflowTaskFormView implements Refreshable {
             default:
                 TextItem ti = new TextItem(name);
                 ti.setLength(2000);
+                ti.setWidth("*");
                 return ti;
         }
     }
