@@ -106,13 +106,16 @@ public class WorkflowManager {
         WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
         jobDao.setTransaction(tx);
         try {
+            String lang = filter.getLocale().getLanguage();
             List<JobView> jobs = jobDao.view(filter);
             for (JobView job : jobs) {
                 JobDefinition profile = wp.getProfile(wd, job.getProfileName());
                 if (profile != null) {
-                    job.setProfileLabel(profile.getTitle(filter.getLocale().getLanguage(), profile.getName()));
+                    job.setProfileLabel(profile.getTitle(lang, profile.getName()));
+                    job.setProfileHint(profile.getHint(lang, null));
                 } else {
-                    job.setProfileLabel("Unknown job profile: " + job.getProfileName());
+                    job.setProfileLabel(job.getProfileName());
+                    job.setProfileHint("Unknown job XML ID: " + job.getProfileName());
                 }
             }
             return jobs;

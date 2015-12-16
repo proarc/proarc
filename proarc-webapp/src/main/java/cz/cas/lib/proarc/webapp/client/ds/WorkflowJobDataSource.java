@@ -52,6 +52,7 @@ public class WorkflowJobDataSource extends RestDataSource {
     public static final String FIELD_OWNER = WorkflowModelConsts.JOB_OWNERID;
     public static final String FIELD_PRIORITY = WorkflowModelConsts.JOB_PRIORITY;
     public static final String FIELD_PROFILE_ID = WorkflowModelConsts.JOB_PROFILENAME;
+    public static final String FIELD_PROFILE_HINT = WorkflowModelConsts.JOB_PROFILEHINT;
     public static final String FIELD_STATE = WorkflowModelConsts.JOB_STATE;
 
     private static WorkflowJobDataSource INSTANCE;

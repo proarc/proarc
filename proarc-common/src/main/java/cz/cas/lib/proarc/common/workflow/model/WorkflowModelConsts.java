@@ -30,6 +30,7 @@ public final class WorkflowModelConsts {
     public static final String JOB_OWNERID = "ownerId";
     public static final String JOB_OWNERNAME = "ownerName";
     public static final String JOB_PRIORITY = "priority";
+    public static final String JOB_PROFILEHINT = "profileHint";
     public static final String JOB_PROFILELABEL = "profileLabel";
     public static final String JOB_PROFILENAME = "profileName";
     public static final String JOB_STATE = "state";

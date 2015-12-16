@@ -31,6 +31,8 @@ public class JobView extends Job {
     private String userName;
     @XmlElement(name = WorkflowModelConsts.JOB_PROFILELABEL)
     private String profileLabel;
+    @XmlElement(name = WorkflowModelConsts.JOB_PROFILEHINT)
+    private String profileHint;
 
     public String getProfileLabel() {
         return profileLabel;
@@ -38,6 +40,14 @@ public class JobView extends Job {
 
     public void setProfileLabel(String profileLabel) {
         this.profileLabel = profileLabel;
+    }
+
+    public String getProfileHint() {
+        return profileHint;
+    }
+
+    public void setProfileHint(String profileHint) {
+        this.profileHint = profileHint;
     }
 
     public String getUserName() {

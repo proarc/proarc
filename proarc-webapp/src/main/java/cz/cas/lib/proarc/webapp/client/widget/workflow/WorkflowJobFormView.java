@@ -28,10 +28,13 @@ import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.FormItemIfFunction;
 import com.smartgwt.client.widgets.form.events.ItemChangedEvent;
 import com.smartgwt.client.widgets.form.events.ItemChangedHandler;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
+import com.smartgwt.client.widgets.form.fields.FormItem;
+import com.smartgwt.client.widgets.form.fields.FormItemIcon;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
@@ -219,6 +222,7 @@ public class WorkflowJobFormView implements Refreshable {
         jobForm.setNumCols(3);
         jobForm.setColWidths("*", "*", "*");
         jobForm.setTitleOrientation(TitleOrientation.TOP);
+        jobForm.setItemHoverWidth(300);
 
         SelectItem owner = new SelectItem(WorkflowJobDataSource.FIELD_OWNER);
         owner.setOptionDataSource(UserDataSource.getInstance());
@@ -232,9 +236,23 @@ public class WorkflowJobFormView implements Refreshable {
         note.setColSpan("*");
         note.setWidth("*");
 
-        TextItem label = new TextItem(WorkflowJobDataSource.FIELD_LABEL);
+        // title tooltip is broken in SmartGWT 4.0
+        final FormItemIcon jobHelpIcon = new FormItemIcon();
+        jobHelpIcon.setSrc("[SKIN]/actions/help.png");
+        jobHelpIcon.setTabIndex(-1);
+        jobHelpIcon.setShowIfCondition(new FormItemIfFunction() {
+
+            @Override
+            public boolean execute(FormItem item, Object value, DynamicForm form) {
+                String hint = jobForm.getValueAsString(WorkflowJobDataSource.FIELD_PROFILE_HINT);
+                jobHelpIcon.setPrompt(hint);
+                return hint != null;
+            }
+        });
+        final TextItem label = new TextItem(WorkflowJobDataSource.FIELD_LABEL);
         label.setColSpan("*");
         label.setWidth("*");
+        label.setIcons(jobHelpIcon);
 
         jobForm.setFields(label,
                 new SelectItem(WorkflowJobDataSource.FIELD_STATE),
