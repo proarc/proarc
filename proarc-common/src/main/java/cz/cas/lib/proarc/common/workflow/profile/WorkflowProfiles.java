@@ -169,6 +169,7 @@ public class WorkflowProfiles {
         for (TaskDefinition task : wd.getTasks()) {
             taskList.add(new WorkflowItemView(task, lang));
         }
+        Collections.sort(taskList, new WorkflowItemComparator(ctx.getLocale()));
         return new ValueMap<WorkflowItemView>(
                 WorkflowProfileConsts.WORKFLOWITEMVIEW_TASKS_VALUEMAP, taskList);
     }
