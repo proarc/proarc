@@ -195,6 +195,7 @@ public class WorkflowTasksView implements Refreshable {
         grid.setShowFilterEditor(true);
         grid.setFilterOnKeypress(true);
         grid.setCanSort(true);
+        grid.setCanGroupBy(false);
 
         grid.setDataFetchMode(FetchMode.PAGED);
         ResultSet rs = new ResultSet();

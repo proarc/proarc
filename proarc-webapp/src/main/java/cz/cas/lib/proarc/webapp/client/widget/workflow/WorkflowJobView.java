@@ -207,6 +207,7 @@ public class WorkflowJobView implements Refreshable {
         jobGrid.setFilterOnKeypress(true);
         jobGrid.setFilterLocalData(false);
         jobGrid.setCanSort(true);
+        jobGrid.setCanGroupBy(false);
         jobGrid.setDataFetchMode(FetchMode.PAGED);
         ResultSet rs = new ResultSet();
         rs.setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
