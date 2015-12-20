@@ -234,38 +234,7 @@ public class PackageBuilder {
         String ext = getMimeFileExtension(mimetype);
         String modelName = getModelName(modelId);
         File dsFile = getGroupFile(pkgFolder, dsId, getFilename(index, modelName, uuid, ext));
-        FileMD5Info fileInfo;
-
-        ControlGroup ctrlGroup = ControlGroup.fromExternal(dt.getCONTROLGROUP());
-        if (ctrlGroup == ControlGroup.INLINE) {
-            DOMSource domSource = new DOMSource(ds.getXmlContent().getAny().get(0));
-            try {
-                domTransformer.transform(domSource, new StreamResult(dsFile));
-                fileInfo = getDigest(new BufferedInputStream(new FileInputStream(dsFile)));
-            } catch (TransformerException ex) {
-                throw new DigitalObjectException(pid, null, dsId, null, ex);
-            } catch (NoSuchAlgorithmException ex) {
-                throw new DigitalObjectException(pid, null, dsId, null, ex);
-            } catch (IOException ex) {
-                throw new DigitalObjectException(pid, null, dsId, null, ex);
-            }
-        } else {
-            Response resp = dHandler.getDissemination(null);
-            Object entity = resp.getEntity();
-            if (entity instanceof InputStream) {
-                try {
-                    fileInfo = MetsUtils.getDigestAndCopy((InputStream) entity, new FileOutputStream(dsFile));
-                } catch (IOException ex) {
-                    throw new DigitalObjectException(pid, null, dsId, null, ex);
-                } catch (NoSuchAlgorithmException ex) {
-                    throw new DigitalObjectException(pid, null, dsId, null, ex);
-                }
-            } else {
-                String msg = "Unsupported entity "
-                        + (entity == null ? null : entity.getClass().getName());
-                throw new DigitalObjectException(pid, null, dsId, msg, null);
-            }
-        }
+        FileMD5Info fileInfo = copyStream(pid, dt, ds, dHandler, dsFile);
 
         // add to fileGrp
         FileGrp fileGrp = getMetsFileGrp(dsId);
@@ -284,6 +253,39 @@ public class PackageBuilder {
         Fptr fptr = new Fptr();
         fptr.setFILEID(fileType);
         div.getFptr().add(fptr);
+    }
+
+    private FileMD5Info copyStream(String pid,
+            DatastreamType dt, DatastreamVersionType ds, DisseminationHandler dHandler,
+            File dsFile
+    ) throws DigitalObjectException {
+        String dsId = dt.getID();
+        ControlGroup ctrlGroup = ControlGroup.fromExternal(dt.getCONTROLGROUP());
+        FileMD5Info fileInfo;
+        try {
+            if (ctrlGroup == ControlGroup.INLINE) {
+                DOMSource domSource = new DOMSource(ds.getXmlContent().getAny().get(0));
+                domTransformer.transform(domSource, new StreamResult(dsFile));
+                fileInfo = getDigest(new BufferedInputStream(new FileInputStream(dsFile)));
+            } else {
+                Response resp = dHandler.getDissemination(null);
+                Object entity = resp.getEntity();
+                if (entity instanceof InputStream) {
+                    fileInfo = MetsUtils.getDigestAndCopy((InputStream) entity, new FileOutputStream(dsFile));
+                } else {
+                    String msg = "Unsupported entity "
+                            + (entity == null ? null : entity.getClass().getName());
+                    throw new DigitalObjectException(pid, null, dsId, msg, null);
+                }
+            }
+            return fileInfo;
+        } catch (TransformerException ex) {
+            throw new DigitalObjectException(pid, null, dsId, null, ex);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new DigitalObjectException(pid, null, dsId, null, ex);
+        } catch (IOException ex) {
+            throw new DigitalObjectException(pid, null, dsId, null, ex);
+        }
     }
 
     private FLocat createFLocat(File dsFile) {
