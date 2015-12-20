@@ -38,6 +38,7 @@ import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
+import cz.cas.lib.proarc.webapp.client.action.ArchiveExportAction;
 import cz.cas.lib.proarc.webapp.client.action.CejshExportAction;
 import cz.cas.lib.proarc.webapp.client.action.DataStreamExportAction;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
@@ -70,6 +71,7 @@ public final class DigitalObjectManager {
     private final DigitalObjectSearchView foundView;
     private final DigitalObjectTreeView treeView;
     private FoxmlViewAction foxmlAction;
+    private ArchiveExportAction archiveExportAction;
     private KrameriusExportAction krameriusExportAction;
     private NdkExportAction ndkExportAction;
     private CejshExportAction cejshExportAction;
@@ -187,6 +189,7 @@ public final class DigitalObjectManager {
     }
 
     private void createActions() {
+        archiveExportAction = new ArchiveExportAction(i18n);
         foxmlAction = new FoxmlViewAction(i18n);
         krameriusExportAction = new KrameriusExportAction(i18n);
         ndkExportAction = new NdkExportAction(i18n);
@@ -245,6 +248,7 @@ public final class DigitalObjectManager {
         };
         IconMenuButton btnExport = Actions.asIconMenuButton(exportMenuAction, actionSource);
         Menu menuExport = Actions.createMenu();
+        menuExport.addItem(Actions.asMenuItem(archiveExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(cejshExportAction, actionSource, false));
@@ -282,6 +286,7 @@ public final class DigitalObjectManager {
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(foxmlAction, actionSource, true));
         menu.addItem(new MenuItemSeparator());
+        menu.addItem(Actions.asMenuItem(archiveExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(cejshExportAction, actionSource, false));

@@ -25,7 +25,10 @@ package cz.cas.lib.proarc.webapp.shared.rest;
 public final class ExportResourceApi {
 
     public static final String PATH = "export";
-    
+
+    public static final String ARCHIVE_PATH = "archive";
+    public static final String ARCHIVE_PID_PARAM = "pid";
+
     public static final String CEJSH_PATH = "cejsh";
     public static final String CEJSH_PID_PARAM = "pid";
 

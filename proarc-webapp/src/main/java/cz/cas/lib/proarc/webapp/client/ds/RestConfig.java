@@ -87,6 +87,8 @@ public final class RestConfig {
     public static final String URL_USER =  path(URL_ROOT, UserResourceApi.PATH);
     public static final String URL_USER_PERMISSIONS =  URL_USER + "/permissions";
     public static final String URL_EXPORT = path(URL_ROOT, ExportResourceApi.PATH);
+    public static final String URL_EXPORT_ARCHIVE = path(
+            URL_EXPORT, ExportResourceApi.ARCHIVE_PATH);
     public static final String URL_EXPORT_CEJSH = path(
             URL_EXPORT, ExportResourceApi.CEJSH_PATH);
     public static final String URL_EXPORT_DATASTREAM = path(

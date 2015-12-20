@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.NdkExport;
+import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.export.cejsh.CejshConfig;
 import cz.cas.lib.proarc.common.export.cejsh.CejshExport;
 import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
@@ -45,6 +46,8 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
@@ -281,6 +284,44 @@ public class ExportResource {
                     result.getErrors().add(new ExportError(
                             error.getPid(), error.getMessage(), false, error.getDetails()));
                 }
+            }
+        }
+        return new SmartGwtResponse<ExportResult>(result);
+    }
+
+    /**
+     * Starts new archiving.
+     * @param pids PIDs to export
+     * @return the export result
+     */
+    @POST
+    @Path(ExportResourceApi.ARCHIVE_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ExportResult> newArchive(
+            @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids
+            ) {
+
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.ARCHIVE_PID_PARAM);
+        }
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        ExportResult result = new ExportResult();
+        ArchiveProducer export = new ArchiveProducer();
+        try {
+            File targetFolder = export.archive(pids, exportFolder);
+            if (targetFolder != null) {
+                result.setTarget(user.getUserHomeUri().relativize(targetFolder.toURI()).toASCIIString());
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(ExportResource.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        ExportResultLog reslog = export.getResultLog();
+        result.setErrors(new ArrayList<ExportError>());
+        for (ExportResultLog.ExportResult logResult : reslog.getExports()) {
+            for (ResultError error : logResult.getError()) {
+                result.getErrors().add(new ExportError(
+                        error.getPid(), error.getMessage(), false, error.getDetails()));
             }
         }
         return new SmartGwtResponse<ExportResult>(result);
