@@ -174,7 +174,7 @@ public class PackageBuilder {
                     getFilename(index, modelName, uuid, "xml"));
             DigitalObject dObj = obj.getDigitalObject();
             FoxmlUtils.marshal(new StreamResult(grpFile), dObj, true);
-            FileMD5Info fileInfo = MetsUtils.getDigest(new BufferedInputStream(new FileInputStream(grpFile)));
+            FileMD5Info fileInfo = getDigest(new BufferedInputStream(new FileInputStream(grpFile)));
 
             FileGrp fileGrp = getMetsFileGrp(dsId);
             FileType fileType = new FileType();
@@ -239,19 +239,15 @@ public class PackageBuilder {
         ControlGroup ctrlGroup = ControlGroup.fromExternal(dt.getCONTROLGROUP());
         if (ctrlGroup == ControlGroup.INLINE) {
             DOMSource domSource = new DOMSource(ds.getXmlContent().getAny().get(0));
-            BufferedInputStream is = null;
             try {
                 domTransformer.transform(domSource, new StreamResult(dsFile));
-                is = new BufferedInputStream(new FileInputStream(dsFile));
-                fileInfo = MetsUtils.getDigest(is);
+                fileInfo = getDigest(new BufferedInputStream(new FileInputStream(dsFile)));
             } catch (TransformerException ex) {
                 throw new DigitalObjectException(pid, null, dsId, null, ex);
             } catch (NoSuchAlgorithmException ex) {
                 throw new DigitalObjectException(pid, null, dsId, null, ex);
             } catch (IOException ex) {
                 throw new DigitalObjectException(pid, null, dsId, null, ex);
-            } finally {
-                IOUtils.closeQuietly(is);
             }
         } else {
             Response resp = dHandler.getDissemination(null);
@@ -356,6 +352,17 @@ public class PackageBuilder {
             sb.append(elm.getItem().getLabel());
         }
         return sb.toString();
+    }
+
+    private static FileMD5Info getDigest(InputStream is) throws NoSuchAlgorithmException, IOException {
+        try {
+            FileMD5Info fileInfo = MetsUtils.getDigest(is);
+            is.close();
+            is = null;
+            return fileInfo;
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
     }
 
 }
