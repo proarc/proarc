@@ -25,6 +25,7 @@ import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.StateType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +44,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.XMLConstants;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -57,6 +59,7 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import org.w3c.dom.Element;
 
 /**
  *
@@ -65,6 +68,8 @@ import javax.xml.transform.stream.StreamSource;
 public final class FoxmlUtils {
 
     public static final String FOXML_NAMESPACE;
+    /** The audit data stream ID. */
+    public static final String DS_AUDIT_ID = "AUDIT";
     public static final String PID_PREFIX = "uuid:";
     static final String LOCAL_FEDORA_OBJ_PATH = "http://local.fedora.server/fedora/get/";
 
@@ -74,7 +79,9 @@ public final class FoxmlUtils {
         assert FOXML_NAMESPACE != null;
     }
 
+    public static final String PROPERTY_CREATEDATE = "info:fedora/fedora-system:def/model#createdDate";
     public static final String PROPERTY_LABEL = "info:fedora/fedora-system:def/model#label";
+    public static final String PROPERTY_LASTMODIFIED = "info:fedora/fedora-system:def/view#lastModifiedDate";
     public static final String PROPERTY_OWNER = "info:fedora/fedora-system:def/model#ownerId";
     public static final String PROPERTY_STATE = "info:fedora/fedora-system:def/model#state";
     
@@ -496,6 +503,23 @@ public final class FoxmlUtils {
             return ex.getMessage().contains("No datastream");
         }
         return false;
+    }
+
+    /**
+     * Fixes DublinCore exported by Fedora Commons.
+     * <p>The {@code schemaLocation} is removed.
+     * <br>The namespace declaration is added to the root element.
+     * @param dcRoot the root element of DC
+     * @return the root element of DC
+     */
+    public static Element fixFoxmlDc(Element dcRoot) {
+        // remove xsi:schemaLocation attribute to make FOXML valid for Fedora ingest
+        dcRoot.removeAttributeNS(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "schemaLocation");
+        // optimize XML namespace declaration
+        dcRoot.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI,
+                XMLConstants.XMLNS_ATTRIBUTE + ":" + DcConstants.PREFIX_NS_PURL,
+                DcConstants.NS_PURL);
+        return dcRoot;
     }
 
     public enum ControlGroup {
