@@ -20,6 +20,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
@@ -79,11 +80,19 @@ public class PackageBuilder {
      */
     public enum MdType { DC, MODS }
 
+    /** The type of the structural map of other objects like devices. */
+    public static final String STRUCTMAP_OTHERS_TYPE = "OTHERS";
+    /** The type of the structural map of digital objects. */
+    public static final String STRUCTMAP_PHYSICAL_TYPE = "PHYSICAL";
+    /** The ID of the {@code div} containing a list of devices. */
+    public static final String DIV_DEVICE_LIST_ID = "DIV_DEVICES";
+
     private File pkgFolder;
     private URI pkgFolderUri;
     private final File parentFolder;
     private final DatatypeFactory xmlTypes;
     private Mets mets;
+    private StructMapType othersStructMap;
     private final Transformer domTransformer;
     private final HashMap<String, DivType> pid2PhysicalDiv;
 
@@ -144,7 +153,7 @@ public class PackageBuilder {
         DivType div = new DivType();
         String modelId = elm.getModelId();
         String type = getModelName(modelId);
-        div.setID(String.format("div_%s_%04d", type, 1));
+        div.setID(String.format("div_%s_%04d", type, index));
         div.getCONTENTIDS().add(elm.getPid());
         div.setLabel3(elm.getItem().getLabel());
         div.setORDER(null);
@@ -155,8 +164,8 @@ public class PackageBuilder {
         if (parent == null) {
             StructMapType structMap = new StructMapType();
             structMap.setDiv(div);
-            structMap.setTYPE("PHYSICAL");
-            structMap.setLabel2("Physical_Structure");
+            structMap.setTYPE(STRUCTMAP_PHYSICAL_TYPE);
+            structMap.setLabel2("Physical Structure");
             mets.getStructMap().add(structMap);
         } else {
             parent.getDiv().add(div);
@@ -165,11 +174,49 @@ public class PackageBuilder {
         return div;
     }
 
+    public DivType addDevice(LocalObject cache) {
+        String pid = cache.getPid();
+        DivType div = pid2PhysicalDiv.get(pid);
+        if (div != null) {
+            return div;
+        }
+        div = new DivType();
+        String modelId = DeviceRepository.METAMODEL_ID;
+        String type = getModelName(modelId);
+        div.getCONTENTIDS().add(pid);
+        div.setLabel3(cache.getLabel());
+        div.setORDER(null);
+        div.setTYPE(modelId);
+
+        DivType devicesDiv;
+        if (othersStructMap == null) {
+            othersStructMap = new StructMapType();
+            devicesDiv = new DivType();
+            devicesDiv.setID(DIV_DEVICE_LIST_ID);
+            devicesDiv.setLabel3("List of devices");
+            othersStructMap.setDiv(devicesDiv);
+            othersStructMap.setTYPE(STRUCTMAP_OTHERS_TYPE);
+            othersStructMap.setLabel2("Other objects");
+            mets.getStructMap().add(othersStructMap);
+        } else {
+            devicesDiv = othersStructMap.getDiv();
+        }
+        div.setID(String.format("div_%s_%04d", type, devicesDiv.getDiv().size() + 1));
+        devicesDiv.getDiv().add(div);
+        pid2PhysicalDiv.put(pid, div);
+        return div;
+    }
+
     public void addFoxmlAsFile(int index, DigitalObjectElement elm, LocalObject obj) throws DigitalObjectException {
+        addFoxmlAsFile(index, elm.getModelId(), obj);
+    }
+
+    public void addFoxmlAsFile(int index, String modelId, LocalObject obj) throws DigitalObjectException {
         try {
-            String uuid = FoxmlUtils.pidAsUuid(obj.getPid());
+//            String uuid = FoxmlUtils.pidAsUuid(obj.getPid());
+            String uuid = getModelName(obj.getPid());
             String dsId = "FOXML";
-            String modelName = getModelName(elm.getModelId());
+            String modelName = getModelName(modelId);
             File grpFile = getGroupFile(pkgFolder, dsId,
                     getFilename(index, modelName, uuid, "xml"));
             DigitalObject dObj = obj.getDigitalObject();

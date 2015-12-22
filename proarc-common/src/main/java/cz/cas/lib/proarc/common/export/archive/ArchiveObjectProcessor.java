@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.export.archive;
 
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.archive.PackageBuilder.MdType;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -25,6 +26,8 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
@@ -32,6 +35,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import org.w3c.dom.Element;
 
@@ -45,6 +49,7 @@ public class ArchiveObjectProcessor {
     private final DigitalObjectCrawler crawler;
     private PackageBuilder builder;
     private final File targetFolder;
+    private final HashSet<String> devicePids = new HashSet<String>();
 
     public ArchiveObjectProcessor(DigitalObjectCrawler crawler, File targetFolder) {
         this.crawler = crawler;
@@ -71,7 +76,7 @@ public class ArchiveObjectProcessor {
         for (int i = objectPath.size() - 1; i >= 1 ; i--) {
             DigitalObjectElement elm = objectPath.get(i);
             LocalObject elmCache = getLocalObject(elm.getHandler().getFedoraObject());
-            processDatastreams(1, objectPath.subList(i, objectPath.size()), elmCache);
+            processDatastreams(1, objectPath.subList(i, objectPath.size()), elmCache, new RelationEditor(elmCache));
         }
     }
 
@@ -79,7 +84,7 @@ public class ArchiveObjectProcessor {
         DigitalObjectElement entry = objectPath.get(0);
         RelationEditor relsEditor = new RelationEditor(cache);
 
-        processDatastreams(siblingIdx, objectPath, cache);
+        processDatastreams(siblingIdx, objectPath, cache, relsEditor);
 
         List<String> members = relsEditor.getMembers();
         if (!members.isEmpty()) {
@@ -90,7 +95,8 @@ public class ArchiveObjectProcessor {
     }
 
     private void processDatastreams(
-            int siblingIdx, List<DigitalObjectElement> objectPath, LocalObject cache
+            int siblingIdx, List<DigitalObjectElement> objectPath, LocalObject cache,
+            RelationEditor relsEditor
     ) throws DigitalObjectException {
         DigitalObjectElement elm = objectPath.get(0);
         DigitalObjectElement parentElm = objectPath.size() <= 1 ? null : objectPath.get(1);
@@ -106,6 +112,7 @@ public class ArchiveObjectProcessor {
                 FoxmlUtils.fixFoxmlDc(dcElm);
                 builder.addStreamAsMdSec(siblingIdx, dt, cache.getPid(), elm.getModelId(), MdType.DC);
             } else if (RelationEditor.DATASTREAM_ID.equals(dsId)) {
+                processDevice(relsEditor.getDevice(), cache.getPid());
                 builder.addStreamAsFile(siblingIdx, dt, cache.getPid(), elm.getModelId(), null);
             } else if (FoxmlUtils.DS_AUDIT_ID.equals(dsId)) {
                 builder.addStreamAsFile(siblingIdx, dt, cache.getPid(), elm.getModelId(), null);
@@ -114,6 +121,21 @@ public class ArchiveObjectProcessor {
             }
         }
         builder.addFoxmlAsFile(siblingIdx, elm, cache);
+    }
+
+    private void processDevice(String devicePid, String objPid) throws DigitalObjectException {
+        if (devicePid == null) {
+            return ;
+        }
+        boolean contains = devicePids.contains(devicePid);
+        if (!contains) {
+            devicePids.add(devicePid);
+            RemoteStorage remoteStorage = RemoteStorage.getInstance();
+            RemoteObject ro = remoteStorage.find(devicePid);
+            LocalObject cache = getLocalObject(ro);
+            builder.addDevice(cache);
+            builder.addFoxmlAsFile(devicePids.size(), DeviceRepository.METAMODEL_ID, cache);
+        }
     }
 
     private void processChildren(
