@@ -47,6 +47,7 @@ import org.w3c.dom.Element;
 public class ArchiveObjectProcessor {
 
     private final DigitalObjectCrawler crawler;
+    private final LocalStorage ls = new LocalStorage();
     private PackageBuilder builder;
     private final File targetFolder;
     private final HashSet<String> devicePids = new HashSet<String>();
@@ -152,14 +153,13 @@ public class ArchiveObjectProcessor {
         }
     }
 
-    private LocalObject getLocalObject(FedoraObject fo) {
+    private LocalObject getLocalObject(FedoraObject fo) throws DigitalObjectException {
         // get FOXML copy and query it locally
         if (fo instanceof LocalObject) {
             return (LocalObject) fo;
         }
         String foxml = fo.asText();
         DigitalObject dobj = FoxmlUtils.unmarshal(foxml, DigitalObject.class);
-        LocalStorage ls = new LocalStorage();
         return ls.create(dobj);
     }
 

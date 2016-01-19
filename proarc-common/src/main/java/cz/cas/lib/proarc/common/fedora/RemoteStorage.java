@@ -280,12 +280,15 @@ public final class RemoteStorage {
         }
 
         @Override
-        public String asText() {
+        public String asText() throws DigitalObjectException {
             try {
                 FedoraResponse response = FedoraClient.getObjectXML(getPid()).execute(client);
                 return response.getEntity(String.class);
             } catch (FedoraClientException ex) {
-                throw new IllegalStateException(getPid(), ex);
+                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    throw new DigitalObjectNotFoundException(getPid(), ex);
+                }
+                throw new DigitalObjectException(getPid(), ex);
             }
         }
 

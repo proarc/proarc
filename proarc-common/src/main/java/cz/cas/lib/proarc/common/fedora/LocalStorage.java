@@ -157,8 +157,12 @@ public final class LocalStorage {
         }
 
         @Override
-        public String asText() {
-            return FoxmlUtils.toXml(dobj, true);
+        public String asText() throws DigitalObjectException {
+            try {
+                return FoxmlUtils.toXml(dobj, true);
+            } catch (Exception ex) {
+                throw new DigitalObjectException(getPid(), ex);
+            }
         }
 
         @Override
