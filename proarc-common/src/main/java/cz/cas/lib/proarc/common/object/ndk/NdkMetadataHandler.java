@@ -356,7 +356,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
         DigitalObjectValidationException ex = new DigitalObjectValidationException(fobject.getPid(), null,
                 DESCRIPTION_DATASTREAM_ID, "MODS validation", null);
-        checkIdentifiers(oldMods, mods, ex);
+        checkIdentifiers(mods, oldMods, ex);
         RelationEditor relations = handler.relations();
         List<String> members = relations.getMembers();
         if (HAS_MEMBER_VALIDATION_MODELS.contains(relations.getModel()) && !members.isEmpty()) {
