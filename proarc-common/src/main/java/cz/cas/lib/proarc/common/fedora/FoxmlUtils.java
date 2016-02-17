@@ -134,6 +134,12 @@ public final class FoxmlUtils {
 
     public static void setProperty(DigitalObject dobj, String name, String value) {
         PropertyType propery = findProperty(dobj, name);
+        if (value == null) {
+            if (propery != null) {
+                dobj.getObjectProperties().getProperty().remove(propery);
+            }
+            return ;
+        }
         if (propery == null) {
             propery = createProperty(dobj, name);
         }
