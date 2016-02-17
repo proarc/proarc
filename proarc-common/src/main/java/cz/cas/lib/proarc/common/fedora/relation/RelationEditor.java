@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.fedora.relation;
 
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -49,8 +50,11 @@ public final class RelationEditor {
 
     public RelationEditor(FedoraObject fobject) {
         this.fobject = fobject;
-        this.editor = fobject.getEditor(
-                FoxmlUtils.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL));
+        this.editor = fobject.getEditor(profile());
+    }
+
+    public static DatastreamProfile profile() {
+        return FoxmlUtils.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL);
     }
 
     public long getLastModified() throws DigitalObjectException {
@@ -214,6 +218,14 @@ public final class RelationEditor {
     }
 
     /**
+     * Replaces all relations.
+     * @param rdf the relations
+     */
+    public void setRdf(Rdf rdf) {
+        this.relsExt = rdf;
+    }
+
+    /**
      * Prepares updates for {@link FedoraObject#flush() }
      * @param timestamp timestamp
      */
@@ -241,7 +253,10 @@ public final class RelationEditor {
         return relsExt;
     }
 
-    private static List<String> relationAsPid(List<RdfRelation> relations) {
+    /**
+     * Converts a list of RDF relation IDS to the list of PIDs.
+     */
+    public static List<String> relationAsPid(List<RdfRelation> relations) {
         ArrayList<String> result = new ArrayList<String>(relations.size());
         for (RdfRelation relation : relations) {
             result.add(RdfRelation.toPid(relation));
