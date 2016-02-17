@@ -97,6 +97,8 @@ public final class LocalStorage {
 
     public static final class LocalObject extends AbstractFedoraObject {
 
+        /** The helper property to mark a local FOXML as a copy of the remote object. */
+        private static final String PROPERTY_REMOTE_COPY = "proarc:model#remoteCopy";
         private DigitalObject dobj;
         /** {@code null} for in memory object. */
         private File foxml;
@@ -133,6 +135,17 @@ public final class LocalStorage {
 
         public void setOwner(String owner) {
             FoxmlUtils.setProperty(dobj, FoxmlUtils.PROPERTY_OWNER, owner);
+        }
+
+        /** The helper property to mark a local FOXML as a copy of the remote object. */
+        public void setRemoteCopy(boolean remote) {
+            String val = remote ? Boolean.TRUE.toString() : null;
+            FoxmlUtils.setProperty(dobj, PROPERTY_REMOTE_COPY, val);
+        }
+
+        /** The helper property to mark a local FOXML as a copy of the remote object. */
+        public boolean isRemoteCopy() {
+            return FoxmlUtils.findProperty(dobj, PROPERTY_REMOTE_COPY) != null;
         }
 
         @Override
