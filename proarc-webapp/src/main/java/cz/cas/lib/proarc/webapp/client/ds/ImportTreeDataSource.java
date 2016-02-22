@@ -37,6 +37,7 @@ public class ImportTreeDataSource extends RestDataSource {
     public static final String FIELD_NAME = "name";
     public static final String FIELD_PARENT = ImportResourceApi.IMPORT_FOLDER_PARENT_PARAM;
     public static final String FIELD_PATH = ImportResourceApi.IMPORT_FOLDER_PATH;
+    public static final String FIELD_PROFILE = ImportResourceApi.IMPORT_BATCH_PROFILE;
     public static final String FIELD_STATE = ImportResourceApi.IMPORT_FOLDER_STATE;
     private static final String ID = "ImportTreeDataSource";
     private static final Map<String, String> states = new HashMap<String, String>();

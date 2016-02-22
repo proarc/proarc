@@ -362,7 +362,7 @@ public class ImportPresenter {
             ImportRecord importRecord = record == null ? null : new ImportRecord(record);
 
             if (importRecord != null && importRecord.isNew()) {
-                ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
+                final ImportBatchDataSource dsBatch = ImportBatchDataSource.getInstance();
                 DSRequest dsRequest = new DSRequest();
                 dsRequest.setPromptStyle(PromptStyle.DIALOG);
                 dsRequest.setPrompt(i18n.ImportWizard_SelectFolderStep_Wait_Title());
@@ -381,7 +381,13 @@ public class ImportPresenter {
                         Record[] data = response.getData();
                         if (data != null && data.length > 0) {
                             BatchRecord newBatch = new BatchRecord(data[0]);
-                            showProgress(newBatch);
+                            if (newBatch.isArchive()) {
+                                SC.say(i18n.ImportWizard_SelectFolderStep_ImportScheduled_Title());
+                                response.setInvalidateCache(true);
+                                dsBatch.updateCaches(response, request);
+                            } else {
+                                showProgress(newBatch);
+                            }
                         } else {
                             response.setInvalidateCache(true);
                             SC.warn(i18n.ImportWizard_SelectFolderStep_NothingToImport_Msg());

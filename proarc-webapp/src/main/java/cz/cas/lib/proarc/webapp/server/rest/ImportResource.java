@@ -113,6 +113,7 @@ public class ImportResource {
      * Lists subfolders and their import states.
      *
      * @param parent folder path relative to user's import folder
+     * @param profileId profile ID
      * @return folder contents (path without initial slash and always terminated with slash: A/, A/B/)
      * @throws FileNotFoundException
      * @throws URISyntaxException
@@ -121,10 +122,18 @@ public class ImportResource {
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ImportFolder> listFolder(
-            @QueryParam(ImportResourceApi.IMPORT_FOLDER_PARENT_PARAM) @DefaultValue("") String parent
+            @QueryParam(ImportResourceApi.IMPORT_FOLDER_PARENT_PARAM) @DefaultValue("") String parent,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
             ) throws FileNotFoundException, URISyntaxException {
 
         String parentPath = validateParentPath(parent);
+        ImportProfile importProfile;
+        if (profileId == null || profileId.isEmpty()) {
+            importProfile = appConfig.getImportConfiguration();
+        } else {
+            ConfigurationProfile profile = findImportProfile(null, profileId);
+            importProfile = appConfig.getImportConfiguration(profile);
+        }
 
         URI userRoot = user.getImportFolder();
         URI path = (parentPath != null)
@@ -134,7 +143,7 @@ public class ImportResource {
         LOG.log(Level.FINE, "parent: {0} used as {1} resolved to {2}", new Object[] {parent, parentPath, path});
 
         ImportFileScanner scanner = new ImportFileScanner();
-        List<Folder> subfolders = scanner.findSubfolders(new File(path));
+        List<Folder> subfolders = scanner.findSubfolders(new File(path), importProfile.createImporter());
         List<ImportFolder> result = new ArrayList<ImportFolder>(subfolders.size());
         for (Folder subfolder : subfolders) {
             String subfolderName = subfolder.getHandle().getName();

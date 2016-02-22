@@ -80,6 +80,7 @@ public class PackageBuilder {
      */
     public enum MdType { DC, MODS }
 
+    public static final String METS_FILENAME = "mets.xml";
     /** The type of the structural map of other objects like devices. */
     public static final String STRUCTMAP_OTHERS_TYPE = "OTHERS";
     /** The type of the structural map of digital objects. */
@@ -146,13 +147,13 @@ public class PackageBuilder {
     }
 
     public void build() {
-        JAXB.marshal(mets, new File(pkgFolder, "mets.xml"));
+        JAXB.marshal(mets, new File(pkgFolder, METS_FILENAME));
     }
 
     public DivType addObject(int index, DigitalObjectElement elm, DigitalObjectElement parentElm) {
         DivType div = new DivType();
         String modelId = elm.getModelId();
-        String type = getModelName(modelId);
+        String type = getObjectId(modelId);
         div.setID(String.format("div_%s_%04d", type, index));
         div.getCONTENTIDS().add(elm.getPid());
         div.setLabel3(elm.getItem().getLabel());
@@ -182,7 +183,7 @@ public class PackageBuilder {
         }
         div = new DivType();
         String modelId = DeviceRepository.METAMODEL_ID;
-        String type = getModelName(modelId);
+        String type = getObjectId(modelId);
         div.getCONTENTIDS().add(pid);
         div.setLabel3(cache.getLabel());
         div.setORDER(null);
@@ -213,10 +214,9 @@ public class PackageBuilder {
 
     public void addFoxmlAsFile(int index, String modelId, LocalObject obj) throws DigitalObjectException {
         try {
-//            String uuid = FoxmlUtils.pidAsUuid(obj.getPid());
-            String uuid = getModelName(obj.getPid());
+            String uuid = getObjectId(obj.getPid());
             String dsId = "FOXML";
-            String modelName = getModelName(modelId);
+            String modelName = getObjectId(modelId);
             File grpFile = getGroupFile(pkgFolder, dsId,
                     getFilename(index, modelName, uuid, "xml"));
             DigitalObject dObj = obj.getDigitalObject();
@@ -249,14 +249,14 @@ public class PackageBuilder {
     public void addStreamAsMdSec(
             int index, DatastreamType dt, String pid, String modelId, MdType mdType
     ) throws DigitalObjectException {
-        String uuid = FoxmlUtils.pidAsUuid(pid);
+        String uuid = getObjectId(pid);
         String mimetype = dt.getDatastreamVersion().get(0).getMIMETYPE();
-        String modeName = getModelName(modelId);
+        String modelName = getObjectId(modelId);
         DatastreamVersionType ds = dt.getDatastreamVersion().get(0);
 
         MdSecType mdSec = new MdSecType();
         mdSec.setCREATED(ds.getCREATED());
-        mdSec.setID(String.format("DMD_%s_%s_%04d_%s", mdType.name(), modeName, index, uuid));
+        mdSec.setID(String.format("DMD_%s_%s_%04d_%s", mdType.name(), modelName, index, uuid));
 
         MdWrap mdWrap = new MdWrap();
         mdWrap.setMIMETYPE(mimetype);
@@ -275,11 +275,11 @@ public class PackageBuilder {
             int index, DatastreamType dt, String pid, String modelId, DisseminationHandler dHandler
     ) throws DigitalObjectException {
         String dsId = dt.getID();
-        String uuid = FoxmlUtils.pidAsUuid(pid);
+        String uuid = getObjectId(pid);
         DatastreamVersionType ds = dt.getDatastreamVersion().get(0);
         String mimetype = ds.getMIMETYPE();
         String ext = getMimeFileExtension(mimetype);
-        String modelName = getModelName(modelId);
+        String modelName = getObjectId(modelId);
         File dsFile = getGroupFile(pkgFolder, dsId, getFilename(index, modelName, uuid, ext));
         FileMD5Info fileInfo = copyStream(pid, dt, ds, dHandler, dsFile);
 
@@ -365,7 +365,7 @@ public class PackageBuilder {
         return dsFile;
     }
 
-    private static String getFilename(int index, String model, String name, String ext) {
+    static String getFilename(int index, String model, String name, String ext) {
         return String.format("%s_%04d_%s.%s", model, index, name, ext);
     }
 
@@ -377,8 +377,8 @@ public class PackageBuilder {
         }
     }
 
-    private static String getModelName(String modelId) {
-        return modelId.substring(modelId.indexOf(':') + 1);
+    static String getObjectId(String pid) {
+        return pid.substring(pid.indexOf(':') + 1);
     }
 
     private XMLGregorianCalendar getXmlDate(DigitalObject dobj, String name) {

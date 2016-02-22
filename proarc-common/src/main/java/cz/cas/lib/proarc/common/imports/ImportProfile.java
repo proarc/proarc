@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.imports;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
+import cz.cas.lib.proarc.common.export.archive.ArchiveImport;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.util.List;
@@ -68,6 +69,14 @@ public final class ImportProfile {
 
     public String getProfileId() {
         return profileId;
+    }
+
+    public ImportHandler createImporter() {
+        if (ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT.equals(getProfileId())) {
+            return new ArchiveImport();
+        } else {
+            return new FileSetImport();
+        }
     }
 
     public String getModelId() {

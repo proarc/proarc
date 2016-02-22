@@ -83,7 +83,8 @@ public class Profiles {
 
     private File getProfileFile(ConfigurationProfile profile, String filePath) {
         if (filePath == null) {
-            if (ConfigurationProfile.DEFAULT.equals(profile.getId())) {
+            if (ConfigurationProfile.DEFAULT.equals(profile.getId())
+                    || ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT.equals(profile.getId())) {
                 // default profile
                 return null;
             }

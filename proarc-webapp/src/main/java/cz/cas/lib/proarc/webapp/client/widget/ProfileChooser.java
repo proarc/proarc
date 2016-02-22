@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.webapp.client.widget;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
+import com.smartgwt.client.widgets.form.fields.events.ChangedEvent;
 import com.smartgwt.client.widgets.form.fields.events.DataArrivedEvent;
 import com.smartgwt.client.widgets.form.fields.events.DataArrivedHandler;
 import com.smartgwt.client.widgets.grid.CellFormatter;
@@ -99,6 +100,7 @@ public class ProfileChooser {
                         String profileId = profile.getAttribute(ConfigurationProfileResourceApi.PROFILE_ID);
                         selectProfile.setValue(profileId);
                         selectProfile.setDefaultValue(profileId);
+                        selectProfile.fireEvent(new ChangedEvent(null));
                     }
                 }
             }

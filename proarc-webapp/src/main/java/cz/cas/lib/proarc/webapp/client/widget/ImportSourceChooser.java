@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
+import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
@@ -29,6 +30,8 @@ import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
+import com.smartgwt.client.widgets.form.fields.events.ChangedEvent;
+import com.smartgwt.client.widgets.form.fields.events.ChangedHandler;
 import com.smartgwt.client.widgets.form.fields.events.DataArrivedEvent;
 import com.smartgwt.client.widgets.form.fields.events.DataArrivedHandler;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
@@ -50,6 +53,7 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DeviceDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.cas.lib.proarc.webapp.client.ds.ImportTreeDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ImportTreeDataSource.ImportRecord;
 import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi.ProfileGroup;
@@ -224,15 +228,31 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
         form.setIsGroup(true);
         form.setWrapItemTitles(false);
 
-        CheckboxItem cbiPageIndexes = new CheckboxItem(ImportBatchDataSource.FIELD_INDICES,
+        final CheckboxItem cbiPageIndexes = new CheckboxItem(ImportBatchDataSource.FIELD_INDICES,
                 i18n.ImportSourceChooser_OptionPageIndices_Title());
         cbiPageIndexes.setValue(true);
 
-        SelectItem selectScanner = createScannerSelection();
-        SelectItem selectProfile = ProfileChooser.createProfileSelection(ProfileGroup.IMPORTS, i18n);
+        final SelectItem selectScanner = createScannerSelection();
+        final SelectItem selectProfile = ProfileChooser.createProfileSelection(ProfileGroup.IMPORTS, i18n);
         selectProfile.setName(ImportBatchDataSource.FIELD_PROFILE_ID);
+        selectProfile.addChangedHandler(new ChangedHandler() {
 
-        form.setFields(selectScanner, cbiPageIndexes, selectProfile);
+            @Override
+            public void onChanged(ChangedEvent event) {
+                String profile = getImportProfile();
+                Criteria criteria = new Criteria();
+                if (profile != null) {
+                    criteria.addCriteria(ImportTreeDataSource.FIELD_PROFILE, profile);
+                }
+                treeGrid.setCriteria(criteria);
+                boolean notArchive = !BatchRecord.isArchive(profile);
+                selectScanner.setRequired(notArchive);
+                selectScanner.setVisible(notArchive);
+                cbiPageIndexes.setVisible(notArchive);
+            }
+        });
+
+        form.setFields(selectProfile, selectScanner, cbiPageIndexes);
         return form;
     }
 

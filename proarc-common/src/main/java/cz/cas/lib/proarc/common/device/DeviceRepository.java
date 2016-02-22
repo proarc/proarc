@@ -318,10 +318,10 @@ public final class DeviceRepository {
 
     /**
      * Gets a datastream editor for MIX format.
-     * @param robj
-     * @return
+     * @param robj an object to edit
+     * @return the editor
      */
-    static XmlStreamEditor getMixDescriptionEditor(RemoteObject robj) {
+    public static XmlStreamEditor getMixDescriptionEditor(FedoraObject robj) {
         DatastreamProfile dProfile = FoxmlUtils.managedProfile(
                 DESCRIPTION_DS_ID, MixUtils.NS, DESCRIPTION_DS_LABEL);
         XmlStreamEditor editor = robj.getEditor(dProfile);

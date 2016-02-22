@@ -97,19 +97,19 @@ public final class ImportFileScanner {
     };
 
     /**
-     * Finds subfolders in folder. No recursive search.
+     * Finds subfolders.
      *
      * @param folder folder to scan
      * @return list of direct subfolders
      */
-    public List<Folder> findSubfolders(File folder) throws FileNotFoundException, IllegalArgumentException {
+    public List<Folder> findSubfolders(File folder, ImportHandler importer) throws FileNotFoundException, IllegalArgumentException {
         validateImportFolder(folder);
 
         File[] listFiles = folder.listFiles(FOLDER_FILTER);
         Arrays.sort(listFiles, FILE_COMPARATOR);
         List<Folder> content = new ArrayList<Folder>(listFiles.length);
         for (File file : listFiles) {
-            content.add(new Folder(file));
+            content.add(new Folder(file, importer));
         }
         return content;
     }
@@ -160,11 +160,11 @@ public final class ImportFileScanner {
         }
     }
 
-    static State folderImportState(File folder) {
+    static State folderImportState(File folder, ImportHandler importer) {
         State state = isImported(folder) ? State.IMPORTED : State.NEW;
         // check file content for more details
         if (state == State.NEW) {
-            state = isImportable(folder) ? State.NEW : State.EMPTY;
+            state = importer.isImportable(folder) ? State.NEW : State.EMPTY;
         }
         return state;
     }
@@ -172,23 +172,6 @@ public final class ImportFileScanner {
     static boolean isImported(File folder) {
         File stateFile = new File(folder, IMPORT_STATE_FILENAME);
         return stateFile.exists();
-    }
-
-    private static boolean isImportable(File folder) {
-        String[] fileNames = folder.list();
-        for (String fileName : fileNames) {
-            if (ImportFileScanner.IMPORT_STATE_FILENAME.equals(fileName)) {
-                continue;
-            }
-            File file = new File(folder, fileName);
-            if (file.isFile() && file.canRead()) {
-                List<FileSet> fileSets = getFileSets(Arrays.asList(file));
-                if (ImportProcess.canImport(fileSets.get(0))) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     static void rollback(File folder) {
@@ -199,9 +182,11 @@ public final class ImportFileScanner {
     public static final class Folder {
         private File handle;
         private State status;
+        private transient ImportHandler importer;
 
-        private Folder(File handle) {
+        private Folder(File handle, ImportHandler importer) {
             this.handle = handle;
+            this.importer = importer;
         }
 
         public File getHandle() {
@@ -210,7 +195,7 @@ public final class ImportFileScanner {
 
         public State getStatus() {
             if (status == null) {
-                status = folderImportState(handle);
+                status = folderImportState(handle, importer);
             }
             return status;
         }
