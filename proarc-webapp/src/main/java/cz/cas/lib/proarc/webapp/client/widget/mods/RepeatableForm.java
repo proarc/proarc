@@ -245,6 +245,7 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
             pool.add(remove);
             removeMember(remove.view);
         }
+        setAddDisabled(activeRows.size() >= formItem.getMaxOccurrences());
     }
 
     /**
