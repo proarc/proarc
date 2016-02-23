@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.workflow.profile;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -67,7 +68,9 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
     }
 
     public List<String> getTaskNamesSortedByBlockers() {
-        return taskNamesSortedByBlockers;
+        return taskNamesSortedByBlockers != null
+                ? taskNamesSortedByBlockers
+                : Collections.<String>emptyList();
     }
 
     void setTaskNamesSortedByBlockers(List<String> taskNamesSortedByBlockers) {

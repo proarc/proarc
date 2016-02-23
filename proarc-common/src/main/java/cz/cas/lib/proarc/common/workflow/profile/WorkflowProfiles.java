@@ -249,17 +249,19 @@ public class WorkflowProfiles {
         }
         Unmarshaller unmarshaller = getUnmarshaller();
         ValidationEventCollector errors = (ValidationEventCollector) unmarshaller.getEventHandler();
-        WorkflowDefinition wf = null;
+        WorkflowDefinition fetchedWf = null;
         try {
-            wf = (WorkflowDefinition) unmarshaller.unmarshal(file);
-            wf = errors.hasEvents() ? null : wf;
-            readCaches(wf);
+            WorkflowDefinition wf = (WorkflowDefinition) unmarshaller.unmarshal(file);
+            if (!errors.hasEvents()) {
+                readCaches(wf);
+                fetchedWf = wf;
+            }
         } catch (UnmarshalException ex) {
             if (!errors.hasEvents()) {
                 throw ex;
             }
         } finally {
-            setProfiles(wf, currentTime);
+            setProfiles(fetchedWf, currentTime);
         }
         if (errors.hasEvents()) {
             StringBuilder err = new StringBuilder();
