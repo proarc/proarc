@@ -236,7 +236,7 @@ public class WorkflowProfiles {
     }
 
     private synchronized void setProfiles(WorkflowDefinition profiles, long time) {
-        if (time > lastModified) {
+        if (time != lastModified) {
             this.profiles = profiles;
             this.lastModified = time;
         }
