@@ -119,6 +119,19 @@ public class WorkflowProfiles {
         return null;
     }
 
+    /**
+     * Finds job's step.
+     * @return the step or {@code null}
+     */
+    public static StepDefinition findStep(JobDefinition job, String stepName) {
+        for (StepDefinition step : job.getSteps()) {
+            if (stepName.equals(step.getTask().getName())) {
+                return step;
+            }
+        }
+        return null;
+    }
+
     public ParamDefinition getParamProfile(TaskDefinition task, String paramName) {
         for (ParamDefinition paramDef : task.getParams()) {
             if (paramDef.getName().equals(paramName)) {
