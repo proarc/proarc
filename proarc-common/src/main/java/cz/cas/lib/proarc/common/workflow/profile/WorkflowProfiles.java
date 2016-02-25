@@ -119,6 +119,19 @@ public class WorkflowProfiles {
         return null;
     }
 
+    /**
+     * Finds job's step.
+     * @return the step or {@code null}
+     */
+    public static StepDefinition findStep(JobDefinition job, String stepName) {
+        for (StepDefinition step : job.getSteps()) {
+            if (stepName.equals(step.getTask().getName())) {
+                return step;
+            }
+        }
+        return null;
+    }
+
     public ParamDefinition getParamProfile(TaskDefinition task, String paramName) {
         for (ParamDefinition paramDef : task.getParams()) {
             if (paramDef.getName().equals(paramName)) {
@@ -236,7 +249,7 @@ public class WorkflowProfiles {
     }
 
     private synchronized void setProfiles(WorkflowDefinition profiles, long time) {
-        if (time > lastModified) {
+        if (time != lastModified) {
             this.profiles = profiles;
             this.lastModified = time;
         }
@@ -249,17 +262,19 @@ public class WorkflowProfiles {
         }
         Unmarshaller unmarshaller = getUnmarshaller();
         ValidationEventCollector errors = (ValidationEventCollector) unmarshaller.getEventHandler();
-        WorkflowDefinition wf = null;
+        WorkflowDefinition fetchedWf = null;
         try {
-            wf = (WorkflowDefinition) unmarshaller.unmarshal(file);
-            wf = errors.hasEvents() ? null : wf;
-            readCaches(wf);
+            WorkflowDefinition wf = (WorkflowDefinition) unmarshaller.unmarshal(file);
+            if (!errors.hasEvents()) {
+                readCaches(wf);
+                fetchedWf = wf;
+            }
         } catch (UnmarshalException ex) {
             if (!errors.hasEvents()) {
                 throw ex;
             }
         } finally {
-            setProfiles(wf, currentTime);
+            setProfiles(fetchedWf, currentTime);
         }
         if (errors.hasEvents()) {
             StringBuilder err = new StringBuilder();

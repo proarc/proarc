@@ -327,7 +327,13 @@ public class TaskManager {
                         .addInvalidXmlId(job.getProfileName());
             }
             StepDefinition step = getStepDefinition(jobDef, taskName);
-            Task task = createTask(taskDao, now, job, step, users, defaultUser);
+
+            TaskFilter taskFilter = new TaskFilter();
+            taskFilter.setJobId(job.getId());
+            List<TaskView> jobTasks = sortJobTaskByBlockers(jobDef, taskDao.view(taskFilter));
+            boolean blockedTask = isBlocked(step, jobTasks);
+
+            Task task = createTask(taskDao, now, job, step, users, defaultUser, blockedTask);
             wmgr.createTaskParams(paramDao, step, task);
             if (!step.getTask().getMaterialSetters().isEmpty()) {
                 Map<String, Material> materialCache = new HashMap<String, Material>();
@@ -367,15 +373,15 @@ public class TaskManager {
     }
 
     private Task createTask(WorkflowTaskDao taskDao, Timestamp now, Job job,
-            StepDefinition step, Map<String, UserProfile> users, UserProfile defaultUser
+            StepDefinition step, Map<String, UserProfile> users, UserProfile defaultUser,
+            boolean blocked
     ) throws ConcurrentModificationException {
 
         Task task = taskDao.create().addCreated(now)
                 .addJobId(job.getId())
                 .addOwnerId(WorkflowManager.resolveUserId(step.getWorker(), users, defaultUser, false))
                 .addPriority(job.getPriority())
-                // XXX check state of existing blockers
-                .setState(step.getBlockers().isEmpty() ? Task.State.READY : Task.State.WAITING)
+                .setState(blocked? Task.State.WAITING : Task.State.READY)
                 .addTimestamp(now)
                 .addTypeRef(step.getTask().getName());
         taskDao.update(task);

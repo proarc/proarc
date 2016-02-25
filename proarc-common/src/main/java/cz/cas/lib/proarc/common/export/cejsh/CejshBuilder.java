@@ -280,7 +280,28 @@ class CejshBuilder {
         zipParameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
         zipParameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
         zipParameters.setIncludeRootFolder(false);
-        zipFile.addFolder(packageFolder, zipParameters);
+        zipParameters.setDefaultFolderPath(packageFolder.getAbsolutePath());
+        zipFile.addFiles(listZipFiles(packageFolder), zipParameters);
+    }
+
+    /**
+     * Lists all files that should be part of a zip. Folder entries are not part of the list.
+     * See issue #413.
+     * @param folder a folder to scan
+     * @return the list of files
+     */
+    private static ArrayList<File> listZipFiles(File folder) {
+        ArrayList<File> files = new ArrayList<File>();
+        ArrayList<File> subfiles = new ArrayList<File>();
+        for (File file : folder.listFiles()) {
+            if (file.isFile()) {
+                files.add(file);
+            } else if (file.isDirectory()) {
+                subfiles.addAll(listZipFiles(file));
+            }
+        }
+        files.addAll(subfiles);
+        return files;
     }
 
     File writeZip(File packageFolder, CejshStatusHandler status, DigitalObjectElement packageElm) {

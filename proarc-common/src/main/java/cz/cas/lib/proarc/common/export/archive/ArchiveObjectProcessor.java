@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.ReadonlyDisseminationHandler;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -47,6 +48,7 @@ import org.w3c.dom.Element;
 public class ArchiveObjectProcessor {
 
     private final DigitalObjectCrawler crawler;
+    private final LocalStorage ls = new LocalStorage();
     private PackageBuilder builder;
     private final File targetFolder;
     private final HashSet<String> devicePids = new HashSet<String>();
@@ -134,7 +136,27 @@ public class ArchiveObjectProcessor {
             RemoteObject ro = remoteStorage.find(devicePid);
             LocalObject cache = getLocalObject(ro);
             builder.addDevice(cache);
-            builder.addFoxmlAsFile(devicePids.size(), DeviceRepository.METAMODEL_ID, cache);
+            final int deviceIdx = devicePids.size();
+            final String modelId = DeviceRepository.METAMODEL_ID;
+            builder.addFoxmlAsFile(deviceIdx, modelId, cache);
+            DigitalObject dobj = cache.getDigitalObject();
+            // write dc
+            DatastreamType dcDs = FoxmlUtils.findDatastream(dobj, DcStreamEditor.DATASTREAM_ID);
+            Element dcElm = dcDs.getDatastreamVersion().get(0).getXmlContent().getAny().get(0);
+            FoxmlUtils.fixFoxmlDc(dcElm);
+            builder.addStreamAsMdSec(deviceIdx, dcDs, devicePid, modelId, MdType.DC);
+            // write description
+            builder.addStreamAsFile(deviceIdx,
+                    FoxmlUtils.findDatastream(dobj, DeviceRepository.DESCRIPTION_DS_ID),
+                    devicePid, modelId, new ReadonlyDisseminationHandler(ro, DeviceRepository.DESCRIPTION_DS_ID));
+            // write audit
+            builder.addStreamAsFile(deviceIdx,
+                    FoxmlUtils.findDatastream(dobj, FoxmlUtils.DS_AUDIT_ID),
+                    devicePid, modelId, null);
+            // write rels-ext
+            builder.addStreamAsFile(deviceIdx,
+                    FoxmlUtils.findDatastream(dobj, RelationEditor.DATASTREAM_ID),
+                    devicePid, modelId, null);
         }
     }
 
@@ -152,14 +174,13 @@ public class ArchiveObjectProcessor {
         }
     }
 
-    private LocalObject getLocalObject(FedoraObject fo) {
+    private LocalObject getLocalObject(FedoraObject fo) throws DigitalObjectException {
         // get FOXML copy and query it locally
         if (fo instanceof LocalObject) {
             return (LocalObject) fo;
         }
         String foxml = fo.asText();
         DigitalObject dobj = FoxmlUtils.unmarshal(foxml, DigitalObject.class);
-        LocalStorage ls = new LocalStorage();
         return ls.create(dobj);
     }
 

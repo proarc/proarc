@@ -19,7 +19,9 @@ package cz.cas.lib.proarc.common.imports;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
+import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
@@ -43,6 +45,7 @@ public final class FedoraImport {
 
     private static final Logger LOG = Logger.getLogger(FedoraImport.class.getName());
     private final RemoteStorage fedora;
+    private final LocalStorage localStorage;
     private final ImportBatchManager ibm;
     private final SearchView search;
 
@@ -50,6 +53,7 @@ public final class FedoraImport {
         this.fedora = fedora;
         this.search = fedora.getSearch();
         this.ibm = ibm;
+        this.localStorage = new LocalStorage();
     }
 
     public Batch importBatch(Batch batch, String importer, String message) throws DigitalObjectException {
@@ -84,15 +88,16 @@ public final class FedoraImport {
 
     private boolean importItems(Batch batch, String importer, List<String> ingests, boolean repair)
             throws DigitalObjectException {
-
-        LocalObject root = ibm.getRootObject(batch);
-        RelationEditor rootRels = new RelationEditor(root);
-        List<String> batchMemberPids = rootRels.getMembers();
-        for (String batchMemberPid : batchMemberPids) {
-            BatchItemObject item = ibm.findBatchObject(batch.getId(), batchMemberPid);
+        List<BatchItemObject> batchItems = ibm.findBatchObjects(batch.getId(), null);
+        if (batch.getParentPid() != null) {
+            // in case of including items in a parent object it is neccessary to sort the ingests
+            batchItems = sortItems(batch, batchItems);
+        }
+        for (BatchItemObject item : batchItems) {
             item = importItem(item, importer, repair);
             if (item != null) {
                 if (ObjectState.INGESTING_FAILED == item.getState()) {
+                    batch.setLog(item.getLog());
                     return true;
                 } else {
                     ingests.add(item.getPid());
@@ -100,6 +105,31 @@ public final class FedoraImport {
             }
         }
         return false;
+    }
+
+    /**
+     * Sorts the batch items according to the RELS-EXT members of the parent object.
+     */
+    private ArrayList<BatchItemObject> sortItems(Batch batch, List<BatchItemObject> batchItems) throws DigitalObjectException {
+        LocalObject root = ibm.getRootObject(batch);
+        RelationEditor rootRels = new RelationEditor(root);
+        List<String> batchMemberPids = rootRels.getMembers();
+        ArrayList<BatchItemObject> result = new ArrayList<BatchItemObject>(batchItems.size());
+        for (String member : batchMemberPids) {
+            if (batchItems.isEmpty()) {
+                throw new DigitalObjectException(member, batch.getId(), null,
+                        String.format("Unknown %s in %s", member, root.getPid()), null);
+            }
+            for (int i = 0; i < batchItems.size(); i++) {
+                BatchItemObject item = batchItems.get(i);
+                if (member.equals(item.getPid())) {
+                    result.add(item);
+                    batchItems.remove(i);
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     /**
@@ -112,6 +142,9 @@ public final class FedoraImport {
      */
     public BatchItemObject importItem(BatchItemObject item, String importer, boolean repair) {
         try {
+            if (item.getState() == ObjectState.EXCLUDED) {
+                return null;
+            }
             if (repair) {
                 item = repairItemImpl(item, importer);
             } else {
@@ -187,9 +220,30 @@ public final class FedoraImport {
         if (foxml == null || !foxml.exists() || !foxml.canRead()) {
             throw new IllegalStateException("Cannot read foxml: " + foxml);
         }
-        fedora.ingest(foxml, item.getPid(), importer,
-                "Ingested with ProArc by " + importer
-                + " from local file " + foxml);
+        LocalObject lobj = localStorage.load(item.getPid(), foxml);
+        if (lobj.isRemoteCopy()) {
+            RemoteObject rObj = fedora.find(item.getPid());
+            RelationEditor localRelEditor = new RelationEditor(lobj);
+            if (!DeviceRepository.METAMODEL_ID.equals(localRelEditor.getModel())) {
+                List<String> members = localRelEditor.getMembers();
+                RelationEditor remoteRelEditor = new RelationEditor(rObj);
+                List<String> oldMembers = remoteRelEditor.getMembers();
+                if (!oldMembers.equals(members)) {
+                    if (!members.containsAll(oldMembers)) {
+                        throw new DigitalObjectException(lobj.getPid(),
+                                item.getBatchId(), RelationEditor.DATASTREAM_ID,
+                                "The members of the remote object have changed!", null);
+                    }
+                    remoteRelEditor.setMembers(members);
+                    remoteRelEditor.write(remoteRelEditor.getLastModified(), "The ingest from " + foxml);
+                    rObj.flush();
+                }
+            }
+        } else {
+            fedora.ingest(foxml, item.getPid(), importer,
+                    "Ingested with ProArc by " + importer
+                    + " from local file " + foxml);
+        }
         item.setState(ObjectState.INGESTED);
         return item;
     }

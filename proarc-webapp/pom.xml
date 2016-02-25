@@ -19,7 +19,7 @@
 
     <properties>
         <warName>proarc</warName>
-        <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
+        <webappDirectory>${project.build.directory}/${warName}</webappDirectory>
         <!-- see profiles to change agents -->
         <gwt.user.agent><![CDATA[<set-property name="user.agent" value="gecko1_8" />]]></gwt.user.agent>
         <!-- contains filtered GWT modules (*.gwt.xml) -->
@@ -244,6 +244,7 @@
                 <!-- Plugin configuration. There are many available options, see
                   gwt-maven-plugin documentation at codehaus.org -->
                 <configuration>
+                    <webappDirectory>${webappDirectory}</webappDirectory>
                     <runTarget>${warName}/index.html</runTarget>
                     <hostedWebapp>${webappDirectory}</hostedWebapp>
                     <i18nMessagesBundle>cz.cas.lib.proarc.webapp.client.ClientMessages</i18nMessagesBundle>

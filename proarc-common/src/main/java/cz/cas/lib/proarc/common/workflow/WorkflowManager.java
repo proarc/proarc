@@ -45,6 +45,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
+import cz.cas.lib.proarc.common.workflow.profile.BlockerDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.MaterialDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.SetMaterialDefinition;
@@ -341,7 +342,7 @@ public class WorkflowManager {
 
             for (StepDefinition step : jobProfile.getSteps()) {
                 if (!step.isOptional()) {
-                    Task task = createTask(taskDao, now, job, step, users, defaultUser);
+                    Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser);
                     createTaskParams(paramDao, step, task);
                     createMaterials(materialDao, step, task, materialCache, physicalMaterial);
                 }
@@ -376,19 +377,36 @@ public class WorkflowManager {
         return job;
     }
 
-    private Task createTask(WorkflowTaskDao taskDao, Timestamp now, Job job,
-            StepDefinition step, Map<String, UserProfile> users, UserProfile defaultUser
+    private Task createTask(WorkflowTaskDao taskDao, Timestamp now,
+            Job job, JobDefinition jobProfile,
+            StepDefinition step,
+            Map<String, UserProfile> users, UserProfile defaultUser
     ) throws ConcurrentModificationException {
 
         Task task = taskDao.create().addCreated(now)
                 .addJobId(job.getId())
                 .addOwnerId(resolveUserId(step.getWorker(), users, defaultUser, false))
                 .addPriority(job.getPriority())
-                .setState(step.getBlockers().isEmpty() ? Task.State.READY : Task.State.WAITING)
+                .setState(isBlockedNewTask(step, jobProfile) ? Task.State.WAITING : Task.State.READY)
                 .addTimestamp(now)
                 .addTypeRef(step.getTask().getName());
         taskDao.update(task);
         return task;
+    }
+
+    /**
+     * Checks whether there is a blocker declared as an non-optional step
+     * of the newly created task step.
+     * Do not use for DB tasks!
+     */
+    private static boolean isBlockedNewTask(StepDefinition newTaskStep, JobDefinition jobProfile) {
+        for (BlockerDefinition blocker : newTaskStep.getBlockers()) {
+            StepDefinition blockingStep = WorkflowProfiles.findStep(jobProfile, blocker.getTask().getName());
+            if (blockingStep != null && !blockingStep.isOptional()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     List<TaskParameter> createTaskParams(WorkflowParameterDao paramDao,

@@ -127,7 +127,8 @@ public final class AppConfiguration {
     }
 
     private Configuration getProfileConfiguration(ConfigurationProfile cp) {
-        if (ConfigurationProfile.DEFAULT.equals(cp.getId())) {
+        if (ConfigurationProfile.DEFAULT.equals(cp.getId())
+                || ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT.equals(cp.getId())) {
             return config;
         }
         Configuration profileConfig = profileConfigCache.get(cp);

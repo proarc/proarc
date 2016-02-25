@@ -33,6 +33,7 @@ import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.OperatorId;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -203,6 +204,14 @@ public final class ImportBatchDataSource extends RestDataSource {
 
         public String getProfileId() {
             return delegate.getAttribute(FIELD_PROFILE_ID);
+        }
+
+        public static boolean isArchive(String profileId) {
+            return ConfigurationProfileResourceApi.ARCHIVE_ID.equals(profileId);
+        }
+
+        public boolean isArchive() {
+            return isArchive(getProfileId());
         }
 
         public State getState() {

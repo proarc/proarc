@@ -86,14 +86,14 @@ public class LocalStorageTest {
     }
 
     @Test
-    public void testCreate_0args() {
+    public void testCreate_0args() throws Exception {
         LocalStorage instance = new LocalStorage();
         LocalObject result = instance.create();
         assertLocalObject(result);
         assertNull(result.getFoxml());
     }
 
-    private void assertLocalObject(LocalObject result) {
+    private void assertLocalObject(LocalObject result) throws DigitalObjectException {
         assertNotNull(result);
         assertNotNull(result.getPid());
         assertNotNull(result.getDigitalObject());
@@ -102,7 +102,7 @@ public class LocalStorageTest {
     }
 
     @Test
-    public void testCreate_String() {
+    public void testCreate_String() throws Exception {
         String pid = "PID";
         LocalStorage instance = new LocalStorage();
         LocalObject result = instance.create(pid);
@@ -113,7 +113,7 @@ public class LocalStorageTest {
     }
 
     @Test
-    public void testCreate_DigitalObject() {
+    public void testCreate_DigitalObject() throws Exception {
         String pid = "PID";
         DigitalObject dobj = FoxmlUtils.createFoxml(pid);
         LocalStorage instance = new LocalStorage();

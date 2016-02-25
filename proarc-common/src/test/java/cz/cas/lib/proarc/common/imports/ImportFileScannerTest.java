@@ -81,7 +81,7 @@ public class ImportFileScannerTest {
 
         File folder = tmpFolder.getRoot();
         ImportFileScanner instance = new ImportFileScanner();
-        List<Folder> result = instance.findSubfolders(folder);
+        List<Folder> result = instance.findSubfolders(folder, new FileSetImport());
         assertNotNull(result);
         assertEquals("found folders", 3, result.size());
         assertEquals("A", result.get(0).getHandle().getName());
@@ -96,14 +96,14 @@ public class ImportFileScannerTest {
     public void testScanFileNotFound() throws Exception {
         File folder = new File(tmpFolder.getRoot(), "A");
         ImportFileScanner instance = new ImportFileScanner();
-        List<Folder> result = instance.findSubfolders(folder);
+        List<Folder> result = instance.findSubfolders(folder, new FileSetImport());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testScanFileAsParameter() throws Exception {
         File file = tmpFolder.newFile("illegal.param");
         ImportFileScanner instance = new ImportFileScanner();
-        List<Folder> result = instance.findSubfolders(file);
+        List<Folder> result = instance.findSubfolders(file, new FileSetImport());
     }
 
     private boolean isWindows() {
@@ -135,7 +135,7 @@ public class ImportFileScannerTest {
 
         File folder = tmpFolder.getRoot();
         ImportFileScanner instance = new ImportFileScanner();
-        List<Folder> result = instance.findSubfolders(folder);
+        List<Folder> result = instance.findSubfolders(folder, new FileSetImport());
         assertNotNull(result);
 
         String[] resultAsArray = new String[result.size()];

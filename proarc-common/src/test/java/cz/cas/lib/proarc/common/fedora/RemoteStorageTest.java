@@ -636,6 +636,17 @@ public class RemoteStorageTest {
         assertEquals(dsId, resultProfiles.get(0).getDsID());
     }
 
+    @Test
+    public void testObjectNotFound() throws Exception {
+        RemoteStorage fedora = new RemoteStorage(client);
+        RemoteObject remote = fedora.find("prefix:unknown");
+        try {
+            remote.asText();
+        } catch (DigitalObjectNotFoundException ex) {
+            // ok
+        }
+    }
+
     @XmlRootElement(namespace="testns")
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class TestXml {

@@ -43,6 +43,6 @@ public interface FedoraObject {
 
     void flush() throws DigitalObjectException;
 
-    String asText();
+    String asText() throws DigitalObjectException;
 
 }

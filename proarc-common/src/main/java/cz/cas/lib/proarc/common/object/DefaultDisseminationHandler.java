@@ -100,24 +100,29 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
 //                    .expires(new Date(2100, 1, 1))
                     .build();
         } else if (fobject instanceof RemoteObject) {
-            // This should limit fedora calls to 1.
-            // XXX It works around FedoraClient.FedoraClient.getDatastreamDissemination that hides HTTP headers of the response.
-            // Unfortunattely fedora does not return modification date as HTTP header
-            // In case of large images it could be faster to ask datastream for modification date first.
             RemoteObject remote = (RemoteObject) fobject;
-            String path = String.format("objects/%s/datastreams/%s/content", remote.getPid(), dsId);
-            ClientResponse response = remote.getClient().resource().path(path).get(ClientResponse.class);
-            if (Status.fromStatusCode(response.getStatus()) != Status.OK) {
-                throw new DigitalObjectNotFoundException(pid, null, dsId, response.getEntity(String.class), null);
-            }
-            MultivaluedMap<String, String> headers = response.getHeaders();
-            String filename = headers.getFirst("Content-Disposition");
-            filename = filename != null ? filename : "inline; filename=" + pid + '-' + dsId;
-            return Response.ok(response.getEntity(InputStream.class), headers.getFirst("Content-Type"))
-                    .header("Content-Disposition", filename)
-                    .build();
+            return getResponse(remote, dsId);
         }
         throw new IllegalStateException("unsupported: " + fobject.getClass());
+    }
+
+    public static Response getResponse(RemoteObject remote, String dsId) throws DigitalObjectException {
+        // This should limit fedora calls to 1.
+        // XXX It works around FedoraClient.FedoraClient.getDatastreamDissemination that hides HTTP headers of the response.
+        // Unfortunattely fedora does not return modification date as HTTP header
+        // In case of large images it could be faster to ask datastream for modification date first.
+        String pid = remote.getPid();
+        String path = String.format("objects/%s/datastreams/%s/content", pid, dsId);
+        ClientResponse response = remote.getClient().resource().path(path).get(ClientResponse.class);
+        if (Status.fromStatusCode(response.getStatus()) != Status.OK) {
+            throw new DigitalObjectNotFoundException(pid, null, dsId, response.getEntity(String.class), null);
+        }
+        MultivaluedMap<String, String> headers = response.getHeaders();
+        String filename = headers.getFirst("Content-Disposition");
+        filename = filename != null ? filename : "inline; filename=" + pid + '-' + dsId;
+        return Response.ok(response.getEntity(InputStream.class), headers.getFirst("Content-Type"))
+                .header("Content-Disposition", filename)
+                .build();
     }
 
     // XXX add impl of other data streams (PREVIEW, THUMB)

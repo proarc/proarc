@@ -20,11 +20,7 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
 import cz.cas.lib.proarc.common.dao.Batch;
-import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
-import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.export.mets.JhoveContext;
-import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -43,6 +39,7 @@ import java.util.logging.Logger;
  * preconditions of the import,
  * {@link #start() runs} the import and if necessary {@link #resume resumes}
  * already prepared import.
+ * <p>The process delegates to {@link ImportHandler} that is bound to the profile.
  *
  * @author Jan Pokorsky
  */
@@ -50,18 +47,11 @@ public final class ImportProcess implements Runnable {
 
     private static final Logger LOG = Logger.getLogger(ImportProcess.class.getName());
     static final String TMP_DIR_NAME = "proarc_import";
-    private ImportBatchManager batchManager;
+    private final ImportBatchManager batchManager;
     private static List<TiffImporter> consumerRegistery;
     private final ImportOptions importConfig;
-    /** can be null before calling {@link #prepare} */
-    private Batch batch;
 
     ImportProcess(ImportOptions importConfig, ImportBatchManager batchManager) {
-        this(null, importConfig, batchManager);
-    }
-
-    ImportProcess(Batch batch, ImportOptions importConfig, ImportBatchManager batchManager) {
-        this.batch = batch;
         this.importConfig = importConfig;
         this.batchManager = batchManager;
     }
@@ -96,7 +86,7 @@ public final class ImportProcess implements Runnable {
         ImportOptions options = ImportOptions.fromBatch(
                 batch, importFolder, user, profile);
         // if necessary reset old computed batch items
-        ImportProcess process = new ImportProcess(batch, options, ibm);
+        ImportProcess process = new ImportProcess(options, ibm);
         process.removeCaches(options.getImportFolder());
         process.removeBatchItems(batch);
         return process;
@@ -156,18 +146,15 @@ public final class ImportProcess implements Runnable {
             if (getTargetFolder(importFolder).exists()) {
                 throw new IOException("Folder already exists: " + getTargetFolder(importFolder));
             }
-            ImportFileScanner scanner = new ImportFileScanner();
-            List<File> files = scanner.findDigitalContent(importFolder);
-            List<FileSet> fileSets = ImportFileScanner.getFileSets(files);
-            if (!canImport(fileSets)) {
-                // nothing to import
-                return;
+            int estimateItemNumber = importConfig.getImporter().estimateItemNumber(importConfig);
+            if (estimateItemNumber == 0) {
+                throw new IOException("Nothing to import " + importFolder);
             }
-            batch = batchManager.add(
+            Batch batch = batchManager.add(
                     importFolder,
                     description,
                     user,
-                    fileSets.size(),
+                    estimateItemNumber,
                     importConfig);
             importConfig.setBatch(batch);
             transactionFailed = false;
@@ -199,6 +186,7 @@ public final class ImportProcess implements Runnable {
      * @return the import batch
      */
     public Batch start() {
+        Batch batch = importConfig.getBatch();
         if (batch == null) {
             throw new IllegalStateException("run prepare first!");
         }
@@ -219,14 +207,9 @@ public final class ImportProcess implements Runnable {
             }
             File targetFolder = createTargetFolder(importFolder);
             importConfig.setTargetFolder(targetFolder);
-            ImportFileScanner scanner = new ImportFileScanner();
-            List<File> files = scanner.findDigitalContent(importFolder);
-            List<FileSet> fileSets = ImportFileScanner.getFileSets(files);
-            importConfig.setJhoveContext(JhoveUtility.createContext());
-            try {
-                consumeFileSets(batch, fileSets, importConfig);
-            } finally {
-                importConfig.getJhoveContext().destroy();
+            importConfig.getImporter().start(importConfig);
+            if (batch.getState() == Batch.State.LOADING) {
+                batch.setState(Batch.State.LOADED);
             }
             batch = batchManager.update(batch);
             return batch;
@@ -251,25 +234,7 @@ public final class ImportProcess implements Runnable {
     }
 
     public Batch getBatch() {
-        return batch;
-    }
-
-    static boolean canImport(FileSet fileSet) {
-        for (TiffImporter consumer : getConsumers()) {
-            if (consumer.accept(fileSet)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    static boolean canImport(List<FileSet> fileSets) {
-        for (FileSet fileSet : fileSets) {
-            if (canImport(fileSet)) {
-                return true;
-            }
-        }
-        return false;
+        return importConfig.getBatch();
     }
 
     static File createTargetFolder(File importFolder) throws IOException {
@@ -305,44 +270,7 @@ public final class ImportProcess implements Runnable {
         }
     }
 
-    private void consumeFileSets(Batch batch, List<FileSet> fileSets, ImportOptions ctx) throws InterruptedException {
-        long start = System.currentTimeMillis();
-        for (FileSet fileSet : fileSets) {
-            if (Thread.interrupted()) {
-                throw new InterruptedException();
-            }
-            BatchItemObject item = consumeFileSet(fileSet, ctx);
-            String pid = item == null ? null : item.getPid();
-            FileState state = item == null ? FileState.SKIPPED : FileState.OK;
-            batchManager.addFileItem(batch.getId(), pid, state, fileSet.getFiles());
-            if (item != null) {
-                if (ObjectState.LOADING_FAILED == item.getState()) {
-                    batch.setState(Batch.State.LOADING_FAILED);
-                    batch.setLog(item.getFile() + "\n" + item.getLog());
-                    return ;
-                }
-            }
-        }
-        LOG.log(Level.FINE, "Total time: {0} ms", System.currentTimeMillis() - start);
-        batch.setState(Batch.State.LOADED);
-    }
-
-    private BatchItemObject consumeFileSet(FileSet fileSet, ImportOptions ctx) {
-        long start = System.currentTimeMillis();
-        List<TiffImporter> consumers = getConsumers();
-        for (TiffImporter consumer : consumers) {
-            BatchItemObject item = consumer.consume(fileSet, ctx);
-            if (item != null) {
-                LOG.log(Level.FINE, "time: {0} ms, {1}", new Object[] {System.currentTimeMillis() - start, fileSet});
-                ++ctx.consumedFileCounter;
-                return item;
-            }
-        }
-
-        return null;
-    }
-
-    private static List<TiffImporter> getConsumers() {
+    static List<TiffImporter> getConsumers() {
         if (consumerRegistery == null) {
             consumerRegistery = Collections.singletonList(
                     new TiffImporter(ImportBatchManager.getInstance()));
@@ -374,6 +302,7 @@ public final class ImportProcess implements Runnable {
         private Batch batch;
         private final ImportProfile profile;
         private JhoveContext jhoveContext;
+        private ImportHandler importer;
 
         ImportOptions(File importFolder, String device,
                 boolean generateIndices, UserProfile username,
@@ -386,7 +315,14 @@ public final class ImportProcess implements Runnable {
             this.profile = profile;
         }
 
-        private File getImportFolder() {
+        public ImportHandler getImporter() {
+            if (importer == null) {
+                importer = profile.createImporter();
+            }
+            return importer;
+        }
+
+        public File getImportFolder() {
             return importFolder;
         }
 
@@ -412,6 +348,10 @@ public final class ImportProcess implements Runnable {
 
         public int getConsumedFileCounter() {
             return consumedFileCounter;
+        }
+
+        public void setConsumedFileCounter(int consumedFileCounter) {
+            this.consumedFileCounter = consumedFileCounter;
         }
 
         public String getUsername() {
