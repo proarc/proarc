@@ -74,6 +74,10 @@ public final class ServerMessages {
         return getMessage(l, NdkMetadataHandler.ERR_NDK_CHANGE_MODS_WITH_MEMBERS);
     }
 
+    public String Err_Ndk_Doi_Duplicity(String doi) {
+        return getFormattedMessage(l, NdkMetadataHandler.ERR_NDK_DOI_DUPLICITY, doi);
+    }
+
     public String ImportResource_BatchLoadingFailed_Msg() {
         return getMessage(l, "ImportResource_BatchLoadingFailed_Msg");
     }

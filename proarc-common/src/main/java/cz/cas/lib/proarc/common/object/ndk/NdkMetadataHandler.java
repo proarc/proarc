@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object.ndk;
 
+import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -25,6 +26,9 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.PageView.PageViewHandler;
 import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchView.Query;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
@@ -55,6 +59,7 @@ import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,6 +81,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
 
     public static final String ERR_NDK_CHANGE_MODS_WITH_URNNBN = "Err_Ndk_Change_Mods_With_UrnNbn";
     public static final String ERR_NDK_CHANGE_MODS_WITH_MEMBERS = "Err_Ndk_Change_Mods_With_Members";
+    public static final String ERR_NDK_DOI_DUPLICITY = "Err_Ndk_Doi_Duplicity";
     public static final String ERR_NDK_REMOVE_URNNBN = "Err_Ndk_Remove_UrnNbn";
 
     /**
@@ -367,7 +373,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    private void checkIdentifiers(ModsDefinition mods, ModsDefinition oldMods, DigitalObjectValidationException ex) {
+    private void checkIdentifiers(ModsDefinition mods, ModsDefinition oldMods, DigitalObjectValidationException ex) throws DigitalObjectException {
         ModsStreamEditor.addPid(mods, fobject.getPid());
         List<IdentifierDefinition> oldIds = oldMods != null ? oldMods.getIdentifier()
                 : Collections.<IdentifierDefinition>emptyList();
@@ -389,6 +395,36 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                     }
                 } else if (ex != null) {
                     ex.addValidation("mods.identifier", ERR_NDK_CHANGE_MODS_WITH_URNNBN, oldId.getValue());
+                }
+            }
+        }
+        checkDoiDuplicity(mods, ex);
+    }
+
+    /** issue 443. */
+    private void checkDoiDuplicity(ModsDefinition mods, DigitalObjectValidationException ex) throws DigitalObjectException {
+        if (ex == null) {
+            return ;
+        }
+        SearchView search = RemoteStorage.getInstance().getSearch();
+        for (IdentifierDefinition idDef : mods.getIdentifier()) {
+            if ("doi".equals(idDef.getType()) && idDef.getValue() != null) {
+                String doi = idDef.getValue();
+                if (doi != null && !doi.isEmpty()) {
+                    try {
+                        List<Item> results = search.findQuery(new Query().setIdentifier(doi));
+                        if (!results.isEmpty()) {
+                            if (results.size() == 1 && results.get(0).getPid().equals(fobject.getPid())) {
+                                // ignore the self-reference
+                                continue;
+                            }
+                            ex.addValidation("mods.identifier", ERR_NDK_DOI_DUPLICITY, doi);
+                        }
+                    } catch (FedoraClientException ex1) {
+                        throw new DigitalObjectException(fobject.getPid(), ex1);
+                    } catch (IOException ex1) {
+                        throw new DigitalObjectException(fobject.getPid(), ex1);
+                    }
                 }
             }
         }

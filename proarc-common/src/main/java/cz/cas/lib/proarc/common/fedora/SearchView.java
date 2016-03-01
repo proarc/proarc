@@ -692,7 +692,7 @@ public final class SearchView {
         }
 
         public Collection<String> getHasOwners() {
-            return hasOwners;
+            return hasOwners != null ? hasOwners : Collections.<String>emptyList();
         }
 
         public Query setHasOwners(Collection<String> hasOwners) {
