@@ -46,13 +46,13 @@ public final class SimpleCejshArticleForm {
 
         modsFields.add(genre());
         modsFields.add(language());
+        modsFields.add(identifier());
 //        modsFields.add(part());
         modsFields.add(titleInfo(f.getItemWidth()));
         modsFields.add(name());
         modsFields.add(abstracts());
         modsFields.add(subject());
         modsFields.add(note());
-        modsFields.add(identifier());
         modsFields.add(recordInfo());
         modsFields.add(relatedItem(f.getItemWidth()));
         modsFields.add(new FieldBuilder("version").setType(Field.TEXT).setHidden(true).setMaxOccurrences(1).createField());
@@ -422,8 +422,24 @@ public final class SimpleCejshArticleForm {
 
     private Field identifier() {
         // identifier, identifierDefinition, [0,*]
-        return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(1)
-                .setHidden(true).setType(Field.TEXT)
+        return new FieldBuilder("identifier").setTitle("Identifikátory - M").setMaxOccurrences(10)
+//                .setHidden(true).setType(Field.TEXT)
+                .addField(new FieldBuilder("type").setTitle("Typ - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+                    .setHint("Identifikátor článku DOI")
+                    .addMapValue("doi", "DOI")
+                    .addMapValue("uuid", "UUID")
+                .createField())
+                // stringPlusLanguage/value
+                .addField(new FieldBuilder("value").setTitle("Identifikátor - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
+                // identifierDefinition
+                //   displayLabel, xs:string
+                //   typeURI, xs:anyURI
+                //   invalid, fixed="yes"
+//                .addField(new FieldBuilder("invalid").setTitle("Platnost - MA").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
+//                    .addMapValue("", "Platný")
+//                    .addMapValue("yes", "Neplatný")
+//                .createField()) // invalid
+                //   altRepGroup, xs:string
         .createField(); // identifier
     }
 
