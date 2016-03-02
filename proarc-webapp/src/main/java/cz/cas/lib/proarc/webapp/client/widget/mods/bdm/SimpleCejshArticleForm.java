@@ -422,15 +422,17 @@ public final class SimpleCejshArticleForm {
 
     private Field identifier() {
         // identifier, identifierDefinition, [0,*]
-        return new FieldBuilder("identifier").setTitle("Identifikátory - M").setMaxOccurrences(10)
+        return new FieldBuilder("identifier").setTitle("Identifikátory článku").setMaxOccurrences(10)
 //                .setHidden(true).setType(Field.TEXT)
-                .addField(new FieldBuilder("type").setTitle("Typ - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
-                    .setHint("Identifikátor článku DOI")
+                .addField(new FieldBuilder("type").setTitle("Typ identifikátoru").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+                    .setHint("Výběr typu identifikátoru článku.")
                     .addMapValue("doi", "DOI")
                     .addMapValue("uuid", "UUID")
                 .createField())
                 // stringPlusLanguage/value
-                .addField(new FieldBuilder("value").setTitle("Identifikátor - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
+                .addField(new FieldBuilder("value").setTitle("Identifikátor").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                    .setHint("Identifikátor článku.")
+                .createField())
                 // identifierDefinition
                 //   displayLabel, xs:string
                 //   typeURI, xs:anyURI
