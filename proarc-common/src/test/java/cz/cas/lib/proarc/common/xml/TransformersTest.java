@@ -391,6 +391,34 @@ public class TransformersTest {
         }
     }
 
+    /**
+     * Tests mapping of field 520 and subfield $9 to {@code abstract@lang}.
+     * See issue 434.
+     */
+    @Test
+    public void testMarcAsMods_AbstractLang_Issue434() throws Exception {
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_subject_65X_X9.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
+            assertNotNull(contents);
+            String xmlResult = new String(contents, "UTF-8");
+//            System.out.println(xmlResult);
+            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
+                put("m", ModsConstants.NS);
+            }}));
+            XMLAssert.assertXpathExists("/m:mods/m:abstract[@lang='cze' and @type='Abstract' and text()='Text cze']", xmlResult);
+            XMLAssert.assertXpathExists("/m:mods/m:abstract[@lang='eng' and @type='Abstract' and text()='Text eng']", xmlResult);
+            XMLAssert.assertXpathExists("/m:mods/m:abstract[not(@lang) and @type='Abstract' and text()='Text no lang']", xmlResult);
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
+        } finally {
+            close(xmlIS);
+        }
+    }
+
     @Test
     public void testOaiMarcAsMarc() throws Exception {
         InputStream goldenIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMarcXml.xml");

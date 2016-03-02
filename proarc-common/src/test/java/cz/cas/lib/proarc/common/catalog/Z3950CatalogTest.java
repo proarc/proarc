@@ -19,7 +19,6 @@ package cz.cas.lib.proarc.common.catalog;
 import cz.cas.lib.proarc.common.catalog.Z3950Catalog.Z3950Field;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -88,12 +87,17 @@ public class Z3950CatalogTest {
         String recordCharset = System.getProperty("Z3950CatalogTest.recordCharset");
         Assume.assumeNotNull(host, port, base);
 
-        String fieldName = "issn";
-        String value = "0231-5904";
+        String fieldName = "sys";
+        String value = "001704913";
         Locale locale = null;
+        final String catalogId = "catalogId";
+        CatalogConfiguration c = new CatalogConfiguration(catalogId, "", new BaseConfiguration() {{
+            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "sys");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + '.' + "sys" + '.' + Z3950Catalog.PROPERTY_FIELD_QUERY, "@attrset bib-1 @attr 1=12 @attr 4=1 \"%s\"");
+        }});
         Z3950Catalog instance = new Z3950Catalog(host, Integer.parseInt(port), base,
                 recordCharset == null ? null : Charset.forName(recordCharset),
-                new HashMap<String, Z3950Field>()
+                Z3950Catalog.readFields(c)
                 );
         List<MetadataItem> result = instance.find(fieldName, value, locale);
         assertFalse(result.isEmpty());

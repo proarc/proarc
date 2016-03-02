@@ -87,6 +87,20 @@
     </datafield>
     <!--issue 306, test 510/$c empty detail/number-->
 
+    <!--issue 434, test 520/$9 as abstract@lang -->
+    <datafield ind1="3" ind2="9" tag="520">
+        <subfield code="a">Text cze</subfield>
+        <subfield code="9">cze</subfield>
+    </datafield>
+    <datafield ind1="3" ind2="9" tag="520">
+        <subfield code="a">Text eng</subfield>
+        <subfield code="9">eng</subfield>
+    </datafield>
+    <datafield ind1="3" ind2="9" tag="520">
+        <subfield code="a">Text no lang</subfield>
+    </datafield>
+    <!--issue 434, test 520/$9 as abstract@lang -->
+
     <datafield ind1=" " ind2=" " tag="546">
         <subfield code="a">Anglické a německé resumé</subfield>
     </datafield>
