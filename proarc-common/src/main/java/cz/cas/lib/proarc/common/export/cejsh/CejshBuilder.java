@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
+import cz.cas.lib.proarc.common.xml.TransformErrorListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -48,7 +49,6 @@ import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -106,7 +106,7 @@ class CejshBuilder {
     private static final Logger LOG = Logger.getLogger(CejshBuilder.class.getName());
 
     private final Transformer bwmetaXsl;
-    private final TranformationErrorHandler tranformationErrorHandler;
+    private final TransformErrorListener tranformationErrorHandler;
     private Validator bwValidator;
     private final DocumentBuilder db;
     private final XPathExpression issnPath;
@@ -123,7 +123,7 @@ class CejshBuilder {
         this.gcalendar = new GregorianCalendar(UTC);
         this.logLevel = config.getLogLevel();
         TransformerFactory xslFactory = TransformerFactory.newInstance();
-        tranformationErrorHandler = new TranformationErrorHandler();
+        tranformationErrorHandler = new TransformErrorListener();
         bwmetaXsl = xslFactory.newTransformer(new StreamSource(config.getCejshXslUrl()));
         if (bwmetaXsl == null) {
             throw new TransformerConfigurationException("Cannot load XSL: " + config.getCejshXslUrl());
@@ -214,7 +214,7 @@ class CejshBuilder {
      * @param dst bwmeta document
      * @return the error handler
      */
-    TranformationErrorHandler createCejshXml(Source src, Result dst) {
+    TransformErrorListener createCejshXml(Source src, Result dst) {
         bwmetaXsl.reset();
         String packageIssn = getPackageIssn();
         bwmetaXsl.setParameter("issn", packageIssn);
@@ -254,7 +254,7 @@ class CejshBuilder {
 
             File p0xml = new File(importFolder, P0XML_FILENAME);
             DOMSource domSource = new DOMSource(doc);
-            TranformationErrorHandler cejshXslErrors = createCejshXml(domSource, new StreamResult(p0xml));
+            TransformErrorListener cejshXslErrors = createCejshXml(domSource, new StreamResult(p0xml));
             if (!cejshXslErrors.getErrors().isEmpty()) {
                 p.getStatus().error(packageElm, "Validation error!", cejshXslErrors.getErrors().toString(), null);
                 return packageFolder;
@@ -710,41 +710,6 @@ class CejshBuilder {
                 return;
             }
             super.write(str);
-        }
-    }
-
-    /**
-     * Collects transformation errors. Reset the handler before each transformation.
-     */
-    public static class TranformationErrorHandler implements ErrorListener {
-
-        private final List<String> errors;
-
-        public TranformationErrorHandler() {
-            this.errors = new ArrayList<String>();
-        }
-
-        public void reset() {
-            errors.clear();
-        }
-
-        public List<String> getErrors() {
-            return errors;
-        }
-
-        @Override
-        public void warning(TransformerException exception) throws TransformerException {
-            errors.add(exception.getMessageAndLocation());
-        }
-
-        @Override
-        public void error(TransformerException exception) throws TransformerException {
-            errors.add(exception.getMessageAndLocation());
-        }
-
-        @Override
-        public void fatalError(TransformerException exception) throws TransformerException {
-            throw exception;
         }
     }
 

@@ -20,11 +20,11 @@ import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.export.cejsh.CejshBuilder.Article;
 import cz.cas.lib.proarc.common.export.cejsh.CejshBuilder.Issue;
 import cz.cas.lib.proarc.common.export.cejsh.CejshBuilder.Title;
-import cz.cas.lib.proarc.common.export.cejsh.CejshBuilder.TranformationErrorHandler;
 import cz.cas.lib.proarc.common.export.cejsh.CejshBuilder.Volume;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
+import cz.cas.lib.proarc.common.xml.TransformErrorListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
@@ -141,7 +141,7 @@ public class CejshBuilderTest {
         DOMResult cejshResult = new DOMResult();
 //        dump(cejshSource);
 
-        TranformationErrorHandler xslError = cb.createCejshXml(cejshSource, cejshResult);
+        TransformErrorListener xslError = cb.createCejshXml(cejshSource, cejshResult);
         assertEquals(Collections.emptyList(), xslError.getErrors());
         final Node cejshRootNode = cejshResult.getNode();
 //        dump(new DOMSource(cejshRootNode));
@@ -179,7 +179,7 @@ public class CejshBuilderTest {
         DOMResult cejshResult = new DOMResult();
 //        dump(cejshSource);
 
-        TranformationErrorHandler xslError = cb.createCejshXml(cejshSource, cejshResult);
+        TransformErrorListener xslError = cb.createCejshXml(cejshSource, cejshResult);
         assertEquals(Collections.emptyList(), xslError.getErrors());
         final Node cejshRootNode = cejshResult.getNode();
 //        dump(new DOMSource(cejshRootNode));
