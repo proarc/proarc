@@ -395,6 +395,14 @@ public final class BornDigitalArticleForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @type
                     // XXX autority.nkp.cz datasource
+                    .addField(new FieldBuilder("lang").setTitle("Language").setMaxOccurrences(1).setType(Field.COMBO).setRequired(false)
+                        .setHint("Kód jazyka podle  ISO 639-2/b.")
+                        .setOptionDataSource(new FieldBuilder("ndk.mods.languageTerms").setWidth("300")
+                                .addField(new FieldBuilder("title").setTitle("Name").createField())
+                                .addField(new FieldBuilder("value").setTitle("Language").createField())
+                            .createField(),
+                            "value")
+                    .createField()) // @lang
                     .addField(new FieldBuilder("value").setTitle("Topic - M").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Libovolný výraz specifikující nebo charakterizující obsah článku."
                             + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (věcné téma)"
