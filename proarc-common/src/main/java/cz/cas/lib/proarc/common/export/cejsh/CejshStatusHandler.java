@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export.cejsh;
 
+import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
@@ -57,7 +58,6 @@ public class CejshStatusHandler {
         reslog.getExports().add(currentPkg);
     }
 
-
     /**
      * Stops logging for the current root element.
      * @param elm an export hierarchy root
@@ -65,7 +65,7 @@ public class CejshStatusHandler {
     public void finishInput(DigitalObjectElement elm) {
         currentPkg.setEnd();
         if (currentPkg.getStatus() == null) {
-            currentPkg.setStatus(ResultStatus.OK);
+            currentPkg.setStatus(currentPkg.getError().isEmpty() ? ResultStatus.OK : ResultStatus.FAILED);
         }
         currentPkg = null;
     }
@@ -91,6 +91,10 @@ public class CejshStatusHandler {
         result.setEnd();
         result.setStatus(ResultStatus.FAILED);
         result.getError().add(new ResultError(pid, msg, details, ex));
+    }
+
+    public void error(ExportException ex) {
+        error(ex.getElement(), ex.getMessage(), ex.getDetails(), ex);
     }
 
     public void error(String pid, String msg, Throwable ex) {

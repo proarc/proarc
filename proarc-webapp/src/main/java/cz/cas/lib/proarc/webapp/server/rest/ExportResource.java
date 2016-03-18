@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.export.cejsh.CejshConfig;
 import cz.cas.lib.proarc.common.export.cejsh.CejshExport;
 import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
+import cz.cas.lib.proarc.common.export.crossref.CrossrefExport;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -272,6 +273,45 @@ public class ExportResource {
         CejshExport export = new CejshExport(
                 DigitalObjectManager.getDefault(), RemoteStorage.getInstance(), cejshConfig);
         CejshStatusHandler status = export.export(exportFolder, pids);
+        File targetFolder = status.getTargetFolder();
+        ExportResult result = new ExportResult();
+        if (targetFolder != null) {
+            result.setTarget(user.getUserHomeUri().relativize(targetFolder.toURI()).toASCIIString());
+        }
+        if (!status.isOk()) {
+            result.setErrors(new ArrayList<ExportError>());
+            for (ExportResultLog.ExportResult logResult : status.getReslog().getExports()) {
+                for (ResultError error : logResult.getError()) {
+                    result.getErrors().add(new ExportError(
+                            error.getPid(), error.getMessage(), false, error.getDetails()));
+                }
+            }
+        }
+        return new SmartGwtResponse<ExportResult>(result);
+    }
+
+    /**
+     * Starts a new Crossref export.
+     * @param pids PIDs to export
+     * @return the export result
+     */
+    @POST
+    @Path(ExportResourceApi.CROSSREF_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ExportResult> newCrossrefExport(
+            @FormParam(ExportResourceApi.CROSSREF_PID_PARAM) List<String> pids
+            ) {
+
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.CROSSREF_PID_PARAM);
+        }
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+//        CejshConfig cejshConfig = CejshConfig.from(appConfig.getAuthenticators());
+        CrossrefExport export = new CrossrefExport(
+                DigitalObjectManager.getDefault(), RemoteStorage.getInstance());
+        CejshStatusHandler status = new CejshStatusHandler();
+        export.export(exportFolder, pids, status);
         File targetFolder = status.getTargetFolder();
         ExportResult result = new ExportResult();
         if (targetFolder != null) {

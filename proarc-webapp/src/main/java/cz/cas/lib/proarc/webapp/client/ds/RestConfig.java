@@ -91,6 +91,8 @@ public final class RestConfig {
             URL_EXPORT, ExportResourceApi.ARCHIVE_PATH);
     public static final String URL_EXPORT_CEJSH = path(
             URL_EXPORT, ExportResourceApi.CEJSH_PATH);
+    public static final String URL_EXPORT_CROSSREF = path(
+            URL_EXPORT, ExportResourceApi.CROSSREF_PATH);
     public static final String URL_EXPORT_DATASTREAM = path(
             URL_EXPORT, ExportResourceApi.DATASTREAM_PATH);
     public static final String URL_EXPORT_DESA = path(

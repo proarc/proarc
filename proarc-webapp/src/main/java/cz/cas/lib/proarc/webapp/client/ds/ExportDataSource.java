@@ -52,6 +52,10 @@ public final class ExportDataSource extends RestDataSource {
         return new ExportDataSource(RestConfig.URL_EXPORT_CEJSH);
     }
 
+    public static ExportDataSource getCrossref() {
+        return new ExportDataSource(RestConfig.URL_EXPORT_CROSSREF);
+    }
+
     public static ExportDataSource getDataStream() {
         return new ExportDataSource(RestConfig.URL_EXPORT_DATASTREAM);
     }

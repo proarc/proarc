@@ -16,11 +16,16 @@
  */
 package cz.cas.lib.proarc.common.export;
 
+import cz.cas.lib.proarc.common.object.DigitalObjectElement;
+
 /**
  *
  * @author Jan Pokorsky
  */
 public final class ExportException extends Exception {
+
+    private DigitalObjectElement element;
+    private String details;
 
     public ExportException() {
     }
@@ -36,4 +41,27 @@ public final class ExportException extends Exception {
     public ExportException(Throwable cause) {
         super(cause);
     }
+
+    public ExportException(DigitalObjectElement elm, String message, String details, Throwable cause) {
+        super(message, cause);
+        this.element = elm;
+        this.details = details;
+    }
+
+    public DigitalObjectElement getElement() {
+        return element;
+    }
+
+    public void setElement(DigitalObjectElement element) {
+        this.element = element;
+    }
+
+    public String getDetails() {
+        return details;
+    }
+
+    public void setDetails(String details) {
+        this.details = details;
+    }
+
 }
