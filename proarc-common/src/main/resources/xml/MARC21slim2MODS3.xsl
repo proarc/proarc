@@ -6,8 +6,9 @@
     <xsl:strip-space elements="*"/>
 
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
-    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 10.434) 20160302
+    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 11.433) 20160318
 
+Revision 1.97.proarc.11.433 - ProArc patch of mapping 653$09 and 653$0_ to subject/topic@lang 2016/03/18
 Revision 1.97.proarc.10.434 - ProArc patch of mapping 520$9 to abstract@lang 2016/03/02
 Revision 1.97.proarc.9.313 - ProArc patch of mapping 787 to relatedItem 2015/07/11
 Revision 1.97.proarc.8.303 - ProArc patch that maps 072#7 $x to subject/topic and $a/$9 to classification 2015/07/11
@@ -2719,7 +2720,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:for-each>
 
             <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
-                (Revision 1.97 2014/05/21, ProArc patch 10.434 2016/03/02)</recordOrigin>
+                (Revision 1.97 2014/05/21, ProArc patch 11.433 2016/03/18)</recordOrigin>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>
@@ -5188,6 +5189,15 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         <xsl:for-each select="marc:subfield">
             <subject>
                 <topic>
+                    <!--Revision 1.97.patch.11.433-->
+                    <xsl:choose>
+                        <xsl:when test="../@ind1='0' and ../@ind2=' '">
+                            <xsl:attribute name="lang">cze</xsl:attribute>
+                        </xsl:when>
+                        <xsl:when test="../@ind1='0' and ../@ind2='9'">
+                            <xsl:attribute name="lang">eng</xsl:attribute>
+                        </xsl:when>
+                    </xsl:choose>
                     <xsl:value-of select="."/>
                 </topic>
             </subject>

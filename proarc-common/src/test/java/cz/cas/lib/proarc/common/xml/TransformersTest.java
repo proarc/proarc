@@ -213,11 +213,12 @@ public class TransformersTest {
     }
 
     /**
-     * Tests mapping of field 653 indicator_9 $a to {@code subject/topic}.
+     * Tests mapping of field 653 indicator_9 $a to {@code subject/topic@lang}.
      * See issue 185.
+     * See issue 433.
      */
     @Test
-    public void testMarcAsMods_SubjectTopic_Issue185() throws Exception {
+    public void testMarcAsMods_SubjectTopic_Issue185_Issue433() throws Exception {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_subject_65X_X9.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
@@ -232,8 +233,8 @@ public class TransformersTest {
                 put("m", ModsConstants.NS);
             }}));
             // 653
-            XMLAssert.assertXpathExists("/m:mods/m:subject[not(@authority)]/m:topic[text()='kočky']", xmlResult);
-            XMLAssert.assertXpathExists("/m:mods/m:subject[not(@authority)]/m:topic[text()='cats']", xmlResult);
+            XMLAssert.assertXpathExists("/m:mods/m:subject[not(@authority)]/m:topic[text()='kočky' and @lang='cze']", xmlResult);
+            XMLAssert.assertXpathExists("/m:mods/m:subject[not(@authority)]/m:topic[text()='cats' and @lang='eng']", xmlResult);
             XMLAssert.assertXpathNotExists("/m:mods/m:subject/m:name/m:namePart[text()='kočky']", xmlResult);
             XMLAssert.assertXpathNotExists("/m:mods/m:subject/m:name/m:namePart[text()='cats']", xmlResult);
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
