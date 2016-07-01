@@ -217,11 +217,21 @@ class CrossrefBuilder {
                 } else {
                     throw new ExportException(parent, "Expected a periodical title!", null, null);
                 }
+            } else if (NdkPlugin.MODEL_PERIODICAL.equals(parent.getModelId())) {
+                addPeriodicalTitle(getModsDom(parent));
             } else {
                 throw new ExportException(parent, "Expected a periodical volume!", null, null);
             }
+        } else if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(elm.getModelId())) {
+            addVolumeWithoutIssue(getModsDom(elm), elm.getPid());
+            DigitalObjectElement parent = readNext(path, elm);
+            if (NdkPlugin.MODEL_PERIODICAL.equals(parent.getModelId())) {
+                addPeriodicalTitle(getModsDom(parent));
+            } else {
+                throw new ExportException(parent, "Expected a periodical title!", null, null);
+            }
         } else {
-            throw new ExportException(elm, "Expected a periodical issue!", null, null);
+            throw new ExportException(elm, "Expected a periodical issue or volume!", null, null);
         }
     }
 
@@ -245,15 +255,29 @@ class CrossrefBuilder {
         return addPeriodicalTitle(issn, title, abbrevTitle, form);
     }
 
-    boolean addVolume(String partNumber) throws XPathExpressionException {
+    boolean addVolume(String partNumber, String dateIssued, String uuid) throws XPathExpressionException {
         crosssrefXsl.setParameter("volume", partNumber);
+        if (dateIssued != null) {
+            crosssrefXsl.setParameter("publication_date", dateIssued);
+        }
+        if (uuid != null) {
+            crosssrefXsl.setParameter("export_uuid", uuid);
+        }
         return true;
     }
 
     private void addVolume(Document d) throws XPathExpressionException, ExportException {
         // volume number - mods/titleInfo/partNumber
         String partNumber = partNumberPath.evaluate(d);
-        addVolume(partNumber);
+        addVolume(partNumber, null, null);
+    }
+
+    private void addVolumeWithoutIssue(Document d, String pid) throws XPathExpressionException, ExportException {
+        // volume number - mods/titleInfo/partNumber
+        // issue date - mods/originInfo/dateIssued
+        String partNumber = partNumberPath.evaluate(d);
+        String dateIssued = dateIssuedPath.evaluate(d);
+        addVolume(partNumber, dateIssued, FoxmlUtils.pidAsUuid(pid));
     }
 
     boolean addIssue(String partNumber, String dateIssued, String issueUuid) throws XPathExpressionException {

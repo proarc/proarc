@@ -48,7 +48,7 @@ public class CrossrefBuilderTest {
         File targetFolder = temp.getRoot();
         CrossrefBuilder builder = new CrossrefBuilder(targetFolder);
         builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print");
-        builder.addVolume("1");
+        builder.addVolume("1", null, null);
         builder.addIssue("10", "2010", "uuid");
         Document article = builder.getDocumentBuilder().parse(
                 CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
@@ -60,7 +60,45 @@ public class CrossrefBuilderTest {
         assertTrue(errors.getErrors().toString(), errors.getErrors().isEmpty());
 
         List<String> validateErrors = builder.validateCrossref(new StreamSource(new StringReader(dump.toString())));
-//        assertTrue(validateErrors.toString(), validateErrors.isEmpty());
+        assertTrue(validateErrors.toString(), validateErrors.isEmpty());
+    }
+
+    @Test
+    public void testCreateCrossrefXml_SkippedVolume() throws Exception {
+        File targetFolder = temp.getRoot();
+        CrossrefBuilder builder = new CrossrefBuilder(targetFolder);
+        builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print");
+        builder.addIssue("10", "2010", "uuid");
+        Document article = builder.getDocumentBuilder().parse(
+                CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
+        builder.addArticle(article);
+        Document articles = builder.mergeArticles();
+        StringWriter dump = new StringWriter();
+        TransformErrorListener errors = builder.createCrossrefXml(new DOMSource(articles), new StreamResult(dump));
+//        System.out.println(dump);
+        assertTrue(errors.getErrors().toString(), errors.getErrors().isEmpty());
+
+        List<String> validateErrors = builder.validateCrossref(new StreamSource(new StringReader(dump.toString())));
+        assertTrue(validateErrors.toString(), validateErrors.isEmpty());
+    }
+
+    @Test
+    public void testCreateCrossrefXml_SkippedIssue() throws Exception {
+        File targetFolder = temp.getRoot();
+        CrossrefBuilder builder = new CrossrefBuilder(targetFolder);
+        builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print");
+        builder.addVolume("1", "20.12.2012", "uuid");
+        Document article = builder.getDocumentBuilder().parse(
+                CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
+        builder.addArticle(article);
+        Document articles = builder.mergeArticles();
+        StringWriter dump = new StringWriter();
+        TransformErrorListener errors = builder.createCrossrefXml(new DOMSource(articles), new StreamResult(dump));
+//        System.out.println(dump);
+        assertTrue(errors.getErrors().toString(), errors.getErrors().isEmpty());
+
+        List<String> validateErrors = builder.validateCrossref(new StreamSource(new StringReader(dump.toString())));
+        assertTrue(validateErrors.toString(), validateErrors.isEmpty());
     }
 
     @Test
