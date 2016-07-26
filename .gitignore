@@ -3,6 +3,7 @@ target/
 # NetBeans
 nbactions.xml
 nb-configuration.xml
+nbproject
 
 # Eclipse
 *.launch
