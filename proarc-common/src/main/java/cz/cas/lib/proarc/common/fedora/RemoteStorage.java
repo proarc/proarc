@@ -199,7 +199,7 @@ public final class RemoteStorage {
             LOG.log(Level.FINE, "{0}, {1}", new Object[]{response.getPid(), response.getLocation()});
         } catch (FedoraClientException ex) {
             checkObjectExistException(ex, object.getPid());
-            throw new DigitalObjectException(object.getPid(), null, null, null, ex);
+            throw new DigitalObjectException(object.getPid(), null, null, ex.getMessage(), ex);
         }
     }
 
