@@ -212,22 +212,6 @@
         
     </dependencies>
 
-    <repositories>
-
-        <repository>
-            <id>k-int</id>
-            <name>k-int maven2 repository</name>
-            <url>http://developer.k-int.com/maven2</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
-    </repositories>
-
     <build>
 
         <plugins>

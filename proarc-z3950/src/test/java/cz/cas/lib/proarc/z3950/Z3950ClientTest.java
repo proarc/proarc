@@ -28,6 +28,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.core.JdkVersion;
 import org.w3c.dom.Document;
 
 /**
@@ -52,11 +53,12 @@ public class Z3950ClientTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         host = System.getProperty("Z3950ClientTest.host");
         port = System.getProperty("Z3950ClientTest.port");
         base = System.getProperty("Z3950ClientTest.base");
         Assume.assumeNotNull(host, port, base);
+        assertEquals(JdkVersion.JAVA_17, JdkVersion.getMajorJavaVersion());
     }
 
     @After
