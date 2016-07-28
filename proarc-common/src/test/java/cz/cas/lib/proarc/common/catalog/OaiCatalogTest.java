@@ -114,18 +114,18 @@ public class OaiCatalogTest {
         OaiCatalog c = new OaiCatalog(url, metadataPrefix, identifierPrefix);
         WebResource wr = c.buildOaiQuery(OaiCatalog.FIELD_ID, "4");
         String resultQuery = wr.getURI().toString();
-        assertTrue(resultQuery, resultQuery.contains("&identifier=oai:arXiv.org:quant-ph/4"));
+        assertTrue(resultQuery, resultQuery.contains("identifier=oai:arXiv.org:quant-ph/4"));
 
         // do not prefix ID with prefix
         wr = c.buildOaiQuery(OaiCatalog.FIELD_ID, "oai:arXiv.org:quant-ph/4");
         resultQuery = wr.getURI().toString();
-        assertTrue(resultQuery, resultQuery.contains("&identifier=oai:arXiv.org:quant-ph/4"));
+        assertTrue(resultQuery, resultQuery.contains("identifier=oai:arXiv.org:quant-ph/4"));
 
         // no prefix
         c.setIdentifierPrefix(null);
         wr = c.buildOaiQuery(OaiCatalog.FIELD_ID, "4");
         resultQuery = wr.getURI().toString();
-        assertTrue(resultQuery, resultQuery.contains("&identifier=4"));
+        assertTrue(resultQuery, resultQuery.contains("identifier=4"));
     }
 
 //    @Test
