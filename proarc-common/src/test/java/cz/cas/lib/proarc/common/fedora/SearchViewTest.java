@@ -61,6 +61,7 @@ public class SearchViewTest {
         fedora = new FedoraTestSupport();
         storage = fedora.getRemoteStorage();
         MetaModelRepository.setInstance(new String[]{NdkPlugin.ID});
+        new FedoraStorageInitializer(storage).init();
     }
 
     @After
@@ -201,15 +202,23 @@ public class SearchViewTest {
 
     @Test
     public void testFindQuery() throws Exception {
-//        client.debug(true);
+//        fedora.getClient().debug(true);
+        fedora.cleanUp();
+        fedora.ingest(
+                getClass().getResource("tree1.xml")
+        );
         SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findQuery("p", "p", "u", "p", NdkPlugin.MODEL_PERIODICAL, Collections.<String>emptyList());
+        List<Item> result = instance.findQuery("tree", "tree", "u", "u", NdkPlugin.MODEL_PERIODICAL, Collections.<String>emptyList());
         assertFalse(result.isEmpty());
     }
 
     @Test
     public void testFindModelQuery() throws Exception {
-//        client.debug(true);
+//        fedora.getClient().debug(true);
+        fedora.cleanUp();
+        fedora.ingest(
+                getClass().getResource("tree1.xml")
+        );
         SearchView instance = new SearchView(storage);
         List<Item> result = instance.findQuery(null, null, null, null, NdkPlugin.MODEL_PERIODICAL, Collections.<String>emptyList());
         assertFalse(result.isEmpty());

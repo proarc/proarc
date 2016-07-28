@@ -16,4 +16,15 @@
             </xmlContent>
         </datastreamVersion>
     </datastream>
+    <datastream ID="DC" CONTROL_GROUP="X" STATE="A" VERSIONABLE="false">
+        <datastreamVersion ID="DC.0" LABEL="Dublin Core Record for this object" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/">
+            <xmlContent>
+                <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+                    <dc:title>tree1-child1-child1-child2</dc:title>
+                    <dc:type>model:page</dc:type>
+                    <dc:identifier>uuid:tree1-child1-child1-child2</dc:identifier>
+                </oai_dc:dc>
+            </xmlContent>
+        </datastreamVersion>
+    </datastream>
 </digitalObject>
