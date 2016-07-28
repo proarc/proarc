@@ -17,7 +17,7 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.net.URL;
@@ -196,7 +196,12 @@ public class MetsUtilsTest {
             Info info = (Info) unmarshaller.unmarshal(infoFile);
             assertEquals(testElement.getTotalItems(),
                     info.getItemlist().getItemtotal().intValue());
-            assertEquals(testElement.getSize(), info.getSize());
+            if (System.getProperty("os.name").toLowerCase().contains("win")) {
+                // this is an aproximation as the precompute sizes ignore win EOLs
+                assertTrue(info.getSize() != 0 && testElement.getSize() <= info.getSize());
+            } else {
+                assertEquals(testElement.getSize(), info.getSize());
+            }
             File metsFile = new File(resultDir.getAbsolutePath() + File.separator + packageId + File.separator +
                     "METS_" + packageId + ".xml");
             JAXBContext jaxbContextMets = JAXBContext.newInstance(Mets.class);
