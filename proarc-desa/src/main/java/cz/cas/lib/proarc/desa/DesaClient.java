@@ -21,7 +21,6 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.api.client.filter.LoggingFilter;
-import com.sun.xml.ws.client.ClientTransportException;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.desa.soap.AuthenticateUserFault;
 import cz.cas.lib.proarc.desa.soap.AuthenticateUserRequest;
@@ -47,6 +46,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.ws.BindingProvider;
+import javax.xml.ws.WebServiceException;
 
 /**
  * The client for DESA SOAP and REST WS interface.
@@ -163,11 +163,11 @@ public final class DesaClient {
      * @param producerCode producer code (not ID)
      * @return the authenticated operator
      * @throws AuthenticateUserFault authentication failure
-     * @throws ClientTransportException soap failure
+     * @throws WebServiceException soap failure
      */
     public AuthenticateUserResponse authenticateUser(
             String operator, String passwd, String producerCode)
-            throws AuthenticateUserFault, ClientTransportException {
+            throws AuthenticateUserFault, WebServiceException {
 
         AuthenticateUserRequest request = new AuthenticateUserRequest();
         request.setLogin(operator);

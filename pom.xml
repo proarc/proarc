@@ -44,16 +44,14 @@
         <gwtVersion>2.7.0</gwtVersion>
         <jerseyVersion>1.11.1</jerseyVersion>
         <smartGwtVersion>5.0-p20151013</smartGwtVersion>
-        <maven.compiler.source>1.6</maven.compiler.source>
-        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <!--
         Keep the JDK platform property here instead of nb-configuration.xml
         to inherit it in child projects.
         -->
-        <netbeans.hint.jdkPlatform>JDK_1.6</netbeans.hint.jdkPlatform>
+        <netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- JAX-WS 2.2 JDK 1.6 support-->
-        <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <slf4j.version>1.7.6</slf4j.version>
     </properties>
 
@@ -265,43 +263,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.4</version>
-                </plugin>
-
-                <!--JAX-WS 2.2 JDK 1.6 support-->
-                <!--soapclient-->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.8</version>
-                    <executions>
-                        <execution>
-                            <phase>validate</phase>
-                            <goals>
-                                <goal>copy</goal>
-                            </goals>
-                            <configuration>
-                                <outputDirectory>${endorsed.dir}</outputDirectory>
-                                <silent>true</silent>
-                                <!-- need JAXB API and JAX-WS API in an endorsed dir-->
-                                <artifactItems>
-                                    <artifactItem>
-                                        <groupId>javax.xml.bind</groupId>
-                                        <artifactId>jaxb-api</artifactId>
-                                        <version>2.2.6</version>
-                                        <type>jar</type>
-                                    </artifactItem>
-                                    <artifactItem>
-                                        <groupId>javax.xml.ws</groupId>
-                                        <artifactId>jaxws-api</artifactId>
-                                        <version>2.2.8</version>
-                                        <type>jar</type>
-                                    </artifactItem>
-                                </artifactItems>
-                            </configuration>
-
-                        </execution>
-                    </executions>
+                    <version>2.6</version>
                 </plugin>
 
                 <plugin>
@@ -313,13 +275,19 @@
                 <plugin>
                     <groupId>org.jvnet.jaxb2.maven2</groupId>
                     <artifactId>maven-jaxb2-plugin</artifactId>
-                    <version>0.8.0</version>
+                    <version>0.13.1</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.jvnet.jax-ws-commons</groupId>
                     <artifactId>jaxws-maven-plugin</artifactId>
                     <version>2.3</version>
+                    <configuration>
+                        <vmArgs>
+                            <!-- https://java.net/jira/browse/JAX_WS_COMMONS-129 -->
+                            <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
+                        </vmArgs>
+                    </configuration>
                 </plugin>
 
             </plugins>

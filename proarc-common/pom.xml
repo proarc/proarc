@@ -231,20 +231,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <!-- JAX-WS 2.2 JDK 1.6 support-->
-                    <argLine>-Djava.endorsed.dirs="${endorsed.dir}"</argLine>
                     <systemPropertyVariables>
                         <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>
                     </systemPropertyVariables>
                     <systemPropertiesFile>${proarc-common.junit.properties.file}</systemPropertiesFile>
                 </configuration>
-            </plugin>
-
-            <!--JAX-WS 2.2 JDK 1.6 support-->
-            <!--soapclient-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
             </plugin>
 
             <!--Create sources.jar to allow inheriting included GWT modules-->

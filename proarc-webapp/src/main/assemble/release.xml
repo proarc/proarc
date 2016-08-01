@@ -38,15 +38,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
             </includes>
         </fileSet>
 
-        <!-- java endorsed -->
-        <fileSet>
-            <directory>${project.build.directory}</directory>
-            <outputDirectory>/tomcat</outputDirectory>
-            <includes>
-                <include>endorsed/*</include>
-            </includes>
-        </fileSet>
-
         <!-- info files -->
         <fileSet>
             <directory>${project.basedir}/..</directory>
