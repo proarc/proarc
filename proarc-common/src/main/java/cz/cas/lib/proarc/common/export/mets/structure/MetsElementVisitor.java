@@ -447,8 +447,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         fileType.setID(Const.streamMappingPrefix.get(metsStreamName) + "_" + MetsUtils.removeNonAlpabetChars(metsContext.getPackageID()) + "_" + String.format("%04d", seq));
         if (fileNames.get(metsStreamName) instanceof String) {
             String fileNameOriginal = (String) fileNames.get(metsStreamName);
-            int lastIndex = fileNameOriginal.lastIndexOf(File.separator);
-            int preLastIndex = fileNameOriginal.substring(1, lastIndex).lastIndexOf(File.separator);
+            int lastIndex = fileNameOriginal.lastIndexOf('/');
+            int preLastIndex = fileNameOriginal.substring(1, lastIndex).lastIndexOf('/');
             String fileName = metsContext.getPath() + fileNameOriginal.substring(preLastIndex + 2);
             File file = new File(fileName);
             try {
