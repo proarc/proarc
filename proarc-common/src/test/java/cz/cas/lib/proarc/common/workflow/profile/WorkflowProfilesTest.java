@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapItem
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -113,7 +114,7 @@ public class WorkflowProfilesTest {
                 + "</workflow>\n"
                 ;
         File xmlFile = new File(temp.getRoot(), "workflow.xml");
-        FileUtils.write(xmlFile, xml);
+        FileUtils.write(xmlFile, xml, StandardCharsets.UTF_8);
         WorkflowProfiles profiles = new WorkflowProfiles(xmlFile);
         WorkflowDefinition wf = profiles.getProfiles();
         assertNotNull(wf);

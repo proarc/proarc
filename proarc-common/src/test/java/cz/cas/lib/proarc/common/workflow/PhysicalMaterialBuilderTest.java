@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.workflow;
 import cz.cas.lib.proarc.common.catalog.Z3950Catalog;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
@@ -60,7 +61,7 @@ public class PhysicalMaterialBuilderTest {
             addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
             addProperty(CatalogConfiguration.PROPERTY_TYPE, Z3950Catalog.TYPE);
         }});
-        String xml = IOUtils.toString(WorkflowManagerTest.class.getResource("rdczmods.xml"));
+        String xml = IOUtils.toString(WorkflowManagerTest.class.getResource("rdczmods.xml"), StandardCharsets.UTF_8);
         PhysicalMaterial pm = new PhysicalMaterialBuilder().build(xml, c);
         assertEquals(xml, pm.getMetadata());
         assertEquals(c.getUrl(), pm.getSource());
