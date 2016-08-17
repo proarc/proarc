@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
-import com.sun.jersey.spi.CloseableService;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -67,6 +66,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.commons.io.FileUtils;
+import org.glassfish.jersey.server.CloseableService;
 
 /**
  * REST resource to export data from the system.

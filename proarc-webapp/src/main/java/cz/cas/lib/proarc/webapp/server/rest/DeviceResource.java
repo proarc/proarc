@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -49,7 +50,6 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Resource to manage devices producing digital objects.

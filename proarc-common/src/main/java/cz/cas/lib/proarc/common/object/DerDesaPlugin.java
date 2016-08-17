@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -48,7 +49,6 @@ import java.util.List;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.xml.transform.Source;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Support of the DER DESA model.

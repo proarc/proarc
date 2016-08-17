@@ -46,22 +46,22 @@
     </datastream>
     <datastream ID="RAW" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">
         <datastreamVersion ID="RAW.0" LABEL="Original digital content of this object" CREATED="2012-07-30T16:05:09.663Z" MIMETYPE="image/tiff">
-            <binaryContent>AAA</binaryContent>
+            <binaryContent>T0NS</binaryContent>
         </datastreamVersion>
     </datastream>
     <datastream ID="FULL" CONTROL_GROUP="M" STATE="A" VERSIONABLE="false">
         <datastreamVersion ID="FULL.0" LABEL="Presentable version of RAW" CREATED="2012-08-14T21:32:38.899+02:00" MIMETYPE="image/jpeg">
-            <binaryContent>AAA</binaryContent>
+            <binaryContent>T0NS</binaryContent>
         </datastreamVersion>
     </datastream>
     <datastream ID="PREVIEW" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">
         <datastreamVersion ID="PREVIEW.0" LABEL="Preview of this object" CREATED="2012-07-30T16:05:09.663Z" MIMETYPE="image/jpeg">
-            <binaryContent>AAA</binaryContent>
+            <binaryContent>T0NS</binaryContent>
         </datastreamVersion>
     </datastream>
     <datastream ID="THUMBNAIL" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">
         <datastreamVersion ID="THUMBNAIL.0" LABEL="Thumbnail of this object" CREATED="2012-07-30T16:05:09.663Z" MIMETYPE="image/jpeg">
-            <binaryContent>AAA</binaryContent>
+            <binaryContent>T0NS</binaryContent>
         </datastreamVersion>
     </datastream>
     <datastream ID="TEXT_OCR" STATE="A" CONTROL_GROUP="M" VERSIONABLE="false">

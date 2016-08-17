@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
@@ -50,7 +51,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * The plugin to support digital objects described by K4 flavor of MODS.

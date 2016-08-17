@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object.ndk;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
@@ -70,7 +71,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Handles description metadata in the NDK format.

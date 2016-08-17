@@ -16,12 +16,12 @@
  */
 package cz.cas.lib.proarc.common.object.emods;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkArticleMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.IOException;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Maps born digital articles.

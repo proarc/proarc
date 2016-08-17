@@ -16,39 +16,34 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.AnnotatedSmartGwtResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
-import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
 
 /**
- * {@link JacksonJaxbJsonProvider} enables real JSON with JAXB annotation support.
- * Jackson handles arrays properly like {@code "items":[{"propName":"propValue"}]}
- * instead of {@code "items":{"propName":"propValue"}}
- * It is not necessary to declare arrays in context provider.
+ * This provider enables a customized JSON mapper supporting JAXB annotations
+ * and the mix-in annotations.
+ * It handles the single item arrays as {@code "items":[{"propName":"propValue"}]}
+ * instead of {@code "items":{"propName":"propValue"}}.
+ * <p>See {@code web.xml} for its registration.
  *
  * @author Jan Pokorsky
  */
 @Provider
 @Consumes({MediaType.APPLICATION_JSON, "text/json"})
 @Produces({MediaType.APPLICATION_JSON, "text/json"})
-public final class JacksonProvider extends JacksonJaxbJsonProvider {
+public final class JacksonProvider implements ContextResolver<ObjectMapper> {
 
-    private final SerializationConfig serializationConfig;
-    private final DeserializationConfig deserializationConfig;
+    private final ObjectMapper mapper;
 
     public JacksonProvider() {
-        ObjectMapper mapper = _mapperConfig.getDefaultMapper();
-        mapper = JsonUtils.createObjectMapper(mapper);
-        serializationConfig = mapper.getSerializationConfig();
-        deserializationConfig = mapper.getDeserializationConfig();
+        mapper = JsonUtils.createJaxbMapper();
 
         registerAnnotatedSuperclass(AnnotatedAtmItem.class);
         registerAnnotatedSuperclass(AnnotatedBatchView.class);
@@ -89,9 +84,13 @@ public final class JacksonProvider extends JacksonJaxbJsonProvider {
         JsonUtils.setDefaultObjectMapper(mapper);
     }
 
+    @Override
+    public ObjectMapper getContext(Class<?> type) {
+        return mapper;
+    }
+
     private void register(Class<?> target, Class<?> mixinSource) {
-        serializationConfig.addMixInAnnotations(target, mixinSource);
-        deserializationConfig.addMixInAnnotations(target, mixinSource);
+        mapper.addMixIn(target, mixinSource);
     }
 
     private void registerAnnotatedSuperclass(Class<?> mixinSource) {
@@ -100,16 +99,18 @@ public final class JacksonProvider extends JacksonJaxbJsonProvider {
 
     /**
      * The helper class that can override a declared XML adapter with the default JAXB mapping.
+     * <p>Jackson2 requires a type declaration especially in case of the container types (Map, ...).
+     * In that case it is necessary to create a subclass of the adapter.
      */
-    public static class DefaultAdapter extends XmlAdapter<Object, Object> {
+    public static class DefaultAdapter<O> extends XmlAdapter<O, O> {
 
         @Override
-        public Object unmarshal(Object v) throws Exception {
+        public O unmarshal(O v) throws Exception {
             return v;
         }
 
         @Override
-        public Object marshal(Object v) throws Exception {
+        public O marshal(O v) throws Exception {
             return v;
         }
 

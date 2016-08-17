@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
@@ -29,7 +30,6 @@ import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
 import java.util.List;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Subclass to implement transformations of MODS data in NDK flavor

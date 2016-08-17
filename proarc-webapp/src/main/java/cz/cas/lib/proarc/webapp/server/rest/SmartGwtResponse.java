@@ -67,7 +67,8 @@ public class SmartGwtResponse<T> {
     private String errdata;
     /**
      * errors holder; see RestDataSource doc
-     * <br/> validation format: status:STATUS_VALIDATION_ERROR, errors:[{fieldname:errormsg}] or errors:[fieldname:[{errormsg}]]
+     * <br/> validation format: status:STATUS_VALIDATION_ERROR,
+     * errors:[{fieldname:{errorMessage:"msg"}}] or errors:[fieldname:[{errorMessage:"msg1"},{errorMessage:"msg2"}]]
      * <br/> failure format: status:STATUS_FAILURE, errors:errormsg
      */
     @XmlJavaTypeAdapter(ErrorAdapter.class)
@@ -289,9 +290,11 @@ public class SmartGwtResponse<T> {
      */
     public static abstract class AnnotatedSmartGwtResponse<T> extends SmartGwtResponse<T> {
 
-        @XmlJavaTypeAdapter(DefaultAdapter.class)
+        @XmlJavaTypeAdapter(SgwtErrorAdapter.class)
         private Map<String, List<ErrorMessage>> errors;
 
     }
+
+    private static class SgwtErrorAdapter extends DefaultAdapter<Map<String, List<ErrorMessage>>> {}
 
 }

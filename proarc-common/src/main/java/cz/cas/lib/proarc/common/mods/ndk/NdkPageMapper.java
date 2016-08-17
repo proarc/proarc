@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
@@ -41,7 +42,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  *

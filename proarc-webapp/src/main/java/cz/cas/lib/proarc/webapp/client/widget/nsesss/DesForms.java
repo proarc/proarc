@@ -76,7 +76,7 @@ public class DesForms {
                             .addField(new FieldBuilder("value").setTitle("Datum vyřízení").setMaxOccurrences(1).setType(DATE).setRequired(true).createField())
                         .createField()) // Datum
                         .addField(new FieldBuilder("Zpusob").setTitle("Způsob vyřízení").setMaxOccurrences(1).setType(COMBO)
-                            .addMapValue("VYŘÍZENÍ_DOKUMENTEM", "vyřízení dokumentem").addMapValue("POSTOUPENÍ", "postoupení").addMapValue("VZETÍ_NA_VĚDOMÍ", "vzetí na vědomí").addMapValue("JINÝ_ZPŮSOB", "jiný způsob")
+                            .addMapValue("vyřízení dokumentem", "vyřízení dokumentem").addMapValue("postoupení", "postoupení").addMapValue("vzetí na vědomí", "vzetí na vědomí").addMapValue("jiný způsob", "jiný způsob")
                             .setRequired(true)
                         .createField()) // Zpusob
                         .addField(new FieldBuilder("Oduvodneni").setTitle("Odůvodnění vyřízení").setMaxOccurrences(1).setType(TEXT).setLength(100).createField())
@@ -115,10 +115,10 @@ public class DesForms {
 
                     .addField(new FieldBuilder("Manipulace").setMaxOccurrences(1).setRequired(true)
                         .addField(new FieldBuilder("NezbytnyDokument").setTitle("Nezbytný dokument").setMaxOccurrences(1).setType(RADIOGROUP).setRequired(true)
-                            .addMapValue("ANO", "Ano").addMapValue("NE", "Ne")
+                            .addMapValue("ano", "Ano").addMapValue("ne", "Ne")
                         .createField()) // NezbytnyDokument
                         .addField(new FieldBuilder("AnalogovyDokument").setTitle("Analogová forma spisu").setMaxOccurrences(1).setType(RADIOGROUP).setRequired(true)
-                            .addMapValue("ANO", "Ano").addMapValue("NE", "Ne")
+                            .addMapValue("ano", "Ano").addMapValue("ne", "Ne")
                         .createField()) // AnalogovyDokument
                         .addField(new FieldBuilder("DatumOtevreni").setMaxOccurrences(1).setRequired(true)
                             .addField(new FieldBuilder("value").setTitle("Datum otevření spisu").setMaxOccurrences(1).setType(DATE).setRequired(true).createField())
@@ -212,7 +212,7 @@ public class DesForms {
                             .addField(new FieldBuilder("value").setTitle("Datum vyřízení").setMaxOccurrences(1).setType(DATE).setRequired(true).createField())
                         .createField()) // Datum
                         .addField(new FieldBuilder("Zpusob").setTitle("Způsob vyřízení").setMaxOccurrences(1).setType(COMBO)
-                            .addMapValue("VYŘÍZENÍ_DOKUMENTEM", "vyřízení dokumentem").addMapValue("POSTOUPENÍ", "postoupení").addMapValue("VZETÍ_NA_VĚDOMÍ", "vzetí na vědomí").addMapValue("JINÝ_ZPŮSOB", "jiný způsob")
+                            .addMapValue("vyřízení dokumentem", "vyřízení dokumentem").addMapValue("postoupení", "postoupení").addMapValue("vzetí na vědomí", "vzetí na vědomí").addMapValue("jiný způsob", "jiný způsob")
                             .setRequired(true)
                         .createField()) // Zpusob
                         .addField(new FieldBuilder("Oduvodneni").setTitle("Odůvodnění vyřízení").setMaxOccurrences(1).setType(TEXT).setLength(100).createField())
@@ -269,10 +269,10 @@ public class DesForms {
 
                     .addField(new FieldBuilder("Manipulace").setMaxOccurrences(1).setWidth("200").setRequired(true)
                         .addField(new FieldBuilder("NezbytnyDokument").setTitle("Nezbytný dokument").setMaxOccurrences(1).setType(RADIOGROUP).setRequired(true)
-                            .addMapValue("ANO", "Ano").addMapValue("NE", "Ne")
+                            .addMapValue("ano", "Ano").addMapValue("ne", "Ne")
                         .createField()) // NezbytnyDokument
                         .addField(new FieldBuilder("AnalogovyDokument").setTitle("Analogová forma dokumentu").setMaxOccurrences(1).setType(RADIOGROUP).setRequired(true)
-                            .addMapValue("ANO", "Ano").addMapValue("NE", "Ne")
+                            .addMapValue("ano", "Ano").addMapValue("ne", "Ne")
                         .createField()) // AnalogovyDokument
                     .createField()) // Manipulace
 
@@ -367,7 +367,7 @@ public class DesForms {
                             .addField(new FieldBuilder("value").setTitle("Datum vyřízení").setMaxOccurrences(1).setType(DATE).setRequired(true).createField())
                         .createField()) // Datum
                         .addField(new FieldBuilder("Zpusob").setTitle("Způsob vyřízení").setMaxOccurrences(1).setType(COMBO)
-                            .addMapValue("VYŘÍZENÍ_DOKUMENTEM", "vyřízení dokumentem").addMapValue("POSTOUPENÍ", "postoupení").addMapValue("VZETÍ_NA_VĚDOMÍ", "vzetí na vědomí").addMapValue("JINÝ_ZPŮSOB", "jiný způsob")
+                            .addMapValue("vyřízení dokumentem", "vyřízení dokumentem").addMapValue("postoupení", "postoupení").addMapValue("vzetí na vědomí", "vzetí na vědomí").addMapValue("jiný způsob", "jiný způsob")
                             .setRequired(true)
                         .createField()) // Zpusob
                         .addField(new FieldBuilder("Oduvodneni").setTitle("Odůvodnění vyřízení").setMaxOccurrences(1).setType(TEXT).setLength(100).createField())
@@ -406,10 +406,10 @@ public class DesForms {
 
                     .addField(new FieldBuilder("Manipulace").setMaxOccurrences(1).setWidth("200").setRequired(true)
                         .addField(new FieldBuilder("NezbytnyDokument").setTitle("Nezbytný dokument").setMaxOccurrences(1).setType(RADIOGROUP).setRequired(true)
-                            .addMapValue("ANO", "Ano").addMapValue("NE", "Ne")
+                            .addMapValue("ano", "Ano").addMapValue("ne", "Ne")
                         .createField()) // NezbytnyDokument
                         .addField(new FieldBuilder("AnalogovyDokument").setTitle("Analogová forma dokumentu").setMaxOccurrences(1).setType(RADIOGROUP).setRequired(true)
-                            .addMapValue("ANO", "Ano").addMapValue("NE", "Ne")
+                            .addMapValue("ano", "Ano").addMapValue("ne", "Ne")
                         .createField()) // AnalogovyDokument
                     .createField()) // Manipulace
 

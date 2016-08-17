@@ -16,11 +16,10 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.Map;
-import javax.ws.rs.core.MediaType;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -41,8 +40,8 @@ public class SmartGwtResponseTest {
 
     @BeforeClass
     public static void setUpClass() {
-        mapper = new JacksonProvider().locateMapper(SmartGwtResponse.class, MediaType.APPLICATION_JSON_TYPE);
-        mapper.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        mapper = new JacksonProvider().getContext(SmartGwtResponse.class);
+        mapper.configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
     }
 
     @AfterClass
@@ -95,8 +94,11 @@ public class SmartGwtResponseTest {
         SmartGwtResponse<Long> response = SmartGwtResponse.asError("ERROR", ex);
         String json = mapper.writeValueAsString(response);
 //        System.out.println(json);
+        assertNotNull(json);
         String error = response.getDataAsError();
-        assertTrue(error, error.startsWith("ERROR\n\n" + ex.getClass().getName()));
+        assertTrue(error, error.startsWith("ERROR"
+                + System.lineSeparator() + System.lineSeparator()
+                + ex.getClass().getName()));
     }
 
 }

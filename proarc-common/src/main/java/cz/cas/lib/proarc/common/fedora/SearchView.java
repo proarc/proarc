@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.request.RiSearch;
@@ -40,7 +41,6 @@ import java.util.Locale;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Implements search queries with ITQL.

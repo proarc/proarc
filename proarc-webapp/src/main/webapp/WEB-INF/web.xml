@@ -46,21 +46,24 @@
     <!--REST-->
     <servlet>
         <servlet-name>Jersey Web Application</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>cz.cas.lib.proarc.webapp.server.rest</param-value>
+            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-value>
+                cz.cas.lib.proarc.webapp.server.rest
+            </param-value>
         </init-param>
-
-        <!-- see http://jersey.java.net/nonav/apidocs/1.9.1/jersey/com/sun/jersey/api/container/filter/LoggingFilter.html -->
-        <!-- see http://jersey.java.net/nonav/apidocs/1.9.1/jersey/com/sun/jersey/api/container/filter/GZIPContentEncodingFilter.html -->
         <init-param>
-            <param-name>com.sun.jersey.spi.container.ContainerRequestFilters.disabled</param-name>
-            <param-value>com.sun.jersey.api.container.filter.LoggingFilter;com.sun.jersey.api.container.filter.GZIPContentEncodingFilter</param-value>
+            <param-name>jersey.config.server.provider.classnames</param-name>
+            <param-value>
+                cz.cas.lib.proarc.webapp.server.rest.JacksonProvider,
+                org.glassfish.jersey.jackson.JacksonFeature,
+                org.glassfish.jersey.media.multipart.MultiPartFeature
+            </param-value>
         </init-param>
 <!--        <init-param>
-            <param-name>com.sun.jersey.config.feature.logging.DisableEntitylogging</param-name>
-            <param-value>true</param-value>
+            <param-name>jersey.config.server.provider.scanning.recursive</param-name>
+            <param-value>false</param-value>
         </init-param>-->
 
         <load-on-startup>1</load-on-startup>

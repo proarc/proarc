@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
@@ -46,7 +48,6 @@ import cz.cas.lib.proarc.nsesss2.Spis;
 import cz.cas.lib.proarc.nsesss2.TLogicky;
 import cz.cas.lib.proarc.nsesss2.TZpusobVyrizeni;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URL;
@@ -56,14 +57,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
-import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.stream.StreamResult;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -99,8 +97,8 @@ public class JacksonProviderTest {
 
     @Test
     public void testDublinCoreRecord() throws Exception {
-        ObjectMapper om = new JacksonProvider().locateMapper(DublinCoreRecord.class, MediaType.APPLICATION_JSON_TYPE);
-        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        ObjectMapper om = new JacksonProvider().getContext(DublinCoreRecord.class);
+        om.configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
         URL resource = JacksonProviderTest.class.getResource("dc_test.xml");
         assertNotNull(resource);
         OaiDcType dc = JAXB.unmarshal(resource, OaiDcType.class);
@@ -125,8 +123,8 @@ public class JacksonProviderTest {
 
     @Test
     public void testMix() throws Exception {
-        ObjectMapper om = new JacksonProvider().locateMapper(MixType.class, MediaType.APPLICATION_JSON_TYPE);
-        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        ObjectMapper om = new JacksonProvider().getContext(MixType.class);
+        om.configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
         Mix mix = new Mix();
         ScannerCapture scanner = new ScannerCapture();
         scanner.setScannerManufacturer(MixUtils.stringType("ScannerManufacturer"));
@@ -166,8 +164,8 @@ public class JacksonProviderTest {
 "    }, \n" +
 "    \"reviewed\":true\n" +
 "}}";
-        ObjectMapper om = new JacksonProvider().locateMapper(BdmModsWrapper.class, MediaType.APPLICATION_JSON_TYPE);
-        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        ObjectMapper om = new JacksonProvider().getContext(BdmModsWrapper.class);
+        om.configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
 //        System.out.println(toJson);
 
         BdmModsWrapper result = om.readValue(toJson, BdmModsWrapper.class);
@@ -186,11 +184,11 @@ public class JacksonProviderTest {
 
     @Test
     public void testModsDefinition() throws Exception {
-        ObjectMapper om = new JacksonProvider().locateMapper(ModsWrapper.class, MediaType.APPLICATION_JSON_TYPE);
-        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        ObjectMapper om = new JacksonProvider().getContext(ModsWrapper.class);
+        om.configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
         ModsDefinition mods = ModsStreamEditor.defaultMods("uuid:test");
         String toJson = om.writeValueAsString(new ModsWrapper(mods));
-        System.out.println(toJson);
+//        System.out.println(toJson);
 
         ModsWrapper result = om.readValue(toJson, ModsWrapper.class);
         assertNotNull(result);
@@ -205,8 +203,8 @@ public class JacksonProviderTest {
 
     @Test
     public void testNsesss2WrappedInternalDocument() throws Exception {
-        ObjectMapper om = new JacksonProvider().locateMapper(DesObjectWrapper.class, MediaType.APPLICATION_JSON_TYPE);
-        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        ObjectMapper om = new JacksonProvider().getContext(DesObjectWrapper.class);
+        om.configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
         Dokument nsesss = NsesssUtils.defaultInternalDokument();
         String toJson = om.writeValueAsString(new DesObjectWrapper(DesMetadataHandler.mapToJson(nsesss)));
 //        System.out.println(toJson);
@@ -219,8 +217,8 @@ public class JacksonProviderTest {
 
     @Test
     public void testNsesss2WrappedSpis() throws Exception {
-        ObjectMapper om = new JacksonProvider().locateMapper(Spis.class, MediaType.APPLICATION_JSON_TYPE);
-        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        ObjectMapper om = new JacksonProvider().getContext(Spis.class);
+        om.configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
         Spis spis = NsesssUtils.defaultSpis();
         String toJson = om.writeValueAsString(new DesObjectWrapper(spis));
 //        System.out.println(toJson);
@@ -241,9 +239,9 @@ public class JacksonProviderTest {
 
     @Test
     public void testReadNsesss2WrappedSpis() throws Exception {
-        String toJson = "{ \"Spis\":{ \"EvidencniUdaje\":{ \"Identifikace\":{ \"Identifikator\":[ { \"value\":\"\", \"zdroj\":\"ERMS\" } ] }, \"Popis\":{ \"Nazev\":\"Název\", \"KlicovaSlova\":{ \"KlicoveSlovo\":[ \"slovo2\" ] } }, \"Evidence\":{ \"NazevEvidenceDokumentu\":\"ERMS\" }, \"Puvod\":{ \"DatumVytvoreni\":{ \"value\":\"2013-12-31T23:00:00.000+0000\" } }, \"VyrizeniUzavreni\":{ \"Zpusob\":\"VYŘÍZENÍ_DOKUMENTEM\" }, \"Vyrazovani\":{ \"SkartacniRezim\":{ \"Oduvodneni\":\"Vyplývá ze spisového plánu organizace\", \"SkartacniLhuta\":1, \"SpousteciUdalost\":\"Uzavření spisu\" } }, \"Manipulace\":{ \"AnalogovyDokument\":\"ANO\" } }, \"ID\":\"1\" }}";
-        ObjectMapper om = new JacksonProvider().locateMapper(DesObjectWrapper.class, MediaType.APPLICATION_JSON_TYPE);
-//        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        String toJson = "{ \"Spis\":{ \"EvidencniUdaje\":{ \"Identifikace\":{ \"Identifikator\":[ { \"value\":\"\", \"zdroj\":\"ERMS\" } ] }, \"Popis\":{ \"Nazev\":\"Název\", \"KlicovaSlova\":{ \"KlicoveSlovo\":[ \"slovo2\" ] } }, \"Evidence\":{ \"NazevEvidenceDokumentu\":\"ERMS\" }, \"Puvod\":{ \"DatumVytvoreni\":{ \"value\":\"2013-12-31T23:00:00.000+0000\" } }, \"VyrizeniUzavreni\":{ \"Zpusob\":\"vyřízení dokumentem\" }, \"Vyrazovani\":{ \"SkartacniRezim\":{ \"Oduvodneni\":\"Vyplývá ze spisového plánu organizace\", \"SkartacniLhuta\":1, \"SpousteciUdalost\":\"Uzavření spisu\" } }, \"Manipulace\":{ \"AnalogovyDokument\":\"ano\" } }, \"ID\":\"1\" }}";
+        ObjectMapper om = new JacksonProvider().getContext(DesObjectWrapper.class);
+//        om.configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
         DesObjectWrapper result = om.readValue(toJson, DesObjectWrapper.class);
         assertNotNull(result.getSpis());
     }
@@ -260,8 +258,8 @@ public class JacksonProviderTest {
         List<ValueMap> valueMap = desaServices.getValueMap(n, "test");
         SmartGwtResponse<ValueMap> sgr = new SmartGwtResponse<ValueMap>(valueMap);
 
-        ObjectMapper om = new JacksonProvider().locateMapper(SmartGwtResponse.class, MediaType.APPLICATION_JSON_TYPE);
-        om.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+        ObjectMapper om = new JacksonProvider().getContext(SmartGwtResponse.class);
+        om.configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
         String toJson = om.writeValueAsString(sgr);
 //        System.out.println(toJson);
         assertTrue(toJson.contains("\"data\":[{\"mapId\":\"test.rec-cl\",\"values\":[{\"fullyQcc\":\"FullyQcc\"}]}]}"));
@@ -272,11 +270,11 @@ public class JacksonProviderTest {
      */
     @Test
     public void testMapSearchViewItemToJson() throws Exception {
-        ObjectMapper om = new JacksonProvider().locateMapper(Item.class, MediaType.APPLICATION_JSON_TYPE);
         String input = "{\"pid\":\"pid\",\"model\":\"model:test\",\"k0\":1}";
         Item item = JsonUtils.createObjectMapper().readValue(input, Item.class);
-        String json = om.writeValueAsString(item);
-        System.out.println(json);
+        String json = toJson(item);
+//        System.out.println(json);
+        assertNotNull(json);
     }
 
     @Test
@@ -345,11 +343,8 @@ public class JacksonProviderTest {
     }
 
     private static String toJson(Object obj) throws IOException {
-        JacksonProvider jp = new JacksonProvider();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        jp.writeTo(obj, obj.getClass(), null, null, MediaType.APPLICATION_JSON_TYPE, null, out);
-        String json = out.toString("UTF-8");
-        return json;
+        ObjectMapper om = new JacksonProvider().getContext(obj == null ? null : obj.getClass());
+        return om.writeValueAsString(obj);
     }
 
     @XmlRootElement(name = "record")

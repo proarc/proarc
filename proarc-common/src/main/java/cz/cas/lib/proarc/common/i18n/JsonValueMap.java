@@ -16,6 +16,9 @@
  */
 package cz.cas.lib.proarc.common.i18n;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import java.net.URL;
@@ -27,10 +30,6 @@ import java.util.Map;
 import java.util.ResourceBundle.Control;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.type.CollectionType;
-import org.codehaus.jackson.map.type.MapType;
-import org.codehaus.jackson.map.type.TypeFactory;
 
 /**
  * Holds JSON content as a value map. It expects attribute {@code data} as

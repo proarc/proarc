@@ -16,12 +16,14 @@
  */
 package cz.cas.lib.proarc.common.json;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import java.util.logging.Logger;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 /**
  *
@@ -47,11 +49,23 @@ public final class JsonUtils {
      */
     public static ObjectMapper createObjectMapper(ObjectMapper om) {
         // reuses XmlRootElement.name to adhere to XML structure
-        om.configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
-        om.configure(SerializationConfig.Feature.WRITE_NULL_PROPERTIES, false);
-        om.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
-        om.configure(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-        om.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        om.configure(SerializationFeature.WRAP_ROOT_VALUE, true);
+        om.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        om.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        om.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return om;
+    }
+
+    /**
+     * Creates a configured mapper supporting JAXB.
+     * @see #createObjectMapper(com.fasterxml.jackson.databind.ObjectMapper)
+     */
+    public static ObjectMapper createJaxbMapper() {
+        ObjectMapper om = createObjectMapper(createObjectMapper());
+        JaxbAnnotationIntrospector jaxbIntr = new JaxbAnnotationIntrospector(om.getTypeFactory());
+        JacksonAnnotationIntrospector jsonIntr = new JacksonAnnotationIntrospector();
+        om.setAnnotationIntrospector(new AnnotationIntrospectorPair(jsonIntr, jaxbIntr));
         return om;
     }
 
@@ -65,13 +79,8 @@ public final class JsonUtils {
             return MAPPER;
         }
         LOG.warning("Using default JSON ObjectMapper!");
-        ObjectMapper om = createObjectMapper();
-        // JaxbAnnotationIntrospector failes to handle enums.
-        // It requires the itnrospector pair (JSON, JAXB) to mimic JacksonJaxbJsonProvider.
+        ObjectMapper om = createJaxbMapper();
         // Use setDefaultObjectMapper in webapp tests!
-        AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
-        om.getSerializationConfig().setAnnotationIntrospector(introspector);
-        om.getDeserializationConfig().setAnnotationIntrospector(introspector);
         setDefaultObjectMapper(om);
         return om;
     }

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -57,7 +58,6 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.transform.Source;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Support of the DES DESA model. The plugin is used to provide list of all

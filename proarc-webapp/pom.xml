@@ -88,23 +88,42 @@
             </exclusions>-->
         </dependency>
         <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-json</artifactId>
-            <version>${jerseyVersion}</version>
-            <exclusions>
-                <!-- excluded not to downgrade soapclient/jaxws-rt/jaxb-impl.2.2.5-2-->
-                <exclusion>
-                    <artifactId>jaxb-impl</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet-core</artifactId>
+            <version>${jerseyVersion2}</version>
         </dependency>
-        <!--REST file upload-->
         <dependency>
-            <groupId>com.sun.jersey.contribs</groupId>
-            <artifactId>jersey-multipart</artifactId>
-            <version>${jerseyVersion}</version>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+            <version>${jerseyVersion2}</version>
         </dependency>
+        <!--
+        REST file upload
+        see org.glassfish.jersey.media.multipart.MultiPartFeature in web.xml
+        -->
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
+            <version>${jerseyVersion2}</version>
+        </dependency>
+
+        <!-- Replace jackson 2.5.4 to fix mix-in annotations -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-base</artifactId>
+            <version>${jacksonVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>${jacksonVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jacksonVersion}</version>
+        </dependency>
+
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-mix</artifactId>
