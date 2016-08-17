@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.fedora;
 
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,6 +51,8 @@ public class PurgeFedoraObjectTest {
     @Before
     public void setUp() throws Exception {
         support = new FedoraTestSupport();
+        MetaModelRepository.setInstance(new String[]{NdkPlugin.ID});
+        new FedoraStorageInitializer(support.getRemoteStorage()).init();
         support.cleanUp();
         support.ingest(
                 getClass().getResource("tree1.xml"),
