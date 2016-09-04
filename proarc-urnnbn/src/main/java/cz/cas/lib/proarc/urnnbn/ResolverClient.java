@@ -16,14 +16,6 @@
  */
 package cz.cas.lib.proarc.urnnbn;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.api.client.filter.LoggingFilter;
-import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import cz.cas.lib.proarc.urnnbn.model.registration.Import;
 import cz.cas.lib.proarc.urnnbn.model.response.Response;
 import java.security.KeyManagementException;
@@ -35,7 +27,16 @@ import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.logging.LoggingFeature;
 
 /**
  * The resolver HTTP client.
@@ -57,7 +58,6 @@ public final class ResolverClient {
     private final Long archiver;
     private final String user;
     private final String passwd;
-    private boolean debug;
 
     public ResolverClient(String serviceUrl, String registrar, Long archiver,
             String user, String passwd) {
@@ -70,7 +70,7 @@ public final class ResolverClient {
     }
 
     public String getDigitalInstances() {
-        String response = resource().path("digitalInstances").get(String.class);
+        String response = resource().path("digitalInstances").request().get(String.class);
         return response;
     }
 
@@ -97,41 +97,46 @@ public final class ResolverClient {
                     .path("registrars")
                     .path(registrar)
                     .path("digitalDocuments")
-                    .entity(object, MediaType.APPLICATION_XML_TYPE)
-                    .post(Response.class);
-        } catch (UniformInterfaceException ex) {
-            response = readResponseError(ex);
+                    .request()
+                        .post(Entity.entity(object, MediaType.APPLICATION_XML_TYPE), Response.class);
+        } catch (WebApplicationException ex) {
+            response = readResponseError(ex.getResponse(), ex);
+        } catch (ResponseProcessingException ex) {
+            response = readResponseError(ex.getResponse(), ex);
         }
         return response;
     }
 
-    private Response readResponseError(UniformInterfaceException ex) {
-        Response response = null;
-        ClientResponse errResponse = ex.getResponse();
-        errResponse.bufferEntity();
-        MediaType errType = errResponse.getType();
-        if (errType != null && "xml".equalsIgnoreCase(errType.getSubtype())) {
-            // try to map resolver warning to jaxb response
-            try {
-                response = errResponse.getEntity(Response.class);
-            } catch (Exception exception) {
-                String msg = errResponse.getEntity(String.class);
-                throw new IllegalStateException(msg, ex);
+    private Response readResponseError(javax.ws.rs.core.Response errResponse, RuntimeException ex) {
+        try {
+            Response response = null;
+            errResponse.bufferEntity();
+            MediaType errType = errResponse.getMediaType();
+            if (errType != null && "xml".equalsIgnoreCase(errType.getSubtype())) {
+                // try to map resolver warning to jaxb response
+                try {
+                    response = errResponse.readEntity(Response.class);
+                } catch (Exception exception) {
+                    String msg = errResponse.readEntity(String.class);
+                    throw new IllegalStateException(msg, ex);
+                }
             }
+            if (response == null) {
+                throw ex;
+            }
+            return response;
+        } finally {
+            errResponse.close();
         }
-        if (response == null) {
-            throw ex;
-        }
-        return response;
     }
 
-    private WebResource resource() {
+    private WebTarget resource() {
         // https://resolver.nkp.cz/api/v3
-        WebResource resource = getHttpClient().resource(serviceUrl);
-        if (debug || LOG.isLoggable(Level.FINEST)) {
-            resource.addFilter(new LoggingFilter(System.out));
+        WebTarget target = getHttpClient().target(serviceUrl);
+        if (LOG.isLoggable(Level.FINEST)) {
+            target.register(new LoggingFeature(LOG));
         }
-        return resource;
+        return target;
     }
 
     Client getHttpClient() {
@@ -140,17 +145,14 @@ public final class ResolverClient {
                 SSLContext sslCtx = SSLContext.getInstance("SSL");
                 TrustManager tm = new TrustThemAll();
                 sslCtx.init(null, new TrustManager[] {tm}, null);
-                DefaultClientConfig jerseyConfig = new DefaultClientConfig();
-                jerseyConfig.getProperties().put(
-                        HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
-                        new HTTPSProperties(null, sslCtx));
-                httpClient = Client.create(jerseyConfig);
-                httpClient.addFilter(new HTTPBasicAuthFilter(user, passwd));
-                httpClient.setFollowRedirects(true);
-                httpClient.setConnectTimeout(2 * 60 * 1000); // 2 min
-            } catch (NoSuchAlgorithmException ex) {
-                throw new IllegalStateException(ex);
-            } catch (KeyManagementException ex) {
+
+                httpClient = ClientBuilder.newBuilder()
+                        .sslContext(sslCtx)
+                        .register(HttpAuthenticationFeature.basic(user, passwd))
+                        .build();
+                httpClient.property(ClientProperties.FOLLOW_REDIRECTS, true);
+                httpClient.property(ClientProperties.CONNECT_TIMEOUT, 2 * 60 * 1000); // 2 min
+            } catch (NoSuchAlgorithmException | KeyManagementException ex) {
                 throw new IllegalStateException(ex);
             }
         }
@@ -158,11 +160,11 @@ public final class ResolverClient {
     }
 
     public boolean isDebug() {
-        return debug;
+        return LOG.isLoggable(Level.FINEST);
     }
 
     public void setDebug(boolean debug) {
-        this.debug = debug;
+        LOG.setLevel(debug ? Level.FINEST : null);
     }
 
     private static class TrustThemAll implements X509TrustManager {

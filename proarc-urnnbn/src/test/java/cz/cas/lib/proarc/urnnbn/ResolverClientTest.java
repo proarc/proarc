@@ -46,8 +46,8 @@ public class ResolverClientTest {
     @Before
     public void setUp() {
         String serviceUrl = System.getProperty("proarc-urnnbn.ResolverClient.url");
-        String user = System.getProperty("proarc-urnnbn.ResolverClient.user");;
-        String passwd = System.getProperty("proarc-urnnbn.ResolverClient.passwd");;
+        String user = System.getProperty("proarc-urnnbn.ResolverClient.user");
+        String passwd = System.getProperty("proarc-urnnbn.ResolverClient.passwd");
         String registrar = "";
         Assume.assumeNotNull(serviceUrl, user, passwd);
         client = new ResolverClient(serviceUrl, registrar, null, user, passwd);
