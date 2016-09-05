@@ -16,11 +16,6 @@
  */
 package cz.cas.lib.proarc.desa;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.api.client.filter.LoggingFilter;
 import cz.cas.lib.proarc.desa.nomenclature.Nomenclatures;
 import cz.cas.lib.proarc.desa.soap.AuthenticateUserFault;
 import cz.cas.lib.proarc.desa.soap.AuthenticateUserRequest;
@@ -35,8 +30,14 @@ import java.io.File;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -47,6 +48,9 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceException;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.logging.LoggingFeature;
 
 /**
  * The client for DESA SOAP and REST WS interface.
@@ -64,7 +68,6 @@ public final class DesaClient {
     private SIPSubmission sipSubmission;
     private Client httpClient;
     private DatatypeFactory xmlTypeFactory;
-    private boolean debug;
 
     public DesaClient(String soapUrl, String restUrl, String user, String passwd) {
         this.soapUrl = soapUrl;
@@ -136,23 +139,26 @@ public final class DesaClient {
     public String submitPackage(File file, String operator, String producerCode,
             String producerSipId, FileHashAlg fileHashAlg, String fileHash, String lang) {
 
-        WebResource resource = resource();
-        addQueryParam(resource, "fileHashAlg", fileHashAlg == null ? null : fileHashAlg.value());
-        addQueryParam(resource, "fileHash", fileHash);
-        ClientResponse response = resource()
+        Response response = resource()
                 .path("submitpackage")
                 .queryParam("userName", operator)
                 .queryParam("producerCode", producerCode)
                 .queryParam("producerSipId", producerSipId)
-                .acceptLanguage(lang)
-                .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                .post(ClientResponse.class, file);
-        if (response.getStatus() > 400) {
-            String error = response.getEntity(String.class);
-            throw new IllegalStateException(String.format("HTTP %s, Error: %s", response.getStatus(), error));
+                .queryParam("fileHashAlg", fileHashAlg == null ? null : fileHashAlg.value())
+                .queryParam("fileHash", fileHash)
+                .request()
+                    .acceptLanguage(lang)
+                    .post(Entity.entity(file, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+        try {
+            if (response.getStatus() > 400) {
+                String error = response.readEntity(String.class);
+                throw new IllegalStateException(String.format("HTTP %s, Error: %s", response.getStatus(), error));
+            }
+            String aipVersionId = response.getStringHeaders().getFirst("X-DEA-AipVersionId");
+            return aipVersionId;
+        } finally {
+            response.close();
         }
-        String aipVersionId = response.getHeaders().getFirst("X-DEA-AipVersionId");
-        return aipVersionId;
     }
 
     /**
@@ -184,11 +190,11 @@ public final class DesaClient {
     }
 
     public boolean isDebug() {
-        return debug;
+        return LOG.isLoggable(Level.FINEST);
     }
 
     public void setDebug(boolean debug) {
-        this.debug = debug;
+        LOG.setLevel(debug ? Level.FINEST : null);
     }
 
     DatatypeFactory getXmlTypes() {
@@ -216,26 +222,21 @@ public final class DesaClient {
 
     Client getHttpClient() {
         if (httpClient == null) {
-            httpClient = Client.create();
-            httpClient.addFilter(new HTTPBasicAuthFilter(user, passwd));
-            httpClient.setFollowRedirects(true);
-            httpClient.setConnectTimeout(2 * 60 * 1000); // 2 min
+            httpClient = ClientBuilder.newBuilder()
+                    .register(HttpAuthenticationFeature.basic(user, passwd))
+                    .property(ClientProperties.FOLLOW_REDIRECTS, true)
+                    .property(ClientProperties.CONNECT_TIMEOUT, 2 * 60 * 1000) // 2 min
+                    .build();
         }
         return httpClient;
     }
 
-    private WebResource resource() {
-        WebResource resource = getHttpClient().resource(restUrl);
-        if (debug) {
-            resource.addFilter(new LoggingFilter(System.out));
+    private WebTarget resource() {
+        WebTarget resource = getHttpClient().target(restUrl);
+        if (isDebug()) {
+            resource.register(new LoggingFeature(LOG));
         }
         return resource;
-    }
-
-    private static void addQueryParam(WebResource wr, String name, String value) {
-        if (value != null) {
-            wr.queryParam(name, value);
-        }
     }
 
     /**
