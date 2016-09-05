@@ -16,15 +16,16 @@
  */
 package cz.cas.lib.proarc.common.catalog;
 
-import com.sun.jersey.api.client.WebResource;
 import java.io.StringWriter;
 import java.util.HashMap;
+import javax.ws.rs.client.WebTarget;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import org.custommonkey.xmlunit.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
+import org.glassfish.jersey.uri.UriComponent;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -112,31 +113,34 @@ public class OaiCatalogTest {
         String metadataPrefix = "marc21";
         String identifierPrefix = "oai:arXiv.org:quant-ph/";
         OaiCatalog c = new OaiCatalog(url, metadataPrefix, identifierPrefix);
-        WebResource wr = c.buildOaiQuery(OaiCatalog.FIELD_ID, "4");
-        String resultQuery = wr.getURI().toString();
-        assertTrue(resultQuery, resultQuery.contains("identifier=oai:arXiv.org:quant-ph/4"));
+        WebTarget wr = c.buildOaiQuery(OaiCatalog.FIELD_ID, "4");
+        String resultQuery = wr.getUri().toString();
+        String encIdParam = "identifier=" + UriComponent.encode(
+                "oai:arXiv.org:quant-ph/4",
+                UriComponent.Type.QUERY_PARAM_SPACE_ENCODED);
+        assertTrue(resultQuery, resultQuery.contains(encIdParam));
 
         // do not prefix ID with prefix
         wr = c.buildOaiQuery(OaiCatalog.FIELD_ID, "oai:arXiv.org:quant-ph/4");
-        resultQuery = wr.getURI().toString();
-        assertTrue(resultQuery, resultQuery.contains("identifier=oai:arXiv.org:quant-ph/4"));
+        resultQuery = wr.getUri().toString();
+        assertTrue(resultQuery, resultQuery.contains(encIdParam));
 
         // no prefix
         c.setIdentifierPrefix(null);
         wr = c.buildOaiQuery(OaiCatalog.FIELD_ID, "4");
-        resultQuery = wr.getURI().toString();
+        resultQuery = wr.getUri().toString();
         assertTrue(resultQuery, resultQuery.contains("identifier=4"));
     }
 
 //    @Test
-//    public void testFindOaiRecord() throws Exception {
-//        String url = "http://web2.mlp.cz/cgi/oai";
-//        String metadataPrefix = "marc21";
-//        String identifierPrefix = "oai:www.mlp.cz:";
-//        OaiCatalog c = new OaiCatalog(url, metadataPrefix, identifierPrefix);
-//        String oaiRecord = c.findOaiRecord("4");
-//        System.out.println(oaiRecord);
-//        assertNotNull(oaiRecord);
-//    }
+    public void testFindOaiRecord() throws Exception {
+        String url = "http://web2.mlp.cz/cgi/oai";
+        String metadataPrefix = "marc21";
+        String identifierPrefix = "oai:www.mlp.cz:";
+        OaiCatalog c = new OaiCatalog(url, metadataPrefix, identifierPrefix);
+        String oaiRecord = c.findOaiRecord("4");
+        System.out.println(oaiRecord);
+        assertNotNull(oaiRecord);
+    }
 
 }

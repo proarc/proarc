@@ -16,11 +16,6 @@
  */
 package cz.cas.lib.proarc.common.catalog;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.api.client.filter.LoggingFilter;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.xml.Transformers;
@@ -33,7 +28,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -45,6 +42,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.logging.LoggingFeature;
 
 /**
  * The catalog can query OAI repositories with
@@ -77,7 +77,6 @@ public class OaiCatalog implements BibliographicCatalog {
     private final String metadataPrefix;
     private String identifierPrefix;
     private final Transformers transformers;
-    private boolean debug;
 
     public static OaiCatalog get(CatalogConfiguration c) {
         if (c == null || !TYPE.equals(c.getType())) {
@@ -105,7 +104,7 @@ public class OaiCatalog implements BibliographicCatalog {
     }
 
     public void setDebug(boolean debug) {
-        this.debug = debug;
+        LOG.setLevel(debug ? Level.FINEST : null);
     }
 
     public void setIdentifierPrefix(String identifierPrefix) {
@@ -122,7 +121,7 @@ public class OaiCatalog implements BibliographicCatalog {
 
     @Override
     public List<MetadataItem> find(String fieldName, String value, Locale locale) throws TransformerException, IOException {
-        WebResource query = buildOaiQuery(fieldName, value);
+        WebTarget query = buildOaiQuery(fieldName, value);
         String oaiResponse = findOaiRecord(query);
         ArrayList<MetadataItem> result = new ArrayList<MetadataItem>();
         if (oaiResponse != null) {
@@ -140,35 +139,30 @@ public class OaiCatalog implements BibliographicCatalog {
         return findOaiRecord(buildOaiQuery(id));
     }
 
-    String findOaiRecord(WebResource query) {
+    String findOaiRecord(WebTarget query) {
         if (query == null) {
             return null;
         }
-        String result = query.get(String.class);
+        String result = query.request().get(String.class);
         return result;
     }
 
-    WebResource buildOaiQuery(String fieldName, String value) {
-        WebResource query = null;
+    WebTarget buildOaiQuery(String fieldName, String value) {
+        WebTarget query = null;
         if (FIELD_ID.equals(fieldName)) {
             query = buildOaiQuery(value);
         }
         return query;
     }
 
-    WebResource buildOaiQuery(String id) {
+    WebTarget buildOaiQuery(String id) {
         if (identifierPrefix != null && !id.startsWith(identifierPrefix)) {
             id = identifierPrefix + id;
         }
-        MultivaluedMap<String, String> params = new MultivaluedMapImpl();
-        params.add("verb", "GetRecord");
-        params.add("identifier", id);
-        params.add("metadataPrefix", metadataPrefix);
-        WebResource query = getClient().resource(url).queryParams(params);
-        if (debug || LOG.isLoggable(Level.FINEST)) {
-            query.addFilter(new LoggingFilter(System.out));
-        }
-        return query;
+        return getClient().target(url)
+                .queryParam("verb", "GetRecord")
+                .queryParam("identifier", id)
+                .queryParam("metadataPrefix", metadataPrefix);
     }
 
     private Client getClient() {
@@ -179,13 +173,18 @@ public class OaiCatalog implements BibliographicCatalog {
     }
 
     private Client createClient() {
-        Client client = Client.create();
-        client.setFollowRedirects(Boolean.TRUE);
-        client.setConnectTimeout(2 * 60 * 1000); // 2 min
-        client.setReadTimeout(2 * 60 * 1000); // 2 min
+        ClientBuilder builder = ClientBuilder.newBuilder();
         if (user != null) {
-            client.addFilter(new HTTPBasicAuthFilter(user, password));
+            builder.register(HttpAuthenticationFeature.basic(user, password));
         }
+        if (LOG.isLoggable(Level.FINEST)) {
+            builder.register(new LoggingFeature(LOG));
+        }
+        Client client = builder
+                .property(ClientProperties.FOLLOW_REDIRECTS, true)
+                .property(ClientProperties.CONNECT_TIMEOUT, 2 * 60 * 1000) // 2 min
+                .property(ClientProperties.READ_TIMEOUT, 1 * 60 * 1000) // 1 min
+                .build();
         return client;
     }
 
