@@ -172,8 +172,8 @@ public final class PurgeFedoraObject {
     private void purge(String pid) throws PurgeException {
         try {
             RemoteObject remote = storage.find(pid);
-            FedoraClient.purgeObject(pid).logMessage(logMessage).execute(remote.getClient());
-        } catch (FedoraClientException ex) {
+            remote.purge(logMessage);
+        } catch (DigitalObjectException ex) {
             throw new PurgeException(pid, ex);
         }
     }

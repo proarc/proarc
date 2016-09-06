@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.device;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -115,16 +114,18 @@ public final class DeviceRepository {
             if (remoteStorage.getSearch().isDeviceInUse(id)) {
                 return false;
             } else {
-                FedoraClient.purgeObject(id).logMessage(log).execute(robject.getClient());
+                robject.purge(log);
                 return true;
             }
+        } catch (DigitalObjectNotFoundException ex) {
+                throw new DeviceNotFoundException(null, ex, id);
         } catch (FedoraClientException ex) {
             if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new DeviceNotFoundException(null, ex, id);
             } else {
                 throw new DeviceException(id, ex);
             }
-        } catch (IOException ex) {
+        } catch (DigitalObjectException | IOException ex) {
             throw new DeviceException(id, ex);
         }
     }

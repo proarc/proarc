@@ -151,6 +151,27 @@ public class RemoteStorageTest {
         assertDatastream(BinaryEditor.THUMB_ID, datastreams);
     }
 
+    @Test
+    public void testPurge() throws Exception {
+        RemoteStorage fedora = new RemoteStorage(client);
+        LocalObject object = new LocalStorage().create();
+        String label = "testPurge";
+        object.setLabel(label);
+        fedora.ingest(object, "junit");
+        assertTrue(object.getPid(), fedora.exist(object.getPid()));
+        RemoteObject robject = fedora.find(object.getPid());
+        robject.purge("{\"key\":\"val\"}");
+        assertFalse(object.getPid(), fedora.exist(object.getPid()));
+    }
+
+    @Test
+    public void testPurgeMissing() throws Exception {
+        RemoteStorage fedora = new RemoteStorage(client);
+        RemoteObject missing = fedora.find("uuid:missing");
+        thrown.expect(DigitalObjectNotFoundException.class);
+        missing.purge("testPurgeMissing");
+    }
+
     private static void assertDatastream(String id, List<DatastreamType> datastreams) {
         for (DatastreamType ds : datastreams) {
             if (id.equals(ds.getDsid())) {
