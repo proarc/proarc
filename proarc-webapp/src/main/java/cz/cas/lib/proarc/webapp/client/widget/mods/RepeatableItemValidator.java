@@ -48,6 +48,8 @@ abstract class RepeatableItemValidator extends CustomValidator {
         RecordList recordList = null;
         if (value instanceof RecordList || value == null) {
             recordList = (RecordList) value;
+        } else if (value.getClass().isArray()) {
+            recordList = new RecordList(JSOHelper.convertToJavaScriptArray((Object[]) value));
         } else if (value instanceof JavaScriptObject) {
             JavaScriptObject jso = (JavaScriptObject) value;
             if (JSOHelper.isArray(jso)) {
@@ -56,6 +58,19 @@ abstract class RepeatableItemValidator extends CustomValidator {
                 recordList = new RecordList(new Record[] {new Record(jso)});
             }
         } else {
+            if (value instanceof Object[]) {
+                // diagnostics of the unexpected array
+                int aLength = ((Object[]) value).length;
+                GWT.log("array.length: " + aLength
+                        + ", isJSO: " + JSOHelper.isJSO(value)
+                        + ", isJavaArray: " + JSOHelper.isJavaArray(value)
+                        + ", isArray: " + value.getClass().isArray()
+                        + ", (value instanceof JavaScriptObject[]): " + (value instanceof JavaScriptObject[])
+                );
+                if (aLength > 0) {
+                    value = ((Object[]) value)[0];
+                }
+            }
             throw new UnsupportedOperationException(ClientUtils.format("field.name: %s, class: %s, JSO: %s",
                     formItem.getName(), ClientUtils.safeGetClass(value), ClientUtils.dump(value)));
         }
