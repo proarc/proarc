@@ -231,6 +231,7 @@ public class DigitalObjectResource {
         ArrayList<DigitalObject> result = new ArrayList<DigitalObject>(pids.size());
         PurgeFedoraObject service = new PurgeFedoraObject(fedora);
         if (purge) {
+            session.requirePermission(Permissions.ADMIN);
             service.purge(pids, hierarchy, session.asFedoraLog());
         } else {
             service.delete(pids, hierarchy, session.asFedoraLog());

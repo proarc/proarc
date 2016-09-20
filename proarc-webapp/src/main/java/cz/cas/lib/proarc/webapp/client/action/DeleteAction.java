@@ -23,9 +23,13 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
+import com.smartgwt.client.widgets.events.ClickEvent;
+import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.widget.Dialog;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
+import java.util.logging.Logger;
 
 /**
  * The delete action invokes {@link Deletable} with selection received from
@@ -35,12 +39,20 @@ import cz.cas.lib.proarc.webapp.client.widget.StatusView;
  */
 public final class DeleteAction extends AbstractAction {
 
+    private static final Logger LOG = Logger.getLogger(DeleteAction.class.getName());
+
     private final Deletable deletable;
     private final ClientMessages i18n;
+    private final DynamicForm optionsForm;
 
     public DeleteAction(Deletable deletable, ClientMessages i18n) {
+        this(deletable, null, i18n);
+    }
+
+    public DeleteAction(Deletable deletable, DynamicForm options, ClientMessages i18n) {
         super(i18n.DeleteAction_Title(), "[SKIN]/actions/remove.png", i18n.DeleteAction_Hint());
         this.deletable = deletable;
+        this.optionsForm = options;
         this.i18n = i18n;
     }
 
@@ -62,31 +74,68 @@ public final class DeleteAction extends AbstractAction {
         if (selection == null || selection.length == 0) {
             return ;
         }
-        SC.ask(i18n.DeleteAction_Window_Title(),
-                i18n.DeleteAction_Window_Msg(String.valueOf(selection.length)),
-                new BooleanCallback() {
-
-            @Override
-            public void execute(Boolean value) {
-                if (value != null && value) {
-                    delete(selection);
+        if (optionsForm != null) {
+            optionsForm.clearValues();
+            final Dialog d = new Dialog(i18n.DeleteAction_Window_Title());
+            d.getDialogLabelContainer().setContents(i18n.DeleteAction_Window_Msg(String.valueOf(selection.length)));
+            d.getDialogContentContainer().setMembers(optionsForm);
+            d.addYesButton((ClickEvent event) -> {
+                Record options = optionsForm.getValuesAsRecord();
+                d.destroy();
+                delete(selection, options);
+            });
+            d.addNoButton(new Dialog.DialogCloseHandler() {
+                @Override
+                public void onClose() {
+                    d.destroy();
                 }
-            }
-        });
+            });
+            d.setWidth(400);
+            d.show();
+        } else {
+            SC.ask(i18n.DeleteAction_Window_Title(),
+                    i18n.DeleteAction_Window_Msg(String.valueOf(selection.length)),
+                    new BooleanCallback() {
+
+                @Override
+                public void execute(Boolean value) {
+                    if (value != null && value) {
+                        delete(selection);
+                    }
+                }
+            });
+        }
     }
-    
+
+    private void initOptionForms() {
+
+    }
+
     public void delete(Object[] selection) {
+        delete(selection, null);
+    }
+
+    public void delete(Object[] selection, Record options) {
         if (selection != null && selection.length > 0) {
-            deletable.delete(selection);
+            deletable.delete(selection, options);
         }
     }
 
     /**
      * Implement to provide deletion of items.
      */
-    public interface Deletable {
+    public interface Deletable<T> {
 
         void delete(Object[] items);
+
+        /**
+         * Deletes items using options.
+         * @param items items to deletete
+         * @param options options to customize the delete
+         */
+        default void delete(Object[] items, T options) {
+            delete(items);
+        }
 
     }
 

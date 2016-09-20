@@ -93,7 +93,7 @@ public final class SessionContext {
     }
 
     public void requirePermission(Permission... permissions) {
-        if (checkPermission(permissions)) {
+        if (!checkPermission(permissions)) {
             throw new WebApplicationException(Status.FORBIDDEN);
         }
     }

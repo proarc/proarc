@@ -33,6 +33,7 @@ import com.yourmediashelf.fedora.client.response.ModifyDatastreamResponse;
 import com.yourmediashelf.fedora.client.response.PurgeDatastreamResponse;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.StateType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -276,6 +277,20 @@ public final class RemoteStorage {
                 }
             } catch (FedoraClientException ex) {
                 throw new IllegalStateException(getPid(), ex);
+            }
+        }
+
+        public void delete(String logMessage) throws DigitalObjectException {
+            try {
+                FedoraClient.modifyObject(getPid()).state(StateType.D.value())
+                        .logMessage(qpEncode(logMessage))
+                        .execute(client);
+            } catch (FedoraClientException ex) {
+                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    throw new DigitalObjectNotFoundException(getPid(), ex);
+                } else {
+                    throw new DigitalObjectException(getPid(), ex);
+                }
             }
         }
 

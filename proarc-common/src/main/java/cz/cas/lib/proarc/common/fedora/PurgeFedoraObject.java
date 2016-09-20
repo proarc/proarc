@@ -16,9 +16,7 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.StateType;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
@@ -193,10 +191,8 @@ public final class PurgeFedoraObject {
     private void setDeleted(String pid) throws PurgeException {
         try {
             RemoteObject remote = storage.find(pid);
-            FedoraClient.modifyObject(pid).state(StateType.D.value())
-                    .logMessage(logMessage)
-                    .execute(remote.getClient());
-        } catch (FedoraClientException ex) {
+            remote.delete(logMessage);
+        } catch (DigitalObjectException ex) {
             throw new PurgeException(pid, ex);
         }
     }

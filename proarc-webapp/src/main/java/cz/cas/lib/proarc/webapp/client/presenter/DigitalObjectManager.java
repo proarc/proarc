@@ -201,7 +201,8 @@ public final class DigitalObjectManager {
         desaDownloadAction = DesaExportAction.download(i18n);
         fullDataStreamExportAction = DataStreamExportAction.full(i18n);
         rawDataStreamExportAction = DataStreamExportAction.raw(i18n);
-        deleteAction = new DeleteAction(DigitalObjectDataSource.createDeletable(), i18n);
+        deleteAction = new DeleteAction(DigitalObjectDataSource.createDeletable(),
+                DigitalObjectDataSource.createDeleteOptionsForm(), i18n);
         ocrEditAction = new DigitalObjectEditAction(
                 i18n.ImportBatchItemEditor_TabOcr_Title(), DatastreamEditorType.OCR, i18n);
         noteEditAction = new DigitalObjectEditAction(
@@ -230,7 +231,7 @@ public final class DigitalObjectManager {
                 DatastreamEditorType.ATM, places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
     }
-    
+
     /**
      * export (Kramerius, Datastream), edit(MODS, Hierarchy), delete, view (Datastream)
      */

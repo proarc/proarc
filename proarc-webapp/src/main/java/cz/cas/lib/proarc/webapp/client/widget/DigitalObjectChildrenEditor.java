@@ -270,17 +270,23 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
                 save();
             }
         };
-        DeleteAction deleteAction = new DeleteAction(new Deletable() {
+        DeleteAction deleteAction = new DeleteAction(new Deletable<Record>() {
 
-            private final Deletable deletable = DigitalObjectDataSource.createDeletable();;
+            private final Deletable<Record> deletable = DigitalObjectDataSource.createDeletable();
 
             @Override
-            public void delete(Object[] items) {
-                deletable.delete(items);
+            public void delete(Object[] items, Record options) {
+                deletable.delete(items, options);
                 childrenListGrid.deselectAllRecords();
                 DigitalObjectCopyMetadataAction.removeSelection((Record[]) items);
             }
-        }, i18n);
+
+            @Override
+            public void delete(Object[] items) {
+                delete(items, null);
+            }
+
+        }, DigitalObjectDataSource.createDeleteOptionsForm(), i18n);
         addActionButton = Actions.asIconMenuButton(addAction, this);
         return new Canvas[] {
             addActionButton,

@@ -27,14 +27,19 @@ import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.PromptStyle;
+import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.fields.BooleanItem;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction.Deletable;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -75,17 +80,37 @@ public final class DigitalObjectDataSource extends RestDataSource {
     /**
      * @see cz.cas.lib.proarc.webapp.client.action.DeleteAction
      */
-    public static Deletable createDeletable() {
-        return new Deletable() {
+    public static Deletable<Record> createDeletable() {
+        return new Deletable<Record>() {
 
             @Override
             public void delete(Object[] items) {
+                delete(items, null);
+            }
+
+            @Override
+            public void delete(Object[] items, Record options) {
                 if (items != null && items.length > 0) {
                     String[] pids = ClientUtils.toFieldValues((Record[]) items, DigitalObjectDataSource.FIELD_PID);
-                    DigitalObjectDataSource.getInstance().delete(pids);
+                    DigitalObjectDataSource.getInstance().delete(pids,
+                            options != null ? options.toMap() : Collections.emptyMap());
                 }
             }
         };
+    }
+
+    public static DynamicForm createDeleteOptionsForm() {
+        if (!Editor.getInstance().hasPermission("proarc.permission.admin")) {
+            return null;
+        }
+        ClientMessages i18n = GWT.create(ClientMessages.class);
+        DynamicForm f = new DynamicForm();
+        BooleanItem opPermanently = new BooleanItem(DigitalObjectResourceApi.DELETE_PURGE_PARAM,
+                i18n.DigitalObjectDeleteAction_OptionPermanently_Title());
+        opPermanently.setTooltip(i18n.DigitalObjectDeleteAction_OptionPermanently_Hint());
+        f.setFields(opPermanently);
+        f.setAutoHeight();
+        return f;
     }
 
     /**
@@ -94,12 +119,20 @@ public final class DigitalObjectDataSource extends RestDataSource {
      * @param pids digital object IDs
      */
     public void delete(String[] pids) {
+        delete(pids, Collections.emptyMap());
+    }
+
+    private static String option(Object val, String defval) {
+        return val != null ? val.toString() : defval;
+    }
+
+    public void delete(String[] pids, Map<?,?> options) {
         final ClientMessages i18n = GWT.create(ClientMessages.class);
         HashMap<String, String> deleteParams = new HashMap<String, String>();
         deleteParams.put(DigitalObjectResourceApi.DELETE_PURGE_PARAM,
-                Boolean.FALSE.toString());
+                option(options.get(DigitalObjectResourceApi.DELETE_PURGE_PARAM), Boolean.FALSE.toString()));
         deleteParams.put(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM,
-                Boolean.TRUE.toString());
+                option(options.get(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM), Boolean.TRUE.toString()));
         DSRequest dsRequest = new DSRequest();
         dsRequest.setPromptStyle(PromptStyle.DIALOG);
         dsRequest.setPrompt(i18n.DeleteAction_Deleting_Msg());
