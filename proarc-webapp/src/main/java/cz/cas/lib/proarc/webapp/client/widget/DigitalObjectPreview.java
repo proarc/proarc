@@ -22,7 +22,6 @@ import com.google.gwt.event.dom.client.LoadEvent;
 import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.Cursor;
@@ -422,22 +421,27 @@ public final class DigitalObjectPreview {
             String click = ClientUtils.format("<a href='%s' target='_blank'>%s</a>",
                     url, i18n.DigitalObjectPreview_UnkownContent_Param0());
             String msg = i18n.DigitalObjectPreview_UnkownContent_Msg(mime, click);
-            String html = ClientUtils.format(
-                    // object@type is necessary for Chrome not to auto-download content
-                    "<object data='%s' type='%s' height='100%' width='100%'>"
-                        + "<div style='margin-left: 10px; margin-top: 20px;'>"
-                            + "%s"
-                        + "</div>"
-                    + "</object>",
-                    url, mime, msg
-            );
-            HTML htmlWidget = new HTML(html);
-            htmlWidget.setHeight("100%");
-            // use WidgetCanvas to strech the object to full height
+            // use the height in pixels to strech the object to full height
             // HTMLFlow or Canvas creates div that does not respect height='100%' of the object element
-            WidgetCanvas objectWidget = new WidgetCanvas(htmlWidget);
-            objectWidget.setWidth100();
+            Canvas objectWidget = new Canvas() {
+                @Override
+                public String getInnerHTML() {
+                    String html = ClientUtils.format(
+                            // object@type is necessary for Chrome not to auto-download content
+                            "<object data='%s' type='%s' style='height:%spx; width:100%;'>"
+                                + "<div style='margin-left: 10px; margin-top: 20px;'>"
+                                    + "%s"
+                                + "</div>"
+                            + "</object>",
+//                            url, mime, display.getVisibleHeight() - 6, msg
+                            url, mime, getInnerHeight() - 4, msg
+                    );
+                    return html;
+                }
+
+            };
             objectWidget.setHeight100();
+            objectWidget.setRedrawOnResize(true);
             ClientUtils.setMembers(display, objectWidget);
         }
 
