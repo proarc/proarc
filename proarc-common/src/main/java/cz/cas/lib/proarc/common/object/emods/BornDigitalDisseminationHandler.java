@@ -66,7 +66,7 @@ public class BornDigitalDisseminationHandler implements DisseminationHandler {
         File inputFile = input.getFile();
         if (!isPdf(inputFile)) {
             throw new DigitalObjectException(objHandler.getFedoraObject().getPid(), null, dsId,
-                    "Not PDF content " + inputFile, null);
+                    "Not PDF content " + inputFile + ", exists: " + inputFile.exists() + ", size: " + inputFile.length(), null);
         }
         MediaType mime = new MediaType("application", "pdf");
         if (BinaryEditor.RAW_ID.equals(dsId)) {

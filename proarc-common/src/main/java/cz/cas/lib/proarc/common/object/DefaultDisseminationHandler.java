@@ -33,6 +33,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
@@ -48,6 +50,8 @@ import javax.ws.rs.core.Response.Status;
  * @author Jan Pokorsky
  */
 public class DefaultDisseminationHandler implements DisseminationHandler {
+
+    private static final Logger LOG = Logger.getLogger(DefaultDisseminationHandler.class.getName());
 
     private final String dsId;
     private final DigitalObjectHandler handler;
@@ -184,7 +188,15 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         }
         //  check icon:mime/DS exists
         RemoteObject icon = RemoteStorage.getInstance().find(mime2iconPid(origMime));
-        List<DatastreamProfile> iconStreams = icon.getDatastreams();
+        List<DatastreamProfile> iconStreams;
+        try {
+            iconStreams = icon.getDatastreams();
+        } catch (DigitalObjectNotFoundException ex) {
+            // no icon
+            LOG.log(Level.WARNING, "Missing object ''{0}''! No datastream ''{1}'' created for ''{2}''.",
+                    new Object[]{icon.getPid(), dsId, fobject.getPid()});
+            return ;
+        }
         DatastreamProfile iconStream = findProfile(dsId, iconStreams);
         if (iconStream == null) {
             //  check default icon:mime/THUMBNAIL exists
