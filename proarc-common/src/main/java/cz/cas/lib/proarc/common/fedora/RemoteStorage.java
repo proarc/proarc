@@ -54,10 +54,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import org.glassfish.jersey.uri.UriComponent;
 
 /**
  * Fedora remote storage.
@@ -67,7 +69,7 @@ import javax.xml.transform.stream.StreamSource;
 public final class RemoteStorage {
 
     private static final Logger LOG = Logger.getLogger(RemoteStorage.class.getName());
-
+    private static final Pattern RE_OBJECT_EXISTS = Pattern.compile("WebApplicationException.*status: 500, message:.*already exists");
     private static RemoteStorage INSTANCE;
 
     private final FedoraClient client;
@@ -139,7 +141,7 @@ public final class RemoteStorage {
         try {
             IngestResponse response = FedoraClient.ingest(pid)
                     .format("info:fedora/fedora-system:FOXML-1.1")
-                    .logMessage(log)
+                    .logMessage(qpEncode(log))
                     .content(foxml)
                     .ownerId(ingestUser)
                     .execute(client);
@@ -189,7 +191,7 @@ public final class RemoteStorage {
         try {
             IngestResponse response = FedoraClient.ingest(object.getPid())
                     .format("info:fedora/fedora-system:FOXML-1.1")
-                    .logMessage(log)
+                    .logMessage(qpEncode(log))
 //                    .namespace("")
 //                    .xParam("", "")
                     .content(xml)
@@ -222,10 +224,12 @@ public final class RemoteStorage {
 
     private static void checkObjectExistException(FedoraClientException ex, String pid) throws DigitalObjectExistException {
         // XXX hack: Fedora server does not notify existing object conflict with HTTP 409.
-        // Workaround parses error message.
+        // The workaround parses an error message.
+        // Requires to add org.apache.cxf.jaxrs.impl.WebApplicationExceptionMapper/addMessageToResponse=true
+        // in server/config/spring/web/jaxrs/objects-jaxrs.xml
         // Check for existence before ingest would be insufficient as Fedora does not yet support transactions.
         String errMsg = ex.getMessage();
-        if (errMsg != null && errMsg.contains("org.fcrepo.server.errors.ObjectExistsException")) {
+        if (errMsg != null && RE_OBJECT_EXISTS.matcher(errMsg).find()) {
             throw new DigitalObjectExistException(pid, null, "Object already exists!", ex);
         }
     }
@@ -236,6 +240,15 @@ public final class RemoteStorage {
             fedoraDescription = response;
         }
         return fedoraDescription;
+    }
+
+    /**
+     * Encodes query parameter as Jersey 2 uses query templates by default.
+     */
+    private static String qpEncode(String p) {
+        return p == null || p.isEmpty()
+                ? p
+                : UriComponent.encode(p, UriComponent.Type.QUERY_PARAM_SPACE_ENCODED);
     }
 
     public static final class RemoteObject extends AbstractFedoraObject {
@@ -636,7 +649,7 @@ public final class RemoteStorage {
 
         private void purgeDataStream(DatastreamProfile p) throws FedoraClientException, DigitalObjectConcurrentModificationException {
             PurgeDatastreamResponse response = FedoraClient.purgeDatastream(p.getPid(), p.getDsID())
-                    .logMessage(logMessage)
+                    .logMessage(qpEncode(logMessage))
                     // null would purge the entire history
                     .endDT(new Date(lastModified))
                     .execute(object.getClient());
@@ -652,7 +665,7 @@ public final class RemoteStorage {
                     .dsLabel(profile.getDsLabel())
                     .dsState("A")
                     .formatURI(profile.getDsFormatURI())
-                    .logMessage(logMessage)
+                    .logMessage(qpEncode(logMessage))
                     .mimeType(profile.getDsMIME())
                     .versionable(Boolean.parseBoolean(profile.getDsVersionable()));
 
@@ -675,7 +688,7 @@ public final class RemoteStorage {
                     .dsLabel(profile.getDsLabel())
                     .formatURI(profile.getDsFormatURI())
                     .lastModifiedDate(new Date(lastModified))
-                    .logMessage(logMessage)
+                    .logMessage(qpEncode(logMessage))
                     .mimeType(profile.getDsMIME())
                     // enforce change with query parameter
                     .xParam("mimeType", profile.getDsMIME());

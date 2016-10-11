@@ -110,7 +110,7 @@ public class RemoteStorageTest {
         LocalObject object = new LocalStorage().create();
         String label = "testing";
         object.setLabel(label);
-        fedora.ingest(object, "junit");
+        fedora.ingest(object, "junit", "{\"key\":\"val\"}");
     }
 
     @Test

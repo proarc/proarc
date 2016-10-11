@@ -39,6 +39,11 @@ public final class FedoraStorageInitializer {
 
     public void init() {
         try {
+            String serverVersion = storage.getClient().getServerVersion();
+            if (!serverVersion.startsWith("3.8")) {
+                throw new IllegalStateException(String.format(
+                        "The connected Fedora version is %s. ProArc requires version 3.8.*!", serverVersion));
+            }
             checkMetaModels();
         } catch (Exception ex) {
             throw new IllegalStateException("Cannot initialize Fedora Repository!", ex);
