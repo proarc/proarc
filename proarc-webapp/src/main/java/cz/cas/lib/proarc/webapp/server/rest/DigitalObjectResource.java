@@ -73,6 +73,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -112,6 +113,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -1058,7 +1060,7 @@ public class DigitalObjectResource {
             @FormDataParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormDataParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
-            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) File file,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) InputStream file,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) FormDataContentDisposition fileInfo,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) FormDataBodyPart fileBodyPart,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_MIME) String mimeType,
@@ -1083,7 +1085,7 @@ public class DigitalObjectResource {
             @FormDataParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormDataParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
-            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) File file,
+            @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) InputStream fileContent,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) FormDataContentDisposition fileInfo,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_FILE) FormDataBodyPart fileBodyPart,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_MIME) String mimeType
@@ -1092,18 +1094,21 @@ public class DigitalObjectResource {
         if (pid == null) {
             return SmartGwtResponse.<Map<String,Object>>asError(DigitalObjectResourceApi.DIGITALOBJECT_PID, "Missing PID!");
         }
-        if (file == null) {
+        if (fileContent == null) {
             return SmartGwtResponse.<Map<String,Object>>asError(DigitalObjectResourceApi.DISSEMINATION_FILE, "Missing file!");
         }
-        // XXX add config property or user permission
-        if (file.length() > 1*1024 * 1024 * 1024) { // 1GB
-            throw RestException.plainText(Status.BAD_REQUEST, "File contents too large!");
-        }
+
         if (dsId != null && !dsId.equals(BinaryEditor.RAW_ID)) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing or unsupported datastream ID: " + dsId);
         }
         String filename = getFilename(fileInfo.getFileName());
+        File file = File.createTempFile("proarc_", null);
         try {
+            FileUtils.copyToFile(fileContent, file);
+            // XXX add config property or user permission
+            if (file.length() > 1*1024 * 1024 * 1024) { // 1GB
+                throw RestException.plainText(Status.BAD_REQUEST, "File contents too large!");
+            }
             MediaType mime;
             try {
                 mime = mimeType != null ? MediaType.valueOf(mimeType) : fileBodyPart.getMediaType();
