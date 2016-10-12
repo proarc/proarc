@@ -373,7 +373,7 @@ public final class RepeatableFormItem extends CanvasItem {
         }
     }
 
-    public List<Map<Object, Object>> getErrors() {
+    public List<Map<Object, Object>> getErrorMap() {
         RepeatableForm editor = (RepeatableForm) getCanvas();
         return editor.getErrors();
     }

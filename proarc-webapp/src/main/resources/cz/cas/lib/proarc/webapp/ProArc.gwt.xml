@@ -25,7 +25,8 @@
     <!-- <inherits name="com.google.gwt.user.theme.dark.Dark"/>     -->
 
     <!-- SmartGWT                                      -->
-    <inherits name="com.smartgwt.SmartGwt"/>
+    <!--<inherits name="com.smartgwt.SmartGwt"/>-->
+    <inherits name="com.smartgwt.SmartGwtNoScript"/>
     <inherits name="com.smartgwt.tools.SmartGwtTools"/>
 
     <!-- CodeMirror Editor                                          -->

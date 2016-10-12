@@ -45,7 +45,7 @@
         <jacksonVersion>2.8.1</jacksonVersion>
         <jerseyVersion>1.17.1</jerseyVersion>
         <jerseyVersion2>2.23.1</jerseyVersion2>
-        <smartGwtVersion>5.0-p20151013</smartGwtVersion>
+        <smartGwtVersion>6.0-p20161010</smartGwtVersion>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <!--
