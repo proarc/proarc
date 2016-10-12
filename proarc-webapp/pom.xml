@@ -20,8 +20,6 @@
     <properties>
         <warName>proarc</warName>
         <webappDirectory>${project.build.directory}/${warName}</webappDirectory>
-        <!-- see profiles to change agents -->
-        <gwt.user.agent><![CDATA[<set-property name="user.agent" value="gecko1_8" />]]></gwt.user.agent>
         <!-- contains filtered GWT modules (*.gwt.xml) -->
         <gwt.filtered>${project.build.directory}/gwt-filtered</gwt.filtered>
         <smartGwtGroupId>com.isomorphic.smartgwt.lgpl</smartGwtGroupId>
@@ -284,7 +282,7 @@
                     <noserver>true</noserver>
                     <noServer>true</noServer>
                     <port>8080</port>
-                    <extraJvmArgs>-XX:MaxPermSize=128m</extraJvmArgs>
+                    <extraJvmArgs>-Xmx1g</extraJvmArgs>
 <!--                    <style>DETAILED</style>
                     <optimizationLevel>0</optimizationLevel>-->
                 </configuration>

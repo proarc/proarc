@@ -54,13 +54,4 @@
     <source path="client" />
     <source path="shared" />
 
-    <!-- maven propery to set user.agent -->
-    ${gwt.user.agent}
-
-    <!--A workaround to fix issue #365. Remove after upgrading to GWT 2.7.0+-->
-    <replace-with class="com.google.gwt.user.client.impl.HistoryImplSafari">
-        <when-type-is class="com.google.gwt.user.client.impl.HistoryImpl"/>
-        <when-property-is name="user.agent" value="gecko1_8"/>
-    </replace-with>
-
 </module>

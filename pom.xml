@@ -41,7 +41,7 @@
 
     <properties>
         <proarc.version>${project.version}</proarc.version>
-        <gwtVersion>2.8.0-beta1</gwtVersion>
+        <gwtVersion>2.8.0-rc2</gwtVersion>
         <jacksonVersion>2.8.1</jacksonVersion>
         <jerseyVersion>1.17.1</jerseyVersion>
         <jerseyVersion2>2.23.1</jerseyVersion2>
@@ -320,11 +320,6 @@
             <properties>
                 <gwt.compiler.skip>true</gwt.compiler.skip>
             </properties>
-        </profile>
-
-        <!--see proarc-webapp/pom.xml-->
-        <profile>
-            <id>proarc.fixedSmartGwt</id>
         </profile>
 
     </profiles>
