@@ -68,12 +68,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- CodeMirror Editor -->
-        <dependency>
-            <groupId>com.google.codemirror2gwt</groupId>
-            <artifactId>codemirror2gwt</artifactId>
-            <version>1.1.0</version>
-        </dependency>
 
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
