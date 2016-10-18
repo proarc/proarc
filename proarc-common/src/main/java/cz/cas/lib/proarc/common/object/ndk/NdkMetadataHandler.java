@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
+import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
@@ -70,7 +71,11 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import javax.xml.bind.DataBindingException;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Validator;
+import org.xml.sax.SAXException;
 
 /**
  * Handles description metadata in the NDK format.
@@ -272,11 +277,32 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         ModsDefinition mods;
         String modelId = handler.relations().getModel();
         if (xmlData.getData() != null) {
-            mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xmlData.getData())));
+            ValidationErrorHandler errHandler = new ValidationErrorHandler();
+            try {
+                Validator validator = ModsUtils.getSchema().newValidator();
+                validator.setErrorHandler(errHandler);
+                validator.validate(new StreamSource(new StringReader(xmlData.getData())));
+                checkValidation(errHandler, xmlData);
+                mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xmlData.getData())));
+            } catch (DataBindingException | SAXException | IOException ex) {
+                checkValidation(errHandler, xmlData);
+                throw new DigitalObjectValidationException(xmlData.getPid(),
+                            xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, null, ex)
+                        .addValidation("mods", ex.getMessage());
+            }
         } else {
             mods = createDefault(modelId);
         }
         write(modelId, mods, xmlData, message);
+    }
+
+    private void checkValidation(ValidationErrorHandler errHandler, DescriptionMetadata<String> xmlData)
+            throws DigitalObjectValidationException {
+        if (!errHandler.getValidationErrors().isEmpty()) {
+            String msg = errHandler.getValidationErrors().stream().collect(Collectors.joining("\n"));
+            throw new DigitalObjectValidationException(xmlData.getPid(), xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, msg, null)
+                    .addValidation("mods", msg);
+        }
     }
 
     @Override

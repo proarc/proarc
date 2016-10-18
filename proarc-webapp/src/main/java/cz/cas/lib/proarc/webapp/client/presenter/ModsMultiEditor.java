@@ -97,7 +97,7 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         uiContainer = new VLayout();
         modsFullEditor = new ModsFullEditor(i18n);
         modsCustomEditor = new ModsCustomEditor(i18n);
-        modsSourceEditor = new ModsXmlEditor();
+        modsSourceEditor = new ModsXmlEditor(i18n);
         modsBatchEditor = new ModsBatchEditor(i18n);
         catalogBrowser = new CatalogBrowser(i18n);
         catalogBrowser.setCompactUi(true);
@@ -174,6 +174,8 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
             saveBatchData(callback);
         } else if (activeEditor == catalogBrowser) {
             saveCatalogData(callback);
+        } else if (activeEditor == modsSourceEditor) {
+            saveXmlData(callback);
         } else {
             callback.execute(Boolean.TRUE);
         }
@@ -410,6 +412,10 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
 
     private void saveCustomData(BooleanCallback callback) {
         modsCustomEditor.save(callback);
+    }
+
+    private void saveXmlData(BooleanCallback callback) {
+        modsSourceEditor.save(callback, true, SaveAction.SaveValidation.RUN);
     }
 
     private void saveBatchData(BooleanCallback callback) {

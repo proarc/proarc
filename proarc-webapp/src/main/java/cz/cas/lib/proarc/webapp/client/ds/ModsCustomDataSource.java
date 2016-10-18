@@ -157,6 +157,10 @@ public final class ModsCustomDataSource extends RestDataSource implements ModsCo
     }
 
     public void saveXmlDescription(DigitalObject dobj, String xml, DescriptionSaveHandler callback) {
+        saveXmlDescription(dobj, xml, -1, callback);
+    }
+
+    public void saveXmlDescription(DigitalObject dobj, String xml, long timestamp, DescriptionSaveHandler callback) {
         Record update = new Record();
         dobj.toCriteria();
         update.setAttribute(FIELD_PID, dobj.getPid());
@@ -168,7 +172,7 @@ public final class ModsCustomDataSource extends RestDataSource implements ModsCo
         }
         update.setAttribute(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA, xml);
         // timestamp -1 stands for rewrite without concurrency check
-        update.setAttribute(FIELD_TIMESTAMP, -1);
+        update.setAttribute(FIELD_TIMESTAMP, timestamp);
         update.setAttribute(FIELD_EDITOR, dobj.getModel().getEditorId());
         callback.setUpdateRecord(update);
         updateData(update, callback, callback.getUpdateRequest());
