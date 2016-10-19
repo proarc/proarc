@@ -17,8 +17,11 @@
 package cz.cas.lib.proarc.common.mods.custom;
 
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
+import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -39,7 +42,7 @@ final class ArrayMapper<S, T extends ArrayItem> {
     }
 
     public List<T> map(List<S> l) {
-        List<T> result = new ArrayList<T>(l.size());
+        List<T> result = new ArrayList<>(l.size());
         int index = 0;
         for (S source : l) {
             T target = itemMapper.map(source);
@@ -49,10 +52,10 @@ final class ArrayMapper<S, T extends ArrayItem> {
         return result;
     }
 
-    public List<S> map(List<T> newValues, List<S> oldValues) {
+    public List<S> map(List<T> newValues, List<? extends S> oldValues) {
         newValues = MapperUtils.noNull(newValues);
         oldValues = MapperUtils.noNull(oldValues);
-        List<S> result = new ArrayList<S>(newValues.size());
+        List<S> result = new ArrayList<>(newValues.size());
         for (T item : newValues) {
             Integer index = item.getArrayIndex();
             S origin = null;
@@ -66,12 +69,12 @@ final class ArrayMapper<S, T extends ArrayItem> {
     }
 
     public static ArrayMapper<String, StringItem> stringMapper() {
-        return new ArrayMapper<String, StringItem>(new StringMapper());
+        return new ArrayMapper<>(new StringMapper());
     }
 
     public static List<StringItem> toStringItemList(List<String> strings) {
         strings = MapperUtils.noNull(strings);
-        ArrayList<StringItem> items = new ArrayList<StringItem>(strings.size());
+        ArrayList<StringItem> items = new ArrayList<>(strings.size());
         for (String s : strings) {
             items.add(new StringItem(s));
         }
@@ -80,11 +83,32 @@ final class ArrayMapper<S, T extends ArrayItem> {
 
     public static List<String> toStringList(List<StringItem> items) {
         items = MapperUtils.noNull(items);
-        ArrayList<String> strings = new ArrayList<String>(items.size());
+        ArrayList<String> strings = new ArrayList<>(items.size());
         for (StringItem item : items) {
             strings.add(item.getValue());
         }
         return strings;
+    }
+
+    public static List<StringPlusLanguage> toStringPlusLanguageList(List<StringItem> items) {
+        items = MapperUtils.noNull(items);
+        ArrayList<StringPlusLanguage> strings = new ArrayList<>(items.size());
+        ObjectFactory factory = new ObjectFactory();
+        for (StringItem item : items) {
+            StringPlusLanguage s = factory.createStringPlusLanguage();
+            s.setValue(item.getValue());
+            strings.add(s);
+        }
+        return strings;
+    }
+
+    public static List<StringItem> toStringPlusLanguageItemList(List<StringPlusLanguage> strings) {
+        strings = MapperUtils.noNull(strings);
+        ArrayList<StringItem> items = new ArrayList<>(strings.size());
+        for (StringPlusLanguage s : strings) {
+            items.add(new StringItem(s.getValue()));
+        }
+        return items;
     }
 
     public interface ArrayItem {
@@ -145,6 +169,9 @@ final class ArrayMapper<S, T extends ArrayItem> {
 
         @Override
         public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
             if (obj == null) {
                 return false;
             }
@@ -152,13 +179,8 @@ final class ArrayMapper<S, T extends ArrayItem> {
                 return false;
             }
             final StringItem other = (StringItem) obj;
-            if ((this.value == null) ? (other.value != null) : !this.value.equals(other.value)) {
-                return false;
-            }
-            if (this.index != other.index && (this.index == null || !this.index.equals(other.index))) {
-                return false;
-            }
-            return true;
+            return Objects.equals(this.value, other.value)
+                    && Objects.equals(this.index, other.index);
         }
 
     }

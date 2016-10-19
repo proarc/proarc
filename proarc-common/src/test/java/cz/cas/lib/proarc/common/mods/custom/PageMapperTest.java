@@ -16,10 +16,10 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.cas.lib.proarc.common.mods.Mods33Utils;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper.Page;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -58,7 +58,7 @@ public class PageMapperTest {
 
     @Test
     public void testRead() {
-        ModsType mods = Mods33Utils.unmarshal(PageMapperTest.class.getResource("page_mods.xml"), ModsType.class);
+        ModsDefinition mods = ModsUtils.unmarshal(PageMapperTest.class.getResource("page_mods.xml"), ModsDefinition.class);
 
         PageMapper instance = new PageMapper();
         Page result = instance.map(mods);
@@ -77,7 +77,7 @@ public class PageMapperTest {
 
     @Test
     public void testReadEmptyDocument() throws Exception {
-        ModsType root = new ModsType();
+        ModsDefinition root = new ModsDefinition();
 
         PageMapper instance = new PageMapper();
         Page result = instance.map(root);
@@ -91,8 +91,7 @@ public class PageMapperTest {
 
     @Test
     public void testWriteUpdate() throws Exception {
-        ModsType mods = Mods33Utils.unmarshal(PageMapperTest.class.getResource("page_mods.xml"), ModsType.class);
-        MapperUtils.normalize(mods);
+        ModsDefinition mods = ModsUtils.unmarshal(PageMapperTest.class.getResource("page_mods.xml"), ModsDefinition.class);
         Page page = new Page();
         page.setNote("note updated");
         page.setIndex("2");
@@ -104,12 +103,12 @@ public class PageMapperTest {
                 new IdentifierItem("isbn", "isbn value inserted")));
 
         PageMapper instance = new PageMapper();
-        ModsType result = instance.map(mods, page);
-        String resultXml = Mods33Utils.toXml(result, true);
+        ModsDefinition result = instance.map(mods, page);
+        String resultXml = ModsUtils.toXml(result, true);
 //        System.out.println(resultXml);
 
-        ModsType expectedMods = Mods33Utils.unmarshal(PageMapperTest.class.getResource("page_mods_updated.xml"), ModsType.class);
-        String expectedXml = Mods33Utils.toXml(expectedMods, true);
+        ModsDefinition expectedMods = ModsUtils.unmarshal(PageMapperTest.class.getResource("page_mods_updated.xml"), ModsDefinition.class);
+        String expectedXml = ModsUtils.toXml(expectedMods, true);
 //        System.out.println(expectedXml);
         XMLAssert.assertXMLEqual(expectedXml, resultXml);
     }
@@ -124,12 +123,12 @@ public class PageMapperTest {
         page.setIdentifiers(Arrays.asList(new IdentifierItem(null, "uuid", "1")));
 
         PageMapper handler = new PageMapper();
-        ModsType mods = new ModsType();
+        ModsDefinition mods = new ModsDefinition();
         handler.map(mods, page);
 
-        String dump = Mods33Utils.toXml(mods, true);
+        String dump = ModsUtils.toXml(mods, true);
 
-        ModsType resultMods = Mods33Utils.unmarshal(dump, ModsType.class);
+        ModsDefinition resultMods = ModsUtils.unmarshal(dump, ModsDefinition.class);
         PageMapper resultHandler = new PageMapper();
         Page result = resultHandler.map(resultMods);
         assertNotNull(result);

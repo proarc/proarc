@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.TitleInfoType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
+import java.util.function.Function;
 
 /**
  * {@code mods/titleInfo[@type = null]/title}.
@@ -39,18 +39,18 @@ final class TitleInfoMapper {
     private static final String ATTR_ALTERNATIVE_TITLE_TYPE = "alternative";
     private static final String ATTR_KEY_TITLE_DISPLAYLABEL = "Klíčový název";
 
-    private final ModsType mods;
+    private final ModsDefinition mods;
     private final ObjectFactory factory = new ObjectFactory();
-    private TitleInfoType titleNode;
-    private TitleInfoType keyTitleNode;
-    private TitleInfoType alternativeTitleNode;
+    private TitleInfoDefinition titleNode;
+    private TitleInfoDefinition keyTitleNode;
+    private TitleInfoDefinition alternativeTitleNode;
     private boolean searched = false;
     private List<String> titles;
     private List<String> subtitles;
     private List<String> keyTitles;
     private List<String> alternativeTitles;
 
-    public TitleInfoMapper(ModsType mods) {
+    public TitleInfoMapper(ModsDefinition mods) {
         this.mods = mods;
     }
 
@@ -63,16 +63,13 @@ final class TitleInfoMapper {
                 // nothing to update
                 return ;
             }
-            titleNode = factory.createTitleInfoType();
-            MapperUtils.add(mods, titleNode);
+            titleNode = factory.createTitleInfoDefinition();
+            mods.getTitleInfo().add(titleNode);
         }
-        List<JAXBElement<String>> group = titleNode.getTitleOrSubTitleOrPartNumber();
-        List<JAXBElement<String>> oldies = MapperUtils.find(group,
-                ObjectFactory._DetailTypeTitle_QNAME, ObjectFactory._BaseTitleInfoTypeSubTitle_QNAME);
-        List<JAXBElement<String>> news = MapperUtils.toJaxb(newTitles, ObjectFactory._DetailTypeTitle_QNAME);
-        news.addAll(MapperUtils.toJaxb(newSubtitles, ObjectFactory._BaseTitleInfoTypeSubTitle_QNAME));
-        group.removeAll(oldies);
-        group.addAll(news);
+        updateTitles(titleNode, newTitles);
+        List<StringPlusLanguage> subTitle = titleNode.getSubTitle();
+        subTitle.clear();
+        subTitle.addAll(MapperUtils.toStringPlusLanguage(newSubtitles));
     }
 
     public void setKeyTitles(List<String> updates) {
@@ -82,10 +79,10 @@ final class TitleInfoMapper {
             if (updates.isEmpty()) {
                 return ;
             }
-            keyTitleNode = factory.createTitleInfoType();
-            keyTitleNode.setAtType(ATTR_ALTERNATIVE_TITLE_TYPE);
+            keyTitleNode = factory.createTitleInfoDefinition();
+            keyTitleNode.setType(ATTR_ALTERNATIVE_TITLE_TYPE);
             keyTitleNode.setDisplayLabel(ATTR_KEY_TITLE_DISPLAYLABEL);
-            MapperUtils.add(mods, keyTitleNode);
+            mods.getTitleInfo().add(keyTitleNode);
         }
         updateTitles(keyTitleNode, updates);
     }
@@ -97,20 +94,17 @@ final class TitleInfoMapper {
             if (updates.isEmpty()) {
                 return ;
             }
-            alternativeTitleNode = factory.createTitleInfoType();
-            alternativeTitleNode.setAtType(ATTR_ALTERNATIVE_TITLE_TYPE);
-            MapperUtils.add(mods, alternativeTitleNode);
+            alternativeTitleNode = factory.createTitleInfoDefinition();
+            alternativeTitleNode.setType(ATTR_ALTERNATIVE_TITLE_TYPE);
+            mods.getTitleInfo().add(alternativeTitleNode);
         }
         updateTitles(alternativeTitleNode, updates);
     }
 
-    private void updateTitles(TitleInfoType node, List<String> titles) {
-        List<JAXBElement<String>> group = node.getTitleOrSubTitleOrPartNumber();
-        List<JAXBElement<String>> oldies = MapperUtils.find(group,
-                ObjectFactory._DetailTypeTitle_QNAME);
-        List<JAXBElement<String>> news = MapperUtils.toJaxb(titles, ObjectFactory._DetailTypeTitle_QNAME);
-        group.removeAll(oldies);
-        group.addAll(news);
+    private void updateTitles(TitleInfoDefinition node, List<String> titles) {
+        List<StringPlusLanguage> oldies = node.getTitle();
+        oldies.clear();
+        oldies.addAll(MapperUtils.toStringPlusLanguage(titles));
     }
 
     public List<String> getTitles() {
@@ -144,11 +138,11 @@ final class TitleInfoMapper {
         boolean foundTitles = false;
         boolean foundAlternatives = false;
         boolean foundKeyTitles = false;
-        for (TitleInfoType item : MapperUtils.find(mods.getModsGroup(), TitleInfoType.class)) {
+        for (TitleInfoDefinition item : mods.getTitleInfo()) {
             if (foundTitles && foundKeyTitles && foundAlternatives) {
                 break;
             }
-            String type = item.getAtType();
+            String type = item.getType();
             if (type == null) {
                 if (foundTitles) {
                     continue;
@@ -174,31 +168,20 @@ final class TitleInfoMapper {
 
     private void readValues() {
         assert searched;
-        titles = toTitles(titleNode, ObjectFactory._DetailTypeTitle_QNAME);
-        subtitles = toTitles(titleNode, ObjectFactory._BaseTitleInfoTypeSubTitle_QNAME);
-        keyTitles = toTitles(keyTitleNode, ObjectFactory._DetailTypeTitle_QNAME);
-        alternativeTitles = toTitles(alternativeTitleNode, ObjectFactory._DetailTypeTitle_QNAME);
+        titles = toTitles(titleNode, ti -> ti.getTitle());
+        subtitles = toTitles(titleNode, ti -> ti.getSubTitle());
+        keyTitles = toTitles(keyTitleNode, ti -> ti.getTitle());
+        alternativeTitles = toTitles(alternativeTitleNode, ti -> ti.getTitle());
     }
 
-    private static List<String> toTitles(TitleInfoType node, QName name) {
+    private static List<String> toTitles(TitleInfoDefinition node, Function<TitleInfoDefinition, List<StringPlusLanguage>> f) {
         List<String> values;
         if (node != null) {
-            values = toTitles(node.getTitleOrSubTitleOrPartNumber(), name);
+            values = MapperUtils.toStringPlusLanguageValue(f.apply(node));
         } else {
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
         return values;
-    }
-
-    private static List<String> toTitles(List<JAXBElement<String>> list, QName name) {
-        List<String> result = new ArrayList<String>();
-        for (JAXBElement<String> elm : list) {
-            QName qname = elm.getName();
-            if (name.equals(qname)) {
-                result.add(elm.getValue());
-            }
-        }
-        return result;
     }
 
 }

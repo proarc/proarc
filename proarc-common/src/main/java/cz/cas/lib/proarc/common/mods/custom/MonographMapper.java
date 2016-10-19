@@ -26,14 +26,14 @@ import cz.cas.lib.proarc.common.mods.custom.MonographMapper.Monograph;
 import cz.cas.lib.proarc.common.mods.custom.NameMapper.NameItem;
 import cz.cas.lib.proarc.common.mods.custom.OriginInfoMapper.PublisherItem;
 import cz.cas.lib.proarc.common.mods.custom.PhysicalDescriptionMapper.ExtentPair;
-import cz.fi.muni.xkremser.editor.server.mods.LocationType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.NoteType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.PhysicalLocationType;
-import cz.fi.muni.xkremser.editor.server.mods.RecordInfoType;
+import cz.cas.lib.proarc.mods.LocationDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NoteDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -46,18 +46,18 @@ import javax.xml.bind.annotation.XmlRootElement;
 final class MonographMapper implements Mapper<Monograph> {
 
     @Override
-    public Monograph map(ModsType mods) {
+    public Monograph map(ModsDefinition mods) {
         NodeLookup nlookup = new NodeLookup(mods);
         Monograph result = new Monograph();
         // identifiers
         IdentifierMapper identMap = new IdentifierMapper();
         result.setIdentifiers(identMap.map(mods));
         // sigla + shelf locators
-        LocationType location = nlookup.getLocation(false);
+        LocationDefinition location = nlookup.getLocation(false);
         if (location != null) {
-            PhysicalLocationType physicalLocation = nlookup.getPhysicalLocation(false);
+            PhysicalLocationDefinition physicalLocation = nlookup.getPhysicalLocation(false);
             result.setSigla(physicalLocation == null ? null : physicalLocation.getValue());
-            result.setShelfLocators(ArrayMapper.toStringItemList(location.getShelfLocator()));
+            result.setShelfLocators(ArrayMapper.toStringPlusLanguageItemList(location.getShelfLocator()));
         }
         // publishers + printers
         OriginInfoMapper originInfoMap = new OriginInfoMapper();
@@ -91,40 +91,40 @@ final class MonographMapper implements Mapper<Monograph> {
         result.setPreservationTreatment(PhysicalDescriptionMapper.getPreservationTreatment(pdItems));
         result.setPreservationStateOfArt(PhysicalDescriptionMapper.getPreservationStateOfArt(pdItems));
         // recordOrigin
-        JAXBElement<String> recordOrigin = nlookup.getRecordOrigin(false);
+        StringPlusLanguage recordOrigin = nlookup.getRecordOrigin(false);
         result.setRecordOrigin(recordOrigin == null ? null : recordOrigin.getValue());
         // note
-        NoteType note = nlookup.getNote(false);
+        NoteDefinition note = nlookup.getNote(false);
         result.setNote(note == null ? null : note.getValue());
         return result;
     }
     
     @Override
-    public ModsType map(ModsType mods, Monograph monograph) {
+    public ModsDefinition map(ModsDefinition mods, Monograph monograph) {
                 NodeLookup nlookup = new NodeLookup(mods);
         // identifiers
         IdentifierMapper identMap = new IdentifierMapper();
         identMap.map(mods, monograph.getIdentifiers());
         // sigla + shelf locators
         if (monograph.getSigla() != null) {
-            PhysicalLocationType physicalLocation = nlookup.getPhysicalLocation(true);
+            PhysicalLocationDefinition physicalLocation = nlookup.getPhysicalLocation(true);
             physicalLocation.setValue(monograph.getSigla());
         } else {
-            PhysicalLocationType physicalLocation = nlookup.getPhysicalLocation(false);
+            PhysicalLocationDefinition physicalLocation = nlookup.getPhysicalLocation(false);
             if (physicalLocation != null) {
                 physicalLocation.setValue(monograph.getSigla());
             }
         }
         if (MapperUtils.isEmpty(monograph.getShelfLocators())) {
-            LocationType location = nlookup.getLocation(false);
+            LocationDefinition location = nlookup.getLocation(false);
             if (location != null && !location.getShelfLocator().isEmpty()) {
                 location.getShelfLocator().clear();
             }
         } else {
-            LocationType location = nlookup.getLocation(true);
-            List<String> shelfLocators = location.getShelfLocator();
+            LocationDefinition location = nlookup.getLocation(true);
+            List<StringPlusLanguage> shelfLocators = location.getShelfLocator();
             shelfLocators.clear();
-            shelfLocators.addAll(ArrayMapper.toStringList(monograph.getShelfLocators()));
+            shelfLocators.addAll(ArrayMapper.toStringPlusLanguageList(monograph.getShelfLocators()));
         }
         // periodicity + publishers + printers
         OriginInfoMapper originInfoMap = new OriginInfoMapper();
@@ -155,7 +155,7 @@ final class MonographMapper implements Mapper<Monograph> {
         if (monograph.getRecordOrigin() != null) {
             nlookup.getRecordOrigin(true).setValue(monograph.getRecordOrigin());
         } else {
-            JAXBElement<String> recordOrigin = nlookup.getRecordOrigin(false);
+            StringPlusLanguage recordOrigin = nlookup.getRecordOrigin(false);
             if (recordOrigin != null) {
                 recordOrigin.setValue(null);
             }
@@ -164,7 +164,7 @@ final class MonographMapper implements Mapper<Monograph> {
         if (monograph.getNote() != null) {
             nlookup.getNote(true).setValue(monograph.getNote());
         } else {
-            NoteType note = nlookup.getNote(false);
+            NoteDefinition note = nlookup.getNote(false);
             if (note != null) {
                 note.setValue(monograph.getNote());
             }
@@ -176,78 +176,76 @@ final class MonographMapper implements Mapper<Monograph> {
 
     private static final class NodeLookup {
         private final ObjectFactory factory = new ObjectFactory();
-        private final ModsType mods;
-        private LocationType location;
-        private PhysicalLocationType physicalLocation;
-        private NoteType note;
-        private RecordInfoType recordInfo;
-        private JAXBElement<String> recordOrigin;
+        private final ModsDefinition mods;
+        private LocationDefinition location;
+        private PhysicalLocationDefinition physicalLocation;
+        private NoteDefinition note;
+        private RecordInfoDefinition recordInfo;
+        private StringPlusLanguage recordOrigin;
 
 
-        public NodeLookup(ModsType mods) {
+        public NodeLookup(ModsDefinition mods) {
             this.mods = mods;
         }
 
-        public LocationType getLocation(boolean create) {
+        public LocationDefinition getLocation(boolean create) {
             if (location == null) {
-                location = MapperUtils.findFirst(mods.getModsGroup(), LocationType.class);
+                location = mods.getLocation().stream().findFirst().orElse(null);
             }
 
             if (create && location == null) {
-                location = factory.createLocationType();
-                MapperUtils.add(mods, location);
+                location = factory.createLocationDefinition();
+                mods.getLocation().add(location);
             }
             return location;
         }
 
-        public PhysicalLocationType getPhysicalLocation(boolean create) {
+        public PhysicalLocationDefinition getPhysicalLocation(boolean create) {
             if (physicalLocation == null) {
                 if (getLocation(create) != null) {
-                    physicalLocation = MapperUtils.findFirst(location.getPhysicalLocation(),
-                            PhysicalLocationType.class);
+                    physicalLocation = location.getPhysicalLocation().stream()
+                            .findFirst().orElse(null);
                 }
             }
             if (create && physicalLocation == null) {
-                physicalLocation = factory.createPhysicalLocationType();
+                physicalLocation = factory.createPhysicalLocationDefinition();
                 location.getPhysicalLocation().add(physicalLocation);
             }
             return physicalLocation;
         }
 
-        public NoteType getNote(boolean create) {
+        public NoteDefinition getNote(boolean create) {
             if (note == null) {
-                note = MapperUtils.findFirst(mods.getModsGroup(), NoteType.class);
+                note = mods.getNote().stream().findFirst().orElse(null);
             }
             if (create && note == null) {
-                note = factory.createNoteType();
-                MapperUtils.add(mods, note);
+                note = factory.createNoteDefinition();
+                mods.getNote().add(note);
             }
             return note;
         }
 
-        public RecordInfoType getRecordInfo(boolean create) {
+        public RecordInfoDefinition getRecordInfo(boolean create) {
             if (recordInfo == null) {
-                recordInfo = MapperUtils.findFirst(mods.getModsGroup(), RecordInfoType.class);
+                recordInfo = mods.getRecordInfo().stream().findFirst().orElse(null);
             }
             if (create && recordInfo == null) {
-                recordInfo = factory.createRecordInfoType();
-                MapperUtils.add(mods, recordInfo);
+                recordInfo = factory.createRecordInfoDefinition();
+                mods.getRecordInfo().add(recordInfo);
             }
             return recordInfo;
         }
 
-        public JAXBElement<String> getRecordOrigin(boolean create) {
+        public StringPlusLanguage getRecordOrigin(boolean create) {
             if (recordOrigin == null) {
                 if (getRecordInfo(create) != null) {
-                    List<JAXBElement<?>> group = recordInfo.getRecordContentSourceOrRecordCreationDateOrRecordChangeDate();
-                    recordOrigin = (JAXBElement<String>) MapperUtils.findFirst(group, ObjectFactory._RecordInfoTypeRecordOrigin_QNAME);
+                    recordOrigin = recordInfo.getRecordOrigin().stream().findFirst().orElse(null);
                 }
             }
 
             if (create && recordOrigin == null) {
-                recordOrigin = factory.createRecordInfoTypeRecordOrigin(null);
-                recordInfo.getRecordContentSourceOrRecordCreationDateOrRecordChangeDate()
-                        .add(recordOrigin);
+                recordOrigin = factory.createStringPlusLanguage();
+                recordInfo.getRecordOrigin().add(recordOrigin);
             }
             return recordOrigin;
         }

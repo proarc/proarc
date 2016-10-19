@@ -17,11 +17,10 @@
 package cz.cas.lib.proarc.common.xml;
 
 import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
-import cz.cas.lib.proarc.common.mods.Mods33Utils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.PageMapperTest;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -515,7 +514,7 @@ public class TransformersTest {
 
     @Test
     public void testModsAsFedoraLabel_Empty() throws Exception {
-        String label = Mods33Utils.getLabel(new ModsType(), "model:page");
+        String label = ModsUtils.getLabel(new ModsDefinition(), "model:page");
         assertEquals("?", label);
     }
 

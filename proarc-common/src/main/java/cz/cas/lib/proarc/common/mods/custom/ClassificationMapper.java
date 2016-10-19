@@ -18,9 +18,9 @@ package cz.cas.lib.proarc.common.mods.custom;
 
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ItemMapper;
 import cz.cas.lib.proarc.common.mods.custom.ClassificationMapper.ClassificationItem.Type;
-import cz.fi.muni.xkremser.editor.server.mods.ClassificationType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.ClassificationDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -42,15 +42,15 @@ import javax.xml.bind.annotation.XmlElement;
  */
 final class ClassificationMapper {
 
-    private final ArrayMapper<ClassificationType, ClassificationItem> classificationMap =
-            new ArrayMapper<ClassificationType, ClassificationItem>(new ClassificationItemMapper());
+    private final ArrayMapper<ClassificationDefinition, ClassificationItem> classificationMap =
+            new ArrayMapper<>(new ClassificationItemMapper());
 
-    public List<ClassificationPair> mapPairs(ModsType mods) {
+    public List<ClassificationPair> mapPairs(ModsDefinition mods) {
         List<ClassificationItem> items = map(mods);
         return toPairs(items);
     }
 
-    public ModsType mapPairs(ModsType mods, List<ClassificationPair> pairs) {
+    public ModsDefinition mapPairs(ModsDefinition mods, List<ClassificationPair> pairs) {
         pairs = MapperUtils.noNull(pairs);
         List<ClassificationItem> items = map(mods);
         List<ClassificationItem> others = filter(items, true, Type.OTHER);
@@ -60,20 +60,21 @@ final class ClassificationMapper {
         return mods;
     }
 
-    public List<ClassificationItem> map(ModsType mods) {
-        List<ClassificationType> classifications = MapperUtils.find(mods.getModsGroup(), ClassificationType.class);
+    public List<ClassificationItem> map(ModsDefinition mods) {
+        List<ClassificationDefinition> classifications = mods.getClassification();
         return classificationMap.map(classifications);
     }
 
-    public ModsType map(ModsType mods, List<ClassificationItem> items) {
-        List<ClassificationType> oldies = MapperUtils.find(mods.getModsGroup(), ClassificationType.class);
-        List<ClassificationType> news = classificationMap.map(items, oldies);
-        MapperUtils.update(mods.getModsGroup(), news, ClassificationType.class);
+    public ModsDefinition map(ModsDefinition mods, List<ClassificationItem> items) {
+        List<ClassificationDefinition> oldies = mods.getClassification();
+        List<ClassificationDefinition> news = classificationMap.map(items, oldies);
+        oldies.clear();
+        oldies.addAll(news);
         return mods;
     }
 
     static List<ClassificationItem> toItems(List<ClassificationPair> pairs) {
-        List<ClassificationItem> items = new ArrayList<ClassificationItem>(2 * pairs.size());
+        List<ClassificationItem> items = new ArrayList<>(2 * pairs.size());
         for (ClassificationPair pair : pairs) {
             items.add(new ClassificationItem(pair.getDdcIndex(), Type.DDC, pair.getDdc()));
             items.add(new ClassificationItem(pair.getUdcIndex(), Type.UDC, pair.getUdc()));
@@ -82,7 +83,7 @@ final class ClassificationMapper {
     }
 
     static List<ClassificationPair> toPairs(List<ClassificationItem> items) {
-        List<ClassificationPair> pairs = new ArrayList<ClassificationPair>();
+        List<ClassificationPair> pairs = new ArrayList<>();
         ClassificationPair pair = null;
         Type previousType = null;
         for (ClassificationItem item : items) {
@@ -128,7 +129,7 @@ final class ClassificationMapper {
     }
 
     static List<ClassificationItem> filter(List<ClassificationItem> items, Set<Type> filter, boolean include) {
-        List<ClassificationItem> result = new ArrayList<ClassificationItem>();
+        List<ClassificationItem> result = new ArrayList<>();
 
         for (ClassificationItem name : items) {
             boolean contains = filter.contains(name.getType());
@@ -223,12 +224,12 @@ final class ClassificationMapper {
 
     }
 
-    private static final class ClassificationItemMapper implements ItemMapper<ClassificationType, ClassificationItem> {
+    private static final class ClassificationItemMapper implements ItemMapper<ClassificationDefinition, ClassificationItem> {
 
         private final ObjectFactory factory = new ObjectFactory();
 
         @Override
-        public ClassificationItem map(ClassificationType source) {
+        public ClassificationItem map(ClassificationDefinition source) {
             ClassificationItem result = new ClassificationItem();
             Type type = Type.from(source.getAuthority());
             result.setType(type);
@@ -240,13 +241,13 @@ final class ClassificationMapper {
         }
 
         @Override
-        public ClassificationType map(ClassificationItem item, ClassificationType origin) {
+        public ClassificationDefinition map(ClassificationItem item, ClassificationDefinition origin) {
             if (item.getType() == Type.OTHER) {
                 return origin;
             }
-            ClassificationType source = origin;
+            ClassificationDefinition source = origin;
             if (origin == null) {
-                source = factory.createClassificationType();
+                source = factory.createClassificationDefinition();
                 source.setAuthority(item.getType().getText());
             }
 

@@ -16,17 +16,16 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
 import cz.cas.lib.proarc.common.mods.custom.PhysicalDescriptionMapper.ExtentItem;
 import cz.cas.lib.proarc.common.mods.custom.PhysicalDescriptionMapper.ExtentPair;
 import cz.cas.lib.proarc.common.mods.custom.PhysicalDescriptionMapper.NoteItem;
 import cz.cas.lib.proarc.common.mods.custom.PhysicalDescriptionMapper.UnkownItem;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.PhysicalDescriptionType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
 import java.util.Arrays;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
 import org.hamcrest.core.Is;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -64,25 +63,26 @@ public class PhysicalDescriptionMapperTest {
 
     @Test
     public void testRead() {
-        ModsType mods = new ModsType();
-        PhysicalDescriptionType pd = new PhysicalDescriptionType();
-        mods.getModsGroup().add(pd);
-        List<JAXBElement<?>> pdGroup = pd.getFormOrReformattingQualityOrInternetMediaType();
-        pdGroup.add(factory.createPhysicalDescriptionTypeExtent("extent1[0]"));
-        pdGroup.add(factory.createPhysicalDescriptionTypeExtent("size1[1]"));
-        pdGroup.add(factory.createPhysicalDescriptionTypeNote(factory.createNoteType()));
-        pdGroup.add(factory.createPhysicalDescriptionTypeExtent("extent2[3]"));
-        pdGroup.add(factory.createPhysicalDescriptionTypeExtent("size2[4]"));
-        pdGroup.add(factory.createPhysicalDescriptionTypeExtent("extent3[5]"));
-        pdGroup.add(factory.createPhysicalDescriptionTypeInternetMediaType("m"));
+        String xml = "<mods xmlns='http://www.loc.gov/mods/v3'>"
+                + "<physicalDescription>"
+                + "<extent>extent1[0]</extent>"
+                + "<extent>size1[1]</extent>"
+                + "<note/>"
+                + "<extent>extent2[3]</extent>"
+                + "<extent>size2[4]</extent>"
+                + "<extent>extent3[5]</extent>"
+                + "<internetMediaType>m</internetMediaType>"
+                + "</physicalDescription>"
+                + "</mods>";
+        ModsDefinition mods = ModsUtils.unmarshal(xml, ModsDefinition.class);
         List<ArrayItem> expectedItems = Arrays.asList(
                 new ExtentItem(0, "extent1[0]"),
                 new ExtentItem(1, "size1[1]"),
-                new NoteItem(2, null, null),
-                new ExtentItem(3, "extent2[3]"),
-                new ExtentItem(4, "size2[4]"),
-                new ExtentItem(5, "extent3[5]"),
-                new UnkownItem(6)
+                new ExtentItem(2, "extent2[3]"),
+                new ExtentItem(3, "size2[4]"),
+                new ExtentItem(4, "extent3[5]"),
+                new NoteItem(5, "", null)
+//                new UnkownItem(6)
                 );
 
         PhysicalDescriptionMapper instance = new PhysicalDescriptionMapper();
@@ -93,20 +93,22 @@ public class PhysicalDescriptionMapperTest {
 
     @Test
     public void testWritePairs() {
-        ModsType mods = new ModsType();
-        PhysicalDescriptionType pd = new PhysicalDescriptionType();
-        mods.getModsGroup().add(pd);
-        List<JAXBElement<?>> pdGroup = pd.getFormOrReformattingQualityOrInternetMediaType();
-        pdGroup.add(factory.createPhysicalDescriptionTypeExtent("extent1[0]"));
-        pdGroup.add(factory.createPhysicalDescriptionTypeExtent("size1[1]"));
-        pdGroup.add(factory.createPhysicalDescriptionTypeInternetMediaType("m"));
-        pdGroup.add(factory.createPhysicalDescriptionTypeExtent("extent2[3]"));
-        pdGroup.add(factory.createPhysicalDescriptionTypeExtent("size2[4]"));
-        pdGroup.add(factory.createPhysicalDescriptionTypeExtent("extent3[5]"));
+        String xml = "<mods xmlns='http://www.loc.gov/mods/v3'>"
+                + "<physicalDescription>"
+                + "<extent>extent1[0]</extent>"
+                + "<extent>size1[1]</extent>"
+                + "<internetMediaType>m</internetMediaType>"
+                + "<extent>extent2[3]</extent>"
+                + "<extent>size2[4]</extent>"
+                + "<extent>extent3[5]</extent>"
+                + "</physicalDescription>"
+                + "</mods>";
+        ModsDefinition mods = ModsUtils.unmarshal(xml, ModsDefinition.class);
+
         List<ExtentPair> pairs = Arrays.asList(
 //                new ExtentPair("extent1[0]", 0, "size1[1]", 1), // delete
-                new ExtentPair("extent2-updated[3]", 3, "size2-updated[4]", 4), // update
-                new ExtentPair("extent3[5]", 5, null, null), // add size
+                new ExtentPair("extent2-updated[3]", 2, "size2-updated[4]", 3), // update
+                new ExtentPair("extent3[5]", 4, null, null), // add size
                 new ExtentPair("extent[new][7]", null, "size[new][8]", null) // add
                 );
         PhysicalDescriptionMapper instance = new PhysicalDescriptionMapper();
@@ -118,8 +120,8 @@ public class PhysicalDescriptionMapperTest {
                 new ExtentItem(2, "extent3[5]"),
                 new ExtentItem(3, null),
                 new ExtentItem(4, "extent[new][7]"),
-                new ExtentItem(5, "size[new][8]"),
-                new UnkownItem(6)
+                new ExtentItem(5, "size[new][8]")
+//                new UnkownItem(6)
                 );
         assertThat(result, Is.is(expectedItems));
     }

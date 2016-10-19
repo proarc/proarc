@@ -19,8 +19,8 @@ package cz.cas.lib.proarc.common.mods.custom;
 import cz.cas.lib.proarc.common.mods.custom.ClassificationMapper.ClassificationItem;
 import cz.cas.lib.proarc.common.mods.custom.ClassificationMapper.ClassificationItem.Type;
 import cz.cas.lib.proarc.common.mods.custom.ClassificationMapper.ClassificationPair;
-import cz.fi.muni.xkremser.editor.server.mods.ClassificationType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.cas.lib.proarc.mods.ClassificationDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.util.Arrays;
 import java.util.List;
 import org.hamcrest.core.Is;
@@ -58,12 +58,12 @@ public class ClassificationMapperTest {
 
     @Test
     public void testReadItems() {
-        ModsType mods = new ModsType();
-        mods.getModsGroup().add(classificationType(Type.DDC.getText(), "ddc[0]"));
-        mods.getModsGroup().add(classificationType(Type.DDC.getText(), "ddc[1]"));
-        mods.getModsGroup().add(classificationType(Type.UDC.getText(), "udc[2]"));
-        mods.getModsGroup().add(classificationType(null, "unknown[3]"));
-        mods.getModsGroup().add(classificationType(Type.UDC.getText(), "udc[4]"));
+        ModsDefinition mods = new ModsDefinition();
+        mods.getClassification().add(classificationType(Type.DDC.getText(), "ddc[0]"));
+        mods.getClassification().add(classificationType(Type.DDC.getText(), "ddc[1]"));
+        mods.getClassification().add(classificationType(Type.UDC.getText(), "udc[2]"));
+        mods.getClassification().add(classificationType(null, "unknown[3]"));
+        mods.getClassification().add(classificationType(Type.UDC.getText(), "udc[4]"));
         ClassificationMapper instance = new ClassificationMapper();
         List<ClassificationItem> expResult = Arrays.asList(
             new ClassificationItem(0, Type.DDC, "ddc[0]"),
@@ -78,12 +78,12 @@ public class ClassificationMapperTest {
 
     @Test
     public void testReadPairs() {
-        ModsType mods = new ModsType();
-        mods.getModsGroup().add(classificationType(Type.DDC.getText(), "ddc[0]"));
-        mods.getModsGroup().add(classificationType(Type.DDC.getText(), "ddc[1]"));
-        mods.getModsGroup().add(classificationType(Type.UDC.getText(), "udc[2]"));
-        mods.getModsGroup().add(classificationType(null, "unknown[3]"));
-        mods.getModsGroup().add(classificationType(Type.UDC.getText(), "udc[4]"));
+        ModsDefinition mods = new ModsDefinition();
+        mods.getClassification().add(classificationType(Type.DDC.getText(), "ddc[0]"));
+        mods.getClassification().add(classificationType(Type.DDC.getText(), "ddc[1]"));
+        mods.getClassification().add(classificationType(Type.UDC.getText(), "udc[2]"));
+        mods.getClassification().add(classificationType(null, "unknown[3]"));
+        mods.getClassification().add(classificationType(Type.UDC.getText(), "udc[4]"));
         ClassificationMapper instance = new ClassificationMapper();
         List<ClassificationPair> expResult = Arrays.asList(
             new ClassificationPair("ddc[0]", 0, null, null),
@@ -96,12 +96,12 @@ public class ClassificationMapperTest {
 
     @Test
     public void testWritePairs() {
-        ModsType mods = new ModsType();
-        mods.getModsGroup().add(classificationType(Type.DDC.getText(), "ddc[0]"));
-        mods.getModsGroup().add(classificationType(Type.DDC.getText(), "ddc[1]"));
-        mods.getModsGroup().add(classificationType(Type.UDC.getText(), "udc[2]"));
-        mods.getModsGroup().add(classificationType(null, "unknown[3]"));
-        mods.getModsGroup().add(classificationType(Type.UDC.getText(), "udc[4]"));
+        ModsDefinition mods = new ModsDefinition();
+        mods.getClassification().add(classificationType(Type.DDC.getText(), "ddc[0]"));
+        mods.getClassification().add(classificationType(Type.DDC.getText(), "ddc[1]"));
+        mods.getClassification().add(classificationType(Type.UDC.getText(), "udc[2]"));
+        mods.getClassification().add(classificationType(null, "unknown[3]"));
+        mods.getClassification().add(classificationType(Type.UDC.getText(), "udc[4]"));
         List<ClassificationPair> updates = Arrays.asList(
             new ClassificationPair("ddc[0]-updated", 0, "udc[new][1]", null), // update + insert
 //            new ClassificationPair("ddc[1]-removed", 1, "udc[2]", 2), // delete
@@ -123,8 +123,8 @@ public class ClassificationMapperTest {
         assertThat(result, Is.is(expected));
     }
 
-    private static ClassificationType classificationType(String type, String value) {
-        ClassificationType c = new ClassificationType();
+    private static ClassificationDefinition classificationType(String type, String value) {
+        ClassificationDefinition c = new ClassificationDefinition();
         c.setAuthority(type);
         c.setValue(value);
         return c;

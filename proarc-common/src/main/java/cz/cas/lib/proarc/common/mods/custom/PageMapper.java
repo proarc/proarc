@@ -18,13 +18,13 @@ package cz.cas.lib.proarc.common.mods.custom;
 
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper.Page;
-import cz.fi.muni.xkremser.editor.server.mods.DetailType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.PartType;
-import cz.fi.muni.xkremser.editor.server.mods.UnstructuredText;
+import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.Text;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -40,23 +40,23 @@ public final class PageMapper implements Mapping.Mapper<Page> {
     private final IdentifierMapper identMap = new IdentifierMapper();
 
     @Override
-    public Page map(ModsType mods) {
+    public Page map(ModsDefinition mods) {
         NodeLookup nlookup = new NodeLookup(mods);
         Page page = new Page();
         page.setIdentifiers(identMap.map(mods));
         page.setNumber(MapperUtils.toString(nlookup.getPageNumber(false)));
         page.setIndex(MapperUtils.toString(nlookup.getPageIndex(false)));
 
-        UnstructuredText note = nlookup.getNote(false);
+        Text note = nlookup.getNote(false);
         page.setNote(note == null ? null : note.getValue());
 
-        PartType part = nlookup.getPart(false);
+        PartDefinition part = nlookup.getPart(false);
         page.setType(part == null ? null : part.getType());
         return page;
     }
 
     @Override
-    public ModsType map(ModsType mods, Page page) {
+    public ModsDefinition map(ModsDefinition mods, Page page) {
         identMap.map(mods, page.getIdentifiers());
         NodeLookup nlookup = new NodeLookup(mods);
         updateType(page, nlookup);
@@ -68,7 +68,7 @@ public final class PageMapper implements Mapping.Mapper<Page> {
         return mods;
     }
 
-    public void updatePage(ModsType mods, String pageIndex, String pageNumber, String pageType) {
+    public void updatePage(ModsDefinition mods, String pageIndex, String pageNumber, String pageType) {
         Page page = map(mods);
         if (pageIndex != null) {
             page.setIndex(pageIndex.isEmpty() ? null : pageIndex);
@@ -86,7 +86,7 @@ public final class PageMapper implements Mapping.Mapper<Page> {
         if (page.getNote() != null) {
             nlookup.getNote(true).setValue(page.getNote());
         } else {
-            UnstructuredText note = nlookup.getNote(false);
+            Text note = nlookup.getNote(false);
             if (note != null) {
                 note.setValue(null);
             }
@@ -97,7 +97,7 @@ public final class PageMapper implements Mapping.Mapper<Page> {
         if (page.getNumber() != null) {
             nlookup.getPageNumber(true).setValue(page.getNumber());
         } else {
-            JAXBElement<String> pageNumber = nlookup.getPageNumber(false);
+            StringPlusLanguage pageNumber = nlookup.getPageNumber(false);
             if (pageNumber != null) {
                 pageNumber.setValue(null);
             }
@@ -108,7 +108,7 @@ public final class PageMapper implements Mapping.Mapper<Page> {
         if (page.getIndex() != null) {
             nlookup.getPageIndex(true).setValue(page.getIndex());
         } else {
-            JAXBElement<String> pageIndex = nlookup.getPageIndex(false);
+            StringPlusLanguage pageIndex = nlookup.getPageIndex(false);
             if (pageIndex != null) {
                 pageIndex.setValue(null);
             }
@@ -119,7 +119,7 @@ public final class PageMapper implements Mapping.Mapper<Page> {
         if (page.getType() != null) {
             nlookup.getPart(true).setType(page.getType());
         } else {
-            PartType part = nlookup.getPart(false);
+            PartDefinition part = nlookup.getPart(false);
             if (part != null) {
                 part.setType(null);
             }
@@ -129,92 +129,89 @@ public final class PageMapper implements Mapping.Mapper<Page> {
     private static final class NodeLookup {
 
         private final ObjectFactory factory = new ObjectFactory();
-        private ModsType mods;
-        private PartType part;
-        private DetailType detailForNumber;
-        private DetailType detailForIndex;
-        private JAXBElement<String> pageIndex;
-        private JAXBElement<String> pageNumber;
-        private UnstructuredText note;
+        private ModsDefinition mods;
+        private PartDefinition part;
+        private DetailDefinition detailForNumber;
+        private DetailDefinition detailForIndex;
+        private StringPlusLanguage pageIndex;
+        private StringPlusLanguage pageNumber;
+        private Text note;
 
-        public NodeLookup(ModsType modsType) {
+        public NodeLookup(ModsDefinition modsType) {
             this.mods = modsType;
         }
 
-        public JAXBElement<String> getPageIndex(boolean create) {
+        public StringPlusLanguage getPageIndex(boolean create) {
             if (pageIndex == null) {
                 if (getDetailForIndex(create, "pageIndex") != null) {
-                    pageIndex = MapperUtils.findFirst(detailForIndex.getNumberOrCaptionOrTitle(),
-                            MapperUtils.<String>jaxbElementSelector(ObjectFactory._DetailTypeNumber_QNAME));
+                    pageIndex = detailForIndex.getNumber().stream().findFirst().orElse(null);
                 }
             }
             if (pageIndex == null && create) {
-                pageIndex = factory.createDetailTypeNumber(null);
-                detailForIndex.getNumberOrCaptionOrTitle().add(0, pageIndex);
+                pageIndex = factory.createStringPlusLanguage();
+                detailForIndex.getNumber().add(0, pageIndex);
             }
             return pageIndex;
         }
 
-        public JAXBElement<String> getPageNumber(boolean create) {
+        public StringPlusLanguage getPageNumber(boolean create) {
             if (pageNumber == null) {
                 if (getDetailForNumber(create, "pageNumber") != null) {
-                    pageNumber = MapperUtils.findFirst(detailForNumber.getNumberOrCaptionOrTitle(),
-                            MapperUtils.<String>jaxbElementSelector(ObjectFactory._DetailTypeNumber_QNAME));
+                    pageNumber = detailForNumber.getNumber().stream().findFirst().orElse(null);
                 }
             }
             if (pageNumber == null && create) {
-                pageNumber = factory.createDetailTypeNumber(null);
-                detailForNumber.getNumberOrCaptionOrTitle().add(pageNumber);
+                pageNumber = factory.createStringPlusLanguage();
+                detailForNumber.getNumber().add(pageNumber);
             }
             return pageNumber;
         }
 
-        public UnstructuredText getNote(boolean create) {
+        public Text getNote(boolean create) {
             if (note == null) {
                 if (getPart(create) != null) {
-                    note = MapperUtils.findFirst(part.getDetailOrExtentOrDate(), UnstructuredText.class);
+                    note = part.getText().stream().findFirst().orElse(null);
                 }
             }
             if (note == null && create) {
-                note = factory.createUnstructuredText();
-                part.getDetailOrExtentOrDate().add(note);
+                note = factory.createText();
+                part.getText().add(note);
             }
             return note;
         }
 
-        public PartType getPart(boolean create) {
+        public PartDefinition getPart(boolean create) {
             if (part == null) {
-                part = MapperUtils.findFirst(mods.getModsGroup(), PartType.class);
+                part = mods.getPart().stream().findFirst().orElse(null);
             }
             if (part == null && create) {
-                part = factory.createPartType();
-                MapperUtils.add(mods, part);
+                part = factory.createPartDefinition();
+                mods.getPart().add(part);
             }
             return part;
         }
 
-        public DetailType getDetailForNumber(boolean create, final String type) {
+        public DetailDefinition getDetailForNumber(boolean create, final String type) {
             detailForNumber = getDetail(create, type, detailForNumber);
             return detailForNumber;
         }
 
-        public DetailType getDetailForIndex(boolean create, final String type) {
+        public DetailDefinition getDetailForIndex(boolean create, final String type) {
             detailForIndex = getDetail(create, type, detailForIndex);
             return detailForIndex;
         }
 
-        private DetailType getDetail(boolean create, String type, DetailType detail) {
+        private DetailDefinition getDetail(boolean create, String type, DetailDefinition detail) {
             if (detail == null) {
                 if (getPart(create) != null) {
-                    detail = MapperUtils.findFirst(
-                            MapperUtils.find(part.getDetailOrExtentOrDate(), DetailType.class),
-                            MapperUtils.detailSelector(type));
+                    detail = part.getDetail().stream().filter(d -> type.equals(d.getType()))
+                            .findFirst().orElse(null);
                 }
             }
             if (detail == null && create) {
-                detail = factory.createDetailType();
+                detail = factory.createDetailDefinition();
                 detail.setType(type);
-                MapperUtils.add(part, detail);
+                part.getDetail().add(detail);
             }
             return detail;
         }

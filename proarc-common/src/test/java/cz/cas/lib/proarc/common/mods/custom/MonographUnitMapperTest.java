@@ -16,10 +16,10 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.cas.lib.proarc.common.mods.Mods33Utils;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.cas.lib.proarc.common.mods.custom.MonographUnitMapper.MonographUnit;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.util.Arrays;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -32,7 +32,7 @@ public class MonographUnitMapperTest {
 
     @Test
     public void testRead() {
-        ModsType mods = Mods33Utils.unmarshal(MonographUnitMapperTest.class.getResource("monograph_unit_mods.xml"), ModsType.class);
+        ModsDefinition mods = ModsUtils.unmarshal(MonographUnitMapperTest.class.getResource("monograph_unit_mods.xml"), ModsDefinition.class);
         MonographUnitMapper instance = new MonographUnitMapper();
         MonographUnit result = instance.map(mods);
         assertEquals("Zbirka 1", result.getNumber());
@@ -41,7 +41,7 @@ public class MonographUnitMapperTest {
 
     @Test
     public void testWrite() {
-        ModsType mods = new ModsType();
+        ModsDefinition mods = new ModsDefinition();
         MonographUnit munit = new MonographUnit();
         munit.setIdentifiers(Arrays.asList(new IdentifierItem("type", "IDENTIFIER")));
         munit.setNumber("NUMBER");
@@ -49,9 +49,9 @@ public class MonographUnitMapperTest {
         
         MonographUnitMapper instance = new MonographUnitMapper();
         instance.map(mods, munit);
-        String toXml = Mods33Utils.toXml(mods, true);
+        String toXml = ModsUtils.toXml(mods, true);
         System.out.println(toXml);
-        MonographUnit result = instance.map(Mods33Utils.unmarshal(toXml, ModsType.class));
+        MonographUnit result = instance.map(ModsUtils.unmarshal(toXml, ModsDefinition.class));
         assertNotNull(result);
         assertEquals(Arrays.asList(new IdentifierItem(0, "type", "IDENTIFIER")), result.getIdentifiers());
         assertEquals("NUMBER", result.getNumber());

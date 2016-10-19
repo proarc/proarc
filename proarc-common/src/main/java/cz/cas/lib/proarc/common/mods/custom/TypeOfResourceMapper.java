@@ -16,8 +16,8 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.TypeOfResourceType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 
 /**
  *
@@ -25,16 +25,16 @@ import cz.fi.muni.xkremser.editor.server.mods.TypeOfResourceType;
  */
 final class TypeOfResourceMapper {
 
-    public ModsType map(ModsType mods, Type type) {
+    public ModsDefinition map(ModsDefinition mods, Type type) {
         return map(mods, type.xml);
     }
     
-    public ModsType map(ModsType mods, String type) {
-        TypeOfResourceType typeOfResource = MapperUtils.findFirst(mods.getModsGroup(), TypeOfResourceType.class);
+    public ModsDefinition map(ModsDefinition mods, String type) {
+        TypeOfResourceDefinition typeOfResource = mods.getTypeOfResource().stream().findFirst().orElse(null);
         if (typeOfResource == null) {
-            typeOfResource = new TypeOfResourceType();
+            typeOfResource = new TypeOfResourceDefinition();
             typeOfResource.setValue(type);
-            MapperUtils.add(mods, typeOfResource);
+            mods.getTypeOfResource().add(typeOfResource);
         }
         return mods;
     }

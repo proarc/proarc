@@ -19,13 +19,13 @@ package cz.cas.lib.proarc.common.mods.custom;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.cas.lib.proarc.common.mods.custom.Mapping.Mapper;
 import cz.cas.lib.proarc.common.mods.custom.MonographUnitMapper.MonographUnit;
-import cz.fi.muni.xkremser.editor.server.mods.DetailType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.PartType;
-import cz.fi.muni.xkremser.editor.server.mods.UnstructuredText;
+import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.Text;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -39,23 +39,23 @@ import javax.xml.bind.annotation.XmlRootElement;
 final class MonographUnitMapper implements Mapper<MonographUnit> {
 
     @Override
-    public MonographUnit map(ModsType mods) {
+    public MonographUnit map(ModsDefinition mods) {
         NodeLookup nlookup = new NodeLookup(mods);
         MonographUnit result = new MonographUnit();
         // identifiers
         IdentifierMapper identifierMap = new IdentifierMapper();
         result.setIdentifiers(identifierMap.map(mods));
         // unit number
-        JAXBElement<String> number = nlookup.getNumber(false);
+        StringPlusLanguage number = nlookup.getNumber(false);
         result.setNumber(number == null ? null : number.getValue());
         // note
-        UnstructuredText note = nlookup.getNote(false);
+        Text note = nlookup.getNote(false);
         result.setNote(note == null ? null : note.getValue());
         return result;
     }
 
     @Override
-    public ModsType map(ModsType mods, MonographUnit munit) {
+    public ModsDefinition map(ModsDefinition mods, MonographUnit munit) {
         NodeLookup nlookup = new NodeLookup(mods);
         // identifiers
         IdentifierMapper identifierMap = new IdentifierMapper();
@@ -64,7 +64,7 @@ final class MonographUnitMapper implements Mapper<MonographUnit> {
         if (munit.getNumber() != null) {
             nlookup.getNumber(true).setValue(munit.getNumber());
         } else {
-            JAXBElement<String> number = nlookup.getNumber(false);
+            StringPlusLanguage number = nlookup.getNumber(false);
             if (number != null) {
                 number.setValue(null);
             }
@@ -73,7 +73,7 @@ final class MonographUnitMapper implements Mapper<MonographUnit> {
         if (munit.getNote() != null) {
             nlookup.getNote(true).setValue(munit.getNote());
         } else {
-            UnstructuredText note = nlookup.getNote(false);
+            Text note = nlookup.getNote(false);
             if (note != null) {
                 note.setValue(null);
             }
@@ -87,70 +87,65 @@ final class MonographUnitMapper implements Mapper<MonographUnit> {
 
         private static final String ATTR_VOLUME = "Volume";
         private final ObjectFactory factory = new ObjectFactory();
-        private ModsType mods;
-        private PartType part;
-        private DetailType detail;
-        private JAXBElement<String> number;
-        private UnstructuredText note;
+        private ModsDefinition mods;
+        private PartDefinition part;
+        private DetailDefinition detail;
+        private StringPlusLanguage number;
+        private Text note;
 
-        public NodeLookup(ModsType mods) {
+        public NodeLookup(ModsDefinition mods) {
             this.mods = mods;
         }
 
-        public JAXBElement<String> getNumber(boolean create) {
+        public StringPlusLanguage getNumber(boolean create) {
             if (number == null) {
                 if (getDetail(create) != null) {
-                    number = MapperUtils.findFirst(detail.getNumberOrCaptionOrTitle(),
-                            MapperUtils.<String>jaxbElementSelector(ObjectFactory._DetailTypeNumber_QNAME));
+                    number = detail.getNumber().stream().findFirst().orElse(null);
                 }
             }
             if (number == null && create) {
-                number = factory.createDetailTypeNumber(null);
-                detail.getNumberOrCaptionOrTitle().add(number);
+                number = factory.createStringPlusLanguage();
+                detail.getNumber().add(number);
             }
             return number;
         }
 
-        public UnstructuredText getNote(boolean create) {
+        public Text getNote(boolean create) {
             if (note == null) {
                 if (getPart(create) != null) {
-                    note = MapperUtils.findFirst(part.getDetailOrExtentOrDate(), UnstructuredText.class);
+                    note = part.getText().stream().findFirst().orElse(null);
                 }
             }
             if (note == null && create) {
-                note = factory.createUnstructuredText();
-                part.getDetailOrExtentOrDate().add(note);
+                note = factory.createText();
+                part.getText().add(note);
             }
             return note;
         }
 
-        public PartType getPart(boolean create) {
+        public PartDefinition getPart(boolean create) {
             if (part == null) {
-                part = MapperUtils.findFirst(MapperUtils.find(mods.getModsGroup(), PartType.class), new MapperUtils.Selector<PartType>(){
-
-                    @Override
-                    public boolean select(PartType item) {
-                        return ATTR_VOLUME.equals(item.getType());
-                    }
-                });
+                part = mods.getPart().stream()
+                        .filter(part -> ATTR_VOLUME.equals(part.getType()))
+                        .findFirst().orElse(null);
             }
             if (part == null && create) {
-                part = factory.createPartType();
+                part = factory.createPartDefinition();
                 part.setType(ATTR_VOLUME);
-                MapperUtils.add(mods, part);
+                mods.getPart().add(part);
             }
             return part;
         }
 
-        public DetailType getDetail(boolean create) {
+        public DetailDefinition getDetail(boolean create) {
             if (detail == null) {
                 if (getPart(create) != null) {
-                    detail = MapperUtils.findFirst(part.getDetailOrExtentOrDate(), DetailType.class);
+                    detail = part.getDetail().stream().findFirst().orElse(null);
                 }
             }
             if (detail == null && create) {
-                detail = factory.createDetailType();
-                MapperUtils.add(part, detail);
+                detail = factory.createDetailDefinition();
+                part.getDetail().add(detail);
             }
             return detail;
         }

@@ -17,11 +17,11 @@
 package cz.cas.lib.proarc.common.mods.custom;
 
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
-import cz.fi.muni.xkremser.editor.server.mods.CodeOrText;
-import cz.fi.muni.xkremser.editor.server.mods.LanguageType;
-import cz.fi.muni.xkremser.editor.server.mods.LanguageType.LanguageTerm;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.CodeOrText;
+import cz.cas.lib.proarc.mods.LanguageDefinition;
+import cz.cas.lib.proarc.mods.LanguageTermDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -42,27 +42,28 @@ import javax.xml.bind.annotation.XmlElement;
  */
 final class LanguageMapper {
 
-    private final ArrayMapper<LanguageType, LanguageItem> arrayMapper =
-            new ArrayMapper<LanguageType, LanguageItem>(new LanguageItemMapper());
+    private final ArrayMapper<LanguageDefinition, LanguageItem> arrayMapper =
+            new ArrayMapper<>(new LanguageItemMapper());
 
-    public List<LanguageItem> map(ModsType mods) {
-        List<LanguageItem> all = arrayMapper.map(MapperUtils.find(mods.getModsGroup(), LanguageType.class));
+    public List<LanguageItem> map(ModsDefinition mods) {
+        List<LanguageItem> all = arrayMapper.map(mods.getLanguage());
         return filter(all, false);
     }
 
-    public ModsType map(ModsType mods, List<LanguageItem> updates) {
+    public ModsDefinition map(ModsDefinition mods, List<LanguageItem> updates) {
         updates = MapperUtils.noNull(updates);
-        List<LanguageType> oldies = MapperUtils.find(mods.getModsGroup(), LanguageType.class);
+        List<LanguageDefinition> oldies = mods.getLanguage();
         List<LanguageItem> oldItems = arrayMapper.map(oldies);
         List<LanguageItem> ignored = filter(oldItems, true);
         updates = MapperUtils.mergeList(updates, ignored);
-        List<LanguageType> news = arrayMapper.map(updates, oldies);
-        MapperUtils.update(mods.getModsGroup(), news, LanguageType.class);
+        List<LanguageDefinition> news = arrayMapper.map(updates, oldies);
+        oldies.clear();
+        oldies.addAll(news);
         return mods;
     }
 
     private static List<LanguageItem> filter(List<LanguageItem> items, boolean ignored) {
-        ArrayList<LanguageItem> result = new ArrayList<LanguageItem>(items.size());
+        ArrayList<LanguageItem> result = new ArrayList<>(items.size());
         for (LanguageItem item : items) {
             if (ignored == true && item.ignore || ignored == false && ignored == item.ignore) {
                 result.add(item);
@@ -71,14 +72,14 @@ final class LanguageMapper {
         return result;
     }
 
-    private static final class LanguageItemMapper implements ArrayMapper.ItemMapper<LanguageType, LanguageItem> {
+    private static final class LanguageItemMapper implements ArrayMapper.ItemMapper<LanguageDefinition, LanguageItem> {
 
         private final ObjectFactory factory = new ObjectFactory();
 
         @Override
-        public LanguageItem map(LanguageType source) {
+        public LanguageItem map(LanguageDefinition source) {
             LanguageItem result = new LanguageItem();
-            LanguageTerm term = getLanguageTerm(source, false);
+            LanguageTermDefinition term = getLanguageTerm(source, false);
             if (term != null) {
                 result.setValue(term.getValue());
             } else {
@@ -88,21 +89,21 @@ final class LanguageMapper {
         }
 
         @Override
-        public LanguageType map(LanguageItem item, LanguageType origin) {
+        public LanguageDefinition map(LanguageItem item, LanguageDefinition origin) {
             if (item.ignore) {
                 return origin;
             }
             if (origin == null) {
-                origin = factory.createLanguageType();
+                origin = factory.createLanguageDefinition();
             }
-            LanguageTerm term = getLanguageTerm(origin, true);
+            LanguageTermDefinition term = getLanguageTerm(origin, true);
             term.setValue(item.getValue());
             return origin;
         }
 
-        private LanguageTerm getLanguageTerm(LanguageType source, boolean create) {
-            LanguageTerm result = null;
-            for (LanguageTerm lterm : source.getLanguageTerm()) {
+        private LanguageTermDefinition getLanguageTerm(LanguageDefinition source, boolean create) {
+            LanguageTermDefinition result = null;
+            for (LanguageTermDefinition lterm : source.getLanguageTerm()) {
                 String authority = lterm.getAuthority();
                 CodeOrText type = lterm.getType();
                 if (type == CodeOrText.CODE && "iso639-2b".equals(authority)) {
@@ -111,7 +112,7 @@ final class LanguageMapper {
                 }
             }
             if (create && result == null) {
-                result = factory.createLanguageTypeLanguageTerm();
+                result = factory.createLanguageTermDefinition();
                 result.setType(CodeOrText.CODE);
                 result.setAuthority("iso639-2b");
                 source.getLanguageTerm().add(result);

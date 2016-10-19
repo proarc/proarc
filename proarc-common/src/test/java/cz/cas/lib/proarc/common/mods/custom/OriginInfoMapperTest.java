@@ -20,13 +20,15 @@ import cz.cas.lib.proarc.common.mods.custom.OriginInfoMapper.OriginInfoItem;
 import cz.cas.lib.proarc.common.mods.custom.OriginInfoMapper.PeriodicityItem;
 import cz.cas.lib.proarc.common.mods.custom.OriginInfoMapper.PublisherItem;
 import cz.cas.lib.proarc.common.mods.custom.OriginInfoMapper.PublisherItem.Role;
-import cz.fi.muni.xkremser.editor.server.mods.DateType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.OriginInfoType;
-import cz.fi.muni.xkremser.editor.server.mods.PlaceTermType;
-import cz.fi.muni.xkremser.editor.server.mods.PlaceType;
-import cz.fi.muni.xkremser.editor.server.mods.StringPlusAuthority;
+import cz.cas.lib.proarc.mods.DateDefinition;
+import cz.cas.lib.proarc.mods.IssuanceDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PlaceDefinition;
+import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -67,13 +69,13 @@ public class OriginInfoMapperTest {
 
     @Test
     public void testRead() {
-        ModsType mods = new ModsType();
-        mods.getModsGroup().add(originInfo(Role.PRINTER, "printer[0]", "date0", "place0"));
-        mods.getModsGroup().add(originInfo(Role.PRINTER, "printer[1]", "date1", "place1"));
-        mods.getModsGroup().add(originInfo(Role.OTHER, "unknown[2]", "date2", "place2"));
-        mods.getModsGroup().add(originInfo(Role.PUBLISHER, "publisher[3]", "date3", "place3"));
-        mods.getModsGroup().add(originInfo(Role.OTHER, "unknown[4]", null, null));
-        mods.getModsGroup().add(originInfo(Role.PUBLISHER, "publisher[5]", "date5", "place5"));
+        ModsDefinition mods = new ModsDefinition();
+        mods.getOriginInfo().add(originInfo(Role.PRINTER, "printer[0]", "date0", "place0"));
+        mods.getOriginInfo().add(originInfo(Role.PRINTER, "printer[1]", "date1", "place1"));
+        mods.getOriginInfo().add(originInfo(Role.OTHER, "unknown[2]", "date2", "place2"));
+        mods.getOriginInfo().add(originInfo(Role.PUBLISHER, "publisher[3]", "date3", "place3"));
+        mods.getOriginInfo().add(originInfo(Role.OTHER, "unknown[4]", null, null));
+        mods.getOriginInfo().add(originInfo(Role.PUBLISHER, "publisher[5]", "date5", "place5"));
         List<OriginInfoItem> expected = Arrays.<OriginInfoItem>asList(
                 new PublisherItem(0, Role.PRINTER, "printer[0]", "date0", "place0"),
                 new PublisherItem(1, Role.PRINTER, "printer[1]", "date1", "place1"),
@@ -90,13 +92,13 @@ public class OriginInfoMapperTest {
 
     @Test
     public void testWrite() {
-        ModsType mods = new ModsType();
-        mods.getModsGroup().add(originInfo(Role.PRINTER, "printer[0]", "date0", "place0"));
-        mods.getModsGroup().add(originInfo(Role.PRINTER, "printer[1]", "date1", "place1"));
-        mods.getModsGroup().add(originInfo(Role.OTHER, "unknown[2]", "date2", "place2"));
-        mods.getModsGroup().add(originInfo(Role.PUBLISHER, "publisher[3]", "date3", "place3"));
-        mods.getModsGroup().add(originInfo(Role.OTHER, "unknown[4]", null, null));
-        mods.getModsGroup().add(originInfo(Role.PUBLISHER, "publisher[5]", "date5", "place5"));
+        ModsDefinition mods = new ModsDefinition();
+        mods.getOriginInfo().add(originInfo(Role.PRINTER, "printer[0]", "date0", "place0"));
+        mods.getOriginInfo().add(originInfo(Role.PRINTER, "printer[1]", "date1", "place1"));
+        mods.getOriginInfo().add(originInfo(Role.OTHER, "unknown[2]", "date2", "place2"));
+        mods.getOriginInfo().add(originInfo(Role.PUBLISHER, "publisher[3]", "date3", "place3"));
+        mods.getOriginInfo().add(originInfo(Role.OTHER, "unknown[4]", null, null));
+        mods.getOriginInfo().add(originInfo(Role.PUBLISHER, "publisher[5]", "date5", "place5"));
         List<PublisherItem> publishers = Arrays.asList(
                 new PublisherItem(3, null, "publisher[3]-updated", "date3-updated", "place3-updated"), // update
                 new PublisherItem(null, null, "publisher[insert][3-5]", "date-inserted", "place5-inserted"), // insert
@@ -127,14 +129,14 @@ public class OriginInfoMapperTest {
 
     @Test
     public void testReadFrequency() {
-        ModsType mods = new ModsType();
-        mods.getModsGroup().add(originInfo(Role.PRINTER, "printer[0]", "date0", "place0"));
-        mods.getModsGroup().add(originInfo(Role.PRINTER, "printer[1]", "date1", "place1"));
-        mods.getModsGroup().add(originInfo(Role.OTHER, "unknown[2]", "date2", "place2"));
-        mods.getModsGroup().add(originInfo(Role.PUBLISHER, "publisher[3]", "date3", "place3"));
-        mods.getModsGroup().add(originInfo(Role.OTHER, "unknown[4]", null, null));
-        mods.getModsGroup().add(originInfo(Role.PUBLISHER, "publisher[5]", "date5", "place5"));
-        mods.getModsGroup().add(frequency("weekly", "daily"));
+        ModsDefinition mods = new ModsDefinition();
+        mods.getOriginInfo().add(originInfo(Role.PRINTER, "printer[0]", "date0", "place0"));
+        mods.getOriginInfo().add(originInfo(Role.PRINTER, "printer[1]", "date1", "place1"));
+        mods.getOriginInfo().add(originInfo(Role.OTHER, "unknown[2]", "date2", "place2"));
+        mods.getOriginInfo().add(originInfo(Role.PUBLISHER, "publisher[3]", "date3", "place3"));
+        mods.getOriginInfo().add(originInfo(Role.OTHER, "unknown[4]", null, null));
+        mods.getOriginInfo().add(originInfo(Role.PUBLISHER, "publisher[5]", "date5", "place5"));
+        mods.getOriginInfo().add(frequency("weekly", "daily"));
         List<OriginInfoItem> expected = Arrays.asList(
                 new PublisherItem(0, Role.PRINTER, "printer[0]", "date0", "place0"),
                 new PublisherItem(1, Role.PRINTER, "printer[1]", "date1", "place1"),
@@ -163,14 +165,14 @@ public class OriginInfoMapperTest {
 
     @Test
     public void testWriteWithFrequency() {
-        ModsType mods = new ModsType();
-        mods.getModsGroup().add(originInfo(Role.PRINTER, "printer[0]", "date0", "place0"));
-        mods.getModsGroup().add(originInfo(Role.PRINTER, "printer[1]", "date1", "place1"));
-        mods.getModsGroup().add(originInfo(Role.OTHER, "unknown[2]", "date2", "place2"));
-        mods.getModsGroup().add(originInfo(Role.PUBLISHER, "publisher[3]", "date3", "place3"));
-        mods.getModsGroup().add(originInfo(Role.OTHER, "unknown[4]", null, null));
-        mods.getModsGroup().add(originInfo(Role.PUBLISHER, "publisher[5]", "date5", "place5"));
-        mods.getModsGroup().add(frequency("weekly"));
+        ModsDefinition mods = new ModsDefinition();
+        mods.getOriginInfo().add(originInfo(Role.PRINTER, "printer[0]", "date0", "place0"));
+        mods.getOriginInfo().add(originInfo(Role.PRINTER, "printer[1]", "date1", "place1"));
+        mods.getOriginInfo().add(originInfo(Role.OTHER, "unknown[2]", "date2", "place2"));
+        mods.getOriginInfo().add(originInfo(Role.PUBLISHER, "publisher[3]", "date3", "place3"));
+        mods.getOriginInfo().add(originInfo(Role.OTHER, "unknown[4]", null, null));
+        mods.getOriginInfo().add(originInfo(Role.PUBLISHER, "publisher[5]", "date5", "place5"));
+        mods.getOriginInfo().add(frequency("weekly"));
         List<PublisherItem> publishers = Arrays.asList(
                 new PublisherItem(3, null, "publisher[3]-updated", "date3-updated", "place3-updated"), // update
                 new PublisherItem(null, null, "publisher[insert][3-5]", "date-inserted", "place5-inserted"), // insert
@@ -199,40 +201,43 @@ public class OriginInfoMapperTest {
         assertThat(result, Is.is(expected));
     }
 
-    private OriginInfoType originInfo(Role role, String name, String date, String place) {
+    private OriginInfoDefinition originInfo(Role role, String name, String date, String place) {
         String srole = role == null ? null : role.getText();
-        OriginInfoType o = factory.createOriginInfoType();
+        OriginInfoDefinition o = factory.createOriginInfoDefinition();
         o.setTransliteration(srole);
         if (date != null) {
-            DateType dateElm = factory.createDateType();
+            DateDefinition dateElm = factory.createDateDefinition();
             dateElm.setValue(date);
             if (Role.PUBLISHER == role) {
-                o.getPlaceOrPublisherOrDateIssued().add(factory.createOriginInfoTypeDateIssued(dateElm));
+                o.getDateIssued().add(dateElm);
             } else if (Role.PRINTER == role) {
-                o.getPlaceOrPublisherOrDateIssued().add(factory.createOriginInfoTypeDateCreated(dateElm));
+                o.getDateCreated().add(dateElm);
             }
         }
         if (place != null) {
-            PlaceType placeElm = factory.createPlaceType();
-            PlaceTermType placeTerm = factory.createPlaceTermType();
+            PlaceDefinition placeElm = factory.createPlaceDefinition();
+            PlaceTermDefinition placeTerm = factory.createPlaceTermDefinition();
             placeTerm.setValue(place);
             placeElm.getPlaceTerm().add(placeTerm);
-            o.getPlaceOrPublisherOrDateIssued().add(factory.createOriginInfoTypePlace(placeElm));
+            o.getPlace().add(placeElm);
         }
 
         if (name != null) {
-            o.getPlaceOrPublisherOrDateIssued().add(factory.createOriginInfoTypePublisher(name));
+            StringPlusLanguagePlusSupplied spl = factory.createStringPlusLanguagePlusSupplied();
+            spl.setValue(name);
+            o.getPublisher().add(spl);
         }
         return o;
     }
 
-    private OriginInfoType frequency(String... values) {
-        OriginInfoType o = factory.createOriginInfoType();
+    private OriginInfoDefinition frequency(String... values) {
+        OriginInfoDefinition o = factory.createOriginInfoDefinition();
         for (String value : values) {
-            StringPlusAuthority spa = factory.createStringPlusAuthority();
+            StringPlusLanguagePlusAuthority spa = factory.createStringPlusLanguagePlusAuthority();
             spa.setValue(value);
-            o.getPlaceOrPublisherOrDateIssued().add(factory.createOriginInfoTypeFrequency(spa));
-            o.getPlaceOrPublisherOrDateIssued().add(factory.createOriginInfoTypeIssuance(OriginInfoMapper.ISSUANCE_CONTINUING));
+            o.getFrequency().add(spa);
+
+            o.getIssuance().add(IssuanceDefinition.CONTINUING);
         }
         return o;
     }

@@ -16,9 +16,9 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.cas.lib.proarc.common.mods.Mods33Utils;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalMapper.Periodical;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.util.Arrays;
 import org.hamcrest.core.Is;
 import static org.junit.Assert.*;
@@ -78,7 +78,7 @@ public class PeriodicalMapperTest {
 
     @Test
     public void testRead() {
-        ModsType mods = Mods33Utils.unmarshal(XML, ModsType.class);
+        ModsDefinition mods = ModsUtils.unmarshal(XML, ModsDefinition.class);
         PeriodicalMapper instance = new PeriodicalMapper();
         Periodical result = instance.map(mods);
         Periodical expected = new Periodical();
@@ -136,7 +136,7 @@ public class PeriodicalMapperTest {
     @Test
     // XXX missing asserts
     public void testWrite() throws Exception {
-        ModsType mods = new ModsType();
+        ModsDefinition mods = new ModsDefinition();
         mods.setVersion("3.4");
         PeriodicalMapper instance = new PeriodicalMapper();
         Periodical p = new Periodical();
@@ -161,10 +161,10 @@ public class PeriodicalMapperTest {
         p.setRecordOrigin("RECORDORIGIN");
         p.setNote("NOTE");
         instance.map(mods, p);
-        String toXml = Mods33Utils.toXml(mods, true);
+        String toXml = ModsUtils.toXml(mods, true);
         System.out.println(toXml);
 //        XMLUnit.setIgnoreWhitespace(true);
-////        String expected = Mods33Utils.unmarshal(PeriodicalMapperTest.class.getResource("periodical_mods.xml"), ModsType.class);
+////        String expected = Mods33Utils.unmarshal(PeriodicalMapperTest.class.getResource("periodical_mods.xml"), ModsDefinition.class);
 ////        XMLAssert.assertXMLEqual(
 ////                new InputSource(PeriodicalMapperTest.class.getResource("periodical_mods.xml").toExternalForm()),
 ////                new InputSource(new StringReader(toXml)));

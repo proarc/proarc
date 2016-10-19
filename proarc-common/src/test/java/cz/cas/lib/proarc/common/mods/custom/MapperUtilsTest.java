@@ -16,9 +16,8 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.fi.muni.xkremser.editor.server.mods.IdentifierType;
-import cz.fi.muni.xkremser.editor.server.mods.RecordInfoType;
-import cz.fi.muni.xkremser.editor.server.mods.TitleInfoType;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,34 +36,16 @@ public class MapperUtilsTest {
 
     @Test
     public void testRemove() {
-        TitleInfoType obj1 = new TitleInfoType();
-        TitleInfoType obj2 = new TitleInfoType();
-        IdentifierType obj3 = new IdentifierType();
-        TitleInfoType obj4 = new TitleInfoType();
-        IdentifierType obj5 = new IdentifierType();
+        TitleInfoDefinition obj1 = new TitleInfoDefinition();
+        TitleInfoDefinition obj2 = new TitleInfoDefinition();
+        IdentifierDefinition obj3 = new IdentifierDefinition();
+        TitleInfoDefinition obj4 = new TitleInfoDefinition();
+        IdentifierDefinition obj5 = new IdentifierDefinition();
         List<Object> list = new ArrayList<Object>(Arrays.asList(obj1, obj2, obj3, obj4, obj5));
         List<Object> expected = Arrays.<Object>asList(obj1, obj2, obj4);
 
-        Class type = IdentifierType.class;
+        Class type = IdentifierDefinition.class;
         MapperUtils.remove(list, type);
-        assertThat(expected, Is.is(list));
-    }
-
-    @Test
-    public void testUpdate() {
-        TitleInfoType obj1 = new TitleInfoType();
-        IdentifierType obj2 = new IdentifierType();
-        IdentifierType obj3 = new IdentifierType(); // delete
-        IdentifierType obj4 = new IdentifierType();
-        RecordInfoType obj5 = new RecordInfoType();
-        List<Object> list = new ArrayList<Object>(Arrays.asList(obj1, obj2, obj3, obj4, obj5));
-
-        IdentifierType objInsertedBefore4 = new IdentifierType();
-        IdentifierType objAddedAfter2 = new IdentifierType();
-        List<IdentifierType> updates = Arrays.asList(objInsertedBefore4, obj4, obj2, objAddedAfter2);
-        List<Object> expected = Arrays.<Object>asList(obj1, objInsertedBefore4, obj4, obj2, objAddedAfter2, obj5);
-
-        MapperUtils.update(list, updates, IdentifierType.class);
         assertThat(expected, Is.is(list));
     }
 

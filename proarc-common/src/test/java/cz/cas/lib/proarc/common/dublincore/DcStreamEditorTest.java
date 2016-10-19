@@ -23,7 +23,6 @@ import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.ObjectFactory;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.io.StringWriter;
 import java.util.HashMap;
 import javax.xml.bind.util.JAXBSource;
@@ -71,7 +70,7 @@ public class DcStreamEditorTest {
         LocalStorage storage = new LocalStorage();
         LocalStorage.LocalObject local = storage.create();
         ModsStreamEditor modsEditor = new ModsStreamEditor(local);
-        ModsType mods = modsEditor.createPage(local.getPid(), "1", "[1]", "pageType");
+        ModsDefinition mods = modsEditor.createPage(local.getPid(), "1", "[1]", "pageType");
         String model = "model:page";
         long timestamp = 0L;
         DcStreamEditor instance = new DcStreamEditor(local);

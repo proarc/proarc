@@ -27,7 +27,6 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
@@ -43,7 +42,6 @@ import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetada
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionSaveHandler;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
-import cz.cas.lib.proarc.webapp.client.event.EditorLoadHandler;
 import cz.cas.lib.proarc.webapp.client.event.HasEditorLoadHandlers;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.BatchDatastreamEditor;
@@ -71,7 +69,6 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
 
     private final VLayout uiContainer;
     private final ModsCustomEditor modsCustomEditor;
-    private final ModsFullEditor modsFullEditor;
     private final ModsXmlEditor modsSourceEditor;
     private final ModsBatchEditor modsBatchEditor;
     private final CatalogBrowser catalogBrowser;
@@ -95,7 +92,6 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
     public ModsMultiEditor(ClientMessages i18n) {
         this.i18n = i18n;
         uiContainer = new VLayout();
-        modsFullEditor = new ModsFullEditor(i18n);
         modsCustomEditor = new ModsCustomEditor(i18n);
         modsSourceEditor = new ModsXmlEditor(i18n);
         modsBatchEditor = new ModsBatchEditor(i18n);
@@ -103,7 +99,6 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         catalogBrowser.setCompactUi(true);
         actionSource = new ActionSource(this);
         attachDatastreamEditor(modsCustomEditor);
-        attachDatastreamEditor(modsFullEditor);
     }
 
     /**
@@ -111,12 +106,8 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
      */
     private void attachDatastreamEditor(DatastreamEditor deditor) {
         if (deditor instanceof HasEditorLoadHandlers) {
-            ((HasEditorLoadHandlers) deditor).addEditorLoadHandler(new EditorLoadHandler() {
-
-                @Override
-                public void onEditorLoad(EditorLoadEvent evt) {
-                    fireEvent(evt);
-                }
+            ((HasEditorLoadHandlers) deditor).addEditorLoadHandler((EditorLoadEvent evt) -> {
+                fireEvent(evt);
             });
         }
     }
@@ -168,8 +159,6 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         callback = wrapSaveCallback(callback);
         if (activeEditor == modsCustomEditor) {
             saveCustomData(callback);
-        } else if (activeEditor == modsFullEditor) {
-            saveFullData(callback);
         } else if (activeEditor == modsBatchEditor) {
             saveBatchData(callback);
         } else if (activeEditor == catalogBrowser) {
@@ -182,13 +171,9 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
     }
 
     private void save() {
-        save(new BooleanCallback() {
-
-            @Override
-            public void execute(Boolean value) {
-                if (value != null && value) {
-                    StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
-                }
+        save((Boolean value) -> {
+            if (value != null && value) {
+                StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
             }
         });
     }
@@ -197,15 +182,11 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
      * Notifies other data sources to update its caches with object label.
      */
     private BooleanCallback wrapSaveCallback(final BooleanCallback callback) {
-        BooleanCallback bc = new BooleanCallback() {
-
-            @Override
-            public void execute(Boolean value) {
-                if (value != null && value) {
-                    RelationDataSource.getInstance().fireRelationChange(digitalObjects[0].getPid());
-                }
-                callback.execute(value);
+        BooleanCallback bc = (Boolean value) -> {
+            if (value != null && value) {
+                RelationDataSource.getInstance().fireRelationChange(digitalObjects[0].getPid());
             }
+            callback.execute(value);
         };
         return bc;
     }
@@ -295,14 +276,6 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         customEditorButton2 = menuMods.getItem(1);
 
         menuMods.addItem(Actions.asMenuItem(
-                new SwitchAction(modsFullEditor,
-                        i18n.ModsMultiEditor_TabFull_Title(),
-                        Page.getAppDir() + "images/silk/16/container.png",
-                        i18n.ModsMultiEditor_TabFull_Hint(),
-                        ModsConstants.NS
-                ), actionSource, false));
-
-        menuMods.addItem(Actions.asMenuItem(
                 new SwitchAction(modsSourceEditor,
                         i18n.ModsMultiEditor_TabSource_Title(),
                         Page.getAppDir() + "images/oxygen/16/application_xml.png",
@@ -359,9 +332,9 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
             modsCustomEditor.setFormPrefix("");
             loadCustom(digitalObject);
         } else {
-            // unknown model, use full form
+            // unknown model, use source form
             setEnabledCustom(false);
-            loadTabData(modsFullEditor, digitalObject);
+            loadTabData(modsSourceEditor, digitalObject);
         }
     }
 
@@ -399,15 +372,11 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
 
     private void setEnabledCustom2() {
         if (customEditorButton2 != null) {
-            DigitalObject[] selection = getSelection();;
+            DigitalObject[] selection = getSelection();
             boolean enable = selection != null && selection.length == 1
                     && "model:bdmarticle".equals(selection[0].getModelId());
             customEditorButton2.setEnabled(enable);
         }
-    }
-
-    private void saveFullData(BooleanCallback callback) {
-        modsFullEditor.save(callback);
     }
 
     private void saveCustomData(BooleanCallback callback) {

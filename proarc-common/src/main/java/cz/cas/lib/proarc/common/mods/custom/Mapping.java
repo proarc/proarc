@@ -22,7 +22,7 @@ import cz.cas.lib.proarc.common.mods.custom.PageMapper.Page;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalIssueMapper.PeriodicalIssue;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalMapper.Periodical;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalVolumeMapper.PeriodicalVolume;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +49,7 @@ public final class Mapping {
         MAPPERS.put(mapperId, new MapperItem<T>(mapperId, mapper, type));
     }
 
-    public Object read(ModsType mods, String mapperId) {
+    public Object read(ModsDefinition mods, String mapperId) {
         MapperItem<?> mi = MAPPERS.get(mapperId);
         if (mi != null) {
             return mi.getMapper().map(mods);
@@ -57,7 +57,7 @@ public final class Mapping {
         throw new IllegalArgumentException(mapperId);
     }
 
-    public ModsType update(ModsType mods, Object javascript, String mapperId) {
+    public ModsDefinition update(ModsDefinition mods, Object javascript, String mapperId) {
         MapperItem<?> mi = MAPPERS.get(mapperId);
         if (mi != null) {
             return mi.map(mods, javascript);
@@ -85,7 +85,7 @@ public final class Mapping {
             return mapper;
         }
 
-        public ModsType map(ModsType mods, Object value) {
+        public ModsDefinition map(ModsDefinition mods, Object value) {
             if (type.isInstance(value)) {
                 return mapper.map(mods, type.cast(value));
             }
@@ -106,7 +106,7 @@ public final class Mapping {
          * @param mods
          * @return
          */
-        T map(ModsType mods);
+        T map(ModsDefinition mods);
 
         /**
          * Implement this to update passed {@code mods} with values from custom object.
@@ -115,6 +115,6 @@ public final class Mapping {
          * @param value properties for update
          * @return modified MODS
          */
-        ModsType map(ModsType mods, T value);
+        ModsDefinition map(ModsDefinition mods, T value);
     }
 }

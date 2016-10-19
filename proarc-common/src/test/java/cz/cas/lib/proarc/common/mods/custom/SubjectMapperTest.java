@@ -16,12 +16,11 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.SubjectType;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
 import java.util.Arrays;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
 import org.hamcrest.core.Is;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -59,13 +58,15 @@ public class SubjectMapperTest {
 
     @Test
     public void testGetKeywords() {
-        ModsType mods = new ModsType();
-        SubjectType subject = new SubjectType();
-        mods.getModsGroup().add(subject);
-        subject.getTopicOrGeographicOrTemporal().add(factory.createSubjectTypeTopic("keyword[0]"));
-        subject.getTopicOrGeographicOrTemporal().add(factory.createSubjectTypeTopic("keyword[1]"));
-        subject.getTopicOrGeographicOrTemporal().add(factory.createSubjectTypeGenre("genre[2]"));
-        subject.getTopicOrGeographicOrTemporal().add(factory.createSubjectTypeTopic("keyword[3]"));
+        String xml = "<mods xmlns='http://www.loc.gov/mods/v3'>"
+                + "<subject>"
+                + "<topic>keyword[0]</topic>"
+                + "<topic>keyword[1]</topic>"
+                + "<genre>genre[2]</genre>"
+                + "<topic>keyword[3]</topic>"
+                + "</subject>"
+                + "</mods>";
+        ModsDefinition mods = ModsUtils.unmarshal(xml, ModsDefinition.class);
         SubjectMapper instance = new SubjectMapper(mods);
         List<String> result = instance.getKeywords();
         List<String> expect = Arrays.asList("keyword[0]", "keyword[1]", "keyword[3]");
@@ -74,13 +75,15 @@ public class SubjectMapperTest {
 
     @Test
     public void testSetKeywords() {
-        ModsType mods = new ModsType();
-        SubjectType subject = new SubjectType();
-        mods.getModsGroup().add(subject);
-        subject.getTopicOrGeographicOrTemporal().add(factory.createSubjectTypeTopic("keyword[0]"));
-        subject.getTopicOrGeographicOrTemporal().add(factory.createSubjectTypeTopic("keyword[1]"));
-        subject.getTopicOrGeographicOrTemporal().add(factory.createSubjectTypeGenre("genre[2]"));
-        subject.getTopicOrGeographicOrTemporal().add(factory.createSubjectTypeTopic("keyword[3]"));
+        String xml = "<mods xmlns='http://www.loc.gov/mods/v3'>"
+                + "<subject>"
+                + "<topic>keyword[0]</topic>"
+                + "<topic>keyword[1]</topic>"
+                + "<genre>genre[2]</genre>"
+                + "<topic>keyword[3]</topic>"
+                + "</subject>"
+                + "</mods>";
+        ModsDefinition mods = ModsUtils.unmarshal(xml, ModsDefinition.class);
         List<String> keywords = Arrays.asList("keyword[new]","keyword[0] - updated", "keyword[3] - updated");
         SubjectMapper instance = new SubjectMapper(mods);
         instance.setKeywords(keywords);

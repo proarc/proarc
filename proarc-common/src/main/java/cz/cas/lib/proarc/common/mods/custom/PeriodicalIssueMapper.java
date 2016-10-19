@@ -17,17 +17,16 @@
 package cz.cas.lib.proarc.common.mods.custom;
 
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
-import cz.cas.lib.proarc.common.mods.custom.MapperUtils.Selector;
 import cz.cas.lib.proarc.common.mods.custom.Mapping.Mapper;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalIssueMapper.PeriodicalIssue;
-import cz.fi.muni.xkremser.editor.server.mods.BaseDateType;
-import cz.fi.muni.xkremser.editor.server.mods.DetailType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.PartType;
-import cz.fi.muni.xkremser.editor.server.mods.UnstructuredText;
+import cz.cas.lib.proarc.mods.DateDefinition;
+import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.Text;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -43,15 +42,15 @@ final class PeriodicalIssueMapper implements Mapper<PeriodicalIssue> {
     private final IdentifierMapper identMap = new IdentifierMapper();
 
     @Override
-    public PeriodicalIssue map(ModsType mods) {
+    public PeriodicalIssue map(ModsDefinition mods) {
         NodeLookup nlookup = new NodeLookup(mods);
         PeriodicalIssue issue = new PeriodicalIssue();
         issue.setIdentifiers(identMap.map(mods));
 
-        BaseDateType date = nlookup.getDate(false);
+        DateDefinition date = nlookup.getDate(false);
         issue.setIssueDate(date == null ? null : date.getValue());
 
-        UnstructuredText note = nlookup.getNote(false);
+        Text note = nlookup.getNote(false);
         issue.setNote(note == null ? null : note.getValue());
 
         issue.setIssueNumber(MapperUtils.toString(nlookup.getNumber(false)));
@@ -61,7 +60,7 @@ final class PeriodicalIssueMapper implements Mapper<PeriodicalIssue> {
     }
 
     @Override
-    public ModsType map(ModsType mods, PeriodicalIssue issue) {
+    public ModsDefinition map(ModsDefinition mods, PeriodicalIssue issue) {
         NodeLookup nlookup = new NodeLookup(mods);
         identMap.map(mods, issue.getIdentifiers());
 
@@ -80,7 +79,7 @@ final class PeriodicalIssueMapper implements Mapper<PeriodicalIssue> {
 //        if (issue.getIssueNumber() != null) {
 //            nlookup.getNumber(true).setValue(issue.getIssueNumber());
         } else {
-            JAXBElement<String> number = nlookup.getNumber(false);
+            StringPlusLanguage number = nlookup.getNumber(false);
             if (number != null) {
                 number.setValue(null);
             }
@@ -91,7 +90,7 @@ final class PeriodicalIssueMapper implements Mapper<PeriodicalIssue> {
         if (issue.getIssueSortingNumber() != null) {
             nlookup.getSortingNumber(true).setValue(issue.getIssueSortingNumber());
         } else {
-            JAXBElement<String> sortingNumber = nlookup.getSortingNumber(false);
+            StringPlusLanguage sortingNumber = nlookup.getSortingNumber(false);
             if (sortingNumber != null) {
                 sortingNumber.setValue(null);
             }
@@ -102,7 +101,7 @@ final class PeriodicalIssueMapper implements Mapper<PeriodicalIssue> {
         if (issue.getIssueDate() != null) {
             nlookup.getDate(true).setValue(issue.getIssueDate());
         } else {
-            BaseDateType date = nlookup.getDate(false);
+            DateDefinition date = nlookup.getDate(false);
             if (date != null) {
                 date.setValue(null);
             }
@@ -113,7 +112,7 @@ final class PeriodicalIssueMapper implements Mapper<PeriodicalIssue> {
         if (issue.getNote() != null) {
             nlookup.getNote(true).setValue(issue.getNote());
         } else {
-            UnstructuredText note = nlookup.getNote(false);
+            Text note = nlookup.getNote(false);
             if (note != null) {
                 note.setValue(null);
             }
@@ -123,102 +122,96 @@ final class PeriodicalIssueMapper implements Mapper<PeriodicalIssue> {
     private static final class NodeLookup {
 
         private final ObjectFactory factory = new ObjectFactory();
-        private ModsType mods;
-        private PartType part;
-        private DetailType detail;
-        private BaseDateType date;
-        private JAXBElement<String> number;
-        private JAXBElement<String> sortingNumber;
-        private UnstructuredText note;
+        private ModsDefinition mods;
+        private PartDefinition part;
+        private DetailDefinition detail;
+        private DateDefinition date;
+        private StringPlusLanguage number;
+        private StringPlusLanguage sortingNumber;
+        private Text note;
 
-        public NodeLookup(ModsType mods) {
+        public NodeLookup(ModsDefinition mods) {
             this.mods = mods;
         }
 
-        public BaseDateType getDate(boolean create) {
+        public DateDefinition getDate(boolean create) {
             if (date == null) {
                 if (getPart(create) != null) {
-                    date = MapperUtils.findFirst(part.getDetailOrExtentOrDate(), BaseDateType.class);
+                    date = part.getDate().stream().findFirst().orElse(null);
                 }
             }
             if (date == null && create) {
-                date = factory.createBaseDateType();
-                MapperUtils.add(part, date);
+                date = factory.createDateDefinition();
+                part.getDate().add(date);
             }
             return date;
         }
 
-        public JAXBElement<String> getNumber(boolean create) {
+        public StringPlusLanguage getNumber(boolean create) {
             if (number == null) {
                 if (getDetail(create) != null) {
-                    number = MapperUtils.findFirst(detail.getNumberOrCaptionOrTitle(),
-                            MapperUtils.<String>jaxbElementSelector(ObjectFactory._DetailTypeNumber_QNAME));
+                    number = detail.getNumber().stream().findFirst().orElse(null);
                 }
             }
             if (number == null && create) {
-                number = factory.createDetailTypeNumber(null);
-                detail.getNumberOrCaptionOrTitle().add(number);
+                number = factory.createStringPlusLanguage();
+                detail.getNumber().add(number);
             }
             return number;
         }
 
-        public JAXBElement<String> getSortingNumber(boolean create) {
+        public StringPlusLanguage getSortingNumber(boolean create) {
             if (sortingNumber == null) {
                 if (getDetail(create) != null) {
-                    sortingNumber = MapperUtils.findFirst(detail.getNumberOrCaptionOrTitle(),
-                            MapperUtils.<String>jaxbElementSelector(ObjectFactory._DetailTypeCaption_QNAME));
+                    sortingNumber = detail.getCaption().stream().findFirst().orElse(null);
                 }
             }
             if (sortingNumber == null && create) {
-                sortingNumber = factory.createDetailTypeCaption(null);
-                detail.getNumberOrCaptionOrTitle().add(sortingNumber);
+                sortingNumber = factory.createStringPlusLanguage();
+                detail.getCaption().add(sortingNumber);
             }
             return sortingNumber;
         }
 
-        public UnstructuredText getNote(boolean create) {
+        public Text getNote(boolean create) {
             if (note == null) {
                 if (getPart(create) != null) {
-                    note = MapperUtils.findFirst(part.getDetailOrExtentOrDate(), UnstructuredText.class);
+                    note = part.getText().stream().findFirst().orElse(null);
                 }
             }
             if (note == null && create) {
-                note = factory.createUnstructuredText();
-                part.getDetailOrExtentOrDate().add(note);
+                note = factory.createText();
+                part.getText().add(note);
             }
             return note;
         }
 
-        public PartType getPart(boolean create) {
+        public PartDefinition getPart(boolean create) {
             if (part == null) {
-                part = MapperUtils.findFirst(MapperUtils.find(mods.getModsGroup(), PartType.class), new Selector<PartType>(){
-
-                    @Override
-                    public boolean select(PartType item) {
-                        return "PeriodicalIssue".equals(item.getType());
-                    }
-                });
+                part = mods.getPart().stream()
+                        .filter(p -> "PeriodicalIssue".equals(p.getType()))
+                        .findFirst().orElse(null);
             }
             if (part == null && create) {
-                part = factory.createPartType();
+                part = factory.createPartDefinition();
                 part.setType("PeriodicalIssue");
-                MapperUtils.add(mods, part);
+                mods.getPart().add(part);
             }
             return part;
         }
 
-        public DetailType getDetail(boolean create) {
+        public DetailDefinition getDetail(boolean create) {
             if (detail == null) {
                 if (getPart(create) != null) {
-                    detail = MapperUtils.findFirst(
-                            MapperUtils.find(part.getDetailOrExtentOrDate(), DetailType.class),
-                            MapperUtils.detailSelector("issue"));
+                    detail = part.getDetail().stream()
+                            .filter(d -> "issue".equals(d.getType()))
+                            .findFirst().orElse(null);
                 }
             }
             if (detail == null && create) {
-                detail = factory.createDetailType();
+                detail = factory.createDetailDefinition();
                 detail.setType("issue");
-                MapperUtils.add(part, detail);
+                part.getDetail().add(detail);
             }
             return detail;
         }

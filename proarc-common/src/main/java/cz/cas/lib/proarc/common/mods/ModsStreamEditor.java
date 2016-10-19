@@ -21,8 +21,6 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
-import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper;
-import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.cas.lib.proarc.common.mods.custom.Mapping;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper;
@@ -31,10 +29,7 @@ import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.fi.muni.xkremser.editor.server.mods.IdentifierType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.io.StringReader;
-import java.util.List;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
@@ -67,16 +62,6 @@ public final class ModsStreamEditor {
         this.object = object;
     }
 
-    @Deprecated
-    public ModsType read33() throws DigitalObjectException {
-        Source src = editor.read();
-        if (src == null) {
-            // it should never arise; it would need to create datastream again with default data
-            throw new DigitalObjectException(object.getPid(), "MODS not initialized!");
-        }
-        return Mods33Utils.unmarshalModsType(src);
-    }
-
     public ModsDefinition read() throws DigitalObjectException {
         Source src = editor.read();
         if (src == null) {
@@ -105,21 +90,14 @@ public final class ModsStreamEditor {
     }
 
     @Deprecated
-    public void write(ModsType mods, long timestamp, String message) throws DigitalObjectException {
-        EditorResult marshaled = editor.createResult();
-        Mods33Utils.marshal(marshaled, mods, true);
-        editor.write(marshaled, timestamp, message);
-    }
-
-    @Deprecated
-    public static ModsType defaultMods33(String pid) {
-        ModsType mods = new ModsType();
+    public static ModsDefinition defaultMods33(String pid) {
+        ModsDefinition mods = new ModsDefinition();
         mods.setVersion(ModsUtils.VERSION);
-        IdentifierType identifierType = new IdentifierType();
+        IdentifierDefinition identifierType = new IdentifierDefinition();
         identifierType.setType("uuid");
         String uuid = FoxmlUtils.pidAsUuid(pid);
         identifierType.setValue(uuid);
-        mods.getModsGroup().add(identifierType);
+        mods.getIdentifier().add(identifierType);
         return mods;
     }
 
@@ -145,18 +123,8 @@ public final class ModsStreamEditor {
     }
 
     @Deprecated
-    private static ModsType addPid(ModsType mods, String pid) {
-        IdentifierMapper identMapper = new IdentifierMapper();
-        List<IdentifierItem> identifierItems = identMapper.map(mods);
-        String uuid = FoxmlUtils.pidAsUuid(pid);
-        identifierItems.add(0, new IdentifierItem("uuid", uuid));
-        identMapper.map(mods, identifierItems);
-        return mods;
-    }
-
-    @Deprecated
-    public ModsType createPage(String pid, String pageIndex, String pageNumber, String pageType) {
-        ModsType mods = defaultMods33(pid);
+    public ModsDefinition createPage(String pid, String pageIndex, String pageNumber, String pageType) {
+        ModsDefinition mods = defaultMods33(pid);
         PageMapper mapper = new PageMapper();
         Page page = mapper.map(mods);
         page.setType(pageType);
@@ -167,21 +135,21 @@ public final class ModsStreamEditor {
     }
 
     @Deprecated
-    public static ModsType create(String pid, String model) {
-        ModsType mods = defaultMods33(pid);
+    public static ModsDefinition create(String pid, String model) {
+        ModsDefinition mods = defaultMods33(pid);
         return create(pid, model, mods);
     }
 
     @Deprecated
-    public static ModsType create33(String pid, String model, String xml) {
-        ModsType mods = Mods33Utils.unmarshalModsType(new StreamSource(new StringReader(xml)));
+    public static ModsDefinition create33(String pid, String model, String xml) {
+        ModsDefinition mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xml)));
         // XXX normalize MODS?
         addPid(mods, pid);
         return create(pid, model, mods);
     }
 
     @Deprecated
-    public static ModsType create(String pid, String model, ModsType mods) {
+    public static ModsDefinition create(String pid, String model, ModsDefinition mods) {
         MetaModel metaModel = MetaModelRepository.getInstance().find(model);
         if (metaModel != null) {
             String mapper = metaModel.getModsCustomEditor();

@@ -17,8 +17,8 @@
 package cz.cas.lib.proarc.common.mods.custom;
 
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
-import cz.fi.muni.xkremser.editor.server.mods.IdentifierType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -29,35 +29,34 @@ import javax.xml.bind.annotation.XmlElement;
  * @author Jan Pokorsky
  */
 public final class IdentifierMapper {
-    private final ArrayMapper<IdentifierType, IdentifierItem> mapper =
-            new ArrayMapper<IdentifierType, IdentifierItem>(new IdentifierItemMapper());
+    private final ArrayMapper<IdentifierDefinition, IdentifierItem> mapper =
+            new ArrayMapper<>(new IdentifierItemMapper());
 
-    public List<IdentifierItem> map(ModsType mods) {
-        List<Object> modsGroup = mods.getModsGroup();
-        List<IdentifierType> identifiers = MapperUtils.find(modsGroup, IdentifierType.class);
+    public List<IdentifierItem> map(ModsDefinition mods) {
+        List<IdentifierDefinition> identifiers = mods.getIdentifier();
         return mapper.map(identifiers);
     }
 
-    public ModsType map(ModsType mods, List<IdentifierItem> items) {
+    public ModsDefinition map(ModsDefinition mods, List<IdentifierItem> items) {
         items = MapperUtils.noNull(items);
-        List<Object> modsGroup = mods.getModsGroup();
-        List<IdentifierType> identifiers = MapperUtils.find(modsGroup, IdentifierType.class);
-        List<IdentifierType> mapped = mapper.map(items, identifiers);
-        MapperUtils.update(modsGroup, mapped, IdentifierType.class);
+        List<IdentifierDefinition> identifiers = mods.getIdentifier();
+        List<IdentifierDefinition> mapped = mapper.map(items, identifiers);
+        identifiers.clear();
+        identifiers.addAll(mapped);
         return mods;
     }
 
-    private static final class IdentifierItemMapper implements ArrayMapper.ItemMapper<IdentifierType, IdentifierItem> {
+    private static final class IdentifierItemMapper implements ArrayMapper.ItemMapper<IdentifierDefinition, IdentifierItem> {
 
         @Override
-        public IdentifierItem map(IdentifierType source) {
+        public IdentifierItem map(IdentifierDefinition source) {
             return new IdentifierItem(source.getType(), source.getValue());
         }
 
         @Override
-        public IdentifierType map(IdentifierItem item, IdentifierType origin) {
+        public IdentifierDefinition map(IdentifierItem item, IdentifierDefinition origin) {
             if (origin == null) {
-                origin = new IdentifierType();
+                origin = new IdentifierDefinition();
             }
             origin.setValue(item.getValue());
             origin.setType(item.getType());

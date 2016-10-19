@@ -57,17 +57,6 @@
             <version>${smartGwtVersion}</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>cz.mzk</groupId>
-            <artifactId>EditMods</artifactId>
-            <version>0.0.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.smartgwt</groupId>
-                    <artifactId>smartgwt</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
@@ -270,7 +259,6 @@
                     <compileSourcesArtifacts>
                         <artifact>cz.cas.lib.proarc:proarc-oaidublincore</artifact>
                         <artifact>cz.cas.lib.proarc:proarc-common</artifact>
-                        <artifact>cz.mzk:EditMods</artifact>
                     </compileSourcesArtifacts>
                     <!-- noServer=true disables Jetty and allows to use Tomcat with declared JDBC resources and web security-->
                     <noserver>true</noserver>

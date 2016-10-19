@@ -18,14 +18,16 @@ package cz.cas.lib.proarc.common.mods.custom;
 
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ItemMapper;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.NoteType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.PhysicalDescriptionType;
+import cz.cas.lib.proarc.mods.Extent;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionNote;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
+import java.util.Objects;
+import java.util.Optional;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -43,33 +45,30 @@ final class PhysicalDescriptionMapper {
     private static final String PRESERVATION_TREATMENT = "action";
     private static final String NO_PRESERVATION = new String();
 
-    private final ArrayMapper<JAXBElement<?>, ArrayItem> arrayMapper =
-            new ArrayMapper<JAXBElement<?>, ArrayItem>(new PhysicalDescriptionItemMapper());
+    private final ArrayMapper<Object, ArrayItem> arrayMapper =
+            new ArrayMapper<>(new PhysicalDescriptionItemMapper());
 
-    public List<ArrayItem> map(ModsType mods) {
-        PhysicalDescriptionType pd = MapperUtils.findFirst(mods.getModsGroup(), PhysicalDescriptionType.class);
-        if (pd == null) {
-            return new ArrayList<ArrayItem>();
+    public List<ArrayItem> map(ModsDefinition mods) {
+        Optional<PhysicalDescriptionDefinition> pd = mods.getPhysicalDescription().stream().findFirst();
+        if (!pd.isPresent()) {
+            return new ArrayList<>();
         }
-        List<JAXBElement<?>> group = pd.getFormOrReformattingQualityOrInternetMediaType();
-        return arrayMapper.map(group);
+        ArrayList<Object> items = new ArrayList<>();
+        items.addAll(pd.get().getExtent());
+        items.addAll(pd.get().getNote());
+        return arrayMapper.map(items);
     }
 
-    public ModsType mapPairs(ModsType mods, List<ExtentPair> pairs) {
-        pairs = MapperUtils.noNull(pairs);
-        List<ArrayItem> oldies = map(mods);
-        List<ArrayItem> unknowns = filter(oldies, false, ExtentItem.class);
-        List<ExtentItem> toExtents = toExtents(pairs);
-        List<ArrayItem> news = MapperUtils.mergeList(toExtents, unknowns);
+    public ModsDefinition mapPairs(ModsDefinition mods, List<ExtentPair> pairs) {
         return map(mods, pairs, NO_PRESERVATION, NO_PRESERVATION);
     }
 
-    public ModsType map(ModsType mods, List<ExtentPair> pairs, String preservationTreatment, String preservationStateOfArt) {
+    public ModsDefinition map(ModsDefinition mods, List<ExtentPair> pairs, String preservationTreatment, String preservationStateOfArt) {
         pairs = MapperUtils.noNull(pairs);
         List<ArrayItem> oldies = map(mods);
         List<ExtentItem> toExtents = toExtents(pairs);
         List<ArrayItem> news;
-        if (preservationTreatment == NO_PRESERVATION) {
+        if (NO_PRESERVATION.equals(preservationTreatment)) {
             List<ArrayItem> unknowns = filter(oldies, false, ExtentItem.class);
             news = MapperUtils.mergeList(toExtents, unknowns);
         } else {
@@ -100,25 +99,39 @@ final class PhysicalDescriptionMapper {
         }
     }
 
-    public ModsType map(ModsType mods, List<ArrayItem> items) {
-        PhysicalDescriptionType pd = MapperUtils.findFirst(mods.getModsGroup(), PhysicalDescriptionType.class);
+    public ModsDefinition map(ModsDefinition mods, List<ArrayItem> items) {
+        PhysicalDescriptionDefinition pd = mods.getPhysicalDescription().stream().findFirst().orElse(null);
         if (pd == null) {
             if (items.isEmpty()) {
                 return mods;
             } else {
-                pd = new PhysicalDescriptionType();
-                MapperUtils.add(mods, pd);
+                pd = new PhysicalDescriptionDefinition();
+                mods.getPhysicalDescription().add(pd);
             }
         }
-        List<JAXBElement<?>> pdSubelements = pd.getFormOrReformattingQualityOrInternetMediaType();
-        List<JAXBElement<?>> news = arrayMapper.map(items, pdSubelements);
-        pdSubelements.clear();
-        pdSubelements.addAll(news);
+        ArrayList<Object> oldies = new ArrayList<>();
+        final List<Extent> extents = pd.getExtent();
+        final List<PhysicalDescriptionNote> notes = pd.getNote();
+        oldies.addAll(extents);
+        oldies.addAll(notes);
+        List<Object> updates = arrayMapper.map(items, oldies);
+        extents.clear();
+        notes.clear();
+        updates.forEach(update -> {
+            if (update instanceof Extent) {
+                extents.add((Extent) update);
+            } else if (update instanceof PhysicalDescriptionNote) {
+                notes.add((PhysicalDescriptionNote) update);
+            } else {
+                throw new IllegalStateException(update.getClass().getName());
+            }
+        });
+
         return mods;
     }
 
     public static List<ExtentPair> toPairs(List<ArrayItem> items) {
-        ArrayList<ExtentPair> pairs = new ArrayList<ExtentPair>();
+        ArrayList<ExtentPair> pairs = new ArrayList<>();
         List<ExtentItem> extents = MapperUtils.find(items, ExtentItem.class);
         for (Iterator<ExtentItem> it = extents.iterator(); it.hasNext();) {
             ExtentItem item = it.next();
@@ -134,7 +147,7 @@ final class PhysicalDescriptionMapper {
     }
 
     public static List<ExtentItem> toExtents(List<ExtentPair> pairs) {
-        ArrayList<ExtentItem> items = new ArrayList<ExtentItem>(pairs.size() * 2);
+        ArrayList<ExtentItem> items = new ArrayList<>(pairs.size() * 2);
         for (ExtentPair pair : pairs) {
             items.add(new ExtentItem(pair.getExtentIndex(), pair.getExtent()));
             items.add(new ExtentItem(pair.getSizeIndex(), pair.getSize()));
@@ -246,7 +259,7 @@ final class PhysicalDescriptionMapper {
     }
 
     public static <T extends ArrayItem> List<T> filter(List<T> list, boolean include, Class<? extends ArrayItem>... types) {
-        ArrayList<T> result = new ArrayList<T>();
+        ArrayList<T> result = new ArrayList<>();
         for (T t : list) {
             boolean equals = false;
             for (Class<? extends ArrayItem> type : types) {
@@ -262,35 +275,35 @@ final class PhysicalDescriptionMapper {
         return result;
     }
 
-    private static final class PhysicalDescriptionItemMapper implements ItemMapper<JAXBElement<?>, ArrayItem> {
+    private static final class PhysicalDescriptionItemMapper implements ItemMapper<Object, ArrayItem> {
 
         private final ObjectFactory factory = new ObjectFactory();
 
         @Override
-        public ArrayItem map(JAXBElement<?> source) {
-            if (ObjectFactory._PhysicalDescriptionTypeExtent_QNAME.equals(source.getName())) {
+        public ArrayItem map(Object source) {
+            if (source instanceof Extent) {
                 ExtentItem result = new ExtentItem();
-                result.setValue((String) source.getValue());
+                result.setValue(((Extent) source).getValue());
                 return result;
-            } else if (ObjectFactory._PhysicalDescriptionTypeNote_QNAME.equals(source.getName())) {
-                NoteType note = (NoteType) source.getValue();
-                return new NoteItem(null, note.getValue(), note.getAtType());
+            } else if (source instanceof PhysicalDescriptionNote) {
+                PhysicalDescriptionNote note = (PhysicalDescriptionNote) source;
+                return new NoteItem(null, note.getValue(), note.getType());
             } else {
                 return new UnkownItem();
             }
         }
 
         @Override
-        public JAXBElement<?> map(ArrayItem item, JAXBElement<?> origin) {
-            JAXBElement<?> source = origin;
+        public Object map(ArrayItem item, Object origin) {
+            Object source = origin;
             if (origin == null) {
                 if (item instanceof ExtentItem) {
-                    source = factory.createPhysicalDescriptionTypeExtent(null);
+                    source = factory.createExtent();
                 } else if (item instanceof NoteItem) {
                     NoteItem noteItem = (NoteItem) item;
-                    NoteType noteType = factory.createNoteType();
-                    noteType.setAtType(noteItem.getType());
-                    source = factory.createPhysicalDescriptionTypeNote(noteType);
+                    PhysicalDescriptionNote note = factory.createPhysicalDescriptionNote();
+                    note.setType(noteItem.getType());
+                    source = note;
                 } else {
                     throw new IllegalStateException("unsupported array item: " + item.getClass());
                 }
@@ -298,12 +311,12 @@ final class PhysicalDescriptionMapper {
 
             if (item instanceof ExtentItem) {
                 ExtentItem extentItem = (ExtentItem) item;
-                JAXBElement<String> extentSource = (JAXBElement<String>) source;
+                Extent extentSource = (Extent) source;
                 // delete with empty string to prevent XML nil
                 extentSource.setValue(extentItem.getValue() != null ? extentItem.getValue() : "");
             } else if (item instanceof NoteItem && !((NoteItem) item).ignore) {
                 NoteItem noteItem = (NoteItem) item;
-                NoteType noteType = (NoteType) source.getValue();
+                PhysicalDescriptionNote noteType = (PhysicalDescriptionNote) source;
                 noteType.setValue(noteItem.getValue());
             }
             return source;
@@ -346,10 +359,7 @@ final class PhysicalDescriptionMapper {
                 return false;
             }
             final UnkownItem other = (UnkownItem) obj;
-            if (this.index != other.index && (this.index == null || !this.index.equals(other.index))) {
-                return false;
-            }
-            return true;
+            return Objects.equals(this.index, other.index);
         }
 
     }
@@ -392,6 +402,9 @@ final class PhysicalDescriptionMapper {
 
         @Override
         public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
             if (obj == null) {
                 return false;
             }
@@ -399,13 +412,7 @@ final class PhysicalDescriptionMapper {
                 return false;
             }
             final ExtentItem other = (ExtentItem) obj;
-            if (this.index != other.index && (this.index == null || !this.index.equals(other.index))) {
-                return false;
-            }
-            if ((this.value == null) ? (other.value != null) : !this.value.equals(other.value)) {
-                return false;
-            }
-            return true;
+            return Objects.equals(this.value, other.value) && Objects.equals(this.index, other.index);
         }
 
     }
@@ -453,7 +460,15 @@ final class PhysicalDescriptionMapper {
         }
 
         @Override
+        public String toString() {
+            return "NoteItem{" + "index=" + index + ", value=" + value + ", type=" + type + ", ignore=" + ignore + '}';
+        }
+
+        @Override
         public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
             if (obj == null) {
                 return false;
             }
@@ -461,16 +476,9 @@ final class PhysicalDescriptionMapper {
                 return false;
             }
             final NoteItem other = (NoteItem) obj;
-            if (this.index != other.index && (this.index == null || !this.index.equals(other.index))) {
-                return false;
-            }
-            if ((this.value == null) ? (other.value != null) : !this.value.equals(other.value)) {
-                return false;
-            }
-            if ((this.type == null) ? (other.type != null) : !this.type.equals(other.type)) {
-                return false;
-            }
-            return true;
+            return Objects.equals(this.value, other.value)
+                    && Objects.equals(this.type, other.type)
+                    && Objects.equals(this.index, other.index);
         }
 
     }

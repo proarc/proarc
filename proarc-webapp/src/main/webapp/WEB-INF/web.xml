@@ -70,20 +70,9 @@
 
     </servlet>
 
-    <!--GWT RPC-->
-    <servlet>
-        <servlet-name>ModsGwtServiceProvider</servlet-name>
-        <servlet-class>cz.cas.lib.proarc.webapp.server.ModsGwtServiceProvider</servlet-class>
-    </servlet>
-
     <servlet-mapping>
         <servlet-name>Jersey Web Application</servlet-name>
         <url-pattern>/rest/v1/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>ModsGwtServiceProvider</servlet-name>
-        <url-pattern>/proarc/modsgwt</url-pattern>
     </servlet-mapping>
 
     <!-- Default page to serve -->

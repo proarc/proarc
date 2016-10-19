@@ -20,7 +20,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.regexp.shared.RegExp;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
-import com.smartgwt.client.data.Record;
 import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.CharacterCasing;
 import com.smartgwt.client.types.FieldType;
@@ -34,10 +33,7 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ds.LocalizationDataSource;
-import cz.fi.muni.xkremser.editor.client.mods.IdentifierTypeClient;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -104,44 +100,6 @@ public final class IdentifierDataSource extends DataSource {
         setFields(type, value);
         setClientOnly(true);
         setCacheAllData(true);
-    }
-
-    public static Record[] convert(List<IdentifierTypeClient> identifiers) {
-        if (identifiers == null || identifiers.isEmpty()) {
-            Record r = new Record();
-            return new Record[] {r};
-        }
-        Record[] records = new Record[identifiers.size()];
-        int idx = 0;
-        for (IdentifierTypeClient identifier : identifiers) {
-            Record r = new Record();
-            r.setAttribute(FIELD_TYPE, identifier.getType());
-            r.setAttribute(FIELD_VALUE, identifier.getValue());
-            r.setAttribute(FIELD_OBJECT, identifier);
-            records[idx++] = r;
-        }
-        return records;
-    }
-
-    public static List<IdentifierTypeClient> convert(Record[] records) {
-//        ClientUtils.info(LOG, "convert.records: %s", records);
-        if (records == null || records.length == 0) {
-            return null;
-        }
-        List<IdentifierTypeClient> identifiers = new ArrayList<IdentifierTypeClient>(records.length);
-        for (Record r : records) {
-            IdentifierTypeClient identifier = (IdentifierTypeClient) r.getAttributeAsObject(FIELD_OBJECT);
-            if (identifier == null) {
-                identifier = new IdentifierTypeClient();
-            }
-            String type = r.getAttribute(FIELD_TYPE);
-            String value = r.getAttribute(FIELD_VALUE);
-            identifier.setType(type);
-            identifier.setValue(value);
-            identifiers.add(identifier);
-//            ClientUtils.info(LOG, "IdentifierDataSource.convert.records.identifier: type: %s, value: %s", type, value);
-        }
-        return identifiers.isEmpty() ? null : identifiers;
     }
 
     public static IdentifierDataSource getInstance() {

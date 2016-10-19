@@ -20,7 +20,6 @@ import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -35,8 +34,8 @@ public class ModsStreamEditorTest {
         LocalStorage storage = new LocalStorage();
         LocalObject local = storage.create();
         ModsStreamEditor editor = new ModsStreamEditor(local);
-        editor.write(new ModsType(), 0, null);
-        ModsType result = editor.read33();
+        editor.write(new ModsDefinition(), 0, null);
+        ModsDefinition result = editor.read();
         assertNotNull(result);
     }
 

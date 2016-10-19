@@ -17,11 +17,11 @@
 package cz.cas.lib.proarc.common.mods.custom;
 
 import cz.cas.lib.proarc.common.mods.custom.LanguageMapper.LanguageItem;
-import cz.fi.muni.xkremser.editor.server.mods.CodeOrText;
-import cz.fi.muni.xkremser.editor.server.mods.LanguageType;
-import cz.fi.muni.xkremser.editor.server.mods.LanguageType.LanguageTerm;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.CodeOrText;
+import cz.cas.lib.proarc.mods.LanguageDefinition;
+import cz.cas.lib.proarc.mods.LanguageTermDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
 import java.util.Arrays;
 import java.util.List;
 import org.hamcrest.core.Is;
@@ -61,10 +61,10 @@ public class LanguageMapperTest {
 
     @Test
     public void testRead() {
-        ModsType mods = new ModsType();
-        mods.getModsGroup().add(language("cze"));
-        mods.getModsGroup().add(otherLanguage("other1"));
-        mods.getModsGroup().add(language("ger"));
+        ModsDefinition mods = new ModsDefinition();
+        mods.getLanguage().add(language("cze"));
+        mods.getLanguage().add(otherLanguage("other1"));
+        mods.getLanguage().add(language("ger"));
         LanguageMapper instance = new LanguageMapper();
         List<LanguageItem> result = instance.map(mods);
         List<LanguageItem> expect = Arrays.asList(
@@ -76,10 +76,10 @@ public class LanguageMapperTest {
 
     @Test
     public void testWrite() {
-        ModsType mods = new ModsType();
-        mods.getModsGroup().add(language("cze"));
-        mods.getModsGroup().add(otherLanguage("other1"));
-        mods.getModsGroup().add(language("ger"));
+        ModsDefinition mods = new ModsDefinition();
+        mods.getLanguage().add(language("cze"));
+        mods.getLanguage().add(otherLanguage("other1"));
+        mods.getLanguage().add(language("ger"));
         List<LanguageItem> updates = Arrays.asList(
                 new LanguageItem(0, "cze-update"), // update
 //                new LanguageItem(2, "ger") // delete
@@ -95,9 +95,9 @@ public class LanguageMapperTest {
         assertThat(result, Is.is(expect));
     }
 
-    private LanguageType language(String lang) {
-        LanguageType l = factory.createLanguageType();
-        LanguageTerm term = factory.createLanguageTypeLanguageTerm();
+    private LanguageDefinition language(String lang) {
+        LanguageDefinition l = factory.createLanguageDefinition();
+        LanguageTermDefinition term = factory.createLanguageTermDefinition();
         term.setType(CodeOrText.CODE);
         term.setAuthority("iso639-2b");
         term.setValue(lang);
@@ -105,8 +105,8 @@ public class LanguageMapperTest {
         return l;
     }
 
-    private LanguageType otherLanguage(String part) {
-        LanguageType l = factory.createLanguageType();
+    private LanguageDefinition otherLanguage(String part) {
+        LanguageDefinition l = factory.createLanguageDefinition();
         l.setObjectPart(part);
         return l;
     }

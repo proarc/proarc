@@ -26,10 +26,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import cz.cas.lib.proarc.common.mods.Mods33Utils;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.NameMapper.NameItem;
 import cz.cas.lib.proarc.common.mods.custom.NameMapper.NameItem.NameRole;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 
 /**
  * 
@@ -58,7 +58,7 @@ public class NameMapperTest {
 
     // @Test
     public void testRead() throws Exception {
-        ModsType mods = Mods33Utils.unmarshal(NameMapperTest.class.getResource("monograph_mods.xml"), ModsType.class);
+        ModsDefinition mods = ModsUtils.unmarshal(NameMapperTest.class.getResource("monograph_mods.xml"), ModsDefinition.class);
         NameItem[] expectedAll = { new NameItem(0, "FamilyAuthor1", "GivenAuthor1", NameRole.AUTHOR), new NameItem(1, "FamilyContributor1", "GivenContributor1", NameRole.CONTRIBUTOR), new NameItem(2, "FamilyAuthor2", "GivenAuthor2", NameRole.AUTHOR), new NameItem(3, "FamilyXXX", "GivenXXX", NameRole.OTHER), new NameItem(4, "FamilyContributor2", "GivenContributor2", NameRole.CONTRIBUTOR), };
         NameItem[] expectedAuthors = { expectedAll[0], expectedAll[2], };
         NameItem[] expectedContributors = { expectedAll[1], expectedAll[4], };
@@ -77,8 +77,7 @@ public class NameMapperTest {
 
     @Test
     public void testWriteUpdate() throws Exception {
-        ModsType mods = Mods33Utils.unmarshal(NameMapperTest.class.getResource("monograph_mods.xml"), ModsType.class);
-        MapperUtils.normalize(mods);
+        ModsDefinition mods = ModsUtils.unmarshal(NameMapperTest.class.getResource("monograph_mods.xml"), ModsDefinition.class);
         NameItem[] expectedAll = { new NameItem(0, "FamilyAuthor1", "GivenAuthor1", NameRole.AUTHOR), new NameItem(1, "FamilyContributor1", "GivenContributor1", NameRole.CONTRIBUTOR), new NameItem(2, "FamilyAuthor2", "GivenAuthor2", NameRole.AUTHOR), new NameItem(3, "FamilyXXX", "GivenXXX", NameRole.OTHER), new NameItem(4, "FamilyContributor2", "GivenContributor2", NameRole.CONTRIBUTOR), };
         NameItem[] expectedAuthors = { expectedAll[0], expectedAll[2], };
         NameItem[] expectedContributors = { expectedAll[1], expectedAll[4], };
@@ -107,11 +106,11 @@ public class NameMapperTest {
         List<NameItem> merged = MapperUtils.mergeList(authors, contributors, others);
         // write update
         instance.map(mods, merged);
-        String xml = Mods33Utils.toXml(mods, true);
+        String xml = ModsUtils.toXml(mods, true);
         System.out.println(xml);
 
         // read
-        ModsType result = Mods33Utils.unmarshal(xml, ModsType.class);
+        ModsDefinition result = ModsUtils.unmarshal(xml, ModsDefinition.class);
         all = instance.map(result);
         NameItem[] expectedUpdatesAll = { new NameItem(0, "FamilyAuthorInserted", null, NameRole.AUTHOR), new NameItem(1, "FamilyAuthor2Updated", null, NameRole.AUTHOR), new NameItem(2, "FamilyAuthorAdded", "GivenAuthorAdded", NameRole.AUTHOR), new NameItem(3, "FamilyXXX", "GivenXXX", NameRole.OTHER), };
         NameItem[] expectedUpdatesAuthors = { expectedUpdatesAll[0], expectedUpdatesAll[1], expectedUpdatesAll[2], };

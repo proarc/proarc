@@ -30,7 +30,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteXmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -125,7 +125,7 @@ public class RemoteStorageTest {
         relsExt.setModel(model);
         relsExt.write(0, null);
         ModsStreamEditor modsEditor = new ModsStreamEditor(local);
-        ModsType mods = modsEditor.createPage(local.getPid(), "1", "[1]", "Blank");
+        ModsDefinition mods = modsEditor.createPage(local.getPid(), "1", "[1]", "Blank");
         DcStreamEditor dcEditor = new DcStreamEditor(local);
         dcEditor.write(mods, model, 0, null);
         modsEditor.write(mods, 0, null);

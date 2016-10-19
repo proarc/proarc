@@ -16,12 +16,12 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.SubjectType;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import cz.cas.lib.proarc.mods.SubjectDefinition;
 import java.util.Collections;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
 
 
 /**
@@ -33,36 +33,34 @@ import javax.xml.bind.JAXBElement;
  */
 final class SubjectMapper {
 
-    private final ModsType mods;
+    private final ModsDefinition mods;
     private final ObjectFactory factory = new ObjectFactory();
 
-    public SubjectMapper(ModsType mods) {
+    public SubjectMapper(ModsDefinition mods) {
         this.mods = mods;
     }
 
     public List<String> getKeywords() {
-        SubjectType subjectNode = getSubjectNode(false);
+        SubjectDefinition subjectNode = getSubjectNode(false);
         List<String> keywords = Collections.emptyList();
         if (subjectNode != null) {
-            List<JAXBElement<?>> group = subjectNode.getTopicOrGeographicOrTemporal();
-            keywords = MapperUtils.find(group, String.class, ObjectFactory._SubjectTypeTopic_QNAME);
+            keywords = MapperUtils.toStringPlusLanguageValue(subjectNode.getTopic());
         }
         return keywords;
     }
 
     public void setKeywords(List<String> keywords) {
         keywords = MapperUtils.noNull(keywords);
-        SubjectType subjectNode = getSubjectNode(true);
-        List<JAXBElement<?>> group = subjectNode.getTopicOrGeographicOrTemporal();
-        List<JAXBElement<?>> oldies = MapperUtils.findAny(group, ObjectFactory._SubjectTypeTopic_QNAME);
-        group.removeAll(oldies);
-        group.addAll(MapperUtils.toJaxb(keywords, ObjectFactory._SubjectTypeTopic_QNAME));
+        SubjectDefinition subjectNode = getSubjectNode(true);
+        List<StringPlusLanguagePlusAuthority> oldies = subjectNode.getTopic();
+        oldies.clear();
+        oldies.addAll(MapperUtils.toStringPlusLanguagePlusAuthority(keywords));
     }
 
-    private SubjectType getSubjectNode(boolean create) {
-        SubjectType subjectNode = MapperUtils.findFirst(mods.getModsGroup(), SubjectType.class);
+    private SubjectDefinition getSubjectNode(boolean create) {
+        SubjectDefinition subjectNode = mods.getSubject().stream().findFirst().orElse(null);
         if (create && subjectNode == null) {
-            subjectNode = factory.createSubjectType();
+            subjectNode = factory.createSubjectDefinition();
         }
         return subjectNode;
     }

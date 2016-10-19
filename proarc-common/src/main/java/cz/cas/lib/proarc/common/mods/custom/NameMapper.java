@@ -21,21 +21,18 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.namespace.QName;
 
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
 import cz.cas.lib.proarc.common.mods.custom.NameMapper.NameItem.NameRole;
-import cz.fi.muni.xkremser.editor.server.mods.CodeOrText;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.NamePartType;
-import cz.fi.muni.xkremser.editor.server.mods.NameType;
-import cz.fi.muni.xkremser.editor.server.mods.NameTypeAttribute;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.RoleType;
-import cz.fi.muni.xkremser.editor.server.mods.RoleType.RoleTerm;
+import cz.cas.lib.proarc.mods.CodeOrText;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NameDefinition;
+import cz.cas.lib.proarc.mods.NamePartDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.RoleDefinition;
+import cz.cas.lib.proarc.mods.RoleTermDefinition;
 
 /**
  * Usage:
@@ -63,14 +60,15 @@ import cz.fi.muni.xkremser.editor.server.mods.RoleType.RoleTerm;
  */
 final class NameMapper {
 
-    ArrayMapper<NameType, NameItem> nameMap = new ArrayMapper<NameType, NameItem>(new NameItemMapper());
+    public static final String TYPE_PERSONAL = "personal";
+    ArrayMapper<NameDefinition, NameItem> nameMap = new ArrayMapper<>(new NameItemMapper());
 
-    public List<NameItem> map(ModsType mods) {
-        List<NameType> names = MapperUtils.find(mods.getModsGroup(), NameType.class);
+    public List<NameItem> map(ModsDefinition mods) {
+        List<NameDefinition> names = mods.getName();
         return nameMap.map(names);
     }
 
-    public ModsType map(ModsType mods, List<NameItem> authors, List<NameItem> contributors) {
+    public ModsDefinition map(ModsDefinition mods, List<NameItem> authors, List<NameItem> contributors) {
         List<NameItem> oldItems = map(mods);
         List<NameItem> others = filter(oldItems, true, NameRole.OTHER);
         List<NameItem> names = MapperUtils.mergeList(
@@ -80,10 +78,11 @@ final class NameMapper {
         return map(mods, names);
     }
 
-    public ModsType map(ModsType mods, List<NameItem> names) {
-        List<NameType> oldies = MapperUtils.find(mods.getModsGroup(), NameType.class);
-        List<NameType> news = nameMap.map(MapperUtils.noNull(names), oldies);
-        MapperUtils.update(mods.getModsGroup(), news, NameType.class);
+    public ModsDefinition map(ModsDefinition mods, List<NameItem> names) {
+        List<NameDefinition> oldies = mods.getName();
+        List<NameDefinition> news = nameMap.map(MapperUtils.noNull(names), oldies);
+        oldies.clear();
+        oldies.addAll(news);
         return mods;
     }
 
@@ -92,7 +91,7 @@ final class NameMapper {
     }
 
     public static List<NameItem> filter(List<NameItem> names, Set<NameRole> filter, boolean include) {
-        List<NameItem> result = new ArrayList<NameItem>();
+        List<NameItem> result = new ArrayList<>();
 
         for (NameItem name : names) {
             boolean contains = filter.contains(name.getRole());
@@ -113,7 +112,7 @@ final class NameMapper {
         return items;
     }
 
-    private static final class NameItemMapper implements ArrayMapper.ItemMapper<NameType, NameItem> {
+    private static final class NameItemMapper implements ArrayMapper.ItemMapper<NameDefinition, NameItem> {
 
         private static final String TYPE_FAMILY = "family";
         private static final String TYPE_GIVEN = "given";
@@ -121,23 +120,20 @@ final class NameMapper {
         private final ObjectFactory factory = new ObjectFactory();
 
         @Override
-        public NameItem map(NameType source) {
+        public NameItem map(NameDefinition source) {
             NameItem result = new NameItem();
             int familyCount = 0;
             int givenCount = 0;
 
-            for (JAXBElement<?> nameSubelm : source.getNamePartOrDisplayFormOrAffiliation()) {
-                QName qname = nameSubelm.getName();
+            for (RoleDefinition role : source.getRole()) {
+                if (result.getRole() != null && result.getRole() != NameRole.OTHER) {
+                    continue;
+                }
+                result.setRole(NameRole.fromDom(role));
+            }
 
-                if (ObjectFactory._NameTypeRole_QNAME.equals(qname)) {
-                    if (result.getRole() != null && result.getRole() != NameRole.OTHER) {
-                        continue;
-                    }
-                    RoleType role = (RoleType) nameSubelm.getValue();
-                    result.setRole(NameRole.fromDom(role));
-
-                } else if ((familyCount == 0 || givenCount == 0) && ObjectFactory._NameTypeNamePart_QNAME.equals(qname)) {
-                    NamePartType namePart = (NamePartType) nameSubelm.getValue();
+            for (NamePartDefinition namePart : source.getNamePart()) {
+                if (familyCount == 0 || givenCount == 0) {
                     String type = namePart.getType();
                     String partValue = namePart.getValue();
                     if (familyCount == 0 && TYPE_FAMILY.equals(type)) {
@@ -153,31 +149,27 @@ final class NameMapper {
         }
 
         @Override
-        public NameType map(final NameItem item, final NameType origin) {
+        public NameDefinition map(final NameItem item, final NameDefinition origin) {
             if (item.getRole() == NameRole.OTHER) {
                 return origin;
             }
             int familyCount = 0;
             int givenCount = 0;
-            NameType result = origin != null ? origin : new NameType();
-
-            for (JAXBElement<?> nameSubelm : result.getNamePartOrDisplayFormOrAffiliation()) {
-                QName qname = nameSubelm.getName();
-                if (ObjectFactory._NameTypeNamePart_QNAME.equals(qname)) {
-                    NamePartType namePart = (NamePartType) nameSubelm.getValue();
-                    String type = namePart.getType();
-                    if (familyCount == 0 && TYPE_FAMILY.equals(type)) {
-                        namePart.setValue(item.getFamily());
-                        ++familyCount;
-                    } else if (givenCount == 0 && TYPE_GIVEN.equals(type)) {
-                        namePart.setValue(item.getGiven());
-                        ++givenCount;
-                    }
+            NameDefinition result = origin != null ? origin : new NameDefinition();
+            for (NamePartDefinition namePart : result.getNamePart()) {
+                String type = namePart.getType();
+                if (familyCount == 0 && TYPE_FAMILY.equals(type)) {
+                    namePart.setValue(item.getFamily());
+                    ++familyCount;
+                } else if (givenCount == 0 && TYPE_GIVEN.equals(type)) {
+                    namePart.setValue(item.getGiven());
+                    ++givenCount;
                 }
                 if (familyCount > 0 && givenCount > 0) {
                     break;
                 }
             }
+
             if (familyCount == 0 && item.getFamily() != null) {
                 createPartName(result, TYPE_FAMILY, item.getFamily());
             }
@@ -187,30 +179,30 @@ final class NameMapper {
             }
 
             if (origin == null) { // new item
-                result.setAtType(NameTypeAttribute.PERSONAL);
+                result.setType(TYPE_PERSONAL);
                 createRole(result, item.getRole());
             }
             return result;
         }
 
-        private void createPartName(NameType nameType, String type, String name) {
-            NamePartType namePart = factory.createNamePartType();
+        private void createPartName(NameDefinition nameType, String type, String name) {
+            NamePartDefinition namePart = factory.createNamePartDefinition();
             namePart.setType(type);
             namePart.setValue(name);
-            nameType.getNamePartOrDisplayFormOrAffiliation().add(factory.createNameTypeNamePart(namePart));
+            nameType.getNamePart().add(namePart);
         }
 
-        private void createRole(NameType name, NameRole role) {
-            RoleType roleType = factory.createRoleType();
-            RoleTerm roleTerm = factory.createRoleTypeRoleTerm();
+        private void createRole(NameDefinition name, NameRole role) {
+            RoleDefinition roleType = factory.createRoleDefinition();
+            RoleTermDefinition roleTerm = factory.createRoleTermDefinition();
             roleTerm.setType(CodeOrText.CODE);
             roleTerm.setValue(role.getCode());
             roleType.getRoleTerm().add(roleTerm);
-            roleTerm = factory.createRoleTypeRoleTerm();
+            roleTerm = factory.createRoleTermDefinition();
             roleTerm.setType(CodeOrText.TEXT);
             roleTerm.setValue(role.getText());
             roleType.getRoleTerm().add(roleTerm);
-            name.getNamePartOrDisplayFormOrAffiliation().add(factory.createNameTypeRole(roleType));
+            name.getRole().add(roleType);
         }
 
     }
@@ -261,14 +253,10 @@ final class NameMapper {
                 return OTHER;
             }
 
-            private static NameRole fromDom(RoleType... roles) {
+            private static NameRole fromDom(RoleDefinition... roles) {
                 NameRole result = NameRole.OTHER;
-                for (RoleType role : roles) {
-                    if (role==null) {
-                	System.out.println("Null role");
-                    }
-                    System.out.println("Role:"+role.getRoleTerm().get(0).getValue());
-                    for (RoleTerm roleTerm : role.getRoleTerm()) {
+                for (RoleDefinition role : roles) {
+                    for (RoleTermDefinition roleTerm : role.getRoleTerm()) {
                         switch (roleTerm.getType()) {
                             case CODE: return fromCode(roleTerm.getValue());
                             case TEXT: return fromText(roleTerm.getValue());

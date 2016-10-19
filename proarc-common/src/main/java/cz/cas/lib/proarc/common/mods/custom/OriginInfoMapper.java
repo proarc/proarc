@@ -19,22 +19,24 @@ package cz.cas.lib.proarc.common.mods.custom;
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ItemMapper;
 import cz.cas.lib.proarc.common.mods.custom.OriginInfoMapper.PublisherItem.Role;
-import cz.fi.muni.xkremser.editor.server.mods.DateType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.ObjectFactory;
-import cz.fi.muni.xkremser.editor.server.mods.OriginInfoType;
-import cz.fi.muni.xkremser.editor.server.mods.PlaceTermType;
-import cz.fi.muni.xkremser.editor.server.mods.PlaceType;
-import cz.fi.muni.xkremser.editor.server.mods.StringPlusAuthority;
+import cz.cas.lib.proarc.mods.DateDefinition;
+import cz.cas.lib.proarc.mods.IssuanceDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PlaceDefinition;
+import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import javax.xml.bind.JAXBElement;
+import java.util.stream.Collectors;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.namespace.QName;
 
 /**
  * Maps OriginInfoType to publishers, printers and frequency item.
@@ -53,27 +55,27 @@ final class OriginInfoMapper {
     /**
      * @see <a href='http://www.loc.gov/standards/mods/userguide/origininfo.html#issuance'>Guidelines for Use</a>
      */
-    public static final String ISSUANCE_CONTINUING = "continuing";
-    public static final String ISSUANCE_MONOGRAPHIC = "monographic";
+    public static final String ISSUANCE_CONTINUING = IssuanceDefinition.CONTINUING.value();
+    public static final String ISSUANCE_MONOGRAPHIC = IssuanceDefinition.MONOGRAPHIC.value();
 
-    private ArrayMapper<OriginInfoType, OriginInfoItem> originsMap =
-            new ArrayMapper<OriginInfoType, OriginInfoItem>(new OriginInfoItemMapper());
+    private ArrayMapper<OriginInfoDefinition, OriginInfoItem> originsMap =
+            new ArrayMapper<>(new OriginInfoItemMapper());
 
-    public List<OriginInfoItem> map(ModsType mods) {
-        List<OriginInfoType> origins = MapperUtils.find(mods.getModsGroup(), OriginInfoType.class);
+    public List<OriginInfoItem> map(ModsDefinition mods) {
+        List<OriginInfoDefinition> origins = mods.getOriginInfo();
         return originsMap.map(origins);
     }
 
-    public ModsType map(ModsType mods, List<PublisherItem> publishers, List<PublisherItem> printers, String issuance) {
+    public ModsDefinition map(ModsDefinition mods, List<PublisherItem> publishers, List<PublisherItem> printers, String issuance) {
         // useful for monographs without frequencies
         return mapImpl(mods, publishers, printers, null, issuance);
     }
 
-    public ModsType map(ModsType mods, List<PublisherItem> publishers, List<PublisherItem> printers, List<String> frequencies, String issuance) {
+    public ModsDefinition map(ModsDefinition mods, List<PublisherItem> publishers, List<PublisherItem> printers, List<String> frequencies, String issuance) {
         return mapImpl(mods, publishers, printers, MapperUtils.noNull(frequencies), issuance);
     }
     
-    private ModsType mapImpl(ModsType mods, List<PublisherItem> publishers, List<PublisherItem> printers, List<String> frequencies, String issuance) {
+    private ModsDefinition mapImpl(ModsDefinition mods, List<PublisherItem> publishers, List<PublisherItem> printers, List<String> frequencies, String issuance) {
         List<OriginInfoItem> oldItems = map(mods);
         List<PublisherItem> others = filter(oldItems, true, Role.OTHER);
         List<OriginInfoItem> origins = MapperUtils.<OriginInfoItem>mergeList(
@@ -94,10 +96,11 @@ final class OriginInfoMapper {
         return map(mods, origins);
     }
 
-    public ModsType map(ModsType mods, List<OriginInfoItem> origins) {
-        List<OriginInfoType> oldies = MapperUtils.find(mods.getModsGroup(), OriginInfoType.class);
-        List<OriginInfoType> news = originsMap.map(origins, oldies);
-        MapperUtils.update(mods.getModsGroup(), news, OriginInfoType.class);
+    public ModsDefinition map(ModsDefinition mods, List<OriginInfoItem> origins) {
+        List<OriginInfoDefinition> oldies = mods.getOriginInfo();
+        List<OriginInfoDefinition> news = originsMap.map(origins, oldies);
+        oldies.clear();
+        oldies.addAll(news);
         return mods;
     }
 
@@ -106,7 +109,7 @@ final class OriginInfoMapper {
     }
 
     public static List<PublisherItem> filter(List<? extends OriginInfoItem> origins, Set<Role> filter, boolean include) {
-        List<PublisherItem> result = new ArrayList<PublisherItem>();
+        List<PublisherItem> result = new ArrayList<>();
 
         for (OriginInfoItem origin : origins) {
             if (!(origin instanceof PublisherItem)) {
@@ -141,14 +144,14 @@ final class OriginInfoMapper {
         return items;
     }
 
-    private static final class OriginInfoItemMapper implements ItemMapper<OriginInfoType, OriginInfoItem> {
+    private static final class OriginInfoItemMapper implements ItemMapper<OriginInfoDefinition, OriginInfoItem> {
 
         private ObjectFactory factory = new ObjectFactory();
 
         @Override
-        public OriginInfoItem map(OriginInfoType source) {
+        public OriginInfoItem map(OriginInfoDefinition source) {
             String transliteration = source.getTransliteration();
-            JAXBElement<String> publisher = getPublisher(factory, source.getPlaceOrPublisherOrDateIssued(), false);
+            StringPlusLanguagePlusSupplied publisher = getPublisher(factory, source.getPublisher(), false);
             if (transliteration == null && publisher == null) {
                 return readPeriodicity(source);
             } else {
@@ -156,22 +159,18 @@ final class OriginInfoMapper {
             }
         }
         
-        private PeriodicityItem readPeriodicity(OriginInfoType source) {
+        private PeriodicityItem readPeriodicity(OriginInfoDefinition source) {
             PeriodicityItem result = new PeriodicityItem();
-            List<String> frequencies = new ArrayList<String>();
-            for (JAXBElement<?> elm : source.getPlaceOrPublisherOrDateIssued()) {
-                if (ObjectFactory._OriginInfoTypeFrequency_QNAME.equals(elm.getName())) {
-                    StringPlusAuthority svalue = (StringPlusAuthority) elm.getValue();
-                    frequencies.add(svalue.getValue());
-                } else if (ObjectFactory._OriginInfoTypeIssuance_QNAME.equals(elm.getName())) {
-                    result.setIssuance((String) elm.getValue());
-                }
-            }
+            List<String> frequencies = source.getFrequency().stream()
+                    .map(spl -> spl.getValue())
+                    .collect(Collectors.toList());
+            Optional<IssuanceDefinition> issuance = source.getIssuance().stream().findFirst();
+            result.setIssuance(issuance.isPresent()? issuance.get().value() : null);
             result.setFrequencies(frequencies);
             return result;
         }
 
-        private PublisherItem readPublisher(OriginInfoType source) {
+        private PublisherItem readPublisher(OriginInfoDefinition source) {
             PublisherItem result = new PublisherItem();
             Role role = Role.fromText(source.getTransliteration());
             result.setRole(role);
@@ -179,22 +178,21 @@ final class OriginInfoMapper {
                 return result;
             }
 
-            List<JAXBElement<?>> group = source.getPlaceOrPublisherOrDateIssued();
+            Optional<StringPlusLanguagePlusSupplied> publisher = source.getPublisher().stream().findFirst();
 
-            JAXBElement<String> publisher = getPublisher(factory, group, false);
-            result.setName(publisher == null ? null : publisher.getValue());
+            result.setName(publisher.isPresent() ? publisher.get().getValue() : null);
 
-            DateType date = getDate(factory, group, role, false);
+            DateDefinition date = getDate(factory, source, role, false);
             result.setDate(date == null ? null : date.getValue());
 
-            PlaceTermType place = getPlace(factory, group, false);
+            PlaceTermDefinition place = getPlace(factory, source, false);
             result.setPlace(place == null ? null : place.getValue());
 
             return result;
         }
 
         @Override
-        public OriginInfoType map(OriginInfoItem item, OriginInfoType origin) {
+        public OriginInfoDefinition map(OriginInfoItem item, OriginInfoDefinition origin) {
             if (item instanceof PublisherItem) {
                 origin = writePublisher((PublisherItem) item, origin);
             } else if (item instanceof PeriodicityItem) {
@@ -203,59 +201,56 @@ final class OriginInfoMapper {
             return origin;
         }
         
-        private OriginInfoType writePeriodicity(PeriodicityItem item, OriginInfoType origin) {
+        private OriginInfoDefinition writePeriodicity(PeriodicityItem item, OriginInfoDefinition origin) {
             if (item.ignoreMapping) {
                 return origin;
             }
             if (origin == null) {
-                origin = factory.createOriginInfoType();
+                origin = factory.createOriginInfoDefinition();
             }
-            List<JAXBElement<?>> group = origin.getPlaceOrPublisherOrDateIssued();
-            group.removeAll(MapperUtils.findAny(group,
-                    ObjectFactory._OriginInfoTypeFrequency_QNAME,
-                    ObjectFactory._OriginInfoTypeIssuance_QNAME));
+            origin.getFrequency().clear();
+            origin.getIssuance().clear();
             for (String frequency : MapperUtils.noNull(item.getFrequencies())) {
-                StringPlusAuthority spa = factory.createStringPlusAuthority();
+                StringPlusLanguagePlusAuthority spa = factory.createStringPlusLanguagePlusAuthority();
                 spa.setValue(frequency);
-                group.add(factory.createOriginInfoTypeFrequency(spa));
+                origin.getFrequency().add(spa);
             }
-            group.add(factory.createOriginInfoTypeIssuance(item.getIssuance()));
+            origin.getIssuance().add(IssuanceDefinition.fromValue(item.getIssuance()));
             return origin;
         }
 
-        private OriginInfoType writePublisher(PublisherItem item, OriginInfoType origin) {
-            OriginInfoType source = origin;
+        private OriginInfoDefinition writePublisher(PublisherItem item, OriginInfoDefinition origin) {
+            OriginInfoDefinition source = origin;
             Role role = item.getRole();
             if (role == Role.OTHER) {
                 return origin;
             }
             if (origin == null) {
-                source = factory.createOriginInfoType();
+                source = factory.createOriginInfoDefinition();
                 source.setTransliteration(role.getText());
             }
 
-            List<JAXBElement<?>> group = source.getPlaceOrPublisherOrDateIssued();
             if (item.getName() != null) {
-                JAXBElement<String> publisher = getPublisher(factory, group, true);
+                StringPlusLanguagePlusSupplied publisher = getPublisher(factory, source.getPublisher(), true);
                 publisher.setValue(item.getName());
             } else {
-                JAXBElement<String> publisher = getPublisher(factory, group, false);
-                group.remove(publisher);
+                StringPlusLanguagePlusSupplied publisher = getPublisher(factory, source.getPublisher(), false);
+                source.getPublisher().remove(publisher);
             }
 
             if (item.getPlace() != null) {
-                getPlace(factory, group, true).setValue(item.getPlace());
+                getPlace(factory, source, true).setValue(item.getPlace());
             } else {
-                PlaceTermType place = getPlace(factory, group, false);
+                PlaceTermDefinition place = getPlace(factory, source, false);
                 if (place != null) {
                     place.setValue(null);
                 }
             }
 
             if (item.getDate() != null) {
-                getDate(factory, group, role, true).setValue(item.getDate());
+                getDate(factory, source, role, true).setValue(item.getDate());
             } else {
-                DateType date = getDate(factory, group, role, false);
+                DateDefinition date = getDate(factory, source, role, false);
                 if (date != null) {
                     date.setValue(null);
                 }
@@ -264,38 +259,31 @@ final class OriginInfoMapper {
             return source;
         }
 
-        private static JAXBElement<String> getPublisher(ObjectFactory factory, List<JAXBElement<?>> group, boolean create) {
-            JAXBElement<String> publisher = (JAXBElement<String>) MapperUtils.findFirst(
-                    group, ObjectFactory._OriginInfoTypePublisher_QNAME);
+        private static StringPlusLanguagePlusSupplied getPublisher(ObjectFactory factory, List<StringPlusLanguagePlusSupplied> publishers, boolean create) {
+            StringPlusLanguagePlusSupplied publisher = publishers.stream().findFirst().orElse(null);
             if (create && publisher == null) {
-                publisher = factory.createOriginInfoTypePublisher(null);
-                group.add(publisher);
+                publisher = factory.createStringPlusLanguagePlusSupplied();
+                publishers.add(publisher);
             }
             return publisher;
         }
 
-        private static DateType getDate(ObjectFactory factory, List<JAXBElement<?>> group, Role role, boolean create) {
-            QName qname = role == Role.PRINTER
-                    ? ObjectFactory._OriginInfoTypeDateCreated_QNAME
-                    : ObjectFactory._OriginInfoTypeDateIssued_QNAME;
-            DateType date = MapperUtils.findFirst(group, DateType.class, qname);
+        private static DateDefinition getDate(ObjectFactory factory, OriginInfoDefinition oid, Role role, boolean create) {
+            List<DateDefinition> dates = role == Role.PRINTER ? oid.getDateCreated() : oid.getDateIssued();
+            DateDefinition date = dates.stream().findFirst().orElse(null);
             if (create && date == null) {
-                date = factory.createDateType();
-                JAXBElement<DateType> dateElm = (role == Role.PRINTER)
-                        ? factory.createOriginInfoTypeDateCreated(date)
-                        : factory.createOriginInfoTypeDateIssued(date);
-                group.add(dateElm);
+                date = factory.createDateDefinition();
+                dates.add(date);
             }
             return date;
         }
 
-        private static PlaceTermType getPlace(ObjectFactory factory, List<JAXBElement<?>> group, boolean create) {
-            PlaceType place = MapperUtils.findFirst(
-                    group, PlaceType.class, ObjectFactory._OriginInfoTypePlace_QNAME);
+        private static PlaceTermDefinition getPlace(ObjectFactory factory, OriginInfoDefinition oid, boolean create) {
+            PlaceDefinition place = oid.getPlace().stream().findFirst().orElse(null);
             if (place == null) {
                 if (create) {
-                    place = factory.createPlaceType();
-                    group.add(factory.createOriginInfoTypePlace(place));
+                    place = factory.createPlaceDefinition();
+                    oid.getPlace().add(place);
                 } else {
                     return null;
                 }
@@ -303,7 +291,7 @@ final class OriginInfoMapper {
 
             if (place.getPlaceTerm().isEmpty()) {
                 if (create) {
-                    place.getPlaceTerm().add(factory.createPlaceTermType());
+                    place.getPlaceTerm().add(factory.createPlaceTermDefinition());
                 } else {
                     return null;
                 }

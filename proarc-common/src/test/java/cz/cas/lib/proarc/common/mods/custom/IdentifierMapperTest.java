@@ -16,11 +16,10 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
-import cz.fi.muni.xkremser.editor.server.mods.IdentifierType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
-import cz.fi.muni.xkremser.editor.server.mods.RecordInfoType;
-import cz.fi.muni.xkremser.editor.server.mods.TitleInfoType;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.After;
@@ -57,16 +56,15 @@ public class IdentifierMapperTest {
 
     @Test
     public void testMap_ModsType() {
-        ModsType mods = new ModsType();
-        List<Object> modsGroup = mods.getModsGroup();
-        modsGroup.add(new TitleInfoType());
-        modsGroup.addAll(Arrays.asList(
-                new TitleInfoType(),
-                create("uuid", "1"),
-                create("issn", "issn-1"),
-                new RecordInfoType(),
-                create("issn", "issn-2")
-                ));
+        String xml = "<mods xmlns='http://www.loc.gov/mods/v3'>"
+                + "<titleInfo/>"
+                + "<titleInfo/>"
+                + "<identifier type='uuid'>1</identifier>"
+                + "<identifier type='issn'>issn-1</identifier>"
+                + "<recordInfo/>"
+                + "<identifier type='issn'>issn-2</identifier>"
+                + "</mods>";
+        ModsDefinition mods = ModsUtils.unmarshal(xml, ModsDefinition.class);
 
         IdentifierMapper instance = new IdentifierMapper();
         IdentifierItem[] expResult = {
@@ -78,8 +76,8 @@ public class IdentifierMapperTest {
         assertArrayEquals(expResult, result.toArray());
     }
 
-    private static IdentifierType create(String type, String value) {
-        IdentifierType ident = new IdentifierType();
+    private static IdentifierDefinition create(String type, String value) {
+        IdentifierDefinition ident = new IdentifierDefinition();
         ident.setType(type);
         ident.setValue(value);
         return ident;
@@ -87,16 +85,14 @@ public class IdentifierMapperTest {
 
     @Test
     public void testMap_ModsType_List() {
-        ModsType mods = new ModsType();
-        List<Object> modsGroup = mods.getModsGroup();
-        final TitleInfoType titleInfoType = new TitleInfoType();
-        final RecordInfoType recordInfoType = new RecordInfoType();
-        modsGroup.addAll(Arrays.asList(
-                titleInfoType,
-                create("uuid", "1"),
-                create("toDelete", "1"),
-                create("issn", "issn-1"),
-                recordInfoType));
+        String xml = "<mods xmlns='http://www.loc.gov/mods/v3'>"
+                + "<titleInfo/>"
+                + "<identifier type='uuid'>1</identifier>"
+                + "<identifier type='toDelete'>1</identifier>"
+                + "<identifier type='issn'>issn-1</identifier>"
+                + "<recordInfo/>"
+                + "</mods>";
+        ModsDefinition mods = ModsUtils.unmarshal(xml, ModsDefinition.class);
 
         List<IdentifierItem> updates = Arrays.asList(
                 new IdentifierItem(null, "uuid", "insert"),
@@ -107,24 +103,21 @@ public class IdentifierMapperTest {
 
         IdentifierMapper instance = new IdentifierMapper();
         Object[] expResult = {
-            titleInfoType,
             create("uuid", "insert"),
             create("isbn", "isbn-1"),
             create("uuid", "2"),
             create("uuid", "append"),
-            recordInfoType,
         };
         instance.map(mods, updates);
-        List<Object> result = mods.getModsGroup();
 
 //        System.out.println(Arrays.toString(result.toArray()));
-        assertEquals(expResult.length, result.size());
-        assertEquals(expResult[0], result.get(0));
-        assertIdentifiersEquals(expResult[1], result.get(1));
-        assertIdentifiersEquals(expResult[2], result.get(2));
-        assertIdentifiersEquals(expResult[3], result.get(3));
-        assertIdentifiersEquals(expResult[4], result.get(4));
-        assertEquals(expResult[5], result.get(5));
+        assertEquals(expResult.length, mods.getIdentifier().size());
+        assertEquals(1, mods.getTitleInfo().size());
+        assertIdentifiersEquals(expResult[0], mods.getIdentifier().get(0));
+        assertIdentifiersEquals(expResult[1], mods.getIdentifier().get(1));
+        assertIdentifiersEquals(expResult[2], mods.getIdentifier().get(2));
+        assertIdentifiersEquals(expResult[3], mods.getIdentifier().get(3));
+        assertEquals(1, mods.getRecordInfo().size());
     }
 
     public static boolean equals(Object i1, Object i2) {
@@ -132,10 +125,10 @@ public class IdentifierMapperTest {
     }
 
     public static boolean assertIdentifiersEquals(Object i1, Object i2) {
-        return assertIdentifiersEquals((IdentifierType) i1, (IdentifierType) i2);
+        return assertIdentifiersEquals((IdentifierDefinition) i1, (IdentifierDefinition) i2);
     }
     
-    public static boolean assertIdentifiersEquals(IdentifierType i1, IdentifierType i2) {
+    public static boolean assertIdentifiersEquals(IdentifierDefinition i1, IdentifierDefinition i2) {
         if (equals(i1, i2)) {
             return true;
         } else {
@@ -143,7 +136,7 @@ public class IdentifierMapperTest {
         }
     }
 
-    private static boolean equals(IdentifierType i1, IdentifierType i2) {
+    private static boolean equals(IdentifierDefinition i1, IdentifierDefinition i2) {
         if (i1 == null) {
             return i2 == null;
         }
@@ -156,8 +149,8 @@ public class IdentifierMapperTest {
         return true;
     }
 
-    private static String toString(IdentifierType i) {
-        return i == null ? null : String.format("IdentifierType[%s, %s]", i.getType(), i.getValue());
+    private static String toString(IdentifierDefinition i) {
+        return i == null ? null : String.format("IdentifierDefinition[%s, %s]", i.getType(), i.getValue());
     }
 
 }

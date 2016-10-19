@@ -28,7 +28,7 @@ import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.mods.Mods33Utils;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.Mapping;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
@@ -41,7 +41,6 @@ import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin.NdkSearchViewHandler;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
-import cz.fi.muni.xkremser.editor.server.mods.ModsType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -58,7 +57,7 @@ import java.util.logging.Logger;
  * @author Jan Pokorsky
  */
 @Deprecated
-public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsType>,
+public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDefinition>,
         HasSearchViewHandler {
 
     /**
@@ -79,7 +78,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
     @Override
     public Collection<MetaModel> getModel() {
         // for now it is read only repository
-        List<MetaModel> models = new ArrayList<MetaModel>();
+        List<MetaModel> models = new ArrayList<>();
         models.add(new MetaModel(
                 "model:periodical", true, null,
                 Arrays.asList(new ElementType("K4 Periodical", "en"), new ElementType("K4 Periodikum", "cs")),
@@ -141,7 +140,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
     }
 
     @Override
-    public MetadataHandler<ModsType> createMetadataHandler(DigitalObjectHandler handler) {
+    public MetadataHandler<ModsDefinition> createMetadataHandler(DigitalObjectHandler handler) {
         return new K4MetadataHandler(handler);
     }
 
@@ -155,7 +154,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
         return Collections.emptyList();
     }
 
-    static class K4MetadataHandler implements MetadataHandler<ModsType>, PageViewHandler {
+    static class K4MetadataHandler implements MetadataHandler<ModsDefinition>, PageViewHandler {
 
         private static final Logger LOG = Logger.getLogger(K4MetadataHandler.class.getName());
         private final DigitalObjectHandler handler;
@@ -171,8 +170,8 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
         }
 
         @Override
-        public void setMetadata(DescriptionMetadata<ModsType> data, String message) throws DigitalObjectException {
-            ModsType mods = data.getData();
+        public void setMetadata(DescriptionMetadata<ModsDefinition> data, String message) throws DigitalObjectException {
+            ModsDefinition mods = data.getData();
             String modelId = handler.relations().getModel();
             if (mods == null) {
                 mods = createDefault(modelId);
@@ -180,7 +179,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
             write(modelId, mods, data.getTimestamp(), message);
         }
 
-        private ModsType createDefault(String modelId) throws DigitalObjectException {
+        private ModsDefinition createDefault(String modelId) throws DigitalObjectException {
             return ModsStreamEditor.create(fobject.getPid(), modelId);
         }
 
@@ -189,8 +188,8 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
             String json = jsonData.getData();
             String editorId = jsonData.getEditor();
             String modelId = handler.relations().getModel();
-            ModsType mods = json == null ? createDefault(modelId)
-                    : editor.read33();
+            ModsDefinition mods = json == null ? createDefault(modelId)
+                    : editor.read();
             Mapping mapping = new Mapping();
             Class<?> type = mapping.getType(editorId);
             ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
@@ -202,7 +201,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
             }
             mapping.update(mods, customData, editorId);
             if (LOG.isLoggable(Level.FINE)) {
-                String toXml = Mods33Utils.toXml(mods, true);
+                String toXml = ModsUtils.toXml(mods, true);
                 LOG.fine(toXml);
             }
             write(modelId, mods, jsonData.getTimestamp(), message);
@@ -210,7 +209,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
 
         @Override
         public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message) throws DigitalObjectException {
-            ModsType mods;
+            ModsDefinition mods;
             String modelId = handler.relations().getModel();
             if (xmlData.getData() != null) {
                 mods = ModsStreamEditor.create33(fobject.getPid(), modelId, xmlData.getData());
@@ -221,9 +220,9 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
         }
 
         @Override
-        public DescriptionMetadata<ModsType> getMetadata() throws DigitalObjectException {
-            ModsType mods = editor.read33();
-            DescriptionMetadata<ModsType> dm = new DescriptionMetadata<ModsType>();
+        public DescriptionMetadata<ModsDefinition> getMetadata() throws DigitalObjectException {
+            ModsDefinition mods = editor.read();
+            DescriptionMetadata<ModsDefinition> dm = new DescriptionMetadata<>();
             dm.setPid(fobject.getPid());
             dm.setTimestamp(editor.getLastModified());
 //            dm.setEditor(editorId);
@@ -236,12 +235,12 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
             if (mappingId == null) {
                 throw new NullPointerException("mappingId");
             }
-            ModsType mods = editor.read33();
+            ModsDefinition mods = editor.read();
             Mapping mapping = new Mapping();
             @SuppressWarnings("unchecked")
             O customMods = (O) mapping.read(mods, mappingId);
 
-            DescriptionMetadata<O> dm = new DescriptionMetadata<O>();
+            DescriptionMetadata<O> dm = new DescriptionMetadata<>();
             dm.setPid(fobject.getPid());
             dm.setTimestamp(editor.getLastModified());
             dm.setEditor(mappingId);
@@ -252,7 +251,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
         @Override
         public DescriptionMetadata<String> getMetadataAsXml() throws DigitalObjectException {
             String xml = editor.readAsString();
-            DescriptionMetadata<String> dm = new DescriptionMetadata<String>();
+            DescriptionMetadata<String> dm = new DescriptionMetadata<>();
             dm.setPid(fobject.getPid());
             dm.setTimestamp(editor.getLastModified());
 //            dm.setEditor(editorId);
@@ -282,9 +281,9 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
         public void setPage(PageViewItem page, String message) throws DigitalObjectException {
             String modelId = handler.relations().getModel();
             if (modelId.equals(NdkPlugin.MODEL_PAGE)) {
-                DescriptionMetadata<ModsType> metadata = new DescriptionMetadata<ModsType>();
+                DescriptionMetadata<ModsDefinition> metadata = new DescriptionMetadata<ModsDefinition>();
                 metadata.setTimestamp(editor.getLastModified());
-                ModsType mods = editor.createPage(fobject.getPid(),
+                ModsDefinition mods = editor.createPage(fobject.getPid(),
                         page.getPageIndex(), page.getPageNumber(), page.getPageType());
                 write(modelId, mods, metadata.getTimestamp(), message);
             } else {
@@ -292,7 +291,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
             }
         }
 
-        private void write(String modelId, ModsType mods, long timestamp, String message) throws DigitalObjectException {
+        private void write(String modelId, ModsDefinition mods, long timestamp, String message) throws DigitalObjectException {
             editor.write(mods, timestamp, message);
 
             // DC
@@ -300,7 +299,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsTyp
             dcEditor.write(handler, mods, modelId, dcEditor.getLastModified(), message);
 
             // Label
-            String label = Mods33Utils.getLabel(mods, modelId);
+            String label = ModsUtils.getLabel(mods, modelId);
             fobject.setLabel(label);
         }
     }
