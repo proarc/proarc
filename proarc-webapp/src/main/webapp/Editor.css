@@ -1,5 +1,6 @@
 /** Add css rules here for your application. */
 
+html, body { overflow:hidden }
 #loadingWrapper {
     position: absolute;
     top: 40%;
