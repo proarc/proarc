@@ -18,60 +18,12 @@
 
         <title>ProArc</title>
 
-        <script type="text/javascript">
-            // Allows to append custom contents to the About window. The format is "locale":"<hr>custom message"
-            var aboutProArc = {
-                "cs": "",
-                "en": ""
-            };
-            // editor client class logging configuration
-            // format: "logger name" : "java.util.logging.Level"
-            var EditorLoggingConfiguration = {
-                "cz.cas.lib.proarc.webapp.client" : "INFO"
-                , "cz.cas.lib.proarc.webapp.client.widget.ListFormItem" : "INFO"
-            };
-        </script>
-
-        <!-- prevents ID conflicts of SmartGWT components -->
-        <script>
-            window.isc_useSimpleNames = false;
-        </script>
-
         <!-- CodeMirror XML Editor -->
         <link rel="stylesheet" href="js/codemirror/lib/codemirror.css">
         <link rel="stylesheet" href="js/codemirror/addon/fold/foldgutter.css" />
         <style type="text/css">
             .CodeMirror {border-top: 1px solid #ddd; border-bottom: 1px solid #ddd;}
         </style>
-        <script type="text/javascript" src="js/codemirror/lib/codemirror.js"></script>
-        <script type="text/javascript" src="js/codemirror/mode/xml/xml.js"></script>
-        <script type="text/javascript" src="js/codemirror/addon/edit/closetag.js"></script>
-        <script type="text/javascript" src="js/codemirror/addon/fold/foldcode.js"></script>
-        <script type="text/javascript" src="js/codemirror/addon/fold/foldgutter.js"></script>
-        <script type="text/javascript" src="js/codemirror/addon/fold/xml-fold.js"></script>
-
-        <!--                                           -->
-        <!-- This script loads your compiled module.   -->
-        <!-- If you add any GWT meta tags, they must   -->
-        <!-- be added before this line.                -->
-        <!--                                           -->
-        <script> var isomorphicDir = "proarc/sc/"; </script>
-
-        <script src="proarc/sc/modules/ISC_Core.js">          </script>
-        <script src="proarc/sc/modules/ISC_Foundation.js">    </script>
-        <script src="proarc/sc/modules/ISC_Containers.js">    </script>
-        <script src="proarc/sc/modules/ISC_Grids.js">         </script>
-        <script src="proarc/sc/modules/ISC_Forms.js">         </script>
-        <script src="proarc/sc/modules/ISC_RichTextEditor.js"></script>
-        <script src="proarc/sc/modules/ISC_Calendar.js">      </script>
-        <script src="proarc/sc/modules/ISC_DataBinding.js">   </script>
-
-        <script src="proarc/sc/skins/Enterprise/load_skin.js"></script>
-
-        <script src="proarc/swfupload.js"></script>
-        <script src="proarc/swfupload.speed.js"></script>
-
-        <script type="text/javascript" language="javascript" src="proarc/proarc.nocache.js"></script>
     </head>
 
     <!--                                           -->
@@ -96,11 +48,67 @@
             <div id="loading">
                 <div class="loadingIndicator">
                     <img src="proarc/sc/skins/Enterprise/images/loadingSmall.gif" width="16" height="16" style="margin-right:8px;float:left;vertical-align:top;"/>
-                    ProArc<br/>
-                    <!--<span id="loadingMsg">Loading&nbsp;please&nbsp;wait...</span>-->
+                    ProArc&nbsp;-&nbsp;
+                    <span id="loadingMsg">Init</span>
                 </div>
             </div>
         </div>
+
+        <script type="text/javascript">
+            // Allows to append custom contents to the About window. The format is "locale":"<hr>custom message"
+            var aboutProArc = {
+                "cs": "",
+                "en": ""
+            };
+            // editor client class logging configuration
+            // format: "logger name" : "java.util.logging.Level"
+            var EditorLoggingConfiguration = {
+                "cz.cas.lib.proarc.webapp.client" : "INFO"
+                , "cz.cas.lib.proarc.webapp.client.widget.ListFormItem" : "INFO"
+            };
+
+            document.getElementById('loadingMsg').innerHTML = 'Code&nbsp;Mirror';
+        </script>
+
+        <!-- CodeMirror XML Editor -->
+        <script type="text/javascript" src="js/codemirror/lib/codemirror.js"></script>
+        <script type="text/javascript" src="js/codemirror/mode/xml/xml.js"></script>
+        <script type="text/javascript" src="js/codemirror/addon/edit/closetag.js"></script>
+        <script type="text/javascript" src="js/codemirror/addon/fold/foldcode.js"></script>
+        <script type="text/javascript" src="js/codemirror/addon/fold/foldgutter.js"></script>
+        <script type="text/javascript" src="js/codemirror/addon/fold/xml-fold.js"></script>
+
+        <!-- Moxie Uploader -->
+        <script type="text/javascript">
+            document.getElementById('loadingMsg').innerHTML = 'Moxie&nbsp;Uploader';
+        </script>
+        <script type="text/javascript" src="proarc/swfupload.js"></script>
+        <script type="text/javascript" src="proarc/swfupload.speed.js"></script>
+
+        <!-- SmartGWT -->
+        <script type="text/javascript">
+            // prevents ID conflicts of SmartGWT components
+            window.isc_useSimpleNames = false;
+            var isomorphicDir = "proarc/sc/";
+            document.getElementById('loadingMsg').innerHTML = 'SmartGWT';
+        </script>
+
+        <script type="text/javascript" src="proarc/sc/modules/ISC_Core.js">          </script>
+        <script type="text/javascript" src="proarc/sc/modules/ISC_Foundation.js">    </script>
+        <script type="text/javascript" src="proarc/sc/modules/ISC_Containers.js">    </script>
+        <script type="text/javascript" src="proarc/sc/modules/ISC_Grids.js">         </script>
+        <script type="text/javascript" src="proarc/sc/modules/ISC_Forms.js">         </script>
+        <script type="text/javascript" src="proarc/sc/modules/ISC_RichTextEditor.js"></script>
+        <script type="text/javascript" src="proarc/sc/modules/ISC_Calendar.js">      </script>
+        <script type="text/javascript" src="proarc/sc/modules/ISC_DataBinding.js">   </script>
+
+        <script type="text/javascript" src="proarc/sc/skins/Enterprise/load_skin.js"></script>
+
+        <!-- ProArc -->
+        <script type="text/javascript">
+            document.getElementById('loadingMsg').innerHTML = 'Editor';
+        </script>
+        <script type="text/javascript" language="javascript" src="proarc/proarc.nocache.js"></script>
 
     </body>
 </html>

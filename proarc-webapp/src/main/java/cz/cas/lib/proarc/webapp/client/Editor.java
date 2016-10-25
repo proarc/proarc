@@ -22,6 +22,7 @@ import com.google.gwt.http.client.UrlBuilder;
 import com.google.gwt.i18n.client.Dictionary;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
 import com.smartgwt.client.core.Function;
 import com.smartgwt.client.data.Criteria;
@@ -31,10 +32,7 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.Autofit;
 import com.smartgwt.client.types.ClickMaskMode;
-import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.SelectionStyle;
-import com.smartgwt.client.util.DateDisplayFormatter;
-import com.smartgwt.client.util.DateUtil;
 import com.smartgwt.client.util.I18nUtil;
 import com.smartgwt.client.util.Page;
 import com.smartgwt.client.util.SC;
@@ -150,10 +148,8 @@ public class Editor implements EntryPoint {
                 Page.getAppDir(), LanguagesDataSource.activeLocale()
                 );
 
-        // replace default DateDisplayFormat.TOUSSHORTDATE
-//        DateUtil.setShortDateDisplayFormatter(DateDisplayFormatter.);
-//        DateUtil.setShortDateDisplayFormat(DateDisplayFormat.TOEUROPEANSHORTDATE);
-//        DateUtil.setShortDatetimeDisplayFormat(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
+        // remove the loading wrapper. See index.html
+        DOM.getElementById("loadingWrapper").removeFromParent();
 
         I18nUtil.initMessages(ClientUtils.createSmartGwtMessages());
         i18n = GWT.create(ClientMessages.class);
@@ -417,7 +413,7 @@ public class Editor implements EntryPoint {
 
             @Override
             public void onLeafClick(LeafClickEvent event) {
-                for (Canvas parent = menu.getParentElement(); parent != null; parent = parent.getParentElement()) {
+                for (Canvas parent = menu.getParentCanvas(); parent != null; parent = parent.getParentCanvas()) {
                     if (GLOBAL_MENU_CONTAINER_ID.equals(parent.getID())) {
                         parent.hide();
                         break;
