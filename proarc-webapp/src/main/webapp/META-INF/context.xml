@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Tomcat configuration helper.
+-->
+
+<Context>
+
+    <Resources>
+
+        <!--
+        #477: JAX-RS 2 must be loaded before possible JAX-RS 1 (fedora-client).
+        -->
+        <PreResources className="org.apache.catalina.webresources.FileResourceSet"
+            base="${catalina.base}/webapps/proarc/WEB-INF/lib/javax.ws.rs-api-2.0.1.jar"
+            webAppMount="/WEB-INF/lib/javax.ws.rs-api-2.0.1.jar" />
+
+    </Resources>
+
+</Context>
