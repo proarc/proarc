@@ -19,6 +19,8 @@ package cz.cas.lib.proarc.webapp.client.ds;
 import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
@@ -152,6 +154,19 @@ public class WorkflowJobDataSource extends RestDataSource {
             }
         }
         return super.transformRequest(dsRequest);
+    }
+
+    @Override
+    protected void transformResponse(DSResponse dsResponse, DSRequest dsRequest, Object data) {
+        if (dsRequest.getOperationType() == DSOperationType.FETCH) {
+            // #482: ignore HTTP 404/Not Found, e.g. when ID filter is not a number
+            if (dsResponse.getHttpResponseCode() == 404) {
+                dsResponse.setData(new Record[0]);
+                dsResponse.setTotalRows(0);
+                data = dsResponse.getData();
+            }
+        }
+        super.transformResponse(dsResponse, dsRequest, data);
     }
 
 }

@@ -204,6 +204,7 @@ public class WorkflowJobView implements Refreshable {
         jobsPersistance = new ListGridPersistance("WorkflowJobView.jobList", jobGrid);
         jobGrid.setSelectionType(SelectionStyle.SINGLE);
         jobGrid.setShowFilterEditor(true);
+        jobGrid.setAllowFilterOperators(false);
         jobGrid.setFilterOnKeypress(true);
         jobGrid.setFilterLocalData(false);
         jobGrid.setCanSort(true);

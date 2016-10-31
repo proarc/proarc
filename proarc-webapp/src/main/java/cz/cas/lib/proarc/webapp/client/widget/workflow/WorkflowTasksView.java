@@ -193,6 +193,7 @@ public class WorkflowTasksView implements Refreshable {
         final ListGrid grid = new ListGrid();
         taskListPersistance = new ListGridPersistance("WorkflowTasksView.taskList", grid);
         grid.setShowFilterEditor(true);
+        grid.setAllowFilterOperators(false);
         grid.setFilterOnKeypress(true);
         grid.setCanSort(true);
         grid.setCanGroupBy(false);

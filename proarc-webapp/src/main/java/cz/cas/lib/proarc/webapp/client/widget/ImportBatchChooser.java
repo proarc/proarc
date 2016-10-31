@@ -104,6 +104,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         lg.setSelectionType(SelectionStyle.SINGLE);
         lg.setCanReorderFields(false);
         lg.setShowFilterEditor(true);
+        lg.setAllowFilterOperators(false);
         lg.setFilterOnKeypress(true);
         lg.setGenerateDoubleClickOnEnter(true);
         ListGridField lgfFolder = new ListGridField(ImportBatchDataSource.FIELD_DESCRIPTION,
