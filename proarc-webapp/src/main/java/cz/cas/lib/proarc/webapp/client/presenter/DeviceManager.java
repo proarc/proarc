@@ -270,10 +270,10 @@ public final class DeviceManager {
                                 // @use, value(enum)
                                 .addField(new FieldBuilder("value").setTitle("Capture Device - MA").setMaxOccurrences(1).setType(Field.SELECT)
                                     .setHint("Typ skenovacího zařízení.")
-                                    .addMapValue("TRANSMISSION_SCANNER", "transmission scanner")
-                                    .addMapValue("REFLECTION_PRINT_SCANNER", "reflection print scanner")
-                                    .addMapValue("DIGITAL_STILL_CAMERA", "digital still camera")
-                                    .addMapValue("STILL_FROM_VIDEO", "still from video")
+                                    .addMapValue("transmission scanner", "transmission scanner")
+                                    .addMapValue("reflection print scanner", "reflection print scanner")
+                                    .addMapValue("digital still camera", "digital still camera")
+                                    .addMapValue("still from video", "still from video")
                                 .createField()) // value
                             .createField()) // captureDevice
                         .createField()) // GeneralCaptureInformation
@@ -334,9 +334,9 @@ public final class DeviceManager {
                                     // value, @use
                                     .addField(new FieldBuilder("value").setTitle("Optical Resolution Unit - M").setMaxOccurrences(1).setRequired(true)
                                         .setType(Field.SELECT).setHint("Jednotka optického rozlišení, např. inch (in.).").setWidth("150")
-                                        .addMapValue("CM", "cm")
-                                        .addMapValue("IN", "in.")
-                                        .addMapValue("NO_ABSOLUTE_UNIT", "no absolute unit")
+                                        .addMapValue("cm", "cm")
+                                        .addMapValue("in.", "in.")
+                                        .addMapValue("no absolute unit", "no absolute unit")
                                     .createField()) // value
                                 .createField()) // opticalResolutionUnit
                             .createField()) // MaximumOpticalResolution
@@ -345,15 +345,15 @@ public final class DeviceManager {
                                     // value, @use
                                     .addField(new FieldBuilder("value").setTitle("Scanner Sensor - M").setMaxOccurrences(1).setRequired(true)
                                         .setType(Field.SELECT).setHint("Popis typu snímacího senzoru skenovacího zařízení.")
-                                        .addMapValue("UNDEFINED", "undefined")
-                                        .addMapValue("MONOCHROME_LINEAR", "MonochromeLinear")
-                                        .addMapValue("COLOR_TRI_LINEAR", "ColorTriLinear")
-                                        .addMapValue("COLOR_SEQUENTIAL_LINEAR", "ColorSequentialLinear")
-                                        .addMapValue("MONOCHROME_AREA", "MonochromeArea")
-                                        .addMapValue("ONE_CHIP_COLOUR_AREA", "OneChipColourArea")
-                                        .addMapValue("TWO_CHIP_COLOR_AREA", "TwoChipColorArea")
-                                        .addMapValue("THREE_CHIP_COLOR_AREA", "ThreeChipColorArea")
-                                        .addMapValue("COLOR_SEQUENTIAL_AREA", "ColorSequentialArea")
+                                        .addMapValue("undefined", "undefined")
+                                        .addMapValue("MonochromeLinear", "MonochromeLinear")
+                                        .addMapValue("ColorTriLinear", "ColorTriLinear")
+                                        .addMapValue("ColorSequentialLinear", "ColorSequentialLinear")
+                                        .addMapValue("MonochromeArea", "MonochromeArea")
+                                        .addMapValue("OneChipColourArea", "OneChipColourArea")
+                                        .addMapValue("TwoChipColorArea", "TwoChipColorArea")
+                                        .addMapValue("ThreeChipColorArea", "ThreeChipColorArea")
+                                        .addMapValue("ColorSequentialArea", "ColorSequentialArea")
                                     .createField()) // value
                             .createField()) // scannerSensor
                             .addField(new FieldBuilder("ScanningSystemSoftware").setTitle("Scanning System Software - M").setMaxOccurrences(1)
@@ -413,14 +413,14 @@ public final class DeviceManager {
                                     // value, @use
                                     .addField(new FieldBuilder("value").setTitle("Camera Sensor - M").setMaxOccurrences(1)
                                         .setType(Field.SELECT).setHint("Typ senzoru fotoaparátu.")
-                                        .addMapValue("UNDEFINED", "undefined")
-                                        .addMapValue("MONOCHROME_AREA", "MonochromeArea")
-                                        .addMapValue("ONE_CHIP_COLOR_AREA", "OneChipColorArea")
-                                        .addMapValue("TWO_CHIP_COLOR_AREA", "TwoChipColorArea")
-                                        .addMapValue("THREE_CHIP_COLOR_AREA", "ThreeChipColorArea")
-                                        .addMapValue("MONOCHROME_LINEAR", "MonochromeLinear")
-                                        .addMapValue("COLOR_TRI_LINEAR", "ColorTriLinear")
-                                        .addMapValue("COLOR_SEQUENTIAL_LINEAR", "ColorSequentialLinear")
+                                        .addMapValue("undefined", "undefined")
+                                        .addMapValue("MonochromeArea", "MonochromeArea")
+                                        .addMapValue("OneChipColorArea", "OneChipColorArea")
+                                        .addMapValue("TwoChipColorArea", "TwoChipColorArea")
+                                        .addMapValue("ThreeChipColorArea", "ThreeChipColorArea")
+                                        .addMapValue("MonochromeLinear", "MonochromeLinear")
+                                        .addMapValue("ColorTriLinear", "ColorTriLinear")
+                                        .addMapValue("ColorSequentialLinear", "ColorSequentialLinear")
                                         .addMapValue("", "")
                                     .createField()) // value
                             .createField()) // cameraSensor
