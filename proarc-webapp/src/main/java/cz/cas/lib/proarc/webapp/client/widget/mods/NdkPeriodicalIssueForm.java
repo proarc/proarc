@@ -271,8 +271,8 @@ public final class NdkPeriodicalIssueForm {
                             .setHint("Typ popisu místa. Kódem nebo textově."
                                 + "<p>Pokud má dokument více míst vydání v poli 260, podpole „a“, přebírají se ze záznamu všechna místa"
                                 + "<li>“code” pro údaj z pole 008</li><li>“text” pro údaj z pole 260</li>")
-                            .addMapValue("CODE", "code")
-                            .addMapValue("TEXT", "text")
+                            .addMapValue("code", "code")
+                            .addMapValue("text", "text")
                         .createField()) // type
                         .addField(new FieldBuilder("authority").setTitle("Authority - MA").setMaxOccurrences(1).setType(Field.COMBO)
                             .setHint("Hodnota “marccountry” jen u údaje z pole 008")
@@ -403,8 +403,8 @@ public final class NdkPeriodicalIssueForm {
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
                         .setType(Field.SELECT).setRequired(true)
                         .setHint("Typ popisu.")
-                        .addMapValue("CODE", "code")
-                        .addMapValue("TEXT", "text")
+                        .addMapValue("code", "code")
+                        .addMapValue("text", "text")
                     .createField()) // type
                     .addField(NdkForms.createLangTermValue()
                     .createField()) // value

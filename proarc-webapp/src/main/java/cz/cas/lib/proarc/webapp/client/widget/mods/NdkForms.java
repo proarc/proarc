@@ -109,8 +109,8 @@ public final class NdkForms {
             .addField(new FieldBuilder("type").setTitle(typeTitle).setMaxOccurrences(1)
                 .setType(Field.SELECT)
                 .setRequired(isTypeRequired)
-                .addMapValue("CODE", "code")
-                .addMapValue("TEXT", "text")
+                .addMapValue("code", "code")
+                .addMapValue("text", "text")
             .createField()) // @type
             // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
             // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration

@@ -252,8 +252,8 @@ public final class OldPrintSupplementForm {
                             .setHint("Typ popisu místa. Kódem nebo textově."
                                 + "<p>Pokud má dokument více míst vydání v poli 260, podpole „a“, přebírají se ze záznamu všechna místa"
                                 + "<li>“code” pro údaj z pole 008</li><li>“text” pro údaj z pole 260</li>")
-                            .addMapValue("CODE", "code")
-                            .addMapValue("TEXT", "text")
+                            .addMapValue("code", "code")
+                            .addMapValue("text", "text")
                         .createField()) // type
                         .addField(new FieldBuilder("value").setTitle("Place Term - MA").setMaxOccurrences(1).setType(Field.TEXT)
                             .setHint("Konkrétní určení místa a země vydání, např. Praha resp. xr pro ČR."
@@ -350,8 +350,8 @@ public final class OldPrintSupplementForm {
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
                         .setType(Field.SELECT).setRequired(true)
                         .setHint("Typ popisu.")
-                        .addMapValue("CODE", "code")
-                        .addMapValue("TEXT", "text")
+                        .addMapValue("code", "code")
+                        .addMapValue("text", "text")
                     .createField())
                     .addField(NdkForms.createLangTermValue()
                     .createField()) // value

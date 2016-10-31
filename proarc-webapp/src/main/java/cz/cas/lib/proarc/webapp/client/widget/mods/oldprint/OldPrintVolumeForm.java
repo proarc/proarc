@@ -236,8 +236,8 @@ public final class OldPrintVolumeForm {
                             .setHint("Typ popisu místa. Kódem nebo textově."
                                 + "<p>Pokud má dokument více míst vydání v poli 260, podpole „a“, přebírají se ze záznamu všechna místa"
                                 + "<li>“code” pro údaj z pole 008</li><li>“text” pro údaj z pole 260</li>")
-                            .addMapValue("CODE", "code")
-                            .addMapValue("TEXT", "text")
+                            .addMapValue("code", "code")
+                            .addMapValue("text", "text")
                         .createField()) // type
                         // @authorityURI, @valueURI,@authority
                         .addField(new FieldBuilder("authority").setTitle("Authority - MA").setMaxOccurrences(1).setType(Field.COMBO)
@@ -355,8 +355,8 @@ public final class OldPrintVolumeForm {
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
                         .setType(Field.SELECT).setRequired(true)
                         .setHint("Typ popisu.")
-                        .addMapValue("CODE", "code")
-                        .addMapValue("TEXT", "text")
+                        .addMapValue("code", "code")
+                        .addMapValue("text", "text")
                     .createField()) // type
                     .addField(NdkForms.createLangTermValue()
                     .createField()) // value
@@ -719,8 +719,8 @@ public final class OldPrintVolumeForm {
                         .createField()) // authority
                         // type, codeOrText('code', 'text')
                         .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
-                            .addMapValue("CODE", "code")
-                            .addMapValue("TEXT", "text")
+                            .addMapValue("code", "code")
+                            .addMapValue("text", "text")
                         .createField())
                         .addField(NdkForms.createLangTermValue()
                             .setTitle("Language - R")

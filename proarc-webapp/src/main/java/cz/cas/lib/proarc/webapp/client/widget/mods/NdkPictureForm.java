@@ -192,8 +192,8 @@ public final class NdkPictureForm {
                     // type, codeOrText('code', 'text')
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
                         .setHint("Typ popisu.")
-                        .addMapValue("CODE", "code")
-                        .addMapValue("TEXT", "text")
+                        .addMapValue("code", "code")
+                        .addMapValue("text", "text")
                     .createField()) // type
                     .addField(NdkForms.createLangTermValue()
                     .createField()) // value
