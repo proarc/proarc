@@ -500,10 +500,9 @@ public final class DigitalObjectPreview {
                 return ;
             }
 
-            double ratio = 1.0;
-//            double ratio = zoom.ratio(
-//                    imgContainer.getInnerWidth(), imgContainer.getInnerHeight(),
-//                    image.getWidth(), image.getHeight());
+            double ratio = zoom.ratio(
+                    imgContainer.getInnerWidth(), imgContainer.getInnerHeight(),
+                    image.getWidth(), image.getHeight());
 
             double width = (double) image.getWidth() * ratio;
             double height = (double) image.getHeight() * ratio;
@@ -514,13 +513,16 @@ public final class DigitalObjectPreview {
                     (int) width - imgContainer.getScrollbarSize() - 4,
                     (int) height - imgContainer.getScrollbarSize() - 4);
             img.setCanFocus(Boolean.TRUE);
+            img.setAlign(Alignment.CENTER);
             imgContainer.setMembers(img);
             imgContainer.adjustForContent(true);
             int scrollLeft = (int) (imgContainer.getWidth() * scrollHorizontal);
             int scrollTop = (int) (imgContainer.getHeight() * scrollVertical);
             imgContainer.scrollTo(scrollLeft, scrollTop);
             addContainerMoveListener(imgContainer, img);
-            resize(zoom);
+            if (focus) {
+                img.focus();
+            }
         }
 
         public void resize(Zoom zoom) {
@@ -538,18 +540,12 @@ public final class DigitalObjectPreview {
                 double width = (double) image.getWidth() * ratio;
                 double height = (double) image.getHeight() * ratio;
                 log("resize", width, height);
-                // #461: the resized document is moved left to a negitve offset by smartgwt.
-                // In that case reset the left offset to 0 now and after the resize.
-                Integer left = img.getLeft() < 0 ? 0 : null;
-                img.animateRect(left, null, (int) width - imgContainer.getScrollbarSize() - 4,
+                img.animateResize((int) width - imgContainer.getScrollbarSize() - 4,
                         (int) height - imgContainer.getScrollbarSize() - 4,
                         new AnimationCallback() {
 
                     @Override
                     public void execute(boolean earlyFinish) {
-                        if (img.getLeft() < 0) {
-                            img.setLeft(0);
-                        }
                         img.focus();
                         log("after resize.earlyFinish: " + earlyFinish, 0, 0);
                     }
