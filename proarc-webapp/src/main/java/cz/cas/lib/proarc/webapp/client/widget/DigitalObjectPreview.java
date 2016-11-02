@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -27,9 +27,9 @@ import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.Cursor;
 import com.smartgwt.client.types.DragAppearance;
 import com.smartgwt.client.types.HeaderControls;
+import com.smartgwt.client.types.ImageStyle;
 import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.util.Page;
-import com.smartgwt.client.widgets.AnimationCallback;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Img;
 import com.smartgwt.client.widgets.WidgetCanvas;
@@ -78,7 +78,7 @@ public final class DigitalObjectPreview {
         SUPPORTED_IMAGES.add("image/png");
         SUPPORTED_IMAGES.add("image/gif");
     }
-    
+
     private final ClientMessages i18n;
     private final VLayout previewLayout;
     private final VLayout windowContainer;
@@ -385,7 +385,8 @@ public final class DigitalObjectPreview {
             // center vertically
             this.imgContainer.setAlign(Alignment.CENTER);
             // center horizontally
-            this.imgContainer.setDefaultLayoutAlign(Alignment.CENTER);
+            // #461: do not try to center horizontally as browsers crop large images in small containers
+//            this.imgContainer.setDefaultLayoutAlign(Alignment.CENTER);
             this.imgContainer.setOverflow(Overflow.AUTO);
             this.display = display;
             this.i18n = i18n;
@@ -481,9 +482,9 @@ public final class DigitalObjectPreview {
                 resizedHandler = null;
             }
             cancel();
-//            scrollHorizontal = (double) imgContainer.getScrollLeft() / (double) imgContainer.getWidth();
-//            scrollVertical = (double) imgContainer.getScrollTop() / (double) imgContainer.getHeight();
-//            ClientUtils.fine(LOG, "stop: [%s, %s]", scrollHorizontal, scrollVertical);
+            scrollHorizontal = (double) imgContainer.getScrollLeft() / (double) imgContainer.getWidth();
+            scrollVertical = (double) imgContainer.getScrollTop() / (double) imgContainer.getHeight();
+            ClientUtils.fine(LOG, "stop: [%s, %s]", scrollHorizontal, scrollVertical);
         }
 
         private void scheduleForRender() {
@@ -513,7 +514,7 @@ public final class DigitalObjectPreview {
                     (int) width - imgContainer.getScrollbarSize() - 4,
                     (int) height - imgContainer.getScrollbarSize() - 4);
             img.setCanFocus(Boolean.TRUE);
-            img.setAlign(Alignment.CENTER);
+            img.setImageType(ImageStyle.STRETCH);
             imgContainer.setMembers(img);
             imgContainer.adjustForContent(true);
             int scrollLeft = (int) (imgContainer.getWidth() * scrollHorizontal);
@@ -542,23 +543,27 @@ public final class DigitalObjectPreview {
                 log("resize", width, height);
                 img.animateResize((int) width - imgContainer.getScrollbarSize() - 4,
                         (int) height - imgContainer.getScrollbarSize() - 4,
-                        new AnimationCallback() {
-
-                    @Override
-                    public void execute(boolean earlyFinish) {
-                        img.focus();
-                        log("after resize.earlyFinish: " + earlyFinish, 0, 0);
-                    }
+                        (boolean earlyFinish) -> {
+                            img.focus();
+                            log("after resize.earlyFinish: " + earlyFinish, 0, 0);
                 });
             }
         }
 
         private void log(String msg, double width, double height) {
             if (LOG.isLoggable(Level.FINE)) {
+                final Canvas img = imgContainer.getMember(0);
+                String imgDebug = "-";
+                if (img != null) {
+                    imgDebug = ClientUtils.format("%s, %s, %s, %s",
+                            img.getLeft(), img.getTop(), img.getWidth(), img.getHeight()
+                            );
+                }
                 ClientUtils.fine(LOG, "%s: %s,"
                         + "\nscrollbar: %s"
                         + "\nimage[%s, %s] => [%s, %s],"
                         + "\nimageContainer.visible: %s, drawn: %s, attached: %s, dirty: %s,"
+                        + "\nImg[%s]"
                         + "\nsize[%s, %s], innerSize[%s, %s], innerContentSize[%s, %s], viewport[%s, %s], visible[%s, %s]"
                         + "\nscrollCurrent[%s, %s], scrollSize[%s, %s]",
                         msg,
@@ -566,6 +571,7 @@ public final class DigitalObjectPreview {
                         imgContainer.getScrollbarSize(),
                         image.getWidth(), image.getHeight(), (int) width, (int) height,
                         imgContainer.isVisible(), imgContainer.isDrawn(), imgContainer.isAttached(), imgContainer.isDirty(),
+                        imgDebug,
                         imgContainer.getWidth(), imgContainer.getHeight(),
                         imgContainer.getInnerWidth(), imgContainer.getInnerHeight(),
                         imgContainer.getInnerContentWidth(), imgContainer.getInnerContentHeight(),
