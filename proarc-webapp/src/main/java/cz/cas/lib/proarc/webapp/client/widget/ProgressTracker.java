@@ -16,15 +16,11 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
-import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.core.client.Scheduler;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
-import com.smartgwt.client.data.ResultSet;
-import com.smartgwt.client.data.events.DataArrivedEvent;
-import com.smartgwt.client.data.events.DataArrivedHandler;
-import com.smartgwt.client.data.events.ErrorEvent;
-import com.smartgwt.client.data.events.HandleErrorHandler;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
@@ -39,7 +35,7 @@ import com.smartgwt.client.widgets.layout.HStack;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import java.util.ArrayList;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
@@ -82,9 +78,8 @@ public final class ProgressTracker {
         label.setAutoHeight();
         progressbar = new Progressbar();
         progressbar.setVertical(false);
-        progressbar.setWidth100();
-        progressbar.setHeight(24);
-        progressbar.setBreadth(1);
+        progressbar.setLength(400);
+        progressbar.setBreadth(24);
 
         widget.setMembers(label, progressbar);
         widget.setWidth100();
@@ -152,9 +147,7 @@ public final class ProgressTracker {
         progressbar.setPercentDone(0);
         if (datasource != null) {
             progressHandler = new ProgressHandler(datasource, criteria);
-            ResultSet resultSet = progressHandler.getResultSet();
-//            resultSet.getRange(0, 10);
-            ClientUtils.getRangeWorkAround(resultSet, 0, 10);
+            progressHandler.fetch(0, 10);
         }
     }
 
@@ -226,23 +219,38 @@ public final class ProgressTracker {
         this.criteria = criteria;
     }
 
-    private final class ProgressHandler implements Runnable, DataArrivedHandler, HandleErrorHandler {
+    private final class ProgressHandler implements Runnable {
 
-        private final ArrayList<HandlerRegistration> registrations = new ArrayList<HandlerRegistration>();
-        private final ResultSet resultSet;
         private ProgressTracker tracker = ProgressTracker.this;
         private boolean done;
+        private final DataSource ds;
+        private final Criteria criteria;
 
         public ProgressHandler(DataSource ds, Criteria criteria) {
-            resultSet = new ResultSet(ds);
-            resultSet.setCriteria(criteria);
-            resultSet.setFetchDelay(2000);
-            registrations.add(ds.addHandleErrorHandler(this));
-            registrations.add(resultSet.addDataArrivedHandler(this));
+            this.ds = ds;
+            this.criteria = criteria;
         }
 
-        public ResultSet getResultSet() {
-            return resultSet;
+        public void fetch(int startRow, int endRow, int delay) {
+            Scheduler.get().scheduleFixedPeriod(() -> {
+                fetch(startRow, endRow);
+                return false;
+            }, delay);
+        }
+
+        public void fetch(int startRow, int endRow) {
+            // #470: use fetch instead of ResultSet that cannot handle empty responses since SmartGWT 6.0
+            final DSRequest reqProps = new DSRequest();
+            reqProps.setStartRow(startRow);
+            reqProps.setEndRow(endRow);
+            reqProps.setWillHandleError(true);
+            ds.fetchData(criteria, (dsResponse, data, dsRequest) -> {
+                if (RestConfig.isStatusOk(dsResponse)) {
+                    onDataArrived(dsResponse.getStartRow(), dsResponse.getEndRow(), dsResponse.getTotalRows());
+                } else {
+                    onHandleError(dsResponse);
+                }
+            }, reqProps);
         }
 
         @Override
@@ -252,44 +260,32 @@ public final class ProgressTracker {
 
         public void done() {
             done = true;
-            for (HandlerRegistration r : registrations) {
-                r.removeHandler();
-            }
-            registrations.clear();
         }
 
-        @Override
-        public void onDataArrived(DataArrivedEvent event) {
+        private void onDataArrived(int startRow, int endRow, final int length) {
             if (done) {
                 return ;
             }
-            int startRow = event.getStartRow();
-            final int endRow = event.getEndRow();
-            final int length = resultSet.getLength();
-            Boolean lengthIsKnown = resultSet.lengthIsKnown();
+            Boolean lengthIsKnown = true;
             ClientUtils.log(LOG, Level.FINE, "onDataArrived: [%s,%s,%s], lengthIsKnown: %s", startRow, endRow, length, lengthIsKnown);
             tracker.setProgress(endRow, length);
-            if (lengthIsKnown && endRow == resultSet.getLength()) {
+            if (lengthIsKnown && endRow == length) {
                 // done
                 ProgressTracker.this.stop();
                 ClientUtils.log(LOG, Level.FINE, "onDataArrived.done");
                 done();
             } else {
                 ClientUtils.log(LOG, Level.FINE, "onDataArrived.next: [%s,%s]", endRow, length);
-//                resultSet.getRange(endRow, length);
-                ClientUtils.getRangeWorkAround(resultSet, endRow, length);
+                fetch(endRow, length, 2000);
             }
         }
 
-        @Override
-        public void onHandleError(ErrorEvent event) {
+        private void onHandleError(DSResponse response) {
             ClientUtils.log(LOG, Level.FINE, "onHandleError");
             if (done) {
                 return ;
             }
-            event.cancel();
             StringBuilder sb = new StringBuilder();
-            DSResponse response = event.getResponse();
             Map<?, ?> errors = response.getErrors();
             if (errors != null) {
                 for (Iterator<?> it = errors.values().iterator(); it.hasNext();) {
