@@ -563,7 +563,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                     LOG.fine("thumb selects list: " + selectionIndex);
                     batchItemGrid.selectSingleRecord(selectionIndex);
                     batchItemGrid.scrollToRow(selectionIndex);
-                    selectBatchItem(false, selection);
+                    selectBatchItem(true, selection);
                 } else if (selection != null && selection.length > 1) {
                     int[] indexes = new int[selection.length];
                     for (int i = 0; i < indexes.length; i++) {
