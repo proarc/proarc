@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim         http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
-    <leader>       22      4500</leader>
-    <controlfield tag="LDR">-----nas-a22--------450</controlfield>
+    <leader>-----nas-a22--------4500</leader>
     <controlfield tag="FMT">S</controlfield>
     <controlfield tag="001">cps1995035651</controlfield>
     <controlfield tag="003">CZ-PrN</controlfield>

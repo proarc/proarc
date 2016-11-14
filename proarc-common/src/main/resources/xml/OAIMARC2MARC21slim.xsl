@@ -4,16 +4,24 @@
         <record xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim
         http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" >
             <leader>
-                <xsl:text>     </xsl:text>
-                <xsl:value-of select="@status"/>
-                <xsl:value-of select="@type"/>
-                <xsl:value-of select="@level"/>
-                <xsl:text>  22     </xsl:text>
-                <xsl:value-of select="@encLvl"/>
-                <xsl:value-of select="@catForm"/>
-                <xsl:text> 4500</xsl:text>
+                <!--#486: use the real leader if there is oai:fixfield[@id='LDR']-->
+                <xsl:choose>
+                    <xsl:when test="oai:fixfield[@id='LDR']">
+                        <xsl:value-of select="(oai:fixfield[@id='LDR'])[1]" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>     </xsl:text>
+                        <xsl:value-of select="@status"/>
+                        <xsl:value-of select="@type"/>
+                        <xsl:value-of select="@level"/>
+                        <xsl:text>  22     </xsl:text>
+                        <xsl:value-of select="@encLvl"/>
+                        <xsl:value-of select="@catForm"/>
+                        <xsl:text> 4500</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
             </leader>
-            <xsl:apply-templates select="oai:fixfield|oai:varfield"/>
+            <xsl:apply-templates select="oai:fixfield[@id != 'LDR']|oai:varfield"/>
         </record>
     </xsl:template>
 

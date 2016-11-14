@@ -13,7 +13,8 @@
     <name type="corporate">
         <namePart>Československá akademie věd</namePart>
     </name>
-    <typeOfResource/>
+    <typeOfResource>text</typeOfResource>
+    <genre authority="marcgt">periodical</genre>
     <originInfo>
         <place>
             <placeTerm type="code" authority="marccountry">xr-</placeTerm>
@@ -25,7 +26,7 @@
         <dateIssued>1953-1992</dateIssued>
         <dateIssued point="start" encoding="marc">1953</dateIssued>
         <dateIssued point="end" encoding="marc">1992</dateIssued>
-        <issuance/>
+        <issuance>serial</issuance>
         <frequency>Vychází nepravidelně</frequency>
     </originInfo>
     <language>
