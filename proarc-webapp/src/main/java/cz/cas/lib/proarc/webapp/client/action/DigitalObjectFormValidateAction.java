@@ -31,7 +31,7 @@ import cz.cas.lib.proarc.webapp.client.widget.ProgressTracker;
 
 /**
  * Validates list of digital objects gained from
- * a {@link Validatable} action source.
+ * a {@link Validatable} action source or passed to the constructor.
  *
  * <p>For now it runs fully on the client side. It uses MODS custom forms
  * for validation. The result of validation is shown inside a window and error
@@ -44,11 +44,12 @@ import cz.cas.lib.proarc.webapp.client.widget.ProgressTracker;
  *
  * @author Jan Pokorsky
  */
-public final class DigitalObjectFormValidateAction extends AbstractAction {
+public class DigitalObjectFormValidateAction extends AbstractAction {
 
     private static DigitalObjectFormValidateAction INSTANCE;
 
     private final ModsCustomEditor validator;
+    private Validatable validatable;
     private final ClientMessages i18n;
     private final ProgressTracker progress;
 
@@ -60,12 +61,17 @@ public final class DigitalObjectFormValidateAction extends AbstractAction {
     }
 
     private DigitalObjectFormValidateAction(ClientMessages i18n) {
+        this(i18n, null);
+    }
+
+    public DigitalObjectFormValidateAction(ClientMessages i18n, Validatable validatable) {
         super(i18n.DigitalObjectFormValidateAction_Title(),
                 "[SKIN]/actions/configure.png",
                 i18n.DigitalObjectFormValidateAction_Hint());
         this.i18n = i18n;
         this.validator = new ModsCustomEditor(i18n);
         this.progress = new ProgressTracker(i18n);
+        this.validatable = validatable;
     }
 
     @Override
@@ -106,12 +112,12 @@ public final class DigitalObjectFormValidateAction extends AbstractAction {
         }
     }
 
-    private static Validatable getValidable(ActionEvent event) {
+    private Validatable getValidable(ActionEvent event) {
         Object source = event.getSource();
         if (source instanceof Validatable) {
             return (Validatable) source;
         }
-        return null;
+        return validatable;
     }
 
     private final class ValidateTask implements ScheduledCommand {

@@ -76,6 +76,7 @@ import cz.cas.lib.proarc.webapp.client.action.DigitalObjectFormValidateAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectFormValidateAction.ValidatableList;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
+import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
@@ -116,10 +117,12 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private DeleteAction deleteAction;
     private SelectAction selectAllAction;
     private DigitalObjectCopyMetadataAction copyMetadataAction;
+    private DigitalObjectFormValidateAction validateAction;
     private final PlaceController childPlaces;
     private final DigitalObjectEditor childEditor;
+    private final Canvas childDisplay;
     private final ActionSource actionSource;
-    private ReorderTask reorderTask = new ReorderTask();
+    private final ReorderTask reorderTask = new ReorderTask();
     private Action resumeAction;
     private Handler handler;
 
@@ -140,7 +143,8 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         SimpleEventBus eventBus = new SimpleEventBus();
         childPlaces = new PlaceController(eventBus);
         childEditor = new DigitalObjectEditor(i18n, childPlaces, true);
-        layout.addMember(initDigitalObjectEditor(childEditor, eventBus));
+        childDisplay = initDigitalObjectEditor(childEditor, eventBus);
+        layout.addMember(childDisplay);
 
         HLayout editorThumbLayout = new HLayout();
         editorThumbLayout.setHeight100();
@@ -342,6 +346,9 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
     @Override
     public Record[] getSelection() {
+        if (reorderTask.isReordered()) {
+            return null;
+        }
         return batchItemGrid.anySelected()
                 ? batchItemGrid.getSelectedRecords()
                 : thumbViewer.getSelection();
@@ -392,6 +399,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     }
 
     private void refreshData() {
+        reorderTask.reset();
         DigitalObjectCopyMetadataAction.resetSelection();
         Criteria criteria = new Criteria(ImportBatchItemDataSource.FIELD_BATCHID, batchRecord.getId());
         batchItemGrid.invalidateCache();
@@ -433,7 +441,6 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
-                    selectListInProgress = true;
                     batchItemGrid.selectRecords(selectionIndex);
                 }
             }
@@ -632,18 +639,37 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             }
         };
         copyMetadataAction = new DigitalObjectCopyMetadataAction(i18n);
+        validateAction = new DigitalObjectFormValidateAction(i18n, new ValidatableList(batchItemGrid)) {
+            @Override
+            public boolean accept(ActionEvent event) {
+                return !reorderTask.isReordered();
+            }
+
+        };
     }
 
     private ToolStrip createEditorToolBar(ActionSource actionSource) {
         ToolStrip toolbar = Actions.createToolStrip();
         toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n), this));
-        toolbar.addMember(Actions.asIconButton(selectAllAction, this));
+        toolbar.addMember(Actions.asIconButton(selectAllAction, actionSource));
         toolbar.addMember(Actions.asIconButton(foxmlViewAction, actionSource));
         toolbar.addMember(Actions.asIconButton(deleteAction, actionSource));
-        toolbar.addMember(Actions.asIconButton(DigitalObjectFormValidateAction.getInstance(i18n),
-                new ValidatableList(batchItemGrid)));
+        toolbar.addMember(Actions.asIconButton(validateAction, actionSource));
         toolbar.addMember(Actions.asIconButton(copyMetadataAction, actionSource));
         toolbar.addMember(Actions.asIconButton(resumeAction, this));
+        Action saveAction = new SaveAction(i18n) {
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                return reorderTask.isReordered();
+            }
+
+            @Override
+            public void performAction(ActionEvent event) {
+                reorderTask.save();
+            }
+        };
+        toolbar.addMember(Actions.asIconButton(saveAction, actionSource));
         return toolbar;
     }
 
@@ -651,7 +677,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         menu.addItem(Actions.asMenuItem(foxmlViewAction, contextSource, true));
         menu.addItem(Actions.asMenuItem(deleteAction, contextSource, true));
         menu.addItem(Actions.asMenuItem(copyMetadataAction, contextSource, false));
-        menu.addItem(Actions.asMenuItem(DigitalObjectFormValidateAction.getInstance(i18n), new ValidatableList(batchItemGrid), false));
+        menu.addItem(Actions.asMenuItem(validateAction, contextSource, false));
         return menu;
     }
 
@@ -696,7 +722,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
      */
     private void loadItemInChildEditor(Record[] records) {
         actionSource.fireEvent();
-        if (records == null || records.length == 0 /*|| originChildren != null*/) {
+        if (records == null || records.length == 0 || reorderTask.isReordered()) {
             childPlaces.goTo(Place.NOWHERE);
         } else {
             Place lastPlace = childPlaces.getWhere();
@@ -731,6 +757,11 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             super(i18n.ImportBatchItemEditor_ActionSaveAll_Title(),
                     "[SKIN]/actions/approve.png",
                     i18n.ImportBatchItemEditor_ActionSaveAll_Hint());
+        }
+
+        @Override
+        public boolean accept(ActionEvent event) {
+            return !reorderTask.isReordered();
         }
 
         @Override
@@ -777,7 +808,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     /**
      * Helper to reorder import items. Start with {@link #reorder(java.lang.Object) }.
      */
-    private final class ReorderTask implements ScheduledCommand {
+    private final class ReorderTask {
 
         private Object sourceWidget;
         private Record[] originChildren;
@@ -791,12 +822,11 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         public void reorder(Object sourceWidget) {
             this.sourceWidget = sourceWidget;
             originChildren = getRecords();
-            Scheduler.get().scheduleDeferred(this);
+            updateWidgetsOnReorder(sourceWidget, true);
         }
 
-        @Override
-        public void execute() {
-            save();
+        public boolean isReordered() {
+            return originChildren != null;
         }
 
         private Record[] getRecords() {
@@ -811,27 +841,55 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             return records;
         }
 
-        private void updateWidgets(Object src) {
+        public void reset() {
+            originChildren = null;
+            sourceWidget = null;
+            thumbViewer.setShowEmptyMessage(true);
+            thumbViewer.setDisabled(false);
+            batchItemGrid.setShowEmptyMessage(true);
+            batchItemGrid.setDisabled(false);
+            childDisplay.setVisible(true);
+        }
+
+        private void updateWidgetsOnReorder(Object src, boolean reordering) {
             if (src == batchItemGrid) {
+                thumbViewer.setShowEmptyMessage(!reordering);
+                thumbViewer.setData(new Record[0]);
+                thumbViewer.setDisabled(reordering);
+            } else if (src == thumbViewer) {
+                batchItemGrid.setShowEmptyMessage(!reordering);
+                batchItemGrid.setData(new Record[0]);
+                batchItemGrid.setDisabled(reordering);
+            }
+            childDisplay.setVisible(!reordering);
+            actionSource.fireEvent();
+        }
+
+        private void updateWidgetsOnSave(Object src) {
+            if (src == batchItemGrid) {
+                reset();
                 DataSource ds = batchItemGrid.getDataSource();
                 Record[] records = batchItemGrid.getOriginalResultSet().toArray();
                 Record[] copyRecords = ds.copyRecords(records);
                 thumbViewer.setData(copyRecords);
+                loadItemInChildEditor(batchItemGrid.getSelectedRecords());
+                actionSource.fireEvent();
             } else if (src == thumbViewer) {
+                reset();
                 syncListWithTilesOnReorder();
+                actionSource.fireEvent();
             } else {
                 refreshData();
             }
         }
 
-        private void save() {
+        public void save() {
             if (originChildren == null) {
                 return ;
             }
             Record[] rs = getRecords();
             if (RelationDataSource.equals(originChildren, rs)) {
-                originChildren = null;
-                sourceWidget = null;
+                updateWidgetsOnSave(sourceWidget);
                 return ;
             }
             String[] childPids = ClientUtils.toFieldValues(rs, RelationDataSource.FIELD_PID);
@@ -842,12 +900,10 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 @Override
                 public void execute(Boolean value) {
                     if (value != null && value) {
-                        updateWidgets(sourceWidget);
-                        originChildren = null;
-                        sourceWidget = null;
+                        updateWidgetsOnSave(sourceWidget);
                         StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
                     } else {
-                        updateWidgets(null);
+                        updateWidgetsOnSave(null);
                     }
                 }
             });
