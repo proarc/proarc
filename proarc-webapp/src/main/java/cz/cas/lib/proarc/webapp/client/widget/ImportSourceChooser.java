@@ -247,8 +247,13 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
                 treeGrid.setCriteria(criteria);
                 boolean notArchive = !BatchRecord.isArchive(profile);
                 selectScanner.setRequired(notArchive);
-                selectScanner.setVisible(notArchive);
-                cbiPageIndexes.setVisible(notArchive);
+                if (notArchive) {
+                    selectScanner.show();
+                    cbiPageIndexes.show();
+                } else {
+                    selectScanner.hide();
+                    cbiPageIndexes.hide();
+                }
             }
         });
 
