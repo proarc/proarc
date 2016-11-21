@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
     <version>3.2-SNAPSHOT</version>
     <name>ProArc</name>
-    <url>https://github.com/proarc/proarc/wiki</url>
+    <url>${proarc.wiki}</url>
 
     <licenses>
         <license>
@@ -41,6 +41,7 @@
 
     <properties>
         <proarc.version>${project.version}</proarc.version>
+        <proarc.wiki>https://github.com/proarc/proarc/wiki</proarc.wiki>
         <gwtVersion>2.8.0-rc2</gwtVersion>
         <jacksonVersion>2.8.1</jacksonVersion>
         <jerseyVersion>1.17.1</jerseyVersion>

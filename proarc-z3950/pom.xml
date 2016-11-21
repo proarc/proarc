@@ -13,6 +13,7 @@
     <packaging>jar</packaging>
 
     <name>Z3950 Client</name>
+    <url>${proarc.wiki}</url>
 
     <properties>
         <!-- Template for junit properties with local resources.

@@ -16,6 +16,7 @@
     <artifactId>proarc-webapp</artifactId>
     <packaging>war</packaging>
     <name>ProArc Web Application</name>
+    <url>${proarc.wiki}</url>
 
     <properties>
         <warName>proarc</warName>
@@ -28,11 +29,6 @@
     </properties>
 
     <dependencies>
-<!--        <dependency>
-            <groupId>asm</groupId>
-            <artifactId>asm</artifactId>
-            <version>4.0</version>
-        </dependency>-->
         <dependency>
             <groupId>com.google.gwt</groupId>
             <artifactId>gwt-servlet</artifactId>
@@ -313,30 +309,6 @@
 
     <profiles>
 
-        <!--
-            Uses the latest patched SmartGWT build that has to be installed manually.
-            Patched builds are not deployed to the public repository. It is necessary
-            to install them locally from http://www.smartclient.com/builds and
-            use POMs from smartgwt-4.0p.zip/maven/pom.
-
-            mvn org.apache.maven.plugins:maven-install-plugin:2.5.1:install-file -Dfile=.../smartgwt.jar -DpomFile=.../smartgwt-4.0p/maven/pom/smartgwt-lgpl.pom
-            mvn org.apache.maven.plugins:maven-install-plugin:2.5.1:install-file -Dfile=.../smartgwt-skins.jar -DpomFile=.../smartgwt-4.0p/maven/pom/smartgwt-skins.pom
-
-            To activate profile use -Pproarc.fixedSmartGwt.
-            Without profile it falls back to the public dependency that is sufficient for the compilation.
-            See also  https://isomorphic.atlassian.net/wiki/display/Main/Using+Maven+with+SmartGWT.
-        -->
-<!--        <profile>
-            <id>proarc.fixedSmartGwt</id>
-            <properties>
-                <smartGwtVersion>4.0-p20140211</smartGwtVersion>
-                <smartGwtGroupId>com.isomorphic.smartgwt.lgpl</smartGwtGroupId>
-                <smartGwtArtifact>smartgwt-lgpl</smartGwtArtifact>
-                <smartGwtSkinsArtifact>smartgwt-skins</smartGwtSkinsArtifact>
-            </properties>
-
-        </profile>-->
-
         <profile>
             <id>proarc.production</id>
             <properties>
@@ -365,12 +337,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>
-
-                    <!-- JAX-WS 2.2 JDK 1.6 support-->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
                     </plugin>
 
                 </plugins>

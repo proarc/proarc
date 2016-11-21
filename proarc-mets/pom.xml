@@ -17,6 +17,7 @@
     <packaging>jar</packaging>
 
     <name>ProArc METS JAXB Model</name>
+    <url>${proarc.wiki}</url>
 
     <dependencies>
     </dependencies>

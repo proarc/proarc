@@ -15,6 +15,7 @@
     <artifactId>proarc-nsesss</artifactId>
 
     <name>ProArc NSESSS JAXB Model</name>
+    <url>${proarc.wiki}</url>
 
     <properties>
     </properties>

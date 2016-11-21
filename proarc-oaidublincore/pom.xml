@@ -16,6 +16,7 @@
     <packaging>jar</packaging>
 
     <name>ProArc OAI Dublin Core JAXB Model</name>
+    <url>${proarc.wiki}</url>
 
     <dependencies>
     </dependencies>

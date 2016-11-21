@@ -17,6 +17,7 @@
     <packaging>jar</packaging>
 
     <name>ProArc URNNBN</name>
+    <url>${proarc.wiki}</url>
 
     <properties>
         <!-- local junit properties -->

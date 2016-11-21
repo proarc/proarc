@@ -17,6 +17,7 @@
     <packaging>jar</packaging>
 
     <name>ProArc DESA Client</name>
+    <url>${proarc.wiki}</url>
 
     <properties>
         <!-- local junit properties -->

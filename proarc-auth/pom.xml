@@ -13,6 +13,7 @@
     <artifactId>proarc-auth</artifactId>
     <packaging>jar</packaging>
     <name>ProArc Authentication</name>
+    <url>${proarc.wiki}</url>
 
     <dependencies>
 

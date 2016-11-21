@@ -17,6 +17,7 @@
     <packaging>jar</packaging>
 
     <name>ProArc MIX JAXB Model</name>
+    <url>${proarc.wiki}</url>
 
     <build>
         <plugins>
