@@ -86,6 +86,7 @@ public class WorkflowTasksView implements Refreshable {
     private void init() {
         if (!isDataInitialized) {
             isDataInitialized = true;
+            taskGrid.setViewState(taskListPersistance.getViewState());
             taskGrid.fetchData(taskListPersistance.getFilterCriteria());
         }
     }
@@ -281,7 +282,6 @@ public class WorkflowTasksView implements Refreshable {
                 editSelection();
             }
         });
-        grid.setViewState(taskListPersistance.getViewState());
         taskGrid = grid;
         return grid;
     }
