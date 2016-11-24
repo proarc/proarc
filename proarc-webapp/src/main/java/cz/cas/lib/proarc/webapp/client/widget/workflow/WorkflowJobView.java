@@ -82,6 +82,7 @@ public class WorkflowJobView implements Refreshable {
     private void init() {
         if (!isDataInitialized) {
             isDataInitialized = true;
+            jobGrid.setViewState(jobsPersistance.getViewState());
             jobGrid.fetchData(jobsPersistance.getFilterCriteria());
         }
     }
@@ -279,7 +280,6 @@ public class WorkflowJobView implements Refreshable {
                 editSelection();
             }
         });
-        jobGrid.setViewState(jobsPersistance.getViewState());
         return jobGrid;
     }
 
