@@ -506,7 +506,11 @@ public final class ClientUtils {
                     }
                     dates.add(criterion.getValueAsDate());
                 } else {
-                    map.put(fieldName, criterion.getValueAsString());
+                    // skip null values
+                    String cval = criterion.getValueAsString();
+                    if (cval != null) {
+                        map.put(fieldName, cval);
+                    }
                 }
             }
         }
