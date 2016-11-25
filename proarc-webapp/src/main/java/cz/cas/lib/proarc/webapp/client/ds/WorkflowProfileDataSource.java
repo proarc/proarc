@@ -16,11 +16,17 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import com.google.gwt.event.shared.HandlerRegistration;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.data.events.DataArrivedEvent;
 import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.FetchMode;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
+import java.util.function.Consumer;
 
 /**
  * The data source of workflow profiles.
@@ -45,6 +51,8 @@ public class WorkflowProfileDataSource extends RestDataSource {
         return INSTANCE;
     }
 
+    private ResultSet profiles;
+
     public WorkflowProfileDataSource() {
         setID(ID);
         setDataFormat(DSDataFormat.JSON);
@@ -59,5 +67,49 @@ public class WorkflowProfileDataSource extends RestDataSource {
 
         setFields(fieldId, label, hint, disabled);
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
+    }
+
+    public void getSubjobs(boolean reload, String jobName, Consumer<Record[]> consumer) {
+        getJob(reload, jobName, (profile) -> {
+            consumer.accept(profile == null ? null : profile.getAttributeAsRecordArray(WorkflowProfileConsts.JOBVIEW_SUBJOB));
+        });
+    }
+
+    public void getTasks(boolean reload, String jobName, Consumer<Record[]> consumer) {
+        getJob(reload, jobName, (profile) -> {
+            consumer.accept(profile == null ? null : profile.getAttributeAsRecordArray(WorkflowProfileConsts.JOBVIEW_TASK));
+        });
+    }
+
+    public void getJob(boolean reload, String jobName, Consumer<Record> consumer) {
+        getJobs(reload, (rs) -> {
+            Record jobProfile = rs.find(WorkflowProfileConsts.NAME, jobName);
+            consumer.accept(jobProfile);
+        });
+    }
+
+    public void getJobs(boolean reload, Consumer<ResultSet> consumer) {
+        ResultSet rs = getProfileResultSet(reload);
+        if (rs.lengthIsKnown()) {
+            consumer.accept(rs);
+        } else {
+            final HandlerRegistration[] handler = new HandlerRegistration[1];
+            handler[0] = rs.addDataArrivedHandler((DataArrivedEvent event) -> {
+                handler[0].removeHandler();
+                consumer.accept(rs);
+            });
+        }
+    }
+
+    public ResultSet getProfileResultSet(boolean reload) {
+        if (profiles == null) {
+            profiles = new ResultSet(this);
+            profiles.setFetchMode(FetchMode.LOCAL);
+            profiles.get(0);
+        } else if (reload) {
+            profiles.invalidateCache();
+            profiles.get(0);
+        }
+        return profiles;
     }
 }

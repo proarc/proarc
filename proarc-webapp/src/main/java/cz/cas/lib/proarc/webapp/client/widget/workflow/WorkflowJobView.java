@@ -37,7 +37,11 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.menu.IconMenuButton;
+import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -69,6 +73,7 @@ public class WorkflowJobView implements Refreshable {
     private boolean isUpdateOperation;
     private boolean isDataInitialized;
     private ListGridRecord lastSelection;
+    private IconMenuButton addSubjobButton;
 
     public WorkflowJobView(ClientMessages i18n) {
         this.i18n = i18n;
@@ -114,6 +119,7 @@ public class WorkflowJobView implements Refreshable {
     @Override
     public void refresh() {
         if (isDataInitialized) {
+            WorkflowProfileDataSource.getInstance().getProfileResultSet(true);
             jobGrid.invalidateCache();
         } else {
             init();
@@ -126,6 +132,7 @@ public class WorkflowJobView implements Refreshable {
     }
 
     public void refreshState() {
+        fetchAddSubjobMenu(jobGrid.getSelectedRecord());
         actionSource.fireEvent();
         jobFormView.refreshState();
     }
@@ -195,9 +202,50 @@ public class WorkflowJobView implements Refreshable {
                 }
             }
         };
+        AbstractAction addSubjobAction = new AbstractAction(i18n.WorkflowJob_View_NewSubjobAction_Title(),
+                "[SKIN]/actions/add.png", i18n.WorkflowJob_View_NewSubjobAction_Hint()) {
+
+            @Override
+            public void performAction(ActionEvent event) {}
+        };
+
         toolbar.addMember(Actions.asIconButton(refreshAction, this));
         toolbar.addMember(Actions.asIconButton(addAction, this));
+        addSubjobButton = Actions.asIconMenuButton(addSubjobAction, this);
+        addSubjobButton.setVisible(false);
+        toolbar.addMember(addSubjobButton);
         return toolbar;
+    }
+
+    private void fetchAddSubjobMenu(Record job) {
+        if (job == null || !Job.State.OPEN.name().equals(job.getAttribute(WorkflowJobDataSource.FIELD_STATE))) {
+            // XXX check for parent
+            addSubjobButton.setVisible(false);
+            return ;
+        }
+        String jobName = job.getAttribute(WorkflowJobDataSource.FIELD_PROFILE_ID);
+        if (jobName == null) {
+            return ;
+        }
+        WorkflowProfileDataSource.getInstance().getSubjobs(false, jobName, (subjobs) -> {
+            Menu menu = createSubjobMenu(subjobs);
+            addSubjobButton.setVisible(menu != null);
+            addSubjobButton.setMenu(menu);
+        });
+    }
+
+    private Menu createSubjobMenu(Record[] subjobs) {
+        if (subjobs == null || subjobs.length == 0) {
+            return null;
+        }
+        Menu menu = new Menu();
+        menu.setData(subjobs);
+        menu.addItemClickHandler((ItemClickEvent event) -> {
+            Record subjob = event.getRecord();
+            Record job = jobGrid.getSelectedRecord();
+            // XXX createSubjob(job, subjob)
+        });
+        return menu;
     }
 
     private ListGrid createJobList() {

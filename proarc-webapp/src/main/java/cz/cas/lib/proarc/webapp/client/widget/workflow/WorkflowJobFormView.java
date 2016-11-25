@@ -160,22 +160,9 @@ public class WorkflowJobFormView implements Refreshable {
         if (jobName == null) {
             return ;
         }
-        WorkflowProfileDataSource.getInstance().fetchData(
-                new Criteria(WorkflowProfileConsts.NAME, jobName),
-                new DSCallback() {
-
-            @Override
-            public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
-                Record[] taskRecs = new Record[0];
-                if (RestConfig.isStatusOk(dsResponse)) {
-                    Record jobRec = dsResponse.getDataAsRecordList().find(WorkflowProfileConsts.NAME, jobName);
-                    if (jobRec != null) {
-                        taskRecs = jobRec.getAttributeAsRecordArray(WorkflowProfileConsts.JOBVIEW_TASK);
-                    }
-                }
-                addTaskMenu.setData(taskRecs);
-            }
-        }, null);
+        WorkflowProfileDataSource.getInstance().getTasks(false, jobName, (tasks) -> {
+                addTaskMenu.setData(tasks);
+        });
     }
 
     private Canvas createMainLayout() {
