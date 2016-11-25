@@ -261,12 +261,12 @@ public final class NdkSheetMusicForm {
                 // issuance, issuanceDefinition, enum
                 .addField(new FieldBuilder("issuance").setTitle("Issuance - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
                     .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
-                    .addMapValue("CONTINUING", "continuing")
-                    .addMapValue("MONOGRAPHIC", "monographic")
-                    .addMapValue("SINGLE_UNIT", "single unit")
-                    .addMapValue("MULTIPART_MONOGRAPH", "multipart monograph")
-                    .addMapValue("SERIAL", "serial")
-                    .addMapValue("INTEGRATING_RESOURCE", "integrating resource")
+                    .addMapValue("continuing", "continuing")
+                    .addMapValue("monographic", "monographic")
+                    .addMapValue("single_unit", "single unit")
+                    .addMapValue("multipart_monograph", "multipart monograph")
+                    .addMapValue("serial", "serial")
+                    .addMapValue("integrating_resource", "integrating resource")
                 .createField()) // issuance
                 // frequency, stringPlusLanguagePlusAuthority
         .createField()); // originInfo
