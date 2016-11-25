@@ -83,8 +83,12 @@ public class WorkflowProfilesTest {
                 + "        <step taskRef='task.id2' optional='true'>\n"
                 + "            <blocker taskRef='task.id1'/>\n"
                 + "        </step>\n"
+                + "        <subjob jobRef='subjob'/>\n"
                 + "        <title>defaultTitle</title>\n"
                 + "        <title lang='cs'>csTitle</title>\n"
+                + "    </job>\n"
+
+                + "    <job name='subjob' priority='1'>\n"
                 + "    </job>\n"
 
                 + "    <material name='material0' type='FOLDER'/>\n"
@@ -131,6 +135,8 @@ public class WorkflowProfilesTest {
         assertFalse(job0.getSteps().get(0).getWorker().getActual());
         assertEquals(false, job0.getSteps().get(0).isOptional());
         assertEquals(true, job0.getSteps().get(1).isOptional());
+
+        assertEquals("subjob", job0.getSubjobs().get(0).getJob().getName());
 
         List<SetParamDefinition> paramSetters = job0.getSteps().get(0).getParamSetters();
         assertFalse(paramSetters.isEmpty());

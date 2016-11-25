@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.workflow.profile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -38,7 +39,7 @@ public class JobDefinitionView extends WorkflowItemView {
 
     @XmlElement(name = WorkflowProfileConsts.JOBVIEW_TASK)
     public List<WorkflowItemView> getTasks() {
-        ArrayList<WorkflowItemView> tasks = new ArrayList<WorkflowItemView>();
+        ArrayList<WorkflowItemView> tasks = new ArrayList<>();
         for (StepDefinition step : item.getSteps()) {
             TaskDefinition td = step.getTask();
             if (!td.isDisabled()) {
@@ -46,6 +47,14 @@ public class JobDefinitionView extends WorkflowItemView {
             }
         }
         return tasks;
+    }
+
+    @XmlElement(name = WorkflowProfileConsts.JOBVIEW_SUBJOB)
+    public List<WorkflowItemView> getSubjobs() {
+        return item.getSubjobs().stream()
+                .filter(sj -> !sj.getJob().isDisabled() && !item.getName().equals(sj.getJob().getName()))
+                .map(sj -> new WorkflowItemView(sj.getJob(), lang))
+                .collect(Collectors.toList());
     }
 
 }

@@ -38,6 +38,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
         <xs:sequence>
             <xs:element name="worker" type="tns:workerDefinition" minOccurs="0" />
             <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <!--
+                The name reference to a job that can be added as a subjob of this job.
+                -->
+                <xs:element name="subjob" type="tns:subjobDefinition"/>
                 <xs:element name="step" type="tns:stepDefinition"/>
                 <xs:element name="hint" type="tns:i18NString"/>
                 <xs:element name="title" type="tns:i18NString"/>
@@ -46,6 +50,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
         <xs:attribute name="disabled" type="xs:boolean"/>
         <xs:attribute name="name" type="xs:ID" use="required"/>
         <xs:attribute name="priority" type="xs:int" default="2"/>
+    </xs:complexType>
+
+    <!--
+    Defines a dependency on another job.
+    -->
+    <xs:complexType name="subjobDefinition">
+        <xs:attribute name="jobRef" type="xs:IDREF" use="required"/>
     </xs:complexType>
 
     <xs:complexType name="stepDefinition">

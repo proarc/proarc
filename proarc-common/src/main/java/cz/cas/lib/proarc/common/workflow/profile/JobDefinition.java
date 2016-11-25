@@ -23,6 +23,8 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  *
@@ -39,6 +41,9 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
 
     @XmlElement(name = WorkflowProfileConsts.JOB_STEP_EL)
     private List<StepDefinition> steps;
+
+    @XmlElement(name = WorkflowProfileConsts.JOB_SUBJOB_EL)
+    private List<SubjobDefinition> subjobs;
 
     private transient List<String> taskNamesSortedByBlockers;
 
@@ -62,9 +67,16 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
 
     public List<StepDefinition> getSteps() {
         if (steps == null) {
-            steps = new ArrayList<StepDefinition>();
+            steps = new ArrayList<>();
         }
         return steps;
+    }
+
+    public List<SubjobDefinition> getSubjobs() {
+        if (subjobs == null) {
+            subjobs = new ArrayList<>();
+        }
+        return subjobs;
     }
 
     public List<String> getTaskNamesSortedByBlockers() {

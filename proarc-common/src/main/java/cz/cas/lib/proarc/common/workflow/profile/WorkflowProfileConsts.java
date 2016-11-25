@@ -41,9 +41,13 @@ public class WorkflowProfileConsts {
     public static final String WORKFLOW_VALUEMAP_EL = "valuemap";
 
     public static final String JOB_STEP_EL = "step";
+    public static final String JOB_SUBJOB_EL = "subjob";
     public static final String JOB_WORKER_EL = "worker";
     public static final String JOB_PRIORITY_AT = "priority";
 
+    public static final String SUBJOB_JOBREF_ATT = "jobRef";
+
+    public static final String JOBVIEW_SUBJOB = "subjob";
     public static final String JOBVIEW_TASK = "task";
 
     public static final String STEP_BLOCKER_EL = "blocker";
