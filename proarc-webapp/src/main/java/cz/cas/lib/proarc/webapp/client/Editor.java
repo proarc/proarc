@@ -271,7 +271,7 @@ public class Editor implements EntryPoint {
             @Override
             public void onItemClick(ItemClickEvent event) {
                 MenuItem item = event.getItem();
-                if (!item.getChecked()) {
+                if (!Boolean.TRUE.equals(item.getChecked())) {
                     switchLocale(item.getAttribute(LOCALE_ATTRIBUTE));
                 }
             }
