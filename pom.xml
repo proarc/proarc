@@ -42,7 +42,7 @@
     <properties>
         <proarc.version>${project.version}</proarc.version>
         <proarc.wiki>https://github.com/proarc/proarc/wiki</proarc.wiki>
-        <gwtVersion>2.8.0-rc2</gwtVersion>
+        <gwtVersion>2.8.0</gwtVersion>
         <jacksonVersion>2.8.1</jacksonVersion>
         <jerseyVersion>1.17.1</jerseyVersion>
         <!--if you upgrade, check the version of javax.ws.rs-api-*.jar
