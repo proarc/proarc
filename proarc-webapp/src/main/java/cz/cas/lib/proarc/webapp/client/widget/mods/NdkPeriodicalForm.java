@@ -659,7 +659,7 @@ public final class NdkPeriodicalForm {
                             .addMapValue("text", "text")
                         .createField()) // type
                         .addField(NdkForms.createLangTermValue()
-                            .setTitle("Language - R")
+                            .setTitle("Language - R").setRequired(Boolean.FALSE)
                         .createField()) // value
                     .createField()) // languageTerm
                     // scriptTerm

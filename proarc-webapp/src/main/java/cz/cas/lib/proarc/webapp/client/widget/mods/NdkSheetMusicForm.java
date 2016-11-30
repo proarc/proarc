@@ -643,7 +643,7 @@ public final class NdkSheetMusicForm {
                             .addMapValue("text", "text")
                         .createField())
                         .addField(NdkForms.createLangTermValue()
-                            .setTitle("Language - R")
+                            .setTitle("Language - R").setRequired(Boolean.FALSE)
                         .createField()) // value
                     .createField()) // languageTerm
                     // scriptTerm
