@@ -28,6 +28,7 @@ public class WorkflowException extends Exception {
 
     public static final String INVALID_XML_MSG = "Workflow_InvalidXml_Msg";
     public static final String INVALID_XML_ID_MSG = "Workflow_InvalidXmlId_Msg";
+    public static final String JOB_BLOCKED_WITH_SUBJOB_MSG = "Workflow_JobBlockedWithSubjob_Msg";
     public static final String JOB_IS_CLOSED_MSG = "Workflow_JobIsClosed_Msg";
     public static final String JOB_NOT_FOUND_MSG = "Workflow_JobNotFound_Msg";
     public static final String MATERIAL_NOT_FOUND_MSG = "Workflow_MaterialNotFound_Msg";
@@ -65,6 +66,10 @@ public class WorkflowException extends Exception {
 
     public WorkflowException addInvalidXmlId(String xmlId) {
         return addValidation(null, INVALID_XML_ID_MSG, xmlId);
+    }
+
+    public WorkflowException addJobBlockedWithSubjob() {
+        return addValidation(null, JOB_BLOCKED_WITH_SUBJOB_MSG);
     }
 
     public WorkflowException addJobIsClosed() {

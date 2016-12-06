@@ -281,6 +281,24 @@ public class WorkflowManager {
                 throw new WorkflowException("Not found " + job.getId())
                         .addJobNotFound(job.getId());
             }
+
+            if (old.getState() != job.getState()) {
+                if (job.isClosed() && job.getParentId() == null) {
+                    // check subjobs if any state is open
+                    JobFilter subjobFilter = new JobFilter();
+                    subjobFilter.setParentId(job.getId());
+                    List<JobView> subjobs = jobDao.view(subjobFilter);
+                    for (JobView subjob : subjobs) {
+                        if (!subjob.isClosed()) {
+                            throw new WorkflowException(
+                                    String.format("Job ID:%s, open subjob ID:%s",
+                                            job.getId(), subjob.getId())
+                                ).addJobBlockedWithSubjob();
+                        }
+                    }
+                }
+            }
+
             // readonly properties
             job.setCreated(old.getCreated());
             job.setProfileName(old.getProfileName());
@@ -299,12 +317,9 @@ public class WorkflowManager {
             }
             tx.commit();
             return job;
-        } catch (ConcurrentModificationException t) {
+        } catch (ConcurrentModificationException | WorkflowException t) {
             tx.rollback();
             throw t;
-        } catch (WorkflowException ex) {
-            tx.rollback();
-            throw ex;
         } catch (Throwable t) {
             tx.rollback();
             throw new WorkflowException("Cannot update job: " + job.getId(), t)
