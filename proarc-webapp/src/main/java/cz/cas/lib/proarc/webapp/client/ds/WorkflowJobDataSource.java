@@ -152,6 +152,9 @@ public class WorkflowJobDataSource extends RestDataSource {
                         }});
                 dsRequest.setData(record);
             }
+        } else if (dsRequest.getOperationType() == DSOperationType.UPDATE) {
+            Record d = ClientUtils.normalizeData(new Record(dsRequest.getData()));
+            dsRequest.setData(d);
         }
         return super.transformRequest(dsRequest);
     }
