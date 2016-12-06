@@ -25,6 +25,7 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
+import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
@@ -85,7 +86,7 @@ public class WorkflowTaskDataSource extends RestDataSource {
             put(State.FINISHED.name(), i18n.WorkflowTask_State_Finished_Title());
             put(State.CANCELED.name(), i18n.WorkflowTask_State_Canceled_Title());
         }};
-        DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);
+        DataSourceIntegerField fieldId = new DataSourceIntegerField(FIELD_ID);
         fieldId.setPrimaryKey(Boolean.TRUE);
         fieldId.setDetail(true);
         fieldId.setTitle(i18n.WorkflowTask_Field_Id_Title());

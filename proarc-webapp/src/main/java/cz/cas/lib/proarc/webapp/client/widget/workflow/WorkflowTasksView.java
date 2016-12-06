@@ -245,6 +245,10 @@ public class WorkflowTasksView implements Refreshable {
         grid.getField(WorkflowTaskDataSource.FIELD_MODIFIED).setCanFilter(true);
         grid.getField(WorkflowTaskDataSource.FIELD_MODIFIED).setCanSort(true);
 
+        grid.getField(WorkflowTaskDataSource.FIELD_ID).setCanFilter(true);
+        grid.getField(WorkflowTaskDataSource.FIELD_ID).setCanSort(false);
+        grid.getField(WorkflowTaskDataSource.FIELD_ID).setFilterOperator(OperatorId.EQUALS);
+
         grid.getField(WorkflowTaskDataSource.FIELD_NOTE).setCanFilter(false);
         grid.getField(WorkflowTaskDataSource.FIELD_NOTE).setCanSort(false);
 
