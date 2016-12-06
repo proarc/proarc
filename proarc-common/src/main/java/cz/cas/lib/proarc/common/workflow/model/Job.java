@@ -42,6 +42,8 @@ public class Job {
     private String note;
     @XmlElement(name = WorkflowModelConsts.JOB_OWNERID)
     private BigDecimal ownerId;
+    @XmlElement(name = WorkflowModelConsts.JOB_PARENTID)
+    private BigDecimal parentId;
     @XmlElement(name = WorkflowModelConsts.JOB_PRIORITY)
     private int priority;
     @XmlElement(name = WorkflowModelConsts.JOB_PROFILENAME)
@@ -127,6 +129,19 @@ public class Job {
 
     public void setOwnerId(BigDecimal ownerId) {
         this.ownerId = ownerId;
+    }
+
+    public BigDecimal getParentId() {
+        return parentId;
+    }
+
+    public Job addParentId(BigDecimal parentId) {
+        this.parentId = parentId;
+        return this;
+    }
+
+    public void setParentId(BigDecimal parentId) {
+        this.parentId = parentId;
     }
 
     public int getPriority() {

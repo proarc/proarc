@@ -41,7 +41,7 @@ import org.apache.empire.db.exceptions.QueryFailedException;
 import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
 
 /**
- * Database schema version 4. It adds workflow stuff.
+ * Database schema version 5. It adds workflow stuff.
  *
  * <p><b>Warning:</b> declare sequence names the same way like PostgreSql
  * ({@code {tablename}_{column_name}_seq}).
@@ -53,7 +53,7 @@ public class ProarcDatabase extends DBDatabase {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 4;
+    public static final int VERSION = 5;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -286,6 +286,7 @@ public class ProarcDatabase extends DBDatabase {
         private static final long serialVersionUID = 1L;
         public final DBTableColumn created;
         public final DBTableColumn id;
+        public final DBTableColumn parentId;
         public final DBTableColumn financed;
         public final DBTableColumn label;
         public final DBTableColumn note;
@@ -298,6 +299,7 @@ public class ProarcDatabase extends DBDatabase {
         public WorkflowJobTable(DBDatabase db) {
             super("PROARC_WF_JOB", db);
             id = addSequenceColumn("ID");
+            parentId = addColumn("PARENT_ID", DataType.INTEGER, 0, false);
             ownerId = addColumn("OWNER_ID", DataType.INTEGER, 0, false);
             profileName = addColumn("PROFILE_NAME", DataType.TEXT, 500, true);
             state = addColumn("STATE", DataType.TEXT, 100, true);
@@ -489,6 +491,7 @@ public class ProarcDatabase extends DBDatabase {
         addRelation(tableGroupPermission.groupid.referenceOn(tableUserGroup.id));
         // workflow
         addRelation(tableWorkflowJob.ownerId.referenceOn(tableUser.id));
+        addRelation(tableWorkflowJob.parentId.referenceOn(tableWorkflowJob.id));
         addRelation(tableWorkflowTask.jobId.referenceOn(tableWorkflowJob.id));
         addRelation(tableWorkflowTask.ownerId.referenceOn(tableUser.id));
         addRelation(tableWorkflowParameter.taskId.referenceOn(tableWorkflowTask.id));
@@ -504,7 +507,7 @@ public class ProarcDatabase extends DBDatabase {
         try {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
-                schemaVersion = ProarcDatabaseV3.upgradeToVersion4(
+                schemaVersion = ProarcDatabaseV4.upgradeToVersion5(
                         schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);

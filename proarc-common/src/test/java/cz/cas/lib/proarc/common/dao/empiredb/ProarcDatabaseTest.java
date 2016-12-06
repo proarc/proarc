@@ -106,10 +106,12 @@ public class ProarcDatabaseTest {
         ProarcDatabaseV1 v1 = new ProarcDatabaseV1();
         ProarcDatabaseV2 v2 = new ProarcDatabaseV2();
         ProarcDatabaseV3 v3 = new ProarcDatabaseV3();
+        ProarcDatabaseV4 v4 = new ProarcDatabaseV4();
         final IDatabaseConnection con = support.getConnection();
         try {
             // clear DB
             dropSchema(schema);
+            dropSchema(v4);
             dropSchema(v3);
             dropSchema(v2);
             dropSchema(v1);

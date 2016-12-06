@@ -105,6 +105,7 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_PROFILENAME) String profileName,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_STATE) Job.State state,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_OWNERID) BigDecimal userId,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_PARENTID) BigDecimal parentId,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_SORTBY) String sortBy
     ) {
@@ -119,6 +120,7 @@ public class WorkflowResource {
         filter.setCreated(created);
         filter.setLabel(label);
         filter.setModified(modified);
+        filter.setParentId(parentId);
         filter.setPriority(priority);
         filter.setProfileName(profileName);
         filter.setState(state);
@@ -138,9 +140,11 @@ public class WorkflowResource {
 
     /**
      * Creates a new workflow job.
-     * @param profileName profile name
+     * @param profileName profile name of the new job
      * @param metadata MODS
      * @param catalogId catalog ID
+     * @param parentId ID of the parent job. If used the parameters metadata
+     *      and catalogId are ignored. The new job is a subjob.
      * @return the job
      */
     @POST
@@ -148,8 +152,12 @@ public class WorkflowResource {
     public SmartGwtResponse<JobView> addJob(
             @FormParam(WorkflowResourceApi.NEWJOB_PROFILE) String profileName,
             @FormParam(WorkflowResourceApi.NEWJOB_METADATA) String metadata,
-            @FormParam(WorkflowResourceApi.NEWJOB_CATALOGID) String catalogId
+            @FormParam(WorkflowResourceApi.NEWJOB_CATALOGID) String catalogId,
+            @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId
     ) {
+        if (parentId != null) {
+            return addSubjob(profileName, parentId);
+        }
         if (metadata == null) {
             return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_METADATA + " - missing value! ");
         }
@@ -171,11 +179,34 @@ public class WorkflowResource {
             filter.setLocale(session.getLocale(httpHeaders));
             filter.setId(job.getId());
             List<JobView> views = workflowManager.findJob(filter);
-            return new SmartGwtResponse<JobView>(views);
+            return new SmartGwtResponse<>(views);
         } catch (WorkflowException ex) {
             return toError(ex, WorkflowResourceApi.NEWJOB_PROFILE + ":" + profileName
                     + ", " + WorkflowResourceApi.NEWJOB_CATALOGID + ":" + catalogId
                     + ", " + WorkflowResourceApi.NEWJOB_METADATA + ":\n" + metadata);
+        }
+    }
+
+    private SmartGwtResponse<JobView> addSubjob(String profileName, BigDecimal parentId) {
+        WorkflowDefinition profiles = workflowProfiles.getProfiles();
+        if (profiles == null) {
+            return profileError();
+        }
+        JobDefinition profile = workflowProfiles.getProfile(profiles, profileName);
+        if (profile == null) {
+            return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
+        }
+        try {
+            Job subjob = workflowManager.addSubjob(profile, parentId, session.getUser(), profiles);
+            JobFilter filter = new JobFilter();
+            filter.setLocale(session.getLocale(httpHeaders));
+            filter.setId(subjob.getId());
+            List<JobView> views = workflowManager.findJob(filter);
+            return new SmartGwtResponse<>(views);
+        } catch (WorkflowException ex) {
+            return toError(ex, WorkflowResourceApi.NEWJOB_PROFILE + ":" + profileName
+                    + ", " + WorkflowResourceApi.NEWJOB_PARENTID + ":" + parentId
+                    );
         }
     }
 
@@ -187,6 +218,7 @@ public class WorkflowResource {
             @FormParam(WorkflowModelConsts.JOB_NOTE) String note,
             @FormParam(WorkflowModelConsts.JOB_FINANCED) String financed,
             @FormParam(WorkflowModelConsts.JOB_OWNERID) BigDecimal userId,
+            @FormParam(WorkflowModelConsts.JOB_PARENTID) BigDecimal parentId,
             @FormParam(WorkflowModelConsts.JOB_PRIORITY) Integer priority,
             @FormParam(WorkflowModelConsts.JOB_STATE) Job.State state,
             @FormParam(WorkflowModelConsts.JOB_TIMESTAMP) long timestamp
@@ -204,6 +236,7 @@ public class WorkflowResource {
         job.setLabel(label);
         job.setNote(note);
         job.setOwnerId(userId);
+        job.setParentId(parentId);
         job.setPriority(priority != null ? priority : 2);
         job.setState(state);
         job.setTimestamp(new Timestamp(timestamp));

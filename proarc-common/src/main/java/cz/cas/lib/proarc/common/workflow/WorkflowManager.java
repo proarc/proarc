@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -337,8 +338,8 @@ public class WorkflowManager {
         String jobLabel = physicalMaterial.getLabel();
 
         try {
-            Job job = createJob(jobDao, now, jobLabel, jobProfile, users, defaultUser);
-            Map<String, Material> materialCache = new HashMap<String, Material>();
+            Job job = createJob(jobDao, now, jobLabel, jobProfile, null, users, defaultUser);
+            Map<String, Material> materialCache = new HashMap<>();
 
             for (StepDefinition step : jobProfile.getSteps()) {
                 if (!step.isOptional()) {
@@ -349,26 +350,104 @@ public class WorkflowManager {
             }
             tx.commit();
             return job;
-        } catch (WorkflowException ex) {
+        } catch (Throwable ex) {
             tx.rollback();
-            throw new WorkflowException("Cannot add job: " + jobProfile.getName(), ex)
-                    .copy(ex);
-        } catch (Throwable t) {
+            WorkflowException nex = new WorkflowException("Cannot add job: " + jobProfile.getName(), ex);
+            throw (ex instanceof WorkflowException) ? nex.copy((WorkflowException) ex) : nex.addUnexpectedError();
+        } finally {
+            tx.close();
+        }
+    }
+
+    public Job addSubjob(JobDefinition jobProfile, BigDecimal parentId,
+            UserProfile defaultUser, WorkflowDefinition profiles
+    ) throws WorkflowException {
+        Objects.requireNonNull(jobProfile, "jobProfile");
+        Objects.requireNonNull(parentId, "parentId");
+        Objects.requireNonNull(profiles, "profiles");
+        Map<String, UserProfile> users = createUserMap();
+        PhysicalMaterial physicalMaterial = null;
+        Transaction tx = daoFactory.createTransaction();
+        WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
+        WorkflowTaskDao taskDao = daoFactory.createWorkflowTaskDao();
+        WorkflowParameterDao paramDao = daoFactory.createWorkflowParameterDao();
+        WorkflowMaterialDao materialDao = daoFactory.createWorkflowMaterialDao();
+        jobDao.setTransaction(tx);
+        taskDao.setTransaction(tx);
+        paramDao.setTransaction(tx);
+        materialDao.setTransaction(tx);
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+
+        try {
+            Job parentJob = jobDao.find(parentId);
+            if (parentJob == null) {
+                throw new WorkflowException("The parent job not found! parent ID=" + parentId);
+            } else if (parentJob.isClosed()) {
+                throw new WorkflowException("The parent job not open! parent ID=" + parentId);
+            } else if (parentJob.getParentId() != null) {
+                throw new WorkflowException("The parent job is a subjob! parent ID=" + parentId);
+            }
+            JobDefinition parentProfile = wp.getProfile(profiles, parentJob.getProfileName());
+            if (parentProfile == null) {
+                throw new WorkflowException("No job profile " + parentJob.getProfileName() + " for parent ID=" + parentId);
+            }
+            if (!parentProfile.getSubjobs().stream()
+                    .anyMatch(p -> jobProfile.getName().equals(p.getJob().getName()))) {
+                throw new WorkflowException(
+                        String.format("The job '%s' does not permit '%s' as a subjob! Check your workflow.xml",
+                                parentProfile.getName(), jobProfile.getName()));
+            }
+            // copy the parent's physical document
+            MaterialFilter materialFilter = new MaterialFilter();
+            materialFilter.setJobId(parentId);
+            MaterialView mv = materialDao.view(materialFilter)
+                    .stream().filter(m -> m.getType() == MaterialType.PHYSICAL_DOCUMENT)
+                    .findFirst().orElse(null);
+            String jobLabel = "?";
+            if (mv != null) {
+                physicalMaterial = new PhysicalMaterial();
+                physicalMaterial.setBarcode(mv.getBarcode());
+                physicalMaterial.setField001(mv.getField001());
+                physicalMaterial.setLabel(mv.getLabel());
+                physicalMaterial.setMetadata(mv.getMetadata());
+                physicalMaterial.setName(mv.getName());
+                physicalMaterial.setNote(mv.getNote());
+                physicalMaterial.setRdczId(mv.getRdczId());
+                physicalMaterial.setSignature(mv.getSignature());
+                physicalMaterial.setSource(mv.getSource());
+//                physicalMaterial.setState(mv.getState());
+                jobLabel = physicalMaterial.getLabel();
+            }
+
+            Job job = createJob(jobDao, now, jobLabel, jobProfile, parentId, users, defaultUser);
+
+            Map<String, Material> materialCache = new HashMap<>();
+            for (StepDefinition step : jobProfile.getSteps()) {
+                if (!step.isOptional()) {
+                    Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser);
+                    createTaskParams(paramDao, step, task);
+                    createMaterials(materialDao, step, task, materialCache, physicalMaterial);
+                }
+            }
+            tx.commit();
+            return job;
+        } catch (Throwable ex) {
             tx.rollback();
-            throw new WorkflowException("Cannot add job: " + jobProfile.getName(), t)
-                    .addUnexpectedError();
+            WorkflowException nex = new WorkflowException("Cannot add subjob: " + jobProfile.getName() + " to the parent job ID: " + parentId, ex);
+            throw (ex instanceof WorkflowException) ? nex.copy((WorkflowException) ex) : nex.addUnexpectedError();
         } finally {
             tx.close();
         }
     }
 
     private Job createJob(WorkflowJobDao jobDao, Timestamp now, String jobLabel,
-            JobDefinition jobProfile, Map<String, UserProfile> users, UserProfile defaultUser
+            JobDefinition jobProfile, BigDecimal parentId, Map<String, UserProfile> users, UserProfile defaultUser
     ) throws ConcurrentModificationException {
 
         Job job = jobDao.create().addCreated(now)
                 .addLabel(jobLabel)
                 .addOwnerId(resolveUserId(jobProfile.getWorker(), users, defaultUser, true))
+                .addParentId(parentId)
                 .addPriority(jobProfile.getPriority())
                 .addProfileName(jobProfile.getName())
                 .setState(Job.State.OPEN)

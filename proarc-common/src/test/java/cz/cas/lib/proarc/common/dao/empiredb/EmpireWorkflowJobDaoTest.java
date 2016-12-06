@@ -122,12 +122,15 @@ public class EmpireWorkflowJobDaoTest {
 
         Job job = dao.find(BigDecimal.ONE);
         job.setLabel("new label");
+        final BigDecimal parentId = BigDecimal.valueOf(2);
+        job.setParentId(parentId);
         job.setTimestamp(new Timestamp(job.getTimestamp().getTime()));
         dao.update(job);
         tx.commit();
 
         Job result = dao.find(BigDecimal.ONE);
         assertEquals("new label", result.getLabel());
+        assertEquals(parentId, result.getParentId());
     }
 
     @Test

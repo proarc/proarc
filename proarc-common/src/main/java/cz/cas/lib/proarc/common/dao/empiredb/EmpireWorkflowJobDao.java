@@ -103,6 +103,9 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
                 cmd.where(tableJob.label.likeUpper('%' + pattern + '%'));
             }
         }
+        if (filter.getParentId()!= null) {
+            cmd.where(tableJob.parentId.is(filter.getParentId()));
+        }
         if (filter.getProfileName() != null) {
             cmd.where(tableJob.profileName.is(filter.getProfileName()));
         }

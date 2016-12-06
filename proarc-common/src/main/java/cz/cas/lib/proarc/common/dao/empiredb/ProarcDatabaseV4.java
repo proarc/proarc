@@ -18,18 +18,24 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireUtils.EnhancedDBTable;
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
+import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.ValueType;
+import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
+import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
 import static org.apache.empire.db.DBDatabase.SYSDATE;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBRecord;
+import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
@@ -37,21 +43,20 @@ import org.apache.empire.db.exceptions.QueryFailedException;
 import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
 
 /**
- * Database schema version 3.
+ * Database schema version 4. It adds workflow stuff.
  *
  * <p><b>Warning:</b> declare sequence names the same way like PostgreSql
  * ({@code {tablename}_{column_name}_seq}).
  *
  * @author Jan Pokorsky
- * @deprecated Replaced with {@link ProarcDatabase}. <b>Use only for tests and upgrade purposes!</b>
  */
 @Deprecated
-public class ProarcDatabaseV3 extends DBDatabase {
+public class ProarcDatabaseV4 extends DBDatabase {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger LOG = Logger.getLogger(ProarcDatabaseV3.class.getName());
+    private static final Logger LOG = Logger.getLogger(ProarcDatabaseV4.class.getName());
     /** the schema version */
-    public static final int VERSION = 3;
+    public static final int VERSION = 4;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -60,13 +65,21 @@ public class ProarcDatabaseV3 extends DBDatabase {
     public final UserGroupTable tableUserGroup = new UserGroupTable(this);
     public final GroupMemberTable tableGroupMember = new GroupMemberTable(this);
     public final GroupPermissionTable tableGroupPermission = new GroupPermissionTable(this);
+    public final WorkflowJobTable tableWorkflowJob = new WorkflowJobTable(this);
+    public final WorkflowTaskTable tableWorkflowTask = new WorkflowTaskTable(this);
+    public final WorkflowMaterialInTaskTable tableWorkflowMaterialInTask = new WorkflowMaterialInTaskTable(this);
+    public final WorkflowParameterTable tableWorkflowParameter = new WorkflowParameterTable(this);
+    public final WorkflowMaterialTable tableWorkflowMaterial = new WorkflowMaterialTable(this);
+    public final WorkflowFolderTable tableWorkflowFolder = new WorkflowFolderTable(this);
+    public final WorkflowDigObjTable tableWorkflowDigObj = new WorkflowDigObjTable(this);
+    public final WorkflowPhysicalDocTable tableWorkflowPhysicalDoc = new WorkflowPhysicalDocTable(this);
 
-    public static int upgradeToVersion4(
-            int currentSchemaVersion,
+    public static int upgradeToVersion5(
+            int currentSchemaVersion, ProarcDatabase schema,
             Connection conn, EmpireConfiguration conf) throws SQLException {
 
         if (currentSchemaVersion < VERSION) {
-            currentSchemaVersion = ProarcDatabaseV2.upgradeToVersion3(currentSchemaVersion, conn, conf);
+            currentSchemaVersion = ProarcDatabaseV3.upgradeToVersion4(currentSchemaVersion, conn, conf);
         }
         if (currentSchemaVersion > VERSION) {
             // ignore higher versions
@@ -74,33 +87,34 @@ public class ProarcDatabaseV3 extends DBDatabase {
         } else if (currentSchemaVersion != VERSION) {
             throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
         }
-        ProarcDatabaseV4 schema = new ProarcDatabaseV4();
+//        ProarcDatabaseV5 schema = new ProarcDatabaseV5();
         try {
-            schema.open(conf.getDriver(), conn);
+//            schema.open(conf.getDriver(), conn);
             upgradeDdl(schema, conn);
             int schemaVersion = schema.initVersion(conn, VERSION);
 
             conn.commit();
             return schemaVersion;
         } finally {
-            schema.close(conn);
+//            schema.close(conn);
         }
     }
 
-    private static void upgradeDdl(ProarcDatabaseV4 schema, Connection conn) throws SQLException {
+    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
         try {
             conn.setAutoCommit(true);
             DBDatabaseDriver driver = schema.getDriver();
             DBSQLScript script = new DBSQLScript();
-            // add workflow tables
-            EmpireUtils.addTable(schema.tableWorkflowJob, driver, script);
-            EmpireUtils.addTable(schema.tableWorkflowTask, driver, script);
-            EmpireUtils.addTable(schema.tableWorkflowMaterial, driver, script);
-            EmpireUtils.addTable(schema.tableWorkflowDigObj, driver, script);
-            EmpireUtils.addTable(schema.tableWorkflowFolder, driver, script);
-            EmpireUtils.addTable(schema.tableWorkflowPhysicalDoc, driver, script);
-            EmpireUtils.addTable(schema.tableWorkflowMaterialInTask, driver, script);
-            EmpireUtils.addTable(schema.tableWorkflowParameter, driver, script);
+            // add the parentId column to the workflowJob table
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowJob.parentId, script);
+            DBRelation fkParentId = schema.tableWorkflowJob.getForeignKeyRelations().stream()
+                    .filter(p -> p.getReferencedTable() == schema.tableWorkflowJob
+                            && p.getReferencedTable() == schema.tableWorkflowJob
+                            && p.getReferences()[0].getSourceColumn() == schema.tableWorkflowJob.parentId
+                            && p.getReferences()[0].getTargetColumn()== schema.tableWorkflowJob.id
+                    ).findFirst().get();
+            driver.getDDLScript(DBCmdType.CREATE, fkParentId, script);
+            LOG.fine(script.toString());
             script.run(driver, conn);
         } finally {
             conn.setAutoCommit(false);
@@ -317,13 +331,220 @@ public class ProarcDatabaseV3 extends DBDatabase {
 
     }
 
-    public ProarcDatabaseV3() {
+    public static final class WorkflowJobTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+        public final DBTableColumn created;
+        public final DBTableColumn id;
+        public final DBTableColumn financed;
+        public final DBTableColumn label;
+        public final DBTableColumn note;
+        public final DBTableColumn ownerId;
+        public final DBTableColumn priority;
+        public final DBTableColumn profileName;
+        public final DBTableColumn state;
+        public final DBTableColumn timestamp;
+
+        public WorkflowJobTable(DBDatabase db) {
+            super("PROARC_WF_JOB", db);
+            id = addSequenceColumn("ID");
+            ownerId = addColumn("OWNER_ID", DataType.INTEGER, 0, false);
+            profileName = addColumn("PROFILE_NAME", DataType.TEXT, 500, true);
+            state = addColumn("STATE", DataType.TEXT, 100, true);
+            state.setOptions(toOptions(Job.State.values()));
+            state.setBeanPropertyName("stateAsString");
+            priority = addColumn("PRIORITY", DataType.INTEGER, 0, true);
+            label = addColumn("LABEL", DataType.TEXT, 2000, true);
+            financed = addColumn("FINANCED", DataType.TEXT, 2000, false);
+            note = addColumn("NOTE", DataType.TEXT, 2000, false);
+            created = addColumn("CREATED", DataType.DATETIME, 0, true);
+            timestamp = addTimestampColumn("TIMESTAMP");
+            setPrimaryKey(id);
+//            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] {
+//                ownerId, created, timestamp, state, priority, financed });
+        }
+    }
+
+    public static final class WorkflowTaskTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+        public final DBTableColumn created;
+        public final DBTableColumn id;
+        public final DBTableColumn jobId;
+        public final DBTableColumn note;
+        public final DBTableColumn ownerId;
+        public final DBTableColumn priority;
+//        public final DBTableColumn queueNumber;
+        public final DBTableColumn state;
+        /** The name of a task type in workflow profile. */
+        public final DBTableColumn typeRef;
+        public final DBTableColumn timestamp;
+
+        public WorkflowTaskTable(DBDatabase db) {
+            super("PROARC_WF_TASK", db);
+            id = addSequenceColumn("ID");
+            typeRef = addColumn("TYPE_REF", DataType.TEXT, 500, true);
+            jobId = addColumn("JOB_ID", DataType.INTEGER, 0, true);
+            ownerId = addColumn("OWNER_ID", DataType.INTEGER, 0, false);
+            state = addColumn("STATE", DataType.TEXT, 100, true);
+            state.setOptions(toOptions(Task.State.values()));
+            state.setBeanPropertyName("stateAsString");
+            priority = addColumn("PRIORITY", DataType.INTEGER, 0, true);
+//            queueNumber = addColumn("QUEUE_NUMBER", DataType.DECIMAL, 0, true);
+            note = addColumn("NOTE", DataType.TEXT, 2000, false);
+            created = addColumn("CREATED", DataType.DATETIME, 0, true);
+            timestamp = addTimestampColumn("TIMESTAMP");
+            setPrimaryKey(id);
+        }
+    }
+
+    public static final class WorkflowParameterTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+
+        public final DBTableColumn taskId;
+        /** The name of a parameter type in workflow profile. */
+        public final DBTableColumn paramRef;
+        public final DBTableColumn valueType;
+        public final DBTableColumn value;
+        public final DBTableColumn number;
+        public final DBTableColumn dateTime;
+
+        public WorkflowParameterTable(DBDatabase db) {
+            super("PROARC_WF_PARAMETER", db);
+            taskId = addColumn("TASK_ID", DataType.INTEGER, 0, true);
+            paramRef = addColumn("PARAM_REF", DataType.TEXT, 500, true);
+            valueType = addColumn("VALUE_TYPE", DataType.TEXT, 20, true);
+            valueType.setOptions(toOptions(ValueType.values()));
+            valueType.setBeanPropertyName("valueTypeAsString");
+            value = addColumn("VALUE_STRING", DataType.TEXT, 2000, false);
+            number = addColumn("VALUE_NUMBER", DataType.DECIMAL, 20.9, false);
+            dateTime = addColumn("VALUE_DATETIME", DataType.DATETIME, 0, false);
+            dateTime.setBeanPropertyName("valueDateTime");
+        }
+    }
+
+    public static final class WorkflowMaterialTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+
+        public final DBTableColumn id;
+        /** The description of a material's value */
+        public final DBTableColumn label;
+        public final DBTableColumn name;
+        public final DBTableColumn note;
+        public final DBTableColumn state;
+        public final DBTableColumn type;
+
+        public WorkflowMaterialTable(DBDatabase db) {
+            super("PROARC_WF_MATERIAL", db);
+            id = addSequenceColumn("ID");
+            type = addColumn("TYPE", DataType.TEXT, 100, true);
+            type.setOptions(toOptions(MaterialType.values()));
+            type.setBeanPropertyName("typeAsString");
+            state = addColumn("STATE", DataType.TEXT, 100, false);
+            name = addColumn("NAME", DataType.TEXT, 500, true);
+            label = addColumn("LABEL", DataType.TEXT, 2000, false);
+            note = addColumn("NOTE", DataType.TEXT, 2000, false);
+            setPrimaryKey(id);
+        }
+    }
+
+    public static final class WorkflowFolderTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+
+        public final DBTableColumn materialId;
+        public final DBTableColumn path;
+
+        public WorkflowFolderTable(DBDatabase db) {
+            super("PROARC_WF_FOLDER", db);
+            materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
+            materialId.setBeanPropertyName("id");
+            path = addColumn("PATH", DataType.TEXT, 2000, false);
+            setPrimaryKey(materialId);
+        }
+    }
+
+    public static final class WorkflowDigObjTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+
+        public final DBTableColumn materialId;
+        public final DBTableColumn pid;
+
+        public WorkflowDigObjTable(DBDatabase db) {
+            super("PROARC_WF_DIGITAL_DOCUMENT", db);
+            materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
+            materialId.setBeanPropertyName("id");
+            pid = addColumn("PID", DataType.TEXT, 100, false);
+            setPrimaryKey(materialId);
+        }
+    }
+
+    public static final class WorkflowPhysicalDocTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+
+        public final DBTableColumn materialId;
+        public final DBTableColumn barcode;
+        public final DBTableColumn field001;
+        public final DBTableColumn rdczId;
+        public final DBTableColumn signature;
+        /** The URL to a catalog. */
+        public final DBTableColumn source;
+        /** MODS. */
+        public final DBTableColumn metadata;
+
+        public WorkflowPhysicalDocTable(DBDatabase db) {
+            super("PROARC_WF_PHYSICAL_DOCUMENT", db);
+            materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
+            materialId.setBeanPropertyName("id");
+            rdczId = addColumn("RDCZ_ID", DataType.INTEGER, 0, false);
+            barcode = addColumn("BARCODE", DataType.TEXT, 100, false);
+            field001 = addColumn("FIELD001", DataType.TEXT, 100, false);
+            signature = addColumn("SIGNATURE", DataType.TEXT, 2000, false);
+            source = addColumn("SOURCE", DataType.TEXT, 2000, false);
+            metadata = addColumn("METADATA", DataType.CLOB, 0, false);
+            setPrimaryKey(materialId);
+        }
+    }
+
+    public static final class WorkflowMaterialInTaskTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+
+        public final DBTableColumn materialId;
+        public final DBTableColumn taskId;
+        public final DBTableColumn way;
+
+        public WorkflowMaterialInTaskTable(DBDatabase db) {
+            super("PROARC_WF_MATERIAL_IN_TASK", db);
+            taskId = addColumn("TASK_ID", DataType.INTEGER, 0, true);
+            materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
+            way = addColumn("WAY", DataType.TEXT, 100, true);
+            way.setBeanPropertyName("wayAsString");
+            way.setOptions(toOptions(Way.values()));
+            setPrimaryKey(taskId, materialId, way);
+        }
+    }
+
+    public ProarcDatabaseV4() {
         addRelation(tableBatch.userId.referenceOn(tableUser.id));
         addRelation(tableBatchItem.batchId.referenceOn(tableBatch.id));
+        // users
         addRelation(tableUser.defaultGroup.referenceOn(tableUserGroup.id));
         addRelation(tableGroupMember.groupid.referenceOn(tableUserGroup.id));
         addRelation(tableGroupMember.userid.referenceOn(tableUser.id));
         addRelation(tableGroupPermission.groupid.referenceOn(tableUserGroup.id));
+        // workflow
+        addRelation(tableWorkflowJob.ownerId.referenceOn(tableUser.id));
+        addRelation(tableWorkflowTask.jobId.referenceOn(tableWorkflowJob.id));
+        addRelation(tableWorkflowTask.ownerId.referenceOn(tableUser.id));
+        addRelation(tableWorkflowParameter.taskId.referenceOn(tableWorkflowTask.id));
+        addRelation(tableWorkflowFolder.materialId.referenceOn(tableWorkflowMaterial.id));
+        addRelation(tableWorkflowDigObj.materialId.referenceOn(tableWorkflowMaterial.id));
+        addRelation(tableWorkflowPhysicalDoc.materialId.referenceOn(tableWorkflowMaterial.id));
     }
 
     void init(EmpireConfiguration conf) throws SQLException {
@@ -333,9 +554,7 @@ public class ProarcDatabaseV3 extends DBDatabase {
         try {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
-                LOG.log(Level.WARNING, "Do not init the obsolete schema {0}!"
-                        + " Only #upgradeToVersion3() is supported now!", schemaVersion);
-                schemaVersion = ProarcDatabaseV2.upgradeToVersion3(
+                schemaVersion = ProarcDatabaseV3.upgradeToVersion4(
                         schemaVersion, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);
@@ -348,7 +567,7 @@ public class ProarcDatabaseV3 extends DBDatabase {
         }
     }
 
-    static int schemaExists(ProarcDatabaseV3 db, Connection c) {
+    static int schemaExists(ProarcDatabaseV4 db, Connection c) {
         try {
             DBCommand cmd = db.createCommand();
             cmd.select(db.tableProarcVersion.schemaVersion);
@@ -359,7 +578,7 @@ public class ProarcDatabaseV3 extends DBDatabase {
         }
     }
 
-    private static void createSchema(ProarcDatabaseV3 db, Connection conn) throws SQLException {
+    private static void createSchema(ProarcDatabaseV4 db, Connection conn) throws SQLException {
         if (db.getDriver() instanceof DBDatabaseDriverPostgreSQL) {
             conn.setAutoCommit(true);
         }
@@ -373,7 +592,7 @@ public class ProarcDatabaseV3 extends DBDatabase {
     }
 
     int initVersion(Connection conn, Integer oldVersion) {
-        ProarcDatabaseV3 db = this;
+        ProarcDatabaseV4 db = this;
         DBRecord dbRecord = new DBRecord();
         if (oldVersion != null) {
             dbRecord.init(db.tableProarcVersion, new Integer[] {0}, false);

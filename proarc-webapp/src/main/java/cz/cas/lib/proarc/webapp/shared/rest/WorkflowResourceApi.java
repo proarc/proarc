@@ -29,6 +29,7 @@ public class WorkflowResourceApi {
     public static final String NEWJOB_PROFILE = "profileName";
     public static final String NEWJOB_METADATA = "metadata";
     public static final String NEWJOB_CATALOGID = "catalogId";
+    public static final String NEWJOB_PARENTID = "parentId";
 
     public static final String MATERIAL_PATH = "material";
 

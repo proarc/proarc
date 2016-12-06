@@ -29,6 +29,7 @@ public final class WorkflowModelConsts {
     public static final String JOB_NOTE = "note";
     public static final String JOB_OWNERID = "ownerId";
     public static final String JOB_OWNERNAME = "ownerName";
+    public static final String JOB_PARENTID = "parentId";
     public static final String JOB_PRIORITY = "priority";
     public static final String JOB_PROFILEHINT = "profileHint";
     public static final String JOB_PROFILELABEL = "profileLabel";
@@ -46,6 +47,7 @@ public final class WorkflowModelConsts {
     public static final String JOB_FILTER_MODIFIED = "modified";
     public static final String JOB_FILTER_OFFSET = "_startRow";
     public static final String JOB_FILTER_OWNERID = "ownerId";
+    public static final String JOB_FILTER_PARENTID = "parentId";
     public static final String JOB_FILTER_PRIORITY = "priority";
     public static final String JOB_FILTER_PROFILENAME = "profileName";
     public static final String JOB_FILTER_SORTBY = "_sortBy";
