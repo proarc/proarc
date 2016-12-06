@@ -24,6 +24,7 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
+import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
@@ -52,6 +53,7 @@ public class WorkflowJobDataSource extends RestDataSource {
     public static final String FIELD_MODIFIED = WorkflowModelConsts.JOB_MODIFIED;
     public static final String FIELD_NOTE = WorkflowModelConsts.JOB_NOTE;
     public static final String FIELD_OWNER = WorkflowModelConsts.JOB_OWNERID;
+    public static final String FIELD_PARENTID = WorkflowModelConsts.JOB_PARENTID;
     public static final String FIELD_PRIORITY = WorkflowModelConsts.JOB_PRIORITY;
     public static final String FIELD_PROFILE_ID = WorkflowModelConsts.JOB_PROFILENAME;
     public static final String FIELD_PROFILE_HINT = WorkflowModelConsts.JOB_PROFILEHINT;
@@ -72,7 +74,7 @@ public class WorkflowJobDataSource extends RestDataSource {
         setDataURL(RestConfig.URL_WORKFLOW);
         final ClientMessages i18n = GWT.create(ClientMessages.class);
 
-        DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);
+        DataSourceIntegerField fieldId = new DataSourceIntegerField(FIELD_ID);
         fieldId.setPrimaryKey(Boolean.TRUE);
         fieldId.setTitle(i18n.WorkflowJob_Field_Id_Title());
         fieldId.setDetail(true);

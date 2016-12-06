@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.client.widget.workflow;
 
 import com.smartgwt.client.data.AdvancedCriteria;
+import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
@@ -24,6 +25,7 @@ import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.types.SelectionStyle;
+import com.smartgwt.client.types.SortDirection;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.form.DynamicForm;
@@ -32,9 +34,7 @@ import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
-import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
-import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
@@ -51,11 +51,14 @@ import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
+import cz.cas.lib.proarc.webapp.client.widget.StatusView;
+import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 
 /**
  *
@@ -66,7 +69,10 @@ public class WorkflowJobView implements Refreshable {
     private final ClientMessages i18n;
     private final Canvas widget;
     private ListGrid jobGrid;
+    private ListGrid subjobGrid;
+    private boolean ignoreSubjobSelection;
     private ListGridPersistance jobsPersistance;
+    private ListGridPersistance subjobsPersistance;
     private WorkflowJobFormView jobFormView;
     private WorkflowJobsEditor handler;
     private final ActionSource actionSource = new ActionSource(this);
@@ -89,6 +95,7 @@ public class WorkflowJobView implements Refreshable {
             isDataInitialized = true;
             jobGrid.setViewState(jobsPersistance.getViewState());
             jobGrid.fetchData(jobsPersistance.getFilterCriteria());
+            subjobGrid.setViewState(subjobsPersistance.getViewState());
         }
     }
 
@@ -127,8 +134,27 @@ public class WorkflowJobView implements Refreshable {
     }
 
     public void editSelection() {
-        jobFormView.setJob(jobGrid.getSelectedRecord());
+        ListGridRecord selection = jobGrid.getSelectedRecord();
+        try {
+            ignoreSubjobSelection = true;
+            subjobGrid.deselectAllRecords();
+            if (selection != null) {
+                String id = selection.getAttribute(WorkflowJobDataSource.FIELD_ID);
+                subjobGrid.fetchData(new Criteria(WorkflowJobDataSource.FIELD_PARENTID, id));
+            } else {
+                subjobGrid.setData(new Record[0]);
+            }
+        } finally {
+            ignoreSubjobSelection = false;
+        }
+        jobFormView.setJob(selection);
         refreshState();
+    }
+
+    public void editSubjobSelection() {
+        jobFormView.setJob(subjobGrid.getSelectedRecord());
+        actionSource.fireEvent();
+        jobFormView.refreshState();
     }
 
     public void refreshState() {
@@ -159,6 +185,7 @@ public class WorkflowJobView implements Refreshable {
         VLayout left = new VLayout();
         left.addMember(createJobsToolbar());
         left.addMember(createJobList());
+        left.addMember(createSubjobList());
 
         HLayout l = new HLayout();
         l.addMember(left);
@@ -218,8 +245,10 @@ public class WorkflowJobView implements Refreshable {
     }
 
     private void fetchAddSubjobMenu(Record job) {
-        if (job == null || !Job.State.OPEN.name().equals(job.getAttribute(WorkflowJobDataSource.FIELD_STATE))) {
-            // XXX check for parent
+        if (job == null
+                || job.getAttribute(WorkflowJobDataSource.FIELD_PARENTID) != null
+                || !Job.State.OPEN.name().equals(job.getAttribute(WorkflowJobDataSource.FIELD_STATE))
+                ) {
             addSubjobButton.setVisible(false);
             return ;
         }
@@ -243,9 +272,71 @@ public class WorkflowJobView implements Refreshable {
         menu.addItemClickHandler((ItemClickEvent event) -> {
             Record subjob = event.getRecord();
             Record job = jobGrid.getSelectedRecord();
-            // XXX createSubjob(job, subjob)
+            createSubjob(job, subjob);
         });
         return menu;
+    }
+
+    private void createSubjob(Record job, Record subjob) {
+        Record query = new Record();
+        query.setAttribute(WorkflowResourceApi.NEWJOB_PARENTID, job.getAttribute(WorkflowJobDataSource.FIELD_ID));
+        query.setAttribute(WorkflowResourceApi.NEWJOB_PROFILE, subjob.getAttribute(WorkflowProfileDataSource.FIELD_ID));
+        WorkflowJobDataSource ds = WorkflowJobDataSource.getInstance();
+        ds.addData(query, (dsResponse, data, dsRequest) -> {
+            if (RestConfig.isStatusOk(dsResponse)) {
+                StatusView.getInstance().show(i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
+                Record[] records = dsResponse.getData();
+                if (records.length > 0) {
+                    int idx = subjobGrid.findIndex(new AdvancedCriteria(WorkflowJobDataSource.FIELD_ID,
+                            OperatorId.EQUALS, records[0].getAttribute(WorkflowJobDataSource.FIELD_ID)));
+                    subjobGrid.selectSingleRecord(idx);
+                    subjobGrid.scrollToRow(idx);
+                }
+            }
+        });
+    }
+
+    private ListGrid createSubjobList() {
+        ListGrid g = new ListGrid();
+        subjobGrid = g;
+        subjobsPersistance = new ListGridPersistance("WorkflowJobView.subjobList", g);
+        g.setSelectionType(SelectionStyle.SINGLE);
+        g.setCanGroupBy(false);
+        g.setDataFetchMode(FetchMode.BASIC);
+        g.setDataSource(WorkflowJobDataSource.getInstance(),
+                new ListGridField(WorkflowJobDataSource.FIELD_LABEL),
+                new ListGridField(WorkflowJobDataSource.FIELD_ID, 30),
+                new ListGridField(WorkflowJobDataSource.FIELD_STATE, 50),
+                new ListGridField(WorkflowJobDataSource.FIELD_PROFILE_ID, 80),
+                new ListGridField(WorkflowJobDataSource.FIELD_OWNER, 50),
+                new ListGridField(WorkflowJobDataSource.FIELD_PRIORITY, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_CREATED, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_FINANCED, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_NOTE)
+                );
+        g.setSortField(WorkflowJobDataSource.FIELD_CREATED);
+        g.setSortDirection(SortDirection.ASCENDING);
+
+        SelectItem profileFilter = new SelectItem();
+        profileFilter.setOptionDataSource(WorkflowProfileDataSource.getInstance());
+        profileFilter.setValueField(WorkflowProfileDataSource.FIELD_ID);
+        profileFilter.setDisplayField(WorkflowProfileDataSource.FIELD_LABEL);
+        g.getField(WorkflowJobDataSource.FIELD_PROFILE_ID).setFilterEditorProperties(profileFilter);
+
+        SelectItem owner = new SelectItem();
+        owner.setOptionDataSource(UserDataSource.getInstance());
+        owner.setValueField(UserDataSource.FIELD_ID);
+        owner.setDisplayField(UserDataSource.FIELD_USERNAME);
+        g.getField(WorkflowJobDataSource.FIELD_OWNER).setFilterEditorProperties(owner);
+
+        g.addSelectionUpdatedHandler((SelectionUpdatedEvent event) -> {
+            if (!ignoreSubjobSelection) {
+                editSubjobSelection();
+            }
+            ignoreSubjobSelection = false;
+        });
+        return g;
     }
 
     private ListGrid createJobList() {
@@ -258,6 +349,8 @@ public class WorkflowJobView implements Refreshable {
         jobGrid.setFilterLocalData(false);
         jobGrid.setCanSort(true);
         jobGrid.setCanGroupBy(false);
+        jobGrid.setShowResizeBar(true);
+        jobGrid.setResizeBarTarget("next");
         jobGrid.setDataFetchMode(FetchMode.PAGED);
         ResultSet rs = new ResultSet();
         rs.setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
@@ -279,6 +372,8 @@ public class WorkflowJobView implements Refreshable {
 
         jobGrid.getField(WorkflowJobDataSource.FIELD_LABEL).setWidth("80%");
         jobGrid.getField(WorkflowJobDataSource.FIELD_LABEL).setFilterOnKeypress(false);
+
+        jobGrid.getField(WorkflowJobDataSource.FIELD_ID).setFilterOperator(OperatorId.EQUALS);
 
         jobGrid.getField(WorkflowJobDataSource.FIELD_STATE).setCanSort(false);
 
@@ -302,31 +397,23 @@ public class WorkflowJobView implements Refreshable {
         jobGrid.getField(WorkflowJobDataSource.FIELD_NOTE).setCanFilter(false);
         jobGrid.getField(WorkflowJobDataSource.FIELD_NOTE).setCanSort(false);
 
-        jobGrid.addDataArrivedHandler(new DataArrivedHandler() {
-
-            @Override
-            public void onDataArrived(DataArrivedEvent event) {
-                if (isUpdateOperation) {
-                    isUpdateOperation = false;
-                    return ;
-                }
-                int startRow = event.getStartRow();
-                int endRow = event.getEndRow();
-                if (startRow == 0 && endRow >= 0) {
-                    jobGrid.focus();
-                    updateSelection();
-                } else if (endRow < 0) {
-                    jobGrid.deselectAllRecords();
-                }
+        jobGrid.addDataArrivedHandler((DataArrivedEvent event) -> {
+            if (isUpdateOperation) {
+                isUpdateOperation = false;
+                return ;
+            }
+            int startRow = event.getStartRow();
+            int endRow = event.getEndRow();
+            if (startRow == 0 && endRow >= 0) {
+                jobGrid.focus();
+                updateSelection();
+            } else if (endRow < 0) {
+                jobGrid.deselectAllRecords();
             }
         });
-        jobGrid.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
-
-            @Override
-            public void onSelectionUpdated(SelectionUpdatedEvent event) {
-                lastSelection = jobGrid.getSelectedRecord();
-                editSelection();
-            }
+        jobGrid.addSelectionUpdatedHandler((SelectionUpdatedEvent event) -> {
+            lastSelection = jobGrid.getSelectedRecord();
+            editSelection();
         });
         return jobGrid;
     }
