@@ -18,8 +18,6 @@ package cz.cas.lib.proarc.webapp.client.widget;
 
 import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.types.JSONDateFormat;
-import com.smartgwt.client.util.JSONEncoder;
 import com.smartgwt.client.util.Offline;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.events.FilterEditorSubmitEvent;
@@ -38,10 +36,6 @@ public class ListGridPersistance {
     private static final String CRITERIA = ".criteria";
     private final String dbPrefix;
     private final ListGrid grid;
-    private static final JSONEncoder JSON_ENCODER = new JSONEncoder();
-    static {
-        JSON_ENCODER.setDateFormat(JSONDateFormat.DATE_CONSTRUCTOR);
-    }
 
     public ListGridPersistance(String dbPrefix, ListGrid grid) {
         this.dbPrefix = dbPrefix;
@@ -76,7 +70,7 @@ public class ListGridPersistance {
         String criteriaState = (String) Offline.get(dbPrefix + CRITERIA);
         Criteria criteria = null;
         if (criteriaState != null) {
-            criteria = AdvancedCriteria.fromJSON(criteriaState);
+            criteria = AdvancedCriteria.fromString(criteriaState);
         }
         return criteria;
     }
@@ -87,9 +81,10 @@ public class ListGridPersistance {
     }
 
     public void setFilterCriteria(Criteria criteria) {
+        String json = null;
         if (criteria != null) {
-            String json = JSON_ENCODER.encode(criteria);
-            Offline.put(dbPrefix + CRITERIA, json);
+            json = criteria.asAdvancedCriteria().asString();
         }
+        Offline.put(dbPrefix + CRITERIA, json);
     }
 }
