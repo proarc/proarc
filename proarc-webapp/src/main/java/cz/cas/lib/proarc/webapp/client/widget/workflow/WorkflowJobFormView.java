@@ -26,6 +26,7 @@ import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.TitleOrientation;
+import com.smartgwt.client.util.Page;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.FormItemIfFunction;
@@ -68,6 +69,7 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 
 /**
@@ -178,10 +180,17 @@ public class WorkflowJobFormView implements Refreshable {
         ToolStrip toolbar = Actions.createToolStrip();
         RefreshAction refreshAction = new RefreshAction(i18n);
         SaveAction saveAction = createSaveAction();
+        Action parentAction = createParentAction();
 
         toolbar.addMember(Actions.asIconButton(refreshAction, this));
+        toolbar.addMember(Actions.asIconButton(parentAction, actionSource));
         toolbar.addMember(Actions.asIconButton(saveAction, actionSource));
         return toolbar;
+    }
+
+    private String getParentId() {
+        String id = lastJob == null ? null : lastJob.getAttribute(WorkflowJobDataSource.FIELD_PARENTID);
+        return id;
     }
 
     private SaveAction createSaveAction() {
@@ -200,6 +209,24 @@ public class WorkflowJobFormView implements Refreshable {
                     handler.onSave(WorkflowJobFormView.this);
                 }
             }
+        };
+    }
+
+    private Action createParentAction() {
+        return new AbstractAction(i18n.WorkflowJob_FormView_OpenParentAction_Title(),
+                Page.getAppDir() + "images/16/next_up.png",
+                i18n.WorkflowJob_FormView_OpenParentAction_Hint()) {
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                return handler != null && getParentId() != null;
+            }
+
+            @Override
+            public void performAction(ActionEvent event) {
+                handler.open(new WorkflowJobPlace().setJobId(getParentId()));
+            }
+
         };
     }
 

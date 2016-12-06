@@ -115,6 +115,7 @@ public class WorkflowJobView implements Refreshable {
             Record r = new Record();
             r.setAttribute(WorkflowJobDataSource.FIELD_ID, jobId);
             jobFormView.setJob(r);
+            loadSubjobs(r);
         }
     }
 
@@ -135,11 +136,17 @@ public class WorkflowJobView implements Refreshable {
 
     public void editSelection() {
         ListGridRecord selection = jobGrid.getSelectedRecord();
+        jobFormView.setJob(selection);
+        loadSubjobs(selection);
+        refreshState();
+    }
+
+    private void loadSubjobs(Record job) {
         try {
             ignoreSubjobSelection = true;
             subjobGrid.deselectAllRecords();
-            if (selection != null) {
-                String id = selection.getAttribute(WorkflowJobDataSource.FIELD_ID);
+            if (job != null) {
+                String id = job.getAttribute(WorkflowJobDataSource.FIELD_ID);
                 subjobGrid.fetchData(new Criteria(WorkflowJobDataSource.FIELD_PARENTID, id));
             } else {
                 subjobGrid.setData(new Record[0]);
@@ -147,8 +154,6 @@ public class WorkflowJobView implements Refreshable {
         } finally {
             ignoreSubjobSelection = false;
         }
-        jobFormView.setJob(selection);
-        refreshState();
     }
 
     public void editSubjobSelection() {
