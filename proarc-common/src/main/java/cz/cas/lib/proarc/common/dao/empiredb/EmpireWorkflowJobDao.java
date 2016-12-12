@@ -28,8 +28,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import org.apache.empire.db.DBColumnExpr;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBJoinType;
+import org.apache.empire.db.DBQuery;
 import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
@@ -92,32 +94,46 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         DBCommand cmd = db.createCommand();
         cmd.select(tableJob.getColumns());
         cmd.select(db.tableUser.username);
+        final ProarcDatabase.WorkflowPhysicalDocTable tpd = db.tableWorkflowPhysicalDoc;
+        cmd.select(tpd.barcode, tpd.detail, tpd.field001, tpd.issue, tpd.sigla, tpd.signature, tpd.volume, tpd.year);
         cmd.join(tableJob.ownerId, db.tableUser.id, DBJoinType.LEFT);
 
-        if (filter.getId() != null) {
-            cmd.where(tableJob.id.is(filter.getId()));
-        }
+        DBCommand pmatCmd = db.createCommand();
+        final DBColumnExpr pmatMaterialId = db.tableWorkflowMaterial.id.min().as(db.tableWorkflowMaterial.id);
+        pmatCmd.select(pmatMaterialId);
+        pmatCmd.select(db.tableWorkflowTask.jobId);
+        pmatCmd.join(db.tableWorkflowMaterial.id, db.tableWorkflowMaterialInTask.materialId);
+        pmatCmd.join(db.tableWorkflowTask.id, db.tableWorkflowMaterialInTask.taskId);
+        pmatCmd.where(db.tableWorkflowMaterial.type.is("PHYSICAL_DOCUMENT"));
+        pmatCmd.groupBy(db.tableWorkflowTask.jobId);
+        DBQuery pmatQuery = new DBQuery(pmatCmd);
+
+        DBQuery.DBQueryColumn wmId = pmatQuery.findQueryColumn(pmatMaterialId);
+        DBQuery.DBQueryColumn wjId = pmatQuery.findQueryColumn(db.tableWorkflowTask.jobId);
+        cmd.join(tableJob.id, wjId, DBJoinType.LEFT);
+        // empire db reverse the joint type so that is why RIGHT instead of LEFT
+        cmd.join(tpd.materialId, wmId, DBJoinType.RIGHT);
+
+        EmpireUtils.addWhereIs(cmd, tableJob.id, () -> filter.getId());
         if (filter.getLabel() != null) {
             String pattern = filter.getLabel().trim().replace("%", "\\%");
             if (!pattern.isEmpty()) {
                 cmd.where(tableJob.label.likeUpper('%' + pattern + '%'));
             }
         }
-        if (filter.getParentId()!= null) {
-            cmd.where(tableJob.parentId.is(filter.getParentId()));
-        }
-        if (filter.getProfileName() != null) {
-            cmd.where(tableJob.profileName.is(filter.getProfileName()));
-        }
-        if (filter.getState() != null) {
-            cmd.where(tableJob.state.is(filter.getState().name()));
-        }
-        if (filter.getUserId() != null) {
-            cmd.where(tableJob.ownerId.is(filter.getUserId()));
-        }
-        if (filter.getPriority() != null) {
-            cmd.where(tableJob.priority.is(filter.getPriority()));
-        }
+        EmpireUtils.addWhereLike(cmd, tpd.barcode, () -> filter.getMaterialBarcode());
+        EmpireUtils.addWhereLike(cmd, tpd.detail, () -> filter.getMaterialDetail());
+        EmpireUtils.addWhereLike(cmd, tpd.field001, () -> filter.getMaterialField001());
+        EmpireUtils.addWhereLike(cmd, tpd.issue, () -> filter.getMaterialIssue());
+        EmpireUtils.addWhereLike(cmd, tpd.sigla, () -> filter.getMaterialSigla());
+        EmpireUtils.addWhereLike(cmd, tpd.signature, () -> filter.getMaterialSignature());
+        EmpireUtils.addWhereLike(cmd, tpd.volume, () -> filter.getMaterialVolume());
+        EmpireUtils.addWhereLike(cmd, tpd.year, () -> filter.getMaterialYear());
+        EmpireUtils.addWhereIs(cmd, tableJob.parentId, () -> filter.getParentId());
+        EmpireUtils.addWhereIs(cmd, tableJob.profileName, () -> filter.getProfileName());
+        EmpireUtils.addWhereIs(cmd, tableJob.state, () -> filter.getState() == null ? null : filter.getState().name());
+        EmpireUtils.addWhereIs(cmd, tableJob.ownerId, () -> filter.getUserId());
+        EmpireUtils.addWhereIs(cmd, tableJob.priority, () -> filter.getPriority());
 
         EmpireUtils.addWhereDate(cmd, tableJob.created, filter.getCreated());
         EmpireUtils.addWhereDate(cmd, tableJob.timestamp, filter.getModified());

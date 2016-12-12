@@ -45,6 +45,14 @@ public final class WorkflowModelConsts {
     public static final String JOB_FILTER_CREATED = "created";
     public static final String JOB_FILTER_LABEL = "label";
     public static final String JOB_FILTER_MODIFIED = "modified";
+    public static final String JOB_FILTER_MATERIAL_BARCODE = "barcode";
+    public static final String JOB_FILTER_MATERIAL_DETAIL = "detail";
+    public static final String JOB_FILTER_MATERIAL_FIELD001 = "field001";
+    public static final String JOB_FILTER_MATERIAL_ISSUE = "issue";
+    public static final String JOB_FILTER_MATERIAL_SIGLA = "sigla";
+    public static final String JOB_FILTER_MATERIAL_SIGNATURE = "signature";
+    public static final String JOB_FILTER_MATERIAL_VOLUME = "volume";
+    public static final String JOB_FILTER_MATERIAL_YEAR = "year";
     public static final String JOB_FILTER_OFFSET = "_startRow";
     public static final String JOB_FILTER_OWNERID = "ownerId";
     public static final String JOB_FILTER_PARENTID = "parentId";
@@ -120,10 +128,16 @@ public final class WorkflowModelConsts {
     // physical material attributes
     public static final String MATERIAL_BARCODE = "barcode";
     public static final String MATERIAL_CATALOG = "source";
+    public static final String MATERIAL_DETAIL = "detail";
     public static final String MATERIAL_FIELD001 = "field001";
+    public static final String MATERIAL_ISSUE = "issue";
     public static final String MATERIAL_METADATA = "metadata";
+    public static final String MATERIAL_SIGLA = "sigla";
     public static final String MATERIAL_SIGNATURE = "signature";
     public static final String MATERIAL_RDCZID = "rdczId";
+    public static final String MATERIAL_VOLUME = "volume";
+    public static final String MATERIAL_YEAR = "year";
+    public static final String MATERIAL_YEARNUMBER = "yearNumber";
 
     public static final String MATERIALFILTER_ID = "id";
     public static final String MATERIALFILTER_JOBID = "jobId";

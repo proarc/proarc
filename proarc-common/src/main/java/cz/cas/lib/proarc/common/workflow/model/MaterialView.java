@@ -54,6 +54,16 @@ public class MaterialView extends Material {
     private String signature;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_METADATA)
     private String metadata;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_DETAIL)
+    private String detail;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_ISSUE)
+    private String issue;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_SIGLA)
+    private String sigla;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_VOLUME)
+    private String volume;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_YEAR)
+    private String year;
 
     public String getProfileLabel() {
         return profileLabel;
@@ -157,6 +167,46 @@ public class MaterialView extends Material {
 
     public void setSignature(String signature) {
         this.signature = signature;
+    }
+
+    public String getDetail() {
+        return detail;
+    }
+
+    public void setDetail(String detail) {
+        this.detail = detail;
+    }
+
+    public String getIssue() {
+        return issue;
+    }
+
+    public void setIssue(String issue) {
+        this.issue = issue;
+    }
+
+    public String getSigla() {
+        return sigla;
+    }
+
+    public void setSigla(String sigla) {
+        this.sigla = sigla;
+    }
+
+    public String getVolume() {
+        return volume;
+    }
+
+    public void setVolume(String volume) {
+        this.volume = volume;
+    }
+
+    public String getYear() {
+        return year;
+    }
+
+    public void setYear(String year) {
+        this.year = year;
     }
 
 }

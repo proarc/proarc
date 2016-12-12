@@ -209,6 +209,11 @@ public class WorkflowManager {
                     job.setLabel(jobLabel);
                     jobDao.update(job);
                 }
+                pm.setDetail(view.getDetail());
+                pm.setIssue(view.getIssue());
+                pm.setSigla(view.getSigla());
+                pm.setVolume(view.getVolume());
+                pm.setYear(view.getYear());
             }
             dao.update(m);
             tx.commit();
@@ -423,13 +428,18 @@ public class WorkflowManager {
                 physicalMaterial = new PhysicalMaterial();
                 physicalMaterial.setBarcode(mv.getBarcode());
                 physicalMaterial.setField001(mv.getField001());
+                physicalMaterial.setDetail(mv.getDetail());
+                physicalMaterial.setIssue(mv.getIssue());
                 physicalMaterial.setLabel(mv.getLabel());
                 physicalMaterial.setMetadata(mv.getMetadata());
                 physicalMaterial.setName(mv.getName());
                 physicalMaterial.setNote(mv.getNote());
                 physicalMaterial.setRdczId(mv.getRdczId());
+                physicalMaterial.setSigla(mv.getSigla());
                 physicalMaterial.setSignature(mv.getSignature());
                 physicalMaterial.setSource(mv.getSource());
+                physicalMaterial.setVolume(mv.getVolume());
+                physicalMaterial.setYear(mv.getYear());
 //                physicalMaterial.setState(mv.getState());
                 jobLabel = physicalMaterial.getLabel();
             }

@@ -174,4 +174,32 @@ public class EmpireWorkflowJobDaoTest {
         assertEquals("job.stt", job0.getProfileName());
     }
 
+    @Test
+    public void testViewMaterialFilter() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_task.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_material.xml")
+                );
+        support.cleanInsert(support.getConnection(tx), db);
+        tx.commit();
+
+        JobFilter filter = new JobFilter();
+        filter.setLabel("Mono");
+        filter.setMaterialBarcode("1234");
+        filter.setMaterialDetail("detail");
+        filter.setMaterialField001("001");
+        filter.setMaterialIssue("11");
+        filter.setMaterialSigla("ABA123");
+        filter.setMaterialSignature("sig123");
+        filter.setMaterialVolume("13");
+        filter.setMaterialYear("1998-1999");
+        List<JobView> jobs = dao.view(filter);
+        assertEquals(1, jobs.size());
+        JobView job0 = jobs.get(0);
+        assertEquals(new BigDecimal(1), job0.getId());
+        assertEquals("job.ndk", job0.getProfileName());
+    }
+
 }

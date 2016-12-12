@@ -33,6 +33,23 @@ public class JobView extends Job {
     private String profileLabel;
     @XmlElement(name = WorkflowModelConsts.JOB_PROFILEHINT)
     private String profileHint;
+    // properties of the physical document
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_BARCODE)
+    private String barcode;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_DETAIL)
+    private String detail;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_FIELD001)
+    private String field001;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_ISSUE)
+    private String issue;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGLA)
+    private String sigla;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGNATURE)
+    private String signature;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME)
+    private String volume;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR)
+    private String year;
 
     public String getProfileLabel() {
         return profileLabel;
@@ -65,6 +82,70 @@ public class JobView extends Job {
     @XmlElement(name = WorkflowModelConsts.JOB_TIMESTAMP)
     public long getTimestampAsLong() {
         return getTimestamp().getTime();
+    }
+
+    public String getBarcode() {
+        return barcode;
+    }
+
+    public void setBarcode(String barcode) {
+        this.barcode = barcode;
+    }
+
+    public String getDetail() {
+        return detail;
+    }
+
+    public void setDetail(String detail) {
+        this.detail = detail;
+    }
+
+    public String getField001() {
+        return field001;
+    }
+
+    public void setField001(String field001) {
+        this.field001 = field001;
+    }
+
+    public String getIssue() {
+        return issue;
+    }
+
+    public void setIssue(String issue) {
+        this.issue = issue;
+    }
+
+    public String getSigla() {
+        return sigla;
+    }
+
+    public void setSigla(String sigla) {
+        this.sigla = sigla;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
+    public String getVolume() {
+        return volume;
+    }
+
+    public void setVolume(String volume) {
+        this.volume = volume;
+    }
+
+    public String getYear() {
+        return year;
+    }
+
+    public void setYear(String year) {
+        this.year = year;
     }
 
 }

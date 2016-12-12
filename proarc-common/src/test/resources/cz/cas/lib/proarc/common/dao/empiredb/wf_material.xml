@@ -17,7 +17,9 @@
     <proarc_wf_digital_document material_id="2" pid="uuid:ebfd7bf2-169d-476e-a230-0cc39f01764c" />
 
     <proarc_wf_physical_document material_id="3" barcode="1234" rdcz_id="3" field001="001"
-            source="http://catalog" metadata="Metadata" signature="sig123" />
+            source="http://catalog" metadata="Metadata" signature="sig123"
+            detail="detail" issue="11" sigla="ABA123" volume="13" year="1998-1999"
+    />
 
     <proarc_wf_material_in_task task_id="1" material_id="1" way="OUTPUT" />
     <proarc_wf_material_in_task task_id="1" material_id="2" way="INPUT" />

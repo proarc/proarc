@@ -453,6 +453,12 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn source;
         /** MODS. */
         public final DBTableColumn metadata;
+        public final DBTableColumn detail;
+        public final DBTableColumn issue;
+        /** The sigla format {@code [A-Z][A-Z][A-Z][0-9][0-9][0-9]}. */
+        public final DBTableColumn sigla;
+        public final DBTableColumn volume;
+        public final DBTableColumn year;
 
         public WorkflowPhysicalDocTable(DBDatabase db) {
             super("PROARC_WF_PHYSICAL_DOCUMENT", db);
@@ -464,6 +470,11 @@ public class ProarcDatabase extends DBDatabase {
             signature = addColumn("SIGNATURE", DataType.TEXT, 2000, false);
             source = addColumn("SOURCE", DataType.TEXT, 2000, false);
             metadata = addColumn("METADATA", DataType.CLOB, 0, false);
+            detail = addColumn("DETAIL", DataType.TEXT, 200, false);
+            issue = addColumn("ISSUE", DataType.TEXT, 100, false);
+            sigla = addColumn("SIGLA", DataType.TEXT, 6, false);
+            volume = addColumn("VOLUME", DataType.TEXT, 100, false);
+            year = addColumn("YEAR", DataType.TEXT, 100, false);
             setPrimaryKey(materialId);
         }
     }

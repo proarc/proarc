@@ -30,6 +30,11 @@ public class PhysicalMaterial extends Material {
     private String source;
     /** MODS. */
     private String metadata;
+    private String detail;
+    private String issue;
+    private String sigla;
+    private String volume;
+    private String year;
 
     public PhysicalMaterial() {
         setType(MaterialType.PHYSICAL_DOCUMENT);
@@ -81,6 +86,46 @@ public class PhysicalMaterial extends Material {
 
     public void setMetadata(String metadata) {
         this.metadata = metadata;
+    }
+
+    public String getDetail() {
+        return detail;
+    }
+
+    public void setDetail(String detail) {
+        this.detail = detail;
+    }
+
+    public String getIssue() {
+        return issue;
+    }
+
+    public void setIssue(String issue) {
+        this.issue = issue;
+    }
+
+    public String getSigla() {
+        return sigla;
+    }
+
+    public void setSigla(String sigla) {
+        this.sigla = sigla;
+    }
+
+    public String getVolume() {
+        return volume;
+    }
+
+    public void setVolume(String volume) {
+        this.volume = volume;
+    }
+
+    public String getYear() {
+        return year;
+    }
+
+    public void setYear(String year) {
+        this.year = year;
     }
 
 }

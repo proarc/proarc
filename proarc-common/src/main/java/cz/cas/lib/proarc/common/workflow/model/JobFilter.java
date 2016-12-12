@@ -43,6 +43,22 @@ public class JobFilter {
     private BigDecimal id;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_LABEL)
     private String label;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_BARCODE)
+    private String materialBarcode;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_DETAIL)
+    private String materialDetail;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_FIELD001)
+    private String materialField001;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_ISSUE)
+    private String materialIssue;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGLA)
+    private String materialSigla;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGNATURE)
+    private String materialSignature;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME)
+    private String materialVolume;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR)
+    private String materialYear;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MODIFIED)
     private List<String> modified;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_PRIORITY)
@@ -100,6 +116,70 @@ public class JobFilter {
 
     public void setUserId(BigDecimal userId) {
         this.userId = userId;
+    }
+
+    public String getMaterialBarcode() {
+        return materialBarcode;
+    }
+
+    public void setMaterialBarcode(String materialBarcode) {
+        this.materialBarcode = materialBarcode;
+    }
+
+    public String getMaterialDetail() {
+        return materialDetail;
+    }
+
+    public void setMaterialDetail(String materialDetail) {
+        this.materialDetail = materialDetail;
+    }
+
+    public String getMaterialField001() {
+        return materialField001;
+    }
+
+    public void setMaterialField001(String materialField001) {
+        this.materialField001 = materialField001;
+    }
+
+    public String getMaterialIssue() {
+        return materialIssue;
+    }
+
+    public void setMaterialIssue(String materialIssue) {
+        this.materialIssue = materialIssue;
+    }
+
+    public String getMaterialSigla() {
+        return materialSigla;
+    }
+
+    public void setMaterialSigla(String materialSigla) {
+        this.materialSigla = materialSigla;
+    }
+
+    public String getMaterialSignature() {
+        return materialSignature;
+    }
+
+    public void setMaterialSignature(String materialSignature) {
+        this.materialSignature = materialSignature;
+    }
+
+    public String getMaterialVolume() {
+        return materialVolume;
+    }
+
+    public void setMaterialVolume(String materialVolume) {
+        this.materialVolume = materialVolume;
+    }
+
+    public String getMaterialYear() {
+        return materialYear;
+    }
+
+    public void setMaterialYear(String materialYear) {
+        this.materialYear = materialYear;
     }
 
     public BigDecimal getParentId() {

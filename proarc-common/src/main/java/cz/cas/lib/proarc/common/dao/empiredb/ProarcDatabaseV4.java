@@ -108,6 +108,13 @@ public class ProarcDatabaseV4 extends DBDatabase {
             driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowJob.parentId, script);
             driver.getDDLScript(DBCmdType.CREATE, schema.relationWorkflowJob_ParentId_Fk, script);
 
+            // add columns to tableWorkflowPhysicalDoc
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.detail, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.issue, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.sigla, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.volume, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.year, script);
+
             // add missing relations
             driver.getDDLScript(DBCmdType.CREATE, schema.relationWorkflowMaterialInTask_MaterialId_Fk, script);
             driver.getDDLScript(DBCmdType.CREATE, schema.relationWorkflowMaterialInTask_TaskId_Fk, script);

@@ -173,19 +173,29 @@ public class EmpireWorkflowMaterialDaoTest {
         assertMaterial(m, result);
 
         m.setBarcode("1234");
+        m.setDetail("detail");
         m.setField001("field001");
+        m.setIssue("12");
         m.setMetadata("<xml/>");
         m.setRdczId("12345");
         m.setSource("http://something.somewhere");
+        m.setSigla("ABA123");
+        m.setVolume("13");
+        m.setYear("1998-1999");
         dao.update(m);
 
         result = dao.find(m.getId());
         assertMaterial(m, result);
         assertEquals("1234", result.getBarcode());
+        assertEquals("detail", result.getDetail());
         assertEquals("field001", result.getField001());
+        assertEquals("12", result.getIssue());
         assertEquals("<xml/>", result.getMetadata());
         assertEquals("12345", result.getRdczId());
         assertEquals("http://something.somewhere", result.getSource());
+        assertEquals("ABA123", result.getSigla());
+        assertEquals("13", result.getVolume());
+        assertEquals("1998-1999", result.getYear());
     }
 
     @Test
@@ -233,6 +243,11 @@ public class EmpireWorkflowMaterialDaoTest {
         assertEquals("3", ms.get(0).getRdczId());
         assertEquals("sig123", ms.get(0).getSignature());
         assertEquals("http://catalog", ms.get(0).getSource());
+        assertEquals("detail", ms.get(0).getDetail());
+        assertEquals("11", ms.get(0).getIssue());
+        assertEquals("ABA123", ms.get(0).getSigla());
+        assertEquals("13", ms.get(0).getVolume());
+        assertEquals("1998-1999", ms.get(0).getYear());
         assertNull(ms.get(0).getPid());
         assertNull(ms.get(0).getPath());
         assertEquals(filter.getTaskId(), ms.get(0).getTaskId());

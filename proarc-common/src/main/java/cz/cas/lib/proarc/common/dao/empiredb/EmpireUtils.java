@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
 import org.apache.empire.commons.OptionEntry;
 import org.apache.empire.commons.Options;
 import org.apache.empire.data.DataMode;
@@ -34,7 +35,6 @@ import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBExpr;
-import org.apache.empire.db.DBIndex;
 import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
@@ -143,6 +143,36 @@ class EmpireUtils {
         if (!exprs.isEmpty()) {
             cmd.addWhereConstraints(exprs);
         }
+    }
+
+    /**
+     * Adds an LIKE statement to the where clause.
+     * @param cmd the SQL command
+     * @param column the column to compare
+     * @param likePattern the compared value without wildcards. The supplied value may be {@code null}.
+     * @return the modified command
+     */
+    public static void addWhereLike(DBCommand cmd, DBColumnExpr column, Supplier<String> likePattern) {
+        if (likePattern.get() != null) {
+            String pattern = likePattern.get().trim().replace("%", "\\%");
+            if (!pattern.isEmpty()) {
+                cmd.where(column.like('%' + pattern + '%'));
+            }
+        }
+    }
+
+    /**
+     * Adds an equals statement to the where clause.
+     * @param cmd the SQL command
+     * @param column the column to compare
+     * @param isValue the compared value. The supplied value may be {@code null}.
+     * @return the modified command
+     */
+    public static DBCommand addWhereIs(DBCommand cmd, DBColumnExpr column, Supplier<Object> isValue) {
+        if (isValue.get() != null) {
+            cmd.where(column.is(isValue.get()));
+        }
+        return cmd;
     }
 
     /**
