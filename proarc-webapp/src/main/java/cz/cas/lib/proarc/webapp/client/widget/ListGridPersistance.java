@@ -24,6 +24,8 @@ import com.smartgwt.client.widgets.grid.events.FilterEditorSubmitEvent;
 import com.smartgwt.client.widgets.grid.events.FilterEditorSubmitHandler;
 import com.smartgwt.client.widgets.grid.events.ViewStateChangedEvent;
 import com.smartgwt.client.widgets.grid.events.ViewStateChangedHandler;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import java.util.logging.Logger;
 
 /**
  * The helper that keeps track of {@link ListGrid} properties.
@@ -31,6 +33,8 @@ import com.smartgwt.client.widgets.grid.events.ViewStateChangedHandler;
  * @author Jan Pokorsky
  */
 public class ListGridPersistance {
+
+    private static final Logger LOG = Logger.getLogger(ListGridPersistance.class.getName());
 
     private static final String VIEW = ".view";
     private static final String CRITERIA = ".criteria";
@@ -77,6 +81,7 @@ public class ListGridPersistance {
 
     public void setViewState() {
         String viewState = grid.getViewState();
+        ClientUtils.fine(LOG, "%s.view: %s", dbPrefix, viewState);
         Offline.put(dbPrefix + VIEW, viewState);
     }
 
@@ -85,6 +90,7 @@ public class ListGridPersistance {
         if (criteria != null) {
             json = criteria.asAdvancedCriteria().asString();
         }
+        ClientUtils.fine(LOG, "%s.filter: %s", dbPrefix, json);
         Offline.put(dbPrefix + CRITERIA, json);
     }
 }
