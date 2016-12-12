@@ -106,6 +106,14 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_STATE) Job.State state,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_OWNERID) BigDecimal userId,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_PARENTID) BigDecimal parentId,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_BARCODE) String mBarcode,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_DETAIL) String mDetail,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_FIELD001) String mField001,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_ISSUE) String mIssue,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGLA) String mSigla,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGNATURE) String mSignature,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME) String mVolume,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR) String mYear,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_SORTBY) String sortBy
     ) {
@@ -119,6 +127,14 @@ public class WorkflowResource {
         filter.setId(id);
         filter.setCreated(created);
         filter.setLabel(label);
+        filter.setMaterialBarcode(mBarcode);
+        filter.setMaterialDetail(mDetail);
+        filter.setMaterialField001(mField001);
+        filter.setMaterialIssue(mIssue);
+        filter.setMaterialSigla(mSigla);
+        filter.setMaterialSignature(mSignature);
+        filter.setMaterialVolume(mVolume);
+        filter.setMaterialYear(mYear);
         filter.setModified(modified);
         filter.setParentId(parentId);
         filter.setPriority(priority);

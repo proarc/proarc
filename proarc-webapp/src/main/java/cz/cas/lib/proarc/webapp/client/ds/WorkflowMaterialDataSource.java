@@ -58,6 +58,11 @@ public class WorkflowMaterialDataSource extends RestDataSource {
     public static final String FIELD_PHYSICAL_RDCZID = WorkflowModelConsts.MATERIAL_RDCZID;
     public static final String FIELD_PHYSICAL_SIGNATURE = WorkflowModelConsts.MATERIAL_SIGNATURE;
     public static final String FIELD_PHYSICAL_METADATA = WorkflowModelConsts.MATERIAL_METADATA;
+    public static final String FIELD_PHYSICAL_DETAIL = WorkflowModelConsts.MATERIAL_DETAIL;
+    public static final String FIELD_PHYSICAL_ISSUE = WorkflowModelConsts.MATERIAL_ISSUE;
+    public static final String FIELD_PHYSICAL_SIGLA = WorkflowModelConsts.MATERIAL_SIGLA;
+    public static final String FIELD_PHYSICAL_VOLUME = WorkflowModelConsts.MATERIAL_VOLUME;
+    public static final String FIELD_PHYSICAL_YEAR = WorkflowModelConsts.MATERIAL_YEAR;
     public static final String FIELD_DIGITAL_PID = WorkflowModelConsts.MATERIAL_PID;
 
     public static WorkflowMaterialDataSource INSTANCE;
@@ -136,6 +141,26 @@ public class WorkflowMaterialDataSource extends RestDataSource {
         signature.setTitle(i18n.WorkflowMaterial_Field_Signature_Title());
         signature.setDetail(true);
 
+        DataSourceTextField detail = new DataSourceTextField(FIELD_PHYSICAL_DETAIL,
+                i18n.WorkflowMaterial_Field_Detail_Title(), 200);
+        detail.setDetail(true);
+
+        DataSourceTextField issue = new DataSourceTextField(FIELD_PHYSICAL_ISSUE,
+                i18n.WorkflowMaterial_Field_Issue_Title(), 100);
+        issue.setDetail(true);
+
+        DataSourceTextField sigla = new DataSourceTextField(FIELD_PHYSICAL_SIGLA,
+                i18n.WorkflowMaterial_Field_Sigla_Title(), 6);
+        sigla.setDetail(true);
+
+        DataSourceTextField volume = new DataSourceTextField(FIELD_PHYSICAL_VOLUME,
+                i18n.WorkflowMaterial_Field_Volume_Title(), 100);
+        volume.setDetail(true);
+
+        DataSourceTextField year = new DataSourceTextField(FIELD_PHYSICAL_YEAR,
+                i18n.WorkflowMaterial_Field_Year_Title(), 100);
+        year.setDetail(true);
+
         DataSourceTextField pid = new DataSourceTextField(FIELD_DIGITAL_PID);
         pid.setTitle(i18n.WorkflowMaterial_Field_Pid_Title());
         pid.setDetail(true);
@@ -146,7 +171,7 @@ public class WorkflowMaterialDataSource extends RestDataSource {
 
         setFields(profile, type, value, way, note, fieldId, primaryKey,
                 path,
-                barcode, field001, signature, rdCzId, catalog, metadata,
+                barcode, field001, signature, rdCzId, catalog, metadata, detail, issue, sigla, volume, year,
                 pid
         );
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));

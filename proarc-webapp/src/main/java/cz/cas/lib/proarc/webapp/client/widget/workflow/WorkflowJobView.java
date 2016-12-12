@@ -59,6 +59,7 @@ import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import java.util.logging.Logger;
 
 /**
  *
@@ -318,6 +319,14 @@ public class WorkflowJobView implements Refreshable {
                 new ListGridField(WorkflowJobDataSource.FIELD_CREATED, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_FINANCED, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_MBARCODE, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MDETAIL, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_MFIELD001, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MISSUE, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MSIGLA, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MSIGNATURE, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MVOLUME, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MYEAR, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_NOTE)
                 );
         g.setSortField(WorkflowJobDataSource.FIELD_CREATED);
@@ -372,6 +381,14 @@ public class WorkflowJobView implements Refreshable {
                 new ListGridField(WorkflowJobDataSource.FIELD_CREATED, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_FINANCED, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_MBARCODE, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MDETAIL, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_MFIELD001, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MISSUE, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MSIGLA, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MSIGNATURE, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MVOLUME, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MYEAR, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_NOTE)
                 );
 

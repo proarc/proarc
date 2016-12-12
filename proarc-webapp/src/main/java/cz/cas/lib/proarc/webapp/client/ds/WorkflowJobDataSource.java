@@ -58,6 +58,14 @@ public class WorkflowJobDataSource extends RestDataSource {
     public static final String FIELD_PROFILE_ID = WorkflowModelConsts.JOB_PROFILENAME;
     public static final String FIELD_PROFILE_HINT = WorkflowModelConsts.JOB_PROFILEHINT;
     public static final String FIELD_STATE = WorkflowModelConsts.JOB_STATE;
+    public static final String FIELD_MBARCODE = WorkflowModelConsts.JOB_FILTER_MATERIAL_BARCODE;
+    public static final String FIELD_MDETAIL = WorkflowModelConsts.JOB_FILTER_MATERIAL_DETAIL;
+    public static final String FIELD_MFIELD001 = WorkflowModelConsts.JOB_FILTER_MATERIAL_FIELD001;
+    public static final String FIELD_MISSUE = WorkflowModelConsts.JOB_FILTER_MATERIAL_ISSUE;
+    public static final String FIELD_MSIGLA = WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGLA;
+    public static final String FIELD_MSIGNATURE = WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGNATURE;
+    public static final String FIELD_MVOLUME = WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME;
+    public static final String FIELD_MYEAR = WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR;
 
     private static WorkflowJobDataSource INSTANCE;
 
@@ -133,7 +141,42 @@ public class WorkflowJobDataSource extends RestDataSource {
         modified.setCanEdit(false);
         modified.setDetail(true);
 
-        setFields(fieldId, label, state, profileId, priority, owner, created, modified, note, financed);
+        DataSourceTextField barcode = new DataSourceTextField(FIELD_MBARCODE);
+        barcode.setTitle(i18n.WorkflowMaterial_Field_Barcode_Title());
+        barcode.setDetail(true);
+
+        DataSourceTextField detail = new DataSourceTextField(FIELD_MDETAIL);
+        detail.setTitle(i18n.WorkflowMaterial_Field_Detail_Title());
+        detail.setDetail(true);
+
+        DataSourceTextField field001 = new DataSourceTextField(FIELD_MFIELD001);
+        field001.setTitle(i18n.WorkflowMaterial_Field_Field001_Title());
+        field001.setDetail(true);
+
+        DataSourceTextField issue = new DataSourceTextField(FIELD_MISSUE);
+        issue.setTitle(i18n.WorkflowMaterial_Field_Issue_Title());
+        issue.setDetail(true);
+
+        DataSourceTextField sigla = new DataSourceTextField(FIELD_MSIGLA);
+        sigla.setTitle(i18n.WorkflowMaterial_Field_Sigla_Title());
+        sigla.setDetail(true);
+
+        DataSourceTextField signature = new DataSourceTextField(FIELD_MSIGNATURE);
+        signature.setTitle(i18n.WorkflowMaterial_Field_Signature_Title());
+        signature.setDetail(true);
+
+        DataSourceTextField volume = new DataSourceTextField(FIELD_MVOLUME);
+        volume.setTitle(i18n.WorkflowMaterial_Field_Volume_Title());
+        volume.setDetail(true);
+
+        DataSourceTextField year = new DataSourceTextField(FIELD_MYEAR);
+        year.setTitle(i18n.WorkflowMaterial_Field_Year_Title());
+        year.setDetail(true);
+
+        setFields(fieldId, label, state, profileId, priority, owner, created, modified,
+                note, financed, barcode,
+                detail, field001, issue, sigla, signature, volume, year
+        );
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(
                 RestConfig.createAddOperation(),
