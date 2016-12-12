@@ -34,6 +34,7 @@ import org.apache.empire.db.DBDatabase;
 import static org.apache.empire.db.DBDatabase.SYSDATE;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBRecord;
+import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
@@ -70,6 +71,11 @@ public class ProarcDatabase extends DBDatabase {
     public final WorkflowFolderTable tableWorkflowFolder = new WorkflowFolderTable(this);
     public final WorkflowDigObjTable tableWorkflowDigObj = new WorkflowDigObjTable(this);
     public final WorkflowPhysicalDocTable tableWorkflowPhysicalDoc = new WorkflowPhysicalDocTable(this);
+
+    // relations
+    public final DBRelation relationWorkflowJob_ParentId_Fk;
+    public final DBRelation relationWorkflowMaterialInTask_MaterialId_Fk;
+    public final DBRelation relationWorkflowMaterialInTask_TaskId_Fk;
 
     public static class ProarcVersionTable extends DBTable {
 
@@ -491,13 +497,17 @@ public class ProarcDatabase extends DBDatabase {
         addRelation(tableGroupPermission.groupid.referenceOn(tableUserGroup.id));
         // workflow
         addRelation(tableWorkflowJob.ownerId.referenceOn(tableUser.id));
-        addRelation(tableWorkflowJob.parentId.referenceOn(tableWorkflowJob.id));
+        relationWorkflowJob_ParentId_Fk = addRelation(tableWorkflowJob.parentId.referenceOn(tableWorkflowJob.id));
         addRelation(tableWorkflowTask.jobId.referenceOn(tableWorkflowJob.id));
         addRelation(tableWorkflowTask.ownerId.referenceOn(tableUser.id));
         addRelation(tableWorkflowParameter.taskId.referenceOn(tableWorkflowTask.id));
         addRelation(tableWorkflowFolder.materialId.referenceOn(tableWorkflowMaterial.id));
         addRelation(tableWorkflowDigObj.materialId.referenceOn(tableWorkflowMaterial.id));
         addRelation(tableWorkflowPhysicalDoc.materialId.referenceOn(tableWorkflowMaterial.id));
+        relationWorkflowMaterialInTask_MaterialId_Fk =
+                addRelation(tableWorkflowMaterialInTask.materialId.referenceOn(tableWorkflowMaterial.id));
+        relationWorkflowMaterialInTask_TaskId_Fk =
+                addRelation(tableWorkflowMaterialInTask.taskId.referenceOn(tableWorkflowTask.id));
     }
 
     void init(EmpireConfiguration conf) throws SQLException {

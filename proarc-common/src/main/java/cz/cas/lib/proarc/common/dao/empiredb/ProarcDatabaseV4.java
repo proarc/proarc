@@ -35,7 +35,6 @@ import org.apache.empire.db.DBDatabase;
 import static org.apache.empire.db.DBDatabase.SYSDATE;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBRecord;
-import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
@@ -107,13 +106,12 @@ public class ProarcDatabaseV4 extends DBDatabase {
             DBSQLScript script = new DBSQLScript();
             // add the parentId column to the workflowJob table
             driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowJob.parentId, script);
-            DBRelation fkParentId = schema.tableWorkflowJob.getForeignKeyRelations().stream()
-                    .filter(p -> p.getReferencedTable() == schema.tableWorkflowJob
-                            && p.getReferencedTable() == schema.tableWorkflowJob
-                            && p.getReferences()[0].getSourceColumn() == schema.tableWorkflowJob.parentId
-                            && p.getReferences()[0].getTargetColumn()== schema.tableWorkflowJob.id
-                    ).findFirst().get();
-            driver.getDDLScript(DBCmdType.CREATE, fkParentId, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.relationWorkflowJob_ParentId_Fk, script);
+
+            // add missing relations
+            driver.getDDLScript(DBCmdType.CREATE, schema.relationWorkflowMaterialInTask_MaterialId_Fk, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.relationWorkflowMaterialInTask_TaskId_Fk, script);
+
             LOG.fine(script.toString());
             script.run(driver, conn);
         } finally {
