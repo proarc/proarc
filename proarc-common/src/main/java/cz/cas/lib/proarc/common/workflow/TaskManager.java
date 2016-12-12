@@ -25,6 +25,8 @@ import cz.cas.lib.proarc.common.dao.WorkflowParameterDao;
 import cz.cas.lib.proarc.common.dao.WorkflowTaskDao;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.JobFilter;
+import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
@@ -229,8 +231,15 @@ public class TaskManager {
             }
         }
         if (allClosed) {
-            job.setState(allCanceled ? Job.State.CANCELED : Job.State.FINISHED);
-            jobDao.update(job);
+            // check if all subjobs are closed
+            JobFilter subjobFilter = new JobFilter();
+            subjobFilter.setParentId(job.getId());
+            List<JobView> subjobs = jobDao.view(subjobFilter);
+            boolean areAllSubjobsClosed = subjobs.stream().allMatch(j -> j.isClosed());
+            if (areAllSubjobsClosed) {
+                job.setState(allCanceled ? Job.State.CANCELED : Job.State.FINISHED);
+                jobDao.update(job);
+            }
         }
     }
 
