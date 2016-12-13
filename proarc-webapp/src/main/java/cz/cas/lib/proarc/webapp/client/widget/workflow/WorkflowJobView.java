@@ -46,6 +46,7 @@ import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
+import cz.cas.lib.proarc.webapp.client.action.Action;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
@@ -59,7 +60,6 @@ import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
-import java.util.logging.Logger;
 
 /**
  *
@@ -235,12 +235,8 @@ public class WorkflowJobView implements Refreshable {
                 }
             }
         };
-        AbstractAction addSubjobAction = new AbstractAction(i18n.WorkflowJob_View_NewSubjobAction_Title(),
-                "[SKIN]/actions/add.png", i18n.WorkflowJob_View_NewSubjobAction_Hint()) {
-
-            @Override
-            public void performAction(ActionEvent event) {}
-        };
+        Action addSubjobAction = Actions.emptyAction(i18n.WorkflowJob_View_NewSubjobAction_Title(),
+                "[SKIN]/actions/add.png", i18n.WorkflowJob_View_NewSubjobAction_Hint());
 
         toolbar.addMember(Actions.asIconButton(refreshAction, this));
         toolbar.addMember(Actions.asIconButton(addAction, this));
