@@ -159,7 +159,7 @@ public final class BornDigitalArticleForm {
 
     private Field name() {
         // name, nameDefinition
-        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
+        return new FieldBuilder("name").setMaxOccurrences(50).setTitle("Name - MA")
                 .setHint("Údaje o odpovědnosti za článek.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
