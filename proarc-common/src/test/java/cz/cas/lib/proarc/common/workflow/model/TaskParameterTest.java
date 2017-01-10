@@ -16,8 +16,14 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.cas.lib.proarc.common.json.JsonUtils;
+import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Calendar;
+import javax.xml.bind.DatatypeConverter;
+import javax.xml.bind.JAXB;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -68,6 +74,27 @@ public class TaskParameterTest {
         // DO NOT use equals for BigDecimal!
         assertEquals(0, BigDecimal.ZERO.compareTo(tp.getValueNumber()));
         assertEquals("0", tp.getValue());
+    }
+
+    @Test
+    public void testTaskParameterJsonXml() throws Exception {
+        String expectedTimestamp = "2017-01-05T14:51:24.639Z";
+        Calendar c = DatatypeConverter.parseDateTime(expectedTimestamp);
+        ObjectMapper om = JsonUtils.createJaxbMapper();
+        TaskParameterView tp = new TaskParameterView();
+        tp.addParamRef("paramRef").addTaskId(BigDecimal.TEN)
+//                .addValueString("aha")
+//                .addValueNumber(BigDecimal.ONE)
+                .addValueDateTime(new Timestamp(c.getTimeInMillis()))
+                ;
+        tp.setJobId(BigDecimal.ZERO);
+        String json = om.writeValueAsString(tp);
+        assertTrue(json, json.contains("\"value\":\"" + expectedTimestamp));
+
+        StringWriter stringWriter = new StringWriter();
+        JAXB.marshal(tp, stringWriter);
+        String xml = stringWriter.toString();
+        assertTrue(xml, xml.contains(expectedTimestamp));
     }
 
 }

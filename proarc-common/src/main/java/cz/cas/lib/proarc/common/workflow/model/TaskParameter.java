@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlValue;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -39,9 +39,9 @@ public class TaskParameter {
     /**
      * The name of a parameter in workflow profile.
      */
-    @XmlElement(name = WorkflowModelConsts.PARAMETER_PROFILENAME)
+    @XmlAttribute(name = WorkflowModelConsts.PARAMETER_PROFILENAME)
     private String paramRef;
-    @XmlElement(name = WorkflowModelConsts.PARAMETER_VALUETYPE)
+    @XmlAttribute(name = WorkflowModelConsts.PARAMETER_VALUETYPE)
     private ValueType valueType;
 
     // Typed values are XML transient for now. See getValue.
@@ -75,7 +75,6 @@ public class TaskParameter {
         this.paramRef = paramRef;
     }
 
-    @XmlValue
     public Object getValueAsObject() {
         switch (valueType) {
             case DATETIME:
@@ -87,6 +86,9 @@ public class TaskParameter {
         }
     }
 
+    @XmlValue
+    /* Jackson 2.0 ignores @XmlValue for methods and thus @JsonProperty. */
+    @JsonProperty
     public String getValue() {
         String value = null;
         if (valueType == ValueType.NUMBER) {
