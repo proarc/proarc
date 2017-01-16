@@ -34,10 +34,21 @@ import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.IOException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * The helper to access and manipulate digital objects.
@@ -120,76 +131,18 @@ public class DigitalObjectManager {
         return fobject;
     }
 
-    // XXX replace with CreateObjectHandler (getLocal, ingest, setParent, )?
-    // XXX current impl is unusable for the batch import
     public Item createDigitalObject(
             String modelId, String pid,
             String parentPid, UserProfile user, String xml, String message
             ) throws DigitalObjectException, DigitalObjectExistException {
+        return create(modelId, pid, parentPid, user, xml, message).createDigitalObject();
+    }
 
-        if (modelId == null) {
-            throw new IllegalArgumentException("modelId");
-        }
-        if (pid != null) {
-            boolean invalid = pid.length() < 5;
-            try {
-                if (!invalid) {
-                    UUID uuid = UUID.fromString(FoxmlUtils.pidAsUuid(pid));
-                    pid = FoxmlUtils.pidFromUuid(uuid.toString());
-                }
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("pid", e);
-            }
-        }
-        if (user == null) {
-            throw new IllegalArgumentException("user");
-        }
-        DigitalObjectHandler parentHandler = null;
-        if (parentPid != null) {
-            FedoraObject parentObject = find(parentPid, null);
-            parentHandler = DigitalObjectManager.getDefault().createHandler(parentObject);
-        }
-
-        LocalObject localObject = new LocalStorage().create(pid);
-        localObject.setOwner(user.getUserName());
-        DigitalObjectHandler doHandler = DigitalObjectManager.getDefault().createHandler(localObject);
-        doHandler.setParameterParent(parentHandler);
-        doHandler.setParameterUser(user);
-
-        RelationEditor relations = doHandler.relations();
-        relations.setModel(modelId);
-        Integer defaultGroupId = user.getDefaultGroup();
-        if (defaultGroupId != null) {
-            Group group = userManager.findGroup(defaultGroupId);
-            String grpPid = group.getName();
-            relations.setOwners(Collections.singletonList(grpPid));
-        }
-        relations.write(0, message);
-
-        DescriptionMetadata<String> descMetadata = new DescriptionMetadata<String>();
-        descMetadata.setData(xml);
-        doHandler.metadata().setMetadataAsXml(descMetadata, message);
-
-        if (parentHandler != null) {
-            RelationEditor parentRelsExt = parentHandler.relations();
-            List<String> members = parentRelsExt.getMembers();
-            members.add(localObject.getPid());
-            parentRelsExt.setMembers(members);
-            parentRelsExt.write(parentRelsExt.getLastModified(), message);
-        }
-        doHandler.commit();
-
-        getRemotes().ingest(localObject, user.getUserName(), message);
-        if (parentHandler != null) {
-            parentHandler.commit();
-        }
-
-        Item item = new Item(localObject.getPid());
-        item.setLabel(localObject.getLabel());
-        item.setModel(modelId);
-        item.setOwner(localObject.getOwner());
-        item.setParentPid(parentPid);
-        return item;
+    public CreateHandler create(
+            String modelId, String pid,
+            String parentPid, UserProfile user, String xml, String message
+            ) throws DigitalObjectException, DigitalObjectExistException {
+        return new CreateHandler(modelId, pid, parentPid, user, xml, message);
     }
 
     private RemoteStorage getRemotes() {
@@ -201,6 +154,224 @@ public class DigitalObjectManager {
             }
         }
         return remotes;
+    }
+
+    static void checkPid(String pid) {
+        boolean invalid = pid.length() < 5;
+        try {
+            if (!invalid) {
+                UUID uuid = UUID.fromString(FoxmlUtils.pidAsUuid(pid));
+                FoxmlUtils.pidFromUuid(uuid.toString());
+            }
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("pid", e);
+        }
+    }
+
+    public class CreateHandler {
+
+        private final String modelId;
+        private String pid;
+        private String parentPid;
+        private DigitalObjectHandler parentHandler;
+        private final UserProfile user;
+        private Group group;
+        private boolean initGroup = true;
+        private String xml;
+        private String message;
+        private final Map<String, Object> params = new HashMap<>();
+
+        private Boolean hasNext = true;
+
+        private LocalDate seriesDateFrom;
+        private LocalDate seriesDateTo;
+        private Set<DayOfWeek> seriesDaysIncluded;
+
+        private Integer seriesPartNumberFrom;
+
+        public CreateHandler(String modelId, String pid, String parentPid, UserProfile user, String xml, String message) {
+            Objects.requireNonNull(modelId, "modelId");
+            Objects.requireNonNull(user, "user");
+            this.modelId = modelId;
+            this.user = user;
+            if (pid != null) {
+                checkPid(pid);
+                this.pid = pid;
+            }
+            this.parentPid = parentPid;
+            this.xml = xml;
+            this.message = message;
+        }
+
+        /**
+         * Prepares the handler to produce a series of NDK issues.
+         * @param from a date to start the series
+         * @param to an optional date to end the series, inclusive
+         * @param dayIdxs an optional list of ISO day indicies to include in the series
+         * @param partNumberFrom a partNumber to start the series
+         * @return the handler
+         */
+        public CreateHandler issueSeries(LocalDate from, LocalDate to, List<Integer> dayIdxs, Integer partNumberFrom) {
+            this.seriesDateFrom = Objects.requireNonNull(from, "from");
+            if (to != null) {
+                if (to.isBefore(from)) {
+                    throw new IllegalArgumentException(String.format("Invalid date interval. from > to: %s > %s", from, to));
+                }
+                if (from.getYear() != to.getYear()) {
+                    throw new IllegalArgumentException(String.format("Not the same year: %s, %s", from, to));
+                }
+            } else {
+                to = from.with(TemporalAdjusters.lastDayOfYear());
+            }
+            this.seriesDateTo = to;
+            this.seriesDaysIncluded = dayIdxs == null || dayIdxs.isEmpty()
+                    ? EnumSet.allOf(DayOfWeek.class)
+                    : dayIdxs.stream()
+                        .filter(day -> day != null && day >= 1 && day <= 7)
+                        .map(i -> DayOfWeek.of(i))
+                        .collect(Collectors.toSet());
+            if (seriesDaysIncluded.contains(seriesDateFrom.getDayOfWeek())) {
+                params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                        seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+            } else {
+                // move the start to the first acceptable day
+                this.hasNext = nextDate();
+            }
+            this.seriesPartNumberFrom = partNumberFrom;
+            if (partNumberFrom != null) {
+                params.put(DigitalObjectHandler.PARAM_PART_NUMBER, seriesPartNumberFrom.toString());
+            }
+            return this;
+        }
+
+        public boolean isBatch() {
+            return this.seriesDateFrom != null;
+        }
+
+        public boolean hasNext() {
+            if (hasNext == null) {
+                hasNext = nextDate() && nextPartNumber();
+            }
+            return hasNext;
+        }
+
+        private void next() {
+            if (Boolean.TRUE.equals(hasNext)) {
+                hasNext = null;
+            }
+        }
+
+        private boolean nextPartNumber() {
+            if (seriesPartNumberFrom != null) {
+                ++seriesPartNumberFrom;
+                params.put(DigitalObjectHandler.PARAM_PART_NUMBER, seriesPartNumberFrom.toString());
+            }
+            return true;
+        }
+
+        private boolean nextDate() {
+            if (seriesDateFrom != null) {
+                seriesDateFrom = seriesDateFrom.plusDays(1);
+                while (!seriesDateFrom.isAfter(seriesDateTo)) {
+                    if (seriesDaysIncluded.contains(seriesDateFrom.getDayOfWeek())) {
+                        params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                        return true;
+                    }
+                    seriesDateFrom = seriesDateFrom.plusDays(1);
+                }
+            }
+            return false;
+        }
+
+        public UserProfile getUser() {
+            return user;
+        }
+
+        public Group getUserGroup() {
+            if (initGroup) {
+                initGroup = false;
+                Integer defaultGroupId = user.getDefaultGroup();
+                if (defaultGroupId != null) {
+                    group = userManager.findGroup(defaultGroupId);
+                }
+            }
+            return group;
+        }
+
+        public DigitalObjectHandler getParentHandler() throws DigitalObjectNotFoundException {
+            if (parentHandler == null && parentPid != null) {
+                FedoraObject parentObject = find(parentPid, null);
+                parentHandler = DigitalObjectManager.getDefault().createHandler(parentObject);
+            }
+            return parentHandler;
+        }
+
+
+        public List<Item> create() throws DigitalObjectException {
+            boolean isBatch = isBatch();
+            if (isBatch) {
+                return createBatch();
+            } else {
+                return Collections.singletonList(createDigitalObject());
+            }
+        }
+
+        private List<Item> createBatch() throws DigitalObjectException {
+            ArrayList<Item> items = new ArrayList<>();
+            while (hasNext()) {
+                // adjust series params
+                next();
+                items.add(createDigitalObject());
+            }
+            return items;
+        }
+
+        public Item createDigitalObject() throws DigitalObjectException, DigitalObjectExistException {
+            DigitalObjectHandler parentHandler = getParentHandler();
+
+            LocalObject localObject = new LocalStorage().create(pid);
+            localObject.setOwner(user.getUserName());
+            DigitalObjectHandler doHandler = DigitalObjectManager.getDefault().createHandler(localObject);
+            doHandler.setParameterParent(parentHandler);
+            doHandler.setParameterUser(user);
+            params.entrySet().forEach((entry) -> {
+                doHandler.setParameter(entry.getKey(), entry.getValue());
+            });
+
+            RelationEditor relations = doHandler.relations();
+            relations.setModel(modelId);
+            if (getUserGroup() != null) {
+                String grpPid = getUserGroup().getName();
+                relations.setOwners(Collections.singletonList(grpPid));
+            }
+            relations.write(0, message);
+
+            DescriptionMetadata<String> descMetadata = new DescriptionMetadata<>();
+            descMetadata.setData(xml);
+            doHandler.metadata().setMetadataAsXml(descMetadata, message);
+
+            if (parentHandler != null) {
+                RelationEditor parentRelsExt = parentHandler.relations();
+                List<String> members = parentRelsExt.getMembers();
+                members.add(localObject.getPid());
+                parentRelsExt.setMembers(members);
+                parentRelsExt.write(parentRelsExt.getLastModified(), message);
+            }
+            doHandler.commit();
+
+            getRemotes().ingest(localObject, user.getUserName(), message);
+            if (parentHandler != null) {
+                parentHandler.commit();
+            }
+
+            Item item = new Item(localObject.getPid());
+            item.setLabel(localObject.getLabel());
+            item.setModel(modelId);
+            item.setOwner(localObject.getOwner());
+            item.setParentPid(parentPid);
+            return item;
+        }
     }
 
 }

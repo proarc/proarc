@@ -29,6 +29,10 @@ public final class DigitalObjectResourceApi {
     public static final String DIGITALOBJECT_MODEL = "model";
     public static final String BATCHID_PARAM = "batchId";
     public static final String TIMESTAMP_PARAM = "timestamp";
+    public static final String DIGITALOBJECT_SERIES_DATE_FROM_PARAM = "seriesDateFrom";
+    public static final String DIGITALOBJECT_SERIES_DATE_TO_PARAM = "seriesDateTo";
+    public static final String DIGITALOBJECT_SERIES_DAYS_INCLUDED_PARAM = "seriesDaysIncluded";
+    public static final String DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM = "seriesPartNumberFrom";
 
     public static final String NEWOBJECT_XML_PARAM = "xml";
 

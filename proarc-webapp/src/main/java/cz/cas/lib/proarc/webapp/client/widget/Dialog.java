@@ -29,6 +29,7 @@ import com.smartgwt.client.widgets.layout.HStack;
 import com.smartgwt.client.widgets.layout.LayoutSpacer;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import java.util.Objects;
 
 /**
  * A helper to build a dialog with forms.
@@ -115,25 +116,41 @@ public class Dialog extends Window {
     }
 
     private IButton addCancelButton(String title, DialogCloseHandler closeHandler) {
-        IButton btn = new IButton(title, closeHandler);
-        addCloseClickHandler(closeHandler);
+        DialogCloseHandlerImpl dch = new DialogCloseHandlerImpl(closeHandler);
+        IButton btn = new IButton(title, dch);
+        addCloseClickHandler(dch);
         getDialogButtonsContainer().addMember(btn);
         return btn;
     }
 
-    public static abstract class DialogCloseHandler implements CloseClickHandler, ClickHandler {
+    public interface DialogCloseHandler {
+
+        public void onClose();
+
+    }
+
+    private static class DialogCloseHandlerImpl implements CloseClickHandler, ClickHandler {
+
+        private final DialogCloseHandler cHandler;
+
+        public DialogCloseHandlerImpl(DialogCloseHandler cHandler) {
+            Objects.requireNonNull(cHandler);
+            this.cHandler = cHandler;
+        }
 
         @Override
         public void onCloseClick(CloseClickEvent event) {
-            onClose();
+            close();
         }
 
         @Override
         public void onClick(ClickEvent event) {
-            onClose();
+            close();
         }
 
-        public abstract void onClose();
+        private void close() {
+            cHandler.onClose();
+        }
 
     }
 

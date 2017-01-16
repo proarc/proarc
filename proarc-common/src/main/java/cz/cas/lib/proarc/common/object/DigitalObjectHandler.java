@@ -34,6 +34,14 @@ import java.util.Map;
  */
 public final class DigitalObjectHandler {
 
+    /**
+     * NDK createDate for an issue.
+     */
+    public static final String PARAM_ISSUE_DATE = "series.mods.issueCreated";
+    /**
+     * NDK partName.
+     */
+    public static final String PARAM_PART_NUMBER = "series.mods.titleInfo.partNumber";
     static final String PARAM_PARENT = DigitalObjectHandler.class.getName() + ".parent";
     static final String PARAM_USER = DigitalObjectHandler.class.getName() + ".user";
 

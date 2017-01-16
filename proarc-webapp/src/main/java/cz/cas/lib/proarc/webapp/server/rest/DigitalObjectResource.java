@@ -50,6 +50,7 @@ import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHandler;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.DisseminationInput;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
@@ -170,10 +171,15 @@ public class DigitalObjectResource {
      * @param modelId model ID (model:page, ...) of the digital object; required
      * @param pid PID of the digital object from external Kramerius. PID must not be already assigned. Optional
      * @param parentPid optional PID of parent object to link the newly created object
+     * @param seriesDateFrom an optional start ISO date used to generate a series of objects.
+     * @param seriesDateTo an optional end ISO date used to limit a series of objects.
+     *      If missing the last day of the year of the start date is used.
+     * @param seriesDaysIncluded an optional set of days of the week that should be included to generate the series.
+     *      Use 1 for Monday and 7 for Sunday as defined by ISO. The set of all days is used in case of no value.
+     * @param seriesPartNumberFrom an optional number to generate a series of MODS objects
      * @param xmlMetadata XML used to create new object; optional
-     * @return
-     * @throws URISyntaxException
-     * @throws IOException
+     * @return the list of created objects
+     * @throws DigitalObjectException failure
      */
     @POST
     @Produces({MediaType.APPLICATION_JSON})
@@ -181,6 +187,10 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DATE_FROM_PARAM) LocalDateParam seriesDateFrom,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DATE_TO_PARAM) LocalDateParam seriesDateTo,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DAYS_INCLUDED_PARAM) List<Integer> seriesDaysIncluded,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM) Integer seriesPartNumberFrom,
             @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata
             ) throws DigitalObjectException {
 
@@ -209,8 +219,14 @@ public class DigitalObjectResource {
 
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         try {
-            Item item = dom.createDigitalObject(modelId, pid, parentPid, user, xmlMetadata, session.asFedoraLog());
-            return new SmartGwtResponse<Item>(item);
+            CreateHandler handler = dom.create(modelId, pid, parentPid, user, xmlMetadata, session.asFedoraLog());
+            if (seriesDateFrom != null) {
+                handler.issueSeries(seriesDateFrom.getLocalDate(),
+                        seriesDateTo == null ? null : seriesDateTo.getLocalDate(),
+                        seriesDaysIncluded, seriesPartNumberFrom);
+            }
+            List<Item> items = handler.create();
+            return new SmartGwtResponse<>(items);
         } catch (DigitalObjectExistException ex) {
             return SmartGwtResponse.<Item>asError().error("pid", "Object already exists!").build();
         }

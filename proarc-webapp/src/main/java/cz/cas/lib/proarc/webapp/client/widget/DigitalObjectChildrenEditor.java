@@ -60,8 +60,8 @@ import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItem;
 import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
-import com.smartgwt.client.widgets.menu.events.ItemClickHandler;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.Action;
@@ -92,7 +92,10 @@ import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditor;
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditor.OptionalEditor;
+import cz.cas.lib.proarc.webapp.client.widget.mods.NewIssueEditor;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -605,21 +608,40 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
         }
     }
 
+    private void attachAddSubmenu(MenuItem mi) {
+        Menu sm = new Menu();
+        MenuItem miAddSingle = new MenuItem(i18n.DigitalObjectEditor_ChildrenEditor_CreateAction_Title());
+        MenuItem miAddMultiple = new MenuItem(i18n.DigitalObjectEditor_ChildrenEditor_CreateMoreAction_Title());
+        sm.addItemClickHandler((event) -> {
+            MetaModelRecord mmr = MetaModelRecord.get(mi);
+            if (event.getItem() == miAddSingle) {
+                addChild(mmr, Collections.emptyMap());
+            } else if (event.getItem() == miAddMultiple) {
+                new NewIssueEditor(i18n).showWindow(params -> {
+                    addChild(mmr, params.toMap());
+                });
+            }
+        });
+        sm.addItem(miAddSingle);
+        sm.addItem(miAddMultiple);
+        mi.setSubmenu(sm);
+    }
+
     private void createAddMenu(ResultSet models) {
         Menu menuAdd = MetaModelDataSource.createMenu(models, true);
+        menuAdd.setCanSelectParentItems(true);
+        Arrays.stream(menuAdd.getItems())
+                .filter(mi -> "model:ndkperiodicalissue".equals(mi.getAttribute(MetaModelDataSource.FIELD_PID)))
+                .forEach(mi -> attachAddSubmenu(mi));
         addActionButton.setMenu(menuAdd);
-        menuAdd.addItemClickHandler(new ItemClickHandler() {
-
-            @Override
-            public void onItemClick(ItemClickEvent event) {
-                MetaModelRecord mmr = MetaModelRecord.get(event.getItem());
-                addChild(mmr);
-            }
+        menuAdd.addItemClickHandler((ItemClickEvent event) -> {
+            MetaModelRecord mmr = MetaModelRecord.get(event.getItem());
+            addChild(mmr, Collections.emptyMap());
         });
     }
 
-    private void addChild(MetaModelRecord model) {
-        Record record = new Record();
+    private void addChild(MetaModelRecord model, Map<String, Object> params) {
+        Record record = new Record(params);
         record.setAttribute(DigitalObjectDataSource.FIELD_MODEL, model.getId());
         record.setAttribute(RelationDataSource.FIELD_PARENT, digitalObject.getPid());
         DigitalObjectDataSource.getInstance().addData(record, new DSCallback() {

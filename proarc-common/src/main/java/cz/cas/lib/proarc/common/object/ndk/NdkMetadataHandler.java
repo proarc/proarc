@@ -143,6 +143,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 inheritLocation(defaultMods, titleMods.getLocation());
                 inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
             }
+            String partNumberVal = handler.getParameter(DigitalObjectHandler.PARAM_PART_NUMBER);
+            String dateIssuedVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE);
+            fillIssueSeries(defaultMods, partNumberVal, dateIssuedVal);
         } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
             // issue 137
             DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICAL);
@@ -174,6 +177,30 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             }
         }
         return defaultMods;
+    }
+
+    private void fillIssueSeries(ModsDefinition mods, String partNumberVal, String dateIssuedVal) {
+        if (partNumberVal != null) {
+            TitleInfoDefinition titleInfo = mods.getTitleInfo().stream()
+                    .filter(ti -> ti.getType() == null).findFirst().orElse(null);
+            if (titleInfo == null) {
+                mods.getTitleInfo().add(titleInfo = new TitleInfoDefinition());
+            }
+            StringPlusLanguage partNumber = titleInfo.getPartNumber().stream().findFirst().orElse(null);
+            if (partNumber == null) {
+                titleInfo.getPartNumber().add(partNumber = new StringPlusLanguage());
+            }
+            partNumber.setValue(partNumberVal);
+        }
+        if (dateIssuedVal != null) {
+            OriginInfoDefinition originInfo = mods.getOriginInfo().stream().findFirst().orElse(null);
+            if (originInfo == null) {
+                mods.getOriginInfo().add(originInfo = new OriginInfoDefinition());
+            }
+            DateDefinition dateIssued = new DateDefinition();
+            dateIssued.setValue(dateIssuedVal);
+            originInfo.getDateIssued().add(dateIssued);
+        }
     }
 
     protected final void inheritIdentifier(ModsDefinition mods, List<IdentifierDefinition> ids, String... includeIdTypes) {
