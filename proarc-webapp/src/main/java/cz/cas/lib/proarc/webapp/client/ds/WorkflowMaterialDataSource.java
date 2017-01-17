@@ -20,10 +20,8 @@ import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
@@ -37,7 +35,7 @@ import java.util.LinkedHashMap;
  *
  * @author Jan Pokorsky
  */
-public class WorkflowMaterialDataSource extends RestDataSource {
+public class WorkflowMaterialDataSource extends ProarcDataSource {
 
     public static final String ID = "WorkflowMaterialDataSource";
     public static final String PRIMARY_KEY = "__syntheticPrimaryKey";
@@ -76,7 +74,6 @@ public class WorkflowMaterialDataSource extends RestDataSource {
 
     public WorkflowMaterialDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_WORKFLOW_MATERIAL);
         final ClientMessages i18n = GWT.create(ClientMessages.class);
 

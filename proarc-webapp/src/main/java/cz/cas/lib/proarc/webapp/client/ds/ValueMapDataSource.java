@@ -19,12 +19,10 @@ package cz.cas.lib.proarc.webapp.client.ds;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.events.DataArrivedEvent;
 import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.BooleanCallback;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
@@ -36,7 +34,7 @@ import java.util.HashMap;
  *
  * @author Jan Pokorsky
  */
-public class ValueMapDataSource extends RestDataSource {
+public class ValueMapDataSource extends ProarcDataSource {
 
     private static ValueMapDataSource INSTANCE;
     private static final DataSource EMPTY_DS = new DataSource();
@@ -45,7 +43,7 @@ public class ValueMapDataSource extends RestDataSource {
     }
 
     private ResultSet cache;
-    private HashMap<String, DataSource> optionDataSources = new HashMap<String, DataSource>();
+    private HashMap<String, DataSource> optionDataSources = new HashMap<>();
 
     public static ValueMapDataSource getInstance() {
         if (INSTANCE == null) {
@@ -55,7 +53,6 @@ public class ValueMapDataSource extends RestDataSource {
     }
 
     public ValueMapDataSource() {
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_VALUEMAP);
 
         DataSourceTextField mapId = new DataSourceTextField(ValueMapResourceApi.RESULT_MAPID);

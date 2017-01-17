@@ -20,10 +20,8 @@ import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
@@ -35,7 +33,7 @@ import java.util.List;
  *
  * @author Jan Pokorsky
  */
-public class StreamProfileDataSource extends RestDataSource {
+public class StreamProfileDataSource extends ProarcDataSource {
 
     public static final String ID = "DatastreamDataSource";
     public static final String FIELD_ID = DigitalObjectResourceApi.STREAMPROFILE_ID;
@@ -56,7 +54,6 @@ public class StreamProfileDataSource extends RestDataSource {
 
     public StreamProfileDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_DIGOBJECT_STREAMPROFILE);
 
         DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);

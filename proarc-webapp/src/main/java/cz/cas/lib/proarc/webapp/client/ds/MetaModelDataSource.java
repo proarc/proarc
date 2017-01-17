@@ -22,13 +22,11 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.events.DataArrivedEvent;
 import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.widgets.menu.Menu;
@@ -42,7 +40,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public class MetaModelDataSource extends RestDataSource {
+public class MetaModelDataSource extends ProarcDataSource {
 
     private static final Logger LOG = Logger.getLogger(MetaModelDataSource.class.getName());
 
@@ -63,8 +61,6 @@ public class MetaModelDataSource extends RestDataSource {
     public MetaModelDataSource() {
         setID(ID);
 
-        setDataFormat(DSDataFormat.JSON);
-        
         setDataURL(RestConfig.URL_DIGOBJECT_METAMODEL);
 
         DataSourceTextField pid = new DataSourceTextField(FIELD_PID);

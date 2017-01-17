@@ -19,9 +19,7 @@ package cz.cas.lib.proarc.webapp.client.ds;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.logging.Logger;
@@ -31,7 +29,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class DigitalObjectAdministrationDataSource extends RestDataSource {
+public final class DigitalObjectAdministrationDataSource extends ProarcDataSource {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectAdministrationDataSource.class.getName());
     public static final String ID = "DigitalObjectAdministrationDataSource";
@@ -55,7 +53,6 @@ public final class DigitalObjectAdministrationDataSource extends RestDataSource 
     public DigitalObjectAdministrationDataSource() {
         setID(ID);
 
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_DIGOBJECT_ATM);
 
         DataSourceField pid = new DataSourceField(FIELD_PID, FieldType.TEXT);

@@ -63,7 +63,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class ModsCustomDataSource extends RestDataSource implements ModsConstants {
+public final class ModsCustomDataSource extends ProarcDataSource implements ModsConstants {
 
     private static final Logger LOG = Logger.getLogger(ModsCustomDataSource.class.getName());
 
@@ -79,7 +79,6 @@ public final class ModsCustomDataSource extends RestDataSource implements ModsCo
 
     public ModsCustomDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_DIGOBJECT_MODS_CUSTOM);
 
         DataSourceField fieldPid = new DataSourceField(FIELD_PID, FieldType.TEXT);

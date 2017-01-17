@@ -18,8 +18,6 @@ package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
-import com.smartgwt.client.data.RestDataSource;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
 import java.util.logging.Logger;
@@ -29,7 +27,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class BibliographyDataSource extends RestDataSource {
+public final class BibliographyDataSource extends ProarcDataSource {
     
     private static final Logger LOG = Logger.getLogger(BibliographyDataSource.class.getName());
 
@@ -37,8 +35,6 @@ public final class BibliographyDataSource extends RestDataSource {
 
     public BibliographyDataSource() {
         setID(ID);
-
-        setDataFormat(DSDataFormat.JSON);
 
         setDataURL(RestConfig.URL_BIBLIOCATALOG);
 

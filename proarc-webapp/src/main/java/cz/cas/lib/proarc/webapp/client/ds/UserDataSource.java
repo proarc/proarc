@@ -20,12 +20,10 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourcePasswordField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.widgets.form.fields.StaticTextItem;
@@ -38,7 +36,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
  *
  * @author Jan Pokorsky
  */
-public final class UserDataSource extends RestDataSource {
+public final class UserDataSource extends ProarcDataSource {
 
     public static final String ID = "UserDataSource";
     public static final String FIELD_ID = UserResourceApi.USER_ID;
@@ -52,7 +50,6 @@ public final class UserDataSource extends RestDataSource {
 
         ClientMessages i18n = GWT.create(ClientMessages.class);
 
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_USER);
 
         DataSourceIntegerField userId = new DataSourceIntegerField(FIELD_ID);

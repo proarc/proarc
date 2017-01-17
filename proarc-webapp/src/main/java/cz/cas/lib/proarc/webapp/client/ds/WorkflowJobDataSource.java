@@ -21,12 +21,10 @@ import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import cz.cas.lib.proarc.common.workflow.model.Job;
@@ -41,7 +39,7 @@ import java.util.LinkedHashMap;
  *
  * @author Jan Pokorsky
  */
-public class WorkflowJobDataSource extends RestDataSource {
+public class WorkflowJobDataSource extends ProarcDataSource {
 
     public static final String ID = "WorkflowJobDataSource";
 
@@ -78,7 +76,6 @@ public class WorkflowJobDataSource extends RestDataSource {
 
     public WorkflowJobDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_WORKFLOW);
         final ClientMessages i18n = GWT.create(ClientMessages.class);
 

@@ -18,17 +18,14 @@ package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
-import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import java.util.HashSet;
 
 /**
  *
  * @author Jan Pokorsky
  */
-public final class UserPermissionDataSource extends RestDataSource {
+public final class UserPermissionDataSource extends ProarcDataSource {
 
     public static final String ID = "UserPermissionsDataSource";
     public static final String FIELD_USERID = "userId";
@@ -37,7 +34,6 @@ public final class UserPermissionDataSource extends RestDataSource {
 
     public UserPermissionDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_USER_PERMISSIONS);
 
         DataSourceTextField permId = new DataSourceTextField(FIELD_PERMISSIONID);

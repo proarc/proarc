@@ -18,9 +18,7 @@ package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
@@ -32,7 +30,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class DeviceDataSource extends RestDataSource {
+public final class DeviceDataSource extends ProarcDataSource {
 
     private static final Logger LOG = Logger.getLogger(DeviceDataSource.class.getName());
     public static final String ID = "DeviceDataSource";
@@ -52,7 +50,6 @@ public final class DeviceDataSource extends RestDataSource {
     public DeviceDataSource() {
         ClientMessages i18n = GWT.create(ClientMessages.class);
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_DEVICE);
 
         DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);

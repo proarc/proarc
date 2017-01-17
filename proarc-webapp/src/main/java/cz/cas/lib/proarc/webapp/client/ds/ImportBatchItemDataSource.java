@@ -24,11 +24,9 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceImageField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.types.PromptStyle;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
@@ -42,7 +40,7 @@ import java.util.Arrays;
  *
  * @author Jan Pokorsky
  */
-public final class ImportBatchItemDataSource extends RestDataSource {
+public final class ImportBatchItemDataSource extends ProarcDataSource {
 
     public static final String ID = "ImportBatchItemDataSource";
 
@@ -63,8 +61,6 @@ public final class ImportBatchItemDataSource extends RestDataSource {
 
     public ImportBatchItemDataSource() {
         setID(ID);
-
-        setDataFormat(DSDataFormat.JSON);
 
         setDataURL(RestConfig.URL_IMPORT_BATCH_ITEM);
 

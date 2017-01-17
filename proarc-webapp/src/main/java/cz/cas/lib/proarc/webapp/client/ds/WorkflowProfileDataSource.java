@@ -18,12 +18,10 @@ package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.events.DataArrivedEvent;
 import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FetchMode;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import java.util.function.Consumer;
@@ -33,7 +31,7 @@ import java.util.function.Consumer;
  *
  * @author Jan Pokorsky
  */
-public class WorkflowProfileDataSource extends RestDataSource {
+public class WorkflowProfileDataSource extends ProarcDataSource {
 
     public static final String ID = "WorkflowProfileDataSource";
 
@@ -55,7 +53,6 @@ public class WorkflowProfileDataSource extends RestDataSource {
 
     public WorkflowProfileDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_WORKFLOW_PROFILE);
 
         DataSourceTextField fieldId = new DataSourceTextField(FIELD_ID);

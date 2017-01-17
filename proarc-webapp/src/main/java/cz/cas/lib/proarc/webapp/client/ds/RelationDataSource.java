@@ -26,12 +26,10 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.docs.TreeDataBinding;
 import com.smartgwt.client.types.CriteriaPolicy;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
@@ -53,7 +51,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public class RelationDataSource extends RestDataSource {
+public class RelationDataSource extends ProarcDataSource {
 
     private static final Logger LOG = Logger.getLogger(RelationDataSource.class.getName());
     public static final String ID = "RelationDataSource";
@@ -79,7 +77,6 @@ public class RelationDataSource extends RestDataSource {
     public RelationDataSource() {
         setID(ID);
 
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_DIGOBJECT_CHILDREN);
 
         DataSourceField pid = new DataSourceField(FIELD_PID, FieldType.TEXT);

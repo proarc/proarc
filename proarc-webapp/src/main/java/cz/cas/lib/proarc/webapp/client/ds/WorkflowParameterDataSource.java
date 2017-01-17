@@ -16,16 +16,14 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 
 /**
  *
  * @author Jan Pokorsky
  */
-public class WorkflowParameterDataSource extends RestDataSource {
+public class WorkflowParameterDataSource extends ProarcDataSource {
 
     public static final String ID = "WorkflowParameterDataSource";
     public static final String FIELD_TASK_ID = WorkflowModelConsts.PARAMETER_TASKID;
@@ -43,7 +41,6 @@ public class WorkflowParameterDataSource extends RestDataSource {
 
     public WorkflowParameterDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_WORKFLOW_PARAMETER);
 
         DataSourceTextField name = new DataSourceTextField(FIELD_NAME);

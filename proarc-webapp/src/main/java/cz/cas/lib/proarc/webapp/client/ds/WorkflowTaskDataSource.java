@@ -22,12 +22,10 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
@@ -44,7 +42,7 @@ import java.util.Map;
  *
  * @author Jan Pokorsky
  */
-public class WorkflowTaskDataSource extends RestDataSource {
+public class WorkflowTaskDataSource extends ProarcDataSource {
 
     public static final String ID = "WorkflowTaskDataSource";
 
@@ -75,7 +73,6 @@ public class WorkflowTaskDataSource extends RestDataSource {
 
     public WorkflowTaskDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_WORKFLOW_TASK);
         final ClientMessages i18n = GWT.create(ClientMessages.class);
 

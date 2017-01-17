@@ -22,13 +22,11 @@ import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.events.DataArrivedEvent;
 import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.FieldType;
@@ -40,7 +38,7 @@ import java.util.HashMap;
  *
  * @author Jan Pokorsky
  */
-public final class SearchDataSource extends RestDataSource {
+public final class SearchDataSource extends ProarcDataSource {
 
     public static final String ID = "SearchDataSource";
 
@@ -55,7 +53,6 @@ public final class SearchDataSource extends RestDataSource {
 
     public SearchDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_DIGOBJECT_SEARCH);
 
         DataSourceField pid = new DataSourceField(FIELD_PID, FieldType.TEXT);

@@ -17,9 +17,7 @@
 package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.PromptStyle;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 
@@ -27,7 +25,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
  *
  * @author Jan Pokorsky
  */
-public class UrnNbnDataSource extends RestDataSource {
+public class UrnNbnDataSource extends ProarcDataSource {
 
     private static UrnNbnDataSource INSTANCE;
 
@@ -40,7 +38,6 @@ public class UrnNbnDataSource extends RestDataSource {
 
     public UrnNbnDataSource() {
         setDataURL(RestConfig.URL_DIGOBJECT_URNNBN);
-        setDataFormat(DSDataFormat.JSON);
 
         DataSourceTextField target = new DataSourceTextField(ExportResourceApi.RESULT_TARGET);
         setFields(target);

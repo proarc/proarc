@@ -23,12 +23,10 @@ import com.smartgwt.client.data.Criterion;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.OperatorId;
@@ -42,7 +40,7 @@ import java.util.LinkedHashMap;
  *
  * @author Jan Pokorsky
  */
-public final class ImportBatchDataSource extends RestDataSource {
+public final class ImportBatchDataSource extends ProarcDataSource {
 
     public static final String ID = "ImportBatchDataSource";
     public static final String FIELD_ID = ImportResourceApi.IMPORT_BATCH_ID;
@@ -62,8 +60,6 @@ public final class ImportBatchDataSource extends RestDataSource {
 
     public ImportBatchDataSource() {
         setID(ID);
-
-        setDataFormat(DSDataFormat.JSON);
 
         setDataURL(RestConfig.URL_IMPORT_BATCH);
 

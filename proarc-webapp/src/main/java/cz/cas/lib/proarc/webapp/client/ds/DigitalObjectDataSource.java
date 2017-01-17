@@ -23,9 +23,7 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.BooleanItem;
@@ -46,7 +44,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class DigitalObjectDataSource extends RestDataSource {
+public final class DigitalObjectDataSource extends ProarcDataSource {
 
     public static final String ID = "DigitalObjectDataSource";
     public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
@@ -59,7 +57,6 @@ public final class DigitalObjectDataSource extends RestDataSource {
 
     public DigitalObjectDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_DIGOBJECT);
 
         DataSourceTextField pid = new DataSourceTextField(FIELD_PID);

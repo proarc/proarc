@@ -18,12 +18,10 @@ package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.events.DataArrivedEvent;
 import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import cz.cas.lib.proarc.common.i18n.BundleName;
@@ -36,7 +34,7 @@ import java.util.LinkedHashMap;
  *
  * @author Jan Pokorsky
  */
-public final class LocalizationDataSource extends RestDataSource {
+public final class LocalizationDataSource extends ProarcDataSource {
 
     public static final String ID = "LocalizationDataSource";
     private static LocalizationDataSource INSTANCE;
@@ -44,7 +42,6 @@ public final class LocalizationDataSource extends RestDataSource {
 
     public LocalizationDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_LOCALIZATION);
 
         DataSourceTextField bundle = new DataSourceTextField(LocalizationResourceApi.ITEM_BUNDLENAME);

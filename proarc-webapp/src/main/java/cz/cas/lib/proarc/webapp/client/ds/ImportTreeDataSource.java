@@ -23,16 +23,14 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.data.fields.DataSourceEnumField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.types.DSDataFormat;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ImportTreeDataSource extends RestDataSource {
+public class ImportTreeDataSource extends ProarcDataSource {
 
     public static final String FIELD_NAME = "name";
     public static final String FIELD_PARENT = ImportResourceApi.IMPORT_FOLDER_PARENT_PARAM;
@@ -49,7 +47,6 @@ public class ImportTreeDataSource extends RestDataSource {
 
     private ImportTreeDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
 
         ClientMessages i18n = GWT.create(ClientMessages.class);
 

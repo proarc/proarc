@@ -18,8 +18,6 @@ package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DataSourceField;
-import com.smartgwt.client.data.RestDataSource;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
@@ -30,7 +28,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi.Prof
  *
  * @author Jan Pokorsky
  */
-public class ConfigurationProfileDataSource extends RestDataSource {
+public class ConfigurationProfileDataSource extends ProarcDataSource {
 
     public static final String ID = "ConfigurationProfileDataSource";
 
@@ -45,7 +43,6 @@ public class ConfigurationProfileDataSource extends RestDataSource {
 
     public ConfigurationProfileDataSource() {
         setID(ID);
-        setDataFormat(DSDataFormat.JSON);
         setDataURL(RestConfig.URL_CONFIGPROFILE);
 
         DataSourceField fId = new DataSourceField(ConfigurationProfileResourceApi.PROFILE_ID, FieldType.TEXT);
