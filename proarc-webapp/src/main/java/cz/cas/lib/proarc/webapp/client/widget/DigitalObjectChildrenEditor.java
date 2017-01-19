@@ -79,6 +79,7 @@ import cz.cas.lib.proarc.webapp.client.action.DigitalObjectNavigateAction.ChildS
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
+import cz.cas.lib.proarc.webapp.client.action.SelectionCache;
 import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
@@ -121,6 +122,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
     /** A controller of the enclosing editor. */
     private final PlaceController places;
     private final ListGrid childrenListGrid;
+    private final SelectionCache<ListGridRecord> selectionCache;
     private final DigitalObjectEditor childEditor;
     private final HLayout widget;
     private DigitalObject digitalObject;
@@ -147,6 +149,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
         this.goDownAction = DigitalObjectNavigateAction.child(i18n, places);
         relationDataSource = RelationDataSource.getInstance();
         childrenListGrid = initChildrenListGrid();
+        this.selectionCache = SelectionCache.selector(childrenListGrid);
         VLayout childrenLayout = new VLayout();
         childrenLayout.setMembers(childrenListGrid);
         childrenLayout.setWidth("40%");
@@ -316,7 +319,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
 
     @Override
     public Record[] getSelection() {
-        return originChildren != null ? null : childrenListGrid.getSelectedRecords();
+        return originChildren != null ? null : selectionCache.getSelection();
     }
 
     @Override
@@ -551,7 +554,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
 
             @Override
             public void onSelectionUpdated(SelectionUpdatedEvent event) {
-                ListGridRecord[] records = childrenListGrid.getSelectedRecords();
+                ListGridRecord[] records = selectionCache.setSelection();
                 selectionHistory.select(digitalObject.getPid(), records);
                 onChildSelection(records);
             }

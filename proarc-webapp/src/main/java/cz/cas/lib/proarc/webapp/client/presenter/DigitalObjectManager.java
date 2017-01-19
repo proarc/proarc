@@ -18,11 +18,11 @@ package cz.cas.lib.proarc.webapp.client.presenter;
 
 import com.google.gwt.core.client.Callback;
 import com.google.gwt.place.shared.PlaceController;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
-import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
@@ -114,7 +114,7 @@ public final class DigitalObjectManager {
 
             @Override
             public void onSelectionUpdated(SelectionUpdatedEvent event) {
-                final ListGridRecord[] selectedRecords = foundView.getGrid().getSelectedRecords();
+                final Record[] selectedRecords = foundView.getSelection();
                 int selectedRecordNumber = selectedRecords != null ? selectedRecords.length : 0;
                 listSource.fireEvent();
                 if (selectedRecordNumber == 1) {

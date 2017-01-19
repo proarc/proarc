@@ -53,6 +53,7 @@ import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
+import cz.cas.lib.proarc.webapp.client.action.SelectionCache;
 import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
@@ -77,6 +78,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     private final DynamicForm filters;
     private final Canvas rootWidget;
     private final ListGrid foundGrid;
+    private final SelectionCache<ListGridRecord> selectionCache;
     private final ClientMessages i18n;
     private final SmartGwtMessages i18nSmartGwt;
     private final ToolStrip toolbar;
@@ -86,6 +88,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         this.i18nSmartGwt = ClientUtils.createSmartGwtMessages();
 
         foundGrid = createList();
+        selectionCache = SelectionCache.selector(foundGrid);
         
         filters = createFilter();
 
@@ -149,6 +152,9 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         });
         grid.setFields(label, model, pid, created, modified, owner, state, export);
         grid.setContextMenu(Actions.createMenu());
+        grid.addSelectionUpdatedHandler((event) -> {
+            selectionCache.setSelection();
+        });
         return grid;
     }
 
@@ -302,8 +308,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     @Override
     public Record[] getSelection() {
-        ListGridRecord[] selections = foundGrid.getSelectedRecords();
-        return selections;
+        return selectionCache.getSelection();
     }
 
     @Override

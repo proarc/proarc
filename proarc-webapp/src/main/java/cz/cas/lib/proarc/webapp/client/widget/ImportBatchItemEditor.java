@@ -78,6 +78,7 @@ import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
+import cz.cas.lib.proarc.webapp.client.action.SelectionCache;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchItemDataSource;
@@ -92,6 +93,7 @@ import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing.DigitalObj
 import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditor;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectChildrenEditor.ChildActivities;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectChildrenEditor.ChildEditorDisplay;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -107,6 +109,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
     private final ClientMessages i18n;
 
     private final ListGrid batchItemGrid;
+    private SelectionCache<Record> selectionCache;
     private ListGridField fieldItemModel;
     private final TileGrid thumbViewer;
     private final MediaEditor digitalObjectPreview;
@@ -152,6 +155,10 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
         thumbViewer = createThumbViewer();
         editorThumbLayout.addMember(thumbViewer);
+
+        this.selectionCache = new SelectionCache<>(
+                Optional.empty(),
+                r -> batchItemGrid.getRecordIndex(r));
 
         VLayout editorThumbToolbarLayout = new VLayout();
         editorThumbToolbarLayout.setShowResizeBar(true);
@@ -297,7 +304,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                     selectListInProgress = false;
                     return ;
                 }
-                ListGridRecord[] selectedRecords = grid.getSelectedRecords();
+                Record[] selectedRecords = selectionCache.setSelection(grid.getSelectedRecords());
                 thumbViewer.deselectAllRecords();
                 if (selectedRecords != null && selectedRecords.length == 1) {
                     // select thumbnail just in case of the single selection
@@ -324,7 +331,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
             public void onRecordClick(RecordClickEvent event) {
                 // NOTE: RecordClickEvent is fired after SelectionUpdatedEvent!
                 // single selection is handled by onChildSelection
-                ListGridRecord[] selection = event.getViewer().getSelectedRecords();
+                Record[] selection = getSelection();
                 if (selection.length < 2) {
                     return ;
                 }
@@ -349,9 +356,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
         if (reorderTask.isReordered()) {
             return null;
         }
-        return batchItemGrid.anySelected()
-                ? batchItemGrid.getSelectedRecords()
-                : thumbViewer.getSelection();
+        return selectionCache.getSelection();
     }
 
     @Override
@@ -562,7 +567,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                     selectThumbInProgress = false;
                     return ;
                 }
-                Record[] selection = thumbViewer.getSelection();
+                Record[] selection = selectionCache.setSelection(thumbViewer.getSelection());
                 if (selection != null && selection.length == 1) {
 //                    LOG.info("THUMB.onSelectionChanged.selection.state: " + event.getState() + ".attrs: " + Arrays.toString(selection[0].getAttributes()));
                     selectListInProgress = true;
@@ -872,7 +877,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
                 Record[] records = batchItemGrid.getOriginalResultSet().toArray();
                 Record[] copyRecords = ds.copyRecords(records);
                 thumbViewer.setData(copyRecords);
-                loadItemInChildEditor(batchItemGrid.getSelectedRecords());
+                loadItemInChildEditor(getSelection());
                 actionSource.fireEvent();
             } else if (src == thumbViewer) {
                 reset();
