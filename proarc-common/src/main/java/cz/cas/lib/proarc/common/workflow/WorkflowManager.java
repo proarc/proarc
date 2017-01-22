@@ -204,7 +204,7 @@ public class WorkflowManager {
                 }
                 pm.setRdczId(view.getRdczId());
                 pm.setSource(view.getSource());
-                jobLabel = updateMaterialSignature(view.getSignature(), pm, jobLabel);
+                pm.setSignature(view.getSignature());
                 if (jobLabel == null ? job.getLabel() != null : !jobLabel.equals(job.getLabel())) {
                     job.setLabel(jobLabel);
                     jobDao.update(job);
@@ -230,26 +230,6 @@ public class WorkflowManager {
         } finally {
             tx.close();
         }
-    }
-
-    static String updateMaterialSignature(String newSignature, PhysicalMaterial update, String jobLabel) {
-        String oldSignature = update.getSignature();
-        if (newSignature == null ? oldSignature != null : !newSignature.equals(oldSignature)) {
-            if (oldSignature != null && !oldSignature.isEmpty() && jobLabel.startsWith(oldSignature)) {
-                jobLabel = jobLabel.replaceFirst(String.format("^%s[ ]*", oldSignature), "");
-            }
-            if (newSignature != null) {
-                if ("?".equals(jobLabel) || jobLabel.isEmpty()) {
-                    jobLabel = newSignature;
-                } else {
-                    jobLabel = newSignature + ' ' + jobLabel;
-                }
-            } else if (jobLabel.isEmpty()) {
-                jobLabel = "?";
-            }
-        }
-        update.setSignature(newSignature);
-        return jobLabel;
     }
 
     public List<TaskParameterView> findParameter(TaskParameterFilter filter) {
