@@ -197,6 +197,8 @@ public class WorkflowMaterialDataSource extends ProarcDataSource {
                 }
                 record.setAttribute(PRIMARY_KEY, pk);
             }
+            // #509: do not use the data object as it breaks super.transformResponse
+            data = null;
         }
         super.transformResponse(dsResponse, dsRequest, data);
     }
