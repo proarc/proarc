@@ -132,6 +132,7 @@ public class NewIssueEditor {
         dateEnd.setTooltip(i18n.NewIssueEditor_dateTo_Hint());
         dateEnd.setUseTextField(true);
         dateEnd.setValidators(dateRangeValidator);
+        dateEnd.setStartDate(new Date(1900 - 1900, 1, 1));
 
         SelectItem issueDays = createDayChooser(fDays.getName());
 
