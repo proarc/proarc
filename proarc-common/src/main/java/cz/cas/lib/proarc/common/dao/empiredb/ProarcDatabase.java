@@ -140,7 +140,7 @@ public class ProarcDatabase extends DBDatabase {
 
         public final DBTableColumn id;
         public final DBTableColumn batchId;
-        public final DBTableColumn pid; // UUID
+        public final DBTableColumn pid; // prefix + UUID
         public final DBTableColumn dsId; // datastream
         public final DBTableColumn file; // target or source; subpath from users.home
         public final DBTableColumn state;
@@ -152,7 +152,7 @@ public class ProarcDatabase extends DBDatabase {
             super("PROARC_BATCH_ITEM", db);
             id = addSequenceColumn("ID");
             batchId = addColumn("BATCH_ID", DataType.INTEGER, 0, true);
-            pid = addColumn("PID", DataType.TEXT, 41, false);
+            pid = addColumn("PID", DataType.TEXT, 50, false);
             dsId = addColumn("DS_ID", DataType.TEXT, 200, false);
             file = addColumn("FILE", DataType.TEXT, 2000, false);
             state = addColumn("STATE", DataType.TEXT, 100, true);

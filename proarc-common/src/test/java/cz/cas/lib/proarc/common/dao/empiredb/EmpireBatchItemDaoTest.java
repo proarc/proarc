@@ -27,7 +27,6 @@ import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
 import org.dbunit.dataset.ReplacementTable;
-import org.dbunit.operation.DatabaseOperation;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -111,7 +110,36 @@ public class EmpireBatchItemDaoTest {
                         .getTable(schema.tableBatchItem.getName()));
         expected.addReplacementObject("{$now}", item.getTimestamp());
         Assertion.assertEquals(expected, dbcon.createTable(schema.tableBatchItem.getName()));
+    }
 
+    @Test
+    public void testCreateDevice() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "batch.xml")
+                );
+        final IDatabaseConnection dbcon = support.getConnection(tx);
+        support.cleanInsert(dbcon, db);
+        support.initSequences(tx, 1,
+                schema.tableBatchItem.id.getSequenceName()
+                );
+        tx.commit();
+
+        int batchId = 1;
+        BatchItem item = dao.create();
+        item.setBatchId(batchId);
+        item.setFile("file1.xml");
+        item.setLog("log");
+        item.setPid("device:4a7c2e50-af36-11dd-9643-000d606f5dc6");
+        item.setState(ObjectState.LOADING.name());
+        item.setType(Type.OBJECT);
+        dao.update(item);
+        tx.commit();
+
+        BatchItem result = dao.find(batchId);
+        assertEquals(item.getPid(), result.getPid());
+        assertEquals(item.getState(), result.getState());
+        assertEquals(item.getType(), result.getType());
     }
 
     @Test

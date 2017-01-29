@@ -119,6 +119,9 @@ public class ProarcDatabaseV4 extends DBDatabase {
             driver.getDDLScript(DBCmdType.CREATE, schema.relationWorkflowMaterialInTask_MaterialId_Fk, script);
             driver.getDDLScript(DBCmdType.CREATE, schema.relationWorkflowMaterialInTask_TaskId_Fk, script);
 
+            // issue #519: increase the length of the PID column
+            driver.getDDLScript(DBCmdType.ALTER, schema.tableBatchItem.pid, script);
+
             LOG.fine(script.toString());
             script.run(driver, conn);
         } finally {
