@@ -867,6 +867,12 @@ public class DigitalObjectResource {
         dMetadata.setIgnoreValidation(ignoreValidation);
         try {
             if (isJsonData) {
+                //#458 type normalPage should not be stored
+                //remove pagetype from json - removal from parsed json would be "cleaner"  but also slower
+                String dMData = dMetadata.getData();
+                dMData = dMData.replace(",\"pageType\":\"NormalPage\"", "");
+                dMetadata.setData(dMData);
+
                 mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog());
             } else {
                 mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog());
