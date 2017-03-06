@@ -55,7 +55,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
     private final SmartGwtMessages i18nSmartGwt;
     private String rootPid;
     private final ToolStrip toolbar;
-    private boolean openAll = false;
+    private TreeNode openingNode = null;
 
     public DigitalObjectTreeView(ClientMessages i18n) {
         this.i18n = i18n;
@@ -126,10 +126,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
             public void onDataArrived(DataArrivedEvent event) {
                 selectAndExpandRootNode(event);
 
-                if (openAll) {
-                    openAll = false;
-                    expandNode(event.getParentNode());
-                }
+                if (openingNode != null) expandNode(event.getParentNode());
             }
         });
         return treeGrid;
@@ -204,6 +201,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         String id = root.getAttribute(RelationDataSource.FIELD_PID);
 
         if (id == pid) {
+            openingNode = root;
             expandNode(root);
             return;
         }
@@ -221,17 +219,34 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
      * @param node
      */
     public void expandNode(TreeNode node) {
-        if (node == null) {
-            node = treeSelector.getTree().getRoot();
+
+        //is successor to calling node?
+        if (!isSuccessor(node)) {
+            openingNode = null;
+            return;
         }
 
+        //if is then open him else reset calling node
         treeSelector.openFolder(node);
 
         TreeNode[] children = treeSelector.getTree().getChildren(node);
 
-        for(TreeNode child : children) {
-            openAll = true;
+        for (TreeNode child : children) {
             expandNode(child);
         }
+    }
+
+    private boolean isSuccessor(TreeNode child) {
+        if (openingNode.equals(child)) return true;
+
+        TreeNode parent = treeSelector.getTree().getParent(child);
+
+        while (parent != null) {
+            if (openingNode.equals(parent)) return true;
+
+            parent = treeSelector.getTree().getParent(parent);
+        }
+
+        return false;
     }
 }
