@@ -204,7 +204,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         form.setBrowserSpellCheck(false);
         TextItem username = new TextItem(UserDataSource.FIELD_USERNAME);
         if (isNewUser) {
-            username.setValidators(new RegExpValidator("[a-z][a-z0-9]{4,}"));
+            username.setValidators(new RegExpValidator("[a-z][a-z0-9]{2,}"));
             username.setTooltip(i18n.UsersView_UserForm_Username_Hint());
         }
         username.setCanEdit(isNewUser);
