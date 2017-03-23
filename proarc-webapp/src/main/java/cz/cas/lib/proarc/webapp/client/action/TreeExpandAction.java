@@ -1,8 +1,15 @@
 package cz.cas.lib.proarc.webapp.client.action;
 
-import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
-import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectTreeView;
+import com.google.gwt.core.shared.GWT;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.SC;
+import com.smartgwt.client.widgets.events.ClickEvent;
+import com.smartgwt.client.widgets.form.DynamicForm;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
+import cz.cas.lib.proarc.webapp.client.widget.Dialog;
+import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectTreeView;
 
 /**
  * Action for expanding tree in treeView
@@ -12,23 +19,30 @@ import com.smartgwt.client.data.Record;
 public final class TreeExpandAction extends AbstractAction {
 
     private final DigitalObjectTreeView treeView;
+    private final DynamicForm optionsForm;
+    private final ClientMessages i18n;
 
     public TreeExpandAction(
-            String title,
-            String tooltip,
-            DigitalObjectTreeView treeView) {
-        this(title, tooltip, null, treeView);
+            ClientMessages i18n,
+            DigitalObjectTreeView treeView
+            ) {
+        this(i18n, null, treeView);
     }
 
     public TreeExpandAction(
-            String title,
-            String tooltip,
+            ClientMessages i18n,
             String icon,
             DigitalObjectTreeView treeView
     ) {
-        super(title, icon == null ? "[SKIN]/actions/next.png" : icon, tooltip);
+        super(
+                i18n.DigitalObjectEditor_ExpandTree_Title(),
+                icon == null ? "[SKIN]/actions/next.png" : icon,
+                i18n.DigitalObjectEditor_ExpandTree_Hint()
+        );
 
         this.treeView = treeView;
+        this.optionsForm = createExpandOptionsForm();
+        this.i18n = i18n;
     }
 
     @Override
@@ -37,9 +51,40 @@ public final class TreeExpandAction extends AbstractAction {
 
         if (records.length == 0) return;
 
-        String pid = records[0].getAttribute(RelationDataSource.FIELD_PID);
+        if (optionsForm != null) {
+            optionsForm.clearValues();
+            final Dialog d = new Dialog(i18n.TreeExpandAction_Window_Title());
+            d.getDialogLabelContainer().setContents(i18n.TreeExpandAction_Window_Msg());
+            d.getDialogContentContainer().setMembers(optionsForm);
+            d.addYesButton((ClickEvent eventX) -> {
+                Record options = optionsForm.getValuesAsRecord();
+                d.destroy();
 
-        treeView.expandNode(pid);
+                String pid = records[0].getAttribute(RelationDataSource.FIELD_PID);
+                treeView.expandNode(pid);
+            });
+            d.addNoButton(new Dialog.DialogCloseHandler() {
+                @Override
+                public void onClose() {
+                    d.destroy();
+                }
+            });
+            d.setWidth(400);
+            d.show();
+        } else {
+            SC.ask(i18n.TreeExpandAction_Window_Title(),
+                    i18n.TreeExpandAction_Window_Msg(),
+                    new BooleanCallback() {
+
+                        @Override
+                        public void execute(Boolean value) {
+                            if (value != null && value) {
+                                String pid = records[0].getAttribute(RelationDataSource.FIELD_PID);
+                                treeView.expandNode(pid);
+                            }
+                        }
+                    });
+        }
     }
 
     @Override
@@ -51,5 +96,14 @@ public final class TreeExpandAction extends AbstractAction {
         }
 
         return false;
+    }
+
+    public static DynamicForm createExpandOptionsForm() {
+
+        ClientMessages i18n = GWT.create(ClientMessages.class);
+        DynamicForm f = new DynamicForm();
+        f.setAutoHeight();
+        return f;
+
     }
 }

@@ -233,8 +233,7 @@ public final class DigitalObjectManager {
                 DatastreamEditorType.ATM, places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
         expandTreeAction = new TreeExpandAction(
-                i18n.DigitalObjectEditor_ExpandTree_Title(),
-                i18n.DigitalObjectEditor_ExpandTree_Hint(),
+                i18n,
                 treeView);
     }
 
