@@ -37,6 +37,8 @@ import java.util.Set;
  * The second option should be preferred to keep the history or in case of
  * e.g. OAI usage.</p>
  *
+ * If datastream attribute is set, then only specified datastream will be removed from the object.
+ *
  * @author Jan Pokorsky
  */
 public final class PurgeFedoraObject {
@@ -51,11 +53,17 @@ public final class PurgeFedoraObject {
      */
     private final Set<String> toUpdate;
     private String logMessage;
+    private final String datastream;
 
     public PurgeFedoraObject(RemoteStorage storage) {
+        this(storage, null);
+    }
+
+    public PurgeFedoraObject(RemoteStorage storage, String datastream) {
         this.storage = storage;
         this.toPurge = new LinkedHashSet<String>();
         this.toUpdate = new HashSet<String>();
+        this.datastream = datastream;
     }
 
     public void delete(String pid, boolean hierarchy, String message) throws PurgeException {
@@ -72,6 +80,10 @@ public final class PurgeFedoraObject {
 
     public void purge(List<String> pids, boolean hierarchy, String message) throws PurgeException {
         process(pids, hierarchy, false, message);
+    }
+
+    public void purgeDatastream(String pid, String message) throws PurgeException {
+        removeDatastream(pid);
     }
     
     private void process(List<String> pids, boolean hierarchy, boolean setDeleted, String message) throws PurgeException {
@@ -90,6 +102,16 @@ public final class PurgeFedoraObject {
             setDeleted(toPurge);
         } else {
             purge(toPurge);
+        }
+    }
+
+    private void removeDatastream(String pid) throws PurgeException {
+        try {
+            RemoteObject remote = storage.find(pid);
+
+            remote.purgeDatastream(datastream, logMessage);
+        } catch (DigitalObjectException ex) {
+            throw new PurgeException(pid, ex);
         }
     }
 

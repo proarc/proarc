@@ -319,6 +319,18 @@ public final class RemoteStorage {
             }
         }
 
+        public void purgeDatastream(String datastream ,String logMessage) throws DigitalObjectException {
+            try {
+                FedoraClient.purgeDatastream(getPid(), datastream).logMessage(qpEncode(logMessage)).execute(client);
+            } catch (FedoraClientException ex) {
+                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    throw new DigitalObjectNotFoundException(getPid(), ex);
+                } else {
+                    throw new DigitalObjectException(getPid(), ex);
+                }
+            }
+        }
+
         @Override
         public String asText() throws DigitalObjectException {
             try {
