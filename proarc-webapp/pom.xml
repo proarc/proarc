@@ -290,6 +290,14 @@
                             <Implementation-Version>${project.version}</Implementation-Version>
                         </manifestEntries>
                     </archive>
+                    <webResources>
+                        <!-- #514: add project.version for jar files-->
+                        <resource>
+                            <directory>${project.basedir}/src/main/webapp/META-INF</directory>
+                            <filtering>true</filtering>
+                            <targetPath>META-INF</targetPath>
+                        </resource>
+                    </webResources>
                 </configuration>
             </plugin>
 

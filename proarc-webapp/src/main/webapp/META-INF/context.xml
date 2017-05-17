@@ -14,6 +14,17 @@ Tomcat configuration helper.
             base="${catalina.base}/webapps/proarc/WEB-INF/lib/javax.ws.rs-api-2.0.1.jar"
             webAppMount="/WEB-INF/lib/javax.ws.rs-api-2.0.1.jar" />
 
+        <!--
+        #514: spring-2.5.jar must follow proarc-z3950-*.jar
+        -->
+        <PreResources className="org.apache.catalina.webresources.FileResourceSet"
+            base="${catalina.base}/webapps/proarc/WEB-INF/lib/proarc-z3950-${project.version}.jar"
+            webAppMount="/WEB-INF/lib/proarc-z3950-${project.version}.jar" />
+
+        <PostResources className="org.apache.catalina.webresources.FileResourceSet"
+            base="${catalina.base}/webapps/proarc/WEB-INF/lib/spring-2.5.jar"
+            webAppMount="/WEB-INF/lib/spring-2.5.jar" />
+
     </Resources>
 
 </Context>
