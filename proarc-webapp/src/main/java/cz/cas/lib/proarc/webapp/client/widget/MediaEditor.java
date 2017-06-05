@@ -281,7 +281,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
     private void removeDS(String uuid) {
         if (digitalObject == null) {
-            throw new NullPointerException();
+            throw new IllegalArgumentException("uuid cannot be null");
         }
 
         Record query = new Record();
