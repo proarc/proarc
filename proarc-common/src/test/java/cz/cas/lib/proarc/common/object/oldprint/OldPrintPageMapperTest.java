@@ -23,15 +23,17 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  *
@@ -120,9 +122,9 @@ public class OldPrintPageMapperTest {
         assertEquals(Arrays.asList(new IdentifierItem(null, "uuid", "1")), result.getIdentifiers());
     }
 
-    @Test
-    public void testGetPageTypeLabel() {
-        assertEquals("Front Endpaper", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", Locale.ENGLISH));
-        assertEquals("Přední předsádka", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", new Locale("cs")));
-    }
+//    @Test
+//    public void testGetPageTypeLabel() {
+//        assertEquals("Front Endpaper", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", Locale.ENGLISH));
+//        assertEquals("Přední předsádka", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", new Locale("cs")));
+//    }
 }

@@ -61,6 +61,11 @@ import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import org.xml.sax.SAXException;
+
+import javax.xml.bind.DataBindingException;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Validator;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
@@ -72,10 +77,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.xml.bind.DataBindingException;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Validator;
-import org.xml.sax.SAXException;
 
 /**
  * Handles description metadata in the NDK format.
@@ -88,6 +89,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public static final String ERR_NDK_CHANGE_MODS_WITH_MEMBERS = "Err_Ndk_Change_Mods_With_Members";
     public static final String ERR_NDK_DOI_DUPLICITY = "Err_Ndk_Doi_Duplicity";
     public static final String ERR_NDK_REMOVE_URNNBN = "Err_Ndk_Remove_UrnNbn";
+    public static final String DEFAULT_PAGE_TYPE = "NormalPage";
 
     /**
      * The set of model IDs that should be checked for connected members.
@@ -253,7 +255,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
 
     @Override
     public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message) throws DigitalObjectException {
-        String json = jsonData.getData();
+        String json = fixPageType(jsonData.getData(), true);
         String editorId = jsonData.getEditor();
         String modelId = handler.relations().getModel();
         ModsDefinition mods;
@@ -279,6 +281,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (xmlData.getData() != null) {
             ValidationErrorHandler errHandler = new ValidationErrorHandler();
             try {
+                String data = fixPageType(xmlData.getData(), false);
+                xmlData.setData(data);
+
                 Validator validator = ModsUtils.getSchema().newValidator();
                 validator.setErrorHandler(errHandler);
                 validator.validate(new StreamSource(new StringReader(xmlData.getData())));
@@ -547,4 +552,20 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
+    /**
+     * Removes pageType if it is default option - see DEFAULT_PAGE_TYPE
+     *
+     * @param data metadata string
+     * @param isJson set true if metadata are in JSON format, otherwise XML is expected
+     * @return data without default pageType - if was present
+     */
+    private String fixPageType(String data, Boolean isJson) {
+        if (isJson) {
+            data = data.replace(",\"pageType\":\"" + DEFAULT_PAGE_TYPE + "\"", "");
+        } else {
+            data = data.replace("<mods:part type=\"" + DEFAULT_PAGE_TYPE + "\">", "<mods:part>");
+        }
+
+        return data;
+    }
 }

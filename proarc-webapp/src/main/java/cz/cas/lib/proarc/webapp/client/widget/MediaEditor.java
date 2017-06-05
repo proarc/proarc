@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.webapp.client.widget;
 
 import com.google.gwt.core.shared.GWT;
-import com.google.gwt.user.client.Window;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
@@ -47,17 +46,17 @@ import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import cz.cas.lib.proarc.webapp.client.ds.MediaDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
-import cz.cas.lib.proarc.webapp.client.ds.RawDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.StreamProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.StreamProfileDataSource.StreamProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+
 import java.util.ArrayList;
 
-import static cz.cas.lib.proarc.webapp.client.ds.RawDataSource.FIELD_PID;
-import static cz.cas.lib.proarc.webapp.client.ds.RawDataSource.getRaw;
+import static cz.cas.lib.proarc.webapp.client.ds.MediaDataSource.FIELD_PID;
 
 /**
  * Edits data streams containing digitized multimedia content.
@@ -91,7 +90,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     @Override
     public void edit(DigitalObject digitalObject) {
         if (digitalObject == null) {
-            throw new NullPointerException();
+            throw new IllegalArgumentException("digitalObject cannot be null");
         }
         if (this.digitalObject != null && this.digitalObject.getPid().equals(digitalObject.getPid())) {
             return ;
@@ -288,7 +287,8 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         Record query = new Record();
         query.setAttribute(FIELD_PID, uuid);
 
-        RawDataSource.getRaw().removeData(query);
+        MediaDataSource.getRaw().removeData(query);
+        MediaDataSource.getPreview().removeData(query);
 
         refresh();
     }

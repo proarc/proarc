@@ -867,12 +867,6 @@ public class DigitalObjectResource {
         dMetadata.setIgnoreValidation(ignoreValidation);
         try {
             if (isJsonData) {
-                //#458 type normalPage should not be stored
-                //remove pagetype from json - removal from parsed json would be "cleaner"  but also slower
-                String dMData = dMetadata.getData();
-                dMData = dMData.replace(",\"pageType\":\"NormalPage\"", "");
-                dMetadata.setData(dMData);
-
                 mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog());
             } else {
                 mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog());
@@ -1031,10 +1025,25 @@ public class DigitalObjectResource {
     public SmartGwtResponse<DigitalObject> deleteRawDatastream(
             @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) String pid
     ) throws IOException, PurgeException {
-        RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
-        PurgeFedoraObject service = new PurgeFedoraObject(fedora, BinaryEditor.RAW_ID);
 
-        service.purgeDatastream(pid, session.asFedoraLog());
+        deleteDatastream(pid, BinaryEditor.RAW_ID);
+
+        return new SmartGwtResponse<DigitalObject>(new DigitalObject(pid, null));
+    }
+
+    /**
+     * removes Preview datastream from selected pids
+     *
+     * @see PurgeFedoraObject
+     */
+    @DELETE
+    @Path(DigitalObjectResourceApi.PREVIEW_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DigitalObject> deletePreviewDatastream(
+            @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) String pid
+    ) throws IOException, PurgeException {
+
+        deleteDatastream(pid, BinaryEditor.PREVIEW_ID);
 
         return new SmartGwtResponse<DigitalObject>(new DigitalObject(pid, null));
     }
@@ -1523,5 +1532,20 @@ public class DigitalObjectResource {
 
         public DigitalObject() {
         }
+    }
+
+    /**
+     * removes specific datastream from repository
+     *
+     * @param pid id of object containing datastream
+     * @param dsId datastream id
+     * @throws IOException when connection to Fedora fails
+     * @throws PurgeException when purging DS fails
+     */
+    private void deleteDatastream(String pid, String dsId) throws IOException, PurgeException {
+        RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
+        PurgeFedoraObject service = new PurgeFedoraObject(fedora, dsId);
+
+        service.purgeDatastream(pid, session.asFedoraLog());
     }
 }

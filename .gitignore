@@ -15,12 +15,5 @@ nbproject
 
 /target
 
-.idea/workspace.xml
+.idea
 *.iml
-.idea/libraries/Maven__xalan_serializer_2_7_1.xml
-*.xml
-.idea/.name
-proarc-webapp/src/main/resources/cz/cas/lib/proarc/webapp/ProArc.gwt.xml
-proarc-webapp/src/main/resources/cz/cas/lib/proarc/webapp/ProArc.gwt.xml
-proarc-webapp/src/main/resources/cz/cas/lib/proarc/webapp/ProArc.gwt.xml
-proarc-webapp/src/main/resources/cz/cas/lib/proarc/webapp/ProArc.gwt.xml

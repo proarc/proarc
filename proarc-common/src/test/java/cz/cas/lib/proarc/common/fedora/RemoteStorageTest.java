@@ -31,28 +31,37 @@ import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.util.List;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXB;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.transform.Source;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TestName;
+
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXB;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.transform.Source;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  *
@@ -121,22 +130,7 @@ public class RemoteStorageTest {
 //        LocalObject local = new LocalStorage().create(new File("/tmp/failing_ingest.foxml"));
         String model = "model:page";
 
-        RelationEditor relsExt = new RelationEditor(local);
-        relsExt.setModel(model);
-        relsExt.write(0, null);
-        ModsStreamEditor modsEditor = new ModsStreamEditor(local);
-        ModsDefinition mods = modsEditor.createPage(local.getPid(), "1", "[1]", "Blank");
-        DcStreamEditor dcEditor = new DcStreamEditor(local);
-        dcEditor.write(mods, model, 0, null);
-        modsEditor.write(mods, 0, null);
-
-        StringEditor ocrEditor = StringEditor.ocr(local);
-        ocrEditor.write("ocr", 0, null);
-
-        File thumb = tmp.newFile();
-        assertTrue(thumb.exists());
-        BinaryEditor.dissemination(local, BinaryEditor.THUMB_ID).write(thumb, 0, null);
-        local.flush();
+        prepareLocalObject(local, model);
 //        System.out.println(FoxmlUtils.toXml(local.getDigitalObject(), true));
 
         String label = "testing";
@@ -179,6 +173,55 @@ public class RemoteStorageTest {
             }
         }
         fail(id);
+    }
+
+    @Test
+    public void testDatastreamPurge() throws Exception {
+        RemoteStorage fedora = new RemoteStorage(client);
+//        client.debug(true);
+        LocalObject local = new LocalStorage().create();
+//        LocalObject local = new LocalStorage().create(new File("/tmp/failing_ingest.foxml"));
+        String model = "model:page";
+
+        prepareLocalObject(local, model);
+
+        String label = "testing";
+        local.setLabel(label);
+        fedora.ingest(local, "junit");
+        ListDatastreamsResponse response = FedoraClient.listDatastreams(local.getPid()).execute(client);
+        List<DatastreamType> datastreams = response.getDatastreams();
+        assertDatastream(DcStreamEditor.DATASTREAM_ID, datastreams);
+        assertDatastream(ModsStreamEditor.DATASTREAM_ID, datastreams);
+        assertDatastream(RelationEditor.DATASTREAM_ID, datastreams);
+        assertDatastream(StringEditor.OCR_ID, datastreams);
+        assertDatastream(BinaryEditor.THUMB_ID, datastreams);
+
+        RemoteObject robject = fedora.find(local.getPid());
+        robject.purgeDatastream(BinaryEditor.THUMB_ID, "{\"key\":\"val\"}");
+        response = FedoraClient.listDatastreams(local.getPid()).execute(client);
+        datastreams = response.getDatastreams();
+
+        assertFalse(datastreams.contains(BinaryEditor.THUMB_ID));
+    }
+
+    private void prepareLocalObject(LocalObject local, String model) throws DigitalObjectException, IOException {
+        RelationEditor relsExt = new RelationEditor(local);
+        relsExt.setModel(model);
+        relsExt.write(0, null);
+        ModsStreamEditor modsEditor = new ModsStreamEditor(local);
+        ModsDefinition mods = modsEditor.createPage(local.getPid(), "1", "[1]", "Blank");
+        DcStreamEditor dcEditor = new DcStreamEditor(local);
+        dcEditor.write(mods, model, 0, null);
+        modsEditor.write(mods, 0, null);
+
+        StringEditor ocrEditor = StringEditor.ocr(local);
+        ocrEditor.write("ocr", 0, null);
+
+        File thumb = tmp.newFile();
+        assertTrue(thumb.exists());
+        BinaryEditor.dissemination(local, BinaryEditor.THUMB_ID).write(thumb, 0, null);
+        local.flush();
+//        System.out.println(FoxmlUtils.toXml(local.getDigitalObject(), true));
     }
 
     @Test
