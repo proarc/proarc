@@ -58,6 +58,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
+import cz.cas.lib.proarc.common.export.NdkExportOptions;
 import org.apache.commons.codec.binary.Hex;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -190,13 +191,27 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         MetsHdr metsHdr = new MetsHdr();
         metsHdr.setCREATEDATE(metsElement.getCreateDate());
         metsHdr.setLASTMODDATE(metsElement.getLastUpdateDate());
-        Agent agent = new Agent();
-        agent.setName(metsElement.getMetsContext().getCreatorOrganization());
-        agent.setROLE("CREATOR");
-        agent.setTYPE("ORGANIZATION");
-        metsHdr.getAgent().add(agent);
+
+        setAgent(metsHdr, "CREATOR", "ORGANIZATION", NdkExportOptions.getNdkExportOptions(null).getCreator());
+        setAgent(metsHdr, "ARCHIVIST", "ORGANIZATION",NdkExportOptions.getNdkExportOptions(null).getArchivist());
+
         mets.setMetsHdr(metsHdr);
         fileGrpMap = MetsUtils.initFileGroups();
+    }
+
+    /**
+     * Agent setting - used in metsHeader
+     * @param metsHdr
+     * @param role
+     * @param type
+     * @param name
+     */
+    private void setAgent(MetsHdr metsHdr, String role, String type, String name) {
+        Agent agent = new Agent();
+        agent.setName(name);
+        agent.setROLE(role);
+        agent.setTYPE(type);
+        metsHdr.getAgent().add(agent);
     }
 
     /**
@@ -602,16 +617,16 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @throws MetsExportException
      */
     private Mix getScannerMix(IMetsElement metsElement) throws MetsExportException {
-       if (metsElement.getMetsContext().getRemoteStorage()!=null) {
-           Node deviceNode = MetsUtils.xPathEvaluateNode(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasDevice']");
-           if (deviceNode == null) {
-               return null;
-           }
-           Node attrNode = deviceNode.getAttributes().getNamedItem("rdf:resource");
-           if (attrNode==null) {
-               return null;
-           }
-           DeviceRepository deviceRepository = new DeviceRepository(metsElement.getMetsContext().getRemoteStorage());
+        if (metsElement.getMetsContext().getRemoteStorage()!=null) {
+            Node deviceNode = MetsUtils.xPathEvaluateNode(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasDevice']");
+            if (deviceNode == null) {
+                return null;
+            }
+            Node attrNode = deviceNode.getAttributes().getNamedItem("rdf:resource");
+            if (attrNode==null) {
+                return null;
+            }
+            DeviceRepository deviceRepository = new DeviceRepository(metsElement.getMetsContext().getRemoteStorage());
             String deviceId = attrNode.getNodeValue().replaceAll("info:fedora/", "");
             List<Device> deviceList;
             try {
@@ -621,16 +636,16 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             }
             if (deviceList.size() != 1) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get scanner info - expected 1 device, got:" + deviceList.size(), false, null);
-           }
+            }
             Device device = deviceList.get(0);
             if ((device.getDescription() == null) || (device.getDescription().getImageCaptureMetadata() == null)) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Scanner device does not have the description/imageCaptureMetadata set", false, null);
             }
             Mix mix = device.getDescription();
             return mix;
-       }
-       return null;
-   }
+        }
+        return null;
+    }
 
 
     private Node getAgent(IMetsElement metsElement) throws MetsExportException {
@@ -1632,11 +1647,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             DivType divType = new DivType();
             divType.setTYPE(partInfo.getType());
             if ((partInfo.getOrder() != null) && (!("null".equalsIgnoreCase(partInfo.getOrder())))) {
-            try {
-                divType.setORDER(new BigInteger(partInfo.getOrder()));
-            } catch (NumberFormatException ex) {
-                LOG.log(Level.WARNING, partInfo.getOrder() + " is not a number in  object " + metsElement.getOriginalPid(), ex);
-            }
+                try {
+                    divType.setORDER(new BigInteger(partInfo.getOrder()));
+                } catch (NumberFormatException ex) {
+                    LOG.log(Level.WARNING, partInfo.getOrder() + " is not a number in  object " + metsElement.getOriginalPid(), ex);
+                }
             }
             String number = "";
             if (Const.ARTICLE.equals(metsElement.getParent().getElementType())) {
