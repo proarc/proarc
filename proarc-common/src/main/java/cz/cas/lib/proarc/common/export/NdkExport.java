@@ -44,9 +44,11 @@ public final class NdkExport {
 
     private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
     private final RemoteStorage rstorage;
+    private final NdkExportOptions options;
 
-    public NdkExport(RemoteStorage rstorage) {
+    public NdkExport(RemoteStorage rstorage,NdkExportOptions options) {
         this.rstorage = rstorage;
+        this.options = options;
     }
 
 //    /**
@@ -97,8 +99,8 @@ public final class NdkExport {
      *             unexpected failure
      */
     public List<Result> export(File exportsFolder, List<String> pids,
-            boolean hierarchy, boolean keepResult, String log
-            ) throws ExportException {
+                               boolean hierarchy, boolean keepResult, String log
+    ) throws ExportException {
 
         ExportResultLog reslog = new ExportResultLog();
         File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)));
@@ -125,8 +127,8 @@ public final class NdkExport {
     }
 
     Result export(File target, String pid, String packageId,
-            boolean hierarchy, boolean keepResult, String log
-            ) throws ExportException {
+                  boolean hierarchy, boolean keepResult, String log
+    ) throws ExportException {
 
         Result result = new Result();
         try {

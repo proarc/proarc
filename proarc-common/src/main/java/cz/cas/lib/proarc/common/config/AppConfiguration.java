@@ -17,10 +17,12 @@
 package cz.cas.lib.proarc.common.config;
 
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
+import cz.cas.lib.proarc.common.export.NdkExportOptions;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,6 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -53,7 +56,9 @@ public final class AppConfiguration {
     }
 
     public static final String PROPERTY_USER_HOME = "user.home";
-    /** environment variable name to override default application home */
+    /**
+     * environment variable name to override default application home
+     */
     public static final String ENV_APP_HOME = "PROARC_HOME";
     public static final String DEFAULT_APP_HOME_NAME = ".proarc";
     public static final String CONFIG_FILE_NAME = "proarc.cfg";
@@ -62,7 +67,8 @@ public final class AppConfiguration {
      */
     public static final String VERSION;
 
-    /** Path to configuration folder.
+    /**
+     * Path to configuration folder.
      * Internal configuration property interpolated on init.
      * Accessible as {@code ${proarc.home}} in properties files.
      */
@@ -72,13 +78,15 @@ public final class AppConfiguration {
     private static final String PROPERTY_FEDORA_CLIENT_URL = "fedora.client.url";
     private static final String PROPERTY_FEDORA_CLIENT_USERNAME = "fedora.client.username";
     private static final String PROPERTY_USERS_HOME = "proarc.users.home";
-    
+
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
     private static final String DEFAULT_PROPERTIES_RESOURCE = "cz/cas/lib/proarc/common/config/proarc.properties";
 
     private File configHome;
     private final Map<String, String> environment;
-    /** read only configuration */
+    /**
+     * read only configuration
+     */
     private final Configuration config;
     private final Map<ConfigurationProfile, Configuration> profileConfigCache =
             new HashMap<ConfigurationProfile, Configuration>();
@@ -157,6 +165,10 @@ public final class AppConfiguration {
         return Kramerius4ExportOptions.from(config);
     }
 
+    public NdkExportOptions getNdkExportOptions() {
+        return NdkExportOptions.getNdkExportOptions(config);
+    }
+
     public Configuration getAuthenticators() {
         return config;
     }
@@ -172,9 +184,7 @@ public final class AppConfiguration {
     public String[] getPlugins() {
         String[] plugins = config.getStringArray(PROPERTY_DIGOBJECT_PLUGINS);
         if (plugins.length == 0) {
-            plugins = new String[] {
-                NdkPlugin.ID,
-            };
+            plugins = new String[]{NdkPlugin.ID,};
         }
         return plugins;
     }
@@ -265,7 +275,7 @@ public final class AppConfiguration {
                 // we need platform dependent line separator => PrintWriter
                 PrintWriter writer = new PrintWriter(cfgFile, "UTF-8");
                 try {
-                    for (String line; (line = reader.readLine()) != null;) {
+                    for (String line; (line = reader.readLine()) != null; ) {
                         writer.println(line);
                     }
                     writer.println();
@@ -303,11 +313,12 @@ public final class AppConfiguration {
 
     /**
      * checks file/folder parameters
+     *
      * @return {@code true} iff {@code f} exists
      */
     private static boolean checkFile(File f, boolean mustExist,
-            Boolean expectDirectory, Boolean expectCanRead, Boolean expextCanWrite
-            ) throws IOException {
+                                     Boolean expectDirectory, Boolean expectCanRead, Boolean expextCanWrite
+    ) throws IOException {
 
         if (f.exists()) {
             if (expectDirectory != null) {

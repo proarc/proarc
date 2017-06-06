@@ -63,6 +63,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import cz.cas.lib.proarc.common.export.NdkExportOptions;
 import org.apache.commons.codec.binary.Hex;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -94,9 +95,8 @@ import cz.cas.lib.proarc.mets.info.Info.Validation;
 
 /**
  * @author Robert Simonovsky
- *
+ *         <p>
  *         Utility class
- *
  */
 public class MetsUtils {
 
@@ -258,7 +258,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Converts byte array to hex string
      *
      * @param byteArray
@@ -273,7 +272,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Returns a file name (content location) from the datastream
      *
      * @param elements
@@ -287,7 +285,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Returns a mime type attribute from datastream
      *
      * @param elements
@@ -301,7 +298,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Returns a property value from a list of properties
      *
      * @param name
@@ -339,7 +335,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Removes the top element "modsCollection" from the xml
      *
      * @param elements
@@ -360,7 +355,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Returns a datastream of given type
      *
      * @param datastreams
@@ -382,7 +376,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Returns a datastream of given type from binary representation
      *
      * @param datastreams
@@ -426,7 +419,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Generates an XML document from list of elements
      *
      * @param elements
@@ -452,7 +444,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Returns a string from the xml document defined by the Xpath
      *
      * @param elements
@@ -471,7 +462,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Returns a node from the xml document defined by the Xpath
      *
      * @param elements
@@ -501,7 +491,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Returns a model of the document
      *
      * @param relExtStream
@@ -514,7 +503,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Returns a dataStream from Fedora for given pid
      *
      * @param fedoraClient
@@ -539,7 +527,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Copies inputStream to outputStream
      *
      * @param is
@@ -556,7 +543,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Returns the byteArray of the specified datastream from fedora
      *
      * @param fedoraClient
@@ -584,7 +570,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Prepares a logical/physical structure divs in mets
      *
      * @param mets
@@ -604,7 +589,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Inits the file groups in mets
      *
      * @param mets
@@ -646,7 +630,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Reads and unmarshalls Digital Object
      *
      * @param path
@@ -667,7 +650,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Reads and unmarshalls Digital Object from Fedora
      *
      * @param path
@@ -691,7 +673,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Transforms the xml document to a string
      *
      * @param doc
@@ -715,7 +696,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Validates given document agains an XSD schema
      *
      * @param document
@@ -746,7 +726,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Validates given XML file against an XSD schema
      *
      * @param file
@@ -769,7 +748,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Indicates if the "has..." is used for defining children
      *
      * @param name
@@ -797,12 +775,12 @@ public class MetsUtils {
         return false;
     }
 
-     /* Return a valid identifier for mets document removes whitespaces and if an
-     * identifier does not start with a letter it adds a prefix
-     *
-     * @param identifier
-     * @return
-     */
+    /* Return a valid identifier for mets document removes whitespaces and if an
+    * identifier does not start with a letter it adds a prefix
+    *
+    * @param identifier
+    * @return
+    */
     public static String validateIdentifier(String identifier) {
         identifier = removeNonAlpabetChars(identifier);
         if (!(identifier.toUpperCase().substring(0, 1).matches("[A-Z]"))) {
@@ -855,7 +833,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Generates and saves info.xml
      *
      * @param path
@@ -863,60 +840,60 @@ public class MetsUtils {
      */
     public static void saveInfoFile(String path, MetsContext metsContext, String md5, String fileMd5Name, File metsFile) throws MetsExportException {
         File infoFile = new File(path + File.separator + metsContext.getPackageID() + File.separator + "info_" + metsContext.getPackageID() + ".xml");
-            GregorianCalendar c = new GregorianCalendar();
-            c.setTime(new Date());
+        GregorianCalendar c = new GregorianCalendar();
+        c.setTime(new Date());
         XMLGregorianCalendar date2;
         try {
             date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
         } catch (DatatypeConfigurationException e1) {
             throw new MetsExportException("Error while generating info.xml file", false, e1);
         }
-            Info infoJaxb = new Info();
-            infoJaxb.setCreated(date2);
-            infoJaxb.setMainmets("./" + metsFile.getName());
-            Checksum checkSum = new Checksum();
-            checkSum.setChecksum(md5);
-            checkSum.setType("MD5");
+        Info infoJaxb = new Info();
+        infoJaxb.setCreated(date2);
+        infoJaxb.setMainmets("./" + metsFile.getName());
+        Checksum checkSum = new Checksum();
+        checkSum.setChecksum(md5);
+        checkSum.setType("MD5");
         addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb);
-            checkSum.setValue(fileMd5Name);
-            infoJaxb.setChecksum(checkSum);
-            Validation validation = new Validation();
-            validation.setValue("W3C-XML");
-            validation.setVersion(Float.valueOf("0.0"));
-            infoJaxb.setValidation(validation);
-            infoJaxb.setCreator(metsContext.getCreatorOrganization());
-            infoJaxb.setPackageid(metsContext.getPackageID());
-            if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
-                infoJaxb.setMetadataversion((float) 1.5);
-            } else {
-                infoJaxb.setMetadataversion((float) 1.1);
-            }
-            Itemlist itemList = new Itemlist();
-            infoJaxb.setItemlist(itemList);
-            itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size()));
-            List<FileMD5Info> fileList = metsContext.getFileList();
+        checkSum.setValue(fileMd5Name);
+        infoJaxb.setChecksum(checkSum);
+        Validation validation = new Validation();
+        validation.setValue("W3C-XML");
+        validation.setVersion(Float.valueOf("0.0"));
+        infoJaxb.setValidation(validation);
+        infoJaxb.setCreator(NdkExportOptions.getNdkExportOptions(null).getCreator());
+        infoJaxb.setPackageid(metsContext.getPackageID());
+        if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
+            infoJaxb.setMetadataversion((float) 1.5);
+        } else {
+            infoJaxb.setMetadataversion((float) 1.1);
+        }
+        Itemlist itemList = new Itemlist();
+        infoJaxb.setItemlist(itemList);
+        itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size()));
+        List<FileMD5Info> fileList = metsContext.getFileList();
         long size = 0;
-            for (FileMD5Info fileName : fileList) {
-                itemList.getItem().add(fileName.getFileName().replaceAll(Matcher.quoteReplacement(File.separator), "/"));
-                size += fileName.getSize();
-            }
-            int infoTotalSize = (int) (size/1024);
+        for (FileMD5Info fileName : fileList) {
+            itemList.getItem().add(fileName.getFileName().replaceAll(Matcher.quoteReplacement(File.separator), "/"));
+            size += fileName.getSize();
+        }
+        int infoTotalSize = (int) (size / 1024);
         infoJaxb.setSize(infoTotalSize);
-            try {
-                JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
-                Marshaller marshaller = jaxbContext.createMarshaller();
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
             // SchemaFactory factory =
             // SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             // factory.setResourceResolver(MetsLSResolver.getInstance());
             // Schema schema = factory.newSchema(new
             // StreamSource(Info.class.getResourceAsStream("info.xsd")));
             // marshaller.setSchema(schema);
-                marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-                marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-                marshaller.marshal(infoJaxb, infoFile);
-            } catch (Exception ex) {
-                throw new MetsExportException("Error while generating info.xml", false, ex);
-            }
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+            marshaller.marshal(infoJaxb, infoFile);
+        } catch (Exception ex) {
+            throw new MetsExportException("Error while generating info.xml", false, ex);
+        }
 
         List<String> validationErrors;
         try {
@@ -936,7 +913,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Returns an ObjectID from the rels-ext stream
      *
      * @param relExtElements
@@ -950,7 +926,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Reads referenced object from Fedora
      *
      * @param uuid
@@ -963,7 +938,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Reads referenced object from file
      *
      * @param path
@@ -977,7 +951,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Generates an MD5 checksum and copies a file (image) to defined
      * OutputStream
      *
@@ -1006,7 +979,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Generates an MD5 checksum OutputStream
      *
      * @param is
@@ -1054,7 +1026,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Mock method for simulation of resource index
      *
      * @param uuid
@@ -1067,7 +1038,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Checks if a monograph is MultiUnit
      *
      * @param monograph
@@ -1085,7 +1055,6 @@ public class MetsUtils {
     }
 
     /**
-     *
      * Generates a document from a byte array
      *
      * @param bytes
