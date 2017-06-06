@@ -26,6 +26,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.dom.DOMSource;
 
+import org.apache.commons.configuration.BaseConfiguration;
+import org.apache.commons.configuration.Configuration;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -76,12 +78,16 @@ public class NdkExportTest {
         File resultDir = tmp.newFolder("result" + "monograph");
         String path = sourceDirPath + "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml";
         DigitalObject dbObj = MetsUtils.readFoXML(path);
+        Configuration config = new BaseConfiguration();
+        config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "Creator");
+        config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
         MetsContext context = new MetsContext();
         context.setPath(sourceDirPath);
         context.setFsParentMap(TestConst.parents);
         context.setOutputPath(resultDir.getAbsolutePath());
         context.setAllowNonCompleteStreams(true);
         context.setAllowMissingURNNBN(true);
+        context.setConfig(NdkExportOptions.getOptions(config));
         MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
         MetsElementVisitor visitor = new MetsElementVisitor();
         metsElement.accept(visitor);

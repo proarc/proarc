@@ -16,8 +16,9 @@
  */
 package cz.cas.lib.proarc.common.config;
 
-import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
+import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
+import cz.cas.lib.proarc.common.export.mets.NdkExportOptions;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
@@ -72,7 +73,7 @@ public final class AppConfiguration {
     private static final String PROPERTY_FEDORA_CLIENT_URL = "fedora.client.url";
     private static final String PROPERTY_FEDORA_CLIENT_USERNAME = "fedora.client.username";
     private static final String PROPERTY_USERS_HOME = "proarc.users.home";
-    
+
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
     private static final String DEFAULT_PROPERTIES_RESOURCE = "cz/cas/lib/proarc/common/config/proarc.properties";
 
@@ -155,6 +156,10 @@ public final class AppConfiguration {
 
     public Kramerius4ExportOptions getKramerius4Export() {
         return Kramerius4ExportOptions.from(config);
+    }
+
+    public NdkExportOptions getNdkExportOptions() {
+        return NdkExportOptions.getOptions(config);
     }
 
     public Configuration getAuthenticators() {

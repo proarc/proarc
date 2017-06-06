@@ -185,27 +185,39 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     /**
      * Inits the Mets header info
      */
-    protected void initHeader(IMetsElement metsElement) {
+    protected void initHeader(IMetsElement metsElement) throws MetsExportException {
         mets.setLabel1(metsElement.getLabel());
         MetsHdr metsHdr = new MetsHdr();
         metsHdr.setCREATEDATE(metsElement.getCreateDate());
         metsHdr.setLASTMODDATE(metsElement.getLastUpdateDate());
-        Agent agent = new Agent();
-        agent.setName(metsElement.getMetsContext().getCreatorOrganization());
-        agent.setROLE("CREATOR");
-        agent.setTYPE("ORGANIZATION");
-        metsHdr.getAgent().add(agent);
+
+        setAgent(metsHdr, "CREATOR", "ORGANIZATION", metsElement.getMetsContext().getOptions().getCreator());
+        setAgent(metsHdr, "ARCHIVIST", "ORGANIZATION",metsElement.getMetsContext().getOptions().getArchivist());
+
         mets.setMetsHdr(metsHdr);
         fileGrpMap = MetsUtils.initFileGroups();
     }
 
     /**
-     * Prepares the generic mets information
+     * Agent setting - used in metsHeader
      *
-     * @param metsElement
-     * @return
-     * @throws MetsExportException
+     * @throws MetsExportException if Archivist/Creator in proarc.cfg is empty
      */
+    private void setAgent(MetsHdr metsHdr, String role, String type, String name) throws MetsExportException {
+
+        if (name == null) {
+            throw new MetsExportException("Error - missing role. Please insert value in proarc.cfg into export.ndk.agent.creator and export.ndk.agent.archivist", false);
+        } else {
+
+            Agent agent = new Agent();
+            agent.setName(name);
+            agent.setROLE(role);
+            agent.setTYPE(type);
+            metsHdr.getAgent().add(agent);
+        }
+    }
+
+    /** Prepares the generic mets information */
     private Mets prepareMets(IMetsElement metsElement) throws MetsExportException {
         Mets mets = new Mets();
         logicalStruct = new StructMapType();

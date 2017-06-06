@@ -30,6 +30,9 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
+import org.apache.commons.configuration.BaseConfiguration;
+import org.apache.commons.configuration.Configuration;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -179,12 +182,16 @@ public class MetsUtilsTest {
             File resultDir = tmp.newFolder("result" + testElement.getResultFolder());
             String path = sourceDirPath + testElement.getInitialDocument();
             DigitalObject dbObj = MetsUtils.readFoXML(path);
+            Configuration config = new BaseConfiguration();
+            config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
+            config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "Creator");
             MetsContext context = new MetsContext();
             context.setPath(sourceDirPath);
             context.setFsParentMap(TestConst.parents);
             context.setOutputPath(resultDir.getAbsolutePath());
             context.setAllowNonCompleteStreams(true);
             context.setAllowMissingURNNBN(true);
+            context.setConfig(NdkExportOptions.getOptions(config));
             MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
             MetsElementVisitor visitor = new MetsElementVisitor();
             metsElement.accept(visitor);
@@ -210,6 +217,40 @@ public class MetsUtilsTest {
             assertEquals(testElement.getNumberOfFiles(),
                     mets.getFileSec().getFileGrp().size());
             assertEquals(testElement.getType(), mets.getTYPE());
+        }
+    }
+
+    /**
+     * Tests if all roles are fill
+     */
+    @Test
+    public void missingRole() throws Exception {
+        for (MetsExportTestElement testElement : testElements) {
+            // copyFiles(testElement);
+            String sourceDirPath = getTargetPath() + File.separator +
+                    testElement.getDirectory() + File.separator;
+            File resultDir = tmp.newFolder("result" + testElement.getResultFolder());
+            String path = sourceDirPath + testElement.getInitialDocument();
+            DigitalObject dbObj = MetsUtils.readFoXML(path);
+            Configuration config = new BaseConfiguration();
+            config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
+            config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "");
+            MetsContext context = new MetsContext();
+            context.setPath(sourceDirPath);
+            context.setFsParentMap(TestConst.parents);
+            context.setOutputPath(resultDir.getAbsolutePath());
+            context.setAllowNonCompleteStreams(true);
+            context.setAllowMissingURNNBN(true);
+            context.setConfig(NdkExportOptions.getOptions(config));
+            MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
+            MetsElementVisitor visitor = new MetsElementVisitor();
+            try {
+                metsElement.accept(visitor);
+                Assert.fail();
+            } catch (MetsExportException ex) {
+                String message = "Error - missing role. Please insert value in proarc.cfg into export.ndk.agent.creator and export.ndk.agent.archivist";
+                assertEquals(message, ex.getMessage());
+            }
         }
     }
 }
