@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -122,9 +123,9 @@ public class OldPrintPageMapperTest {
         assertEquals(Arrays.asList(new IdentifierItem(null, "uuid", "1")), result.getIdentifiers());
     }
 
-//    @Test
-//    public void testGetPageTypeLabel() {
-//        assertEquals("Front Endpaper", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", Locale.ENGLISH));
-//        assertEquals("Přední předsádka", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", new Locale("cs")));
-//    }
+    @Test
+    public void testGetPageTypeLabel() {
+        assertEquals("Front Endpaper", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", Locale.ENGLISH));
+        assertEquals("Přední předsádka", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", new Locale("cs")));
+    }
 }
