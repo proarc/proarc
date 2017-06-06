@@ -690,7 +690,7 @@ public final class NdkMonographVolumeForm {
                     .createField())
                 .createField()) // recordIdentifier
                 // languageOfCataloging, languageDefinition
-                .addField(new FieldBuilder("languageOfCataloging").setTitle("Language of Cataloging - R").setMaxOccurrences(10)
+                .addField(new FieldBuilder("languageOfCataloging").setTitle("Language of Cataloging - R").setRequired(Boolean.FALSE).setMaxOccurrences(10)
                     // @objectPart, @displayLabel, @altRepGroup, @usage
                     // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
                     // languageTerm, languageTermDefinition
