@@ -185,8 +185,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     /**
      * Inits the Mets header info
      */
-    protected void initHeader(IMetsElement metsElement) {
-        mets.setLabel1(metsElement.getLabel());
+    protected void initHeader(IMetsElement metsElement) throws MetsExportException{
+        mets.setLabel1(getTitle(metsElement) + " " + metsElement.getLabel());
         MetsHdr metsHdr = new MetsHdr();
         metsHdr.setCREATEDATE(metsElement.getCreateDate());
         metsHdr.setLASTMODDATE(metsElement.getLastUpdateDate());
@@ -197,6 +197,22 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         metsHdr.getAgent().add(agent);
         mets.setMetsHdr(metsHdr);
         fileGrpMap = MetsUtils.initFileGroups();
+    }
+
+    /**
+     * Returns the name of title
+     */
+    private String getTitle(IMetsElement metsElement) throws MetsExportException {
+        String title = "";
+
+        //It depends on the level from which I can export
+        Node partNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "*[local-name()='modsCollection']/*[local-name()='mods']/*[local-name()='titleInfo']/*[local-name()='title']");
+        if (partNode == null) {
+            partNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "*[local-name()='mods']/*[local-name()='titleInfo']/*[local-name()='title']");
+        }
+
+        title = partNode.getTextContent();
+        return title;
     }
 
     /**
