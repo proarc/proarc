@@ -142,9 +142,9 @@ public class StreamProfileDataSource extends ProarcDataSource {
             }
             ClientMessages i18n = GWT.create(ClientMessages.class);
             TEMPLATES = new ArrayList<StreamProfile>();
+            template("RAW", i18n.DigitalObjectEditor_MediaEditor_DSRaw_Title());
             template("PREVIEW", i18n.DigitalObjectEditor_MediaEditor_DSPreview_Title());
             template("FULL", i18n.DigitalObjectEditor_MediaEditor_DSFull_Title());
-            template("RAW", i18n.DigitalObjectEditor_MediaEditor_DSRaw_Title());
             template("THUMBNAIL", i18n.DigitalObjectEditor_MediaEditor_DSThumbnail_Title());
             template("NDK_ARCHIVAL", i18n.DigitalObjectEditor_MediaEditor_DSNdkArchival_Title());
             template("NDK_USER", i18n.DigitalObjectEditor_MediaEditor_DSNdkUser_Title());
