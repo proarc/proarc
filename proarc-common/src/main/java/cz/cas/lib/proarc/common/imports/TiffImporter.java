@@ -195,7 +195,7 @@ public final class TiffImporter {
             AltoDatastream.importAlto(fo, altoUri, null);
         } else if (requiredDatastreamId.contains(AltoDatastream.ALTO_ID)) {
             throw new FileNotFoundException("Missing ALTO: " + new File(tempBatchFolder.getParent(),
-                    originalFilename + config.getPlainOcrFileSuffix()).toString());
+                    originalFilename + config.getAltoFileSuffix()).toString());
         }
     }
 
