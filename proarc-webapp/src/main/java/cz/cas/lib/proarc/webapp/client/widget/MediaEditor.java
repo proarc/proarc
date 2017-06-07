@@ -16,13 +16,16 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
+import com.google.gwt.core.shared.GWT;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.SortSpecifier;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.SortDirection;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.form.ColorPicker;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.events.ColorSelectedEvent;
@@ -43,6 +46,7 @@ import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import cz.cas.lib.proarc.webapp.client.ds.MediaDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -50,6 +54,8 @@ import cz.cas.lib.proarc.webapp.client.ds.StreamProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.StreamProfileDataSource.StreamProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.ArrayList;
+
+import static cz.cas.lib.proarc.webapp.client.ds.MediaDataSource.FIELD_PID;
 
 /**
  * Edits data streams containing digitized multimedia content.
@@ -67,6 +73,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private Action fullAction;
     private AbstractAction backgroundAction;
     private AbstractAction uploadAction;
+    private AbstractAction removeAction;
     private DigitalObject digitalObject;
     private SelectItem streamMenu;
     private boolean showRefreshButton;
@@ -119,6 +126,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         }
         toolbar.add(Actions.asIconButton(fullAction, this));
         toolbar.add(Actions.asIconButton(uploadAction, actionSource));
+        toolbar.add(Actions.asIconButton(removeAction, actionSource));
         toolbar.add(Actions.asIconButton(backgroundAction, this));
         toolbar.add(zoomer);
         toolbar.add(createStreamMenu());
@@ -219,6 +227,69 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
                 });
             }
         };
+
+        removeAction = new AbstractAction(
+                i18n.DigitalObjectEditor_MediaEditor_RemoverAction_Title(),
+                "[SKIN]/MultiUploadItem/icon_remove_files.png",
+                i18n.DigitalObjectEditor_MediaEditor_RemoverAction_Hint()) {
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                String modelId = digitalObject.getModelId();
+
+                return modelId != null && (modelId.startsWith("model:bdm")
+                        || "model:derFile".equals(modelId)
+                        || "model:desFile".equals(modelId)
+                );
+            }
+
+            @Override
+            public void performAction(ActionEvent event) {
+
+                DynamicForm optionsForm = createExpandOptionsForm();
+
+                optionsForm.clearValues();
+                final Dialog d = new Dialog(i18n.RemoveDSAction_Window_Title());
+                d.getDialogLabelContainer().setContents(i18n.RemoveDSAction_Window_Msg());
+                d.getDialogContentContainer().setMembers(optionsForm);
+                d.addYesButton((ClickEvent eventX) -> {
+                    Record options = optionsForm.getValuesAsRecord();
+                    d.destroy();
+
+                    removeDS(digitalObject.getPid());
+                });
+                d.addNoButton(new Dialog.DialogCloseHandler() {
+                    @Override
+                    public void onClose() {
+                        d.destroy();
+                    }
+                });
+                d.setWidth(400);
+                d.show();
+            }
+        };
+    }
+
+    private static DynamicForm createExpandOptionsForm() {
+
+        ClientMessages i18n = GWT.create(ClientMessages.class);
+        DynamicForm f = new DynamicForm();
+        f.setAutoHeight();
+        return f;
+    }
+
+    private void removeDS(String uuid) {
+        if (digitalObject == null) {
+            throw new IllegalArgumentException("uuid cannot be null");
+        }
+
+        Record query = new Record();
+        query.setAttribute(FIELD_PID, uuid);
+
+        MediaDataSource.getRaw().removeData(query);
+        MediaDataSource.getPreview().removeData(query);
+
+        refresh();
     }
 
     private DynamicForm createStreamMenu() {
@@ -320,5 +391,4 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         String url = ClientUtils.format("%s?%s", datastreamUrl, objectParams);
         return url;
     }
-
 }
