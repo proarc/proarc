@@ -110,8 +110,8 @@ public class FileSetImport implements ImportHandler {
 
     private BatchItemObject consumeFileSet(FileSet fileSet, ImportOptions ctx) {
         long start = System.currentTimeMillis();
-        List<TiffImporter> consumers = getConsumers();
-        for (TiffImporter consumer : consumers) {
+        List<ImageImporter> consumers = getConsumers();
+        for (ImageImporter consumer : consumers) {
             BatchItemObject item = consumer.consume(fileSet, ctx);
             if (item != null) {
                 LOG.log(Level.FINE, "time: {0} ms, {1}", new Object[] {System.currentTimeMillis() - start, fileSet});
@@ -124,7 +124,7 @@ public class FileSetImport implements ImportHandler {
     }
 
     static boolean canImport(FileSet fileSet) {
-        for (TiffImporter consumer : ImportProcess.getConsumers()) {
+        for (ImageImporter consumer : ImportProcess.getConsumers()) {
             if (consumer.accept(fileSet)) {
                 return true;
             }
