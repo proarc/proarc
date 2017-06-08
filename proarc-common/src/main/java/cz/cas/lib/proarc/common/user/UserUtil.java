@@ -41,7 +41,7 @@ public final class UserUtil {
     static final String EXPORT_FOLDER_NAME = "export";
     static final String EDIT_FOLDER_NAME = "images";
     /** allows only lower case characters to prevent confusion */
-    static final Pattern USERNAME_PATTERN = Pattern.compile("[a-z][a-z0-9_-]{4,}");
+    static final Pattern USERNAME_PATTERN = Pattern.compile("[a-z][a-z0-9_-]{2,}");
     /** The pattern to replace forbidden chars in remote user names. */
     static final Pattern USERNAME_REPLACE_PATTERN = Pattern.compile("[^a-zA-Z0-9_-]+");
     private static final Pattern GROUP_PATTERN = Pattern.compile(

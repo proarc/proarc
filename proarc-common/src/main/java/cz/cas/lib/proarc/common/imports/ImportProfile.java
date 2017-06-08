@@ -54,6 +54,10 @@ public final class ImportProfile {
     public static final String THUMBNAIL_MAX_HEIGHT = "import.image.thumbnail.maxHeight";
     public static final String THUMBNAIL_MAX_WIDTH = "import.image.thumbnail.maxWidth";
     public static final String THUMBNAIL_PROCESSOR = "import.thumbnail.processor";
+    public static final String CONVERTOR_JPG_SMALL_PROCESSOR = "import.jpg_small_convertor.processor";
+    public static final String CONVERTOR_JPG_LARGE_PROCESSOR = "import.jpg_large_convertor.processor";
+    public static final String CONVERTOR_JP2_PROCESSOR = "import.jp2_convertor.processor";
+
 
     private final Configuration config;
     private final String profileId;
@@ -117,6 +121,21 @@ public final class ImportProfile {
     public String getNdkUserFileSuffix() {
         String suffix = config.getString(NDK_USER_SUFFIX, ".uc.jp2");
         return suffix.toLowerCase();
+    }
+
+    public Configuration getConvertorJpgSmallProcessor() {
+        String processor = config.getString(CONVERTOR_JPG_SMALL_PROCESSOR, "-");
+        return config.subset(PROCESSOR + "." + processor);
+    }
+
+    public Configuration getConvertorJpgLargeProcessor() {
+        String processor = config.getString(CONVERTOR_JPG_LARGE_PROCESSOR, "-");
+        return config.subset(PROCESSOR + "." + processor);
+    }
+
+    public Configuration getConvertorJp2Processor () {
+        String processor = config.getString(CONVERTOR_JP2_PROCESSOR, "-");
+        return config.subset(PROCESSOR + "." + processor);
     }
 
     public Integer getPreviewMaxHeight() {

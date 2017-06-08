@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jan Pokorsky
+ * Copyright (C) 2017 Jakub Kremlacek
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,38 +14,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.mods.ndk;
 
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
-import cz.cas.lib.proarc.mods.GenreDefinition;
+package cz.cas.lib.proarc.common.object.oldprint;
+
+import cz.cas.lib.proarc.common.mods.ndk.NdkMonographTitleMapper;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.mods.TitleInfoDefinition;
-import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
- *
- * @author Jan Pokorsky
+ * @author Jakub Kremlacek
  */
-public class NdkMonographTitleMapper extends NdkMapper {
-
+public class OldPrintMonographTitleMapper extends NdkMonographTitleMapper {
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
-
+        //  mods/typeOfResource="text"
+//        OldPrintMapperUtils.addTypeOfResource(mods);
         //  mods/genre="title"
-        addGenre(mods, "title");
     }
-
-    @Override
-    protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
-        OaiDcType dc = super.createDc(mods, ctx);
-        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            addElementType(dc.getTitles(), createTitleString(titleInfo));
-        }
-        for (GenreDefinition genre : mods.getGenre()) {
-            addElementType(dc.getTypes(), genre.getValue());
-        }
-        return dc;
-    }
-
 }

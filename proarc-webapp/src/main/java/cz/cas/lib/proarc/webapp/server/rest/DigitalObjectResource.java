@@ -1031,6 +1031,40 @@ public class DigitalObjectResource {
     }
 
     /**
+     * removes RAW datastream from selected pids
+     *
+     * @see PurgeFedoraObject
+     */
+    @DELETE
+    @Path(DigitalObjectResourceApi.RAW_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DigitalObject> deleteRawDatastream(
+            @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) String pid
+    ) throws IOException, PurgeException {
+
+        deleteDatastream(pid, BinaryEditor.RAW_ID);
+
+        return new SmartGwtResponse<DigitalObject>(new DigitalObject(pid, null));
+    }
+
+    /**
+     * removes Preview datastream from selected pids
+     *
+     * @see PurgeFedoraObject
+     */
+    @DELETE
+    @Path(DigitalObjectResourceApi.PREVIEW_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DigitalObject> deletePreviewDatastream(
+            @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) String pid
+    ) throws IOException, PurgeException {
+
+        deleteDatastream(pid, BinaryEditor.PREVIEW_ID);
+
+        return new SmartGwtResponse<DigitalObject>(new DigitalObject(pid, null));
+    }
+
+    /**
      * Gets digital object dissemination.
      *
      * @param pid PID (required)
@@ -1514,5 +1548,20 @@ public class DigitalObjectResource {
 
         public DigitalObject() {
         }
+    }
+
+    /**
+     * removes specific datastream from repository
+     *
+     * @param pid id of object containing datastream
+     * @param dsId datastream id
+     * @throws IOException when connection to Fedora fails
+     * @throws PurgeException when purging DS fails
+     */
+    private void deleteDatastream(String pid, String dsId) throws IOException, PurgeException {
+        RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
+        PurgeFedoraObject service = new PurgeFedoraObject(fedora, dsId);
+
+        service.purgeDatastream(pid, session.asFedoraLog());
     }
 }

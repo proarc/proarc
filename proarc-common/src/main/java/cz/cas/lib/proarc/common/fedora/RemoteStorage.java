@@ -39,8 +39,13 @@ import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils.ControlGroup;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
+import org.glassfish.jersey.uri.UriComponent;
+
+import javax.ws.rs.core.Response.Status;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -55,11 +60,6 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import org.glassfish.jersey.uri.UriComponent;
 
 /**
  * Fedora remote storage.
@@ -311,6 +311,21 @@ public final class RemoteStorage {
             try {
                 FedoraClient.purgeObject(getPid()).logMessage(qpEncode(logMessage)).execute(client);
             } catch (FedoraClientException ex) {
+                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    throw new DigitalObjectNotFoundException(getPid(), ex);
+                } else {
+                    throw new DigitalObjectException(getPid(), ex);
+                }
+            }
+        }
+
+        public void purgeDatastream(String datastream ,String logMessage) throws DigitalObjectException {
+            try {
+                FedoraClient.purgeDatastream(getPid(), datastream).logMessage(qpEncode(logMessage)).execute(client);
+            } catch (FedoraClientException ex) {
+                //if submitted pid was invalid, then 404 was received and client set NOT_FOUND status
+                //datastream presence is not checked and 200 is returned by Fedora whether datastream existed or not prior to purging
+
                 if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                     throw new DigitalObjectNotFoundException(getPid(), ex);
                 } else {

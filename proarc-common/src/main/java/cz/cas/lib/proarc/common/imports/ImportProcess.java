@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,7 +49,7 @@ public final class ImportProcess implements Runnable {
     private static final Logger LOG = Logger.getLogger(ImportProcess.class.getName());
     static final String TMP_DIR_NAME = "proarc_import";
     private final ImportBatchManager batchManager;
-    private static List<TiffImporter> consumerRegistery;
+    private static List<ImageImporter> consumerRegistery;
     private final ImportOptions importConfig;
 
     ImportProcess(ImportOptions importConfig, ImportBatchManager batchManager) {
@@ -270,10 +271,13 @@ public final class ImportProcess implements Runnable {
         }
     }
 
-    static List<TiffImporter> getConsumers() {
+    static List<ImageImporter> getConsumers() {
         if (consumerRegistery == null) {
-            consumerRegistery = Collections.singletonList(
-                    new TiffImporter(ImportBatchManager.getInstance()));
+            consumerRegistery = new LinkedList<ImageImporter>();
+
+            consumerRegistery.add(new TiffImporter(ImportBatchManager.getInstance()));
+            consumerRegistery.add(new JpegImporter(ImportBatchManager.getInstance()));
+            consumerRegistery.add(new Jp2Importer(ImportBatchManager.getInstance()));
         }
         return consumerRegistery;
     }

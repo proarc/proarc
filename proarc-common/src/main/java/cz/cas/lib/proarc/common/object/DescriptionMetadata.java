@@ -16,8 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import javax.xml.bind.annotation.XmlElement;
-
 /**
  * The description metadata of a digital object.
  *
@@ -82,5 +80,4 @@ public class DescriptionMetadata<T> {
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
-
 }

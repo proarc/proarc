@@ -50,6 +50,7 @@ import cz.cas.lib.proarc.webapp.client.action.KrameriusExportAction;
 import cz.cas.lib.proarc.webapp.client.action.NdkExportAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
 import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
@@ -90,6 +91,7 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction childrenEditAction;
     private DigitalObjectEditAction atmEditAction;
     private UrnNbnAction registerUrnNbnAction;
+    private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
     public DigitalObjectManager(ClientMessages i18n, PlaceController places) {
@@ -230,6 +232,9 @@ public final class DigitalObjectManager {
                 null,
                 DatastreamEditorType.ATM, places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
+        expandTreeAction = new TreeExpandAction(
+                i18n,
+                treeView);
     }
 
     /**
@@ -278,6 +283,8 @@ public final class DigitalObjectManager {
         toolbar.addMember(btnExport);
         toolbar.addMember(Actions.asIconButton(deleteAction, actionSource));
         toolbar.addMember(Actions.asIconButton(registerUrnNbnAction, actionSource));
+        toolbar.addSeparator();
+        toolbar.addMember(Actions.asIconButton(expandTreeAction, actionSource));
     }
 
     private void initContextMenu(Menu menu, ActionSource actionSource) {
@@ -303,6 +310,8 @@ public final class DigitalObjectManager {
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(deleteAction, actionSource, true));
         menu.addItem(Actions.asMenuItem(registerUrnNbnAction, actionSource, true));
+        menu.addItem(new MenuItemSeparator());
+        menu.addItem(Actions.asMenuItem(expandTreeAction, actionSource, false));
     }
 
     private final class RefreshableView implements Refreshable {
