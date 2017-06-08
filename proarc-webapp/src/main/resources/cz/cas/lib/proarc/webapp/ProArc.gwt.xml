@@ -33,8 +33,6 @@
     <!-- Logging setup       -->
     <inherits name="com.google.gwt.logging.Logging"/>
 <!--    <set-property name="gwt.logging.enabled" value="FALSE"/> -->
-<!--    <define-property name="cz.cas.lib.proarc.webapp.client.widget.DCEditor.level" values="ALL, FINEST, FINER, FINE, CONFIG, INFO, WARNING, SEVERE"/>-->
-<!--    <set-property name="cz.cas.lib.proarc.webapp.client.widget.DCEditor.level" value="FINE"/>-->
 <!--    <set-property name="gwt.logging.logLevel" value="FINE"/>-->
 <!--    <set-property name="gwt.logging.consoleHandler" value="DISABLED" />-->
 <!--    <set-property name="gwt.logging.developmentModeHandler" value="DISABLED" />-->
