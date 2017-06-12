@@ -247,6 +247,8 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 //        batchItemGrid.setAutoFitWidthApproach(AutoFitWidthApproach.BOTH);
         grid.setLeaveScrollbarGap(false);
         grid.setDataSource(ImportBatchItemDataSource.getInstance());
+        ListGridPersistance gridPersistence = new ListGridPersistance("ImportBatchItemEditor.fileList", grid);
+        grid.setViewState(gridPersistence.getViewState());
 
         fieldItemModel = new ListGridField(ImportBatchItemDataSource.FIELD_MODEL,
                 i18n.ImportBatchItemEditor_ListHeaderModel_Title());

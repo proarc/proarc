@@ -427,6 +427,9 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
         lg.setCanReorderRecords(Boolean.TRUE);
         lg.setShowRollOver(Boolean.FALSE);
         lg.setGenerateDoubleClickOnEnter(Boolean.TRUE);
+        ListGridPersistance lgPersistence = new ListGridPersistance("DigitalObjectChildrenEditor.objectList", lg);
+        lg.setViewState(lgPersistence.getViewState());
+
         // ListGrid with enabled grouping prevents record reoredering by dragging! (SmartGWT 3.0)
         // lg.setGroupByField(RelationDataSource.FIELD_MODEL);
         // lg.setGroupStartOpen(GroupStartOpen.ALL);
