@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
-import com.google.gwt.core.shared.GWT;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
@@ -53,6 +52,7 @@ import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.StreamProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.StreamProfileDataSource.StreamProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+
 import java.util.ArrayList;
 
 import static cz.cas.lib.proarc.webapp.client.ds.MediaDataSource.FIELD_PID;
@@ -271,8 +271,6 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     }
 
     private static DynamicForm createExpandOptionsForm() {
-
-        ClientMessages i18n = GWT.create(ClientMessages.class);
         DynamicForm f = new DynamicForm();
         f.setAutoHeight();
         return f;

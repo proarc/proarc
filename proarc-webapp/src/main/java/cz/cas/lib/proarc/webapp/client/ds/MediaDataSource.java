@@ -27,7 +27,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 /**
  * Serves as access point to specific datastream for its removal.
  *
- * Created by Jakub Kremlacek on 24.3.17.
+ * @author Jakub Kremlacek
  */
 public class MediaDataSource extends RestDataSource {
 

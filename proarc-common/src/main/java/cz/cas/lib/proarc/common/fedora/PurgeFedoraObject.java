@@ -107,9 +107,7 @@ public final class PurgeFedoraObject {
 
     private void removeDatastream(String pid) throws PurgeException {
         try {
-            RemoteObject remote = storage.find(pid);
-
-            remote.purgeDatastream(datastream, logMessage);
+            storage.find(pid).purgeDatastream(datastream, logMessage);
         } catch (DigitalObjectException ex) {
             throw new PurgeException(pid, ex);
         }
@@ -145,8 +143,7 @@ public final class PurgeFedoraObject {
 
     private List<Item> getHierarchy(String pid) throws PurgeException {
         try {
-            List<Item> pids = storage.getSearch().findChildrenHierarchy(pid);
-            return pids;
+            return storage.getSearch().findChildrenHierarchy(pid);
         } catch (FedoraClientException ex) {
             throw new PurgeException(pid, ex);
         } catch (IOException ex) {
@@ -155,7 +152,7 @@ public final class PurgeFedoraObject {
     }
 
     private List<Item> getParent(String pid) throws PurgeException {
-        List<Item> pids = null;
+        List<Item> pids;
         try {
             pids = storage.getSearch().findReferrers(pid);
         } catch (IOException ex) {
