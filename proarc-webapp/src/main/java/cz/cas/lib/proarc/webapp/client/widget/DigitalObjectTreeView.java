@@ -119,6 +119,8 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         treeGrid.setAlternateRecordStyles(true);
         treeGrid.setSelectionType(SelectionStyle.SINGLE);
         treeGrid.setContextMenu(Actions.createMenu());
+        ListGridPersistance treeGridPersistence = new ListGridPersistance("DigitalObjectTreeView.digitalObjectList", treeGrid);
+        treeGrid.setViewState(treeGridPersistence.getViewState());
         treeGrid.addDataArrivedHandler(new DataArrivedHandler() {
 
             @Override
