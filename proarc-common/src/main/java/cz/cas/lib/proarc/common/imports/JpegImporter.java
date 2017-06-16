@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.process.GhostConvert;
 import cz.cas.lib.proarc.common.process.VIPSConvert;
 import cz.incad.imgsupport.ImageMimeType;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,7 +94,9 @@ public class JpegImporter implements ImageImporter {
 
     private FileEntry convertToTiff(FileEntry jp, Configuration processorConfig) throws IOException {
         if (processorConfig != null && !processorConfig.isEmpty()) {
-            File tiff = new File(jp.getFile().toPath().getParent().toString(), jp.getFile().getName().substring(0, jp.getFile().getName().lastIndexOf('.')) + ".tiff");
+            File tiff = new File(
+                    jp.getFile().getParent(),
+                    FilenameUtils.removeExtension(jp.getFile().getName()) + ".tiff");
 
             //conversion was done before
             if (tiff.exists()) return null;

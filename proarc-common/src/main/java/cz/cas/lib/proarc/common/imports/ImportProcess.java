@@ -275,9 +275,9 @@ public final class ImportProcess implements Runnable {
         if (consumerRegistery == null) {
             consumerRegistery = new LinkedList<ImageImporter>();
 
-            TiffImporter importer = new TiffImporter(ImportBatchManager.getInstance();
+            TiffImporter importer = new TiffImporter(ImportBatchManager.getInstance());
 
-            consumerRegistery.add(importer));
+            consumerRegistery.add(importer);
             consumerRegistery.add(new JpegImporter(importer));
             consumerRegistery.add(new Jp2Importer(importer));
         }
