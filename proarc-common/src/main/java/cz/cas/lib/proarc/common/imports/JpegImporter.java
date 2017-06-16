@@ -29,6 +29,7 @@ import org.apache.commons.configuration.Configuration;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -36,13 +37,17 @@ import java.util.logging.Level;
  *
  * @author Jakub Kremlacek
  */
-public class JpegImporter extends TiffImporter {
+public class JpegImporter implements ImageImporter {
+
+    private static final Logger LOG = Logger.getLogger(JpegImporter.class.getName());
+
+    private TiffImporter importer;
 
     //set limit filesize for use of small filesize convertor
     private static final long SMALL_IMAGE_SIZE_LIMIT = 5L * 1000 * 1000;
 
-    public JpegImporter(ImportBatchManager ibm) {
-        super(ibm);
+    public JpegImporter(TiffImporter importer) {
+        this.importer = importer;
     }
 
     @Override
@@ -65,7 +70,7 @@ public class JpegImporter extends TiffImporter {
 
             fileSet.getFiles().add(tiff);
 
-            return super.consume(fileSet, ctx);
+            return importer.consume(fileSet, ctx);
         } catch (Throwable ex) {
             LOG.log(Level.SEVERE, imageFile.toString(), ex);
         }

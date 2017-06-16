@@ -27,6 +27,7 @@ import org.apache.commons.configuration.Configuration;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -34,10 +35,14 @@ import java.util.logging.Level;
  *
  * @author Jakub Kremlacek
  */
-public class Jp2Importer extends TiffImporter {
+public class Jp2Importer implements ImageImporter {
 
-    public Jp2Importer(ImportBatchManager ibm) {
-        super(ibm);
+    private static final Logger LOG = Logger.getLogger(Jp2Importer.class.getName());
+
+    private TiffImporter importer;
+
+    public Jp2Importer(TiffImporter importer) {
+        this.importer = importer;
     }
 
     @Override
@@ -71,7 +76,7 @@ public class Jp2Importer extends TiffImporter {
 
             fileSet.getFiles().add(tiff);
 
-            return super.consume(fileSet, ctx);
+            return importer.consume(fileSet, ctx);
         } catch (Throwable ex) {
             LOG.log(Level.SEVERE, imageFile.toString(), ex);
         }
