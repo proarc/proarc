@@ -129,5 +129,10 @@ public class OldPrintPageMapperTest {
 
         assertEquals("Front Endpaper", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", Locale.ENGLISH));
         assertEquals("Přední předsádka", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", new Locale("cs")));
+
+        Locale.setDefault(new Locale("cs", "CZ"));
+
+        assertEquals("Front Endpaper", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", Locale.ENGLISH));
+        assertEquals("Přední předsádka", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", new Locale("cs")));
     }
 }
