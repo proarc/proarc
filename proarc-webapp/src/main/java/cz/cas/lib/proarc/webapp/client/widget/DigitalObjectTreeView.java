@@ -126,7 +126,9 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
             public void onDataArrived(DataArrivedEvent event) {
                 selectAndExpandRootNode(event);
 
-                if (openingNode != null) expandNode(event.getParentNode());
+                if (openingNode != null) {
+                    expandNode(event.getParentNode());
+                }
             }
         });
         return treeGrid;
@@ -237,12 +239,18 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
     }
 
     private boolean isSuccessor(TreeNode child) {
-        if (openingNode.equals(child)) return true;
+        if (child == null) {
+            return false;
+        }
+        
+        if (child.equals(openingNode)) {
+            return true;
+        }
 
         TreeNode parent = treeSelector.getTree().getParent(child);
 
         while (parent != null) {
-            if (openingNode.equals(parent)) return true;
+            if (parent.equals(openingNode)) return true;
 
             parent = treeSelector.getTree().getParent(parent);
         }

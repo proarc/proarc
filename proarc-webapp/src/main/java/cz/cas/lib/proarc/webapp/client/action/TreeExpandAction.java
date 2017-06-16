@@ -17,7 +17,6 @@
 
 package cz.cas.lib.proarc.webapp.client.action;
 
-import com.google.gwt.core.shared.GWT;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
@@ -74,7 +73,6 @@ public final class TreeExpandAction extends AbstractAction {
             d.getDialogLabelContainer().setContents(i18n.TreeExpandAction_Window_Msg());
             d.getDialogContentContainer().setMembers(optionsForm);
             d.addYesButton((ClickEvent eventX) -> {
-                Record options = optionsForm.getValuesAsRecord();
                 d.destroy();
 
                 String pid = records[0].getAttribute(RelationDataSource.FIELD_PID);
@@ -108,19 +106,12 @@ public final class TreeExpandAction extends AbstractAction {
     public boolean accept(ActionEvent event) {
         Object[] selection = Actions.getSelection(event);
 
-        if (selection != null && selection.length == 1) {
-            return true;
-        }
-
-        return false;
+        return selection != null && selection.length == 1;
     }
 
-    public static DynamicForm createExpandOptionsForm() {
-
-        ClientMessages i18n = GWT.create(ClientMessages.class);
+    private DynamicForm createExpandOptionsForm() {
         DynamicForm f = new DynamicForm();
         f.setAutoHeight();
         return f;
-
     }
 }

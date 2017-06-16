@@ -311,7 +311,7 @@ public final class DigitalObjectManager {
         menu.addItem(Actions.asMenuItem(deleteAction, actionSource, true));
         menu.addItem(Actions.asMenuItem(registerUrnNbnAction, actionSource, true));
         menu.addItem(new MenuItemSeparator());
-        menu.addItem(Actions.asMenuItem(expandTreeAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(expandTreeAction, actionSource, true));
     }
 
     private final class RefreshableView implements Refreshable {
