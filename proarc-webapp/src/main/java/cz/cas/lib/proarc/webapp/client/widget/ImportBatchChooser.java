@@ -100,6 +100,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
 
     private ListGrid initBatchesListGrid() {
         ListGrid lg = new ListGrid();
+        ListGridPersistance lgPersistance = new ListGridPersistance("ImportBatchChooserWidget.importList", lg);
         lg.setHeight100();
         lg.setSelectionType(SelectionStyle.SINGLE);
         lg.setCanReorderFields(false);

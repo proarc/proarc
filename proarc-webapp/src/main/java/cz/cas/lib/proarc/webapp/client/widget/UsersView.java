@@ -137,6 +137,8 @@ public final class UsersView implements RefreshAction.Refreshable {
         // Since SmartGWT 4.0; disable auto-save to post updates of nested forms just on the submit actions.
         grid.setAutoSaveEdits(false);
         grid.setShowClippedValuesOnHover(true);
+        ListGridPersistance gridPersistence = new ListGridPersistance("UsersView.userList", grid);
+        grid.setViewState(gridPersistence.getViewState());
         return grid;
     }
 
