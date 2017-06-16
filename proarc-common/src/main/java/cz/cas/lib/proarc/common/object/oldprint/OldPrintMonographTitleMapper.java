@@ -27,8 +27,5 @@ public class OldPrintMonographTitleMapper extends NdkMonographTitleMapper {
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
-        //  mods/typeOfResource="text"
-//        OldPrintMapperUtils.addTypeOfResource(mods);
-        //  mods/genre="title"
     }
 }
