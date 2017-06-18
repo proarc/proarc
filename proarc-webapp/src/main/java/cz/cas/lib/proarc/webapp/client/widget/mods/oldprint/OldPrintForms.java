@@ -49,6 +49,8 @@ public class OldPrintForms {
             f = new OldPrintSupplementForm().build();
         } else if ("model:oldprintpage".equals(modelId)) {
             return new PageForm(i18n, BundleName.MODS_OLDPRINT_PAGE_TYPES);
+        } else if ("model:oldprintmonographtitle".equals(modelId)) {
+            f = new OldPrintMonographTitleForm().build();
         } else {
             return null;
         }
