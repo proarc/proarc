@@ -89,7 +89,7 @@ public class LocalizationResource {
             localeObj = new Locale(locale);
         }
 
-        Control control = ResourceBundle.Control.getControl(ResourceBundle.Control.FORMAT_PROPERTIES);
+        Control control = ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES);
         ArrayList<Item> result = new ArrayList<Item>();
         for (BundleName bundleName : bundleNames) {
             try {

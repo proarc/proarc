@@ -30,7 +30,7 @@ import java.util.ResourceBundle.Control;
  */
 public final class ServerMessages {
 
-    private static final Control CONTROL = Control.getControl(Control.FORMAT_PROPERTIES);
+    private static final Control CONTROL = Control.getNoFallbackControl(Control.FORMAT_PROPERTIES);
 
     public static ServerMessages get(Locale l) {
         return new ServerMessages(l);
