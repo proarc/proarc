@@ -41,12 +41,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,7 +56,7 @@ import java.util.logging.Logger;
 public final class AlephXServer implements BibliographicCatalog {
 
     public static final String TYPE = "AlephXServer";
-    static final String PROPERTY_FIELD_QUERY = "query";
+    public static final String PROPERTY_FIELD_QUERY = "query";
 
     private static final Logger LOG = Logger.getLogger(AlephXServer.class.getName());
 
@@ -236,10 +234,10 @@ public final class AlephXServer implements BibliographicCatalog {
         }
     }
 
-    static class Criteria {
+    static final class Criteria {
 
         private static class Field {
-            private static Map<String, String> values = new HashMap<String,String>() {
+            private static Map<String, String> values = new ConcurrentHashMap<String,String>() {
                 {
                     put("barcode", "bar");
                     put("ccnb", "cnb");
@@ -262,9 +260,7 @@ public final class AlephXServer implements BibliographicCatalog {
             }
 
             private static List<Field> getValues() {
-                List<Field> fieldList = new LinkedList<>();
-
-                Iterator it = values.entrySet().iterator();
+                List<Field> fieldList = new ArrayList<>();
 
                 for (Map.Entry<String, String> entry : values.entrySet()) {
                     fieldList.add(new Field(entry.getKey(), entry.getValue()));
