@@ -18,13 +18,6 @@ package cz.cas.lib.proarc.common.catalog;
 
 import cz.cas.lib.proarc.common.catalog.AlephXServer.Criteria;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
-import org.apache.commons.configuration.BaseConfiguration;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Proxy;
@@ -33,6 +26,12 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.configuration.BaseConfiguration;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -99,7 +98,7 @@ public class AlephXServerTest {
             xmlIS.close();
         }
     }
-    
+
     @Test
     public void testDetailResponse() throws Exception {
         InputStream xmlIS = AlephXServerTest.class.getResourceAsStream("alephXServerDetailResponse.xml");
@@ -125,8 +124,11 @@ public class AlephXServerTest {
 
     @Test
     public void testSetQuery() throws Exception {
-        Criteria issnCriteria = Criteria.get("issn", "ISSNVALUE");
-        URI result = AlephXServer.setQuery(new URI("http://aleph.nkp.cz/X?base=nkc"),
+
+        URI alephURI = new URI("http://aleph.nkp.cz/X?base=nkc");
+
+        Criteria issnCriteria = new AlephXServer(alephURI).criteria.get("issn", "ISSNVALUE");
+        URI result = AlephXServer.setQuery(alephURI,
                 issnCriteria.toUrlParams(), true);
         assertEquals("http://aleph.nkp.cz/X?base=nkc&op=find&request=ssn=ISSNVALUE", result.toASCIIString());
         System.out.println("URI: " + result.toASCIIString());
@@ -134,8 +136,11 @@ public class AlephXServerTest {
 
     @Test
     public void testSetFurtherQuery() throws Exception {
-        Criteria issnCriteria = Criteria.get("issn", "ISSNVALUE");
-        URI result = AlephXServer.setQuery(new URI("http://aleph.nkp.cz/X?base=nkc"),
+
+        URI alephURI = new URI("http://aleph.nkp.cz/X?base=nkc");
+
+        Criteria issnCriteria = new AlephXServer(alephURI).criteria.get("issn", "ISSNVALUE");
+        URI result = AlephXServer.setQuery(alephURI,
                 issnCriteria.toUrlParams(), false);
         assertEquals("http://aleph.nkp.cz/X?op=find&request=ssn=ISSNVALUE", result.toASCIIString());
         System.out.println("URI: " + result.toASCIIString());
@@ -158,8 +163,8 @@ public class AlephXServerTest {
         AlephXServer result = AlephXServer.get(c);
 
         assertNotNull(result);
-        assertEquals("op=find&request=sg=test", AlephXServer.Criteria.get("sg", "test").toUrlParams());
-        assertEquals(null, AlephXServer.Criteria.get("sig", "test"));
+        assertEquals("op=find&request=sg=test", result.criteria.get("sg", "test").toUrlParams());
+        assertEquals(null, result.criteria.get("sig", "test"));
     }
 
 
