@@ -20,11 +20,10 @@ package cz.cas.lib.proarc.common.process;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
-import org.apache.commons.configuration.Configuration;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
+import org.apache.commons.configuration.Configuration;
 
 /**
  * Uses GhostMagick for converting small jpg images to tiff
@@ -38,7 +37,7 @@ public class GhostConvert extends ExternalProcess {
 
     public static void main(String[] args) throws Exception {
         if (args != null && args.length > 2) {
-            HashMap<String, String> env = new HashMap<String, String>();
+            HashMap<String, String> env = new HashMap<>();
             env.put(AppConfiguration.PROPERTY_APP_HOME, args[0]);
             AppConfiguration conf = AppConfigurationFactory.getInstance().create(env);
             Configuration config = conf.getAuthenticators();

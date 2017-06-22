@@ -28,8 +28,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -271,15 +271,23 @@ public final class ImportProcess implements Runnable {
         }
     }
 
+    /**
+     * returns a list of available image consumers
+     *
+     * @return unmodifiable list of image consumers
+     */
     static List<ImageImporter> getConsumers() {
         if (consumerRegistery == null) {
-            consumerRegistery = new LinkedList<ImageImporter>();
 
-            TiffImporter importer = new TiffImporter(ImportBatchManager.getInstance());
+            TiffImporter tiffImporter = new TiffImporter(ImportBatchManager.getInstance());
 
-            consumerRegistery.add(importer);
-            consumerRegistery.add(new JpegImporter(importer));
-            consumerRegistery.add(new Jp2Importer(importer));
+            ImageImporter[] importers = {
+                    tiffImporter,
+                    new TiffAsJpegImporter(tiffImporter),
+                    new TiffAsJp2Importer(tiffImporter)
+            };
+
+            consumerRegistery = Collections.unmodifiableList(Arrays.asList(importers));
         }
         return consumerRegistery;
     }

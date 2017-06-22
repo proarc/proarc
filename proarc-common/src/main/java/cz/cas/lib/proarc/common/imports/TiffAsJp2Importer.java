@@ -21,38 +21,51 @@ import cz.cas.lib.proarc.common.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.process.ExternalProcess;
-import cz.cas.lib.proarc.common.process.GhostConvert;
-import cz.cas.lib.proarc.common.process.VIPSConvert;
-import cz.incad.imgsupport.ImageMimeType;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.io.FilenameUtils;
-
+import cz.cas.lib.proarc.common.process.KakaduExpand;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  *
- * Prepares tiff image from jpeg at input for TiffImporter
+ * Prepares tiff image from jp2 at input for TiffImporter
+ *
+ * Original .j2 image is not used after the conversion into .tiff,
+ * .tiff image is furthermore treated as original image
  *
  * @author Jakub Kremlacek
  */
-public class JpegImporter implements ImageImporter {
+public class TiffAsJp2Importer implements ImageImporter {
 
-    private static final Logger LOG = Logger.getLogger(JpegImporter.class.getName());
+    private static final Logger LOG = Logger.getLogger(TiffAsJp2Importer.class.getName());
 
     private TiffImporter importer;
 
-    //set limit filesize for use of small filesize convertor
-    private static final long SMALL_IMAGE_SIZE_LIMIT = 5L * 1000 * 1000;
-
-    public JpegImporter(TiffImporter importer) {
+    public TiffAsJp2Importer(TiffImporter importer) {
         this.importer = importer;
     }
 
     @Override
-    public boolean accept(FileSet fileSet) { return isJpeg(fileSet); }
+    public boolean accept(FileSet fileSet) { return isJp2(fileSet); }
+
+    private boolean isJp2(FileSet fileSet) { return findJp2(fileSet) != null;}
+
+    private FileEntry findJp2(FileSet fileSet) {
+
+        for (FileEntry entry : fileSet.getFiles()) {
+            try {
+                if (InputUtils.isJp2000(entry.getFile())) {
+                    return entry;
+                }
+            } catch (IOException e) {
+                LOG.log(Level.SEVERE, entry.toString(), e);
+            }
+        }
+        return null;
+    }
 
     @Override
     public BatchItemObject consume(FileSet fileSet, ImportOptions ctx) {
@@ -60,14 +73,11 @@ public class JpegImporter implements ImageImporter {
         FileEntry imageFile = fileSet.getFiles().get(0);
 
         try {
-            FileEntry tiff;
-            if (imageFile.getFile().length() > SMALL_IMAGE_SIZE_LIMIT) {
-                tiff = convertToTiff(imageFile, ctx.getConfig().getConvertorJpgLargeProcessor());
-            } else {
-                tiff = convertToTiff(imageFile, ctx.getConfig().getConvertorJpgSmallProcessor());
-            }
+            FileEntry tiff = convertToTiff(imageFile, ctx.getConfig().getConvertorJp2Processor());
 
-            if (tiff == null) return null;
+            if (tiff == null) {
+                return null;
+            }
 
             fileSet.getFiles().add(tiff);
 
@@ -79,19 +89,6 @@ public class JpegImporter implements ImageImporter {
         return null;
     }
 
-    private boolean isJpeg(FileSet fileSet) { return findJpeg(fileSet) != null;}
-
-    private FileEntry findJpeg(FileSet fileSet) {
-
-        for (FileEntry entry : fileSet.getFiles()) {
-            String mimetype = entry.getMimetype();
-            if (ImageMimeType.JPEG.getMimeType().equals(mimetype)) {
-                return entry;
-            }
-        }
-        return null;
-    }
-
     private FileEntry convertToTiff(FileEntry jp, Configuration processorConfig) throws IOException {
         if (processorConfig != null && !processorConfig.isEmpty()) {
             File tiff = new File(
@@ -99,14 +96,14 @@ public class JpegImporter implements ImageImporter {
                     FilenameUtils.removeExtension(jp.getFile().getName()) + ".tiff");
 
             //conversion was done before
-            if (tiff.exists()) return null;
+            if (tiff.exists()) {
+                return null;
+            }
 
             String processorType = processorConfig.getString("type");
             ExternalProcess process = null;
-            if (GhostConvert.ID.equals(processorType)) {
-                process = new GhostConvert(processorConfig, jp.getFile(), tiff);
-            } else if (VIPSConvert.ID.equals(processorType)) {
-                process = new VIPSConvert(processorConfig, jp.getFile(), tiff);
+            if (KakaduExpand.ID.equals(processorType)) {
+                process = new KakaduExpand(processorConfig, jp.getFile(), tiff);
             }
             if (process != null) {
                 process.run();
