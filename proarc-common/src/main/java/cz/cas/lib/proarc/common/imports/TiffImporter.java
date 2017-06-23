@@ -69,8 +69,8 @@ import org.apache.commons.configuration.Configuration;
  */
 public class TiffImporter implements ImageImporter {
 
-    protected static final Logger LOG = Logger.getLogger(TiffImporter.class.getName());
-    protected final ImportBatchManager ibm;
+    private static final Logger LOG = Logger.getLogger(TiffImporter.class.getName());
+    private final ImportBatchManager ibm;
 
     public TiffImporter(ImportBatchManager ibm) {
         this.ibm = ibm;
