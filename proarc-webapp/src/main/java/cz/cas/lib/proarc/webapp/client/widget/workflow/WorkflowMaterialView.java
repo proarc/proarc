@@ -45,6 +45,7 @@ import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
+import cz.cas.lib.proarc.webapp.client.widget.CanvasSizePersistence;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 
 /**
@@ -119,6 +120,10 @@ public class WorkflowMaterialView {
         materialGrid.setCanSort(false);
         materialGrid.setCanGroupBy(false);
         materialGrid.setWrapCells(true);
+
+        CanvasSizePersistence persistence = new CanvasSizePersistence("WorkflowMaterialView.materialList", materialGrid);
+        materialGrid.setHeight(persistence.getHeight());
+
         materialGrid.setDataSource(WorkflowMaterialDataSource.getInstance(),
                 new ListGridField(WorkflowMaterialDataSource.FIELD_PROFILENAME),
                 new ListGridField(WorkflowMaterialDataSource.FIELD_VALUE),
