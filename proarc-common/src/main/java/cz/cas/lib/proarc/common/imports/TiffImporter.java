@@ -67,7 +67,7 @@ import org.apache.commons.configuration.Configuration;
  *
  * @author Jan Pokorsky
  */
-public final class TiffImporter {
+public class TiffImporter implements ImageImporter {
 
     private static final Logger LOG = Logger.getLogger(TiffImporter.class.getName());
     private final ImportBatchManager ibm;

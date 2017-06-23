@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -48,7 +49,7 @@ public final class ImportProcess implements Runnable {
     private static final Logger LOG = Logger.getLogger(ImportProcess.class.getName());
     static final String TMP_DIR_NAME = "proarc_import";
     private final ImportBatchManager batchManager;
-    private static List<TiffImporter> consumerRegistery;
+    private static List<ImageImporter> consumerRegistery;
     private final ImportOptions importConfig;
 
     ImportProcess(ImportOptions importConfig, ImportBatchManager batchManager) {
@@ -270,10 +271,23 @@ public final class ImportProcess implements Runnable {
         }
     }
 
-    static List<TiffImporter> getConsumers() {
+    /**
+     * returns a list of available image consumers
+     *
+     * @return unmodifiable list of image consumers
+     */
+    static List<ImageImporter> getConsumers() {
         if (consumerRegistery == null) {
-            consumerRegistery = Collections.singletonList(
-                    new TiffImporter(ImportBatchManager.getInstance()));
+
+            TiffImporter tiffImporter = new TiffImporter(ImportBatchManager.getInstance());
+
+            ImageImporter[] importers = {
+                    tiffImporter,
+                    new TiffAsJpegImporter(tiffImporter),
+                    new TiffAsJp2Importer(tiffImporter)
+            };
+
+            consumerRegistery = Collections.unmodifiableList(Arrays.asList(importers));
         }
         return consumerRegistery;
     }
