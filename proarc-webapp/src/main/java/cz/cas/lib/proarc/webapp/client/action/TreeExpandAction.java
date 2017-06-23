@@ -18,8 +18,6 @@
 package cz.cas.lib.proarc.webapp.client.action;
 
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.util.BooleanCallback;
-import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
@@ -35,7 +33,7 @@ import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectTreeView;
 public final class TreeExpandAction extends AbstractAction {
 
     private final DigitalObjectTreeView treeView;
-    private final DynamicForm optionsForm;
+    private DynamicForm optionsForm;
     private final ClientMessages i18n;
 
     public TreeExpandAction(
@@ -57,7 +55,6 @@ public final class TreeExpandAction extends AbstractAction {
         );
 
         this.treeView = treeView;
-        this.optionsForm = createExpandOptionsForm();
         this.i18n = i18n;
     }
 
@@ -67,39 +64,26 @@ public final class TreeExpandAction extends AbstractAction {
 
         if (records.length == 0) return;
 
-        if (optionsForm != null) {
-            optionsForm.clearValues();
-            final Dialog d = new Dialog(i18n.TreeExpandAction_Window_Title());
-            d.getDialogLabelContainer().setContents(i18n.TreeExpandAction_Window_Msg());
-            d.getDialogContentContainer().setMembers(optionsForm);
-            d.addYesButton((ClickEvent eventX) -> {
+        optionsForm = createExpandOptionsForm();
+
+        optionsForm.clearValues();
+        final Dialog d = new Dialog(i18n.TreeExpandAction_Window_Title());
+        d.getDialogLabelContainer().setContents(i18n.TreeExpandAction_Window_Msg());
+        d.getDialogContentContainer().setMembers(optionsForm);
+        d.addYesButton((ClickEvent eventX) -> {
+            d.destroy();
+
+            String pid = records[0].getAttribute(RelationDataSource.FIELD_PID);
+            treeView.expandNode(pid);
+        });
+        d.addNoButton(new Dialog.DialogCloseHandler() {
+            @Override
+            public void onClose() {
                 d.destroy();
-
-                String pid = records[0].getAttribute(RelationDataSource.FIELD_PID);
-                treeView.expandNode(pid);
-            });
-            d.addNoButton(new Dialog.DialogCloseHandler() {
-                @Override
-                public void onClose() {
-                    d.destroy();
-                }
-            });
-            d.setWidth(400);
-            d.show();
-        } else {
-            SC.ask(i18n.TreeExpandAction_Window_Title(),
-                    i18n.TreeExpandAction_Window_Msg(),
-                    new BooleanCallback() {
-
-                        @Override
-                        public void execute(Boolean value) {
-                            if (value != null && value) {
-                                String pid = records[0].getAttribute(RelationDataSource.FIELD_PID);
-                                treeView.expandNode(pid);
-                            }
-                        }
-                    });
-        }
+            }
+        });
+        d.setWidth(400);
+        d.show();
     }
 
     @Override
