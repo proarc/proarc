@@ -62,25 +62,22 @@ public final class TreeExpandAction extends AbstractAction {
     public void performAction(ActionEvent event) {
         Record[] records = Actions.getSelection(event);
 
-        if (records.length == 0) return;
+        if (records.length == 0) {
+            return;
+        }
 
         optionsForm = createExpandOptionsForm();
 
-        optionsForm.clearValues();
         final Dialog d = new Dialog(i18n.TreeExpandAction_Window_Title());
         d.getDialogLabelContainer().setContents(i18n.TreeExpandAction_Window_Msg());
         d.getDialogContentContainer().setMembers(optionsForm);
         d.addYesButton((ClickEvent eventX) -> {
             d.destroy();
-
             String pid = records[0].getAttribute(RelationDataSource.FIELD_PID);
             treeView.expandNode(pid);
         });
-        d.addNoButton(new Dialog.DialogCloseHandler() {
-            @Override
-            public void onClose() {
-                d.destroy();
-            }
+        d.addNoButton(() -> {
+            d.destroy();
         });
         d.setWidth(400);
         d.show();
