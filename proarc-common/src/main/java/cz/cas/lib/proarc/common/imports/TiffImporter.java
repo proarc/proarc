@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.ExternalProcess;
 import cz.cas.lib.proarc.common.process.KakaduCompress;
+import cz.cas.lib.proarc.common.process.OcrGenerator;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
@@ -104,7 +105,7 @@ public class TiffImporter implements ImageImporter {
             createImages(ctx.getTargetFolder(), f, originalFilename, localObj, config);
             importArchivalCopy(fileSet, f, localObj, ctx);
             importUserCopy(fileSet, f, localObj, ctx);
-            importOcr(fileSet, localObj, ctx);
+            importOcr(fileSet, f, localObj, ctx);
             createTechnicalMetadata(localObj, ctx);
             // writes FOXML
             dobjHandler.commit();
@@ -168,7 +169,7 @@ public class TiffImporter implements ImageImporter {
         return null;
     }
 
-    private void importOcr(FileSet fileSet, FedoraObject fo, ImportOptions options)
+    private void importOcr(FileSet fileSet, File tiff, FedoraObject fo, ImportOptions options)
             throws IOException, DigitalObjectException {
 
         // XXX find filename.ocr.txt or generate OCR or nothing
@@ -179,6 +180,17 @@ public class TiffImporter implements ImageImporter {
         List<Object> requiredDatastreamId = config.getRequiredDatastreamId();
 
         FileEntry ocrEntry = findSibling(fileSet, config.getPlainOcrFileSuffix());
+        FileEntry altoEntry = findSibling(fileSet, config.getAltoFileSuffix());
+
+        if ((ocrEntry == null || altoEntry == null) && requiredDatastreamId.contains(StringEditor.OCR_ALTO_GEN_ID)) {
+            generateOCR(tiff, options);
+
+            File[] ocrFiles = OcrGenerator.getOcrFiles(tiff, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
+
+            ocrEntry = new FileEntry(ocrFiles[0]);
+            altoEntry = new FileEntry(ocrFiles[1]);
+        }
+
         if (ocrEntry != null) {
             File ocrFile = new File(tempBatchFolder, originalFilename + '.' + StringEditor.OCR_ID + ".txt");
             StringEditor.copy(ocrEntry.getFile(), config.getPlainOcrCharset(), ocrFile, "UTF-8");
@@ -189,13 +201,27 @@ public class TiffImporter implements ImageImporter {
                     originalFilename + config.getPlainOcrFileSuffix()).toString());
         }
         // ALTO OCR
-        FileEntry altoEntry = findSibling(fileSet, config.getAltoFileSuffix());
+
         if (altoEntry != null) {
             URI altoUri = altoEntry.getFile().toURI();
             AltoDatastream.importAlto(fo, altoUri, null);
         } else if (requiredDatastreamId.contains(AltoDatastream.ALTO_ID)) {
             throw new FileNotFoundException("Missing ALTO: " + new File(tempBatchFolder.getParent(),
                     originalFilename + config.getAltoFileSuffix()).toString());
+        }
+    }
+
+    private void generateOCR(File tiff, ImportOptions options) throws IOException{
+        ImportProfile config = options.getConfig();
+
+        ExternalProcess process = new OcrGenerator(config.getOcrGenProcessor(), tiff, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
+
+        if (process != null) {
+            process.run();
+
+            if (!process.isOk()) {
+                throw new IOException("Generating OCR for " + tiff.getName() + " failed. \n " + process.getFullOutput());
+            }
         }
     }
 

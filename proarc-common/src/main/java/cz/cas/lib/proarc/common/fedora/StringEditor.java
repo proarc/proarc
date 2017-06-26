@@ -42,6 +42,7 @@ public final class StringEditor {
     public static final String OCR_LABEL = "OCR for this object";
     public static final String PRIVATE_NOTE_ID = "PRIVATE_NOTE";
     public static final String PRIVATE_NOTE_LABEL = "Private note for this object";
+    public static final String OCR_ALTO_GEN_ID = "OCR_ALTO_GEN";
 
     private final XmlStreamEditor editor;
     private final FedoraObject object;

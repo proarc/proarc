@@ -57,6 +57,7 @@ public final class ImportProfile {
     public static final String CONVERTOR_JPG_SMALL_PROCESSOR = "import.jpg_small_convertor.processor";
     public static final String CONVERTOR_JPG_LARGE_PROCESSOR = "import.jpg_large_convertor.processor";
     public static final String CONVERTOR_JP2_PROCESSOR = "import.jp2_convertor.processor";
+    public static final String OCR_GEN_PROCESSOR = "import.ocr_generator.processor";
 
 
     private final Configuration config;
@@ -101,6 +102,11 @@ public final class ImportProfile {
     public String getAltoFileSuffix() {
         String suffix = config.getString(ALTO_SUFFIX, ".ocr.xml");
         return suffix.toLowerCase();
+    }
+
+    public Configuration getOcrGenProcessor() {
+        String processor = config.getString(OCR_GEN_PROCESSOR, "-");
+        return config.subset(PROCESSOR + "." + processor);
     }
 
     public Configuration getNdkUserProcessor() {
