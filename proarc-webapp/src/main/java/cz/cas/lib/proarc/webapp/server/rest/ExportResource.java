@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.export.DesaExport.Result;
 import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
+import cz.cas.lib.proarc.common.export.KWISExport;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.NdkExport;
 import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
@@ -45,6 +46,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -83,7 +85,7 @@ public class ExportResource {
     public ExportResource(
             @Context SecurityContext securityCtx,
             @Context HttpServletRequest httpRequest
-            ) throws AppConfigurationException {
+    ) throws AppConfigurationException {
 
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
         session = SessionContext.from(httpRequest);
@@ -97,19 +99,10 @@ public class ExportResource {
             @FormParam(ExportResourceApi.DATASTREAM_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.DATASTREAM_DSID_PARAM) List<String> dsIds,
             @FormParam(ExportResourceApi.DATASTREAM_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
-            ) throws IOException, ExportException {
+    ) throws IOException, ExportException {
 
-        if (pids.isEmpty()) {
-            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_PID_PARAM);
-        }
-        if (dsIds.isEmpty()) {
-            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
-        }
-        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig));
-        URI exportUri = user.getExportFolder();
-        File exportFolder = new File(exportUri);
-        File target = export.export(exportFolder, hierarchy, pids, dsIds);
-        URI targetPath = user.getUserHomeUri().relativize(target.toURI());
+        URI targetPath = runDatastreamExport(pids, dsIds, hierarchy);
+
         return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath));
     }
 
@@ -119,30 +112,58 @@ public class ExportResource {
     public SmartGwtResponse<ExportResult> kramerius4(
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
-            ) throws IOException {
+    ) throws IOException {
+
+        URI targetPath = runK4Export(pids, hierarchy);
+        return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath));
+    }
+
+    @POST
+    @Path(ExportResourceApi.KWIS_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ExportResult> kwis(
+            @FormParam(ExportResourceApi.KWIS_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
+    ) throws IOException, ExportException {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
-        Kramerius4Export export = new Kramerius4Export(
-                RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export());
-        URI exportUri = user.getExportFolder();
-        File exportFolder = new File(exportUri);
-        File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
-        URI targetPath = user.getUserHomeUri().relativize(target.toURI());
-        return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath));
+
+        URI imagesPath = runDatastreamExport(pids, Collections.singletonList("NDK_USER"), hierarchy);
+        URI k4Path = runK4Export(pids, hierarchy);
+
+        String outputPath = user.getExportFolder().getPath();
+        String imp = imagesPath.getPath();
+        String k4p = k4Path.getPath();
+        String exportPackPath = outputPath + pids.get(0).substring(5) + "_KWIS";
+
+        new File(exportPackPath).mkdir();
+
+        imp = outputPath + imp.substring(imp.indexOf('/') + 1);
+        k4p = outputPath + k4p.substring(k4p.indexOf('/') + 1);
+
+        KWISExport export = new KWISExport(
+                appConfig,
+                imp,
+                k4p,
+                exportPackPath);
+
+        export.run();
+
+        return new SmartGwtResponse<ExportResult>(new ExportResult(URI.create(exportPackPath)));
     }
 
     /**
      * Starts a new export to DESA repository.
      *
-     * @param pids PIDs to export
-     * @param hierarchy export also children hierarchy of requested PIDs. Default is {@code false}.
+     * @param pids        PIDs to export
+     * @param hierarchy   export also children hierarchy of requested PIDs. Default is {@code false}.
      * @param forDownload export to file system for later client download. If {@code true} dryRun is ignored.
-     *              Default is {@code false}.
-     * @param dryRun use to build packages without sending to the repository. Default is {@code false}.
+     *                    Default is {@code false}.
+     * @param dryRun      use to build packages without sending to the repository. Default is {@code false}.
      * @return the list of results for requested PIDs
-     * @throws IOException unexpected failure
+     * @throws IOException     unexpected failure
      * @throws ExportException unexpected failure
      */
     @POST
@@ -153,7 +174,7 @@ public class ExportResource {
             @FormParam(ExportResourceApi.DESA_HIERARCHY_PARAM) @DefaultValue("false") boolean hierarchy,
             @FormParam(ExportResourceApi.DESA_FORDOWNLOAD_PARAM) @DefaultValue("false") boolean forDownload,
             @FormParam(ExportResourceApi.DESA_DRYRUN_PARAM) @DefaultValue("false") boolean dryRun
-            ) throws IOException, ExportException {
+    ) throws IOException, ExportException {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
@@ -202,7 +223,7 @@ public class ExportResource {
     public Response getDesaExport(
             @QueryParam(ExportResourceApi.RESULT_TOKEN) String token,
             @Context CloseableService finalizer
-            ) {
+    ) {
 
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
@@ -231,7 +252,7 @@ public class ExportResource {
 //            @FormParam(ExportResourceApi.DESA_HIERARCHY_PARAM) @DefaultValue("false") boolean hierarchy,
 //            @FormParam(ExportResourceApi.DESA_FORDOWNLOAD_PARAM) @DefaultValue("false") boolean forDownload,
 //            @FormParam(ExportResourceApi.DESA_DRYRUN_PARAM) @DefaultValue("false") boolean dryRun
-            ) throws ExportException {
+    ) throws ExportException {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
@@ -254,6 +275,7 @@ public class ExportResource {
 
     /**
      * Starts a new CEJSH export.
+     *
      * @param pids PIDs to export
      * @return the export result
      */
@@ -262,7 +284,7 @@ public class ExportResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newCejshExport(
             @FormParam(ExportResourceApi.CEJSH_PID_PARAM) List<String> pids
-            ) {
+    ) {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.CEJSH_PID_PARAM);
@@ -292,6 +314,7 @@ public class ExportResource {
 
     /**
      * Starts a new Crossref export.
+     *
      * @param pids PIDs to export
      * @return the export result
      */
@@ -300,7 +323,7 @@ public class ExportResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newCrossrefExport(
             @FormParam(ExportResourceApi.CROSSREF_PID_PARAM) List<String> pids
-            ) {
+    ) {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.CROSSREF_PID_PARAM);
@@ -331,6 +354,7 @@ public class ExportResource {
 
     /**
      * Starts new archiving.
+     *
      * @param pids PIDs to export
      * @return the export result
      */
@@ -339,7 +363,7 @@ public class ExportResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newArchive(
             @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids
-            ) {
+    ) {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.ARCHIVE_PID_PARAM);
@@ -501,4 +525,35 @@ public class ExportResource {
 
     }
 
+    private URI runK4Export(
+            List<String> pids,
+            boolean hierarchy) throws IOException {
+                if (pids.isEmpty()) {
+                        throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
+                    }
+
+                        Kramerius4Export export = new Kramerius4Export(
+                                RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export());
+                URI exportUri = user.getExportFolder();
+                File exportFolder = new File(exportUri);
+                File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
+                return user.getUserHomeUri().relativize(target.toURI());
+            }
+
+            private URI runDatastreamExport(
+            List<String> pids,
+            List<String> dsIds,
+            boolean hierarchy) throws IOException, ExportException {
+                if (pids.isEmpty()) {
+                        throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_PID_PARAM);
+                    }
+                if (dsIds.isEmpty()) {
+                        throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
+                    }
+                DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig));
+                URI exportUri = user.getExportFolder();
+                File exportFolder = new File(exportUri);
+                File target = export.export(exportFolder, hierarchy, pids, dsIds);
+                return user.getUserHomeUri().relativize(target.toURI());
+            }
 }

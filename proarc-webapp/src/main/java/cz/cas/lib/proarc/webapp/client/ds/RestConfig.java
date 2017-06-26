@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
  * @author Jan Pokorsky
  */
 public final class RestConfig {
@@ -47,23 +46,25 @@ public final class RestConfig {
     public static final String TYPE_APPLICATION_XML = "application/xml";
 
 //    public static final String URL_ROOT =  "/rest";
-    /** Login servlet dialog */
-    public static final String URL_LOGIN_SERVLET =  GWT.getHostPageBaseURL() + "proarclogin";
+    /**
+     * Login servlet dialog
+     */
+    public static final String URL_LOGIN_SERVLET = GWT.getHostPageBaseURL() + "proarclogin";
 
-    public static final String URL_ROOT =  GWT.getHostPageBaseURL() + "rest/v1";
+    public static final String URL_ROOT = GWT.getHostPageBaseURL() + "rest/v1";
     public static final String URL_IMPORT = path(URL_ROOT, ImportResourceApi.PATH);
     public static final String URL_IMPORT_FOLDER = path(URL_IMPORT, ImportResourceApi.FOLDER_PATH);
     public static final String URL_IMPORT_BATCH = path(URL_IMPORT, ImportResourceApi.BATCH_PATH);
     public static final String URL_IMPORT_BATCH_ITEM = path(URL_IMPORT_BATCH, ImportResourceApi.BATCHITEM_PATH);
-    public static final String URL_DIGOBJECT =  path(URL_ROOT, DigitalObjectResourceApi.PATH);
-    public static final String URL_DIGOBJECT_ATM =  path(URL_DIGOBJECT, DigitalObjectResourceApi.ATM_PATH);
-    public static final String URL_DIGOBJECT_CHILDREN =  path(URL_DIGOBJECT, DigitalObjectResourceApi.MEMBERS_PATH);
-    public static final String URL_DIGOBJECT_CHILDREN_MOVE =  path(URL_DIGOBJECT_CHILDREN, DigitalObjectResourceApi.MEMBERS_MOVE_PATH);
+    public static final String URL_DIGOBJECT = path(URL_ROOT, DigitalObjectResourceApi.PATH);
+    public static final String URL_DIGOBJECT_ATM = path(URL_DIGOBJECT, DigitalObjectResourceApi.ATM_PATH);
+    public static final String URL_DIGOBJECT_CHILDREN = path(URL_DIGOBJECT, DigitalObjectResourceApi.MEMBERS_PATH);
+    public static final String URL_DIGOBJECT_CHILDREN_MOVE = path(URL_DIGOBJECT_CHILDREN, DigitalObjectResourceApi.MEMBERS_MOVE_PATH);
     public static final String URL_DIGOBJECT_DC = path(URL_DIGOBJECT, DigitalObjectResourceApi.DC_PATH);
     public static final String URL_DIGOBJECT_DISSEMINATION = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.DISSEMINATION_PATH);
     public static final String URL_DIGOBJECT_FULL = path(URL_DIGOBJECT, DigitalObjectResourceApi.FULL_PATH);
-    public static final String URL_DIGOBJECT_METAMODEL =  path(
+    public static final String URL_DIGOBJECT_METAMODEL = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.METAMODEL_PATH);
     public static final String URL_DIGOBJECT_MODS = path(URL_DIGOBJECT, DigitalObjectResourceApi.MODS_PATH);
     public static final String URL_DIGOBJECT_MODS_CUSTOM = path(
@@ -75,17 +76,17 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_PRIVATE_NOTE = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.PRIVATENOTE_PATH);
     public static final String URL_DIGOBJECT_RAW = path(URL_DIGOBJECT, DigitalObjectResourceApi.RAW_PATH);
-    public static final String URL_DIGOBJECT_SEARCH =  path(URL_DIGOBJECT, DigitalObjectResourceApi.SEARCH_PATH);
+    public static final String URL_DIGOBJECT_SEARCH = path(URL_DIGOBJECT, DigitalObjectResourceApi.SEARCH_PATH);
     public static final String URL_DIGOBJECT_STREAMPROFILE = path(URL_DIGOBJECT, DigitalObjectResourceApi.STREAMPROFILE_PATH);
     public static final String URL_DIGOBJECT_THUMBNAIL = path(URL_DIGOBJECT, DigitalObjectResourceApi.THUMB_PATH);
-    public static final String URL_DIGOBJECT_URNNBN =  path(
+    public static final String URL_DIGOBJECT_URNNBN = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.URNNBN_PATH);
-    public static final String URL_LOCALIZATION =  path(URL_ROOT, LocalizationResourceApi.PATH);
-    public static final String URL_BIBLIOCATALOG =  path(URL_ROOT, BibliographicCatalogResourceApi.PATH);
-    public static final String URL_BIBLIOCATALOG_QUERY =  path(
+    public static final String URL_LOCALIZATION = path(URL_ROOT, LocalizationResourceApi.PATH);
+    public static final String URL_BIBLIOCATALOG = path(URL_ROOT, BibliographicCatalogResourceApi.PATH);
+    public static final String URL_BIBLIOCATALOG_QUERY = path(
             URL_BIBLIOCATALOG, BibliographicCatalogResourceApi.FIND_PATH);
-    public static final String URL_USER =  path(URL_ROOT, UserResourceApi.PATH);
-    public static final String URL_USER_PERMISSIONS =  URL_USER + "/permissions";
+    public static final String URL_USER = path(URL_ROOT, UserResourceApi.PATH);
+    public static final String URL_USER_PERMISSIONS = URL_USER + "/permissions";
     public static final String URL_EXPORT = path(URL_ROOT, ExportResourceApi.PATH);
     public static final String URL_EXPORT_ARCHIVE = path(
             URL_EXPORT, ExportResourceApi.ARCHIVE_PATH);
@@ -101,6 +102,8 @@ public final class RestConfig {
             URL_EXPORT, ExportResourceApi.KRAMERIUS4_PATH);
     public static final String URL_EXPORT_NDK = path(
             URL_EXPORT, ExportResourceApi.NDK_PATH);
+    public static final String URL_EXPORT_KWIS = path(
+            URL_EXPORT, ExportResourceApi.KWIS_PATH);
     public static final String URL_DEVICE = path(URL_ROOT, DeviceResourceApi.PATH);
     public static final String URL_VALUEMAP = path(URL_ROOT, ValueMapResourceApi.PATH);
     public static final String URL_CONFIGPROFILE = path(URL_ROOT, ConfigurationProfileResourceApi.PATH);

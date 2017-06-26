@@ -55,6 +55,13 @@ public final class DataStreamExportAction extends AbstractAction {
         return action;
     }
 
+    public static DataStreamExportAction ndkUser(ClientMessages i18n) {
+        DataStreamExportAction action = new DataStreamExportAction(i18n, "NDK_USER");
+        action.setTitle(i18n.DataStreamExportAction_NDKUser_Title());
+        action.setTooltip(i18n.DataStreamExportAction_NDKUser_Hint());
+        return action;
+    }
+
     private DataStreamExportAction(ClientMessages i18n, String dsId) {
         super(null, null, null);
         this.i18n = i18n;

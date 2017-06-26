@@ -69,4 +69,7 @@ public final class ExportDataSource extends ProarcDataSource {
         return new ExportDataSource(RestConfig.URL_EXPORT_NDK);
     }
 
+    public static ExportDataSource getKWIS() {
+        return new ExportDataSource(RestConfig.URL_EXPORT_KWIS);
+    }
 }
