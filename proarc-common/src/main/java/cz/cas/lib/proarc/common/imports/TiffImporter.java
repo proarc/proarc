@@ -67,7 +67,7 @@ import org.apache.commons.configuration.Configuration;
  *
  * @author Jan Pokorsky
  */
-public final class TiffImporter {
+public class TiffImporter implements ImageImporter {
 
     private static final Logger LOG = Logger.getLogger(TiffImporter.class.getName());
     private final ImportBatchManager ibm;
@@ -195,7 +195,7 @@ public final class TiffImporter {
             AltoDatastream.importAlto(fo, altoUri, null);
         } else if (requiredDatastreamId.contains(AltoDatastream.ALTO_ID)) {
             throw new FileNotFoundException("Missing ALTO: " + new File(tempBatchFolder.getParent(),
-                    originalFilename + config.getPlainOcrFileSuffix()).toString());
+                    originalFilename + config.getAltoFileSuffix()).toString());
         }
     }
 

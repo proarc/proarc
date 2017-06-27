@@ -26,7 +26,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
  *
  * @author Jan Pokorsky
  */
-public final class NdkMonographTitleMapper extends NdkMapper {
+public class NdkMonographTitleMapper extends NdkMapper {
 
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {

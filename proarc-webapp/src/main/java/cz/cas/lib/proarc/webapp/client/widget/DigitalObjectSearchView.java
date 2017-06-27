@@ -119,6 +119,8 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         grid.setSelectionType(SelectionStyle.SINGLE);
         grid.setCanSort(false);
         grid.setDataSource(SearchDataSource.getInstance());
+        ListGridPersistance gridPersistence = new ListGridPersistance("DigitalObjectSearchView.searchList", grid);
+        grid.setViewState(gridPersistence.getViewState());
 
         ListGridField label = new ListGridField(SearchDataSource.FIELD_LABEL,
                 i18n.DigitalObjectSearchView_ListHeaderLabel_Title());
