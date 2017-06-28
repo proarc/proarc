@@ -22,6 +22,7 @@ import com.smartgwt.client.data.SortSpecifier;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.SortDirection;
 import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.Offline;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.ColorPicker;
 import com.smartgwt.client.widgets.form.DynamicForm;
@@ -57,6 +58,8 @@ import java.util.ArrayList;
  * @author Jan Pokorsky
  */
 public final class MediaEditor implements DatastreamEditor, Refreshable {
+
+    public static final String MEDIA_EDITOR_LAST_SELECTION = "mediaEditorLastSelection";
 
     private static String REFRESH;
 
@@ -271,6 +274,9 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
     private void showStream() {
         StreamProfile stream = StreamProfile.get(streamMenu.getSelectedRecord());
+
+        Offline.put(MEDIA_EDITOR_LAST_SELECTION, stream.getId());
+
         if (stream != null) {
             StringBuilder sb = new StringBuilder();
             sb.append(DigitalObjectResourceApi.DIGITALOBJECT_PID).append('=')

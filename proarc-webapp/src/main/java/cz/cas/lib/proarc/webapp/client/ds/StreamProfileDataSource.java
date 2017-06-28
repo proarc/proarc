@@ -23,9 +23,12 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSOperationType;
+import com.smartgwt.client.util.Offline;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.widget.MediaEditor;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -138,8 +141,10 @@ public class StreamProfileDataSource extends ProarcDataSource {
          */
         public static List<StreamProfile> getTemplates() {
             if (TEMPLATES != null) {
+                reorderTemplates();
                 return TEMPLATES;
             }
+
             ClientMessages i18n = GWT.create(ClientMessages.class);
             TEMPLATES = new ArrayList<StreamProfile>();
             template("RAW", i18n.DigitalObjectEditor_MediaEditor_DSRaw_Title());
@@ -148,6 +153,8 @@ public class StreamProfileDataSource extends ProarcDataSource {
             template("THUMBNAIL", i18n.DigitalObjectEditor_MediaEditor_DSThumbnail_Title());
             template("NDK_ARCHIVAL", i18n.DigitalObjectEditor_MediaEditor_DSNdkArchival_Title());
             template("NDK_USER", i18n.DigitalObjectEditor_MediaEditor_DSNdkUser_Title());
+
+            reorderTemplates();
             return TEMPLATES;
         }
 
@@ -172,6 +179,23 @@ public class StreamProfileDataSource extends ProarcDataSource {
             sv.record.setAttribute(FIELD_ORDER, TEMPLATES.size());
             TEMPLATES.add(sv);
             return sv;
+        }
+
+        private static void reorderTemplates() {
+            Object selectedId = Offline.get(MediaEditor.MEDIA_EDITOR_LAST_SELECTION);
+
+            if (selectedId != null) {
+                for (int i = 0; i < TEMPLATES.size(); i++) {
+                    if (TEMPLATES.get(i).getId().equals(selectedId)) {
+                        Collections.swap(TEMPLATES, 0, i);
+
+                        TEMPLATES.get(0).record.setAttribute(FIELD_ORDER, 0);
+                        TEMPLATES.get(i).record.setAttribute(FIELD_ORDER, i);
+
+                        return;
+                    }
+                }
+            }
         }
 
     }
