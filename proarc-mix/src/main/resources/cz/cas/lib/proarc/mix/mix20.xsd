@@ -2097,6 +2097,7 @@
             <xsd:enumeration value="no absolute unit"/>
             <xsd:enumeration value="in."/>
             <xsd:enumeration value="cm"/>
+            <xsd:enumeration value="dpi"/>
         </xsd:restriction>
     </xsd:simpleType>
     <!-- end of typeOfOpticalResolutionUnitType   -->
