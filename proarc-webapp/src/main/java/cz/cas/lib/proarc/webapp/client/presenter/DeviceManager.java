@@ -336,6 +336,7 @@ public final class DeviceManager {
                                         .setType(Field.SELECT).setHint("Jednotka optického rozlišení, např. inch (in.).").setWidth("150")
                                         .addMapValue("cm", "cm")
                                         .addMapValue("in.", "in.")
+                                        .addMapValue("dpi", "dpi")
                                         .addMapValue("no absolute unit", "no absolute unit")
                                     .createField()) // value
                                 .createField()) // opticalResolutionUnit
