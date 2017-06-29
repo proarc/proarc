@@ -281,8 +281,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
 
     @Override
     public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message) throws DigitalObjectException {
-        String json = jsonData.getData();
-        String json = fixPageType(jsonData.getData(), true);
+        String json = removeDefaultPageType(jsonData.getData(), true);
         String editorId = jsonData.getEditor();
         String modelId = handler.relations().getModel();
         ModsDefinition mods;
@@ -308,7 +307,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (xmlData.getData() != null) {
             ValidationErrorHandler errHandler = new ValidationErrorHandler();
             try {
-                String data = fixPageType(xmlData.getData(), false);
+                String data = removeDefaultPageType(xmlData.getData(), false);
                 xmlData.setData(data);
 
                 Validator validator = ModsUtils.getSchema().newValidator();
@@ -586,7 +585,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
      * @param isJson set true if metadata are in JSON format, otherwise XML is expected
      * @return data without default pageType - if was present
      */
-    private String fixPageType(String data, Boolean isJson) {
+    private String removeDefaultPageType(String data, Boolean isJson) {
         if (isJson) {
             data = data.replace(",\"pageType\":\"" + DEFAULT_PAGE_TYPE + "\"", "");
         } else {
