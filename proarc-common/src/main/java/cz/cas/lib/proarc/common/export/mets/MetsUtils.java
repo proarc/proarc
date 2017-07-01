@@ -884,7 +884,7 @@ public class MetsUtils {
             validation.setValue("W3C-XML");
             validation.setVersion(Float.valueOf("0.0"));
             infoJaxb.setValidation(validation);
-            infoJaxb.setCreator(metsContext.getCreatorOrganization());
+            infoJaxb.setCreator(metsContext.getOptions().getCreator());
             infoJaxb.setPackageid(metsContext.getPackageID());
             if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
                 infoJaxb.setMetadataversion((float) 1.5);
