@@ -246,7 +246,7 @@ public class MetsUtilsTest {
             MetsElementVisitor visitor = new MetsElementVisitor();
             try {
                 metsElement.accept(visitor);
-                Assert.fail();
+                Assert.fail("The validation error expected.");
             } catch (MetsExportException ex) {
                 String message = "Error - missing role. Please insert value in proarc.cfg into export.ndk.agent.creator and export.ndk.agent.archivist";
                 assertEquals(message, ex.getMessage());
