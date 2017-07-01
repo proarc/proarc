@@ -28,11 +28,11 @@ import static org.junit.Assert.assertNull;
  */
 public class NdkExportOptionsTest {
 
-    public NdkExportOptionsTest(){
+    public NdkExportOptionsTest() {
     }
 
     @Test
-    public void testGetOptions(){
+    public void testGetOptions() {
         Configuration config = new BaseConfiguration();
 
         String creator = "KNAV";
@@ -43,18 +43,16 @@ public class NdkExportOptionsTest {
 
         NdkExportOptions result = NdkExportOptions.getOptions(config);
 
-        assertEquals(creator, result.getCreator());
-        assertEquals(archivist, result.getArchivist());
+        assertEquals("creator", creator, result.getCreator());
+        assertEquals("archivist", archivist, result.getArchivist());
     }
 
     @Test
     public void testFromEmpyConfig() {
         Configuration config = new BaseConfiguration();
         NdkExportOptions result = NdkExportOptions.getOptions(config);
-        assertNull(result.getCreator());
-        assertNull(result.getArchivist());
-
+        assertNull("The default creator must be empty", result.getCreator());
+        assertNull("The default archivist must be empty", result.getArchivist());
     }
-
 
 }
