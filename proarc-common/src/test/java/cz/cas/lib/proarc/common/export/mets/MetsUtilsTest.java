@@ -253,4 +253,33 @@ public class MetsUtilsTest {
             }
         }
     }
+
+    @Test
+    public void missingTitle()throws Exception{
+        MetsExportTestElement testElement = new MetsExportTestElement("periodikum", "periodikum", 7, 39, 5, "Periodical", "2ad73397-ef9d-429a-b3a5-65083fa4c333.xml");
+        String sourceDirPath = getTargetPath() + File.separator +
+                testElement.getDirectory() + File.separator;
+        File resultDir = tmp.newFolder("result" + testElement.getResultFolder());
+        String path = sourceDirPath + testElement.getInitialDocument();
+        DigitalObject dbObj = MetsUtils.readFoXML(path);
+        Configuration config = new BaseConfiguration();
+        config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
+        config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "Creator");
+        MetsContext context = new MetsContext();
+        context.setPath(sourceDirPath);
+        context.setFsParentMap(TestConst.parents);
+        context.setOutputPath(resultDir.getAbsolutePath());
+        context.setAllowNonCompleteStreams(true);
+        context.setAllowMissingURNNBN(true);
+        context.setConfig(NdkExportOptions.getOptions(config));
+        MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
+        MetsElementVisitor visitor = new MetsElementVisitor();
+        try{
+            metsElement.accept(visitor);
+            Assert.fail("The missing title expected");
+        } catch (MetsExportException ex){
+            String message =  "Error - missing title. Please insert title.";
+            assertEquals(message, ex.getMessage());
+        }
+    }
 }
