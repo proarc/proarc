@@ -38,6 +38,7 @@ public class WorkflowProfileConsts {
     public static final String WORKFLOW_JOB_EL = "job";
     public static final String WORKFLOW_MATERIAL_EL = "material";
     public static final String WORKFLOW_TASK_EL = "task";
+    public static final String WORKFLOW_MODEL_EL = "model";
     public static final String WORKFLOW_VALUEMAP_EL = "valuemap";
 
     public static final String JOB_STEP_EL = "step";
@@ -71,6 +72,8 @@ public class WorkflowProfileConsts {
     public static final String PARAM_OPTIONDISPLAYFIELD = "optionDisplayField";
 
     public static final String MATERIAL_TYPE = "type";
+
+    public static final String MODEL_TYPE = "type";
 
     public static final String SETMATERIAL_MATREF_ATT = "materialRef";
     public static final String SETMATERIAL_WAY_ATT = "way";

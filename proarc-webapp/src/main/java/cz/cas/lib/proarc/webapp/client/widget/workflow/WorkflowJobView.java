@@ -16,16 +16,22 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.workflow;
 
+import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SortDirection;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.form.DynamicForm;
@@ -39,8 +45,11 @@ import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItem;
 import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
+import com.smartgwt.client.widgets.menu.events.ItemClickHandler;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
@@ -52,15 +61,20 @@ import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
 import cz.cas.lib.proarc.webapp.client.widget.CanvasSizePersistence;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+
+import java.util.Map;
 
 /**
  *
@@ -82,6 +96,7 @@ public class WorkflowJobView implements Refreshable {
     private boolean isDataInitialized;
     private ListGridRecord lastSelection;
     private IconMenuButton addSubjobButton;
+    private IconMenuButton createNewObjectButton;
 
     public WorkflowJobView(ClientMessages i18n) {
         this.i18n = i18n;
@@ -166,6 +181,7 @@ public class WorkflowJobView implements Refreshable {
 
     public void refreshState() {
         fetchAddSubjobMenu(jobGrid.getSelectedRecord());
+        fetchModelMenu(jobGrid.getSelectedRecord());
         actionSource.fireEvent();
         jobFormView.refreshState();
     }
@@ -243,11 +259,19 @@ public class WorkflowJobView implements Refreshable {
         Action addSubjobAction = Actions.emptyAction(i18n.WorkflowJob_View_NewSubjobAction_Title(),
                 "[SKIN]/actions/add.png", i18n.WorkflowJob_View_NewSubjobAction_Hint());
 
+        Action createNewObject = Actions.emptyAction(i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title(),
+                "[SKIN]/actions/save.png",
+                "");
+
         toolbar.addMember(Actions.asIconButton(refreshAction, this));
         toolbar.addMember(Actions.asIconButton(addAction, this));
         addSubjobButton = Actions.asIconMenuButton(addSubjobAction, this);
         addSubjobButton.setVisible(false);
+
+        createNewObjectButton = Actions.asIconMenuButton(createNewObject, this);
+
         toolbar.addMember(addSubjobButton);
+        toolbar.addMember(createNewObjectButton);
         return toolbar;
     }
 
@@ -269,6 +293,56 @@ public class WorkflowJobView implements Refreshable {
             addSubjobButton.setMenu(menu);
         });
     }
+
+    private void fetchModelMenu(Record job) {
+        if (job == null
+                || job.getAttribute(WorkflowJobDataSource.FIELD_PARENTID) != null
+                || !Job.State.OPEN.name().equals(job.getAttribute(WorkflowJobDataSource.FIELD_STATE))
+                ) {
+            createNewObjectButton.setVisible(false);
+            return;
+        }
+        String jobName = job.getAttribute(WorkflowJobDataSource.FIELD_PROFILE_ID);
+        if (jobName == null) {
+            return;
+        }
+
+        WorkflowProfileDataSource.getInstance().getModels(false, jobName, (models) -> {
+            Menu menu = new Menu();
+
+            for (Record model : models) {
+                menu.addItem(new MenuItem(model.getAttribute("title")));
+                menu.addClickHandler(event -> {
+                    saveNewDigitalObject(model.getAttribute("type"), null);
+                });
+            }
+
+            createNewObjectButton.setVisible(models.length > 0);
+            createNewObjectButton.setMenu(menu);
+        });
+    }
+
+    private void saveNewDigitalObject(String modelId, String mods) {
+        Record r = new Record();
+        DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
+        r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
+        if (mods != null) {
+            r.setAttribute(DigitalObjectDataSource.FIELD_MODS, mods);
+        }
+
+
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setWillHandleError(true);
+        ds.addData(r, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                SC.say(i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title(), i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
+            }
+        }, dsRequest);
+    }
+
+
 
     private Menu createSubjobMenu(Record[] subjobs) {
         if (subjobs == null || subjobs.length == 0) {

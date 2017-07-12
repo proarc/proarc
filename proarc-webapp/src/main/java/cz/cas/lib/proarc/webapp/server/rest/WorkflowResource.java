@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
@@ -37,6 +38,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
+import cz.cas.lib.proarc.common.workflow.profile.ModelDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
@@ -49,8 +51,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -483,6 +487,15 @@ public class WorkflowResource {
         for (JobDefinition job : workflowDefinition.getJobs()) {
             if ((name == null || name.equals(job.getName()))
                     && (disabled == null || disabled == job.isDisabled())) {
+                Set<String> collection = MetaModelRepository.getInstance().find()
+                        .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
+
+                for (ModelDefinition model : job.getModel()) {
+                    if (!collection.contains(model.getType())) {
+                        return SmartGwtResponse.asError(WorkflowProfileConsts.MODEL_TYPE + " - invalid value! " + model.getType());
+                    }
+                }
+
                 profiles.add(new JobDefinitionView(job, lang));
             }
         }

@@ -37,6 +37,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     <xs:complexType name="jobDefinition">
         <xs:sequence>
             <xs:element name="worker" type="tns:workerDefinition" minOccurs="0" />
+            <xs:element name="model" type="tns:modelDefinition" minOccurs="0" maxOccurs="unbounded" />
             <xs:choice minOccurs="0" maxOccurs="unbounded">
                 <!--
                 The name reference to a job that can be added as a subjob of this job.
@@ -132,6 +133,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                 <xs:attribute name="actual" type="xs:boolean" default="false"/>
             </xs:extension>
         </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="modelDefinition">
+        <xs:attribute name="type" type="xs:string" use="required"/>
     </xs:complexType>
 
     <xs:complexType name="i18NString">

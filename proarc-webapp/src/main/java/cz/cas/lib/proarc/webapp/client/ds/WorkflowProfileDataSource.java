@@ -16,14 +16,18 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.events.DataArrivedEvent;
 import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.FetchMode;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
+
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -96,6 +100,14 @@ public class WorkflowProfileDataSource extends ProarcDataSource {
                 consumer.accept(rs);
             });
         }
+    }
+
+    public void getModels(boolean reload, String jobName, Consumer<Record[]> consumer) {
+        getJobs(reload, (rs) -> {
+            Record jobProfile = rs.find(WorkflowProfileConsts.NAME, jobName);
+            Record[] models  = jobProfile.getAttributeAsRecordArray(WorkflowProfileConsts.WORKFLOW_MODEL_EL);
+            consumer.accept(models);
+        });
     }
 
     public ResultSet getProfileResultSet(boolean reload) {
