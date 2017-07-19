@@ -188,10 +188,14 @@ public class Const {
         dataStreamToModel.put("RAW", BinaryEditor.RAW_ID);
         dataStreamToModel.put("MC_IMGGRP", BinaryEditor.NDK_ARCHIVAL_ID);
         dataStreamToModel.put("ALTOGRP", "ALTO");
+        dataStreamToModel.put("UC_IMGGRP", "NDK_USER");
+        dataStreamToModel.put("TXTGRP", "TEXT_OCR");
 
         dataStreamToEvent.put("RAW", "digitization_001");
         dataStreamToEvent.put("MC_IMGGRP", "MC_creation_001");
         dataStreamToEvent.put("ALTOGRP", "XML_creation_001");
+        dataStreamToEvent.put("UC_IMGGRP", "UC_creation_001");
+        dataStreamToEvent.put("TXTGRP", "TXT_creation_001");
 
     }
 }

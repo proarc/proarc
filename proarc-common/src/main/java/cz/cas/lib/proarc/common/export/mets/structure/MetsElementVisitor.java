@@ -59,6 +59,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -685,7 +686,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         event.setEventDetail(eventDetail);
         EventIdentifierComplexType eventIdentifier = new EventIdentifierComplexType();
         event.setEventIdentifier(eventIdentifier);
-        event.setEventType("derivation");
+        event.setEventType(StringUtils.substringBefore(eventDetail, "/"));
         eventIdentifier.setEventIdentifierType("ProArc_EventID");
         eventIdentifier.setEventIdentifierValue(Const.dataStreamToEvent.get(datastream));
         EventOutcomeInformationComplexType eventInformation = new EventOutcomeInformationComplexType();
@@ -854,6 +855,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         toGenerate.put("OBJ_001", "RAW");
         toGenerate.put("OBJ_002", "MC_IMGGRP");
         toGenerate.put("OBJ_003", "ALTOGRP");
+        toGenerate.put("OBJ_004", "UC_IMGGRP");
+        toGenerate.put("OBJ_005", "TXTGRP");
 
         for (String obj : toGenerate.keySet()) {
             String stream = toGenerate.get(obj);
@@ -872,6 +875,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
         if (md5InfosMap.get("ALTOGRP") != null) {
             addPremisNodeToMets(getPremisEvent(metsElement, "ALTOGRP", md5InfosMap.get("ALTOGRP"), "capture/XML_creation"), amdSec, "EVT_003", true, amdSecFileGrpMap);
+        }
+        if(md5InfosMap.get("UC_IMGGRP") != null){
+            addPremisNodeToMets(getPremisEvent(metsElement, "UC_IMGGRP", md5InfosMap.get("UC_IMGGRP"), "derivation/UC_creation"), amdSec, "EVT_004", true, amdSecFileGrpMap);
+        }
+        if (md5InfosMap.get("TXTGRP") != null){
+            addPremisNodeToMets(getPremisEvent(metsElement, "TXTGRP", md5InfosMap.get("TXTGRP"), "capture/TXT_creation"), amdSec, "EVT_005", true, amdSecFileGrpMap);
         }
 
         addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_001", true, null);

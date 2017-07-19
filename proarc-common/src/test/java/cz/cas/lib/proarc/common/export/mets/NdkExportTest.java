@@ -97,7 +97,7 @@ public class NdkExportTest {
         Mets mets = (Mets) unmarshallerMets.unmarshal(amdSecFile);
         assertEquals("PAGE_0001", mets.getAmdSec().get(0).getID());
         List<MdSecType> techMDList = mets.getAmdSec().get(0).getTechMD();
-        assertEquals(2, techMDList.size());
+        assertEquals(4, techMDList.size());
         for (MdSecType techMD : techMDList) {
         if ("MIX_002".equals(techMD.getID())) {
             XmlData mixData = techMD.getMdWrap().getXmlData();
@@ -123,13 +123,37 @@ public class NdkExportTest {
                 assertEquals("MC_creation_001",
                         premisType.getRelationship().get(0).getRelatedEventIdentification().get(0).getRelatedEventIdentifierValue());
 
+                } else if("OBJ_004".equals(techMD.getID())) {
+                    XmlData premisData = techMD.getMdWrap().getXmlData();
+                    DOMSource premisSource = new DOMSource((Node) premisData.getAny().get(0));
+                cz.cas.lib.proarc.premis.File premisType = PremisUtils.unmarshal(premisSource, cz.cas.lib.proarc.premis.File.class);
+                assertEquals("info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/NDK_USER",
+                        premisType.getObjectIdentifier().get(0).getObjectIdentifierValue());
+                assertEquals("9b0a294cda0508b1a205a57fa66f9568",
+                        premisType.getObjectCharacteristics().get(0).getFixity().get(0).getMessageDigest());
+                assertEquals("ProArc", premisType.getObjectCharacteristics().get(0).getFixity().get(0).getMessageDigestOriginator());
+                assertEquals("derivation", premisType.getRelationship().get(0).getRelationshipType());
+                assertEquals("UC_creation_001",
+                        premisType.getRelationship().get(0).getRelatedEventIdentification().get(0).getRelatedEventIdentifierValue());
+                } else if ("OBJ_005".equals(techMD.getID())) {
+                    XmlData premisData = techMD.getMdWrap().getXmlData();
+                DOMSource premisSource = new DOMSource((Node) premisData.getAny().get(0));
+                cz.cas.lib.proarc.premis.File premisType = PremisUtils.unmarshal(premisSource, cz.cas.lib.proarc.premis.File.class);
+                assertEquals("info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/TEXT_OCR",
+                        premisType.getObjectIdentifier().get(0).getObjectIdentifierValue());
+                assertEquals("d41d8cd98f00b204e9800998ecf8427e",
+                        premisType.getObjectCharacteristics().get(0).getFixity().get(0).getMessageDigest());
+                assertEquals("ProArc", premisType.getObjectCharacteristics().get(0).getFixity().get(0).getMessageDigestOriginator());
+                assertEquals("derivation", premisType.getRelationship().get(0).getRelationshipType());
+                assertEquals("TXT_creation_001",
+                        premisType.getRelationship().get(0).getRelatedEventIdentification().get(0).getRelatedEventIdentifierValue());
                 } else {
                 Assert.fail("Unexpected node:" + techMD.getID());
                 }
         }
 
         List<MdSecType> digiProvList = mets.getAmdSec().get(0).getDigiprovMD();
-        assertEquals(2, digiProvList.size());
+        assertEquals(4, digiProvList.size());
         for (MdSecType digiProv : digiProvList) {
             if ("EVT_002".equals(digiProv.getID())) {
                 XmlData premisData = digiProv.getMdWrap().getXmlData();
@@ -140,6 +164,24 @@ public class NdkExportTest {
                 assertEquals("ProArc_AgentID", premisType.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierType());
                 assertEquals("ProArc", premisType.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierValue());
                 assertEquals("info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/NDK_ARCHIVAL", premisType.getLinkingObjectIdentifier().get(0).getLinkingObjectIdentifierValue());
+            } else if("EVT_004".equals(digiProv.getID())){
+                XmlData premisData = digiProv.getMdWrap().getXmlData();
+                DOMSource premisSource = new DOMSource((Node)premisData.getAny().get(0));
+                EventComplexType premisType = PremisUtils.unmarshal(premisSource, EventComplexType.class);
+                assertEquals("UC_creation_001", premisType.getEventIdentifier().getEventIdentifierValue());
+                assertEquals("derivation/UC_creation", premisType.getEventDetail());
+                assertEquals("ProArc_AgentID", premisType.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierType());
+                assertEquals("ProArc", premisType.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierValue());
+                assertEquals("info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/NDK_USER", premisType.getLinkingObjectIdentifier().get(0).getLinkingObjectIdentifierValue());
+            }else if ("EVT_005".equals(digiProv.getID())) {
+                XmlData premisData = digiProv.getMdWrap().getXmlData();
+                DOMSource premisSource = new DOMSource((Node)premisData.getAny().get(0));
+                EventComplexType premisType = PremisUtils.unmarshal(premisSource, EventComplexType.class);
+                assertEquals("TXT_creation_001", premisType.getEventIdentifier().getEventIdentifierValue());
+                assertEquals("capture/TXT_creation", premisType.getEventDetail());
+                assertEquals("ProArc_AgentID", premisType.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierType());
+                assertEquals("ProArc", premisType.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierValue());
+                assertEquals("info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/TEXT_OCR", premisType.getLinkingObjectIdentifier().get(0).getLinkingObjectIdentifierValue());
             } else if ("AGENT_001".equals(digiProv.getID())) {
                 XmlData premisData = digiProv.getMdWrap().getXmlData();
                 DOMSource premisSource = new DOMSource((Node) premisData.getAny().get(0));
