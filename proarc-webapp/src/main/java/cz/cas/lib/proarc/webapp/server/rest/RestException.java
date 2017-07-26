@@ -64,6 +64,13 @@ public class RestException extends WebApplicationException {
                 .build());
     }
 
+    public static RestException plainBadRequest(String name, String value) {
+        return new RestException(
+                plainText(Response.status(Status.BAD_REQUEST),
+                        String.format("%s: %s bad request!", name, value))
+                        .build());
+    }
+
     public static RestException json(Status status, int errorCode, String errorKey, String message) {
         return new RestException(json(Response.status(status), errorCode, errorKey, message).build());
     }

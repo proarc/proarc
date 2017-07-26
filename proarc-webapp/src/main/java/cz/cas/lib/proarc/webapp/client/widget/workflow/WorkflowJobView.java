@@ -337,7 +337,9 @@ public class WorkflowJobView implements Refreshable {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
-                SC.say(i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title(), i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
+                if (RestConfig.isStatusOk(response)) {
+                    SC.say(i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title(), i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
+                }
             }
         }, dsRequest);
     }

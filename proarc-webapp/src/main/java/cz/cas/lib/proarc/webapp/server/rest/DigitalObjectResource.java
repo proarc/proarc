@@ -91,6 +91,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -194,9 +195,12 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata
             ) throws DigitalObjectException {
 
-        if (modelId == null) {
-            // XXX validate modelId values
-            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, modelId);
+
+        Set<String> models = MetaModelRepository.getInstance().find()
+                .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
+
+        if (modelId == null || !models.contains(modelId)) {
+            throw RestException.plainBadRequest(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, modelId);
         }
         if (pid != null) {
             boolean invalid = pid.length() < 5;
