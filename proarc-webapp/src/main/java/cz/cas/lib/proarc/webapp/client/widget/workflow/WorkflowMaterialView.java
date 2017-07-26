@@ -58,14 +58,16 @@ public class WorkflowMaterialView {
     private ListGrid materialGrid;
     private final Widget widget;
     private final boolean jobMaterial;
+    private String parentName;
 
-    public WorkflowMaterialView(ClientMessages i18n) {
-        this(i18n, false);
+    public WorkflowMaterialView(ClientMessages i18n, String parentName) {
+        this(i18n, false, parentName);
     }
 
-    public WorkflowMaterialView(ClientMessages i18n, boolean jobMaterial) {
+    public WorkflowMaterialView(ClientMessages i18n, boolean jobMaterial, String parentName) {
         this.i18n = i18n;
         this.jobMaterial = jobMaterial;
+        this.parentName = parentName;
         widget = createMaterialList();
     }
 
@@ -121,7 +123,7 @@ public class WorkflowMaterialView {
         materialGrid.setCanGroupBy(false);
         materialGrid.setWrapCells(true);
 
-        CanvasSizePersistence persistence = new CanvasSizePersistence("WorkflowMaterialView.materialList", materialGrid);
+        CanvasSizePersistence persistence = new CanvasSizePersistence(parentName + ".WorkflowMaterialView.materialList", materialGrid);
         materialGrid.setHeight(persistence.getHeight());
 
         materialGrid.setDataSource(WorkflowMaterialDataSource.getInstance(),

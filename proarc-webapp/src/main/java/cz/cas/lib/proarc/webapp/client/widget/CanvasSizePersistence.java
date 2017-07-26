@@ -18,8 +18,6 @@ package cz.cas.lib.proarc.webapp.client.widget;
 
 import com.smartgwt.client.util.Offline;
 import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.events.ResizedEvent;
-import com.smartgwt.client.widgets.events.ResizedHandler;
 
 /**
  *
@@ -27,22 +25,22 @@ import com.smartgwt.client.widgets.events.ResizedHandler;
  */
 public class CanvasSizePersistence {
 
+    public static final String WIDTH = ".width";
+    public static final String HEIGHT = ".height";
+
     private final String dbPrefix;
 
     public CanvasSizePersistence(String dbPrefix, Canvas canvas) {
         this.dbPrefix = dbPrefix;
-        canvas.addResizedHandler(new ResizedHandler() {
-            @Override
-            public void onResized(ResizedEvent resizedEvent) {
-                Offline.put(dbPrefix + ".width", canvas.getWidth());
-                Offline.put(dbPrefix + ".height", canvas.getHeight());
-            }
+        canvas.addResizedHandler(resizedEvent -> {
+            Offline.put(dbPrefix + WIDTH, canvas.getWidth());
+            Offline.put(dbPrefix + HEIGHT, canvas.getHeight());
         });
     }
 
     public Integer getWidth() {
         try {
-            return Integer.valueOf((String) Offline.get(dbPrefix + ".width"));
+            return Integer.valueOf((String) Offline.get(dbPrefix + WIDTH));
         } catch (NumberFormatException e) {
             return null;
         }
@@ -50,7 +48,7 @@ public class CanvasSizePersistence {
 
     public Integer getHeight() {
         try {
-            return Integer.valueOf((String) Offline.get(dbPrefix + ".height"));
+            return Integer.valueOf((String) Offline.get(dbPrefix + HEIGHT));
         } catch (NumberFormatException e) {
             return null;
         }

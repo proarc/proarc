@@ -535,7 +535,7 @@ public class WorkflowTaskFormView implements Refreshable {
     }
 
     private Widget createMaterialList() {
-        materialView = new WorkflowMaterialView(i18n);
+        materialView = new WorkflowMaterialView(i18n, this.getClass().getSimpleName());
         return materialView.getWidget();
     }
 
