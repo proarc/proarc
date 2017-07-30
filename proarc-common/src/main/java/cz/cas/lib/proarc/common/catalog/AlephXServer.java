@@ -73,6 +73,7 @@ public final class AlephXServer implements BibliographicCatalog {
             try {
                 AlephXServer aleph = new AlephXServer(url);
                 aleph.loadFields(c);
+                return aleph;
             } catch (MalformedURLException | URISyntaxException ex) {
                 LOG.log(Level.SEVERE, c.toString(), ex);
             }
