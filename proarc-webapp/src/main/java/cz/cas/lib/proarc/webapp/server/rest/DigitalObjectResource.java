@@ -67,6 +67,13 @@ import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.common.workflow.WorkflowException;
+import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
+import cz.cas.lib.proarc.common.workflow.model.Material;
+import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
+import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
@@ -75,6 +82,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -192,9 +200,9 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DATE_TO_PARAM) LocalDateParam seriesDateTo,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DAYS_INCLUDED_PARAM) List<Integer> seriesDaysIncluded,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM) Integer seriesPartNumberFrom,
-            @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata
+            @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata,
+            @FormParam(DigitalObjectResourceApi.WF_JOB_ID) BigDecimal wfJobid
             ) throws DigitalObjectException {
-
 
         Set<String> models = MetaModelRepository.getInstance().find()
                 .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
@@ -217,7 +225,15 @@ public class DigitalObjectResource {
                         DigitalObjectResourceApi.DIGITALOBJECT_PID, "Invalid PID!").build();
             }
         }
-        xmlMetadata = (xmlMetadata == null || xmlMetadata.isEmpty() || "null".equals(xmlMetadata)) ? null : xmlMetadata;
+
+        if (wfJobid != null) {
+            MaterialView material = getMaterial(wfJobid, MaterialType.PHYSICAL_DOCUMENT);
+            xmlMetadata = (material != null) ? material.getMetadata() : null;
+        } else {
+            xmlMetadata = (xmlMetadata == null || xmlMetadata.isEmpty() || "null".equals(xmlMetadata)) ? null : xmlMetadata;
+        }
+
+
         LOG.log(Level.FINE, "model: {0}, pid: {3}, parent: {2}, XML: {1}",
                 new Object[] {modelId, xmlMetadata, parentPid, pid});
 
@@ -230,9 +246,32 @@ public class DigitalObjectResource {
                         seriesDaysIncluded, seriesPartNumberFrom);
             }
             List<Item> items = handler.create();
+
+
+            if (wfJobid != null && items.size() == 1) {
+                MaterialView material = getMaterial(wfJobid, MaterialType.DIGITAL_OBJECT);
+                material.setPid(items.get(0).getPid());
+                WorkflowManager.getInstance().updateMaterial(material);
+            }
+
             return new SmartGwtResponse<>(items);
         } catch (DigitalObjectExistException ex) {
             return SmartGwtResponse.<Item>asError().error("pid", "Object already exists!").build();
+        } catch (WorkflowException ex) {
+            return SmartGwtResponse.asError(ex.getMessage());
+        }
+    }
+
+    private MaterialView getMaterial(BigDecimal wfJobid, MaterialType type) {
+        MaterialFilter filter = new MaterialFilter();
+        filter.setLocale(session.getLocale(httpHeaders));
+        filter.setJobId(wfJobid);
+        filter.setType(type);
+        List<MaterialView> materials = WorkflowManager.getInstance().findMaterial(filter);
+        if (materials.size() > 0) {
+            return materials.get(0);
+        } else {
+             return null;
         }
     }
 

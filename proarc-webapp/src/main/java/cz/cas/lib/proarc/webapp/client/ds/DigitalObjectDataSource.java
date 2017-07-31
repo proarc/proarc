@@ -50,6 +50,7 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
     public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     public static final String FIELD_MODEL = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
     public static final String FIELD_MODS = DigitalObjectResourceApi.NEWOBJECT_XML_PARAM;
+    public static final String FIELD_WF_JOB_ID = DigitalObjectResourceApi.WF_JOB_ID;
     /** Synthetic attribute holding {@link DigitalObject}. */
     private static final String FIELD_INSTANCE = "DIGITALOBJECT_INSTANCE";
 
