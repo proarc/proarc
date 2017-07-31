@@ -550,7 +550,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 break;
             case MEDIA:
                 title = i18n.DigitalObjectEditor_MediaEditor_Title();
-                deditor = new MediaEditor(i18n);
+                deditor = new MediaEditor(i18n, this.getClass().getName());
                 break;
             case MODS:
                 title = i18n.ImportBatchItemEditor_TabMods_Title();

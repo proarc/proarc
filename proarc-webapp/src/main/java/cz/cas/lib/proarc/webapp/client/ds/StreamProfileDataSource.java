@@ -74,10 +74,13 @@ public class StreamProfileDataSource extends ProarcDataSource {
     protected void transformResponse(DSResponse dsResponse, DSRequest dsRequest, Object data) {
         if (dsRequest.getOperationType() == DSOperationType.FETCH) {
             Record[] records = dsResponse.getData();
+
+            String source = dsRequest.getAttribute("source");
+
             if (records != null) {
                 int unsortedIdx = 1000;
                 for (Record record : records) {
-                    StreamProfile stream = StreamProfile.create(record, unsortedIdx);
+                    StreamProfile stream = StreamProfile.create(record, unsortedIdx, source);
                     if (stream.getOrder() == unsortedIdx) {
                         ++unsortedIdx;
                     }
@@ -108,9 +111,9 @@ public class StreamProfileDataSource extends ProarcDataSource {
             return sv;
         }
 
-        private static StreamProfile create(Record r, int defaultOrder) {
+        private static StreamProfile create(Record r, int defaultOrder, String source) {
             StreamProfile sv = get(r);
-            StreamProfile template = getTemplate(sv.getId());
+            StreamProfile template = getTemplate(sv.getId(), source);
             r.setAttribute(FIELD_ORDER, template == null ? defaultOrder : template.getOrder());
             r.setAttribute(FIELD_LABEL, template == null ? r.getAttribute(FIELD_ID) : template.getLabel());
             return sv;
@@ -139,22 +142,22 @@ public class StreamProfileDataSource extends ProarcDataSource {
         /**
          * Gets default stream profile labels and display order.
          */
-        public static List<StreamProfile> getTemplates() {
+        public static List<StreamProfile> getTemplates(String source) {
             if (TEMPLATES != null) {
-                reorderTemplates();
+                reorderTemplates(source);
                 return TEMPLATES;
             }
 
             ClientMessages i18n = GWT.create(ClientMessages.class);
             TEMPLATES = new ArrayList<StreamProfile>();
-            template("RAW", i18n.DigitalObjectEditor_MediaEditor_DSRaw_Title());
             template("PREVIEW", i18n.DigitalObjectEditor_MediaEditor_DSPreview_Title());
             template("FULL", i18n.DigitalObjectEditor_MediaEditor_DSFull_Title());
+            template("RAW", i18n.DigitalObjectEditor_MediaEditor_DSRaw_Title());
             template("THUMBNAIL", i18n.DigitalObjectEditor_MediaEditor_DSThumbnail_Title());
             template("NDK_ARCHIVAL", i18n.DigitalObjectEditor_MediaEditor_DSNdkArchival_Title());
             template("NDK_USER", i18n.DigitalObjectEditor_MediaEditor_DSNdkUser_Title());
 
-            reorderTemplates();
+            reorderTemplates(source);
             return TEMPLATES;
         }
 
@@ -162,8 +165,8 @@ public class StreamProfileDataSource extends ProarcDataSource {
          * Gets default label and display order for a given stream or {@code null}
          * for unknown stream ID.
          */
-        public static StreamProfile getTemplate(String dsId) {
-            List<StreamProfile> streams = getTemplates();
+        public static StreamProfile getTemplate(String dsId, String source) {
+            List<StreamProfile> streams = getTemplates(source);
             for (StreamProfile stream : streams) {
                 if (stream.getId().equals(dsId)) {
                     return stream;
@@ -181,8 +184,12 @@ public class StreamProfileDataSource extends ProarcDataSource {
             return sv;
         }
 
-        private static void reorderTemplates() {
-            Object selectedId = Offline.get(MediaEditor.MEDIA_EDITOR_LAST_SELECTION);
+        private static void reorderTemplates(String source) {
+            if (source == null) {
+                return;
+            }
+
+            Object selectedId = Offline.get(MediaEditor.MEDIA_EDITOR_LAST_SELECTION + "_" + source);
 
             if (selectedId != null) {
                 for (int i = 0; i < TEMPLATES.size(); i++) {

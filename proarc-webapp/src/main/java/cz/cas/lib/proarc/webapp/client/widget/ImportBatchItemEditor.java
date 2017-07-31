@@ -171,7 +171,7 @@ public final class ImportBatchItemEditor extends HLayout implements Selectable<R
 
         addMember(editorThumbToolbarLayout);
 
-        digitalObjectPreview = new MediaEditor(i18n);
+        digitalObjectPreview = new MediaEditor(i18n, this.getClass().getName());
         digitalObjectPreview.addBackgroundColorListeners(thumbViewer);
         digitalObjectPreview.setShowRefreshButton(true);
         ToolStrip previewToolbar = Actions.createToolStrip();

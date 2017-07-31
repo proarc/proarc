@@ -74,10 +74,12 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private SelectItem streamMenu;
     private boolean showRefreshButton;
     private final ActionSource actionSource;
+    private String source;
 
-    public MediaEditor(ClientMessages i18n) {
+    public MediaEditor(ClientMessages i18n, String source) {
         this.i18n = i18n;
         this.actionSource = new ActionSource(this);
+        this.source = source;
         doPreview = new DigitalObjectPreview(i18n);
         initActions(i18n);
     }
@@ -259,6 +261,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private void updateStreamMenu(DigitalObject dobj) {
         Criteria streamMenuFilter = dobj.toCriteria();
         streamMenu.setPickListCriteria(streamMenuFilter);
+        streamMenu.setAttribute("source", source);
         streamMenu.fetchData();
     }
 
@@ -275,7 +278,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private void showStream() {
         StreamProfile stream = StreamProfile.get(streamMenu.getSelectedRecord());
 
-        Offline.put(MEDIA_EDITOR_LAST_SELECTION, stream.getId());
+        Offline.put(MEDIA_EDITOR_LAST_SELECTION + "_" + source, stream.getId());
 
         if (stream != null) {
             StringBuilder sb = new StringBuilder();
