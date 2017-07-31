@@ -29,6 +29,7 @@ import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
@@ -44,6 +45,7 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import org.apache.commons.lang.StringUtils;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -386,6 +388,7 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_ID) BigDecimal id,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_JOBID) BigDecimal jobId,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_TASKID) BigDecimal taskId,
+            @QueryParam(WorkflowModelConsts.MATERIAL_TYPE) String materialTypeString,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_SORTBY) String sortBy
     ) {
@@ -395,6 +398,11 @@ public class WorkflowResource {
         filter.setMaxCount(pageSize);
         filter.setOffset(startRow);
         filter.setSortBy(sortBy);
+
+        // workaround (smartgwt add beginning and ending quotes to enum)
+        if (materialTypeString != null) {
+            filter.setType(MaterialType.valueOf(StringUtils.strip(materialTypeString, "\"")));
+        }
 
         filter.setId(id);
         filter.setJobId(jobId);

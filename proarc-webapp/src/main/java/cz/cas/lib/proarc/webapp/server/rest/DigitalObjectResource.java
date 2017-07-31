@@ -227,8 +227,13 @@ public class DigitalObjectResource {
         }
 
         if (wfJobid != null) {
-            MaterialView material = getMaterial(wfJobid, MaterialType.PHYSICAL_DOCUMENT);
-            xmlMetadata = (material != null) ? material.getMetadata() : null;
+            MaterialView material = getMaterial(wfJobid, MaterialType.DIGITAL_OBJECT);
+            if (material == null || material.getPid() != null) {
+                return SmartGwtResponse.asError("There is no digital material to connect");
+            }
+
+            MaterialView physicalMaterial = getMaterial(wfJobid, MaterialType.PHYSICAL_DOCUMENT);
+            xmlMetadata = (physicalMaterial != null) ? physicalMaterial.getMetadata() : null;
         } else {
             xmlMetadata = (xmlMetadata == null || xmlMetadata.isEmpty() || "null".equals(xmlMetadata)) ? null : xmlMetadata;
         }

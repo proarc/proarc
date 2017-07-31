@@ -49,6 +49,7 @@ import com.smartgwt.client.widgets.menu.MenuItem;
 import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
@@ -64,6 +65,7 @@ import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
 import cz.cas.lib.proarc.webapp.client.widget.CanvasSizePersistence;
@@ -264,6 +266,8 @@ public class WorkflowJobView implements Refreshable {
         addSubjobButton.setVisible(false);
 
         createNewObjectButton = Actions.asIconMenuButton(createNewObject, this);
+        createNewObjectButton.setShowDisabledIcon(false);
+        createNewObjectButton.setDisabled(true);
 
         toolbar.addMember(addSubjobButton);
         toolbar.addMember(createNewObjectButton);
@@ -291,6 +295,7 @@ public class WorkflowJobView implements Refreshable {
 
     private void fetchModelMenu(Record job) {
         if (job == null
+                // not subjob
                 || job.getAttribute(WorkflowJobDataSource.FIELD_PARENTID) != null
                 || !Job.State.OPEN.name().equals(job.getAttribute(WorkflowJobDataSource.FIELD_STATE))
                 ) {
@@ -298,9 +303,25 @@ public class WorkflowJobView implements Refreshable {
             return;
         }
         String jobName = job.getAttribute(WorkflowJobDataSource.FIELD_PROFILE_ID);
+        Long jobId = job.getAttributeAsLong(WorkflowJobDataSource.FIELD_ID);
+
         if (jobName == null) {
             return;
         }
+
+        Criteria criteria = new Criteria();
+        criteria.setAttribute(WorkflowMaterialDataSource.FIELD_JOB_ID, jobId);
+        criteria.setAttribute(WorkflowMaterialDataSource.FIELD_TYPE, MaterialType.DIGITAL_OBJECT);
+        WorkflowMaterialDataSource.getInstance().fetchData(criteria, (dsResponse, o, dsRequest) -> {
+            RecordList records = dsResponse.getDataAsRecordList();
+            if (records.getLength() == 1 && records.get(0)
+                    .getAttribute(WorkflowMaterialDataSource.FIELD_DIGITAL_PID) == null) {
+                createNewObjectButton.enable();
+            } else {
+                createNewObjectButton.disable();
+            }
+        });
+
 
         WorkflowProfileDataSource.getInstance().getModels(false, jobName, (models) -> {
             Menu menu = new Menu();
@@ -310,8 +331,8 @@ public class WorkflowJobView implements Refreshable {
                 menu.addItem(menuItem);
 
                 menuItem.addClickHandler(event -> {
-                    Long jobId = job.getAttributeAsLong(WorkflowJobDataSource.FIELD_ID);
                     saveNewDigitalObject(model.getAttributeAsString(WorkflowProfileConsts.MODEL_NAME), jobId);
+                    createNewObjectButton.disable();
                     actionSource.fireEvent();
                     jobFormView.refreshState();
                     jobFormView.refresh();
