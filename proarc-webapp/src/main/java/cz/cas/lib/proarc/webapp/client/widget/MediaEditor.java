@@ -61,6 +61,11 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
     public static final String MEDIA_EDITOR_LAST_SELECTION = "mediaEditorLastSelection";
 
+    public static final String SOURCE_DIGITAL_OBJECT_EDITOR = "DigitalObjectEditor";
+    public static final String SOURCE_IMPORT_BATCH_ITEM_EDITOR = "ImportBatchItemEditor";
+
+    public static final String SOURCE_IDENTIFIER = "source";
+
     private static String REFRESH;
 
     private final ClientMessages i18n;
@@ -261,7 +266,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private void updateStreamMenu(DigitalObject dobj) {
         Criteria streamMenuFilter = dobj.toCriteria();
         streamMenu.setPickListCriteria(streamMenuFilter);
-        streamMenu.setAttribute("source", source);
+        streamMenu.setAttribute(SOURCE_IDENTIFIER, getLastSelectionId(dobj, source));
         streamMenu.fetchData();
     }
 
@@ -278,9 +283,9 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private void showStream() {
         StreamProfile stream = StreamProfile.get(streamMenu.getSelectedRecord());
 
-        Offline.put(MEDIA_EDITOR_LAST_SELECTION + "_" + source, stream.getId());
-
         if (stream != null) {
+            Offline.put(getLastSelectionId(digitalObject, source), stream.getId());
+
             StringBuilder sb = new StringBuilder();
             sb.append(DigitalObjectResourceApi.DIGITALOBJECT_PID).append('=')
                     .append(digitalObject.getPid())
@@ -330,4 +335,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         return url;
     }
 
+    private static String getLastSelectionId(DigitalObject digitalObject, String source) {
+        return MEDIA_EDITOR_LAST_SELECTION + "_" + source + "_" + digitalObject.getModelId();
+    }
 }

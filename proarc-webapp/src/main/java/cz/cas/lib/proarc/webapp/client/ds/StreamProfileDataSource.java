@@ -75,7 +75,7 @@ public class StreamProfileDataSource extends ProarcDataSource {
         if (dsRequest.getOperationType() == DSOperationType.FETCH) {
             Record[] records = dsResponse.getData();
 
-            String source = dsRequest.getAttribute("source");
+            String source = dsRequest.getAttribute(MediaEditor.SOURCE_IDENTIFIER);
 
             if (records != null) {
                 int unsortedIdx = 1000;
@@ -189,7 +189,7 @@ public class StreamProfileDataSource extends ProarcDataSource {
                 return;
             }
 
-            Object selectedId = Offline.get(MediaEditor.MEDIA_EDITOR_LAST_SELECTION + "_" + source);
+            Object selectedId = Offline.get(source);
 
             if (selectedId != null) {
                 for (int i = 0; i < TEMPLATES.size(); i++) {
