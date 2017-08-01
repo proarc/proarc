@@ -90,6 +90,8 @@ public class WorkflowJobFormView implements Refreshable {
     private final ActionSource actionSource = new ActionSource(this);
     private Action editTaskAction;
 
+    public static final String VIEW_NAME = "WorkflowJobFormView";
+
     public WorkflowJobFormView(ClientMessages i18n) {
         this.i18n = i18n;
         this.widget = createMainLayout();
@@ -413,7 +415,7 @@ public class WorkflowJobFormView implements Refreshable {
     }
 
     private Widget createMaterialList() {
-        materialView = new WorkflowMaterialView(i18n, true, this.getClass().getSimpleName());
+        materialView = new WorkflowMaterialView(i18n, true, VIEW_NAME);
         return materialView.getWidget();
     }
 

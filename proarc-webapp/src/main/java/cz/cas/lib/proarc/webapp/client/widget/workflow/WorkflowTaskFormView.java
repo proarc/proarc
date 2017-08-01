@@ -94,6 +94,8 @@ public class WorkflowTaskFormView implements Refreshable {
     private ItemChangedHandler itemChangedHandler;
     private final ActionSource actionSource = new ActionSource(this);
 
+    public static final String VIEW_NAME = "WorkflowTaskFormView";
+
     public WorkflowTaskFormView(ClientMessages i18n, WorkflowTasksEditor handler) {
         this.i18n = i18n;
         this.handler = handler;
@@ -535,7 +537,7 @@ public class WorkflowTaskFormView implements Refreshable {
     }
 
     private Widget createMaterialList() {
-        materialView = new WorkflowMaterialView(i18n, this.getClass().getSimpleName());
+        materialView = new WorkflowMaterialView(i18n, VIEW_NAME);
         return materialView.getWidget();
     }
 
