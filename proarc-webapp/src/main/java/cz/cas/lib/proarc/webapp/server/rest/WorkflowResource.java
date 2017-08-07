@@ -388,7 +388,7 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_ID) BigDecimal id,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_JOBID) BigDecimal jobId,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_TASKID) BigDecimal taskId,
-            @QueryParam(WorkflowModelConsts.MATERIAL_TYPE) String materialTypeString,
+            @QueryParam(WorkflowModelConsts.MATERIAL_TYPE) MaterialType materialType,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_SORTBY) String sortBy
     ) {
@@ -398,12 +398,7 @@ public class WorkflowResource {
         filter.setMaxCount(pageSize);
         filter.setOffset(startRow);
         filter.setSortBy(sortBy);
-
-        // workaround (smartgwt add beginning and ending quotes to enum)
-        if (materialTypeString != null) {
-            filter.setType(MaterialType.valueOf(StringUtils.strip(materialTypeString, "\"")));
-        }
-
+        filter.setType(materialType);
         filter.setId(id);
         filter.setJobId(jobId);
         filter.setTaskId(taskId);
@@ -495,13 +490,16 @@ public class WorkflowResource {
         for (JobDefinition job : workflowDefinition.getJobs()) {
             if ((name == null || name.equals(job.getName()))
                     && (disabled == null || disabled == job.isDisabled())) {
-                Set<String> collection = MetaModelRepository.getInstance().find()
+                Set<String> modelPids = MetaModelRepository.getInstance().find()
                         .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
 
-                for (ModelDefinition model : job.getModel()) {
-                    if (!collection.contains(model.getType())) {
-                        return SmartGwtResponse.asError(WorkflowProfileConsts.MODEL_TYPE + " - invalid value! " + model.getType());
-                    }
+
+                List<String> unknownModels = job.getModel().stream().map(metamodel -> metamodel.getType())
+                        .filter(p -> !modelPids.contains(p)).collect(Collectors.toList());
+
+                if (!unknownModels.isEmpty()) {
+                    return SmartGwtResponse.asError(WorkflowProfileConsts.MODEL_TYPE + " - invalid values! "
+                            + String.join(", ", unknownModels));
                 }
 
                 profiles.add(new JobDefinitionView(job, lang));

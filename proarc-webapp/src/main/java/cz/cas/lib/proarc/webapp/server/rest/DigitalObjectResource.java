@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.AtmEditor;
 import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
@@ -97,6 +98,7 @@ import java.util.Map.Entry;
 import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -157,6 +159,8 @@ public class DigitalObjectResource {
     private final UserProfile user;
     private final SessionContext session;
 
+    private static final Set<BigDecimal> keyLocks = ConcurrentHashMap.newKeySet();
+
     public DigitalObjectResource(
             @Context Request request,
             @Context SecurityContext securityCtx,
@@ -187,6 +191,7 @@ public class DigitalObjectResource {
      *      Use 1 for Monday and 7 for Sunday as defined by ISO. The set of all days is used in case of no value.
      * @param seriesPartNumberFrom an optional number to generate a series of MODS objects
      * @param xmlMetadata XML used to create new object; optional
+     * @param wfJobId ID of workflow job (save PID of created object into workflow); optional
      * @return the list of created objects
      * @throws DigitalObjectException failure
      */
@@ -201,11 +206,12 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DAYS_INCLUDED_PARAM) List<Integer> seriesDaysIncluded,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM) Integer seriesPartNumberFrom,
             @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata,
-            @FormParam(DigitalObjectResourceApi.WF_JOB_ID) BigDecimal wfJobid
+            @FormParam(DigitalObjectResourceApi.WF_JOB_ID) BigDecimal wfJobId
             ) throws DigitalObjectException {
 
         Set<String> models = MetaModelRepository.getInstance().find()
                 .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
+
 
         if (modelId == null || !models.contains(modelId)) {
             throw RestException.plainBadRequest(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, modelId);
@@ -225,14 +231,16 @@ public class DigitalObjectResource {
                         DigitalObjectResourceApi.DIGITALOBJECT_PID, "Invalid PID!").build();
             }
         }
-
-        if (wfJobid != null) {
-            MaterialView material = getMaterial(wfJobid, MaterialType.DIGITAL_OBJECT);
-            if (material == null || material.getPid() != null) {
+        MaterialView digitalMaterial = null;
+        if (wfJobId != null) {
+            digitalMaterial = getMaterial(wfJobId, MaterialType.DIGITAL_OBJECT);
+            if (digitalMaterial == null) {
                 return SmartGwtResponse.asError("There is no digital material to connect");
+            }  else if (digitalMaterial.getPid() != null) {
+                throw RestException.plainConcurrentModification(DigitalObjectResourceApi.WF_JOB_ID, "Concurrent modification!");
             }
 
-            MaterialView physicalMaterial = getMaterial(wfJobid, MaterialType.PHYSICAL_DOCUMENT);
+            MaterialView physicalMaterial = getMaterial(wfJobId, MaterialType.PHYSICAL_DOCUMENT);
             xmlMetadata = (physicalMaterial != null) ? physicalMaterial.getMetadata() : null;
         } else {
             xmlMetadata = (xmlMetadata == null || xmlMetadata.isEmpty() || "null".equals(xmlMetadata)) ? null : xmlMetadata;
@@ -241,6 +249,12 @@ public class DigitalObjectResource {
 
         LOG.log(Level.FINE, "model: {0}, pid: {3}, parent: {2}, XML: {1}",
                 new Object[] {modelId, xmlMetadata, parentPid, pid});
+
+        if (wfJobId != null) {
+            if (!keyLocks.add(wfJobId)) {
+                throw RestException.plainConcurrentModification(DigitalObjectResourceApi.WF_JOB_ID, "Concurrent modification!");
+            }
+        }
 
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         try {
@@ -253,8 +267,8 @@ public class DigitalObjectResource {
             List<Item> items = handler.create();
 
 
-            if (wfJobid != null && items.size() == 1) {
-                MaterialView material = getMaterial(wfJobid, MaterialType.DIGITAL_OBJECT);
+            if (wfJobId != null && digitalMaterial != null && items.size() == 1) {
+                MaterialView material = digitalMaterial;
                 material.setPid(items.get(0).getPid());
                 WorkflowManager.getInstance().updateMaterial(material);
             }
@@ -264,6 +278,10 @@ public class DigitalObjectResource {
             return SmartGwtResponse.<Item>asError().error("pid", "Object already exists!").build();
         } catch (WorkflowException ex) {
             return SmartGwtResponse.asError(ex.getMessage());
+        } finally {
+            if (wfJobId != null) {
+                keyLocks.remove(wfJobId);
+            }
         }
     }
 
@@ -273,7 +291,7 @@ public class DigitalObjectResource {
         filter.setJobId(wfJobid);
         filter.setType(type);
         List<MaterialView> materials = WorkflowManager.getInstance().findMaterial(filter);
-        if (materials.size() > 0) {
+        if (!materials.isEmpty()) {
             return materials.get(0);
         } else {
              return null;
@@ -557,7 +575,7 @@ public class DigitalObjectResource {
         return memberSearchMap;
     }
 
-    private Map<String, Item> loadLocalSearchItems(Batch batch) throws IOException, DigitalObjectException {
+    private Map<String, Item> loadLocalSearchItems(Batch batch) throws DigitalObjectException {
         if (batch == null) {
             throw new NullPointerException();
         }
@@ -942,7 +960,7 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }
 
-    <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {
+    private <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {
         if (ex.getValidations().isEmpty()) {
             return SmartGwtResponse.asError(ex);
         }
@@ -1520,16 +1538,6 @@ public class DigitalObjectResource {
             fobject = RemoteStorage.getInstance(appConfig).find(pid);
         }
         return fobject;
-    }
-
-    /**
-     * Removes extension from the file name.
-     * @param filename file name
-     * @return name without extension
-     */
-    private static String getBareFilename(String filename) {
-        int index = filename.lastIndexOf('.');
-        return index <= 0 ? filename : filename.substring(0, index);
     }
 
     /**

@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.workflow;
 
-import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
@@ -25,7 +24,6 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
-import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.OperatorId;
@@ -311,7 +309,7 @@ public class WorkflowJobView implements Refreshable {
 
         Criteria criteria = new Criteria();
         criteria.setAttribute(WorkflowMaterialDataSource.FIELD_JOB_ID, jobId);
-        criteria.setAttribute(WorkflowMaterialDataSource.FIELD_TYPE, MaterialType.DIGITAL_OBJECT);
+        criteria.setAttribute(WorkflowMaterialDataSource.FIELD_TYPE, MaterialType.DIGITAL_OBJECT.name());
         WorkflowMaterialDataSource.getInstance().fetchData(criteria, (dsResponse, o, dsRequest) -> {
             RecordList records = dsResponse.getDataAsRecordList();
             if (records.getLength() == 1 && records.get(0)
@@ -363,6 +361,12 @@ public class WorkflowJobView implements Refreshable {
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
                     SC.say(i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title(), i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
+                } else if (RestConfig.isConcurrentModification(response)) {
+                    SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), aBoolean -> {
+                                if (aBoolean!= null && aBoolean) {
+                                    refresh();
+                            }
+                        });
                 }
             }
         }, dsRequest);

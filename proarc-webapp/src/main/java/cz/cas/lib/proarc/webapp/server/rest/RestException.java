@@ -71,6 +71,13 @@ public class RestException extends WebApplicationException {
                         .build());
     }
 
+    public static RestException plainConcurrentModification(String name, String value) {
+        return new RestException(
+                plainText(Response.status(Status.CONFLICT),
+                        String.format("%s: %s concurrent modification!", name, value))
+                        .build());
+    }
+
     public static RestException json(Status status, int errorCode, String errorKey, String message) {
         return new RestException(json(Response.status(status), errorCode, errorKey, message).build());
     }
