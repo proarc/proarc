@@ -159,8 +159,6 @@ public class DigitalObjectResource {
     private final UserProfile user;
     private final SessionContext session;
 
-    private static final Set<BigDecimal> keyLocks = ConcurrentHashMap.newKeySet();
-
     public DigitalObjectResource(
             @Context Request request,
             @Context SecurityContext securityCtx,
@@ -231,30 +229,14 @@ public class DigitalObjectResource {
                         DigitalObjectResourceApi.DIGITALOBJECT_PID, "Invalid PID!").build();
             }
         }
-        MaterialView digitalMaterial = null;
-        if (wfJobId != null) {
-            digitalMaterial = getMaterial(wfJobId, MaterialType.DIGITAL_OBJECT);
-            if (digitalMaterial == null) {
-                return SmartGwtResponse.asError("There is no digital material to connect");
-            }  else if (digitalMaterial.getPid() != null) {
-                throw RestException.plainConcurrentModification(DigitalObjectResourceApi.WF_JOB_ID, "Concurrent modification!");
-            }
 
-            MaterialView physicalMaterial = getMaterial(wfJobId, MaterialType.PHYSICAL_DOCUMENT);
-            xmlMetadata = (physicalMaterial != null) ? physicalMaterial.getMetadata() : null;
-        } else {
-            xmlMetadata = (xmlMetadata == null || xmlMetadata.isEmpty() || "null".equals(xmlMetadata)) ? null : xmlMetadata;
-        }
+        xmlMetadata = (xmlMetadata == null || xmlMetadata.isEmpty() || "null".equals(xmlMetadata)) ? null : xmlMetadata;
+
 
 
         LOG.log(Level.FINE, "model: {0}, pid: {3}, parent: {2}, XML: {1}",
                 new Object[] {modelId, xmlMetadata, parentPid, pid});
 
-        if (wfJobId != null) {
-            if (!keyLocks.add(wfJobId)) {
-                throw RestException.plainConcurrentModification(DigitalObjectResourceApi.WF_JOB_ID, "Concurrent modification!");
-            }
-        }
 
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         try {
@@ -264,24 +246,18 @@ public class DigitalObjectResource {
                         seriesDateTo == null ? null : seriesDateTo.getLocalDate(),
                         seriesDaysIncluded, seriesPartNumberFrom);
             }
-            List<Item> items = handler.create();
-
-
-            if (wfJobId != null && digitalMaterial != null && items.size() == 1) {
-                MaterialView material = digitalMaterial;
-                material.setPid(items.get(0).getPid());
-                WorkflowManager.getInstance().updateMaterial(material);
+            List<Item> items;
+            if (wfJobId != null) {
+                items = handler.createAndConnectToWfJob(wfJobId);
+            } else {
+                items = handler.create();
             }
 
             return new SmartGwtResponse<>(items);
         } catch (DigitalObjectExistException ex) {
-            return SmartGwtResponse.<Item>asError().error("pid", "Object already exists!").build();
+            return SmartGwtResponse.<Item>asError().error("pid", ex.getMessage()).build();
         } catch (WorkflowException ex) {
             return SmartGwtResponse.asError(ex.getMessage());
-        } finally {
-            if (wfJobId != null) {
-                keyLocks.remove(wfJobId);
-            }
         }
     }
 

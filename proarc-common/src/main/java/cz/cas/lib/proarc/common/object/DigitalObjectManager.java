@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.object;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
@@ -33,7 +34,14 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.workflow.WorkflowException;
+import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
+import cz.cas.lib.proarc.common.workflow.model.MaterialView;
+
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -43,10 +51,12 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -59,6 +69,8 @@ public class DigitalObjectManager {
 
     private static DigitalObjectManager INSTANCE;
     private static final Logger LOG = Logger.getLogger(DigitalObjectManager.class.getName());
+
+    private static final Set<BigDecimal> keyLocks = ConcurrentHashMap.newKeySet();
 
     public static DigitalObjectManager getDefault() {
         return INSTANCE;
@@ -314,6 +326,58 @@ public class DigitalObjectManager {
                 return createBatch();
             } else {
                 return Collections.singletonList(createDigitalObject());
+            }
+        }
+
+        public List<Item> createAndConnectToWfJob(BigDecimal wfJobId) throws DigitalObjectException, WorkflowException {
+            try {
+                if (isBatch()) {
+                    throw new IllegalArgumentException("Only single object (usually top level) is supported to be connected to job");
+                } else if (wfJobId == null) {
+                    throw new IllegalArgumentException("wfJobId cannot be null");
+                }
+
+                // enter critical section (avoid fedora object without connection)
+                if (!keyLocks.add(wfJobId)) {
+                    throw new DigitalObjectConcurrentModificationException(wfJobId.toString(), "Concurrent create object!");
+                }
+
+                List<Item> items = create();
+
+                MaterialView digitalMaterial = getMaterial(wfJobId, MaterialType.DIGITAL_OBJECT);
+                if (digitalMaterial == null) {
+                    throw new DigitalObjectException("There is no digital material to connect");
+                } else if (digitalMaterial.getPid() != null) {
+                    throw new DigitalObjectConcurrentModificationException(wfJobId.toString(), "Concurrent create object!");
+                }
+
+                MaterialView physicalMaterial = getMaterial(wfJobId, MaterialType.PHYSICAL_DOCUMENT);
+                xml = (physicalMaterial != null) ? physicalMaterial.getMetadata() : null;
+
+
+                if (!items.isEmpty()) {
+                    digitalMaterial.setPid(items.get(0).getPid());
+                    WorkflowManager.getInstance().updateMaterial(digitalMaterial);
+                }
+
+                return items;
+
+            } finally {
+                keyLocks.remove(wfJobId);
+            }
+        }
+
+        private MaterialView getMaterial(BigDecimal wfJobid, MaterialType type) {
+            MaterialFilter filter = new MaterialFilter();
+            //TODO-MR whatever locale
+            filter.setLocale(Locale.ENGLISH);
+            filter.setJobId(wfJobid);
+            filter.setType(type);
+            List<MaterialView> materials = WorkflowManager.getInstance().findMaterial(filter);
+            if (!materials.isEmpty()) {
+                return materials.get(0);
+            } else {
+                return null;
             }
         }
 
