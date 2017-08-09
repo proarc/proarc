@@ -57,6 +57,7 @@ import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
+import cz.cas.lib.proarc.webapp.client.widget.CanvasSizePersistence;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
@@ -192,6 +193,10 @@ public class WorkflowJobView implements Refreshable {
         left.addMember(createJobsToolbar());
         left.addMember(createJobList());
         left.addMember(createSubjobList());
+        left.setShowResizeBar(true);
+
+        CanvasSizePersistence sizePersistence = new CanvasSizePersistence("WorkflowJobFormView.jobLayout", left);
+        left.setWidth(sizePersistence.getWidth());
 
         HLayout l = new HLayout();
         l.addMember(left);
@@ -302,6 +307,10 @@ public class WorkflowJobView implements Refreshable {
         ListGrid g = new ListGrid();
         subjobGrid = g;
         subjobsPersistance = new ListGridPersistance("WorkflowJobView.subjobList", g);
+
+        CanvasSizePersistence sizePersistence = new CanvasSizePersistence("WorkflowJobView.subjobList", g);
+        g.setHeight(sizePersistence.getHeight());
+
         g.setSelectionType(SelectionStyle.SINGLE);
         g.setCanGroupBy(false);
         g.setDataFetchMode(FetchMode.BASIC);
