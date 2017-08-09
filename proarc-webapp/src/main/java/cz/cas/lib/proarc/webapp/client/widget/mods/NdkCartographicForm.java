@@ -320,7 +320,10 @@ public final class NdkCartographicForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @type
                     // XXX autofill "marcform"
-                    .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200").setDefaultValue("marcform").createField())
+                    .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
+                            .addMapValue("marcform", "marcform")
+                            .addMapValue("gmd", "gmd")
+                    .createField()) //authority
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
                         .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("print")
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."

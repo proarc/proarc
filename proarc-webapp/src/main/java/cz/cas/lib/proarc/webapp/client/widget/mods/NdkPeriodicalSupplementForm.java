@@ -361,6 +361,7 @@ public final class NdkPeriodicalSupplementForm {
                     // XXX autofill "marcform"
                     .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
                         .addMapValue("marcform", "marcform")
+                        .addMapValue("gmd", "gmd")
                     .createField()) // authority
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
                         .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("print")
