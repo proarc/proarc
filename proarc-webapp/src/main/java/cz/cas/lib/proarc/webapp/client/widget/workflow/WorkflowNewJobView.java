@@ -135,12 +135,10 @@ public class WorkflowNewJobView {
         final SelectItem profile = createProfileSelector();
 
         TextItem metadata = new TextItem(WorkflowResourceApi.NEWJOB_METADATA, "Metadata");
-        metadata.setRequired(true);
         metadata.setShowTitle(false);
         metadata.setCanEdit(false);
         metadata.setStartRow(true);
         metadata.setReadOnlyDisplay(ReadOnlyDisplayAppearance.STATIC);
-        metadata.setRequiredMessage(i18n.WorkflowJob_NewJobView_Err_NoMetadata_Msg());
         // show empty value instead of XML
         metadata.setEditorValueFormatter(new FormItemValueFormatter() {
 

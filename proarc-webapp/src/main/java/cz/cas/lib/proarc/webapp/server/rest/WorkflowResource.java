@@ -175,16 +175,18 @@ public class WorkflowResource {
             @FormParam(WorkflowResourceApi.NEWJOB_CATALOGID) String catalogId,
             @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId
     ) {
+        metadata = "null".equals(metadata) ? null : metadata;
+        catalogId = "null".equals(catalogId) ? null : catalogId;
+
         if (parentId != null) {
             return addSubjob(profileName, parentId);
         }
-        if (metadata == null) {
-            return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_METADATA + " - missing value! ");
+
+        CatalogConfiguration catalog = null;
+        if (catalogId != null) {
+            catalog = appConfig.getCatalogs().findConfiguration(catalogId);
         }
-        CatalogConfiguration catalog = appConfig.getCatalogs().findConfiguration(catalogId);
-        if (catalog == null) {
-            return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_CATALOGID + " - invalid value! " + catalogId);
-        }
+
         WorkflowDefinition profiles = workflowProfiles.getProfiles();
         if (profiles == null) {
             return profileError();
