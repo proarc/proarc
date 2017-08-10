@@ -80,6 +80,7 @@ import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowTaskPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJob;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJobEditor;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor;
 import cz.cas.lib.proarc.webapp.client.widget.AboutWindow;
@@ -551,7 +552,8 @@ public class Editor implements EntryPoint {
         private WorkflowTasksEditor workflowTasks;
         private final ClientMessages i18n;
         private PlaceController placeController;
-        private WorkflowNewJobEditor workflowNew;
+        private WorkflowNewJob workflowNew;
+        private WorkflowNewJobEditor workflowNewEdit;
 
         PresenterFactory(ClientMessages i18n) {
             this.i18n = i18n;
@@ -610,11 +612,18 @@ public class Editor implements EntryPoint {
             return workflowJobs;
         }
 
-        public WorkflowNewJobEditor getWorkflowNewJob() {
+        public WorkflowNewJob getWorkflowNewJob() {
             if (workflowNew == null) {
-                workflowNew = new WorkflowNewJobEditor(i18n, placeController);
+                workflowNew = new WorkflowNewJob(i18n, placeController);
             }
             return workflowNew;
+        }
+
+        public WorkflowNewJobEditor getWorkflowNewJobEdit() {
+            if (workflowNewEdit == null) {
+                workflowNewEdit = new WorkflowNewJobEditor(i18n, placeController);
+            }
+            return workflowNewEdit;
         }
 
         public WorkflowTasksEditor getWorkflowTasks() {

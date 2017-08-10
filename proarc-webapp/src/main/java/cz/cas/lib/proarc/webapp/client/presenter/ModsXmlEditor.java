@@ -99,13 +99,17 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
             if (digitalObject.getBatchId() != null) {
                 pidCriteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, digitalObject.getBatchId());
             }
-            TextDataSource.getMods().fetchData(pidCriteria, new DSCallback() {
+            if (digitalObject.getPid() != null) {
+                TextDataSource.getMods().fetchData(pidCriteria, new DSCallback() {
 
-                @Override
-                public void execute(DSResponse response, Object rawData, DSRequest request) {
-                    handleFetchResponse(response, cleanHistory);
-                }
-            });
+                    @Override
+                    public void execute(DSResponse response, Object rawData, DSRequest request) {
+                        handleFetchResponse(response, cleanHistory);
+                    }
+                });
+            } else {
+                //TODO-MR handle from workflow....
+            }
         }
     }
 

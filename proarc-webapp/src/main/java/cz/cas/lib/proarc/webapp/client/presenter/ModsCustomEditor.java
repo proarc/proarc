@@ -31,6 +31,7 @@ import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
@@ -48,7 +49,6 @@ import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.dc.DcEditor;
-import cz.cas.lib.proarc.webapp.client.widget.mods.bdm.BornDigitalForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.MonographForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.MonographUnitForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
@@ -56,8 +56,10 @@ import cz.cas.lib.proarc.webapp.client.widget.mods.PageForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalIssueForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalVolumeForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.bdm.BornDigitalForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.oldprint.OldPrintForms;
 import cz.cas.lib.proarc.webapp.client.widget.nsesss.NsesssV2Form;
+
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,7 +70,7 @@ import java.util.logging.Logger;
  * @author Jan Pokorsky
  */
 // XXX rename to DescriptionFormEditor
-public final class ModsCustomEditor extends AbstractDatastreamEditor implements Refreshable {
+public class ModsCustomEditor extends AbstractDatastreamEditor implements Refreshable {
 
     private static final Logger LOG = Logger.getLogger(ModsCustomEditor.class.getName());
 
@@ -346,7 +348,24 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
     }
 
     private void loadCustom(final DynamicForm editor, DigitalObject dobj, final BooleanCallback loadCallback) {
-        loadCustom(editor, dobj.getPid(), dobj.getBatchId(), dobj.getModel(), loadCallback);
+        if (dobj.getWorkflowJobId() != null) {
+            loadCustom(editor, dobj.getWorkflowJobId(), dobj.getModel(), loadCallback);
+        } else {
+            loadCustom(editor, dobj.getPid(), dobj.getBatchId(), dobj.getModel(), loadCallback);
+        }
+    }
+
+    private void loadCustom(final DynamicForm editor, Long workflowJobId,
+                            MetaModelDataSource.MetaModelRecord model, final BooleanCallback loadCallback) {
+
+        Criteria pidCriteria = new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, workflowJobId.toString());
+        Criteria criteria = new Criteria(MetaModelDataSource.FIELD_EDITOR, model.getEditorId());
+        criteria.addCriteria(pidCriteria);
+        DSRequest request = new DSRequest();
+
+        //TODO-MR resource from workflow...
+        //handleFetch(response, editor, loadCallback);
+
     }
 
     private void loadCustom(final DynamicForm editor, String pid, String batchId,
