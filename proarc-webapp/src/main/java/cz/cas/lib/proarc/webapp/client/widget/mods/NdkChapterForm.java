@@ -214,6 +214,7 @@ public final class NdkChapterForm {
                     // XXX autofill "marcform"
                     .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("marcform")
                         .addMapValue("marcform", "marcform")
+                        .addMapValue("gmd", "gmd")
                     .createField()) // authority
                     .addField(new FieldBuilder("value").setTitle("Form - R").setMaxOccurrences(1).setType(Field.COMBO)
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."

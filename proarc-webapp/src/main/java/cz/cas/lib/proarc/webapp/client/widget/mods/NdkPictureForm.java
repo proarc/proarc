@@ -201,6 +201,31 @@ public final class NdkPictureForm {
                 // scriptTerm
         .createField()); // language
 
+        modsFields.add(
+            // physicalDescription, physicalDescriptionDefinition
+            new FieldBuilder("physicalDescription").setTitle("Physical Description - R").setMaxOccurrences(10)
+                    .setHint("Obsahuje údaje o fyzickém popisu vnitřní části;" +
+                            "<p>určeno spíše pro články než pro obrazy.")
+                    // form, formDefinition extends stringPlusLanguagePlusAuthority
+                    .addField(new FieldBuilder("form").setTitle("Form - R").setMaxOccurrences(1)
+                            // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+                            // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                            // @type
+                            // XXX autofill "marcform"
+                            .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)
+                                    .addMapValue("marcform", "marcform")
+                                    .addMapValue("gmd", "gmd")
+                                    .createField()) // authority
+                            .addField(new FieldBuilder("value").setTitle("Form - R").setMaxOccurrences(1).setType(Field.TEXT)
+                                    .setHint("Údaje o fyzické podobě vnitřní části" +
+                                            "<p>např. print, electronic apod.")
+                                    .createField()) // value
+                            .createField()) // form
+                    // reformattingQuality
+                    // internetMediaType
+                    // digitalOrigin
+                    // extent, stringPlusLanguagePlusSupplied
+                    .createField()); // physicalDescription
         // physicalDescription, physicalDescriptionDefinition
 
         // abstract, abstractDefinition extends stringPlusLanguage
