@@ -612,22 +612,22 @@ public class MetsUtils {
      */
     public static HashMap<String, FileGrp> initFileGroups() {
         FileGrp MCimagesGRP = new FileGrp();
-        MCimagesGRP.setID("MC_IMGGRP");
+        MCimagesGRP.setID(Const.MC_GRP_ID);
         MCimagesGRP.setUSE("Images");
         // mets.getFileSec().getFileGrp().add(MCimagesGRP);
 
         FileGrp UCimageGrp = new FileGrp();
-        UCimageGrp.setID("UC_IMGGRP");
+        UCimageGrp.setID(Const.UC_GRP_ID);
         UCimageGrp.setUSE("Images");
         // mets.getFileSec().getFileGrp().add(UCimageGrp);
 
         FileGrp AltoGRP = new FileGrp();
-        AltoGRP.setID("ALTOGRP");
+        AltoGRP.setID(Const.ALTO_GRP_ID);
         AltoGRP.setUSE("Layout");
         // mets.getFileSec().getFileGrp().add(AltoGRP);
 
         FileGrp TxtGRP = new FileGrp();
-        TxtGRP.setID("TXTGRP");
+        TxtGRP.setID(Const.TXT_GRP_ID);
         TxtGRP.setUSE("Text");
         // mets.getFileSec().getFileGrp().add(TxtGRP);
 
@@ -637,10 +637,10 @@ public class MetsUtils {
         // mets.getFileSec().getFileGrp().add(TechMDGrp);
 
         HashMap<String, FileGrp> fileGrpMap = new HashMap<String, FileGrp>();
-        fileGrpMap.put("UC_IMGGRP", UCimageGrp);
-        fileGrpMap.put("MC_IMGGRP", MCimagesGRP);
-        fileGrpMap.put("ALTOGRP", AltoGRP);
-        fileGrpMap.put("TXTGRP", TxtGRP);
+        fileGrpMap.put(Const.UC_GRP_ID, UCimageGrp);
+        fileGrpMap.put(Const.MC_GRP_ID, MCimagesGRP);
+        fileGrpMap.put(Const.ALTO_GRP_ID, AltoGRP);
+        fileGrpMap.put(Const.TXT_GRP_ID, TxtGRP);
         fileGrpMap.put("TECHMDGRP", TechMDGrp);
         return fileGrpMap;
     }
