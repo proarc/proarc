@@ -46,9 +46,7 @@ public class NdkPeriodicalSupplementMapper extends NdkMapper {
         //  mods/classification@authority="udc"
         List<ClassificationDefinition> classifications = mods.getClassification();
         for (ClassificationDefinition classification : classifications) {
-            if (classification.getAuthority() == null) {
-                classification.setAuthority("udc");
-            }
+            repairAuthorityInClassification(classification);
         }
     }
 

@@ -23,6 +23,7 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
@@ -30,6 +31,7 @@ import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
 import java.util.List;
+import org.apache.empire.commons.StringUtils;
 
 /**
  * Subclass to implement transformations of MODS data in NDK flavor
@@ -168,6 +170,16 @@ public abstract class NdkMapper {
             return createTitleString(ti);
         }
         return null;
+    }
+
+    /** Set default Authority value or repair it if needed. */
+    protected void repairAuthorityInClassification(ClassificationDefinition classification){
+        if (classification.getAuthority() == null) {
+            classification.setAuthority("udc");
+        }
+        if (StringUtils.isNotEmpty(classification.getEdition()) && classification.getEdition().equals("Konspekt")){
+            classification.setAuthority("udc"); // edition = "Konspekt" only if authority = "udc"
+        }
     }
 
     public static class Context {
