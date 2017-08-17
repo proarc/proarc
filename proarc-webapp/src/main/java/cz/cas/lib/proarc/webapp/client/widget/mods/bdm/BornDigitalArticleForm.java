@@ -384,9 +384,10 @@ public final class BornDigitalArticleForm {
         return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(30)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
-                .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.TEXT)
+                .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.COMBO)
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("Konspekt", "Konspekt")
                 .createField()) // authority
 
                 // topic, stringPlusLanguagePlusAuthority
@@ -406,7 +407,7 @@ public final class BornDigitalArticleForm {
                     .addField(new FieldBuilder("value").setTitle("Topic - M").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Libovolný výraz specifikující nebo charakterizující obsah článku."
                             + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (věcné téma)"
-                            + " nebo obsah pole 650 záznamu MARC21.")
+                            + " nebo obsah pole 650 záznamu MARC21  nebo obsah pole 072 $x.")
                     .createField()) // value
                 .createField()) // topic
 
