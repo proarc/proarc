@@ -27,7 +27,6 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.AtmEditor;
 import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
@@ -70,8 +69,6 @@ import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
-import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
-import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
@@ -84,7 +81,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -98,7 +94,6 @@ import java.util.Map.Entry;
 import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -189,7 +184,7 @@ public class DigitalObjectResource {
      *      Use 1 for Monday and 7 for Sunday as defined by ISO. The set of all days is used in case of no value.
      * @param seriesPartNumberFrom an optional number to generate a series of MODS objects
      * @param xmlMetadata XML used to create new object; optional
-     * @param wfJobId ID of workflow job (save PID of created object into workflow); optional
+     * @param workflowJobId ID of workflow job (save PID of created object into workflow); optional
      * @return the list of created objects
      * @throws DigitalObjectException failure
      */
@@ -204,7 +199,7 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DAYS_INCLUDED_PARAM) List<Integer> seriesDaysIncluded,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM) Integer seriesPartNumberFrom,
             @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata,
-            @FormParam(DigitalObjectResourceApi.WF_JOB_ID) BigDecimal wfJobId
+            @FormParam(DigitalObjectResourceApi.WORKFLOW_JOB_ID) BigDecimal workflowJobId
             ) throws DigitalObjectException {
 
         Set<String> models = MetaModelRepository.getInstance().find()
@@ -247,8 +242,8 @@ public class DigitalObjectResource {
                         seriesDaysIncluded, seriesPartNumberFrom);
             }
             List<Item> items;
-            if (wfJobId != null) {
-                items = handler.createAndConnectToWfJob(wfJobId);
+            if (workflowJobId != null) {
+                items = handler.createAndConnectToWorkflowJob(workflowJobId);
             } else {
                 items = handler.create();
             }
@@ -267,10 +262,10 @@ public class DigitalObjectResource {
         filter.setJobId(wfJobid);
         filter.setType(type);
         List<MaterialView> materials = WorkflowManager.getInstance().findMaterial(filter);
-        if (!materials.isEmpty()) {
-            return materials.get(0);
-        } else {
+        if (materials.isEmpty()) {
              return null;
+        } else {
+            return materials.get(0);
         }
     }
 

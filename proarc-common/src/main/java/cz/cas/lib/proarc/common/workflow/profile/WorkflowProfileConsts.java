@@ -73,7 +73,7 @@ public class WorkflowProfileConsts {
 
     public static final String MATERIAL_TYPE = "type";
 
-    public static final String MODEL_TYPE = "type";
+    public static final String MODEL_PID = "pid";
     public static final String MODEL_NAME = "name";
     public static final String MODEL_TITLE = "title";
 

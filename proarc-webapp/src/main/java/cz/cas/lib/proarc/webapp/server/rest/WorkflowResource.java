@@ -39,13 +39,11 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
-import cz.cas.lib.proarc.common.workflow.profile.ModelDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
-import org.apache.commons.lang.StringUtils;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -498,7 +496,7 @@ public class WorkflowResource {
                         .filter(p -> !modelPids.contains(p)).collect(Collectors.toList());
 
                 if (!unknownModels.isEmpty()) {
-                    return SmartGwtResponse.asError(WorkflowProfileConsts.MODEL_TYPE + " - invalid values! "
+                    return SmartGwtResponse.asError(WorkflowProfileConsts.MODEL_PID + " - invalid values! "
                             + String.join(", ", unknownModels));
                 }
 

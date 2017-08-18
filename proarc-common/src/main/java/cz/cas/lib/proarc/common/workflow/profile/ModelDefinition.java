@@ -29,7 +29,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 @XmlAccessorType(value = XmlAccessType.FIELD)
 public class ModelDefinition  implements IDisplayableType<ModelDefinition> {
 
-    @XmlAttribute(name = WorkflowProfileConsts.MODEL_TYPE)
+    @XmlAttribute(name = WorkflowProfileConsts.MODEL_PID)
     private String type;
 
     public String getType() {

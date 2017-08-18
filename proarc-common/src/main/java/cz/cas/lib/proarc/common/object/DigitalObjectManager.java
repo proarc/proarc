@@ -329,7 +329,7 @@ public class DigitalObjectManager {
             }
         }
 
-        public List<Item> createAndConnectToWfJob(BigDecimal wfJobId) throws DigitalObjectException, WorkflowException {
+        public List<Item> createAndConnectToWorkflowJob(BigDecimal wfJobId) throws DigitalObjectException, WorkflowException {
             try {
                 if (isBatch()) {
                     throw new IllegalArgumentException("Only single object (usually top level) is supported to be connected to job");

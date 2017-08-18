@@ -367,6 +367,8 @@ public class WorkflowJobView implements Refreshable {
                                     refresh();
                             }
                         });
+                } else {
+                    SC.warn("Failed to create digital object!");
                 }
             }
         }, dsRequest);

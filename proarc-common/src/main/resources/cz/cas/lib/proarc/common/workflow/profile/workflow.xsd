@@ -137,7 +137,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
     <!-- these models (defined by PID of model) can be created; optional (in case empty list is not possible to create a new object)   -->
     <xs:complexType name="modelDefinition">
-        <xs:attribute name="type" type="xs:string" use="required"/>
+        <xs:attribute name="pid" type="xs:string" use="required"/>
     </xs:complexType>
 
     <xs:complexType name="i18NString">
