@@ -253,6 +253,10 @@ public final class AlephXServer implements BibliographicCatalog {
         }
 
         void addField(String key, String alephKeyword) {
+            if (key == null || alephKeyword == null) {
+                return;
+            }
+
             values.put(key, alephKeyword);
         }
 
