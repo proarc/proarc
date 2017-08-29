@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
+import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
@@ -91,6 +92,7 @@ public class NdkMonographVolumeMapper extends NdkMapper {
         }
         //  mods/genre="volume"
         addGenre(mods, "volume");
+        checkRules(mods);
         //  mods/originInfo/place/placeTerm/type="text"
         List<OriginInfoDefinition> originInfos = mods.getOriginInfo();
         for (OriginInfoDefinition oi : originInfos) {
@@ -103,7 +105,13 @@ public class NdkMonographVolumeMapper extends NdkMapper {
                     }
                 }
             }
+            // sets type in element dateOther
+            for (DateOtherDefinition dateOther : oi.getDateOther()) {
+                dateOther.setType(oi.getEventType());
+            }
+            checkOriginInfo(oi);
         }
+
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
         //  mods/physicalDescription/form@authority="marcform"
@@ -111,6 +119,15 @@ public class NdkMonographVolumeMapper extends NdkMapper {
             for (FormDefinition form : pd.getForm()) {
                 if (form.getAuthority() == null) {
                     form.setAuthority("marcform");
+                }
+                if (form.getAuthority().equals("rdamedia")){
+                    form.setType("media");
+                }
+                if (form.getAuthority().equals("rdacarrier")){
+                    form.setType("carrier");
+                }
+                if (form.getAuthority().equals("marcform") || form.getAuthority().equals("gmd")){
+                    form.setType(null);
                 }
             }
         }

@@ -19,12 +19,18 @@ package cz.cas.lib.proarc.common.mods.ndk;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.mods.CodeOrText;
+import cz.cas.lib.proarc.mods.DateDefinition;
+import cz.cas.lib.proarc.mods.DateOtherDefinition;
+import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.IssuanceDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.StringReader;
 import java.util.Arrays;
@@ -33,6 +39,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -71,6 +78,8 @@ public class NdkPeriodicalMapperTest {
         EasyMock.expect(ctx.getPid()).andReturn("uuid:testId").anyTimes();
         EasyMock.replay(ctx);
 
+        addDescriptionStandard(mods, "aacr");
+
         mapper.createMods(mods, ctx);
         List<IdentifierDefinition> identifiersResult = mods.getIdentifier();
         assertEquals(1, identifiersResult.size());
@@ -98,12 +107,18 @@ public class NdkPeriodicalMapperTest {
         EasyMock.expect(ctx.getPid()).andReturn("uuid:testId").anyTimes();
         EasyMock.replay(ctx);
 
+        addDescriptionStandard(mods, "aacr");
+
         mapper.createMods(mods, ctx);
         PlaceDefinition place = new PlaceDefinition();
         PlaceTermDefinition placeTerm = new PlaceTermDefinition();
         placeTerm.setValue("place");
         place.getPlaceTerm().add(placeTerm);
         mods.getOriginInfo().get(0).getPlace().add(place);
+        DateDefinition date = new DateDefinition();
+        date.setValue("2017");
+        date.setEncoding("MARC21");
+        mods.getOriginInfo().get(0).getDateIssued().add(date);
 
         mapper.createMods(mods, ctx);
 
@@ -137,7 +152,12 @@ public class NdkPeriodicalMapperTest {
 
         OriginInfoDefinition oi = new OriginInfoDefinition();
         oi.getIssuance().add(IssuanceDefinition.SERIAL);
+        DateDefinition date = new DateDefinition();
+        date.setValue("123");
+        date.setEncoding("MARC21");
+        oi.getDateIssued().add(date);
         mods.getOriginInfo().add(oi);
+        addDescriptionStandard(mods, "aacr");
 
         mapper.createMods(mods, ctx);
 
@@ -183,4 +203,154 @@ public class NdkPeriodicalMapperTest {
 
     }
 
+    @Test
+    public void testCheckOriginInfo() {
+        ModsDefinition mods = new ModsDefinition();
+        NdkPeriodicalMapper mapper = new NdkPeriodicalMapper();
+        Context ctx = EasyMock.createMock(Context.class);
+        EasyMock.expect(ctx.getPid()).andReturn("uuid:testId").anyTimes();
+        EasyMock.replay(ctx);
+
+        addDescriptionStandard(mods,"rda");
+
+        OriginInfoDefinition publication = new OriginInfoDefinition();
+        publication.setEventType("publication");
+        DateDefinition datePublication = new DateDefinition();
+        datePublication.setValue("2007");
+        datePublication.setEncoding("MARC21");
+        publication.getDateIssued().add(datePublication);
+
+        OriginInfoDefinition manufacture = new OriginInfoDefinition();
+        manufacture.setEventType("manufacture");
+        DateOtherDefinition dateManufacture = new DateOtherDefinition();
+        dateManufacture.setValue("2006");
+        manufacture.getDateOther().add(dateManufacture);
+
+        OriginInfoDefinition copyright = new OriginInfoDefinition();
+        copyright.setEventType("copyright");
+        DateDefinition dateCopyright = new DateDefinition();
+        dateCopyright.setValue("2008");
+        copyright.getCopyrightDate().add(dateCopyright);
+
+        mods.getOriginInfo().add(publication);
+        mods.getOriginInfo().add(manufacture);
+        mods.getOriginInfo().add(copyright);
+
+        mapper.createMods(mods, ctx);
+    }
+
+    @Test
+    public void testInvalidCheckOriginInfo() {
+        ModsDefinition mods = new ModsDefinition();
+        NdkPeriodicalMapper mapper = new NdkPeriodicalMapper();
+        Context ctx = EasyMock.createMock(Context.class);
+        EasyMock.expect(ctx.getPid()).andReturn("uuid:testId").anyTimes();
+        EasyMock.replay(ctx);
+
+        addDescriptionStandard(mods, "rda");
+
+        OriginInfoDefinition emptyPublication = new OriginInfoDefinition();
+        emptyPublication.setEventType("publication");
+        DateDefinition datePublication = new DateDefinition();
+        datePublication.setEncoding("MARC");
+        emptyPublication.getDateIssued().add(datePublication);
+        mods.getOriginInfo().add(emptyPublication);
+
+        try{
+            mapper.createMods(mods, ctx);
+            Assert.fail("The validation error expected");
+        } catch (IllegalArgumentException ex){
+            String message = "Pole dateIssued nesmí být prázdné, pokud je vyplněno eventType = publication";
+            assertEquals(message, ex.getMessage());
+            mods.getOriginInfo().clear();
+        }
+
+        OriginInfoDefinition invalidPublication = new OriginInfoDefinition();
+        invalidPublication.setEventType("publication");
+        DateDefinition date = new DateDefinition();
+        date.setValue("2007");
+        date.setEncoding("MARC21");
+        invalidPublication.getDateIssued().add(date);
+        DateOtherDefinition dateInvalidPublication = new DateOtherDefinition();
+        dateInvalidPublication.setValue("2001");
+        invalidPublication.getDateOther().add(dateInvalidPublication);
+        mods.getOriginInfo().add(invalidPublication);
+
+        try{
+            mapper.createMods(mods, ctx);
+            Assert.fail("The validation error expected");
+        } catch (IllegalArgumentException ex){
+            String message = "Pole dateOther musí být prázdné, pokud je vyplněno eventType = publication";
+            assertEquals(message, ex.getMessage());
+            mods.getOriginInfo().clear();
+        }
+    }
+
+    @Test
+    public void testCheckRules(){
+        ModsDefinition mods = new ModsDefinition();
+        NdkPeriodicalMapper mapper = new NdkPeriodicalMapper();
+        Context ctx = EasyMock.createMock(Context.class);
+        EasyMock.expect(ctx.getPid()).andReturn("uuid:testId").anyTimes();
+        EasyMock.replay(ctx);
+
+        OriginInfoDefinition publication = new OriginInfoDefinition();
+        publication.setEventType("publication");
+        DateDefinition date = new DateDefinition();
+        date.setValue("2007");
+        date.setEncoding("MARC21");
+        publication.getDateIssued().add(date);
+        mods.getOriginInfo().add(publication);
+        addPhysicalDescription(mods, "rdamedia", "bez media");
+        addDescriptionStandard(mods,"rda");
+        mapper.createMods(mods, ctx);
+
+        try {
+            addDescriptionStandard(mods, "aacr");
+            mapper.createMods(mods, ctx);
+            Assert.fail("Validation error expected");
+        }catch (IllegalArgumentException ex){
+            String message = "Pokud se zpracovává podle pravidel \"AACR\" potom musí být pole eventType prázdné.";
+            assertEquals(message, ex.getMessage());
+            mods.getOriginInfo().clear();
+        }
+
+        OriginInfoDefinition emptyOriginInfo = new OriginInfoDefinition();
+        emptyOriginInfo.getDateIssued().add(date);
+        mods.getOriginInfo().add(emptyOriginInfo);
+
+        addPhysicalDescription(mods, "gmd", "print");
+        addDescriptionStandard(mods, "aacr");
+        mapper.createMods(mods, ctx);
+
+        try {
+            addDescriptionStandard(mods, "rda");
+            mapper.createMods(mods, ctx);
+            Assert.fail("Validation error expected");
+        }catch (IllegalArgumentException ex){
+            String message = "Pokud se zpracovává podle pravidel \"RDA\" potom v elementu physicalDescription musí být pole hodnota \"rdamedia\" nebo \"rdacarrier\".";
+            assertEquals(message, ex.getMessage());
+        }
+    }
+
+    /** Sets PhysicalDescriptions */
+    private void addPhysicalDescription(ModsDefinition mods, String authority, String value){
+        mods.getPhysicalDescription().clear();
+        FormDefinition form = new FormDefinition();
+        form.setValue(value);
+        form.setAuthority(authority);
+        PhysicalDescriptionDefinition pd = new PhysicalDescriptionDefinition();
+        pd.getForm().add(form);
+        mods.getPhysicalDescription().add(pd);
+    }
+
+    /** Sets DescriptionStandard */
+    private void addDescriptionStandard(ModsDefinition mods, String rules) {
+        mods.getRecordInfo().clear();
+        RecordInfoDefinition recordInfo = new RecordInfoDefinition();
+        StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
+        descriptionStandard.setValue(rules);
+        recordInfo.getDescriptionStandard().add(descriptionStandard);
+        mods.getRecordInfo().add(recordInfo);
+    }
 }

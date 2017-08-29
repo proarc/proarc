@@ -1004,6 +1004,23 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </dateOther>
             </originInfo>
         </xsl:for-each>
+        <xsl:for-each select="marc:datafield[@tag=264][@ind2=4]">
+            <originInfo eventType="copyright">
+                <!-- Template checks for altRepGroup - 880 $6 -->
+                <xsl:call-template name="xxx880"/>
+                <place>
+                    <placeTerm type="text">
+                        <xsl:value-of select="marc:subfield[@code='a']"/>
+                    </placeTerm>
+                </place>
+                <publisher>
+                    <xsl:value-of select="marc:subfield[@code='b']"/>
+                </publisher>
+                <copyrightDate>
+                    <xsl:value-of select="marc:subfield[@code='c']"/>
+                </copyrightDate>
+            </originInfo>
+        </xsl:for-each>
 
 
 

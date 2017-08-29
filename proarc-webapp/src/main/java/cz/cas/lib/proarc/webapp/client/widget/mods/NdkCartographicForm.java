@@ -36,6 +36,19 @@ public final class NdkCartographicForm {
         f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
         List<Field> modsFields = f.getFields().get(0).getFields();
 
+        // recordInfo - descriptionStandard
+        modsFields.add(new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
+                .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Description Standard - MA").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+                                .setHint("Popis standardu, ve kterém je přebíraný katalogizační záznam."
+                                        + "<p>Odpovídá hodnotě návěští záznamu MARC21, pozice 18 - hodnota „aacr“ pro LDR/18 = „a“"
+                                        + "<p>Odpovídá hodnotě záznamu MARC21 pole 040 a podpole $e „rda“")
+                                .addMapValue("aacr", "aacr")
+                                .addMapValue("rda", "rda")
+                                .createField()) // value
+                        .createField()) // descriptionStandard
+                .createField()); // recordInfo
+
         // titleInfo, titleInfoDefinition
         modsFields.add(new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
                 .setHint("Název titulu.<p>Pro plnění použít katalogizační záznam.")
@@ -185,7 +198,21 @@ public final class NdkCartographicForm {
 //                .createField())
                 // @displayLabel
                 // @altRepGroup
-                // @eventType
+                // eventType
+                .addField(new FieldBuilder("eventType").setTitle("Event Type - M").setMaxOccurrences(1). setType(Field.COMBO)
+                    .setHint("Hodnoty dle druhého indikátoru pole 264:"
+                        +"<p>264_0 production se uvádí, jestliže pole obsahuje údaje o vytvoření zdroje v nezveřejněné podobě."
+                        +"<p>264_1 publication se uvádí, jestliže pole obsahuje údaje o nakladateli zdroje."
+                        +"<p>264_2 distribution se uvádí, jestliže pole obsahuje údaje o distribuci zdroje."
+                        +"<p>264_3 manufacture se uvádí, jestliže pole obsahuje údaje o tisku, výrobě zdroje ve zveřejněné podobě."
+                        +"<p>264_4 copyright (R) se uvádí, jestliže pole obsahuje údaje o ochraně podle autorského práva (copyright).")
+                    .addMapValue("", "")
+                    .addMapValue("production", "production")
+                    .addMapValue("publication", "publication")
+                    .addMapValue("distribution", "distribution")
+                    .addMapValue("manufacture", "manufacture")
+                    .addMapValue("copyright", "copyright")
+                .createField()) // eventType
                 // place, placeDefinition
                 .addField(new FieldBuilder("place").setTitle("Place - MA").setMaxOccurrences(10)
                     .setHint("Údaje o místě spojeném s vydáním, výrobou nebo původem popisovaného dokumentu.")
@@ -247,17 +274,31 @@ public final class NdkCartographicForm {
                         .addMapValue("inferred", "Inferred")
                         .addMapValue("questionable", "Questionable")
                     .createField()) // @qualifier
-                    .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setWidth("200")
+                    .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                     .setHint("Datum vydání předlohy."
                         + "<p>Odpovídá hodnotě z katalogizačního záznamu, pole 260, podpole „c“ a pole 008/07-10.")
                     .createField()) // value
                 .createField()) // dateIssued
+                // dateOther, dateOtherDefinition extends dateDefinition
+                .addField(new FieldBuilder("dateOther").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setTitle("Date Other - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Datum vytvoření, distribuce, výroby předlohy."
+                            + "<p>Tento elemet se využije v případě výskytu $c v:"
+                            + "<p>264_0 je production"
+                            + "<p>264_2 je distribution"
+                            + "<p>264_3 je manufacture")
+                    .createField()) // value
+                .createField()) // dateOther
+                // copyrightDate, dateDefinition extends stringPlusLanguage
+                .addField(new FieldBuilder("copyrightDate").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setTitle("Copyright Date - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Využije se pouze v případě výskuytu pole 264 s druhým indikátorem \"4\" a podpolem $c.")
+                    .createField()) // value
+                .createField()) // copyrightDate
                 // dateCreated, dateDefinition extends stringPlusLanguage
                 // dateCaptured
                 // dateValid
                 // dateModified
-                // copyrightDate
-                // dateOther
                 // edition, type="stringPlusLanguagePlusSupplied"
                 // issuance, issuanceDefinition, enum
                 .addField(new FieldBuilder("issuance").setTitle("Issuance - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
@@ -323,6 +364,8 @@ public final class NdkCartographicForm {
                     .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
                             .addMapValue("marcform", "marcform")
                             .addMapValue("gmd", "gmd")
+                            .addMapValue("rdamedia", "rdamedia")
+                            .addMapValue("rdacarrier", "rdacarrier")
                     .createField()) //authority
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
                         .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("print")
@@ -334,6 +377,19 @@ public final class NdkCartographicForm {
                         .addMapValue("microfilm", "microfilm")
                         .addMapValue("microfiche", "microfiche")
                         .addMapValue("print", "print")
+                        .addMapValue("jiný", "jiný")
+                        .addMapValue("audio", "rdamedia - audio")
+                        .addMapValue("počítač", "rdamedia - počítač")
+                        .addMapValue("mikroforma", "rdamedia - mikroforma")
+                        .addMapValue("mikroskop", "rdamedia - mikroskop")
+                        .addMapValue("projekce", "rdamedia - projekce")
+                        .addMapValue("stereograf", "rdamedia - stereograf")
+                        .addMapValue("bez media", "rdamedia - bez media")
+                        .addMapValue("video", "rdamedia - video")
+                        .addMapValue("svazek", "rdacarrier - svazek")
+                        .addMapValue("online zdroj", "rdacarrier - online zdroj")
+                        .addMapValue("audiodisk", "rdacarrier - audiodisk")
+                        .addMapValue("počítačový disk", "rdacarrier - počítačový disk")
                     .createField()) // value
                 .createField()) // form
                 // reformattingQuality
@@ -688,13 +744,6 @@ public final class NdkCartographicForm {
                         .addMapValue("human prepared", "human prepared")
                     .createField())
                 .createField()) // recordChangeDate
-                // descriptionStandard
-                .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Description Standard - O").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Popis standardu, ve kterém je přebíraný katalogizační záznam."
-                            + "<p>Odpovídá hodnotě návěští záznamu MARC21, pozice 18 - hodnota „aacr“ pro LDR/18 = „a“")
-                    .createField()) // value
-                .createField()) // descriptionStandard
         .createField()); // recordInfo
 
         return f;
