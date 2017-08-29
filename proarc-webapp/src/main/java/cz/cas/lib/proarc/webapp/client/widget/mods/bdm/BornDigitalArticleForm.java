@@ -45,6 +45,19 @@ public final class BornDigitalArticleForm {
         f.getFields().add(mods);
         List<Field> modsFields = mods.getFields();
 
+        // recordInfo - descriptionStandard
+        modsFields.add(new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
+                .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Description Standard - MA").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+                                .setHint("Popis standardu, ve kterém je přebíraný katalogizační záznam."
+                                        + "<p>Odpovídá hodnotě návěští záznamu MARC21, pozice 18 - hodnota „aacr“ pro LDR/18 = „a“"
+                                        + "<p>Odpovídá hodnotě záznamu MARC21 pole 040 a podpole $e „rda“")
+                                .addMapValue("aacr", "aacr")
+                                .addMapValue("rda", "rda")
+                                .createField()) // value
+                        .createField()) // descriptionStandard
+                .createField()); // recordInfo
+
         modsFields.add(genre());
         modsFields.add(titleInfo(f.getItemWidth()));
         modsFields.add(name());
@@ -335,6 +348,8 @@ public final class BornDigitalArticleForm {
                     .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("marcform")
                         .addMapValue("marcform", "marcform")
                         .addMapValue("gmd", "gmd")
+                        .addMapValue("rdamedia", "rdamedia")
+                        .addMapValue("rdacarrier", "rdacarrier")
                     .createField()) // authority
                     .addField(new FieldBuilder("value").setTitle("Form - R").setMaxOccurrences(1).setType(Field.COMBO)
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
@@ -345,6 +360,19 @@ public final class BornDigitalArticleForm {
                         .addMapValue("microfilm", "microfilm")
                         .addMapValue("microfiche", "microfiche")
                         .addMapValue("print", "print")
+                        .addMapValue("jiný", "jiný")
+                        .addMapValue("audio", "rdamedia - audio")
+                        .addMapValue("počítač", "rdamedia - počítač")
+                        .addMapValue("mikroforma", "rdamedia - mikroforma")
+                        .addMapValue("mikroskop", "rdamedia - mikroskop")
+                        .addMapValue("projekce", "rdamedia - projekce")
+                        .addMapValue("stereograf", "rdamedia - stereograf")
+                        .addMapValue("bez media", "rdamedia - bez media")
+                        .addMapValue("video", "rdamedia - video")
+                        .addMapValue("svazek", "rdacarrier - svazek")
+                        .addMapValue("online zdroj", "rdacarrier - online zdroj")
+                        .addMapValue("audiodisk", "rdacarrier - audiodisk")
+                        .addMapValue("počítačový disk", "rdacarrier - počítačový disk")
                     .createField()) // value
                 .createField()) // form
                 // reformattingQuality

@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
+import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
@@ -71,6 +72,7 @@ public class NdkPeriodicalMapper extends NdkMapper {
         }
         //  mods/genre="title"
         addGenre(mods, "title");
+        checkRules (mods);
         //  mods/originInfo/issuance="continuing"
         //  mods/originInfo/place/placeTerm/type="text"
         OriginInfoDefinition reqOriginInfo = null;
@@ -103,6 +105,11 @@ public class NdkPeriodicalMapper extends NdkMapper {
                     }
                 }
             }
+            // sets type in element dateOther
+            for(DateOtherDefinition dateOther : oi.getDateOther()){
+                dateOther.setType(oi.getEventType());
+            }
+            checkOriginInfo(oi);
         }
         if (reqOriginInfo == null) {
             reqOriginInfo = new OriginInfoDefinition();
@@ -124,8 +131,18 @@ public class NdkPeriodicalMapper extends NdkMapper {
                     }
                     reqForm = form;
                 }
+                if (form.getAuthority().equals("rdamedia")){
+                    form.setType("media");
+                }
+                if (form.getAuthority().equals("rdacarrier")){
+                    form.setType("carrier");
+                }
+                if (form.getAuthority().equals("marcform") || form.getAuthority().equals("gmd")){
+                    form.setType(null);
+                }
             }
-            if (reqForm == null) {
+            String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
+            if (reqForm == null && descriptionStandard.equalsIgnoreCase("aacr")) {
                 reqForm = new FormDefinition();
                 reqForm.setAuthority("marcform");
                 reqForm.setValue("print");

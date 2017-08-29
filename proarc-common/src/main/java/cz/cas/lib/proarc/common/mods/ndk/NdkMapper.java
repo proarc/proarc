@@ -23,8 +23,11 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
@@ -168,6 +171,89 @@ public abstract class NdkMapper {
             return createTitleString(ti);
         }
         return null;
+    }
+
+    /** Checks if the correct fields are filled depending on eventType */
+    protected void checkOriginInfo(OriginInfoDefinition oi) {
+        if (oi.getEventType() == null || oi.getEventType().equals("publication")) {
+            isDateNull(oi.getCopyrightDate(), oi.getEventType(), "copyrightDate", 0);
+            isDateNull(oi.getDateOther(), oi.getEventType(), "dateOther", 0);
+            isDateEmpty(oi.getDateIssued(), oi.getEventType(), "dateIssued", 1);
+            isDateNull(oi.getDateIssued(), oi.getEventType(), "dateIssued", 1);
+        } else if (oi.getEventType().equals("production") ||
+                oi.getEventType().equals("distribution") ||
+                oi.getEventType().equals("manufacture")){
+            isDateNull(oi.getCopyrightDate(), oi.getEventType(), "copyrightDate", 0);
+            isDateEmpty(oi.getDateIssued(), oi.getEventType(), "dateIssued", 0);
+            isDateNull(oi.getDateIssued(), oi.getEventType(), "dateIssued", 0);
+            isDateNull(oi.getDateOther(), oi.getEventType(), "dateOther", 1);
+        } else if (oi.getEventType().equals("copyright")){
+            isDateEmpty(oi.getDateIssued(), oi.getEventType(), "dateIssued", 0);
+            isDateNull(oi.getDateIssued(), oi.getEventType(), "dateIssued", 0);
+            isDateNull(oi.getDateOther(), oi.getEventType(), "dateOther", 0);
+            isDateEmpty(oi.getCopyrightDate(), oi.getEventType(), "copyrightDate", 1);
+            isDateNull(oi.getCopyrightDate(), oi.getEventType(), "copyrightDate", 1);
+        } else {
+            throw new IllegalArgumentException("Invalid value in element eventType");
+        }
+    }
+
+    /** Checks if elements in List is null */
+    private void isDateNull(List dates, String event, String element, int isEmpty) {
+        for (Object date : dates) {
+            if (isEmpty == 0) {
+                if (!(((DateDefinition) date).getValue() == null)) {
+                    throw new IllegalArgumentException("Pole " + element + " musí být prázdné, pokud je vyplněno eventType = " + event);
+                }
+            } else if (isEmpty == 1) {
+                if (((DateDefinition) date).getValue() == null) {
+                    throw new IllegalArgumentException("Pole " + element + " nesmí být prázdné, pokud je vyplněno eventType = " + event);
+                }
+            }
+        }
+    }
+
+    /** Checks if the list is empty */
+    private void isDateEmpty (List dates, String event, String element, int isEmpty) {
+        if (isEmpty == 1 && dates.isEmpty()) {
+            throw new IllegalArgumentException("Pole " + element + " nesmí být prázdné, pokud je vyplněno eventType = " + event);
+        } else if (isEmpty == 0 && !dates.isEmpty()) {
+            throw new IllegalArgumentException("Pole " + element + " musí být prázdné, pokud je vyplněno eventType = " + event);
+        }
+    }
+
+    /** Checks if the correct fields are filled depending on eventType */
+    protected void checkRules(ModsDefinition mods) {
+        if (mods.getRecordInfo().isEmpty()) {
+            return;
+        }
+        String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
+        if (descriptionStandard == null) {
+            throw new IllegalArgumentException("Missing value in descriptionStandard");
+        } else if (!descriptionStandard.equalsIgnoreCase("rda")
+                && !descriptionStandard.equalsIgnoreCase("aacr")) {
+            throw new IllegalArgumentException("Wrong value in descriptionStandard");
+        }
+        List<OriginInfoDefinition> originInfoDefinitions = mods.getOriginInfo();
+        List<PhysicalDescriptionDefinition> physicalDescriptions = mods.getPhysicalDescription();
+        if (descriptionStandard.equalsIgnoreCase("rda")) {
+            for (PhysicalDescriptionDefinition pd : physicalDescriptions) {
+                if (!pd.getForm().get(0).getAuthority().equals("rdamedia") && !pd.getForm().get(0).getAuthority().equals("rdacarrier")) {
+                    throw new IllegalArgumentException("Pokud se zpracovává podle pravidel \"RDA\" potom v elementu physicalDescription musí být pole hodnota \"rdamedia\" nebo \"rdacarrier\".");
+                }
+            }
+        } else if (descriptionStandard.equalsIgnoreCase("aacr")) {
+            for (OriginInfoDefinition oi : originInfoDefinitions) {
+                if (oi.getEventType() != null) {
+                    throw new IllegalArgumentException("Pokud se zpracovává podle pravidel \"AACR\" potom musí být pole eventType prázdné.");
+                }
+            }
+            for (PhysicalDescriptionDefinition pd : physicalDescriptions) {
+                if (!pd.getForm().get(0).getAuthority().equals("marcform") && !pd.getForm().get(0).getAuthority().equals("gmd")) {
+                    throw new IllegalArgumentException("Pokud se zpracovává podle pravidel \"AACR\" potom v elementu physicalDescription musí být pole hodnota \"marcform\" nebo \"gmd\".");
+                }
+            }
+        }
     }
 
     public static class Context {

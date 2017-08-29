@@ -18,10 +18,12 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
+import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.SubjectDefinition;
 import cz.cas.lib.proarc.mods.SubjectNameDefinition;
@@ -49,6 +51,27 @@ public class NdkMonographSupplementMapper extends NdkMapper {
         for (ClassificationDefinition classification : classifications) {
             if (classification.getAuthority() == null) {
                 classification.setAuthority("udc");
+            }
+        }
+        checkRules(mods);
+        for (OriginInfoDefinition oi : mods.getOriginInfo()) {
+            // sets type in element dateOther
+            for (DateOtherDefinition dateOther : oi.getDateOther()) {
+                dateOther.setType(oi.getEventType());
+            }
+            checkOriginInfo(oi);
+        }
+        for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
+            for (FormDefinition form : pd.getForm()) {
+                if (form.getAuthority().equals("rdamedia")) {
+                    form.setType("media");
+                }
+                if (form.getAuthority().equals("rdacarrier")) {
+                    form.setType("carrier");
+                }
+                if (form.getAuthority().equals("marcform") || form.getAuthority().equals("gmd")) {
+                    form.setType(null);
+                }
             }
         }
     }
