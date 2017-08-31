@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.catalog;
 
 import cz.cas.lib.proarc.common.catalog.AlephXServer.Criteria;
+import cz.cas.lib.proarc.common.catalog.AlephXServer.FieldConfig;
+import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Proxy;
@@ -25,12 +27,16 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.configuration.BaseConfiguration;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -93,7 +99,7 @@ public class AlephXServerTest {
             xmlIS.close();
         }
     }
-    
+
     @Test
     public void testDetailResponse() throws Exception {
         InputStream xmlIS = AlephXServerTest.class.getResourceAsStream("alephXServerDetailResponse.xml");
@@ -119,7 +125,7 @@ public class AlephXServerTest {
 
     @Test
     public void testSetQuery() throws Exception {
-        Criteria issnCriteria = Criteria.get("issn", "ISSNVALUE");
+        Criteria issnCriteria = new FieldConfig().getCriteria("issn", "ISSNVALUE");
         URI result = AlephXServer.setQuery(new URI("http://aleph.nkp.cz/X?base=nkc"),
                 issnCriteria.toUrlParams(), true);
         assertEquals("http://aleph.nkp.cz/X?base=nkc&op=find&request=ssn=ISSNVALUE", result.toASCIIString());
@@ -128,11 +134,32 @@ public class AlephXServerTest {
 
     @Test
     public void testSetFurtherQuery() throws Exception {
-        Criteria issnCriteria = Criteria.get("issn", "ISSNVALUE");
+        Criteria issnCriteria = new FieldConfig().getCriteria("issn", "ISSNVALUE");
         URI result = AlephXServer.setQuery(new URI("http://aleph.nkp.cz/X?base=nkc"),
                 issnCriteria.toUrlParams(), false);
         assertEquals("http://aleph.nkp.cz/X?op=find&request=ssn=ISSNVALUE", result.toASCIIString());
         System.out.println("URI: " + result.toASCIIString());
+    }
+
+    @Test
+    public  void testCustomConfiguration() throws Exception {
+
+        final String id = "aleph_nkp";
+
+        CatalogConfiguration c = new CatalogConfiguration(id, "", new BaseConfiguration() {{
+            addProperty(CatalogConfiguration.PROPERTY_URL, "http://aleph.nkp.cz/X?base=nkc");
+            addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
+            addProperty(CatalogConfiguration.PROPERTY_TYPE, AlephXServer.TYPE);
+            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "sg");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + ".sg.title", "Short Signature");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + ".sg.query", "sg");
+        }});
+
+        AlephXServer result = AlephXServer.get(c);
+
+        assertNotNull(result);
+        assertEquals("op=find&request=sg=test", result.fields.getCriteria("sg", "test").toUrlParams());
+        assertEquals(null, result.fields.getCriteria("sig", "test"));
     }
 
 //    @Test

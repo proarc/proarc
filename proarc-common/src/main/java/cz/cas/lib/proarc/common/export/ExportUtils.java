@@ -100,7 +100,7 @@ public final class ExportUtils {
      * @param log fedora log message
      * @throws DigitalObjectException failure
      */
-    static void storeObjectExportResult(String pid, String target, String log) throws DigitalObjectException {
+    public static void storeObjectExportResult(String pid, String target, String log) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         FedoraObject fo = dom.find(pid, null);
         DigitalObjectHandler doh = dom.createHandler(fo);

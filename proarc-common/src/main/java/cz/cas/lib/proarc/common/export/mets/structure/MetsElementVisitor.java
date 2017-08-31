@@ -59,6 +59,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -185,27 +186,39 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     /**
      * Inits the Mets header info
      */
-    protected void initHeader(IMetsElement metsElement) {
+    protected void initHeader(IMetsElement metsElement) throws MetsExportException {
         mets.setLabel1(metsElement.getLabel());
         MetsHdr metsHdr = new MetsHdr();
         metsHdr.setCREATEDATE(metsElement.getCreateDate());
         metsHdr.setLASTMODDATE(metsElement.getLastUpdateDate());
-        Agent agent = new Agent();
-        agent.setName(metsElement.getMetsContext().getCreatorOrganization());
-        agent.setROLE("CREATOR");
-        agent.setTYPE("ORGANIZATION");
-        metsHdr.getAgent().add(agent);
+
+        setAgent(metsHdr, "CREATOR", "ORGANIZATION", metsElement.getMetsContext().getOptions().getCreator());
+        setAgent(metsHdr, "ARCHIVIST", "ORGANIZATION",metsElement.getMetsContext().getOptions().getArchivist());
+
         mets.setMetsHdr(metsHdr);
         fileGrpMap = MetsUtils.initFileGroups();
     }
 
     /**
-     * Prepares the generic mets information
+     * Agent setting - used in metsHeader
      *
-     * @param metsElement
-     * @return
-     * @throws MetsExportException
+     * @throws MetsExportException if Archivist/Creator in proarc.cfg is empty
      */
+    private void setAgent(MetsHdr metsHdr, String role, String type, String name) throws MetsExportException {
+
+        if (name == null) {
+            throw new MetsExportException("Error - missing role. Please insert value in proarc.cfg into export.ndk.agent.creator and export.ndk.agent.archivist", false);
+        } else {
+
+            Agent agent = new Agent();
+            agent.setName(name);
+            agent.setROLE(role);
+            agent.setTYPE(type);
+            metsHdr.getAgent().add(agent);
+        }
+    }
+
+    /** Prepares the generic mets information */
     private Mets prepareMets(IMetsElement metsElement) throws MetsExportException {
         Mets mets = new Mets();
         logicalStruct = new StructMapType();
@@ -673,7 +686,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         event.setEventDetail(eventDetail);
         EventIdentifierComplexType eventIdentifier = new EventIdentifierComplexType();
         event.setEventIdentifier(eventIdentifier);
-        event.setEventType("derivation");
+        event.setEventType(StringUtils.substringBefore(eventDetail, "/"));
         eventIdentifier.setEventIdentifierType("ProArc_EventID");
         eventIdentifier.setEventIdentifierValue(Const.dataStreamToEvent.get(datastream));
         EventOutcomeInformationComplexType eventInformation = new EventOutcomeInformationComplexType();
@@ -826,22 +839,24 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             amdSec.getTechMD().add(mdSec);
         }
         if ("OBJ_002".equals(Id) || ("EVT_002".equals(Id))) {
-            if ((amdSecFileGrpMap.get("MC_IMGGRP") != null) && (amdSecFileGrpMap.get("MC_IMGGRP").getFile().get(0) != null)) {
-                amdSecFileGrpMap.get("MC_IMGGRP").getFile().get(0).getADMID().add(mdSec);
+            if ((amdSecFileGrpMap.get(Const.MC_GRP_ID) != null) && (amdSecFileGrpMap.get(Const.MC_GRP_ID).getFile().get(0) != null)) {
+                amdSecFileGrpMap.get(Const.MC_GRP_ID).getFile().get(0).getADMID().add(mdSec);
             }
         }
         if ("OBJ_003".equals(Id) || ("EVT_003".equals(Id))) {
-            if ((amdSecFileGrpMap.get("ALTOGRP") != null) && (amdSecFileGrpMap.get("ALTOGRP").getFile().get(0) != null)) {
-                amdSecFileGrpMap.get("ALTOGRP").getFile().get(0).getADMID().add(mdSec);
+            if ((amdSecFileGrpMap.get(Const.ALTO_GRP_ID) != null) && (amdSecFileGrpMap.get(Const.ALTO_GRP_ID).getFile().get(0) != null)) {
+                amdSecFileGrpMap.get(Const.ALTO_GRP_ID).getFile().get(0).getADMID().add(mdSec);
             }
         }
     }
 
     private void addPremisToAmdSec(AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, IMetsElement metsElement, HashMap<String, FileGrp> amdSecFileGrpMap) throws MetsExportException {
         HashMap<String, String> toGenerate = new HashMap<String, String>();
-        toGenerate.put("OBJ_001", "RAW");
-        toGenerate.put("OBJ_002", "MC_IMGGRP");
-        toGenerate.put("OBJ_003", "ALTOGRP");
+        toGenerate.put("OBJ_001", Const.RAW_GRP_ID);
+        toGenerate.put("OBJ_002", Const.MC_GRP_ID);
+        toGenerate.put("OBJ_003", Const.ALTO_GRP_ID);
+        toGenerate.put("OBJ_004", Const.UC_GRP_ID);
+        toGenerate.put("OBJ_005", Const.TXT_GRP_ID);
 
         for (String obj : toGenerate.keySet()) {
             String stream = toGenerate.get(obj);
@@ -851,15 +866,21 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream)), amdSec, obj, false, amdSecFileGrpMap);
         }
 
-        if (md5InfosMap.get("RAW") != null) {
-            addPremisNodeToMets(getPremisEvent(metsElement, "RAW", md5InfosMap.get("RAW"), "capture/digitization"), amdSec, "EVT_001", true, null);
+        if (md5InfosMap.get(Const.RAW_GRP_ID) != null) {
+            addPremisNodeToMets(getPremisEvent(metsElement, Const.RAW_GRP_ID, md5InfosMap.get(Const.RAW_GRP_ID), "capture/digitization"), amdSec, "EVT_001", true, null);
         }
 
-        if (md5InfosMap.get("MC_IMGGRP") != null) {
-            addPremisNodeToMets(getPremisEvent(metsElement, "MC_IMGGRP", md5InfosMap.get("MC_IMGGRP"), "migration/MC_creation"), amdSec, "EVT_002", true, amdSecFileGrpMap);
+        if (md5InfosMap.get(Const.MC_GRP_ID) != null) {
+            addPremisNodeToMets(getPremisEvent(metsElement, Const.MC_GRP_ID, md5InfosMap.get(Const.MC_GRP_ID), "migration/MC_creation"), amdSec, "EVT_002", true, amdSecFileGrpMap);
         }
-        if (md5InfosMap.get("ALTOGRP") != null) {
-            addPremisNodeToMets(getPremisEvent(metsElement, "ALTOGRP", md5InfosMap.get("ALTOGRP"), "capture/XML_creation"), amdSec, "EVT_003", true, amdSecFileGrpMap);
+        if (md5InfosMap.get(Const.ALTO_GRP_ID) != null) {
+            addPremisNodeToMets(getPremisEvent(metsElement, Const.ALTO_GRP_ID, md5InfosMap.get(Const.ALTO_GRP_ID), "capture/XML_creation"), amdSec, "EVT_003", true, amdSecFileGrpMap);
+        }
+        if(md5InfosMap.get(Const.UC_GRP_ID) != null){
+            addPremisNodeToMets(getPremisEvent(metsElement, Const.UC_GRP_ID, md5InfosMap.get(Const.UC_GRP_ID), "derivation/UC_creation"), amdSec, "EVT_004", true, amdSecFileGrpMap);
+        }
+        if (md5InfosMap.get(Const.TXT_GRP_ID) != null){
+            addPremisNodeToMets(getPremisEvent(metsElement, Const.TXT_GRP_ID, md5InfosMap.get(Const.TXT_GRP_ID), "capture/TXT_creation"), amdSec, "EVT_005", true, amdSecFileGrpMap);
         }
 
         addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_001", true, null);
@@ -890,7 +911,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      */
     public static void fixMCMix(JHoveOutput jHoveOutputMC, String originalPid, XMLGregorianCalendar mcCreated, String originalFile, PhotometricInterpretation photometricInterpretation) {
         JhoveUtility.insertChangeHistory(jHoveOutputMC.getMix(), mcCreated, originalFile);
-        JhoveUtility.insertObjectIdentifier(jHoveOutputMC.getMix(), originalPid, "MC_IMGGRP");
+        JhoveUtility.insertObjectIdentifier(jHoveOutputMC.getMix(), originalPid, Const.MC_GRP_ID);
         JhoveUtility.addPhotometricInformation(jHoveOutputMC, photometricInterpretation);
         JhoveUtility.addDenominator(jHoveOutputMC);
         JhoveUtility.addOrientation(jHoveOutputMC);
@@ -1021,21 +1042,21 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
             }
 
-            if (fileNames.get("MC_IMGGRP") != null) {
-                toGenerate.put("MIX_002", "MC_IMGGRP");
-                String outputFileName = outputFileNames.get("MC_IMGGRP");
+            if (fileNames.get(Const.MC_GRP_ID) != null) {
+                toGenerate.put("MIX_002", Const.MC_GRP_ID);
+                String outputFileName = outputFileNames.get(Const.MC_GRP_ID);
                 if (outputFileName != null) {
                     String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
                     if (metsElement.getMetsContext().getFedoraClient() != null) {
                         jHoveOutputMC = JhoveUtility.getMixFromFedora(metsElement, MixEditor.NDK_ARCHIVAL_ID);
                     }
                     if (jHoveOutputMC == null) {
-                        jHoveOutputMC = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile);
+                        jHoveOutputMC = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get(Const.MC_GRP_ID).getCreated(), originalFile);
                         if (jHoveOutputMC.getMix() == null) {
                             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for MC image", false, null);
                         }
                     }
-                    fixMCMix(jHoveOutputMC, metsElement.getOriginalPid(), md5InfosMap.get("MC_IMGGRP").getCreated(), originalFile, photometricInterpretation);
+                    fixMCMix(jHoveOutputMC, metsElement.getOriginalPid(), md5InfosMap.get(Const.MC_GRP_ID).getCreated(), originalFile, photometricInterpretation);
                 }
             }
 
@@ -1058,15 +1079,15 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                 md5InfosMap.get(streamName).setFormatVersion(jHoveOutputRaw.getFormatVersion());
                             }
                         }
-                    } else if (("MC_IMGGRP".equals(streamName)) && (md5InfosMap.get("MC_IMGGRP") != null)) {
+                    } else if ((Const.MC_GRP_ID.equals(streamName)) && (md5InfosMap.get(Const.MC_GRP_ID) != null)) {
                         if (jHoveOutputMC != null) {
                             mixNode = jHoveOutputMC.getMixNode();
                             if (md5InfosMap.get(streamName) != null) {
                                 md5InfosMap.get(streamName).setFormatVersion(jHoveOutputMC.getFormatVersion());
                             }
                             if (mixNode != null) {
-                                if ((amdSecFileGrpMap.get("MC_IMGGRP") != null) && (amdSecFileGrpMap.get("MC_IMGGRP").getFile().get(0) != null)) {
-                                    amdSecFileGrpMap.get("MC_IMGGRP").getFile().get(0).getADMID().add(mdSec);
+                                if ((amdSecFileGrpMap.get(Const.MC_GRP_ID) != null) && (amdSecFileGrpMap.get(Const.MC_GRP_ID).getFile().get(0) != null)) {
+                                    amdSecFileGrpMap.get(Const.MC_GRP_ID).getFile().get(0).getADMID().add(mdSec);
                                 }
                             }
                         }
@@ -1085,12 +1106,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             }
 
             if (rawFile != null) {
-                outputFileNames.remove("RAW");
+                outputFileNames.remove(Const.RAW_GRP_ID);
                 rawFile.delete();
             }
 
-            if (outputFileNames.get("ALTOGRP") != null) {
-                File altoFile = new File(outputFileNames.get("ALTOGRP"));
+            if (outputFileNames.get(Const.ALTO_GRP_ID) != null) {
+                File altoFile = new File(outputFileNames.get(Const.ALTO_GRP_ID));
                 if (altoFile.exists()) {
                     Schema altoSchema;
                     try {
@@ -1103,7 +1124,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     } catch (Exception exSax) {
                         throw new MetsExportException(metsElement.getOriginalPid(), "Invalid ALTO", false, exSax);
                     }
-                    md5InfosMap.get("ALTOGRP").setFormatVersion("2.0");
+                    md5InfosMap.get(Const.ALTO_GRP_ID).setFormatVersion("2.0");
                 }
             }
 
@@ -1326,7 +1347,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 Fptr fptr = new Fptr();
                 fptr.setFILEID(fileType);
                 pageDiv.getFptr().add(fptr);
-                if ("ALTOGRP".equals(streamName)) {
+                if (Const.ALTO_GRP_ID.equals(streamName)) {
                     metsElement.setAltoFile(fileType);
                 }
             } else {

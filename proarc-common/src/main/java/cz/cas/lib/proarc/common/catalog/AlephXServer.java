@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.catalog;
 
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.config.CatalogQueryField;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.xml.Transformers;
 import java.io.BufferedInputStream;
@@ -30,8 +31,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXB;
@@ -52,26 +55,37 @@ import org.w3c.dom.Element;
 public final class AlephXServer implements BibliographicCatalog {
 
     public static final String TYPE = "AlephXServer";
+    public static final String PROPERTY_FIELD_QUERY = "query";
+
     private static final Logger LOG = Logger.getLogger(AlephXServer.class.getName());
 
     private final Transformers transformers = new Transformers();
     private final URI server;
+    final FieldConfig fields = new FieldConfig();
 
     public static AlephXServer get(CatalogConfiguration c) {
         if (c == null || !TYPE.equals(c.getType())) {
             return null;
         }
+
         String url = c.getUrl();
         if (url != null) {
             try {
-                return new AlephXServer(url);
-            } catch (MalformedURLException ex) {
-                LOG.log(Level.SEVERE, c.toString(), ex);
-            } catch (URISyntaxException ex) {
+                AlephXServer aleph = new AlephXServer(url);
+                aleph.loadFields(c);
+                return aleph;
+            } catch (MalformedURLException | URISyntaxException ex) {
                 LOG.log(Level.SEVERE, c.toString(), ex);
             }
         }
         return null;
+    }
+
+    private void loadFields(CatalogConfiguration c) {
+        List<CatalogQueryField> queryFields = c.getQueryFields();
+        for (CatalogQueryField queryField : queryFields) {
+            fields.addField(queryField.getName(), queryField.getProperties().getString(PROPERTY_FIELD_QUERY));
+        }
     }
 
     public AlephXServer(URI uri) {
@@ -89,8 +103,8 @@ public final class AlephXServer implements BibliographicCatalog {
 
     @Override
     public List<MetadataItem> find(String fieldName, String value, Locale locale) throws TransformerException, IOException {
-        Criteria criteria = Criteria.get(fieldName, value);
-        if (value == null) {
+        Criteria criteria = fields.getCriteria(fieldName, value);
+        if (criteria == null) {
             return Collections.emptyList();
         }
         InputStream is = fetchEntries(criteria);
@@ -218,11 +232,39 @@ public final class AlephXServer implements BibliographicCatalog {
         }
     }
 
+    static final class FieldConfig {
+
+        private final Map<String, String> values = new HashMap<String,String>() {
+            {
+                put("barcode", "bar");
+                put("ccnb", "cnb");
+                put("issn", "ssn");
+                put("isbn", "sbn");
+                put("signature", "sg");
+            }
+        };
+
+        public Criteria getCriteria(String fieldName, String value) {
+            if (value == null  || value.trim().length() == 0) {
+                return null;
+            }
+            Criteria.Field f = findField(fieldName);
+            return f == null ? null : new Criteria(value, f);
+        }
+
+        void addField(String key, String alephKeyword) {
+            values.put(key, alephKeyword);
+        }
+
+        private Criteria.Field findField(String keyword) {
+            String alephKeyword = values.get(keyword);
+            return alephKeyword == null ? null : new Criteria.Field(keyword, alephKeyword);
+        }
+    }
+
     static final class Criteria {
 
-        enum Field {
-            BARCODE("barcode", "bar"), CCNB("ccnb", "cnb"),
-            ISSN("issn", "ssn"), ISBN("isbn", "sbn"), SGINATURE("signature", "sg");
+        private static final class Field {
 
             private final String alephKeyword;
             private final String keyword;
@@ -238,15 +280,6 @@ public final class AlephXServer implements BibliographicCatalog {
 
             public String getKeyword() {
                 return keyword;
-            }
-
-            public static Field fromString(String keyword) {
-                for (Field field : values()) {
-                    if (field.getKeyword().equals(keyword)) {
-                        return field;
-                    }
-                }
-                return null;
             }
 
         }
@@ -265,13 +298,6 @@ public final class AlephXServer implements BibliographicCatalog {
             return url;
         }
 
-        public static Criteria get(String fieldName, String value) {
-            if (value == null  || value.trim().length() == 0) {
-                return null;
-            }
-            Field field = Field.fromString(fieldName);
-            return field == null ? null : new Criteria(value, field);
-        }
     }
 
 

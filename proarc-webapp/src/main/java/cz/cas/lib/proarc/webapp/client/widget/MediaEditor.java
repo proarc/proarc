@@ -23,6 +23,7 @@ import com.smartgwt.client.data.SortSpecifier;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.SortDirection;
 import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.Offline;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.form.ColorPicker;
@@ -64,6 +65,13 @@ import static cz.cas.lib.proarc.webapp.client.ds.MediaDataSource.FIELD_PID;
  */
 public final class MediaEditor implements DatastreamEditor, Refreshable {
 
+    public static final String MEDIA_EDITOR_LAST_SELECTION = "mediaEditorLastSelection";
+
+    public static final String SOURCE_DIGITAL_OBJECT_EDITOR = "DigitalObjectEditor";
+    public static final String SOURCE_IMPORT_BATCH_ITEM_EDITOR = "ImportBatchItemEditor";
+
+    public static final String SOURCE_IDENTIFIER = "source";
+
     private static String REFRESH;
 
     private final ClientMessages i18n;
@@ -78,10 +86,12 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private SelectItem streamMenu;
     private boolean showRefreshButton;
     private final ActionSource actionSource;
+    private String source;
 
-    public MediaEditor(ClientMessages i18n) {
+    public MediaEditor(ClientMessages i18n, String source) {
         this.i18n = i18n;
         this.actionSource = new ActionSource(this);
+        this.source = source;
         doPreview = new DigitalObjectPreview(i18n);
         initActions(i18n);
     }
@@ -325,6 +335,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private void updateStreamMenu(DigitalObject dobj) {
         Criteria streamMenuFilter = dobj.toCriteria();
         streamMenu.setPickListCriteria(streamMenuFilter);
+        streamMenu.setAttribute(SOURCE_IDENTIFIER, getLastSelectionId(dobj, source));
         streamMenu.fetchData();
     }
 
@@ -340,7 +351,10 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
     private void showStream() {
         StreamProfile stream = StreamProfile.get(streamMenu.getSelectedRecord());
+
         if (stream != null) {
+            Offline.put(getLastSelectionId(digitalObject, source), stream.getId());
+
             StringBuilder sb = new StringBuilder();
             sb.append(DigitalObjectResourceApi.DIGITALOBJECT_PID).append('=')
                     .append(digitalObject.getPid())
@@ -388,5 +402,9 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private static String buildResourceUrl(String datastreamUrl, String objectParams) {
         String url = ClientUtils.format("%s?%s", datastreamUrl, objectParams);
         return url;
+    }
+
+    private static String getLastSelectionId(DigitalObject digitalObject, String source) {
+        return MEDIA_EDITOR_LAST_SELECTION + "_" + source + "_" + digitalObject.getModelId();
     }
 }
