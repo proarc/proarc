@@ -151,6 +151,9 @@ public class ExportResource {
 
         export.run();
 
+        FileUtils.deleteDirectory(new File(imp));
+        FileUtils.deleteDirectory(new File(k4p));
+
         return new SmartGwtResponse<ExportResult>(new ExportResult(URI.create(exportPackPath)));
     }
 
