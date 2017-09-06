@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
+
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
@@ -63,13 +65,13 @@ public class NdkMonographSupplementMapper extends NdkMapper {
         }
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {
-                if (form.getAuthority().equals("rdamedia")) {
+                if (form.getAuthority().equals(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)) {
                     form.setType("media");
                 }
-                if (form.getAuthority().equals("rdacarrier")) {
+                if (form.getAuthority().equals(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)) {
                     form.setType("carrier");
                 }
-                if (form.getAuthority().equals("marcform") || form.getAuthority().equals("gmd")) {
+                if (form.getAuthority().equals(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM) || form.getAuthority().equals(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)) {
                     form.setType(null);
                 }
             }

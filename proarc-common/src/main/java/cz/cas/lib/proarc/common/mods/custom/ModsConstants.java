@@ -76,4 +76,18 @@ public interface ModsConstants {
     // monograph unit
     public static final String FIELD_MONOGRAPHUNIT_NUMBER = "monographUnitNumber";
 
+    public static final String VALUE_ORIGININFO_EVENTTYPE_PUBLICATION = "publication";
+    public static final String VALUE_ORIGININFO_EVENTTYPE_PRODUCTION = "production";
+    public static final String VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION = "distribution";
+    public static final String VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE = "manufacture";
+    public static final String VALUE_ORIGININFO_EVENTTYPE_COPYRIGHT = "copyright";
+
+    public static final String FIELD_ORIGININFO_DATE_ISSUED = "dateIssued";
+    public static final String FIELD_ORIGININFO_DATE_OTHER = "dateOther";
+    public static final String FIELD_ORIGININFO_DATE_COPYRIGHT = "copyrightDate";
+
+    public static final String VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA = "rdamedia";
+    public static final String VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER = "rdacarrier";
+    public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM = "marcform";
+    public static final String VALUE_PHYSICALDESCRIPTION_FORM_GMD = "gmd";
 }

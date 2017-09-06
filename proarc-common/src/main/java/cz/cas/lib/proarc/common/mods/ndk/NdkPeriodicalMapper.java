@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
@@ -126,32 +127,32 @@ public class NdkPeriodicalMapper extends NdkMapper {
             List<FormDefinition> forms = pd.getForm();
             for (FormDefinition form : forms) {
                 if ("print".equals(form.getValue())) {
-                    if (!"marcform".equals(form.getAuthority())) {
-                        form.setAuthority("marcform");
+                    if (!ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM.equals(form.getAuthority())) {
+                        form.setAuthority(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM);
                     }
                     reqForm = form;
                 }
-                if (form.getAuthority().equals("rdamedia")){
+                if (form.getAuthority().equals(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)) {
                     form.setType("media");
                 }
-                if (form.getAuthority().equals("rdacarrier")){
+                if (form.getAuthority().equals(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)) {
                     form.setType("carrier");
                 }
-                if (form.getAuthority().equals("marcform") || form.getAuthority().equals("gmd")){
+                if (form.getAuthority().equals(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM) || form.getAuthority().equals(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)) {
                     form.setType(null);
                 }
             }
             String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
             if (reqForm == null && descriptionStandard.equalsIgnoreCase("aacr")) {
                 reqForm = new FormDefinition();
-                reqForm.setAuthority("marcform");
+                reqForm.setAuthority(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM);
                 reqForm.setValue("print");
                 forms.add(0, reqForm);
             }
         }
         if (reqPhysicalDescription == null) {
             reqForm = new FormDefinition();
-            reqForm.setAuthority("marcform");
+            reqForm.setAuthority(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM);
             reqForm.setValue("print");
             reqPhysicalDescription = new PhysicalDescriptionDefinition();
             reqPhysicalDescription.getForm().add(reqForm);

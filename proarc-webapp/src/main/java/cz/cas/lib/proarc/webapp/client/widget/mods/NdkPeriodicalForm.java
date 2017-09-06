@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
@@ -361,10 +362,10 @@ public final class NdkPeriodicalForm {
                     // @type
                     // XXX autofill "marcform"
                     .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
-                        .addMapValue("marcform", "marcform")
-                        .addMapValue("gmd", "gmd")
-                        .addMapValue("rdamedia", "rdamedia")
-                        .addMapValue("rdacarrier", "rdacarrier")
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)
                     .createField()) // authority
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
                         .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("print")

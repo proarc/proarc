@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
@@ -234,11 +235,11 @@ public final class NdkMonographVolumeForm {
                         +"<p>264_3 manufacture se uvádí, jestliže pole obsahuje údaje o tisku, výrobě zdroje ve zveřejněné podobě."
                         +"<p>264_4 copyright (R) se uvádí, jestliže pole obsahuje údaje o ochraně podle autorského práva (copyright).")
                     .addMapValue("", "")
-                    .addMapValue("production", "production")
-                    .addMapValue("publication", "publication")
-                    .addMapValue("distribution", "distribution")
-                    .addMapValue("manufacture", "manufacture")
-                    .addMapValue("copyright", "copyright")
+                    .addMapValue(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION, ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION)
+                    .addMapValue(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION, ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION)
+                    .addMapValue(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION, ModsConstants.VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION)
+                    .addMapValue(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE, ModsConstants.VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE)
+                    .addMapValue(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_COPYRIGHT, ModsConstants.VALUE_ORIGININFO_EVENTTYPE_COPYRIGHT)
                 .createField()) // eventType
                 // place, placeDefinition
                 .addField(new FieldBuilder("place").setTitle("Place - MA").setMaxOccurrences(10)
@@ -405,10 +406,10 @@ public final class NdkMonographVolumeForm {
                     // @type
                     // XXX autofill "marcform"
                     .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
-                        .addMapValue("marcform", "marcform")
-                        .addMapValue("gmd", "gmd")
-                        .addMapValue("rdamedia", "rdamedia")
-                        .addMapValue("rdacarrier", "rdacarrier")
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)
                     .createField()) // authority
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
                         .setType(Field.COMBO).setRequired(true).setHint("form")

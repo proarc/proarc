@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -175,22 +176,22 @@ public abstract class NdkMapper {
 
     /** Checks if the correct fields are filled depending on eventType */
     protected void checkOriginInfo(OriginInfoDefinition oi) {
-        if (oi.getEventType() == null || oi.getEventType().equals("publication")) {
-            isDateNull(oi.getCopyrightDate(), oi.getEventType(), "copyrightDate", 0);
-            isDateNull(oi.getDateOther(), oi.getEventType(), "dateOther", 0);
-            isDateEmpty(oi.getDateIssued(), oi.getEventType(), "dateIssued", 1);
-            isDateNull(oi.getDateIssued(), oi.getEventType(), "dateIssued", 1);
-        } else if (oi.getEventType().equals("production") ||
-                oi.getEventType().equals("distribution") ||
-                oi.getEventType().equals("manufacture")){
-            isDateNull(oi.getCopyrightDate(), oi.getEventType(), "copyrightDate", 0);
-            isDateEmpty(oi.getDateIssued(), oi.getEventType(), "dateIssued", 0);
-            isDateNull(oi.getDateIssued(), oi.getEventType(), "dateIssued", 0);
-        } else if (oi.getEventType().equals("copyright")){
-            isDateEmpty(oi.getDateIssued(), oi.getEventType(), "dateIssued", 0);
-            isDateNull(oi.getDateIssued(), oi.getEventType(), "dateIssued", 0);
-            isDateNull(oi.getDateOther(), oi.getEventType(), "dateOther", 0);
-            isDateEmpty(oi.getCopyrightDate(), oi.getEventType(), "copyrightDate", 1);
+        if (oi.getEventType() == null || oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION)) {
+            isDateNull(oi.getCopyrightDate(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_COPYRIGHT, 0);
+            isDateNull(oi.getDateOther(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_OTHER, 0);
+            isDateEmpty(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, 1);
+            isDateNull(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, 1);
+        } else if (oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION) ||
+                oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION) ||
+                oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE)){
+            isDateNull(oi.getCopyrightDate(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_COPYRIGHT, 0);
+            isDateEmpty(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, 0);
+            isDateNull(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, 0);
+        } else if (oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_COPYRIGHT)){
+            isDateEmpty(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, 0);
+            isDateNull(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, 0);
+            isDateNull(oi.getDateOther(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_OTHER, 0);
+            isDateEmpty(oi.getCopyrightDate(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_COPYRIGHT, 1);
         } else {
             throw new IllegalArgumentException("Invalid value in element eventType");
         }
