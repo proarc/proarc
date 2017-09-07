@@ -187,7 +187,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * Inits the Mets header info
      */
     protected void initHeader(IMetsElement metsElement) throws MetsExportException {
-        mets.setLabel1(metsElement.getLabel());
+        mets.setLabel1(getTitle(metsElement) + metsElement.getLabel());
         MetsHdr metsHdr = new MetsHdr();
         metsHdr.setCREATEDATE(metsElement.getCreateDate());
         metsHdr.setLASTMODDATE(metsElement.getLastUpdateDate());
@@ -198,6 +198,29 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         mets.setMetsHdr(metsHdr);
         fileGrpMap = MetsUtils.initFileGroups();
     }
+
+    /**
+     * Returns the name of title if element is issue
+     */
+    private String getTitle(IMetsElement metsElement) throws MetsExportException {
+        if (isIssue(metsElement)) {
+            Node partNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='titleInfo']/*[local-name()='title']");
+            if (partNode == null){
+                throw new MetsExportException("Error - missing title. Please insert title.");
+            }
+            return partNode.getTextContent() + " ";
+        }
+        return "";
+    }
+
+    /**
+     * Returns true if element is issue, else return false
+     */
+    public boolean isIssue(IMetsElement metsElement) throws MetsExportException {
+        String type = MetsUtils.xPathEvaluateString(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='part']/@type");
+        return type.equals("issue");
+    }
+
 
     /**
      * Agent setting - used in metsHeader
