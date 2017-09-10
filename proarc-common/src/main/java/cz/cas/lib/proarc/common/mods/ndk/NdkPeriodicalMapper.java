@@ -17,10 +17,7 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
-import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
@@ -73,7 +70,6 @@ public class NdkPeriodicalMapper extends NdkMapper {
         }
         //  mods/genre="title"
         addGenre(mods, "title");
-        checkRules (mods);
         //  mods/originInfo/issuance="continuing"
         //  mods/originInfo/place/placeTerm/type="text"
         OriginInfoDefinition reqOriginInfo = null;
@@ -110,7 +106,6 @@ public class NdkPeriodicalMapper extends NdkMapper {
             for(DateOtherDefinition dateOther : oi.getDateOther()){
                 dateOther.setType(oi.getEventType());
             }
-            checkOriginInfo(oi);
         }
         if (reqOriginInfo == null) {
             reqOriginInfo = new OriginInfoDefinition();
@@ -142,8 +137,7 @@ public class NdkPeriodicalMapper extends NdkMapper {
                     form.setType(null);
                 }
             }
-            String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
-            if (reqForm == null && descriptionStandard.equalsIgnoreCase("aacr")) {
+            if (reqForm == null) {
                 reqForm = new FormDefinition();
                 reqForm.setAuthority(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM);
                 reqForm.setValue("print");

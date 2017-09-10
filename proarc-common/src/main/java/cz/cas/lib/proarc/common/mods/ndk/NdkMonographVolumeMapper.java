@@ -94,7 +94,6 @@ public class NdkMonographVolumeMapper extends NdkMapper {
         }
         //  mods/genre="volume"
         addGenre(mods, "volume");
-        checkRules(mods);
         //  mods/originInfo/place/placeTerm/type="text"
         List<OriginInfoDefinition> originInfos = mods.getOriginInfo();
         for (OriginInfoDefinition oi : originInfos) {
@@ -111,9 +110,7 @@ public class NdkMonographVolumeMapper extends NdkMapper {
             for (DateOtherDefinition dateOther : oi.getDateOther()) {
                 dateOther.setType(oi.getEventType());
             }
-            checkOriginInfo(oi);
         }
-
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
         //  mods/physicalDescription/form@authority="marcform"

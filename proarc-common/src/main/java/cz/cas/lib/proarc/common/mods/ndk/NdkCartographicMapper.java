@@ -95,12 +95,10 @@ public class NdkCartographicMapper extends NdkMapper {
                     }
                 }
             }
-            checkRules(mods);
             // sets type in element dateOther
             for (DateOtherDefinition dateOther : oi.getDateOther()) {
                 dateOther.setType(oi.getEventType());
             }
-            checkOriginInfo(oi);
         }
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);

@@ -54,13 +54,11 @@ public class NdkPeriodicalSupplementMapper extends NdkMapper {
                 classification.setAuthority("udc");
             }
         }
-        checkRules(mods);
         for (OriginInfoDefinition oi : mods.getOriginInfo()) {
             // sets type in element dateOther
             for (DateOtherDefinition dateOther : oi.getDateOther()) {
                 dateOther.setType(oi.getEventType());
             }
-            checkOriginInfo(oi);
         }
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {
