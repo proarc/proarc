@@ -235,13 +235,7 @@ public abstract class NdkMapper {
         }
         List<OriginInfoDefinition> originInfoDefinitions = mods.getOriginInfo();
         List<PhysicalDescriptionDefinition> physicalDescriptions = mods.getPhysicalDescription();
-        if (descriptionStandard.equalsIgnoreCase("rda")) {
-            for (PhysicalDescriptionDefinition pd : physicalDescriptions) {
-                if (!pd.getForm().isEmpty() && !pd.getForm().get(0).getAuthority().equals("rdamedia") && !pd.getForm().get(0).getAuthority().equals("rdacarrier")) {
-                    throw new IllegalArgumentException("Pokud se zpracovává podle pravidel \"RDA\" potom v elementu physicalDescription musí být pole hodnota \"rdamedia\" nebo \"rdacarrier\".");
-                }
-            }
-        } else if (descriptionStandard.equalsIgnoreCase("aacr")) {
+        if (descriptionStandard.equalsIgnoreCase("aacr")) {
             for (OriginInfoDefinition oi : originInfoDefinitions) {
                 if (oi.getEventType() != null) {
                     throw new IllegalArgumentException("Pokud se zpracovává podle pravidel \"AACR\" potom musí být pole eventType prázdné.");
