@@ -18,10 +18,14 @@ package cz.cas.lib.proarc.common.object;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
+import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.fedora.FedoraDao;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
@@ -36,6 +40,8 @@ import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
+import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
@@ -180,7 +186,7 @@ public class DigitalObjectManager {
         }
     }
 
-    public class CreateHandler {
+    public class CreateHandler extends FedoraDao  {
 
         private final String modelId;
         private String pid;
@@ -213,6 +219,14 @@ public class DigitalObjectManager {
             this.parentPid = parentPid;
             this.xml = xml;
             this.message = message;
+        }
+
+        public void setXml(String xml) {
+            this.xml = xml;
+        }
+
+        public String getXml() {
+            return xml;
         }
 
         /**
@@ -329,47 +343,41 @@ public class DigitalObjectManager {
             }
         }
 
+        /**
+         * Creates a fedora object and connects it to workflow
+         *
+         * @param wfJobId workflow job id
+         * @return
+         * @throws DigitalObjectException
+         * @throws WorkflowException
+         */
         public List<Item> createAndConnectToWorkflowJob(BigDecimal wfJobId) throws DigitalObjectException, WorkflowException {
-            try {
-                if (isBatch()) {
-                    throw new IllegalArgumentException("Only single object (usually top level) is supported to be connected to job");
-                } else if (wfJobId == null) {
-                    throw new IllegalArgumentException("wfJobId cannot be null");
-                }
-
-                // enter critical section (avoid fedora object without connection)
-                if (!keyLocks.add(wfJobId)) {
-                    throw new DigitalObjectConcurrentModificationException(wfJobId.toString(), "Concurrent create object!");
-                }
-
-                List<Item> items = create();
-
-                MaterialView digitalMaterial = getMaterial(wfJobId, MaterialType.DIGITAL_OBJECT);
-                if (digitalMaterial == null) {
-                    throw new DigitalObjectException("There is no digital material to connect");
-                } else if (digitalMaterial.getPid() != null) {
-                    throw new DigitalObjectConcurrentModificationException(wfJobId.toString(), "Concurrent create object!");
-                }
-
-                MaterialView physicalMaterial = getMaterial(wfJobId, MaterialType.PHYSICAL_DOCUMENT);
-                xml = (physicalMaterial != null) ? physicalMaterial.getMetadata() : null;
-
-
-                if (!items.isEmpty()) {
-                    digitalMaterial.setPid(items.get(0).getPid());
-                    WorkflowManager.getInstance().updateMaterial(digitalMaterial);
-                }
-
-                return items;
-
-            } finally {
-                keyLocks.remove(wfJobId);
+            if (isBatch()) {
+                throw new IllegalArgumentException("Only single object (usually top level) is supported to be connected to job");
+            } else if (wfJobId == null) {
+                throw new IllegalArgumentException("Workwlow job id cannot be null");
             }
+            WorkflowManager workflowManager = WorkflowManager.getInstance();
+            MaterialFilter filter = new MaterialFilter();
+            filter.setLocale(Locale.ENGLISH);
+            filter.setJobId(wfJobId);
+            filter.setType(MaterialType.PHYSICAL_DOCUMENT);
+            List<MaterialView> physicalMaterials = workflowManager.findMaterial(filter);
+
+            if (physicalMaterials.size() != 1) {
+                throw new WorkflowException("Wrong number of physical materials").addUnexpectedError();
+            }
+
+            MaterialView digitalMaterial = workflowManager.createDigitalMaterialFromPhysical(this, physicalMaterials.get(0));
+
+            Item item = new Item(digitalMaterial.getPid());
+            item.setLabel(digitalMaterial.getLabel());
+
+            return Collections.singletonList(item);
         }
 
         private MaterialView getMaterial(BigDecimal wfJobid, MaterialType type) {
             MaterialFilter filter = new MaterialFilter();
-            //TODO-MR whatever locale
             filter.setLocale(Locale.ENGLISH);
             filter.setJobId(wfJobid);
             filter.setType(type);
@@ -427,6 +435,10 @@ public class DigitalObjectManager {
             getRemotes().ingest(localObject, user.getUserName(), message);
             if (parentHandler != null) {
                 parentHandler.commit();
+            }
+
+            if (tx != null) {
+                tx.addPid(localObject.getPid());
             }
 
             Item item = new Item(localObject.getPid());
