@@ -90,4 +90,7 @@ public interface ModsConstants {
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER = "rdacarrier";
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM = "marcform";
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_GMD = "gmd";
+
+    public static final String VALUE_DESCRIPTIONSTANDARD_RDA = "rda";
+    public static final String VALUE_DESCRIPTIONSTANDARD_AACR = "aacr";
 }

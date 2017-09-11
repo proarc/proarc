@@ -34,23 +34,19 @@ public final class NdkPeriodicalForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
-        List<Field> modsFields = f.getFields().get(0).getFields();
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard)").setMaxOccurrences(1)
+                .setType(Field.COMBO).setRequired(true)
+                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
+                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
+                .createField());
+
+        Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
+        f.getFields().add(mods);
+
+        List<Field> modsFields = mods.getFields();
 
 //        modsFields.add(new FieldBuilder("ID").setTitle("ID").setMaxOccurrences(1).setType(Field.TEXT).createField());
 //        modsFields.add(new FieldBuilder("version").setTitle("Verze").setMaxOccurrences(1).setType(Field.TEXT).setReadOnly(true).createField());
-        // recordInfo - descriptionStandard
-        modsFields.add(new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
-                .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1)
-                        .addField(new FieldBuilder("value").setTitle("Description Standard - MA").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
-                                .setHint("Popis standardu, ve kterém je přebíraný katalogizační záznam."
-                                        + "<p>Odpovídá hodnotě návěští záznamu MARC21, pozice 18 - hodnota „aacr“ pro LDR/18 = „a“"
-                                        + "<p>Odpovídá hodnotě záznamu MARC21 pole 040 a podpole $e „rda“")
-                                .addMapValue("aacr", "aacr")
-                                .addMapValue("rda", "rda")
-                                .createField()) // value
-                        .createField()) // descriptionStandard
-                .createField()); // recordInfo
 
         modsFields.add(titleInfo());
         modsFields.add(typeOfResource());
@@ -722,6 +718,7 @@ public final class NdkPeriodicalForm {
                     .createField()) // languageTerm
                     // scriptTerm
                 .createField()) // languageOfCataloging
+                .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField()) //descriptionStandard
         .createField(); // recordInfo
     }
 }

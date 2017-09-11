@@ -225,5 +225,4 @@ public class NdkPeriodicalMapper extends NdkMapper {
         }
         return dc;
     }
-
 }

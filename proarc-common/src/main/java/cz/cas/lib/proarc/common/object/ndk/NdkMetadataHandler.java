@@ -576,5 +576,4 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             this.mods = mods;
         }
     }
-
 }

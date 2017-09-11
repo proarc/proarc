@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
-
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
@@ -128,5 +127,4 @@ public class NdkPeriodicalSupplementMapper extends NdkMapper {
         addStringPlusLanguage(dc.getSubjects(), mods.getClassification());
         return dc;
     }
-
 }

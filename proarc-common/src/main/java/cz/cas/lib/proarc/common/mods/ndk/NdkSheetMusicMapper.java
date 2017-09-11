@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
-
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
@@ -195,5 +194,4 @@ public class NdkSheetMusicMapper extends NdkMapper {
         }
         return dc;
     }
-
 }

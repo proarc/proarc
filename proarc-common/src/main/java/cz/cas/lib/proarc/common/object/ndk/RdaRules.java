@@ -22,8 +22,11 @@ import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
-
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Checks RDA rules.
@@ -35,6 +38,10 @@ public class RdaRules {
     String modelId;
     ModsDefinition mods;
     DigitalObjectValidationException exception;
+
+    public static final Set<String> HAS_MEMBER_RDA_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<String>(
+            Arrays.asList(NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHVOLUME,
+                    NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_SHEETMUSIC)));
 
     public static final String ERR_NDK_RDA_EMPTYVALUE = "Err_Ndk_Rda_EmptyValue";
     public static final String ERR_NDK_RDA_FILLVALUE = "Err_Ndk_Rda_FillValue";
@@ -50,7 +57,7 @@ public class RdaRules {
     }
 
     public void check() throws DigitalObjectValidationException{
-        if (isRightModel(modelId)) {
+        if (HAS_MEMBER_RDA_VALIDATION_MODELS.contains(modelId)) {
             checkRules(mods);
             for (OriginInfoDefinition oi : mods.getOriginInfo()) {
                 checkOriginInfoRdaRules(oi);
@@ -59,19 +66,6 @@ public class RdaRules {
         if (!exception.getValidations().isEmpty()){
             throw exception;
         }
-    }
-
-    /** Checks if {@code modelId} is the right model, that can be described by RDA rules */
-    public boolean isRightModel(String modelId) {
-        String[] models = {NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
-                NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_SHEETMUSIC};
-
-        for (int i = 0; i < models.length; i++) {
-            if (models[i].equals(modelId)){
-                return true;
-            }
-        }
-        return false;
     }
 
     /** Checks if the correct fields are filled depending on eventType */
