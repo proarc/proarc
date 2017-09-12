@@ -142,7 +142,7 @@ public class AlephXServerTest {
     }
 
     @Test
-    public  void testCustomConfiguration() throws Exception {
+    public void testCustomConfiguration() throws Exception {
 
         final String id = "aleph_nkp";
 
@@ -160,6 +160,17 @@ public class AlephXServerTest {
         assertNotNull(result);
         assertEquals("op=find&request=sg=test", result.fields.getCriteria("sg", "test").toUrlParams());
         assertEquals(null, result.fields.getCriteria("sig", "test"));
+    }
+
+    @Test
+    public void testInvalidFieldConfiguration() throws Exception {
+        FieldConfig config = new FieldConfig();
+
+        assertNotNull(config.getCriteria("issn", "ISSNVALUE"));
+
+        config.addField("issn", null);
+
+        assertNotNull(config.getCriteria("issn", "ISSNVALUE"));
     }
 
 //    @Test
