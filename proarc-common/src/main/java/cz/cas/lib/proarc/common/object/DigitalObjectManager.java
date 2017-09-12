@@ -76,8 +76,6 @@ public class DigitalObjectManager {
     private static DigitalObjectManager INSTANCE;
     private static final Logger LOG = Logger.getLogger(DigitalObjectManager.class.getName());
 
-    private static final Set<BigDecimal> keyLocks = ConcurrentHashMap.newKeySet();
-
     public static DigitalObjectManager getDefault() {
         return INSTANCE;
     }
@@ -351,7 +349,7 @@ public class DigitalObjectManager {
          * @throws DigitalObjectException
          * @throws WorkflowException
          */
-        public List<Item> createAndConnectToWorkflowJob(BigDecimal wfJobId) throws DigitalObjectException, WorkflowException {
+        public List<Item> createAndConnectToWorkflowJob(BigDecimal wfJobId) throws WorkflowException {
             if (isBatch()) {
                 throw new IllegalArgumentException("Only single object (usually top level) is supported to be connected to job");
             } else if (wfJobId == null) {
@@ -374,19 +372,6 @@ public class DigitalObjectManager {
             item.setLabel(digitalMaterial.getLabel());
 
             return Collections.singletonList(item);
-        }
-
-        private MaterialView getMaterial(BigDecimal wfJobid, MaterialType type) {
-            MaterialFilter filter = new MaterialFilter();
-            filter.setLocale(Locale.ENGLISH);
-            filter.setJobId(wfJobid);
-            filter.setType(type);
-            List<MaterialView> materials = WorkflowManager.getInstance().findMaterial(filter);
-            if (!materials.isEmpty()) {
-                return materials.get(0);
-            } else {
-                return null;
-            }
         }
 
         private List<Item> createBatch() throws DigitalObjectException {

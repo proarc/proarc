@@ -256,19 +256,6 @@ public class DigitalObjectResource {
         }
     }
 
-    private MaterialView getMaterial(BigDecimal wfJobid, MaterialType type) {
-        MaterialFilter filter = new MaterialFilter();
-        filter.setLocale(session.getLocale(httpHeaders));
-        filter.setJobId(wfJobid);
-        filter.setType(type);
-        List<MaterialView> materials = WorkflowManager.getInstance().findMaterial(filter);
-        if (materials.isEmpty()) {
-             return null;
-        } else {
-            return materials.get(0);
-        }
-    }
-
     /**
      * @see PurgeFedoraObject
      */
