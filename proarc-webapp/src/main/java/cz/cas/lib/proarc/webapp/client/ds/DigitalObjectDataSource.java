@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.shared.GWT;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
@@ -24,6 +25,7 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceTextField;
+import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.BooleanItem;
@@ -120,6 +122,49 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
         delete(pids, Collections.emptyMap());
     }
 
+    public void saveNewDigitalObject(String modelId, String pid, String mods, Long workflowJobId, Callback<String, ErrorSavingDigitalObject> callback) {
+        Record r = new Record();
+        DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
+        r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
+        if (mods != null) {
+            r.setAttribute(DigitalObjectDataSource.FIELD_MODS, mods);
+        }
+        if (pid != null && !pid.isEmpty()) {
+            r.setAttribute(DigitalObjectDataSource.FIELD_PID, pid);
+        }
+
+        if (workflowJobId != null) {
+            r.setAttribute(DigitalObjectDataSource.FIELD_WF_JOB_ID, workflowJobId);
+        }
+
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setWillHandleError(true);
+        ds.addData(r, new DSCallback() {
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (response.getStatus() == RPCResponse.STATUS_VALIDATION_ERROR) {
+                    ErrorSavingDigitalObject validationError = ErrorSavingDigitalObject.VALIDATION_ERROR;
+                    validationError.setValidationErrors(response.getErrors());
+                    callback.onFailure(validationError);
+                    request.setWillHandleError(true);
+                }
+                if (response.getHttpResponseCode() >= 400) {
+                    callback.onFailure(null);
+                } else if (RestConfig.isConcurrentModification(response)) {
+                    callback.onFailure(ErrorSavingDigitalObject.CONCURRENT_MODIFICATION);
+                } else {
+                    Record[] data = response.getData();
+                    if (data != null && data.length > 0) {
+                        String pid = data[0].getAttribute(DigitalObjectDataSource.FIELD_PID);
+                        callback.onSuccess(pid);
+                    } else {
+                        callback.onFailure(ErrorSavingDigitalObject.ERROR_SAVING_DIGITAL_OBJECT);
+                    }
+                }
+            }
+        }, dsRequest);
+    }
+
     private static String option(Object val, String defval) {
         return val != null ? val.toString() : defval;
     }
@@ -149,6 +194,20 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
                 }
             }
         }, dsRequest);
+    }
+
+    public static enum ErrorSavingDigitalObject {
+        VALIDATION_ERROR, CONCURRENT_MODIFICATION, ERROR_SAVING_DIGITAL_OBJECT;
+
+        private Map validationErrors;
+
+        public Map getValidationErrors() {
+            return validationErrors;
+        }
+
+        public void setValidationErrors(Map validationErrors) {
+            this.validationErrors = validationErrors;
+        }
     }
 
     public static final class DigitalObject {

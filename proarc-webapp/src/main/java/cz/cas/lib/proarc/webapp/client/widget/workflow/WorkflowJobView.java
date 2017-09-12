@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.workflow;
 
+import com.google.gwt.core.client.Callback;
 import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
@@ -70,6 +71,7 @@ import cz.cas.lib.proarc.webapp.client.widget.CanvasSizePersistence;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import java.util.Map;
 
 /**
  *
@@ -349,29 +351,26 @@ public class WorkflowJobView implements Refreshable {
         }
 
         DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
-        Record r = new Record();
-        r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
-        r.setAttribute(DigitalObjectDataSource.FIELD_WF_JOB_ID, jobId);
-
-        DSRequest dsRequest = new DSRequest();
-        dsRequest.setWillHandleError(true);
-        ds.addData(r, new DSCallback() {
+        ds.saveNewDigitalObject(modelId, null, null, jobId, new Callback<String, DigitalObjectDataSource.ErrorSavingDigitalObject>() {
 
             @Override
-            public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (RestConfig.isStatusOk(response)) {
-                    SC.say(i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title(), i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
-                } else if (RestConfig.isConcurrentModification(response)) {
-                    SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), aBoolean -> {
+            public void onFailure(DigitalObjectDataSource.ErrorSavingDigitalObject reason) {
+                switch (reason) {
+                    case CONCURRENT_MODIFICATION:
+                        SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), aBoolean -> {
                                 if (aBoolean!= null && aBoolean) {
                                     refresh();
-                            }
-                        });
-                } else {
-                    SC.warn("Failed to create digital object!");
+                            }});
+                    default:
+                        SC.warn("Failed to create digital object!");
                 }
             }
-        }, dsRequest);
+
+            @Override
+            public void onSuccess(String result) {
+                SC.say(i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title(), i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
+            }
+        });
     }
 
 
