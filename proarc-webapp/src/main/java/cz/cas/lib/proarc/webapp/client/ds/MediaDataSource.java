@@ -20,6 +20,7 @@ package cz.cas.lib.proarc.webapp.client.ds;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.RestDataSource;
+import com.smartgwt.client.types.CriteriaPolicy;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
@@ -31,41 +32,43 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
  */
 public class MediaDataSource extends RestDataSource {
 
-    public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
-    public static final String ID_RAW = "RawDataSource";
-    public static final String ID_PREVIEW = "PreviewDataSource";
+    public static final String OBJECT_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
+    public static final String DATASTREAM_ID = DigitalObjectResourceApi.DISSEMINATION_DATASTREAM;
+    public static final String BATCH_ID = DigitalObjectResourceApi.BATCHID_PARAM;
 
-    public MediaDataSource(String dsId, String dsUrl) {
-        setID(dsId);
+    public static final String ID = "MediaDataSource";
+
+    private static MediaDataSource INSTANCE;
+
+    public MediaDataSource() {
+        setID(ID);
 
         setRecordXPath('/' + DigitalObjectResourceApi.STRINGRECORD_ELEMENT);
         setDataFormat(DSDataFormat.JSON);
+        setDataURL(RestConfig.URL_DIGOBJECT_DISSEMINATION);
 
-        setDataURL(dsUrl);
+        DataSourceField objectPidDSF = new DataSourceField(OBJECT_PID, FieldType.TEXT);
+        objectPidDSF.setPrimaryKey(true);
+        objectPidDSF.setRequired(true);
 
-        DataSourceField fieldPid = new DataSourceField(FIELD_PID, FieldType.TEXT);
-        fieldPid.setPrimaryKey(true);
-        fieldPid.setRequired(true);
+        DataSourceField datastreamIdDSF = new DataSourceField(DATASTREAM_ID, FieldType.TEXT);
+        DataSourceField batchIdDSF = new DataSourceField(BATCH_ID, FieldType.TEXT);
 
-        setFields(fieldPid);
+        setFields(objectPidDSF, batchIdDSF, datastreamIdDSF);
+        setTitleField(OBJECT_PID);
 
         setOperationBindings(RestConfig.createDeleteOperation());
-
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
+
+        setCriteriaPolicy(CriteriaPolicy.DROPONCHANGE);
     }
 
-    public static MediaDataSource getRaw() {
-        return getDS(ID_RAW, RestConfig.URL_DIGOBJECT_RAW);
-    }
-
-    public static MediaDataSource getPreview() {
-        return getDS(ID_PREVIEW, RestConfig.URL_DIGOBJECT_PREVIEW);
-    }
-
-    private static MediaDataSource getDS(String dsId, String dsUrl) {
-        MediaDataSource ds = (MediaDataSource) DataSource.get(dsId);
-
-        ds = (ds != null) ? ds : new MediaDataSource(dsId, dsUrl);
-        return ds;
+    public static MediaDataSource getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = (MediaDataSource) DataSource.get(ID);
+            // DataSource.get does not work reliably
+            INSTANCE = INSTANCE != null ? INSTANCE : new MediaDataSource();
+        }
+        return INSTANCE;
     }
 }

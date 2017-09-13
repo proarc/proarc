@@ -17,6 +17,9 @@
 package cz.cas.lib.proarc.webapp.client.widget;
 
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.SortSpecifier;
@@ -53,10 +56,7 @@ import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.StreamProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.StreamProfileDataSource.StreamProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
-
 import java.util.ArrayList;
-
-import static cz.cas.lib.proarc.webapp.client.ds.MediaDataSource.FIELD_PID;
 
 /**
  * Edits data streams containing digitized multimedia content.
@@ -69,6 +69,8 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
     public static final String SOURCE_DIGITAL_OBJECT_EDITOR = "DigitalObjectEditor";
     public static final String SOURCE_IMPORT_BATCH_ITEM_EDITOR = "ImportBatchItemEditor";
+
+    public static final String RAW_ID = "RAW";
 
     public static final String SOURCE_IDENTIFIER = "source";
 
@@ -266,7 +268,8 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
                     Record options = optionsForm.getValuesAsRecord();
                     d.destroy();
 
-                    removeDS(digitalObject.getPid());
+                    removeDS();
+                    refresh();
                 });
                 d.addNoButton(new Dialog.DialogCloseHandler() {
                     @Override
@@ -286,18 +289,39 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         return f;
     }
 
-    private void removeDS(String uuid) {
+    private void removeDS() {
         if (digitalObject == null) {
             throw new IllegalArgumentException("uuid cannot be null");
         }
 
+        String pid = digitalObject.getPid();
+        String batchId = digitalObject.getBatchId();
+
         Record query = new Record();
-        query.setAttribute(FIELD_PID, uuid);
+        query.setAttribute(MediaDataSource.OBJECT_PID, pid);
+        query.setAttribute(MediaDataSource.BATCH_ID, batchId);
+        query.setAttribute(MediaDataSource.DATASTREAM_ID, "RAW");
 
-        MediaDataSource.getRaw().removeData(query);
-        MediaDataSource.getPreview().removeData(query);
+        BooleanCallback call = new BooleanCallback() {
+            @Override
+            public void execute(Boolean value) {
+            }
+        };
 
-        refresh();
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setData(query); // prevents removeData to drop other than primary key attributes
+
+        MediaDataSource.getInstance().removeData(query, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (!RestConfig.isStatusOk(response)) {
+                    call.execute(false);
+                    return;
+                }
+                call.execute(true);
+            }
+        }, dsRequest);
     }
 
     private DynamicForm createStreamMenu() {

@@ -56,4 +56,8 @@ public abstract class AbstractFedoraObject implements FedoraObject {
         }
     }
 
+    @Override
+    public void purgeDatastream(String datastream, String logMessage) throws DigitalObjectException {
+        RemoteStorage.getInstance().find(pid).purgeDatastream(datastream, logMessage);
+    }
 }

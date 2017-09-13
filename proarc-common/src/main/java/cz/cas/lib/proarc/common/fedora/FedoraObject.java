@@ -45,4 +45,6 @@ public interface FedoraObject {
 
     String asText() throws DigitalObjectException;
 
+    void purgeDatastream(String datastream, String logMessage) throws DigitalObjectException;
+
 }

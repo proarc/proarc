@@ -39,7 +39,6 @@ import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils.ControlGroup;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -319,6 +318,7 @@ public final class RemoteStorage {
             }
         }
 
+        @Override
         public void purgeDatastream(String datastream ,String logMessage) throws DigitalObjectException {
             try {
                 FedoraClient.purgeDatastream(getPid(), datastream).logMessage(qpEncode(logMessage)).execute(client);

@@ -179,6 +179,11 @@ public final class LocalStorage {
         }
 
         @Override
+        public void purgeDatastream(String datastream, String logMessage) throws DigitalObjectException {
+            RemoteStorage.getInstance().find(getPid()).purgeDatastream(datastream, logMessage);
+        }
+
+        @Override
         public List<DatastreamProfile> getStreamProfile(String dsId) throws DigitalObjectException {
             List<DatastreamType> datastreams;
             if (dsId == null) {

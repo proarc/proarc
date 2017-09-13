@@ -41,4 +41,11 @@ public interface DisseminationHandler {
      */
     void setDissemination(DisseminationInput input, String message) throws DigitalObjectException;
 
+    /**
+     * Removes contents.
+     * @param message delete message
+     * @throws DigitalObjectException failure
+     */
+    void deleteDissemination(String message) throws DigitalObjectException;
+
 }

@@ -75,7 +75,6 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1031,40 +1030,6 @@ public class DigitalObjectResource {
     }
 
     /**
-     * removes RAW datastream from selected pids
-     *
-     * @see PurgeFedoraObject
-     */
-    @DELETE
-    @Path(DigitalObjectResourceApi.RAW_PATH)
-    @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObject> deleteRawDatastream(
-            @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) String pid
-    ) throws IOException, PurgeException {
-
-        deleteDatastream(pid, BinaryEditor.RAW_ID);
-
-        return new SmartGwtResponse<DigitalObject>(new DigitalObject(pid, null));
-    }
-
-    /**
-     * removes Preview datastream from selected pids
-     *
-     * @see PurgeFedoraObject
-     */
-    @DELETE
-    @Path(DigitalObjectResourceApi.PREVIEW_PATH)
-    @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObject> deletePreviewDatastream(
-            @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) String pid
-    ) throws IOException, PurgeException {
-
-        deleteDatastream(pid, BinaryEditor.PREVIEW_ID);
-
-        return new SmartGwtResponse<DigitalObject>(new DigitalObject(pid, null));
-    }
-
-    /**
      * Gets digital object dissemination.
      *
      * @param pid PID (required)
@@ -1176,6 +1141,31 @@ public class DigitalObjectResource {
             file.delete();
         }
         return new SmartGwtResponse<Map<String,Object>>(Collections.singletonMap("processId", (Object) 0L));
+    }
+
+    @DELETE
+    @Path(DigitalObjectResourceApi.DISSEMINATION_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse deleteDissemination(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) String batchId,
+            @QueryParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId
+    ) throws DigitalObjectException, IOException, PurgeException {
+
+        String message = "";
+
+        Integer batchIdInt = null;
+
+        if (!batchId.equals("null")) {
+            batchIdInt = Integer.parseInt(batchId);    
+        }
+
+        DigitalObjectHandler doHandler = findHandler(pid, batchIdInt);
+        DisseminationHandler disseminationHandler = doHandler.dissemination(dsId);
+
+        disseminationHandler.deleteDissemination(message);
+
+        return new SmartGwtResponse<String>(message);
     }
 
     @GET
