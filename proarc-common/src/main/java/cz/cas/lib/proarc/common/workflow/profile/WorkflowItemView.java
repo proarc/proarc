@@ -27,10 +27,10 @@ import javax.xml.bind.annotation.XmlElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public class WorkflowItemView {
 
-    private final DisplayableType<?> item;
+    private final IDisplayableType<?> item;
     protected final String lang;
 
-    public WorkflowItemView(DisplayableType<?> item, String lang) {
+    public WorkflowItemView(IDisplayableType<?> item, String lang) {
         this.item = item;
         this.lang = lang;
     }

@@ -31,7 +31,7 @@ import javax.xml.bind.annotation.XmlTransient;
  */
 // @XmlTransient helps include XML elements in subclasses without creating a XML abstract type.
 @XmlTransient
-public abstract class DisplayableType<T extends DisplayableType> {
+public abstract class DisplayableType<T extends DisplayableType> implements IDisplayableType<T> {
 
     @XmlAttribute(name = WorkflowProfileConsts.NAME, required = true)
     @XmlID
@@ -46,6 +46,7 @@ public abstract class DisplayableType<T extends DisplayableType> {
     @XmlTransient
     private Map<String, String> hints;
 
+    @Override
     public String getName() {
         return name;
     }
@@ -55,6 +56,7 @@ public abstract class DisplayableType<T extends DisplayableType> {
         return (T) this;
     }
 
+    @Override
     public boolean isDisabled() {
         return disabled != null && disabled;
     }
@@ -64,6 +66,7 @@ public abstract class DisplayableType<T extends DisplayableType> {
         return (T) this;
     }
 
+    @Override
     public String getTitle(String lang, String defaultValue) {
         return getI18n(getTitles(), lang, defaultValue);
     }
@@ -75,6 +78,7 @@ public abstract class DisplayableType<T extends DisplayableType> {
         return titles;
     }
 
+    @Override
     public String getHint(String lang, String defaultValue) {
         return getI18n(getHints(), lang, defaultValue);
     }
@@ -86,7 +90,7 @@ public abstract class DisplayableType<T extends DisplayableType> {
         return hints;
     }
 
-    static String getI18n(Map<String, String> vals, String lang, String defaultValue) {
+    private static String getI18n(Map<String, String> vals, String lang, String defaultValue) {
         String i18n = vals.get(lang);
         if (i18n == null) {
             Iterator<String> i18ns = vals.values().iterator();
