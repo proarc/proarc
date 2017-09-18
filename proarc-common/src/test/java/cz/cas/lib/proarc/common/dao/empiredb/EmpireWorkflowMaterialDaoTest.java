@@ -295,7 +295,7 @@ public class EmpireWorkflowMaterialDaoTest {
             filter = new MaterialFilter();
             filter.setJobId(BigDecimal.ONE);
             filter.setType(type);
-            assertTrue(dao.view(filter).stream().allMatch(material-> type.equals(material.getType())));
+            assertTrue("returned objects should be " + type.name(), dao.view(filter).stream().allMatch(material-> type.equals(material.getType())));
         }
 
     }

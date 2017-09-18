@@ -18,14 +18,10 @@ package cz.cas.lib.proarc.common.object;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
-import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
-import cz.cas.lib.proarc.common.dao.Transaction;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.FedoraDao;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
@@ -40,12 +36,9 @@ import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
-import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
-import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
@@ -62,7 +55,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -219,11 +211,11 @@ public class DigitalObjectManager {
             this.message = message;
         }
 
-        public void setXml(String xml) {
+        public void setMetadataXml(String xml) {
             this.xml = xml;
         }
 
-        public String getXml() {
+        public String getMetadataXml() {
             return xml;
         }
 
@@ -345,11 +337,11 @@ public class DigitalObjectManager {
          * Creates a fedora object and connects it to workflow
          *
          * @param wfJobId workflow job id
-         * @return
+         * @return list of created items with pid
          * @throws DigitalObjectException
          * @throws WorkflowException
          */
-        public List<Item> createAndConnectToWorkflowJob(BigDecimal wfJobId) throws WorkflowException {
+        public List<Item> createAndConnectToWorkflowJob(BigDecimal wfJobId, Locale locale) throws WorkflowException {
             if (isBatch()) {
                 throw new IllegalArgumentException("Only single object (usually top level) is supported to be connected to job");
             } else if (wfJobId == null) {
@@ -357,7 +349,7 @@ public class DigitalObjectManager {
             }
             WorkflowManager workflowManager = WorkflowManager.getInstance();
             MaterialFilter filter = new MaterialFilter();
-            filter.setLocale(Locale.ENGLISH);
+            filter.setLocale(locale);
             filter.setJobId(wfJobId);
             filter.setType(MaterialType.PHYSICAL_DOCUMENT);
             List<MaterialView> physicalMaterials = workflowManager.findMaterial(filter);

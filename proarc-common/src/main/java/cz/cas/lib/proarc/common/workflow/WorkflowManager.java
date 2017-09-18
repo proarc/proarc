@@ -25,8 +25,6 @@ import cz.cas.lib.proarc.common.dao.WorkflowJobDao;
 import cz.cas.lib.proarc.common.dao.WorkflowMaterialDao;
 import cz.cas.lib.proarc.common.dao.WorkflowParameterDao;
 import cz.cas.lib.proarc.common.dao.WorkflowTaskDao;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraDao;
 import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
@@ -190,7 +188,7 @@ public class WorkflowManager {
                 throw new WorkflowException("Already connected digital material").addUnexpectedError();
             }
 
-            handler.setXml(view.getMetadata());
+            handler.setMetadataXml(view.getMetadata());
             Item items = handler.createDigitalObject();
             digitalMaterial.setPid(items.getPid());
             updateMaterial(digitalMaterial, tx);

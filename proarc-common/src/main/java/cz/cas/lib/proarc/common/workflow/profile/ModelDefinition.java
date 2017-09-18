@@ -30,20 +30,20 @@ import javax.xml.bind.annotation.XmlAttribute;
 public class ModelDefinition  implements IDisplayableType<ModelDefinition> {
 
     @XmlAttribute(name = WorkflowProfileConsts.MODEL_PID)
-    private String type;
+    private String pid;
 
-    public String getType() {
-        return type;
+    public String getPid() {
+        return pid;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setPid(String pid) {
+        this.pid = pid;
     }
 
 
     @Override
     public String getName() {
-        return type;
+        return pid;
     }
 
     @Override
@@ -54,7 +54,7 @@ public class ModelDefinition  implements IDisplayableType<ModelDefinition> {
     @Override
     public String getTitle(String lang, String defaultValue) {
         Optional<String> title = MetaModelRepository.getInstance().find().stream()
-                .filter(metaModel -> metaModel.getPid().equals(type))
+                .filter(metaModel -> metaModel.getPid().equals(pid))
                 .map(metaModel -> metaModel.getDisplayName(lang)).findFirst();
         if (title.isPresent()) {
             return title.get();

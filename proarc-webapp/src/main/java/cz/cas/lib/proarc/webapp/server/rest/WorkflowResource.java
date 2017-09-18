@@ -492,7 +492,7 @@ public class WorkflowResource {
                         .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
 
 
-                List<String> unknownModels = job.getModel().stream().map(metamodel -> metamodel.getType())
+                List<String> unknownModels = job.getModel().stream().map(metamodel -> metamodel.getPid())
                         .filter(p -> !modelPids.contains(p)).collect(Collectors.toList());
 
                 if (!unknownModels.isEmpty()) {

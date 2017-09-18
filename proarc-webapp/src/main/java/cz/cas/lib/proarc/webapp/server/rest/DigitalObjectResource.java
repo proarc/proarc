@@ -243,7 +243,8 @@ public class DigitalObjectResource {
             }
             List<Item> items;
             if (workflowJobId != null) {
-                items = handler.createAndConnectToWorkflowJob(workflowJobId);
+                Locale locale = session.getLocale(httpHeaders);
+                items = handler.createAndConnectToWorkflowJob(workflowJobId, locale);
             } else {
                 items = handler.create();
             }
