@@ -36,6 +36,7 @@ import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
 import java.util.List;
+import org.apache.empire.commons.StringUtils;
 
 /**
  * Subclass to implement transformations of MODS data in NDK flavor
@@ -203,6 +204,16 @@ public abstract class NdkMapper {
             return createTitleString(ti);
         }
         return null;
+    }
+
+    /** Set default Authority value or repair it if needed. */
+    protected void repairAuthorityInClassification(ClassificationDefinition classification){
+        if (classification.getAuthority() == null) {
+            classification.setAuthority("udc");
+        }
+        if (StringUtils.isNotEmpty(classification.getEdition()) && classification.getEdition().equals("Konspekt")){
+            classification.setAuthority("udc"); // edition = "Konspekt" only if authority = "udc"
+        }
     }
 
     public static class Context {
