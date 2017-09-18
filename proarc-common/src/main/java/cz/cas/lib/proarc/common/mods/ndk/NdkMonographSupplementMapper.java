@@ -62,13 +62,11 @@ public class NdkMonographSupplementMapper extends NdkMapper {
         }
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {
-                if (form.getAuthority().equals(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)) {
+                if (ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA.equals(form.getAuthority())) {
                     form.setType("media");
-                }
-                if (form.getAuthority().equals(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)) {
+                } else if (ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER.equals(form.getAuthority())) {
                     form.setType("carrier");
-                }
-                if (form.getAuthority().equals(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM) || form.getAuthority().equals(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)) {
+                } else {
                     form.setType(null);
                 }
             }

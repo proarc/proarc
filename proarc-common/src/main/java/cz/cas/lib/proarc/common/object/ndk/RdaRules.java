@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jan Pokorsky
+ * Copyright (C) 2014 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,13 +75,13 @@ public class RdaRules {
             checkDateNull(oi.getDateOther(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_OTHER, false);
             checkDateEmpty(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, true);
             checkDateNull(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, true);
-        } else if (oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION) ||
-                oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION) ||
-                oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE)){
+        } else if (oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION)
+                || oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION)
+                || oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE)) {
             checkDateNull(oi.getCopyrightDate(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_COPYRIGHT, false);
             checkDateEmpty(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
             checkDateNull(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
-        } else if (oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_COPYRIGHT)){
+        } else if (oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_COPYRIGHT)) {
             checkDateEmpty(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
             checkDateNull(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
             checkDateNull(oi.getDateOther(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_OTHER, false);
@@ -93,23 +93,20 @@ public class RdaRules {
     /** Checks if elements in List is null */
     private void checkDateNull(List dates, String event, String element, boolean mustBeFill) {
         for (Object date : dates) {
-            if (mustBeFill == false) {
-                if (!(((DateDefinition) date).getValue() == null)) {
-                    exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYVALUE, element, event);
-                }
-            } else if (mustBeFill == true) {
-                if (((DateDefinition) date).getValue() == null) {
-                    exception.addValidation("RDA rules", ERR_NDK_RDA_FILLVALUE, element, event);
-                }
+            Object dateValue = ((DateDefinition) date).getValue();
+            if (mustBeFill && dateValue == null) {
+                exception.addValidation("RDA rules", ERR_NDK_RDA_FILLVALUE);
+            } else if (!mustBeFill && dateValue != null) {
+                exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYVALUE, element, event);
             }
         }
     }
 
     /** Checks if the list is empty */
     private void checkDateEmpty(List dates, String event, String element, boolean mustBeFill) {
-        if (mustBeFill == true && dates.isEmpty()) {
+        if (mustBeFill && dates.isEmpty()) {
             exception.addValidation("RDA rules", ERR_NDK_RDA_FILLVALUE, element, event);
-        } else if (mustBeFill == false && !dates.isEmpty()) {
+        } else if (!mustBeFill && !dates.isEmpty()) {
             exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYVALUE, element, event);
         }
     }
@@ -122,8 +119,8 @@ public class RdaRules {
         String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
         if (descriptionStandard == null) {
             exception.addValidation("RDA rules", ERR_NDK_DESCRIPTIONSTANDARD);
-        } else if (!descriptionStandard.equalsIgnoreCase("rda")
-                && !descriptionStandard.equalsIgnoreCase("aacr")) {
+        } else if (!descriptionStandard.equalsIgnoreCase(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
+                && !descriptionStandard.equalsIgnoreCase(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)) {
             exception.addValidation("RDA rules", ERR_NDK_DESCRIPTIONSTANDARD);
         }
         List<OriginInfoDefinition> originInfoDefinitions = mods.getOriginInfo();
