@@ -241,12 +241,6 @@ public final class AlephXServer implements BibliographicCatalog {
                 return null;
             }
 
-            if (values.size() == 0) {
-                for (CatalogQueryField queryField : CatalogConfiguration.getDefaultQueryFields(TYPE)) {
-                    addField(queryField.getName(), queryField.getProperties().getString(PROPERTY_FIELD_QUERY));
-                }
-            }
-
             Criteria.Field f = findField(fieldName);
             return f == null ? null : new Criteria(value, f);
         }

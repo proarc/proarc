@@ -96,16 +96,6 @@ public final class CatalogConfiguration {
     private List<CatalogQueryField> getDefaultQueryFields() {
         String type = getType();
 
-        return getDefaultQueryFields(type);
-    }
-
-    /**
-     * Fills fields for existing configurations to ensure backward compatibility with specified catalog type.
-     *
-     * @param type type of catalog
-     * @return fields for specified catalog
-     */
-    public static ArrayList<CatalogQueryField> getDefaultQueryFields(String type) {
         ArrayList<CatalogQueryField> fields = new ArrayList<>();
         if (AlephXServer.TYPE.equals(type)) {
             fields.add(new CatalogQueryField("barcode",
