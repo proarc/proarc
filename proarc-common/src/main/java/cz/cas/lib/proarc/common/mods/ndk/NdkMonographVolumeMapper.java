@@ -17,8 +17,10 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
+import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
@@ -103,6 +105,10 @@ public class NdkMonographVolumeMapper extends NdkMapper {
                     }
                 }
             }
+            // sets type in element dateOther
+            for (DateOtherDefinition dateOther : oi.getDateOther()) {
+                dateOther.setType(oi.getEventType());
+            }
         }
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
@@ -110,7 +116,14 @@ public class NdkMonographVolumeMapper extends NdkMapper {
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {
                 if (form.getAuthority() == null) {
-                    form.setAuthority("marcform");
+                    form.setAuthority(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM);
+                }
+                if (ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA.equals(form.getAuthority())) {
+                    form.setType("media");
+                } else if (ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER.equals(form.getAuthority())) {
+                    form.setType("carrier");
+                } else {
+                    form.setType(null);
                 }
             }
         }
@@ -188,5 +201,4 @@ public class NdkMonographVolumeMapper extends NdkMapper {
         }
         return dc;
     }
-
 }

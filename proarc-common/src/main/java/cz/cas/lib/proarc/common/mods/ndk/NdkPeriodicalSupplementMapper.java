@@ -17,11 +17,14 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
+import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.SubjectDefinition;
 import cz.cas.lib.proarc.mods.SubjectNameDefinition;
@@ -47,6 +50,23 @@ public class NdkPeriodicalSupplementMapper extends NdkMapper {
         List<ClassificationDefinition> classifications = mods.getClassification();
         for (ClassificationDefinition classification : classifications) {
             repairAuthorityInClassification(classification);
+        }
+        for (OriginInfoDefinition oi : mods.getOriginInfo()) {
+            // sets type in element dateOther
+            for (DateOtherDefinition dateOther : oi.getDateOther()) {
+                dateOther.setType(oi.getEventType());
+            }
+        }
+        for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
+            for (FormDefinition form : pd.getForm()) {
+                if (ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA.equals(form.getAuthority())) {
+                    form.setType("media");
+                } else if (ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER.equals(form.getAuthority())) {
+                    form.setType("carrier");
+                } else {
+                    form.setType(null);
+                }
+            }
         }
     }
 
@@ -103,5 +123,4 @@ public class NdkPeriodicalSupplementMapper extends NdkMapper {
         addStringPlusLanguage(dc.getSubjects(), mods.getClassification());
         return dc;
     }
-
 }
