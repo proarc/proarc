@@ -95,14 +95,19 @@ public final class CatalogConfiguration {
      */
     private List<CatalogQueryField> getDefaultQueryFields() {
         String type = getType();
-        ArrayList<CatalogQueryField> fields = new ArrayList<CatalogQueryField>();
+
+        ArrayList<CatalogQueryField> fields = new ArrayList<>();
         if (AlephXServer.TYPE.equals(type)) {
-            BaseConfiguration emptyConfiguration = new BaseConfiguration();
-            fields.add(new CatalogQueryField("barcode", emptyConfiguration));
-            fields.add(new CatalogQueryField("ccnb", emptyConfiguration));
-            fields.add(new CatalogQueryField("isbn", emptyConfiguration));
-            fields.add(new CatalogQueryField("issn", emptyConfiguration));
-            fields.add(new CatalogQueryField("signature", emptyConfiguration));
+            fields.add(new CatalogQueryField("barcode",
+                    new BaseConfiguration() {{addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "bar");}}));
+            fields.add(new CatalogQueryField("ccnb",
+                    new BaseConfiguration() {{addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "cnb");}}));
+            fields.add(new CatalogQueryField("isbn",
+                    new BaseConfiguration() {{addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "sbn");}}));
+            fields.add(new CatalogQueryField("issn",
+                    new BaseConfiguration() {{addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "ssn");}}));
+            fields.add(new CatalogQueryField("signature",
+                    new BaseConfiguration() {{addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "sg");}}));
         } else if (DigitizationRegistryCatalog.TYPE.equals(type)) {
             BaseConfiguration emptyConfiguration = new BaseConfiguration();
             fields.add(new CatalogQueryField("barcode", emptyConfiguration));
