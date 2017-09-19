@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Lukas Sykora
+ * Copyright (C) 2017 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -39,7 +40,7 @@ public class RdaRules {
     ModsDefinition mods;
     DigitalObjectValidationException exception;
 
-    public static final Set<String> HAS_MEMBER_RDA_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<String>(
+    public static final Set<String> HAS_MEMBER_RDA_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHVOLUME,
                     NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_SHEETMUSIC)));
 
@@ -70,23 +71,24 @@ public class RdaRules {
 
     /** Checks if the correct fields are filled depending on eventType */
     protected void checkOriginInfoRdaRules(OriginInfoDefinition oi) {
-        if (oi.getEventType() == null || oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION)) {
-            checkDateNull(oi.getCopyrightDate(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_COPYRIGHT, false);
-            checkDateNull(oi.getDateOther(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_OTHER, false);
-            checkDateEmpty(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, true);
-            checkDateNull(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, true);
-        } else if (oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION)
-                || oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION)
-                || oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE)) {
-            checkDateNull(oi.getCopyrightDate(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_COPYRIGHT, false);
-            checkDateEmpty(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
-            checkDateNull(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
-        } else if (oi.getEventType().equals(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_COPYRIGHT)) {
-            checkDateEmpty(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
-            checkDateNull(oi.getDateIssued(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
-            checkDateNull(oi.getDateOther(), oi.getEventType(), ModsConstants.FIELD_ORIGININFO_DATE_OTHER, false);
+        String eventType = oi.getEventType();
+        if (eventType == null || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION.equals(eventType)) {
+            checkDateNull(oi.getCopyrightDate(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_COPYRIGHT, false);
+            checkDateNull(oi.getDateOther(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_OTHER, false);
+            checkDateEmpty(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, true);
+            checkDateNull(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, true);
+        } else if (ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION.equals(eventType)
+                || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION.equals(eventType)
+                || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE.equals(eventType)) {
+            checkDateNull(oi.getCopyrightDate(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_COPYRIGHT, false);
+            checkDateEmpty(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
+            checkDateNull(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
+        } else if (ModsConstants.VALUE_ORIGININFO_EVENTTYPE_COPYRIGHT.equals(eventType)) {
+            checkDateEmpty(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
+            checkDateNull(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
+            checkDateNull(oi.getDateOther(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_OTHER, false);
         } else {
-            exception.addValidation("RDA rules", ERR_NDK_ORIGININFO_EVENTTYPE_WRONGVALUE, oi.getEventType());
+            exception.addValidation("RDA rules", ERR_NDK_ORIGININFO_EVENTTYPE_WRONGVALUE, eventType);
         }
     }
 
@@ -116,11 +118,12 @@ public class RdaRules {
         if (mods.getRecordInfo().isEmpty()) {
             return;
         }
-        String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
+        List<StringPlusLanguagePlusAuthority> descriptionStandards = mods.getRecordInfo().get(0).getDescriptionStandard();
+        String descriptionStandard = descriptionStandards.isEmpty() ? null : descriptionStandards.get(0).getValue();
         if (descriptionStandard == null) {
             exception.addValidation("RDA rules", ERR_NDK_DESCRIPTIONSTANDARD);
-        } else if (!descriptionStandard.equalsIgnoreCase(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
-                && !descriptionStandard.equalsIgnoreCase(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)) {
+        } else if (!ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA.equalsIgnoreCase(descriptionStandard)
+                && !ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(descriptionStandard)) {
             exception.addValidation("RDA rules", ERR_NDK_DESCRIPTIONSTANDARD);
         }
         List<OriginInfoDefinition> originInfoDefinitions = mods.getOriginInfo();
@@ -132,7 +135,8 @@ public class RdaRules {
                 }
             }
             for (PhysicalDescriptionDefinition pd : physicalDescriptions) {
-                if (!pd.getForm().isEmpty() && pd.getForm().get(0).getAuthority().equals("rdamedia") && pd.getForm().get(0).getAuthority().equals("rdacarrier")) {
+                String authority = pd.getForm().isEmpty() ? null : pd.getForm().get(0).getAuthority();
+                if ("rdamedia".equals(authority) || "rdacarrier".equals(authority)) {
                     exception.addValidation("RDA rules", ERR_NDK_AACR_INVALIDVALUE);
                 }
             }
