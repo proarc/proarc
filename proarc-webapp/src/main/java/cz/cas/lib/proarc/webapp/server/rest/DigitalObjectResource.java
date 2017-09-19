@@ -1156,19 +1156,13 @@ public class DigitalObjectResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse deleteDissemination(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
-            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) String batchId,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId
     ) throws DigitalObjectException, IOException, PurgeException {
 
         String message = session.asFedoraLog();
 
-        Integer batchIdInt = null;
-
-        if (!batchId.equals("null")) {
-            batchIdInt = Integer.parseInt(batchId);    
-        }
-
-        DigitalObjectHandler doHandler = findHandler(pid, batchIdInt);
+        DigitalObjectHandler doHandler = findHandler(pid, batchId);
         DisseminationHandler disseminationHandler = doHandler.dissemination(dsId);
 
         disseminationHandler.deleteDissemination(message);
@@ -1546,20 +1540,5 @@ public class DigitalObjectResource {
 
         public DigitalObject() {
         }
-    }
-
-    /**
-     * removes specific datastream from repository
-     *
-     * @param pid id of object containing datastream
-     * @param dsId datastream id
-     * @throws IOException when connection to Fedora fails
-     * @throws PurgeException when purging DS fails
-     */
-    private void deleteDatastream(String pid, String dsId) throws IOException, PurgeException {
-        RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
-        PurgeFedoraObject service = new PurgeFedoraObject(fedora, dsId);
-
-        service.purgeDatastream(pid, session.asFedoraLog());
     }
 }

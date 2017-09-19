@@ -299,7 +299,11 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
         Record query = new Record();
         query.setAttribute(MediaDataSource.OBJECT_PID, pid);
-        query.setAttribute(MediaDataSource.BATCH_ID, batchId);
+
+        if (batchId != null) {
+            query.setAttribute(MediaDataSource.BATCH_ID, batchId);
+        }
+
         query.setAttribute(MediaDataSource.DATASTREAM_ID, "RAW");
 
         BooleanCallback call = new BooleanCallback() {

@@ -180,7 +180,7 @@ public final class LocalStorage {
 
         @Override
         public void purgeDatastream(String datastream, String logMessage) throws DigitalObjectException {
-            RemoteStorage.getInstance().find(getPid()).purgeDatastream(datastream, logMessage);
+            throw new UnsupportedOperationException(datastream);
         }
 
         @Override
