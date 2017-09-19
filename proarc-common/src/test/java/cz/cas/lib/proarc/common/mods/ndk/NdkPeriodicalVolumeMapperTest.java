@@ -21,18 +21,16 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.io.StringReader;
+import java.util.List;
+import javax.xml.transform.stream.StreamSource;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import javax.xml.transform.stream.StreamSource;
-import java.io.StringReader;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  *
