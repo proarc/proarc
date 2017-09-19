@@ -56,8 +56,4 @@ public abstract class AbstractFedoraObject implements FedoraObject {
         }
     }
 
-    @Override
-    public void purgeDatastream(String datastream, String logMessage) throws DigitalObjectException {
-        throw new UnsupportedOperationException(datastream);
-    }
 }
