@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
@@ -33,8 +34,15 @@ public final class NdkMonographVolumeForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
-        List<Field> modsFields = f.getFields().get(0).getFields();
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard)").setMaxOccurrences(1)
+                .setType(Field.COMBO).setRequired(true)
+                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
+                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
+                .createField());
+
+        Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
+        f.getFields().add(mods);
+        List<Field> modsFields = mods.getFields();
 
         modsFields.add(titleInfo());
         modsFields.add(name());
@@ -212,7 +220,21 @@ public final class NdkMonographVolumeForm {
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 // @displayLabel
                 // @altRepGroup
-                // @eventType
+                // eventType
+                .addField(new FieldBuilder("eventType").setTitle("Event Type - M").setMaxOccurrences(1). setType(Field.COMBO)
+                    .setHint("Hodnoty dle druhého indikátoru pole 264:"
+                        +"<p>264_0 production se uvádí, jestliže pole obsahuje údaje o vytvoření zdroje v nezveřejněné podobě."
+                        +"<p>264_1 publication se uvádí, jestliže pole obsahuje údaje o nakladateli zdroje."
+                        +"<p>264_2 distribution se uvádí, jestliže pole obsahuje údaje o distribuci zdroje."
+                        +"<p>264_3 manufacture se uvádí, jestliže pole obsahuje údaje o tisku, výrobě zdroje ve zveřejněné podobě."
+                        +"<p>264_4 copyright (R) se uvádí, jestliže pole obsahuje údaje o ochraně podle autorského práva (copyright).")
+                    .addMapValue("", "")
+                    .addMapValue(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION, ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION)
+                    .addMapValue(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION, ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION)
+                    .addMapValue(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION, ModsConstants.VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION)
+                    .addMapValue(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE, ModsConstants.VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE)
+                    .addMapValue(ModsConstants.VALUE_ORIGININFO_EVENTTYPE_COPYRIGHT, ModsConstants.VALUE_ORIGININFO_EVENTTYPE_COPYRIGHT)
+                .createField()) // eventType
                 // place, placeDefinition
                 .addField(new FieldBuilder("place").setTitle("Place - MA").setMaxOccurrences(10)
                     .setHint("Údaje o místě spojeném s vydáním, výrobou nebo původem popisovaného dokumentu.")
@@ -274,11 +296,27 @@ public final class NdkMonographVolumeForm {
                         .addMapValue("inferred", "Inferred")
                         .addMapValue("questionable", "Questionable")
                     .createField()) // @qualifier
-                    .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setWidth("200")
+                    .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                     .setHint("Datum vydání předlohy."
                         + "<p>Odpovídá hodnotě z katalogizačního záznamu, pole 260, podpole „c“ a pole 008/07-10.")
                     .createField()) // value
                 .createField()) // dateIssued
+                // dateOther, dateOtherDefinition extends dateDefinition
+                .addField(new FieldBuilder("dateOther").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setTitle("Date Other - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Datum vytvoření, distribuce, výroby předlohy."
+                            + "<p>Tento elemet se využije v případě výskytu $c v:"
+                            + "<p>264_0 je production"
+                            + "<p>264_2 je distribution"
+                            + "<p>264_3 je manufacture")
+                    .createField()) // value
+                .createField()) // dateOther
+                // copyrightDate, dateDefinition extends stringPlusLanguage
+                .addField(new FieldBuilder("copyrightDate").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setTitle("Copyright Date - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Využije se pouze v případě výskuytu pole 264 s druhým indikátorem \"4\" a podpolem $c.")
+                    .createField()) // value
+                .createField()) // copyrightDate
                 // dateCreated, dateDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("dateCreated").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
@@ -290,8 +328,6 @@ public final class NdkMonographVolumeForm {
                 // dateCaptured
                 // dateValid
                 // dateModified
-                // copyrightDate
-                // dateOther
                 // edition, type="stringPlusLanguagePlusSupplied"
                 .addField(new FieldBuilder("edition").setMaxOccurrences(1)
                     // stringPlusLanguagePlusSupplied: @supplied
@@ -364,8 +400,10 @@ public final class NdkMonographVolumeForm {
                     // @type
                     // XXX autofill "marcform"
                     .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
-                        .addMapValue("marcform", "marcform")
-                        .addMapValue("gmd", "gmd")
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)
                     .createField()) // authority
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
                         .setType(Field.COMBO).setRequired(true).setHint("form")
@@ -377,6 +415,19 @@ public final class NdkMonographVolumeForm {
                         .addMapValue("microfilm", "microfilm")
                         .addMapValue("microfiche", "microfiche")
                         .addMapValue("print", "print")
+                        .addMapValue("jiný", "jiný")
+                        .addMapValue("audio", "rdamedia - audio")
+                        .addMapValue("počítač", "rdamedia - počítač")
+                        .addMapValue("mikroforma", "rdamedia - mikroforma")
+                        .addMapValue("mikroskop", "rdamedia - mikroskop")
+                        .addMapValue("projekce", "rdamedia - projekce")
+                        .addMapValue("stereograf", "rdamedia - stereograf")
+                        .addMapValue("bez media", "rdamedia - bez media")
+                        .addMapValue("video", "rdamedia - video")
+                        .addMapValue("svazek", "rdacarrier - svazek")
+                        .addMapValue("online zdroj", "rdacarrier - online zdroj")
+                        .addMapValue("audiodisk", "rdacarrier - audiodisk")
+                        .addMapValue("počítačový disk", "rdacarrier - počítačový disk")
                     .createField()) // value
                 .createField()) // form
                 // reformattingQuality
@@ -440,6 +491,7 @@ public final class NdkMonographVolumeForm {
                 .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("Konspekt", "Konspekt")
                 .createField())
 
                 // topic, stringPlusLanguagePlusAuthority
@@ -453,7 +505,7 @@ public final class NdkMonographVolumeForm {
                     .addField(new FieldBuilder("value").setTitle("Topic - R").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Libovolný výraz specifikující nebo charakterizující obsah monografie."
                             + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (věcné téma)"
-                            + " nebo obsah pole 650 záznamu MARC21.")
+                            + " nebo obsah pole 650 záznamu MARC21 nebo obsah pole 072 $x.")
                     .createField()) // value
                 .createField()) // topic
 
@@ -520,11 +572,19 @@ public final class NdkMonographVolumeForm {
         return new FieldBuilder("classification").setTitle("Classification - R").setMaxOccurrences(10)
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // autofill "udc"
-                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("udc").createField())
-                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("udc", "udc")
+                        .addMapValue("Konspekt", "Konspekt")
+                .createField()) // authority
+                .addField(new FieldBuilder("edition").setTitle("Edition - M").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("", "")
+                        .addMapValue("Konspekt", "Konspekt")
+                .createField()) // edition
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
                     .setHint("Klasifikační údaje věcného třídění podle Mezinárodního"
-                        + " desetinného třídění.<p>Odpovídá poli 080 MARC21.")
+                        + " desetinného třídění. Odpovídá poli 080 MARC21."
+                        + "<p>Klasifikační údaje věcného třídění podle Konspektu."
+                        + " Odpovídá poli 072 $a MARC21.")
                 .createField()) // value
         .createField(); // classification
     }
@@ -727,13 +787,7 @@ public final class NdkMonographVolumeForm {
                         .addMapValue("human prepared", "human prepared")
                     .createField()) // value
                 .createField()) // recordChangeDate
-                // descriptionStandard
-                .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Description Standard - O").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Popis standardu, ve kterém je přebíraný katalogizační záznam."
-                            + "<p>Odpovídá hodnotě návěští záznamu MARC21, pozice 18 - hodnota „aacr“ pro LDR/18 = „a“")
-                    .createField()) // value
-                .createField()) // descriptionStandard
+                .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField()) //descriptionStandard
         .createField(); // recordInfo
     }
 

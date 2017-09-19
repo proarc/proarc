@@ -16,12 +16,8 @@
  */
 package cz.cas.lib.proarc.webapp.client.presenter;
 
+import com.google.gwt.core.client.Callback;
 import com.google.gwt.place.shared.PlaceController;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.Record;
-import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
@@ -35,7 +31,6 @@ import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.client.widget.Wizard;
 import cz.cas.lib.proarc.webapp.client.widget.Wizard.StepKind;
 import cz.cas.lib.proarc.webapp.client.widget.Wizard.WizardStep;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -183,44 +178,25 @@ public final class DigitalObjectCreator {
         }
 
         private void saveNewDigitalObject(String modelId, String pid, String mods) {
-            Record r = new Record();
             DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
-            r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
-            if (mods != null) {
-                r.setAttribute(DigitalObjectDataSource.FIELD_MODS, mods);
-            }
-            if (pid != null && !pid.isEmpty()) {
-                r.setAttribute(DigitalObjectDataSource.FIELD_PID, pid);
-            }
-            DSRequest dsRequest = new DSRequest();
-            dsRequest.setWillHandleError(true);
-            ds.addData(r, new DSCallback() {
-
+            ds.saveNewDigitalObject(modelId, pid, mods, null, new Callback<String, DigitalObjectDataSource.ErrorSavingDigitalObject>() {
                 @Override
-                public void execute(DSResponse response, Object rawData, DSRequest request) {
-                    if (response.getStatus() == RPCResponse.STATUS_VALIDATION_ERROR) {
-                        Map errors = response.getErrors();
-                        newDigObject.setValidationErrors(errors);
-                        request.setWillHandleError(true);
-                        return ;
-                    }
-                    if (response.getHttpResponseCode() >= 400) {
-                        // failure
-                        SC.warn("Failed to create digital object!");
-                    } else {
-                        Record[] data = response.getData();
-                        if (data != null && data.length > 0) {
-                            String pid = data[0].getAttribute(DigitalObjectDataSource.FIELD_PID);
-                            // here should be updated DigitalObject data stream
-                            // caches to prevent server round-trip delays
-                            StatusView.getInstance().show(i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
-                            places.goTo(new DigitalObjectEditorPlace(DatastreamEditorType.MODS, pid));
-                        } else {
+                public void onFailure(DigitalObjectDataSource.ErrorSavingDigitalObject reason) {
+                    switch (reason) {
+                        case ERROR_SAVING_DIGITAL_OBJECT:
+                            newDigObject.setValidationErrors(reason.getValidationErrors());
+                            break;
+                        default:
                             SC.warn("Failed to create digital object!");
-                        }
                     }
                 }
-            }, dsRequest);
+
+                @Override
+                public void onSuccess(String pid) {
+                    StatusView.getInstance().show(i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
+                    places.goTo(new DigitalObjectEditorPlace(DatastreamEditorType.MODS, pid));
+                }
+            });
         }
 
         @Override

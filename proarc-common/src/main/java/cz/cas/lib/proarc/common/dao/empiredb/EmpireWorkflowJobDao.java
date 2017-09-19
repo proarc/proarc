@@ -67,6 +67,8 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         }
         r.setBeanValues(job);
         try {
+            // this column is "always changed", because we need update timestamp of job (optimistic transactions on materials)
+            r.setModified(tableJob.label, true);
             r.update(c);
         } catch (RecordUpdateInvalidException ex) {
             throw new ConcurrentModificationException(ex);

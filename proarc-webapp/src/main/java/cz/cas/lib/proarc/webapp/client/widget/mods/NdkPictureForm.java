@@ -256,6 +256,7 @@ public final class NdkPictureForm {
                 .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.TEXT)
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("Konspekt", "Konspekt")
                 .createField()) // authority
 
 
@@ -268,7 +269,7 @@ public final class NdkPictureForm {
                     .addField(new FieldBuilder("value").setTitle("Topic - M").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Libovolný výraz specifikující nebo charakterizující obsah článku."
                             + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (věcné téma)"
-                            + " nebo obsah pole 650 záznamu MARC21.")
+                            + " nebo obsah pole 650 záznamu MARC21 nebo obsah pole 072 $x.")
                     .createField()) // value
                 .createField()) // topic
 
@@ -351,12 +352,20 @@ public final class NdkPictureForm {
         modsFields.add(new FieldBuilder("classification").setTitle("Classification - RA").setMaxOccurrences(10)
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // autofill "udc"
-                .addField(new FieldBuilder("authority").setTitle("Authority - RA").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("udc").createField())
-                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("udc", "udc")
+                        .addMapValue("Konspekt", "Konspekt")
+                .createField()) // authority
+                .addField(new FieldBuilder("edition").setTitle("Edition - M").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("", "")
+                        .addMapValue("Konspekt", "Konspekt")
+                .createField()) // edition
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
                     .setHint("Klasifikační údaje věcného třídění podle Mezinárodního"
-                        + " desetinného třídění.<p>Odpovídá poli 080 MARC21.")
-                .createField())
+                        + " desetinného třídění. Odpovídá poli 080 MARC21."
+                        + "<p>Klasifikační údaje věcného třídění podle Konspektu."
+                        + " Odpovídá poli 072 $a MARC21.")
+                .createField()) // value
         .createField()); // classification
 
         // identifier, identifierDefinition, [0,*]

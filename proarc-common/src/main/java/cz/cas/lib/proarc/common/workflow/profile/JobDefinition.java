@@ -36,6 +36,9 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
     @XmlElement(name = WorkflowProfileConsts.JOB_WORKER_EL)
     private WorkerDefinition worker;
 
+    @XmlElement(name = WorkflowProfileConsts.WORKFLOW_MODEL_EL)
+    private List<ModelDefinition> model;
+
     @XmlAttribute(name = WorkflowProfileConsts.JOB_PRIORITY_AT)
     private Integer priority;
 
@@ -77,6 +80,13 @@ public class JobDefinition extends DisplayableType<JobDefinition> {
             subjobs = new ArrayList<>();
         }
         return subjobs;
+    }
+
+    public List<ModelDefinition> getModel() {
+        if (model == null) {
+            model = new ArrayList<>();
+        }
+        return model;
     }
 
     public List<String> getTaskNamesSortedByBlockers() {

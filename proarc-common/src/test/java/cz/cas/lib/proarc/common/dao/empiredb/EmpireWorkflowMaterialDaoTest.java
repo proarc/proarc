@@ -28,7 +28,10 @@ import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
+
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
@@ -286,6 +289,15 @@ public class EmpireWorkflowMaterialDaoTest {
         assertNull(ms.get(0).getTaskId());
         assertEquals(MaterialType.FOLDER, ms.get(0).getType());
         assertNull(ms.get(0).getWay());
+
+        // view job's material with specific type
+        for (MaterialType type : MaterialType.values()) {
+            filter = new MaterialFilter();
+            filter.setJobId(BigDecimal.ONE);
+            filter.setType(type);
+            assertTrue("returned objects should be " + type.name(), dao.view(filter).stream().allMatch(material-> type.equals(material.getType())));
+        }
+
     }
 
     @Test

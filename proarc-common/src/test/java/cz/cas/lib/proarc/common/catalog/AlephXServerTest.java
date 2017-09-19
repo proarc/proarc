@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.catalog;
 
 import cz.cas.lib.proarc.common.catalog.AlephXServer.Criteria;
-import cz.cas.lib.proarc.common.catalog.AlephXServer.FieldConfig;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import java.io.IOException;
 import java.io.InputStream;
@@ -125,7 +124,10 @@ public class AlephXServerTest {
 
     @Test
     public void testSetQuery() throws Exception {
-        Criteria issnCriteria = new FieldConfig().getCriteria("issn", "ISSNVALUE");
+        AlephXServer server = loadDefaultAlephXServer();
+
+        Criteria issnCriteria = server.fields.getCriteria("issn", "ISSNVALUE");
+
         URI result = AlephXServer.setQuery(new URI("http://aleph.nkp.cz/X?base=nkc"),
                 issnCriteria.toUrlParams(), true);
         assertEquals("http://aleph.nkp.cz/X?base=nkc&op=find&request=ssn=ISSNVALUE", result.toASCIIString());
@@ -134,7 +136,9 @@ public class AlephXServerTest {
 
     @Test
     public void testSetFurtherQuery() throws Exception {
-        Criteria issnCriteria = new FieldConfig().getCriteria("issn", "ISSNVALUE");
+        AlephXServer server = loadDefaultAlephXServer();
+
+        Criteria issnCriteria = server.fields.getCriteria("issn", "ISSNVALUE");
         URI result = AlephXServer.setQuery(new URI("http://aleph.nkp.cz/X?base=nkc"),
                 issnCriteria.toUrlParams(), false);
         assertEquals("http://aleph.nkp.cz/X?op=find&request=ssn=ISSNVALUE", result.toASCIIString());
@@ -142,24 +146,23 @@ public class AlephXServerTest {
     }
 
     @Test
-    public  void testCustomConfiguration() throws Exception {
-
-        final String id = "aleph_nkp";
-
-        CatalogConfiguration c = new CatalogConfiguration(id, "", new BaseConfiguration() {{
-            addProperty(CatalogConfiguration.PROPERTY_URL, "http://aleph.nkp.cz/X?base=nkc");
-            addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
-            addProperty(CatalogConfiguration.PROPERTY_TYPE, AlephXServer.TYPE);
-            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "sg");
-            addProperty(CatalogConfiguration.FIELD_PREFIX + ".sg.title", "Short Signature");
-            addProperty(CatalogConfiguration.FIELD_PREFIX + ".sg.query", "sg");
-        }});
-
-        AlephXServer result = AlephXServer.get(c);
+    public void testCustomConfiguration() throws Exception {
+        AlephXServer result = loadDefaultAlephXServer();
 
         assertNotNull(result);
         assertEquals("op=find&request=sg=test", result.fields.getCriteria("sg", "test").toUrlParams());
         assertEquals(null, result.fields.getCriteria("sig", "test"));
+    }
+
+    @Test
+    public void testInvalidFieldConfiguration() throws Exception {
+        AlephXServer result = loadDefaultAlephXServer();
+
+        String urlParams = result.fields.getCriteria("sg", "test").toUrlParams();
+
+        result.fields.addField("sg", null);
+
+        assertEquals(urlParams, result.fields.getCriteria("sg", "test").toUrlParams());
     }
 
 //    @Test
@@ -173,4 +176,21 @@ public class AlephXServerTest {
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
+
+    private AlephXServer loadDefaultAlephXServer() {
+        final String id = "aleph_nkp";
+
+        CatalogConfiguration c = new CatalogConfiguration(id, "", new BaseConfiguration() {{
+            addProperty(CatalogConfiguration.PROPERTY_URL, "http://aleph.nkp.cz/X?base=nkc");
+            addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
+            addProperty(CatalogConfiguration.PROPERTY_TYPE, AlephXServer.TYPE);
+            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "sg, issn");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + ".sg.title", "Short Signature");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + ".issn.title", "ISSN");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + ".sg.query", "sg");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + ".issn.query", "ssn");
+        }});
+
+        return AlephXServer.get(c);
+    }
 }

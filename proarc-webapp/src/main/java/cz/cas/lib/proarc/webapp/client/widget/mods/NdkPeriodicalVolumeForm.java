@@ -39,6 +39,7 @@ public class NdkPeriodicalVolumeForm {
         modsFields.add(titleInfo());
         modsFields.add(genre());
         modsFields.add(originInfo());
+        modsFields.add(name());
         modsFields.add(physicalDescription());
         modsFields.add(identifier());
 
@@ -62,6 +63,72 @@ public class NdkPeriodicalVolumeForm {
                 // nonSort, type="stringPlusLanguage"
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
         .createField(); // titleInfo
+    }
+
+    private Field name() {
+        // name, nameDefinition
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - R")
+                .setHint("Údaje o odpovědnosti za titul periodika.")
+                // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
+                // @type(personal, corporate, conference, family)
+                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                        .setHint("<dl>"
+                                + "<dt>personal</dt><dd>celé jméno osoby</dd>"
+                                + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
+                                + "<dt>conference</dt><dd>název konference nebo související typ setkání</dd>"
+                                + "<dt>family</dt><dd>rodina/rod</dd>"
+                                + "</dl>")
+                        .addMapValue("personal", "personal")
+                        .addMapValue("corporate", "corporate")
+                        .addMapValue("conference", "conference")
+                        .addMapValue("family", "family")
+                        .createField()) // @type
+                // @usage(fixed="primary")
+                .addField(new FieldBuilder("usage").setTitle("Usage - O").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
+                        .setHint("Hodnota “primary” pro označení primární autority.")
+                        .addMapValue("", "")
+                        .addMapValue("primary", "primary")
+                        .createField()) // usage
+                // namePart, namePartDefinition extends stringPlusLanguage
+                .addField(new FieldBuilder("namePart").setTitle("Name Parts - R").setMaxOccurrences(5)
+                        // @type(date, family, given, termsOfAddress)
+                        .addField(new FieldBuilder("type").setTitle("Type").setMaxOccurrences(1).setType(Field.SELECT)
+                                .setHint("<dl>"
+                                        + "<dt>date</dt><dd>RA - datum</dd>"
+                                        + "<dt>family</dt><dd>MA -příjmení </dd>"
+                                        + "<dt>given</dt><dd>MA - jméno/křestní jméno</dd>"
+                                        + "<dt>termsOfAddress</dt><dd>RA - tituly a jiná slova nebo čísla související se jménem</dd>"
+                                        + "</dl>")
+                                .addMapValue("date", "date")
+                                .addMapValue("family", "family")
+                                .addMapValue("given", "given")
+                                .addMapValue("termsOfAddress", "termsOfAddress")
+                                .createField()) // @type
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("value").setTitle("Name Part - R").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(true)
+                                .setHint("Údaje o křestním jméně, příjmení apod."
+                                        + "<p>Nutno vyjádřit pro křestní jméno i příjmení."
+                                        + "<p>Pokud nelze rozlišit křestní jméno a příjmení,"
+                                        + " nepoužije se type a jméno se zaznamená"
+                                        + " v podobě jaké je do jednoho elementu &lt;namePart>"
+                                        + "<p>Pokud známe datum narození a úmrtí autora, vyplnit"
+                                        + " ve tvaru RRRR-RRRR s atributem type=”date”.")
+                                .createField()) // value
+                        .createField()) // namePart
+                // displayForm
+                // etal
+                // affiliation
+                // role, roleDefinition
+                .addField(new FieldBuilder("role").setTitle("Role - R").setMaxOccurrences(5)
+                        .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
+                        // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
+                        .addField(NdkForms.roleTerm(
+                                "Role Term - R", true, "Authority - M", true, "Type - M", true
+                        )) // roleTerm
+                        .createField()) // role
+                // description
+                .createField(); // name
     }
 
     private Field genre() {

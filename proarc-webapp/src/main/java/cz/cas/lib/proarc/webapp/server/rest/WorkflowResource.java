@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
@@ -28,6 +29,7 @@ import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
@@ -49,8 +51,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -382,6 +386,7 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_ID) BigDecimal id,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_JOBID) BigDecimal jobId,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_TASKID) BigDecimal taskId,
+            @QueryParam(WorkflowModelConsts.MATERIAL_TYPE) MaterialType materialType,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_SORTBY) String sortBy
     ) {
@@ -391,7 +396,7 @@ public class WorkflowResource {
         filter.setMaxCount(pageSize);
         filter.setOffset(startRow);
         filter.setSortBy(sortBy);
-
+        filter.setType(materialType);
         filter.setId(id);
         filter.setJobId(jobId);
         filter.setTaskId(taskId);
@@ -483,6 +488,18 @@ public class WorkflowResource {
         for (JobDefinition job : workflowDefinition.getJobs()) {
             if ((name == null || name.equals(job.getName()))
                     && (disabled == null || disabled == job.isDisabled())) {
+                Set<String> modelPids = MetaModelRepository.getInstance().find()
+                        .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
+
+
+                List<String> unknownModels = job.getModel().stream().map(metamodel -> metamodel.getPid())
+                        .filter(p -> !modelPids.contains(p)).collect(Collectors.toList());
+
+                if (!unknownModels.isEmpty()) {
+                    return SmartGwtResponse.asError(WorkflowProfileConsts.MODEL_PID + " - invalid values! "
+                            + String.join(", ", unknownModels));
+                }
+
                 profiles.add(new JobDefinitionView(job, lang));
             }
         }

@@ -475,9 +475,10 @@ public final class NdkPeriodicalIssueForm {
                 .setHint("Údaje o věcném třídění.<p>Použití u ročenek, specializovaných periodik,"
                     + " tematických čísel nebo zvláštních vydání.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
-                .addField(new FieldBuilder("authority").setTitle("Authority - RA").setMaxOccurrences(1).setType(Field.TEXT)
+                .addField(new FieldBuilder("authority").setTitle("Authority - RA").setMaxOccurrences(1).setType(Field.COMBO)
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("Konspekt", "Konspekt")
                 .createField()) // authority
 
                 // topic, stringPlusLanguagePlusAuthority
@@ -489,7 +490,7 @@ public final class NdkPeriodicalIssueForm {
                     .addField(new FieldBuilder("value").setTitle("Topic - R").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Libovolný výraz specifikující nebo charakterizující obsah čísla periodika."
                             + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (věcné téma)"
-                            + " nebo obsah pole 650 záznamu MARC21.")
+                            + " nebo obsah pole 650 záznamu MARC21 nebo obsah pole 072 $x.")
                     .createField()) // value
                 .createField()) // topic
 

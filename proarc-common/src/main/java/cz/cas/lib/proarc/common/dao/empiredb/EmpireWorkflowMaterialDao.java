@@ -134,6 +134,9 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
         if (filter.getId() != null) {
             cmd.where(db.tableWorkflowMaterial.id.is(filter.getId()));
         }
+        if (filter.getType() != null) {
+            cmd.addWhereConstraints(Collections.singletonList(db.tableWorkflowMaterial.type.is(filter.getType())));
+        }
         if (filter.getTaskId() != null) {
             cmd.select(db.tableWorkflowMaterialInTask.taskId);
             cmd.select(db.tableWorkflowMaterialInTask.way);

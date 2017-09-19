@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow;
 
+import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
@@ -24,8 +25,10 @@ import cz.cas.lib.proarc.common.dao.WorkflowJobDao;
 import cz.cas.lib.proarc.common.dao.WorkflowMaterialDao;
 import cz.cas.lib.proarc.common.dao.WorkflowParameterDao;
 import cz.cas.lib.proarc.common.dao.WorkflowTaskDao;
+import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
@@ -55,11 +58,14 @@ import cz.cas.lib.proarc.common.workflow.profile.TaskDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkerDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -127,97 +133,91 @@ public class WorkflowManager {
     }
 
     public List<MaterialView> findMaterial(MaterialFilter filter) {
-        WorkflowDefinition wd = wp.getProfiles();
         Transaction tx = daoFactory.createTransaction();
-        WorkflowMaterialDao dao = daoFactory.createWorkflowMaterialDao();
-        dao.setTransaction(tx);
         try {
-            List<MaterialView> mats = dao.view(filter);
-            for (MaterialView m : mats) {
-                MaterialDefinition matProfile = wp.getMaterialProfile(wd, m.getName());
-                if (matProfile != null) {
-                    m.setProfileLabel(matProfile.getTitle(
-                            filter.getLocale().getLanguage(),
-                            matProfile.getName()));
-                } else {
-                    m.setProfileLabel("Unknown material profile: " + m.getName());
-                }
-            }
-            return mats;
+            return findMaterial(filter, tx);
         } finally {
             tx.close();
         }
     }
 
+    private List<MaterialView> findMaterial(MaterialFilter filter, Transaction tx) {
+        WorkflowDefinition wd = wp.getProfiles();
+        WorkflowMaterialDao dao = daoFactory.createWorkflowMaterialDao();
+        dao.setTransaction(tx);
+        List<MaterialView> mats = dao.view(filter);
+        for (MaterialView m : mats) {
+            MaterialDefinition matProfile = wp.getMaterialProfile(wd, m.getName());
+            if (matProfile != null) {
+                m.setProfileLabel(matProfile.getTitle(
+                        filter.getLocale().getLanguage(),
+                        matProfile.getName()));
+            } else {
+                m.setProfileLabel("Unknown material profile: " + m.getName());
+            }
+        }
+        return mats;
+    }
+
+    /**
+     * Create a fedora object with metadata from physical material (connected to job) and its PID inserts to digital material in one transaction
+     *
+     * @param view physical material
+     * @return digital material with PID
+     */
+    public MaterialView createDigitalMaterialFromPhysical(DigitalObjectManager.CreateHandler handler, MaterialView view) throws ConcurrentModificationException, WorkflowException {
+        RemoteStorage remoteStorage = RemoteStorage.getInstance();
+        FedoraTransaction ftx = new FedoraTransaction(remoteStorage);
+        Transaction tx = daoFactory.createTransaction();
+
+        try {
+            handler.setTransaction(ftx);
+            MaterialFilter filter = new MaterialFilter();
+            filter.setLocale(Locale.ENGLISH);
+            filter.setJobId(view.getJobId());
+            filter.setType(MaterialType.DIGITAL_OBJECT);
+
+            List<MaterialView> materials = findMaterial(filter, tx);
+
+            if (materials.size() != 1) {
+                throw new WorkflowException("Wrong number of digital materials").addUnexpectedError();
+            }
+            MaterialView digitalMaterial = materials.get(0);
+
+            if (digitalMaterial.getPid() != null) {
+                throw new WorkflowException("Already connected digital material").addUnexpectedError();
+            }
+
+            handler.setMetadataXml(view.getMetadata());
+            Item items = handler.createDigitalObject();
+            digitalMaterial.setPid(items.getPid());
+            updateMaterial(digitalMaterial, tx);
+
+            ftx.commit();
+            tx.commit();
+
+        } catch (ConcurrentModificationException | WorkflowException e) {
+            ftx.rollback();
+            tx.rollback();
+            throw e;
+        }
+        catch (Throwable t) {
+            tx.rollback();
+            throw new WorkflowException("Cannot update material: " + view.getId(), t).addUnexpectedError();
+        } finally {
+            ftx.close();
+            tx.close();
+        }
+
+        return view;
+    }
+
     public Material updateMaterial(MaterialView view) throws ConcurrentModificationException, WorkflowException {
         Transaction tx = daoFactory.createTransaction();
-        WorkflowMaterialDao dao = daoFactory.createWorkflowMaterialDao();
-        WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
-        dao.setTransaction(tx);
-        jobDao.setTransaction(tx);
         try {
-            Material m = dao.find(view.getId());
-            if (m == null) {
-                throw new WorkflowException("Material not found: " + view.getId())
-                        .addMaterialNotFound(view.getId());
-            }
-            if (m.getType() != view.getType()) {
-                throw new WorkflowException("Material type mismatch: "
-                        + view.getId() + ", " + m.getType() + "!=" + view.getType());
-            }
-            // check job state
-            Job job = dao.findJob(m);
-            if (m == null) {
-                throw new WorkflowException("Job not found! Material: " + view.getId());
-            }
-            if (job.getState() != State.OPEN) {
-                throw new WorkflowException("Job is closed!").addJobIsClosed();
-            }
-            m.setNote(view.getNote());
-            if (m.getType() == MaterialType.FOLDER) {
-                FolderMaterial fm = (FolderMaterial) m;
-                fm.setPath(view.getPath());
-                fm.setLabel(view.getPath());
-            } else if (m.getType() == MaterialType.DIGITAL_OBJECT) {
-                DigitalMaterial dm = (DigitalMaterial) m;
-                String label = view.getPid();
-                if (view.getPid() != null && !view.getPid().equals(dm.getPid())) {
-                    List<Item> items = RemoteStorage.getInstance().getSearch().find(view.getPid());
-                    if (!items.isEmpty()) {
-                        label = items.get(0).getLabel();
-                    }
-                }
-                dm.setPid(view.getPid());
-                dm.setLabel(label);
-            } else if (m.getType() == MaterialType.PHYSICAL_DOCUMENT) {
-                String jobLabel = job.getLabel();
-                PhysicalMaterial pm = (PhysicalMaterial) m;
-                pm.setBarcode(view.getBarcode());
-                pm.setField001(view.getField001());
-                String newMetadata = view.getMetadata();
-                String oldMetadata = pm.getMetadata();
-                if (newMetadata == null ? oldMetadata != null : !newMetadata.equals(oldMetadata)) {
-                    PhysicalMaterial t = new PhysicalMaterialBuilder().setMetadata(newMetadata).build();
-                    pm.setMetadata(t.getMetadata());
-                    pm.setLabel(t.getLabel());
-                    jobLabel = pm.getLabel();
-                }
-                pm.setRdczId(view.getRdczId());
-                pm.setSource(view.getSource());
-                pm.setSignature(view.getSignature());
-                if (jobLabel == null ? job.getLabel() != null : !jobLabel.equals(job.getLabel())) {
-                    job.setLabel(jobLabel);
-                    jobDao.update(job);
-                }
-                pm.setDetail(view.getDetail());
-                pm.setIssue(view.getIssue());
-                pm.setSigla(view.getSigla());
-                pm.setVolume(view.getVolume());
-                pm.setYear(view.getYear());
-            }
-            dao.update(m);
+            Material material = updateMaterial(view, tx);
             tx.commit();
-            return m;
+            return material;
         } catch (ConcurrentModificationException t) {
             tx.rollback();
             throw t;
@@ -230,6 +230,76 @@ public class WorkflowManager {
         } finally {
             tx.close();
         }
+    }
+
+
+    private Material updateMaterial(MaterialView view, Transaction tx) throws ConcurrentModificationException, WorkflowException, IOException, FedoraClientException {
+        WorkflowMaterialDao dao = daoFactory.createWorkflowMaterialDao();
+        WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
+        dao.setTransaction(tx);
+        jobDao.setTransaction(tx);
+        Material m = dao.find(view.getId());
+        if (m == null) {
+            throw new WorkflowException("Material not found: " + view.getId())
+                    .addMaterialNotFound(view.getId());
+        }
+        if (m.getType() != view.getType()) {
+            throw new WorkflowException("Material type mismatch: "
+                    + view.getId() + ", " + m.getType() + "!=" + view.getType());
+        }
+        // check job state
+        Job job = dao.findJob(m);
+        if (m == null) {
+            throw new WorkflowException("Job not found! Material: " + view.getId());
+        }
+        if (job.getState() != State.OPEN) {
+            throw new WorkflowException("Job is closed!").addJobIsClosed();
+        }
+        m.setNote(view.getNote());
+        if (m.getType() == MaterialType.FOLDER) {
+            FolderMaterial fm = (FolderMaterial) m;
+            fm.setPath(view.getPath());
+            fm.setLabel(view.getPath());
+        } else if (m.getType() == MaterialType.DIGITAL_OBJECT) {
+            DigitalMaterial dm = (DigitalMaterial) m;
+            String label = view.getPid();
+            if (view.getPid() != null && !view.getPid().equals(dm.getPid())) {
+                List<Item> items = RemoteStorage.getInstance().getSearch().find(view.getPid());
+                if (!items.isEmpty()) {
+                    label = items.get(0).getLabel();
+                }
+            }
+            dm.setPid(view.getPid());
+            dm.setLabel(label);
+            jobDao.update(job);
+        } else if (m.getType() == MaterialType.PHYSICAL_DOCUMENT) {
+            String jobLabel = job.getLabel();
+            PhysicalMaterial pm = (PhysicalMaterial) m;
+            pm.setBarcode(view.getBarcode());
+            pm.setField001(view.getField001());
+            String newMetadata = view.getMetadata();
+            String oldMetadata = pm.getMetadata();
+            if (newMetadata == null ? oldMetadata != null : !newMetadata.equals(oldMetadata)) {
+                PhysicalMaterial t = new PhysicalMaterialBuilder().setMetadata(newMetadata).build();
+                pm.setMetadata(t.getMetadata());
+                pm.setLabel(t.getLabel());
+                jobLabel = pm.getLabel();
+            }
+            pm.setRdczId(view.getRdczId());
+            pm.setSource(view.getSource());
+            pm.setSignature(view.getSignature());
+            if (jobLabel == null ? job.getLabel() != null : !jobLabel.equals(job.getLabel())) {
+                job.setLabel(jobLabel);
+                jobDao.update(job);
+            }
+            pm.setDetail(view.getDetail());
+            pm.setIssue(view.getIssue());
+            pm.setSigla(view.getSigla());
+            pm.setVolume(view.getVolume());
+            pm.setYear(view.getYear());
+        }
+        dao.update(m);
+        return m;
     }
 
     public List<TaskParameterView> findParameter(TaskParameterFilter filter) {
