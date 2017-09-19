@@ -132,7 +132,7 @@ public class RdaRules {
                 }
             }
             for (PhysicalDescriptionDefinition pd : physicalDescriptions) {
-                if (!pd.getForm().isEmpty() && pd.getForm().get(0).getAuthority().equals("rdamedia") && pd.getForm().get(0).getAuthority().equals("rdacarrier")) {
+                if (!pd.getForm().isEmpty() && (pd.getForm().get(0).getAuthority().equals("rdamedia") || pd.getForm().get(0).getAuthority().equals("rdacarrier"))) {
                     exception.addValidation("RDA rules", ERR_NDK_AACR_INVALIDVALUE);
                 }
             }
