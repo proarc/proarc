@@ -139,6 +139,12 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         }
     }
 
+    @Override
+    public void deleteDissemination(String message) throws DigitalObjectException {
+
+        fobject.purgeDatastream(dsId, message);
+    }
+
     public void setRawDissemination(File contents, String filename, MediaType mime, String message) throws DigitalObjectException {
         setDsDissemination(BinaryEditor.RAW_ID, contents, filename, mime, message);
 

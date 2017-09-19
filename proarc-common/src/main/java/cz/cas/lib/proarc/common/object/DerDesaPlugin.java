@@ -172,6 +172,11 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
             metadata.setMetadata(dm, message);
         }
 
+        @Override
+        public void deleteDissemination(String message) throws DigitalObjectException {
+            defaultHandler.deleteDissemination(message);
+        }
+
     }
 
     static class DerMetadataHandler implements MetadataHandler<OaiDcType> {

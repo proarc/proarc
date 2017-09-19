@@ -46,4 +46,9 @@ public class ReadonlyDisseminationHandler implements DisseminationHandler {
         throw new UnsupportedOperationException("Not supported.");
     }
 
+    @Override
+    public void deleteDissemination(String message) throws DigitalObjectException {
+        throw new UnsupportedOperationException("Not supported.");
+    }
+
 }

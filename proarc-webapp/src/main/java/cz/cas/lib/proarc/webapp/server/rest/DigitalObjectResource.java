@@ -1169,6 +1169,33 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<Map<String,Object>>(Collections.singletonMap("processId", (Object) 0L));
     }
 
+    /**
+     * Removes specified datastream from object
+     *
+     * @param pid PID (required)
+     * @param batchId import batch ID (optional)
+     * @param dsId Datastream ID (required)
+     * @return Log result of operation
+     */
+    @DELETE
+    @Path(DigitalObjectResourceApi.DISSEMINATION_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse deleteDissemination(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @QueryParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId
+    ) throws DigitalObjectException, IOException, PurgeException {
+
+        String message = session.asFedoraLog();
+
+        DigitalObjectHandler doHandler = findHandler(pid, batchId);
+        DisseminationHandler disseminationHandler = doHandler.dissemination(dsId);
+
+        disseminationHandler.deleteDissemination(message);
+
+        return new SmartGwtResponse<String>(message);
+    }
+
     @GET
     @Path(DigitalObjectResourceApi.THUMB_PATH)
     @Produces("image/*")
