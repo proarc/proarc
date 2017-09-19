@@ -148,17 +148,25 @@ public class NdkPageMapper extends NdkMapper {
 
         String pageIndex = page.getIndex();
         String pageNumber = page.getNumber();
-        PartDefinition part = new PartDefinition();
-        part.setType(pageType);
-        mods.getPart().add(part);
-        addDetailNumber(pageIndex, NUMBER_TYPE_PAGE_INDEX, part);
-        addDetailNumber(pageNumber, NUMBER_TYPE_PAGE_NUMBER, part);
 
-        if (page.getNote() != null) {
-            Text text = new Text();
-            text.setValue(page.getNote());
-            part.getText().add(text);
+        if((pageType != null && !PAGE_TYPE_NORMAL.equals(pageType)) || pageIndex != null || pageNumber != null) {
+            PartDefinition part = new PartDefinition();
+
+            if (pageType != null && !PAGE_TYPE_NORMAL.equals(pageType)) {
+                part.setType(pageType);
+            }
+
+            mods.getPart().add(part);
+            addDetailNumber(pageIndex, NUMBER_TYPE_PAGE_INDEX, part);
+            addDetailNumber(pageNumber, NUMBER_TYPE_PAGE_NUMBER, part);
+
+            if (page.getNote() != null) {
+                Text text = new Text();
+                text.setValue(page.getNote());
+                part.getText().add(text);
+            }
         }
+
         mods.getIdentifier().addAll(getIdentifierDefinition(page.getIdentifiers()));
         return mods;
     }
