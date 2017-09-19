@@ -186,6 +186,7 @@ public class NdkPeriodicalMapper extends NdkMapper {
             addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartNumber());
             addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartName());
         }
+        addName(mods.getName(), dc.getCreators());
         for (GenreDefinition genre : mods.getGenre()) {
             addElementType(dc.getTypes(), genre.getValue());
         }
