@@ -108,9 +108,15 @@ public class NdkPageMapper extends NdkMapper {
             List<DetailDefinition> details = part.getDetail();
             String pageIndex = getNumber(getDetail(details, NUMBER_TYPE_PAGE_INDEX));
             String pageNumber = getNumber(getDetail(details, NUMBER_TYPE_PAGE_NUMBER));
-            page.setType(part.getType());
+            if (part.getType() == null) {
+                page.setType(PAGE_TYPE_NORMAL);
+            } else {
+                page.setType(part.getType());
+            }
             page.setNumber(pageNumber);
             page.setIndex(pageIndex);
+        } else {
+            page.setType(PAGE_TYPE_NORMAL);
         }
         page.setIdentifiers(getIdentifierItems(mods.getIdentifier()));
         return page;
@@ -148,8 +154,9 @@ public class NdkPageMapper extends NdkMapper {
 
         String pageIndex = page.getIndex();
         String pageNumber = page.getNumber();
+        String pageNote = page.getNote();
 
-        if((pageType != null && !PAGE_TYPE_NORMAL.equals(pageType)) || pageIndex != null || pageNumber != null) {
+        if((pageType != null && !PAGE_TYPE_NORMAL.equals(pageType)) || pageIndex != null || pageNumber != null || pageNote != null) {
             PartDefinition part = new PartDefinition();
 
             if (pageType != null && !PAGE_TYPE_NORMAL.equals(pageType)) {
@@ -160,9 +167,9 @@ public class NdkPageMapper extends NdkMapper {
             addDetailNumber(pageIndex, NUMBER_TYPE_PAGE_INDEX, part);
             addDetailNumber(pageNumber, NUMBER_TYPE_PAGE_NUMBER, part);
 
-            if (page.getNote() != null) {
+            if (pageNote != null) {
                 Text text = new Text();
-                text.setValue(page.getNote());
+                text.setValue(pageNote);
                 part.getText().add(text);
             }
         }
