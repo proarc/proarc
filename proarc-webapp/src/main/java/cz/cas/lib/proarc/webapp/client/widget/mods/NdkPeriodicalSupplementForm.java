@@ -35,7 +35,7 @@ public final class NdkPeriodicalSupplementForm {
         Form f = new Form();
 
         f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard)").setMaxOccurrences(1)
-                .setType(Field.COMBO).setRequired(true)
+                .setType(Field.RADIOGROUP).setRequired(true)
                 .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
                 .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
                 .createField());

@@ -97,7 +97,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
         private Boolean rdaRules;
 
         public Boolean getRdaRules() {
-            return rdaRules;
+            return rdaRules == null ? true : rdaRules;
         }
 
         public void setRdaRules(Boolean rdaRules) {

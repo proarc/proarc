@@ -30,6 +30,7 @@ import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
@@ -148,8 +149,13 @@ public abstract class NdkMapper {
             } else {
                 descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
             }
-            mods.getRecordInfo().get(0).getDescriptionStandard().add(0, descriptionStandard);
-            return mods;
+            if (mods.getRecordInfo().size() == 0) {
+                RecordInfoDefinition ri = new RecordInfoDefinition();
+                ri.getDescriptionStandard().add(0, descriptionStandard);
+                mods.getRecordInfo().add(0, ri);
+            } else {
+                mods.getRecordInfo().get(0).getDescriptionStandard().add(0, descriptionStandard);
+            }
         }
         return mods;
     }
@@ -247,7 +253,7 @@ public abstract class NdkMapper {
         private Boolean rdaRules;
 
         public Boolean getRdaRules() {
-            return rdaRules;
+            return rdaRules == null ? true : rdaRules;
         }
 
         public void setRdaRules(Boolean rdaRules) {
