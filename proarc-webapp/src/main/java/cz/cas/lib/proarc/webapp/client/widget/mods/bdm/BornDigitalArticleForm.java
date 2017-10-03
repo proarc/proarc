@@ -35,7 +35,7 @@ public final class BornDigitalArticleForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard)").setMaxOccurrences(1)
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
                 .setType(Field.COMBO).setRequired(true)
                 .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
                 .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
@@ -191,7 +191,7 @@ public final class BornDigitalArticleForm {
                 // namePart, namePartDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("namePart").setTitle("Name Parts - MA").setMaxOccurrences(5)
                     // @type(date, family, given, termsOfAddress)
-                    .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
+                    .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("<dl>"
                             + "<dt>date</dt><dd>RA - datum</dd>"
                             + "<dt>family</dt><dd>MA -příjmení </dd>"

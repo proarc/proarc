@@ -99,7 +99,7 @@ public final class NdkMonographTitleForm {
 
     private Field originInfo() {
         // originInfo, originInfoDefinition
-        return new FieldBuilder("originInfo").setTitle("Origin Info - MA").setMaxOccurrences(10)
+        return new FieldBuilder("originInfo").setTitle("Origin Info - M").setMaxOccurrences(10).setRequired(true)
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 // @displayLabel
                 // @altRepGroup

@@ -34,7 +34,7 @@ public final class NdkMonographSupplementForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard)").setMaxOccurrences(1)
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
                 .setType(Field.COMBO).setRequired(true)
                 .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
                 .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
@@ -111,7 +111,7 @@ public final class NdkMonographSupplementForm {
                 .setHint("Údaje o odpovědnosti za přílohu.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
-                .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
                     .setHint("<dl>"
                         + "<dt>personal</dt><dd>celé jméno osoby</dd>"
                         + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
@@ -130,7 +130,7 @@ public final class NdkMonographSupplementForm {
                     .addMapValue("primary", "primary")
                 .createField()) // usage
                 // namePart, namePartDefinition extends stringPlusLanguage
-                .addField(new FieldBuilder("namePart").setTitle("Name Parts - MA").setMaxOccurrences(5)
+                .addField(new FieldBuilder("namePart").setTitle("Name Parts - M").setMaxOccurrences(5).setRequired(true)
                     // @type(date, family, given, termsOfAddress)
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("<dl>"
@@ -390,7 +390,7 @@ public final class NdkMonographSupplementForm {
                     // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @type
-                    .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
+                    .addField(new FieldBuilder("authority").setTitle("Authority - MA").setMaxOccurrences(1).setType(Field.COMBO)
                         .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM)
                         .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)
                         .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)
@@ -450,7 +450,7 @@ public final class NdkMonographSupplementForm {
 
     private Field abstracts() {
         // abstract, abstractDefinition extends stringPlusLanguage
-        return new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
+        return new FieldBuilder("abstract").setTitle("Abstract - RA").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType

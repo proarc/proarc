@@ -91,7 +91,7 @@ public final class NdkPeriodicalIssueForm {
                 // partNumber, type="stringPlusLanguage"
                 .addField(new FieldBuilder("partNumber").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Part Number - MA").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                    .addField(new FieldBuilder("value").setTitle("Part Number - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
                         .setHint("Pořadové číslo vydání (čísla), např. 40.<p>U ročenek číslo řady/edice.")
                     .createField()) // value
                 .createField()) // partNumber
@@ -147,7 +147,7 @@ public final class NdkPeriodicalIssueForm {
                     + " specializovaných periodik, tematických čísel nebo zvláštních vydání.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
-                .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
+                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT)
                     // issue 219: not required
                     .setRequired(false)
                     .setHint("<dl>"
@@ -168,7 +168,7 @@ public final class NdkPeriodicalIssueForm {
                     .addMapValue("primary", "primary")
                 .createField()) // usage
                 // namePart, namePartDefinition extends stringPlusLanguage
-                .addField(new FieldBuilder("namePart").setTitle("Name Parts - MA").setMaxOccurrences(5)
+                .addField(new FieldBuilder("namePart").setTitle("Name Parts - M").setMaxOccurrences(5).setRequired(true)
                     // @type(date, family, given, termsOfAddress)
                     .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("<dl>"
@@ -199,7 +199,7 @@ public final class NdkPeriodicalIssueForm {
                     .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                     // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
                     .addField(NdkForms.roleTerm(
-                            "Role Term - MA", false, "Authority - MA", false, "Type - M", false
+                            "Role Term - MA", false, "Authority - M", true, "Type - M", false
                     )) // roleTerm
                 .createField()) // role
                 // description
@@ -240,7 +240,7 @@ public final class NdkPeriodicalIssueForm {
 
     private Field originInfo() {
         // originInfo, originInfoDefinition
-        return new FieldBuilder("originInfo").setTitle("Origin Info - R").setMaxOccurrences(10)
+        return new FieldBuilder("originInfo").setTitle("Origin Info - MA").setMaxOccurrences(10)
                 .setHint("informace o původu předlohy."
                     + "<p>Doporučené kde lze vyplnit (např. u ročenek, kde se vydavatel měnil)."
                     + "<p><b>Nepovinné pro deníky a běžná čísla periodik</b>"
@@ -447,7 +447,7 @@ public final class NdkPeriodicalIssueForm {
 
     private Field abstracts() {
         // abstract, abstractDefinition extends stringPlusLanguage
-        return new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
+        return new FieldBuilder("abstract").setTitle("Abstract - RA").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
