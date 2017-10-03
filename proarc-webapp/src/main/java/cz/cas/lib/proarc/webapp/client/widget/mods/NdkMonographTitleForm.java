@@ -100,6 +100,21 @@ public final class NdkMonographTitleForm {
     private Field originInfo() {
         // originInfo, originInfoDefinition
         return new FieldBuilder("originInfo").setTitle("Origin Info - MA").setMaxOccurrences(10)
+                // eventType
+                .addField(new FieldBuilder("eventType").setTitle("Event Type - M").setMaxOccurrences(1). setType(Field.COMBO)
+                    .setHint("Hodnoty dle druhého indikátoru pole 264:"
+                        +"<p>264_0 production se uvádí, jestliže pole obsahuje údaje o vytvoření zdroje v nezveřejněné podobě."
+                        +"<p>264_1 publication se uvádí, jestliže pole obsahuje údaje o nakladateli zdroje."
+                        +"<p>264_2 distribution se uvádí, jestliže pole obsahuje údaje o distribuci zdroje."
+                        +"<p>264_3 manufacture se uvádí, jestliže pole obsahuje údaje o tisku, výrobě zdroje ve zveřejněné podobě."
+                        +"<p>264_4 copyright (R) se uvádí, jestliže pole obsahuje údaje o ochraně podle autorského práva (copyright).")
+                    .addMapValue("", "")
+                    .addMapValue("production", "production")
+                    .addMapValue("publication", "publication")
+                    .addMapValue("distribution", "distribution")
+                    .addMapValue("manufacture", "manufacture")
+                    .addMapValue("copyright", "copyright")
+                .createField()) //eventType
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 // @displayLabel
                 // @altRepGroup
