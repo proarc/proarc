@@ -70,10 +70,14 @@ public class TiffAsJp2Importer implements ImageImporter {
     @Override
     public BatchItemObject consume(FileSet fileSet, ImportOptions ctx) {
 
-        FileEntry imageFile = fileSet.getFiles().get(0);
+        FileEntry jp2Entry = findJp2(fileSet);
+        // check jp2 file
+        if (jp2Entry == null) {
+            return null;
+        }
 
         try {
-            FileEntry tiff = convertToTiff(imageFile, ctx.getConfig().getConvertorJp2Processor());
+            FileEntry tiff = convertToTiff(jp2Entry, ctx.getConfig().getConvertorJp2Processor());
 
             if (tiff == null) {
                 return null;
@@ -83,7 +87,7 @@ public class TiffAsJp2Importer implements ImageImporter {
 
             return importer.consume(fileSet, ctx);
         } catch (Throwable ex) {
-            LOG.log(Level.SEVERE, imageFile.toString(), ex);
+            LOG.log(Level.SEVERE, jp2Entry.toString(), ex);
         }
 
         return null;

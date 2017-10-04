@@ -112,7 +112,7 @@ public final class SimpleCejshArticleForm {
                 .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
                     .addField(new FieldBuilder("value").setTitle("Podnázev - MA").setMaxOccurrences(1)
                         .setType(Field.TEXTAREA)
-                        .setRequired(true)
+                        .setRequired(false)
                         .setHeight("50")
                         .setHint("Podnázev článku. Za podnázev lze považovat i perex.")
                     .createField()) // value

@@ -88,6 +88,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public static final String ERR_NDK_CHANGE_MODS_WITH_MEMBERS = "Err_Ndk_Change_Mods_With_Members";
     public static final String ERR_NDK_DOI_DUPLICITY = "Err_Ndk_Doi_Duplicity";
     public static final String ERR_NDK_REMOVE_URNNBN = "Err_Ndk_Remove_UrnNbn";
+    public static final String DEFAULT_PAGE_TYPE = "NormalPage";
 
     /**
      * The set of model IDs that should be checked for connected members.
@@ -306,6 +307,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (xmlData.getData() != null) {
             ValidationErrorHandler errHandler = new ValidationErrorHandler();
             try {
+                String data = xmlData.getData();
+                xmlData.setData(data);
+
                 Validator validator = ModsUtils.getSchema().newValidator();
                 validator.setErrorHandler(errHandler);
                 validator.validate(new StreamSource(new StringReader(xmlData.getData())));

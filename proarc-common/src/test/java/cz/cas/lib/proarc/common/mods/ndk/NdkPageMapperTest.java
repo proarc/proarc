@@ -91,4 +91,37 @@ public class NdkPageMapperTest {
         assertEquals(Arrays.asList(new IdentifierItem(null, "uuid", "test")), result.getIdentifiers());
     }
 
+    @Test
+    public void testToModsWithMissingValues() throws Exception {
+        createModsAndCheckValues("[1]", "1", "Blank", "testNote");
+        createModsAndCheckValues("[1]", "1", "NormalPage", "testNote");
+        createModsAndCheckValues("[1]", "1", "NormalPage", null);
+        createModsAndCheckValues("[1]", null, "NormalPage", null);
+        createModsAndCheckValues(null, "1", "NormalPage", null);
+        createModsAndCheckValues(null, null, "NormalPage", null);
+        createModsAndCheckValues(null, null, "NormalPage", "testNote");
+    }
+
+    private void createModsAndCheckValues(String index, String number, String type, String note) {
+        NdkPageMapper mapper = new NdkPageMapper();
+        Page p = createPageWithParams(index, number, type, note);
+
+        ModsDefinition mods = mapper.toMods(p, new Context("uuid:test"));
+
+        Page result = mapper.toJsonObject(mods, new Context("dummy"));
+
+        assertEquals(index, result.getIndex());
+        assertEquals(number, result.getNumber());
+        assertEquals(type, result.getType());
+        assertEquals(note, result.getNote());
+    }
+
+    private Page createPageWithParams(String index, String number, String type, String note) {
+        Page p = new Page();
+        p.setNote(note);
+        p.setType(type);
+        p.setIndex(index);
+        p.setNumber(number);
+        return p;
+    }
 }
