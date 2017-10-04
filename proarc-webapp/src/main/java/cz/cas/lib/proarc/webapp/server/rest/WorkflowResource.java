@@ -21,6 +21,9 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.custom.Mapping;
+import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
@@ -42,8 +45,11 @@ import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -70,6 +76,7 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.transform.stream.StreamSource;
 
 /**
  * It allows to manage workflow remotely.
@@ -440,6 +447,42 @@ public class WorkflowResource {
             return new SmartGwtResponse<MaterialView>(result);
         } catch (WorkflowException ex) {
             return toError(ex, null);
+        }
+    }
+
+    /**
+     * Gets subset of MODS properties in JSON.
+     *
+     * @param jobId workflow job id of requested digital object
+     * @param editorId view defining subset of MODS properties
+     */
+    @Path(WorkflowResourceApi.MODS_PATH)
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DescriptionMetadata<Object>> getDescriptionMetadata(
+            @QueryParam(WorkflowModelConsts.MATERIALFILTER_JOBID) BigDecimal jobId,
+            @QueryParam(MetaModelDataSource.FIELD_EDITOR) String editorId
+    ) {
+        MaterialFilter filter = new MaterialFilter();
+        filter.setLocale(session.getLocale(httpHeaders));
+        filter.setType(MaterialType.PHYSICAL_DOCUMENT);
+        filter.setJobId(jobId);
+        try {
+            List<MaterialView> mvs = workflowManager.findMaterial(filter);
+            DescriptionMetadata<Object> dm = new DescriptionMetadata<>();
+            dm.setWorfklowJobId(jobId.longValue());
+            dm.setEditor(editorId);
+            if (!mvs.isEmpty()) {
+                ModsDefinition modsDefinition = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(mvs.get(0).getMetadata())));
+                Mapping mapping = new Mapping();
+                Object customMods = mapping.read(modsDefinition, editorId);
+                dm.setData(customMods);
+            }
+
+            return new SmartGwtResponse<>(dm);
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            return SmartGwtResponse.asError(ex.getMessage());
         }
     }
 

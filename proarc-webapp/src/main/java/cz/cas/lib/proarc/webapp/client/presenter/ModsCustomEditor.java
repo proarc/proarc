@@ -46,6 +46,7 @@ import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetadata;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionSaveHandler;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.dc.DcEditor;
@@ -355,16 +356,31 @@ public class ModsCustomEditor extends AbstractDatastreamEditor implements Refres
         }
     }
 
+    /**
+     * Loads a digital object from the workflow
+     *
+     * @param editor form
+     * @param workflowJobId identifier of digital object in workflow
+     * @param model model of digital object (do in workflow has not saved model)
+     * @param loadCallback listens to load status
+     */
     private void loadCustom(final DynamicForm editor, Long workflowJobId,
                             MetaModelDataSource.MetaModelRecord model, final BooleanCallback loadCallback) {
 
-        Criteria pidCriteria = new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, workflowJobId.toString());
+        Criteria workflowJobIdCriteria = new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, workflowJobId.toString());
         Criteria criteria = new Criteria(MetaModelDataSource.FIELD_EDITOR, model.getEditorId());
-        criteria.addCriteria(pidCriteria);
+        criteria.addCriteria(workflowJobIdCriteria);
         DSRequest request = new DSRequest();
+        if (showFetchPrompt != null) {
+            request.setShowPrompt(showFetchPrompt);
+        }
 
-        //TODO-MR resource from workflow...
-        //handleFetch(response, editor, loadCallback);
+        WorkflowModsCustomDataSource.getInstance().fetchData(criteria, new DSCallback() {
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                handleFetch(response, editor, loadCallback);
+            }
+        }, request);
 
     }
 
