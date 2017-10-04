@@ -331,21 +331,21 @@ public final class BornDigitalArticleForm {
 
     private Field physicalDescription() {
         // physicalDescription, physicalDescriptionDefinition
-        return new FieldBuilder("physicalDescription").setTitle("Physical Description - R").setMaxOccurrences(10)
+        return new FieldBuilder("physicalDescription").setTitle("Physical Description - M").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu článku.")
                 // form, formDefinition extends stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("form").setTitle("Form - R").setMaxOccurrences(1)
+                .addField(new FieldBuilder("form").setTitle("Form - M").setMaxOccurrences(1)
                     // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @type, string
                     // XXX autofill "marcform"
-                    .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("marcform")
+                    .addField(new FieldBuilder("authority").setTitle("Authority - MA").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("marcform")
                         .addMapValue("marcform", "marcform")
                         .addMapValue("gmd", "gmd")
                         .addMapValue("rdamedia", "rdamedia")
                         .addMapValue("rdacarrier", "rdacarrier")
                     .createField()) // authority
-                    .addField(new FieldBuilder("value").setTitle("Form - R").setMaxOccurrences(1).setType(Field.COMBO)
+                    .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
                             + "<p>Odpovídá hodnotě v poli 008/23")
                         .addMapValue("braille", "braille")
