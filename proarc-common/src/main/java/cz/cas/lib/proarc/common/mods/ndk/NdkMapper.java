@@ -149,10 +149,10 @@ public abstract class NdkMapper {
             } else {
                 descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
             }
-            if (mods.getRecordInfo().size() == 0) {
-                RecordInfoDefinition ri = new RecordInfoDefinition();
-                ri.getDescriptionStandard().add(0, descriptionStandard);
-                mods.getRecordInfo().add(0, ri);
+            if (mods.getRecordInfo().isEmpty()) {
+                RecordInfoDefinition recordInfo = new RecordInfoDefinition();
+                recordInfo.getDescriptionStandard().add(0, descriptionStandard);
+                mods.getRecordInfo().add(0, recordInfo);
             } else {
                 mods.getRecordInfo().get(0).getDescriptionStandard().add(0, descriptionStandard);
             }
