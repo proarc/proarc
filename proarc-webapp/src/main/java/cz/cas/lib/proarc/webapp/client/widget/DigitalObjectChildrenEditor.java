@@ -68,7 +68,6 @@ import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
 import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
-import com.smartgwt.client.widgets.menu.events.ItemClickHandler;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.Action;
@@ -691,8 +690,8 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
         newPid.setLength(36 + 5);
         newPid.setWidth((36 + 5) * 8);
         newPid.setValidators(new RegExpValidator("uuid:[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}"));
-            f.setFields(newPid);
-            f.setAutoFocus(true);
+        f.setFields(newPid);
+        f.setAutoFocus(true);
         return f;
     }
 
@@ -747,7 +746,6 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
                         Map errors = response.getErrors();
 
                         paramsForm.setErrors(errors, true);
-                        //request.setWillHandleError(true);
 
                         return;
                     }
