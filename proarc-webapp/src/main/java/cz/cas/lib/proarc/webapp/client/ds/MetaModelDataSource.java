@@ -165,7 +165,6 @@ public class MetaModelDataSource extends ProarcDataSource {
      */
     public static Menu createMenu(Record[] modelRecords, boolean includeRoots) {
         Menu menu = new Menu();
-        menu.setCanSelectParentItems(true);
         for (int i = 0; i < modelRecords.length; i++) {
             MetaModelRecord mmr = MetaModelRecord.get(modelRecords[i]);
             if (includeRoots || !mmr.isRoot()) {
