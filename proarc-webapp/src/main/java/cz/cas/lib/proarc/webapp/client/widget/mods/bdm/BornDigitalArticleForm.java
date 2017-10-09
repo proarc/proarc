@@ -361,7 +361,7 @@ public final class BornDigitalArticleForm {
                         .addMapValue("mikroskop", "rdamedia - mikroskop")
                         .addMapValue("projekce", "rdamedia - projekce")
                         .addMapValue("stereograf", "rdamedia - stereograf")
-                        .addMapValue("bez media", "rdamedia - bez media")
+                        .addMapValue("bez média", "rdamedia - bez média")
                         .addMapValue("video", "rdamedia - video")
                         .addMapValue("svazek", "rdacarrier - svazek")
                         .addMapValue("online zdroj", "rdacarrier - online zdroj")

@@ -58,8 +58,8 @@ public class BdmArticleMapperTest {
     @Test
     public void testCreateMods() {
         String xml = "<mods version='3.5' xmlns='http://www.loc.gov/mods/v3'>"
-                + "<physicalDescription> <form>bez media</form> </physicalDescription>"
-                + "<physicalDescription> <form>bez media</form> </physicalDescription>"
+                + "<physicalDescription> <form>bez média</form> </physicalDescription>"
+                + "<physicalDescription> <form>bez média</form> </physicalDescription>"
                 + "<physicalDescription> <form>počítač</form> </physicalDescription>"
                 + "<physicalDescription> <form>jiný</form> </physicalDescription>"
                 + "<physicalDescription> <form>jiný</form> </physicalDescription>"

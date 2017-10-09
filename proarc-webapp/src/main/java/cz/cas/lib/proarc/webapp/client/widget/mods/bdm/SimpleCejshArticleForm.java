@@ -318,7 +318,7 @@ public final class SimpleCejshArticleForm {
                     .addField(new FieldBuilder("value").setTitle("Typ média - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
                             + "<p>Odpovídá hodnotě v poli 008/23")
-                        .addMapValue("bez media", "bez media")
+                        .addMapValue("bez média", "bez média")
                         .addMapValue("jiný", "jiný")
                         .addMapValue("počítač", "počítač")
                     .createField()) // value
