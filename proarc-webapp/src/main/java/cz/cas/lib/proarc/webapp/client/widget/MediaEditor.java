@@ -364,7 +364,13 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         Criteria streamMenuFilter = dobj.toCriteria();
         streamMenu.setPickListCriteria(streamMenuFilter);
         streamMenu.setAttribute(SOURCE_IDENTIFIER, getLastSelectionId(dobj, source));
-        streamMenu.fetchData();
+
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setAttribute(SOURCE_IDENTIFIER, getLastSelectionId(dobj, source));
+
+        streamMenu.fetchData((dsResponse, o, dsRequest1) -> {
+
+        }, dsRequest);
     }
 
     private void updateStreamMenu(ResultSet data, SelectItem view) {
