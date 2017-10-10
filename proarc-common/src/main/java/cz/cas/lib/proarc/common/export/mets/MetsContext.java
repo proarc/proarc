@@ -56,9 +56,20 @@ public class MetsContext {
     private boolean allowNonCompleteStreams = false;
     private boolean allowMissingURNNBN = false;
     private File packageDir;
-    private String creatorOrganization = "ProArc";
     private String proarcVersion;
     private JhoveContext jhoveContext;
+    private NdkExportOptions options;
+
+    /** Sets options */
+    public void setConfig(NdkExportOptions options){
+        this.options = options;
+    }
+
+
+    /** Returns options */
+    public NdkExportOptions getOptions(){
+        return options;
+    }
 
     /**
      * Returns the version of ProArc
@@ -74,29 +85,10 @@ public class MetsContext {
 
     /**
      * Sets the ProArc version
-     * 
      * @param proarcVersion
      */
     public void setProarcVersion(String proarcVersion) {
         this.proarcVersion = proarcVersion;
-    }
-
-    /**
-     * Returns the creator organization - used for mets header
-     *
-     * @return
-     */
-    public String getCreatorOrganization() {
-        return creatorOrganization;
-    }
-
-    /**
-     * Sets the creator organization - default ProArc
-     * 
-     * @param creatorOrganization
-     */
-    public void setCreatorOrganization(String creatorOrganization) {
-        this.creatorOrganization = creatorOrganization;
     }
 
     public File getPackageDir() {

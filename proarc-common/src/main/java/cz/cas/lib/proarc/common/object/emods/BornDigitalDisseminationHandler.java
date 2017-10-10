@@ -80,6 +80,13 @@ public class BornDigitalDisseminationHandler implements DisseminationHandler {
         }
     }
 
+    @Override
+    public void deleteDissemination(String message) throws DigitalObjectException {
+        objHandler.getFedoraObject().purgeDatastream(BinaryEditor.RAW_ID, message);
+        objHandler.getFedoraObject().purgeDatastream(BinaryEditor.PREVIEW_ID, message);
+        objHandler.getFedoraObject().purgeDatastream(BinaryEditor.THUMB_ID, message);
+    }
+
     private void createThumbnail(File inputFile, String message) throws DigitalObjectException {
         Configuration thumbConf = getConfig().getImportConfiguration().getThumbnailProcessor();
         if (thumbConf != null && !thumbConf.isEmpty()) {

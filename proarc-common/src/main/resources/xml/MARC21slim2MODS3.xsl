@@ -8,6 +8,7 @@
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
     MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 11.433) 20160318
 
+Revision 1.97.proarc.12.298 - Added mapping for 264 ind 4 to originInfo 2017/09/01
 Revision 1.97.proarc.11.433 - ProArc patch of mapping 653$09 and 653$0_ to subject/topic@lang 2016/03/18
 Revision 1.97.proarc.10.434 - ProArc patch of mapping 520$9 to abstract@lang 2016/03/02
 Revision 1.97.proarc.9.313 - ProArc patch of mapping 787 to relatedItem 2015/07/11
@@ -1002,6 +1003,24 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <dateOther type="manufacture">
                     <xsl:value-of select="marc:subfield[@code='c']"/>
                 </dateOther>
+            </originInfo>
+        </xsl:for-each>
+        <!--Revision 1.97.proarc.12.298-->
+        <xsl:for-each select="marc:datafield[@tag=264][@ind2=4]">
+            <originInfo eventType="copyright">
+                <!-- Template checks for altRepGroup - 880 $6 -->
+                <xsl:call-template name="xxx880"/>
+                <place>
+                    <placeTerm type="text">
+                        <xsl:value-of select="marc:subfield[@code='a']"/>
+                    </placeTerm>
+                </place>
+                <publisher>
+                    <xsl:value-of select="marc:subfield[@code='b']"/>
+                </publisher>
+                <copyrightDate>
+                    <xsl:value-of select="marc:subfield[@code='c']"/>
+                </copyrightDate>
             </originInfo>
         </xsl:for-each>
 
@@ -2719,8 +2738,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </recordIdentifier>
             </xsl:for-each>
 
-            <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
-                (Revision 1.97 2014/05/21, ProArc patch 11.433 2016/03/18)</recordOrigin>
+            <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3.xsl
+                (Revision 1.97 2014/05/21, ProArc patch 12.298 2017/09/01)</recordOrigin>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>

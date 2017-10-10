@@ -17,10 +17,12 @@
 package cz.cas.lib.proarc.common.object.emods;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkArticleMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import java.io.IOException;
 
 /**
@@ -52,7 +54,18 @@ public class BdmArticleMapper extends NdkArticleMapper {
         } else {
             mw.setReviewed(Boolean.FALSE);
         }
-        return mw;
+        if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()){
+            return mw;
+        } else {
+           String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
+           if (descriptionStandard.equals(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)) {
+               mw.setRdaRules(true);
+           } else {
+               mw.setRdaRules(false);
+           }
+            mods.getRecordInfo().get(0).getDescriptionStandard().clear();
+           return mw;
+        }
     }
 
     @Override
@@ -65,6 +78,13 @@ public class BdmArticleMapper extends NdkArticleMapper {
             reviewed.setType(GENRE_PEER_REVIEWED_TYPE);
             mods.getGenre().add(0, reviewed);
         }
+        StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
+        if (wrapper.getRdaRules() != null && wrapper.getRdaRules()) {
+            descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
+        } else {
+            descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
+        }
+        mods.getRecordInfo().get(0).getDescriptionStandard().add(0, descriptionStandard);
         return mods;
     }
 
@@ -74,6 +94,15 @@ public class BdmArticleMapper extends NdkArticleMapper {
          * A reviewed article. {@code mods/genre[@type'peer-reviewed' and text()='article'] }
          */
         private Boolean reviewed;
+        private Boolean rdaRules;
+
+        public Boolean getRdaRules() {
+            return rdaRules;
+        }
+
+        public void setRdaRules(Boolean rdaRules) {
+            this.rdaRules = rdaRules;
+        }
 
         public Boolean getReviewed() {
             return reviewed;

@@ -20,6 +20,7 @@ import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.activity.shared.ActivityManager;
 import com.google.gwt.activity.shared.ActivityMapper;
 import com.google.gwt.core.client.Callback;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -38,10 +39,15 @@ import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.events.DataChangedEvent;
 import com.smartgwt.client.data.events.DataChangedHandler;
+import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IconButton;
+import com.smartgwt.client.widgets.events.ClickEvent;
+import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
@@ -427,6 +433,9 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
         lg.setCanReorderRecords(Boolean.TRUE);
         lg.setShowRollOver(Boolean.FALSE);
         lg.setGenerateDoubleClickOnEnter(Boolean.TRUE);
+        ListGridPersistance lgPersistence = new ListGridPersistance("DigitalObjectChildrenEditor.objectList", lg);
+        lg.setViewState(lgPersistence.getViewState());
+
         // ListGrid with enabled grouping prevents record reoredering by dragging! (SmartGWT 3.0)
         // lg.setGroupByField(RelationDataSource.FIELD_MODEL);
         // lg.setGroupStartOpen(GroupStartOpen.ALL);
@@ -614,19 +623,45 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
     private void attachAddSubmenu(MenuItem mi) {
         Menu sm = new Menu();
         MenuItem miAddSingle = new MenuItem(i18n.DigitalObjectEditor_ChildrenEditor_CreateAction_Title());
+        MenuItem miAddSingleWithID = new MenuItem(i18n.DigitalObjectEditor_ChildrenEditor_CreateWithParamsAction_Title());
         MenuItem miAddMultiple = new MenuItem(i18n.DigitalObjectEditor_ChildrenEditor_CreateMoreAction_Title());
+
         sm.addItemClickHandler((event) -> {
             MetaModelRecord mmr = MetaModelRecord.get(mi);
             if (event.getItem() == miAddSingle) {
                 addChild(mmr, Collections.emptyMap());
-            } else if (event.getItem() == miAddMultiple) {
+            } else if (event.getItem() == miAddSingleWithID) {
+                final Dialog d = new Dialog(i18n.DigitalObjectEditor_ChildrenEditor_CreateWithParamsAction_Dialog_Title());
+
+                DynamicForm paramsForm = createParamsForm();
+                paramsForm.clearValues();
+
+                d.getDialogContentContainer().setMembers(paramsForm);
+                d.addOkButton((ClickEvent eventX) -> {
+                    if(!paramsForm.validate()) {
+                        return;
+                    }
+
+                    addChild(mmr, Collections.emptyMap(), paramsForm, d);
+                });
+
+                d.addCancelButton(() -> d.destroy());
+                d.setWidth(400);
+                d.show();
+            } else if (event.getItem() == miAddMultiple && "model:ndkperiodicalissue".equals(mi.getAttribute(MetaModelDataSource.FIELD_PID))) {
                 new NewIssueEditor(i18n).showWindow(params -> {
                     addChild(mmr, params.toMap());
                 });
             }
         });
+
         sm.addItem(miAddSingle);
-        sm.addItem(miAddMultiple);
+        sm.addItem(miAddSingleWithID);
+
+        if ("model:ndkperiodicalissue".equals(mi.getAttribute(MetaModelDataSource.FIELD_PID))) {
+            sm.addItem(miAddMultiple);
+        }
+
         mi.setSubmenu(sm);
     }
 
@@ -634,7 +669,6 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
         Menu menuAdd = MetaModelDataSource.createMenu(models, true);
         menuAdd.setCanSelectParentItems(true);
         Arrays.stream(menuAdd.getItems())
-                .filter(mi -> "model:ndkperiodicalissue".equals(mi.getAttribute(MetaModelDataSource.FIELD_PID)))
                 .forEach(mi -> attachAddSubmenu(mi));
         addActionButton.setMenu(menuAdd);
         menuAdd.addItemClickHandler((ItemClickEvent event) -> {
@@ -643,10 +677,45 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
         });
     }
 
+    private DynamicForm createParamsForm() {
+        ClientMessages i18n = GWT.create(ClientMessages.class);
+        DynamicForm f = new DynamicForm();
+        f.setAutoHeight();
+
+        TextItem newPid = new TextItem(DigitalObjectDataSource.FIELD_PID);
+
+        newPid.setTitle(i18n.NewDigObject_OptionPid_Title());
+        newPid.setTooltip(i18n.NewDigObject_OptionPid_Hint());
+        newPid.setRequired(true);
+        newPid.setLength(36 + 5);
+        newPid.setWidth((36 + 5) * 8);
+        newPid.setValidators(new RegExpValidator("uuid:[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}"));
+        f.setFields(newPid);
+        f.setAutoFocus(true);
+        return f;
+    }
+
     private void addChild(MetaModelRecord model, Map<String, Object> params) {
+        addChild(model, params, null, null);
+    }
+
+    private void addChild(MetaModelRecord model, Map<String, Object> params, DynamicForm paramsForm, Dialog dialog) {
         Record record = new Record(params);
         record.setAttribute(DigitalObjectDataSource.FIELD_MODEL, model.getId());
         record.setAttribute(RelationDataSource.FIELD_PARENT, digitalObject.getPid());
+
+        DSRequest dsRequest = new DSRequest();
+
+        if (paramsForm != null) {
+            String pid = paramsForm.getValueAsString(DigitalObjectDataSource.FIELD_PID);
+
+            if (pid != null) {
+                record.setAttribute(DigitalObjectDataSource.FIELD_PID, pid);
+
+                dsRequest.setWillHandleError(true);
+            }
+        }
+
         DigitalObjectDataSource.getInstance().addData(record, new DSCallback() {
 
             @Override
@@ -666,9 +735,23 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
                             childrenListGrid.scrollToRow(recordIndex);
                         }
                     });
+
+                    if (dialog != null) {
+                        dialog.destroy();
+                    }
+                }
+
+                if (response.getStatus() == RPCResponse.STATUS_VALIDATION_ERROR) {
+                    if (paramsForm != null) {
+                        Map errors = response.getErrors();
+
+                        paramsForm.setErrors(errors, true);
+
+                        return;
+                    }
                 }
             }
-        });
+        }, dsRequest);
     }
 
     public static final class ChildActivities implements ActivityMapper {

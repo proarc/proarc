@@ -17,19 +17,26 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.ndk.RdaRules;
+import cz.cas.lib.proarc.mods.ClassificationDefinition;
+import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
 import java.util.List;
+import org.apache.empire.commons.StringUtils;
 
 /**
  * Subclass to implement transformations of MODS data in NDK flavor
@@ -102,8 +109,24 @@ public abstract class NdkMapper {
      * @param ctx context
      * @return the serializable object
      */
-    public ModsWrapper toJsonObject(ModsDefinition mods, Context ctx) {
-        return new ModsWrapper(mods);
+    public ModsWrapper toJsonObject(ModsDefinition mods, Context ctx) throws DigitalObjectException {
+        RdaModsWrapper wrapper = new RdaModsWrapper();
+        wrapper.setMods(mods);
+        if (RdaRules.HAS_MEMBER_RDA_VALIDATION_MODELS.contains(ctx.getHandler().relations().getModel())) {
+            if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()) {
+                return wrapper;
+            }
+            String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
+            if (descriptionStandard.equalsIgnoreCase(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)) {
+                mods.getRecordInfo().get(0).getDescriptionStandard().clear();
+                wrapper.setRdaRules(true);
+            } else {
+                mods.getRecordInfo().get(0).getDescriptionStandard().clear();
+                wrapper.setRdaRules(false);
+            }
+            return wrapper;
+        }
+        return wrapper;
     }
 
     /**
@@ -114,8 +137,21 @@ public abstract class NdkMapper {
      * @return MODS
      * @throws IOException failure
      */
-    public ModsDefinition fromJsonObject(ObjectMapper jsMapper, String json, Context ctx) throws IOException {
-        return jsMapper.readValue(json, ModsWrapper.class).getMods();
+    public ModsDefinition fromJsonObject(ObjectMapper jsMapper, String json, Context ctx) throws IOException, DigitalObjectException {
+        RdaModsWrapper wrapper = jsMapper.readValue(json, RdaModsWrapper.class);
+        ModsDefinition mods = wrapper.getMods();
+
+        if (RdaRules.HAS_MEMBER_RDA_VALIDATION_MODELS.contains(ctx.getHandler().relations().getModel())) {
+            StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
+            if (wrapper.getRdaRules() != null && wrapper.getRdaRules()) {
+                descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
+            } else {
+                descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
+            }
+            mods.getRecordInfo().get(0).getDescriptionStandard().add(0, descriptionStandard);
+            return mods;
+        }
+        return mods;
     }
 
     /**
@@ -170,6 +206,16 @@ public abstract class NdkMapper {
         return null;
     }
 
+    /** Set default Authority value or repair it if needed. */
+    protected void repairAuthorityInClassification(ClassificationDefinition classification){
+        if (classification.getAuthority() == null) {
+            classification.setAuthority("udc");
+        }
+        if (StringUtils.isNotEmpty(classification.getEdition()) && classification.getEdition().equals("Konspekt")){
+            classification.setAuthority("udc"); // edition = "Konspekt" only if authority = "udc"
+        }
+    }
+
     public static class Context {
 
         private DigitalObjectHandler handler;
@@ -196,4 +242,16 @@ public abstract class NdkMapper {
 
     }
 
+    public static class RdaModsWrapper extends ModsWrapper {
+
+        private Boolean rdaRules;
+
+        public Boolean getRdaRules() {
+            return rdaRules;
+        }
+
+        public void setRdaRules(Boolean rdaRules) {
+            this.rdaRules = rdaRules;
+        }
+    }
 }

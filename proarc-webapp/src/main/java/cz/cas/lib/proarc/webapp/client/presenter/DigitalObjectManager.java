@@ -50,6 +50,7 @@ import cz.cas.lib.proarc.webapp.client.action.KrameriusExportAction;
 import cz.cas.lib.proarc.webapp.client.action.NdkExportAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
 import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
@@ -90,6 +91,7 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction childrenEditAction;
     private DigitalObjectEditAction atmEditAction;
     private UrnNbnAction registerUrnNbnAction;
+    private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
     public DigitalObjectManager(ClientMessages i18n, PlaceController places) {
@@ -143,8 +145,8 @@ public final class DigitalObjectManager {
         widget.addMember(foundViewWidget);
         widget.addMember(treeView.asWidget());
         createActions();
-        initToolbar(foundView.getToolbar(), listSource);
-        initToolbar(treeView.getToolbar(), treeSource);
+        initToolbar(foundView.getToolbar(), listSource, MenuType.FOUND_VIEW);
+        initToolbar(treeView.getToolbar(), treeSource, MenuType.TREE_VIEW);
         initContextMenu(foundView.getGrid().getContextMenu(), listSource);
         initContextMenu(treeView.getTree().getContextMenu(), treeSource);
         Actions.fixListGridContextMenu(foundView.getGrid());
@@ -230,12 +232,15 @@ public final class DigitalObjectManager {
                 null,
                 DatastreamEditorType.ATM, places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
+        expandTreeAction = new TreeExpandAction(
+                i18n,
+                treeView);
     }
 
     /**
      * export (Kramerius, Datastream), edit(MODS, Hierarchy), delete, view (Datastream)
      */
-    private void initToolbar(ToolStrip toolbar, ActionSource actionSource) {
+    private void initToolbar(ToolStrip toolbar, ActionSource actionSource, MenuType menuType) {
         final AbstractAction exportMenuAction = new AbstractAction(
                 i18n.ExportsAction_Title(), "[SKIN]/actions/save.png", null) {
 
@@ -278,6 +283,9 @@ public final class DigitalObjectManager {
         toolbar.addMember(btnExport);
         toolbar.addMember(Actions.asIconButton(deleteAction, actionSource));
         toolbar.addMember(Actions.asIconButton(registerUrnNbnAction, actionSource));
+        if (menuType == MenuType.TREE_VIEW) {
+            toolbar.addMember(Actions.asIconButton(expandTreeAction, actionSource));
+        }
     }
 
     private void initContextMenu(Menu menu, ActionSource actionSource) {
@@ -303,6 +311,7 @@ public final class DigitalObjectManager {
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(deleteAction, actionSource, true));
         menu.addItem(Actions.asMenuItem(registerUrnNbnAction, actionSource, true));
+        menu.addItem(Actions.asMenuItem(expandTreeAction, actionSource, true));
     }
 
     private final class RefreshableView implements Refreshable {
@@ -320,4 +329,9 @@ public final class DigitalObjectManager {
         }
     }
 
+    public enum MenuType {
+        TREE_VIEW, FOUND_VIEW
+    }
 }
+
+

@@ -67,6 +67,11 @@ import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.common.workflow.WorkflowException;
+import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
+import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
@@ -75,7 +80,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -91,6 +96,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -178,6 +184,7 @@ public class DigitalObjectResource {
      *      Use 1 for Monday and 7 for Sunday as defined by ISO. The set of all days is used in case of no value.
      * @param seriesPartNumberFrom an optional number to generate a series of MODS objects
      * @param xmlMetadata XML used to create new object; optional
+     * @param workflowJobId ID of workflow job (save PID of created object into workflow); optional
      * @return the list of created objects
      * @throws DigitalObjectException failure
      */
@@ -191,12 +198,16 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DATE_TO_PARAM) LocalDateParam seriesDateTo,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DAYS_INCLUDED_PARAM) List<Integer> seriesDaysIncluded,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM) Integer seriesPartNumberFrom,
-            @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata
+            @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata,
+            @FormParam(DigitalObjectResourceApi.WORKFLOW_JOB_ID) BigDecimal workflowJobId
             ) throws DigitalObjectException {
 
-        if (modelId == null) {
-            // XXX validate modelId values
-            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, modelId);
+        Set<String> models = MetaModelRepository.getInstance().find()
+                .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
+
+
+        if (modelId == null || !models.contains(modelId)) {
+            throw RestException.plainBadRequest(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, modelId);
         }
         if (pid != null) {
             boolean invalid = pid.length() < 5;
@@ -213,9 +224,14 @@ public class DigitalObjectResource {
                         DigitalObjectResourceApi.DIGITALOBJECT_PID, "Invalid PID!").build();
             }
         }
+
         xmlMetadata = (xmlMetadata == null || xmlMetadata.isEmpty() || "null".equals(xmlMetadata)) ? null : xmlMetadata;
+
+
+
         LOG.log(Level.FINE, "model: {0}, pid: {3}, parent: {2}, XML: {1}",
                 new Object[] {modelId, xmlMetadata, parentPid, pid});
+
 
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         try {
@@ -225,10 +241,19 @@ public class DigitalObjectResource {
                         seriesDateTo == null ? null : seriesDateTo.getLocalDate(),
                         seriesDaysIncluded, seriesPartNumberFrom);
             }
-            List<Item> items = handler.create();
+            List<Item> items;
+            if (workflowJobId != null) {
+                Locale locale = session.getLocale(httpHeaders);
+                items = handler.createAndConnectToWorkflowJob(workflowJobId, locale);
+            } else {
+                items = handler.create();
+            }
+
             return new SmartGwtResponse<>(items);
         } catch (DigitalObjectExistException ex) {
-            return SmartGwtResponse.<Item>asError().error("pid", "Object already exists!").build();
+            return SmartGwtResponse.<Item>asError().error("pid", ex.getMessage()).build();
+        } catch (WorkflowException ex) {
+            return SmartGwtResponse.asError(ex.getMessage());
         }
     }
 
@@ -509,7 +534,7 @@ public class DigitalObjectResource {
         return memberSearchMap;
     }
 
-    private Map<String, Item> loadLocalSearchItems(Batch batch) throws IOException, DigitalObjectException {
+    private Map<String, Item> loadLocalSearchItems(Batch batch) throws DigitalObjectException {
         if (batch == null) {
             throw new NullPointerException();
         }
@@ -894,7 +919,7 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }
 
-    <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {
+    private <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {
         if (ex.getValidations().isEmpty()) {
             return SmartGwtResponse.asError(ex);
         }
@@ -1142,6 +1167,33 @@ public class DigitalObjectResource {
             file.delete();
         }
         return new SmartGwtResponse<Map<String,Object>>(Collections.singletonMap("processId", (Object) 0L));
+    }
+
+    /**
+     * Removes specified datastream from object
+     *
+     * @param pid PID (required)
+     * @param batchId import batch ID (optional)
+     * @param dsId Datastream ID (required)
+     * @return Log result of operation
+     */
+    @DELETE
+    @Path(DigitalObjectResourceApi.DISSEMINATION_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse deleteDissemination(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @QueryParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId
+    ) throws DigitalObjectException, IOException, PurgeException {
+
+        String message = session.asFedoraLog();
+
+        DigitalObjectHandler doHandler = findHandler(pid, batchId);
+        DisseminationHandler disseminationHandler = doHandler.dissemination(dsId);
+
+        disseminationHandler.deleteDissemination(message);
+
+        return new SmartGwtResponse<String>(message);
     }
 
     @GET
@@ -1472,16 +1524,6 @@ public class DigitalObjectResource {
             fobject = RemoteStorage.getInstance(appConfig).find(pid);
         }
         return fobject;
-    }
-
-    /**
-     * Removes extension from the file name.
-     * @param filename file name
-     * @return name without extension
-     */
-    private static String getBareFilename(String filename) {
-        int index = filename.lastIndexOf('.');
-        return index <= 0 ? filename : filename.substring(0, index);
     }
 
     /**

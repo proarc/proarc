@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
@@ -33,13 +34,22 @@ public final class NdkPeriodicalForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
-        List<Field> modsFields = f.getFields().get(0).getFields();
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard)").setMaxOccurrences(1)
+                .setType(Field.COMBO).setRequired(true)
+                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
+                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
+                .createField());
+
+        Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
+        f.getFields().add(mods);
+
+        List<Field> modsFields = mods.getFields();
 
 //        modsFields.add(new FieldBuilder("ID").setTitle("ID").setMaxOccurrences(1).setType(Field.TEXT).createField());
 //        modsFields.add(new FieldBuilder("version").setTitle("Verze").setMaxOccurrences(1).setType(Field.TEXT).setReadOnly(true).createField());
 
         modsFields.add(titleInfo());
+        modsFields.add(name());
         modsFields.add(typeOfResource());
         modsFields.add(genre());
         modsFields.add(originInfo());
@@ -112,6 +122,72 @@ public final class NdkPeriodicalForm {
         .createField(); // titleInfo
     }
 
+    private Field name() {
+        // name, nameDefinition
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - R")
+                .setHint("Údaje o odpovědnosti za titul periodika.")
+                // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
+                // @type(personal, corporate, conference, family)
+                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                        .setHint("<dl>"
+                                + "<dt>personal</dt><dd>celé jméno osoby</dd>"
+                                + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
+                                + "<dt>conference</dt><dd>název konference nebo související typ setkání</dd>"
+                                + "<dt>family</dt><dd>rodina/rod</dd>"
+                                + "</dl>")
+                        .addMapValue("personal", "personal")
+                        .addMapValue("corporate", "corporate")
+                        .addMapValue("conference", "conference")
+                        .addMapValue("family", "family")
+                        .createField()) // @type
+                // @usage(fixed="primary")
+                .addField(new FieldBuilder("usage").setTitle("Usage - O").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
+                        .setHint("Hodnota “primary” pro označení primární autority.")
+                        .addMapValue("", "")
+                        .addMapValue("primary", "primary")
+                        .createField()) // usage
+                // namePart, namePartDefinition extends stringPlusLanguage
+                .addField(new FieldBuilder("namePart").setTitle("Name Parts - R").setMaxOccurrences(5)
+                        // @type(date, family, given, termsOfAddress)
+                        .addField(new FieldBuilder("type").setTitle("Type").setMaxOccurrences(1).setType(Field.SELECT)
+                                .setHint("<dl>"
+                                        + "<dt>date</dt><dd>RA - datum</dd>"
+                                        + "<dt>family</dt><dd>MA -příjmení </dd>"
+                                        + "<dt>given</dt><dd>MA - jméno/křestní jméno</dd>"
+                                        + "<dt>termsOfAddress</dt><dd>RA - tituly a jiná slova nebo čísla související se jménem</dd>"
+                                        + "</dl>")
+                                .addMapValue("date", "date")
+                                .addMapValue("family", "family")
+                                .addMapValue("given", "given")
+                                .addMapValue("termsOfAddress", "termsOfAddress")
+                                .createField()) // @type
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("value").setTitle("Name Part - R").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(true)
+                                .setHint("Údaje o křestním jméně, příjmení apod."
+                                        + "<p>Nutno vyjádřit pro křestní jméno i příjmení."
+                                        + "<p>Pokud nelze rozlišit křestní jméno a příjmení,"
+                                        + " nepoužije se type a jméno se zaznamená"
+                                        + " v podobě jaké je do jednoho elementu &lt;namePart>"
+                                        + "<p>Pokud známe datum narození a úmrtí autora, vyplnit"
+                                        + " ve tvaru RRRR-RRRR s atributem type=”date”.")
+                                .createField()) // value
+                        .createField()) // namePart
+                // displayForm
+                // etal
+                // affiliation
+                // role, roleDefinition
+                .addField(new FieldBuilder("role").setTitle("Role - R").setMaxOccurrences(5)
+                        .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
+                        // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
+                        .addField(NdkForms.roleTerm(
+                                "Role Term - R", true, "Authority - M", true, "Type - M", true
+                        )) // roleTerm
+                        .createField()) // role
+                // description
+                .createField(); // name
+    }
+
     private Field typeOfResource() {
         // typeOfResource, typeOfResourceDefinition extends resourceTypeDefinition
         return new FieldBuilder("typeOfResource").setMaxOccurrences(1)
@@ -156,6 +232,21 @@ public final class NdkPeriodicalForm {
                         + "<p>Pokud bylo za dobu vydávání více vydavatelů, nutno"
                         + " vzít z katalogizačního záznamu pole 260 indikátor 02 a"
                         + " údaje o vydavatelích opakovat.")
+                // eventType
+                .addField(new FieldBuilder("eventType").setTitle("Event Type - M").setMaxOccurrences(1). setType(Field.COMBO)
+                    .setHint("Hodnoty dle druhého indikátoru pole 264:"
+                            +"<p>264_0 production se uvádí, jestliže pole obsahuje údaje o vytvoření zdroje v nezveřejněné podobě."
+                            +"<p>264_1 publication se uvádí, jestliže pole obsahuje údaje o nakladateli zdroje."
+                            +"<p>264_2 distribution se uvádí, jestliže pole obsahuje údaje o distribuci zdroje."
+                            +"<p>264_3 manufacture se uvádí, jestliže pole obsahuje údaje o tisku, výrobě zdroje ve zveřejněné podobě."
+                            +"<p>264_4 copyright (R) se uvádí, jestliže pole obsahuje údaje o ochraně podle autorského práva (copyright).")
+                   .addMapValue("", "")
+                   .addMapValue("production", "production")
+                   .addMapValue("publication", "publication")
+                   .addMapValue("distribution", "distribution")
+                   .addMapValue("manufacture", "manufacture")
+                   .addMapValue("copyright", "copyright")
+                 .createField()) //eventType
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 .addField(new FieldBuilder("transliteration").setTitle("Transliteration - O").setMaxOccurrences(1).setType(Field.COMBO)
                     .setHint("Atribut pro vyjádření tiskaře.")
@@ -227,11 +318,27 @@ public final class NdkPeriodicalForm {
                         .addMapValue("inferred", "Inferred")
                         .addMapValue("questionable", "Questionable")
                     .createField()) // @qualifier
-                    .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setWidth("200")
+                    .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                         .setHint("Datum vydání předlohy, nutno zaznamenat rok v nichž časopis vycházel - formu zápisu přebírat z katalogu (např. 1900-1939)"
                             + "<p>Odpovídá hodnotě z katalogizačního záznamu, pole 260, podpole „c“ a pole 008/07-10.")
                     .createField()) // value
                 .createField()) // dateIssued
+                // dateOther, dateOtherDefinition extends dateDefinition
+                .addField(new FieldBuilder("dateOther").setMaxOccurrences(1)
+                     .addField(new FieldBuilder("value").setTitle("Date Other - R").setMaxOccurrences(1).setType(Field.TEXT)
+                         .setHint("Datum vytvoření, distribuce, výroby předlohy."
+                             + "<p>Tento elemet se využije v případě výskytu $c v:"
+                             + "<p>264_0 je production"
+                             + "<p>264_2 je distribution"
+                             + "<p>264_3 je manufacture")
+                         .createField()) // value
+                     .createField()) // dateOther
+                // copyrightDate, dateDefinition extends stringPlusLanguage
+                .addField(new FieldBuilder("copyrightDate").setMaxOccurrences(1)
+                     .addField(new FieldBuilder("value").setTitle("Copyright Date - R").setMaxOccurrences(1).setType(Field.TEXT)
+                         .setHint("Využije se pouze v případě výskuytu pole 264 s druhým indikátorem \"4\" a podpolem $c.")
+                     .createField()) // value
+                .createField()) // copyrightDate
                 // dateCreated, dateDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("dateCreated").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
@@ -246,8 +353,6 @@ public final class NdkPeriodicalForm {
                 // dateCaptured
                 // dateValid
                 // dateModified
-                // copyrightDate
-                // dateOther
                 // edition
                 // issuance, issuanceDefinition, enum
                 // XXX autofill "continuing"
@@ -320,7 +425,10 @@ public final class NdkPeriodicalForm {
                     // @type
                     // XXX autofill "marcform"
                     .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
-                        .addMapValue("marcform", "marcform")
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)
                     .createField()) // authority
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
                         .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("print")
@@ -332,6 +440,19 @@ public final class NdkPeriodicalForm {
                         .addMapValue("microfilm", "microfilm")
                         .addMapValue("microfiche", "microfiche")
                         .addMapValue("print", "print")
+                        .addMapValue("jiný", "jiný")
+                        .addMapValue("audio", "rdamedia - audio")
+                        .addMapValue("počítač", "rdamedia - počítač")
+                        .addMapValue("mikroforma", "rdamedia - mikroforma")
+                        .addMapValue("mikroskop", "rdamedia - mikroskop")
+                        .addMapValue("projekce", "rdamedia - projekce")
+                        .addMapValue("stereograf", "rdamedia - stereograf")
+                        .addMapValue("bez media", "rdamedia - bez media")
+                        .addMapValue("video", "rdamedia - video")
+                        .addMapValue("svazek", "rdacarrier - svazek")
+                        .addMapValue("online zdroj", "rdacarrier - online zdroj")
+                        .addMapValue("audiodisk", "rdacarrier - audiodisk")
+                        .addMapValue("počítačový disk", "rdacarrier - počítačový disk")
                     .createField()) // value
                 .createField()) // form
                 // reformattingQuality
@@ -398,6 +519,7 @@ public final class NdkPeriodicalForm {
                 .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("Konspekt", "Konspekt")
                 .createField())
 
                 // topic, stringPlusLanguagePlusAuthority
@@ -411,7 +533,7 @@ public final class NdkPeriodicalForm {
                     .addField(new FieldBuilder("value").setTitle("Topic - R").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Libovolný výraz specifikující nebo charakterizující obsah periodika."
                             + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (věcné téma)"
-                            + " nebo obsah pole 650 záznamu MARC21.")
+                            + " nebo obsah pole 650 záznamu MARC21 nebo obsah pole 072 $x.")
                     .createField()) // value
                 .createField()) // topic
 
@@ -491,11 +613,20 @@ public final class NdkPeriodicalForm {
         return new FieldBuilder("classification").setTitle("Classification - R").setMaxOccurrences(10)
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // autofill "udc"
-                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("udc").createField())
+                .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("udc", "udc")
+                        .addMapValue("Konspekt", "Konspekt")
+                .createField())
+                .addField(new FieldBuilder("edition").setTitle("Edition - M").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("", "")
+                        .addMapValue("Konspekt", "Konspekt")
+                .createField())
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
                     .setHint("Klasifikační údaje věcného třídění podle Mezinárodního"
-                        + " desetinného třídění.<p>Odpovídá poli 080 MARC21.")
+                        + " desetinného třídění. Odpovídá poli 080 MARC21."
+                        + "<p>Klasifikační údaje věcného třídění podle Konspektu."
+                        + " Odpovídá poli 072 $a MARC21.")
                 .createField())
         .createField(); // classification
     }
@@ -664,13 +795,7 @@ public final class NdkPeriodicalForm {
                     .createField()) // languageTerm
                     // scriptTerm
                 .createField()) // languageOfCataloging
-                // descriptionStandard, stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Description Standard - O").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Popis standardu, ve kterém je přebíraný katalogizační záznam."
-                            + "<p>Odpovídá hodnotě návěští záznamu MARC21, pozice 18 - hodnota „aacr“ pro LDR/18 = „a“")
-                    .createField()) // value
-                .createField()) // descriptionStandard
+                .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField()) //descriptionStandard
         .createField(); // recordInfo
     }
 }

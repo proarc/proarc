@@ -252,7 +252,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
     private ValueMap<? extends LanguageTermDefinition> readLangs(Locale locale) {
         ArrayList<LangTermValue> langs = new ArrayList<LangTermValue>();
         // to read properties file in UTF-8 use PropertyResourceBundle(Reader)
-        Control control = ResourceBundle.Control.getControl(ResourceBundle.Control.FORMAT_PROPERTIES);
+        Control control = ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES);
+
         ResourceBundle rb = ResourceBundle.getBundle(BundleName.LANGUAGES_ISO639_2.toString(), locale, control);
         for (String key : rb.keySet()) {
             LangTermValue lt = new LangTermValue();

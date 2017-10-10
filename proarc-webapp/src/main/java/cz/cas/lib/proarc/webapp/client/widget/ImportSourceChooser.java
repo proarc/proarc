@@ -105,6 +105,8 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
         treeGrid.setEmptyMessage(i18n.ImportSourceChooser_NoDataOnServer_Title());
         treeGrid.setAlternateRecordStyles(true);
         treeGrid.setSelectionType(SelectionStyle.SINGLE);
+        ListGridPersistance treeGridPersistence = new ListGridPersistance("ImportSourceChooser.directoryList", treeGrid);
+        treeGrid.setViewState(treeGridPersistence.getViewState());
 
         treeGrid.addFolderClickHandler(new FolderClickHandler() {
 

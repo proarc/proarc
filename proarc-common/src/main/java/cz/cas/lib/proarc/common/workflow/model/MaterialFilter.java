@@ -33,6 +33,8 @@ public class MaterialFilter {
     private BigDecimal jobId;
     @XmlElement(name = WorkflowModelConsts.MATERIALFILTER_TASKID)
     private BigDecimal taskId;
+    @XmlElement(name = WorkflowModelConsts.MATERIALFILTER_TYPE)
+    private MaterialType type;
     @XmlElement(name = WorkflowModelConsts.MATERIALFILTER_SORTBY)
     private String sortBy;
     @XmlElement(name = WorkflowModelConsts.MATERIALFILTER_OFFSET)
@@ -62,6 +64,14 @@ public class MaterialFilter {
 
     public void setTaskId(BigDecimal taskId) {
         this.taskId = taskId;
+    }
+
+    public MaterialType getType() {
+        return type;
+    }
+
+    public void setType(MaterialType type) {
+        this.type = type;
     }
 
     public String getSortBy() {

@@ -16,8 +16,12 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.workflow;
 
+import com.google.gwt.core.client.Callback;
 import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
@@ -26,6 +30,7 @@ import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SortDirection;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.form.DynamicForm;
@@ -39,9 +44,12 @@ import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItem;
 import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -52,14 +60,18 @@ import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
+import cz.cas.lib.proarc.webapp.client.widget.CanvasSizePersistence;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import java.util.Map;
 
 /**
  *
@@ -81,6 +93,7 @@ public class WorkflowJobView implements Refreshable {
     private boolean isDataInitialized;
     private ListGridRecord lastSelection;
     private IconMenuButton addSubjobButton;
+    private IconMenuButton createNewObjectButton;
 
     public WorkflowJobView(ClientMessages i18n) {
         this.i18n = i18n;
@@ -165,6 +178,7 @@ public class WorkflowJobView implements Refreshable {
 
     public void refreshState() {
         fetchAddSubjobMenu(jobGrid.getSelectedRecord());
+        fetchModelMenu(jobGrid.getSelectedRecord());
         actionSource.fireEvent();
         jobFormView.refreshState();
     }
@@ -192,6 +206,10 @@ public class WorkflowJobView implements Refreshable {
         left.addMember(createJobsToolbar());
         left.addMember(createJobList());
         left.addMember(createSubjobList());
+        left.setShowResizeBar(true);
+
+        CanvasSizePersistence sizePersistence = new CanvasSizePersistence("WorkflowJobFormView.jobLayout", left);
+        left.setWidth(sizePersistence.getWidth());
 
         HLayout l = new HLayout();
         l.addMember(left);
@@ -238,11 +256,21 @@ public class WorkflowJobView implements Refreshable {
         Action addSubjobAction = Actions.emptyAction(i18n.WorkflowJob_View_NewSubjobAction_Title(),
                 "[SKIN]/actions/add.png", i18n.WorkflowJob_View_NewSubjobAction_Hint());
 
+        Action createNewObject = Actions.emptyAction(i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title(),
+                "[SKIN]/actions/save.png",
+                "");
+
         toolbar.addMember(Actions.asIconButton(refreshAction, this));
         toolbar.addMember(Actions.asIconButton(addAction, this));
         addSubjobButton = Actions.asIconMenuButton(addSubjobAction, this);
         addSubjobButton.setVisible(false);
+
+        createNewObjectButton = Actions.asIconMenuButton(createNewObject, this);
+        createNewObjectButton.setShowDisabledIcon(false);
+        createNewObjectButton.setDisabled(true);
+
         toolbar.addMember(addSubjobButton);
+        toolbar.addMember(createNewObjectButton);
         return toolbar;
     }
 
@@ -264,6 +292,88 @@ public class WorkflowJobView implements Refreshable {
             addSubjobButton.setMenu(menu);
         });
     }
+
+    private void fetchModelMenu(Record job) {
+        if (job == null
+                // not subjob
+                || job.getAttribute(WorkflowJobDataSource.FIELD_PARENTID) != null
+                || !Job.State.OPEN.name().equals(job.getAttribute(WorkflowJobDataSource.FIELD_STATE))
+                ) {
+            createNewObjectButton.setVisible(false);
+            return;
+        }
+        String jobName = job.getAttribute(WorkflowJobDataSource.FIELD_PROFILE_ID);
+        Long jobId = job.getAttributeAsLong(WorkflowJobDataSource.FIELD_ID);
+
+        if (jobName == null) {
+            return;
+        }
+
+        Criteria criteria = new Criteria();
+        criteria.setAttribute(WorkflowMaterialDataSource.FIELD_JOB_ID, jobId);
+        criteria.setAttribute(WorkflowMaterialDataSource.FIELD_TYPE, MaterialType.DIGITAL_OBJECT.name());
+        WorkflowMaterialDataSource.getInstance().fetchData(criteria, (dsResponse, o, dsRequest) -> {
+            RecordList records = dsResponse.getDataAsRecordList();
+            if (records.getLength() == 1 && records.get(0)
+                    .getAttribute(WorkflowMaterialDataSource.FIELD_DIGITAL_PID) == null) {
+                createNewObjectButton.enable();
+            } else {
+                createNewObjectButton.disable();
+            }
+        });
+
+
+        WorkflowProfileDataSource.getInstance().getModels(false, jobName, (models) -> {
+            Menu menu = new Menu();
+
+            for (Record model : models) {
+                MenuItem menuItem = new MenuItem(model.getAttribute(WorkflowProfileConsts.MODEL_TITLE));
+                menu.addItem(menuItem);
+
+                menuItem.addClickHandler(event -> {
+                    saveNewDigitalObject(model.getAttributeAsString(WorkflowProfileConsts.MODEL_NAME), jobId);
+                    createNewObjectButton.disable();
+                    actionSource.fireEvent();
+                    jobFormView.refreshState();
+                    jobFormView.refresh();
+                });
+
+            }
+
+            createNewObjectButton.setVisible(models.length > 0);
+            createNewObjectButton.setMenu(menu);
+        });
+    }
+
+    private void saveNewDigitalObject(String modelId, Long jobId) {
+        if (modelId == null || jobId == null) {
+            return;
+        }
+
+        DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
+        ds.saveNewDigitalObject(modelId, null, null, jobId, new Callback<String, DigitalObjectDataSource.ErrorSavingDigitalObject>() {
+
+            @Override
+            public void onFailure(DigitalObjectDataSource.ErrorSavingDigitalObject reason) {
+                switch (reason) {
+                    case CONCURRENT_MODIFICATION:
+                        SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), aBoolean -> {
+                                if (aBoolean!= null && aBoolean) {
+                                    refresh();
+                            }});
+                    default:
+                        SC.warn("Failed to create digital object!");
+                }
+            }
+
+            @Override
+            public void onSuccess(String result) {
+                SC.say(i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title(), i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
+            }
+        });
+    }
+
+
 
     private Menu createSubjobMenu(Record[] subjobs) {
         if (subjobs == null || subjobs.length == 0) {
@@ -302,6 +412,10 @@ public class WorkflowJobView implements Refreshable {
         ListGrid g = new ListGrid();
         subjobGrid = g;
         subjobsPersistance = new ListGridPersistance("WorkflowJobView.subjobList", g);
+
+        CanvasSizePersistence sizePersistence = new CanvasSizePersistence("WorkflowJobView.subjobList", g);
+        g.setHeight(sizePersistence.getHeight());
+
         g.setSelectionType(SelectionStyle.SINGLE);
         g.setCanGroupBy(false);
         g.setDataFetchMode(FetchMode.BASIC);

@@ -18,7 +18,9 @@
 package cz.cas.lib.proarc.common.export.mets;
 
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -91,6 +93,12 @@ public class Const {
     public static final String HASMEMBER = "fedora-rels-ext:hasMember";
     public static final String ISONPAGE = "kramerius:isOnPage";
 
+    public static final String RAW_GRP_ID = "RAW";
+    public static final String MC_GRP_ID = "MC_IMGGRP";
+    public static final String ALTO_GRP_ID = "ALTOGRP";
+    public static final String UC_GRP_ID = "UC_IMGGRP";
+    public static final String TXT_GRP_ID = "TXTGRP";
+
     public static final List<String> PSPElements = new ArrayList<String>();
 
     public final static Map<String, String> typeMap = new HashMap<String, String>();
@@ -144,39 +152,39 @@ public class Const {
         typeNameMap.put(CHAPTER, CHAPTER);
         typeNameMap.put(MONOGRAPH_MULTIPART, MONOGRAPH);
 
-        mandatoryStreams.add("MC_IMGGRP");
-        mandatoryStreams.add("UC_IMGGRP");
-        mandatoryStreams.add("ALTOGRP");
-        mandatoryStreams.add("TXTGRP");
+        mandatoryStreams.add(MC_GRP_ID);
+        mandatoryStreams.add(UC_GRP_ID);
+        mandatoryStreams.add(ALTO_GRP_ID);
+        mandatoryStreams.add(TXT_GRP_ID);
 
         streamMapping = new HashMap<String, List<String>>();
-        streamMapping.put("MC_IMGGRP", new ArrayList<String>());
-        streamMapping.get("MC_IMGGRP").add(BinaryEditor.NDK_ARCHIVAL_ID);
+        streamMapping.put(MC_GRP_ID, new ArrayList<String>());
+        streamMapping.get(MC_GRP_ID).add(BinaryEditor.NDK_ARCHIVAL_ID);
         // streamMapping.get("MC_IMGGRP").add("RAW");
 
-        streamMapping.put("UC_IMGGRP", new ArrayList<String>());
-        streamMapping.get("UC_IMGGRP").add(BinaryEditor.NDK_USER_ID);
+        streamMapping.put(UC_GRP_ID, new ArrayList<String>());
+        streamMapping.get(UC_GRP_ID).add(BinaryEditor.NDK_USER_ID);
         // streamMapping.get("UC_IMGGRP").add("FULL");
 
-        streamMapping.put("ALTOGRP", new ArrayList<String>());
-        streamMapping.get("ALTOGRP").add("ALTO");
+        streamMapping.put(ALTO_GRP_ID, new ArrayList<String>());
+        streamMapping.get(ALTO_GRP_ID).add(AltoDatastream.ALTO_ID);
 
-        streamMapping.put("TXTGRP", new ArrayList<String>());
-        streamMapping.get("TXTGRP").add("TEXT_OCR");
+        streamMapping.put(TXT_GRP_ID, new ArrayList<String>());
+        streamMapping.get(TXT_GRP_ID).add(StringEditor.OCR_ID);
 
         streamMapping.put("TECHMDGRP", new ArrayList<String>());
         streamMapping.get("TECHMDGRP").add("FULL_AMD");
 
-        streamMappingPrefix.put("MC_IMGGRP", "MC");
-        streamMappingPrefix.put("UC_IMGGRP", "UC");
-        streamMappingPrefix.put("ALTOGRP", "ALTO");
-        streamMappingPrefix.put("TXTGRP", "TXT");
+        streamMappingPrefix.put(MC_GRP_ID, "MC");
+        streamMappingPrefix.put(UC_GRP_ID, "UC");
+        streamMappingPrefix.put(ALTO_GRP_ID, "ALTO");
+        streamMappingPrefix.put(TXT_GRP_ID, "TXT");
         streamMappingPrefix.put("TECHMDGRP", "AMD_METS");
 
-        streamMappingFile.put("MC_IMGGRP", "masterCopy");
-        streamMappingFile.put("UC_IMGGRP", "userCopy");
-        streamMappingFile.put("ALTOGRP", "ALTO");
-        streamMappingFile.put("TXTGRP", "TXT");
+        streamMappingFile.put(MC_GRP_ID, "masterCopy");
+        streamMappingFile.put(UC_GRP_ID, "userCopy");
+        streamMappingFile.put(ALTO_GRP_ID, "ALTO");
+        streamMappingFile.put(TXT_GRP_ID, "TXT");
         streamMappingFile.put("TECHMDGRP", "amdSec");
 
         canContainPage.add(Const.ISSUE);
@@ -185,13 +193,17 @@ public class Const {
         canContainPage.add(Const.SUPPLEMENT);
         canContainPage.add(Const.PERIODICAL_VOLUME);
 
-        dataStreamToModel.put("RAW", BinaryEditor.RAW_ID);
-        dataStreamToModel.put("MC_IMGGRP", BinaryEditor.NDK_ARCHIVAL_ID);
-        dataStreamToModel.put("ALTOGRP", "ALTO");
+        dataStreamToModel.put(RAW_GRP_ID, BinaryEditor.RAW_ID);
+        dataStreamToModel.put(MC_GRP_ID, BinaryEditor.NDK_ARCHIVAL_ID);
+        dataStreamToModel.put(ALTO_GRP_ID, AltoDatastream.ALTO_ID);
+        dataStreamToModel.put(UC_GRP_ID, BinaryEditor.NDK_USER_ID);
+        dataStreamToModel.put(TXT_GRP_ID, StringEditor.OCR_ID);
 
-        dataStreamToEvent.put("RAW", "digitization_001");
-        dataStreamToEvent.put("MC_IMGGRP", "MC_creation_001");
-        dataStreamToEvent.put("ALTOGRP", "XML_creation_001");
+        dataStreamToEvent.put(RAW_GRP_ID, "digitization_001");
+        dataStreamToEvent.put(MC_GRP_ID, "MC_creation_001");
+        dataStreamToEvent.put(ALTO_GRP_ID, "XML_creation_001");
+        dataStreamToEvent.put(UC_GRP_ID, "UC_creation_001");
+        dataStreamToEvent.put(TXT_GRP_ID, "TXT_creation_001");
 
     }
 }

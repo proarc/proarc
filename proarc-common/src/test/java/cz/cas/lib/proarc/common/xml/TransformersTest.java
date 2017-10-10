@@ -419,6 +419,35 @@ public class TransformersTest {
         }
     }
 
+    /**
+     * Tests mapping of field 264_4 to {@code originInfo}.
+     * See issue 298.
+     */
+    @Test
+    public void testMarcAsMods_Mapping264_ind4_Issue298() throws Exception{
+        InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_originInfo_264_ind4.xml");
+        assertNotNull(xmlIS);
+        StreamSource streamSource = new StreamSource(xmlIS);
+        Transformers mt = new Transformers();
+
+        try {
+            byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
+            assertNotNull(contents);
+            String xmlResult = new String(contents, "UTF-8");
+//            System.out.println(xmlResult);
+            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
+                put("m", ModsConstants.NS);
+            }}));
+            XMLAssert.assertXpathExists("/m:mods/m:originInfo[@eventType='copyright']", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("Praha","/m:mods/m:originInfo[@eventType='copyright']/m:place/m:placeTerm", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("Albatros","/m:mods/m:originInfo[@eventType='copyright']/m:publisher", xmlResult);
+            XMLAssert.assertXpathEvaluatesTo("2015", "/m:mods/m:originInfo[@eventType='copyright']/m:copyrightDate", xmlResult);
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
+        } finally {
+            close(xmlIS);
+        }
+    }
+
     @Test
     public void testOaiMarcAsMarc() throws Exception {
         InputStream goldenIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMarcXml.xml");

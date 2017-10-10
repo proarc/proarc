@@ -88,6 +88,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public static final String ERR_NDK_CHANGE_MODS_WITH_MEMBERS = "Err_Ndk_Change_Mods_With_Members";
     public static final String ERR_NDK_DOI_DUPLICITY = "Err_Ndk_Doi_Duplicity";
     public static final String ERR_NDK_REMOVE_URNNBN = "Err_Ndk_Remove_UrnNbn";
+    public static final String DEFAULT_PAGE_TYPE = "NormalPage";
 
     /**
      * The set of model IDs that should be checked for connected members.
@@ -306,6 +307,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (xmlData.getData() != null) {
             ValidationErrorHandler errHandler = new ValidationErrorHandler();
             try {
+                String data = xmlData.getData();
+                xmlData.setData(data);
+
                 Validator validator = ModsUtils.getSchema().newValidator();
                 validator.setErrorHandler(errHandler);
                 validator.validate(new StreamSource(new StringReader(xmlData.getData())));
@@ -408,7 +412,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    private void checkBeforeWrite(ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations) throws DigitalObjectException {
+    private void checkBeforeWrite(ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations, String modelId) throws DigitalObjectException {
         if (ignoreValidations) {
             checkIdentifiers(mods, oldMods, null);
             return ;
@@ -424,6 +428,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (!ex.getValidations().isEmpty()) {
             throw ex;
         }
+
+        RdaRules rdaRules = new RdaRules(modelId, mods, ex);
+        rdaRules.check();
     }
 
     private void checkIdentifiers(ModsDefinition mods, ModsDefinition oldMods, DigitalObjectValidationException ex) throws DigitalObjectException {
@@ -494,7 +501,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (timestamp > 0) {
             oldMods = editor.read();
         }
-        checkBeforeWrite(mods, oldMods, options.isIgnoreValidation());
+        checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId);
         NdkMapper mapper = mapperFactory.get(modelId);
         Context context = new Context(handler);
         mapper.createMods(mods, context);
@@ -573,5 +580,4 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             this.mods = mods;
         }
     }
-
 }

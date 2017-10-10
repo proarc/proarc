@@ -150,5 +150,4 @@ public final class BinaryEditor {
     public void write(URI source, long timestamp, String message) throws DigitalObjectException {
         editor.write(source, timestamp, message);
     }
-
 }
