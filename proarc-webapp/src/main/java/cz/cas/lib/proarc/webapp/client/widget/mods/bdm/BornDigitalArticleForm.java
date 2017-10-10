@@ -189,7 +189,7 @@ public final class BornDigitalArticleForm {
                     .addMapValue("primary", "primary")
                 .createField()) // usage
                 // namePart, namePartDefinition extends stringPlusLanguage
-                .addField(new FieldBuilder("namePart").setTitle("Name Parts - R").setMaxOccurrences(5)
+                .addField(new FieldBuilder("namePart").setTitle("Name Parts - MA").setMaxOccurrences(5)
                     // @type(date, family, given, termsOfAddress)
                     .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("<dl>"
@@ -204,7 +204,7 @@ public final class BornDigitalArticleForm {
                         .addMapValue("termsOfAddress", "termsOfAddress")
                     .createField()) // @type
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Name Part - R").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setTitle("Name Part - MA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Údaje o křestním jméně, příjmení apod."
                             + "<p>Nutno vyjádřit pro křestní jméno i příjmení."
                             + "<p>Pokud nelze rozlišit křestní jméno a příjmení,"
