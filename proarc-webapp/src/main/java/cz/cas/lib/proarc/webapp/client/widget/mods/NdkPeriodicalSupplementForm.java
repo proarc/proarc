@@ -456,7 +456,7 @@ public final class NdkPeriodicalSupplementForm {
 
     private Field abstractElm() {
         // abstract, abstractDefinition extends stringPlusLanguage
-        return new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
+        return new FieldBuilder("abstract").setTitle("Abstract - RA").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
@@ -615,6 +615,7 @@ public final class NdkPeriodicalSupplementForm {
                     .addMapValue("url", "URL")
                     .addMapValue("urnnbn", "URN:NBN")
                     .addMapValue("uuid", "UUID")
+                    .addMapValue("oclc", "OCLC")
                 .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())

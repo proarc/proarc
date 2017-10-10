@@ -130,7 +130,7 @@ public final class NdkMonographSupplementForm {
                     .addMapValue("primary", "primary")
                 .createField()) // usage
                 // namePart, namePartDefinition extends stringPlusLanguage
-                .addField(new FieldBuilder("namePart").setTitle("Name Parts - M").setMaxOccurrences(5).setRequired(true)
+                .addField(new FieldBuilder("namePart").setTitle("Name Part - M").setMaxOccurrences(5).setRequired(true)
                     // @type(date, family, given, termsOfAddress)
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("<dl>"
@@ -145,7 +145,7 @@ public final class NdkMonographSupplementForm {
                         .addMapValue("termsOfAddress", "termsOfAddress")
                     .createField()) // @type
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Name Part - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setTitle("Name Part - M").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Údaje o křestním jméně, příjmení apod."
                             + "<p>Nutno vyjádřit pro křestní jméno i příjmení."
                             + "<p>Pokud nelze rozlišit křestní jméno a příjmení,"
@@ -607,6 +607,7 @@ public final class NdkMonographSupplementForm {
                     .addMapValue("url", "URL")
                     .addMapValue("urnnbn", "URN:NBN")
                     .addMapValue("uuid", "UUID")
+                    .addMapValue("oclc", "OCLC")
                 .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())

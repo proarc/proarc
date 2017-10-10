@@ -168,9 +168,9 @@ public final class NdkPeriodicalIssueForm {
                     .addMapValue("primary", "primary")
                 .createField()) // usage
                 // namePart, namePartDefinition extends stringPlusLanguage
-                .addField(new FieldBuilder("namePart").setTitle("Name Parts - M").setMaxOccurrences(5).setRequired(true)
+                .addField(new FieldBuilder("namePart").setTitle("Name Part - M").setMaxOccurrences(5)
                     // @type(date, family, given, termsOfAddress)
-                    .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
+                    .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
                         .setHint("<dl>"
                             + "<dt>date</dt><dd>RA - datum</dd>"
                             + "<dt>family</dt><dd>MA -příjmení </dd>"
@@ -183,7 +183,7 @@ public final class NdkPeriodicalIssueForm {
                         .addMapValue("termsOfAddress", "termsOfAddress")
                     .createField()) // @type
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Name Part - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setTitle("Name Part - M").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Údaje o křestním jméně, příjmení apod."
                             + "<p>Nutno vyjádřit pro křestní jméno i příjmení."
                             + "<p>Pokud nelze rozlišit křestní jméno a příjmení,"

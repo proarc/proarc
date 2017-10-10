@@ -560,6 +560,7 @@ public final class NdkSheetMusicForm {
                     .addMapValue("url", "URL")
                     .addMapValue("urnnbn", "URN:NBN")
                     .addMapValue("uuid", "UUID")
+                    .addMapValue("oclc", "OCLC")
                 .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
