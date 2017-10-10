@@ -110,9 +110,15 @@ public class NdkPageMapper extends NdkMapper {
             List<DetailDefinition> details = part.getDetail();
             String pageIndex = getNumber(getDetail(details, NUMBER_TYPE_PAGE_INDEX));
             String pageNumber = getNumber(getDetail(details, NUMBER_TYPE_PAGE_NUMBER));
-            page.setType(part.getType());
+            if (part.getType() == null) {
+                page.setType(PAGE_TYPE_NORMAL);
+            } else {
+                page.setType(part.getType());
+            }
             page.setNumber(pageNumber);
             page.setIndex(pageIndex);
+        } else {
+            page.setType(PAGE_TYPE_NORMAL);
         }
         page.setIdentifiers(getIdentifierItems(mods.getIdentifier()));
         return page;
@@ -150,17 +156,26 @@ public class NdkPageMapper extends NdkMapper {
 
         String pageIndex = page.getIndex();
         String pageNumber = page.getNumber();
-        PartDefinition part = new PartDefinition();
-        part.setType(pageType);
-        mods.getPart().add(part);
-        addDetailNumber(pageIndex, NUMBER_TYPE_PAGE_INDEX, part);
-        addDetailNumber(pageNumber, NUMBER_TYPE_PAGE_NUMBER, part);
+        String pageNote = page.getNote();
 
-        if (page.getNote() != null) {
-            Text text = new Text();
-            text.setValue(page.getNote());
-            part.getText().add(text);
+        if((pageType != null && !PAGE_TYPE_NORMAL.equals(pageType)) || pageIndex != null || pageNumber != null || pageNote != null) {
+            PartDefinition part = new PartDefinition();
+
+            if (pageType != null && !PAGE_TYPE_NORMAL.equals(pageType)) {
+                part.setType(pageType);
+            }
+
+            mods.getPart().add(part);
+            addDetailNumber(pageIndex, NUMBER_TYPE_PAGE_INDEX, part);
+            addDetailNumber(pageNumber, NUMBER_TYPE_PAGE_NUMBER, part);
+
+            if (pageNote != null) {
+                Text text = new Text();
+                text.setValue(pageNote);
+                part.getText().add(text);
+            }
         }
+
         mods.getIdentifier().addAll(getIdentifierDefinition(page.getIdentifiers()));
         return mods;
     }

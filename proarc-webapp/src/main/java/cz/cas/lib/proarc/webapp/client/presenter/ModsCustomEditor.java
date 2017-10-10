@@ -210,6 +210,8 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                     metadata = dm;
                     Record customModsRecord = dm.getDescription();
                     if (customModsRecord != null) {
+                        // fix https://github.com/proarc/proarc/issues/557
+                        activeEditor.clear();
                         // refresh editor with server values
                         activeEditor.editRecord(customModsRecord);
                     }
@@ -383,6 +385,8 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                 Record customModsRecord = dm.getDescription();
                 if (customModsRecord != null) {
                     metadata = dm;
+                    // fix https://github.com/proarc/proarc/issues/557
+                    editor.clear();
                     editor.editRecord(customModsRecord);
                     editor.clearErrors(true);
                     loadCallback.execute(Boolean.TRUE);

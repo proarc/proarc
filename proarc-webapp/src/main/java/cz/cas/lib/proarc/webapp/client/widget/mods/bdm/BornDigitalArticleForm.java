@@ -123,7 +123,7 @@ public final class BornDigitalArticleForm {
                 .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
                     .addField(new FieldBuilder("value").setTitle("Subtitle - MA").setMaxOccurrences(1)
                         .setType(Field.TEXTAREA)
-                        .setRequired(true)
+                        .setRequired(false)
                         .setHeight("50")
                         .setHint("Podnázev článku. Za podnázev lze považovat i perex.")
                     .createField()) // value
