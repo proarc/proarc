@@ -17,6 +17,9 @@
 package cz.cas.lib.proarc.webapp.client.widget;
 
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.SortSpecifier;
 import com.smartgwt.client.types.Alignment;
@@ -267,7 +270,13 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         Criteria streamMenuFilter = dobj.toCriteria();
         streamMenu.setPickListCriteria(streamMenuFilter);
         streamMenu.setAttribute(SOURCE_IDENTIFIER, getLastSelectionId(dobj, source));
-        streamMenu.fetchData();
+
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setAttribute(SOURCE_IDENTIFIER, getLastSelectionId(dobj, source));
+
+        streamMenu.fetchData((dsResponse, o, dsRequest1) -> {
+
+        }, dsRequest);
     }
 
     private void updateStreamMenu(ResultSet data, SelectItem view) {
