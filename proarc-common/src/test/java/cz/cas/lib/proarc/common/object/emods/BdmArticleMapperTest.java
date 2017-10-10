@@ -70,9 +70,9 @@ public class BdmArticleMapperTest {
         Context ctx = new Context("uuid:testId");
         mapper.createMods(mods, ctx);
 
-        int rdamediaSum = 0;
-        int rdacarrierSum = 0;
-        int otherSum = 0;
+        int rdamediaSum = 0; // sum of all PhysicalDescription element, where authority is "rdamedia"
+        int rdacarrierSum = 0; // sum of all PhysicalDescription element, where authority is "rdacarrier"
+        int otherSum = 0; // sum of all PhysicalDescription element, where authority differes from "rdamedia" and "rdacarrier"
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             String authority = pd.getForm().get(0).getAuthority();
             if ("rdamedia".equals(authority)) {
@@ -83,9 +83,10 @@ public class BdmArticleMapperTest {
                 otherSum++;
             }
         }
-        assertEquals(9, mods.getPhysicalDescription().size());
+        assertEquals(9, mods.getPhysicalDescription().size()); // sum of all PhysicalDescription element
         assertEquals(5, rdamediaSum);
         assertEquals(3, rdacarrierSum);
         assertEquals(1, otherSum);
+        assertEquals(mods.getPhysicalDescription().size(), rdamediaSum + rdacarrierSum + otherSum); // sum of all PhysicalDescription element
     }
 }

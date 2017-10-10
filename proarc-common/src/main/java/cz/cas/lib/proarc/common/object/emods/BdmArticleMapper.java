@@ -55,6 +55,10 @@ public class BdmArticleMapper extends NdkArticleMapper {
                     setFormDefinition(form, newFormDefinition, "online zdroj");
                 } else if ("jiný".equals(form.getValue()) && (form.getAuthority() == null || "rdamedia".equals(form.getAuthority()))) {
                     setFormDefinition(form, newFormDefinition, "jiný");
+                } else {
+                    if (form.getAuthority() == null) {
+                        form.setAuthority("marcform");
+                    }
                 }
                 PhysicalDescriptionDefinition pdd = new PhysicalDescriptionDefinition();
                 pdd.getForm().add(newFormDefinition);
@@ -76,7 +80,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
     private boolean checkNewFormDefinition(FormDefinition newForm, ModsDefinition mods) {
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {
-                if (newForm.getValue() == null) {
+                if (newForm.getValue() == null || form.getValue() == null) {
                     return false;
                 }
                 if (form.getValue().equals(newForm.getValue()) && form.getAuthority().equals(newForm.getAuthority()) && form.getType().equals(newForm.getType())) {
