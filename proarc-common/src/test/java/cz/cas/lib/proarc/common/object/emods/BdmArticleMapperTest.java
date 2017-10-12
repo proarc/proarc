@@ -83,6 +83,10 @@ public class BdmArticleMapperTest {
                 otherSum++;
             }
         }
+
+        /*  According to the issue #609, the original xml will be enriched by 3 elements
+         *  that are newly generated. For values calculation see issue #609.
+         */
         assertEquals(9, mods.getPhysicalDescription().size()); // sum of all PhysicalDescription element
         assertEquals(5, rdamediaSum);
         assertEquals(3, rdacarrierSum);
