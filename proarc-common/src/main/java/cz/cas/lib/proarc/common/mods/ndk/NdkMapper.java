@@ -110,24 +110,8 @@ public abstract class NdkMapper {
      * @param ctx context
      * @return the serializable object
      */
-    public ModsWrapper toJsonObject(ModsDefinition mods, Context ctx) throws DigitalObjectException {
-        RdaModsWrapper wrapper = new RdaModsWrapper();
-        wrapper.setMods(mods);
-        if (RdaRules.HAS_MEMBER_RDA_VALIDATION_MODELS.contains(ctx.getHandler().relations().getModel())) {
-            if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()) {
-                return wrapper;
-            }
-            String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
-            if (descriptionStandard.equalsIgnoreCase(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)) {
-                mods.getRecordInfo().get(0).getDescriptionStandard().clear();
-                wrapper.setRdaRules(true);
-            } else {
-                mods.getRecordInfo().get(0).getDescriptionStandard().clear();
-                wrapper.setRdaRules(false);
-            }
-            return wrapper;
-        }
-        return wrapper;
+    public ModsWrapper toJsonObject(ModsDefinition mods, Context ctx) {
+        return new ModsWrapper(mods);
     }
 
     /**
@@ -138,26 +122,8 @@ public abstract class NdkMapper {
      * @return MODS
      * @throws IOException failure
      */
-    public ModsDefinition fromJsonObject(ObjectMapper jsMapper, String json, Context ctx) throws IOException, DigitalObjectException {
-        RdaModsWrapper wrapper = jsMapper.readValue(json, RdaModsWrapper.class);
-        ModsDefinition mods = wrapper.getMods();
-
-        if (RdaRules.HAS_MEMBER_RDA_VALIDATION_MODELS.contains(ctx.getHandler().relations().getModel())) {
-            StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
-            if (wrapper.getRdaRules() != null && wrapper.getRdaRules()) {
-                descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
-            } else {
-                descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
-            }
-            if (mods.getRecordInfo().isEmpty()) {
-                RecordInfoDefinition recordInfo = new RecordInfoDefinition();
-                recordInfo.getDescriptionStandard().add(0, descriptionStandard);
-                mods.getRecordInfo().add(0, recordInfo);
-            } else {
-                mods.getRecordInfo().get(0).getDescriptionStandard().add(0, descriptionStandard);
-            }
-        }
-        return mods;
+    public ModsDefinition fromJsonObject(ObjectMapper jsMapper, String json, Context ctx) throws IOException {
+        return jsMapper.readValue(json, ModsWrapper.class).getMods();
     }
 
     /**

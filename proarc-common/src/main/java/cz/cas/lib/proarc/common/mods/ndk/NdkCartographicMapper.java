@@ -16,8 +16,10 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
@@ -42,6 +44,7 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.mods.UrlDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -183,5 +186,36 @@ public class NdkCartographicMapper extends NdkMapper {
             addStringPlusLanguage(dc.getSources(), location.getShelfLocator());
         }
         return dc;
+    }
+
+    @Override
+    public NdkMetadataHandler.ModsWrapper toJsonObject(ModsDefinition mods, Context ctx) {
+        RdaModsWrapper wrapper = new RdaModsWrapper();
+        wrapper.setMods(mods);
+        if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()) {
+            return wrapper;
+        }
+        String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
+        mods.getRecordInfo().get(0).getDescriptionStandard().clear();
+        if (descriptionStandard.equalsIgnoreCase(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)) {
+            wrapper.setRdaRules(true);
+        } else {
+            wrapper.setRdaRules(false);
+        }
+        return wrapper;
+    }
+
+    @Override
+    public ModsDefinition fromJsonObject(ObjectMapper jsMapper, String json, Context ctx) throws IOException{
+        RdaModsWrapper wrapper = jsMapper.readValue(json, RdaModsWrapper.class);
+        ModsDefinition mods = wrapper.getMods();
+        StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
+        if (wrapper.getRdaRules() != null && wrapper.getRdaRules()) {
+            descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
+        } else {
+            descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
+        }
+        mods.getRecordInfo().get(0).getDescriptionStandard().add(0, descriptionStandard);
+        return mods;
     }
 }
