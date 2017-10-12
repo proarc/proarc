@@ -25,9 +25,7 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.RestDataSource;
 import com.smartgwt.client.rpc.RPCResponse;
-import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
@@ -160,9 +158,18 @@ public final class ModsCustomDataSource extends ProarcDataSource implements Mods
     }
 
     public void saveXmlDescription(DigitalObject dobj, String xml, long timestamp, DescriptionSaveHandler callback) {
+        saveXmlDescription(dobj, xml, timestamp, callback, false);
+    }
+
+    public void saveXmlDescription(DigitalObject dobj, String xml, long timestamp, DescriptionSaveHandler callback, Boolean ignoreValidation) {
         Record update = new Record();
         dobj.toCriteria();
         update.setAttribute(FIELD_PID, dobj.getPid());
+
+        if (ignoreValidation != null && ignoreValidation) {
+            update.setAttribute(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION, true);
+        }
+
         if (dobj.getBatchId() != null) {
             update.setAttribute(FIELD_BATCHID, dobj.getBatchId());
         }
