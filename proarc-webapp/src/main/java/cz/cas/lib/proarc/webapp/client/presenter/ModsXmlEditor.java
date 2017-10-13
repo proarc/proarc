@@ -176,16 +176,10 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
                 // Do not ignore XML validation!
                 String msg = i18n.SaveAction_IgnoreRemoteInvalid_Msg(getValidationMessage());
 
-                DescriptionSaveHandler thisHandler = this;
-
-                SC.ask(i18n.SaveAction_Title(), msg, new BooleanCallback() {
-
-                    @Override
-                    public void execute(Boolean value) {
-                        // save again
-                        if (value != null && value) {
-                            ModsCustomDataSource.getInstance().saveXmlDescription(digitalObject, newXml, timestamp, thisHandler, true);
-                        }
+                SC.ask(i18n.SaveAction_Title(), msg, value -> {
+                    // save again
+                    if (value != null && value) {
+                        ModsCustomDataSource.getInstance().saveXmlDescription(digitalObject, newXml, timestamp, this, true);
                     }
                 });
             }
