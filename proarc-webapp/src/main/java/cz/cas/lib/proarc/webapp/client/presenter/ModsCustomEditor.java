@@ -367,9 +367,11 @@ public class ModsCustomEditor extends AbstractDatastreamEditor implements Refres
     private void loadCustom(final DynamicForm editor, Long workflowJobId,
                             MetaModelDataSource.MetaModelRecord model, final BooleanCallback loadCallback) {
 
-        Criteria workflowJobIdCriteria = new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, workflowJobId.toString());
         Criteria criteria = new Criteria(MetaModelDataSource.FIELD_EDITOR, model.getEditorId());
+        Criteria workflowJobIdCriteria = new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, workflowJobId.toString());
         criteria.addCriteria(workflowJobIdCriteria);
+        Criteria modelIdCriteria = new Criteria(MetaModelDataSource.FIELD_MODELOBJECT, model.getId());
+        criteria.addCriteria(modelIdCriteria);
         DSRequest request = new DSRequest();
         if (showFetchPrompt != null) {
             request.setShowPrompt(showFetchPrompt);

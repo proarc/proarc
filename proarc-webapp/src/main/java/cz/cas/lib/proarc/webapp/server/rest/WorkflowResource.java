@@ -20,10 +20,16 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.Mapping;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
@@ -461,29 +467,18 @@ public class WorkflowResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DescriptionMetadata<Object>> getDescriptionMetadata(
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_JOBID) BigDecimal jobId,
-            @QueryParam(MetaModelDataSource.FIELD_EDITOR) String editorId
-    ) {
-        MaterialFilter filter = new MaterialFilter();
-        filter.setLocale(session.getLocale(httpHeaders));
-        filter.setType(MaterialType.PHYSICAL_DOCUMENT);
-        filter.setJobId(jobId);
-        try {
-            List<MaterialView> mvs = workflowManager.findMaterial(filter);
-            DescriptionMetadata<Object> dm = new DescriptionMetadata<>();
-            dm.setWorfklowJobId(jobId.longValue());
-            dm.setEditor(editorId);
-            if (!mvs.isEmpty()) {
-                ModsDefinition modsDefinition = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(mvs.get(0).getMetadata())));
-                Mapping mapping = new Mapping();
-                Object customMods = mapping.read(modsDefinition, editorId);
-                dm.setData(customMods);
-            }
+            @QueryParam(MetaModelDataSource.FIELD_EDITOR) String editorId,
+            @QueryParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId
+    ) throws DigitalObjectException {
+        DigitalObjectHandler doHandler = findHandler(jobId, modelId);
+        DescriptionMetadata<Object> metadata = doHandler.metadata().getMetadataAsJsonObject(editorId);
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
 
-            return new SmartGwtResponse<>(dm);
-        } catch (Exception ex) {
-            LOG.log(Level.SEVERE, null, ex);
-            return SmartGwtResponse.asError(ex.getMessage());
-        }
+    private DigitalObjectHandler findHandler(BigDecimal jobId, String modelId) throws DigitalObjectNotFoundException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        FedoraObject fobject = dom.find(jobId, modelId, session.getLocale(httpHeaders));
+        return dom.createHandler(fobject);
     }
 
     @Path(WorkflowResourceApi.PARAMETER_PATH)
