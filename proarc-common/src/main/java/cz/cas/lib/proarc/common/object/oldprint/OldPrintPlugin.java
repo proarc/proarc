@@ -98,7 +98,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 MODEL_VOLUME,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        /*DatastreamEditorType.PARENT, */DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
