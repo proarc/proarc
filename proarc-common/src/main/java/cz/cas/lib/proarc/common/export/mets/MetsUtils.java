@@ -887,9 +887,9 @@ public class MetsUtils {
             infoJaxb.setCreator(metsContext.getOptions().getCreator());
             infoJaxb.setPackageid(metsContext.getPackageID());
             if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
-                infoJaxb.setMetadataversion((float) 1.5);
+                infoJaxb.setMetadataversion((float) 1.6);
             } else {
-                infoJaxb.setMetadataversion((float) 1.1);
+                infoJaxb.setMetadataversion((float) 1.2);
             }
             Itemlist itemList = new Itemlist();
             infoJaxb.setItemlist(itemList);
