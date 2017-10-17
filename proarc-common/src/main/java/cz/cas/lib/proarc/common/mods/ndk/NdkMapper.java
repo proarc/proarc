@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.ndk.RdaRules;
@@ -82,6 +83,12 @@ public abstract class NdkMapper {
             mapper = new NdkCartographicMapper();
         } else if (NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)) {
             mapper = new NdkSheetMusicMapper();
+        } else if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(modelId)) {
+            mapper = new NdkMusicDocumentMapper();
+        } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
+            mapper = new NdkSongMapper();
+        } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
+            mapper = new NdkTrackMapper();
         } else {
             throw new IllegalStateException("Unsupported model: " + modelId);
         }
