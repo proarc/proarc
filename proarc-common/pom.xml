@@ -60,18 +60,16 @@
             <artifactId>proarc-urnnbn</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>edu.harvard.hul.ois</groupId>
-            <artifactId>jhove</artifactId>
-            <!--
-                The jar based on 1.12.0-SNAPSHOT revision c770951dfbadc4b5795480cdf3e4306a447b292b.
-                It is accessible from https://github.com/proarc/proarc.mvnrepo/
-                until JHove does not release 1.12.
-            -->
-            <version>1.12.0-SNAPSHOT</version>
+            <groupId>org.openpreservation.jhove</groupId>
+            <artifactId>jhove-core</artifactId>
+            <version>1.16.7</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.openpreservation.jhove</groupId>
+            <artifactId>jhove-modules</artifactId>
+            <version>1.16.7</version>
+        </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
