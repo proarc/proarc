@@ -42,7 +42,7 @@ import java.util.List;
  *
  * @author Jan Pokorsky
  */
-public class NdkPeriodicalSupplementMapper extends NdkMapper {
+public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
 
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
@@ -129,40 +129,4 @@ public class NdkPeriodicalSupplementMapper extends NdkMapper {
         return dc;
     }
 
-    @Override
-    public NdkMetadataHandler.ModsWrapper toJsonObject(ModsDefinition mods, Context ctx) {
-        RdaModsWrapper wrapper = new RdaModsWrapper();
-        wrapper.setMods(mods);
-        if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()) {
-            return wrapper;
-        }
-        String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
-        mods.getRecordInfo().get(0).getDescriptionStandard().clear();
-        if (descriptionStandard.equalsIgnoreCase(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)) {
-            wrapper.setRdaRules(true);
-        } else {
-            wrapper.setRdaRules(false);
-        }
-        return wrapper;
-    }
-
-    @Override
-    public ModsDefinition fromJsonObject(ObjectMapper jsMapper, String json, Context ctx) throws IOException {
-        RdaModsWrapper wrapper = jsMapper.readValue(json, RdaModsWrapper.class);
-        ModsDefinition mods = wrapper.getMods();
-        StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
-        if (wrapper.getRdaRules() != null && wrapper.getRdaRules()) {
-            descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
-        } else {
-            descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
-        }
-        if (mods.getRecordInfo().isEmpty()) {
-            RecordInfoDefinition recordInfo = new RecordInfoDefinition();
-            recordInfo.getDescriptionStandard().add(0, descriptionStandard);
-            mods.getRecordInfo().add(0, recordInfo);
-        } else {
-            mods.getRecordInfo().get(0).getDescriptionStandard().add(0, descriptionStandard);
-        }
-        return mods;
-    }
 }
