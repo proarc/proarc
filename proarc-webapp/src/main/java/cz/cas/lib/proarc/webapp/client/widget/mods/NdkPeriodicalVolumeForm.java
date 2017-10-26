@@ -55,7 +55,7 @@ public class NdkPeriodicalVolumeForm {
                 // partNumber, type="stringPlusLanguage"
                 .addField(new FieldBuilder("partNumber").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Part Number - MA").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                    .addField(new FieldBuilder("value").setTitle("Part Number - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
                         .setHint("Pořadové číslo vydání ročníku, např. 40")
                     .createField()) // value
                 .createField()) // partNumber
@@ -154,7 +154,7 @@ public class NdkPeriodicalVolumeForm {
                 // place, placeDefinition
                 // publisher, stringPlusLanguagePlusSupplied
                 // dateIssued, dateDefinition extends stringPlusLanguage
-                .addField(new FieldBuilder("dateIssued").setTitle("Date Issued - M").setMaxOccurrences(1)
+                .addField(new FieldBuilder("dateIssued").setTitle("Date Issued - M").setMaxOccurrences(10)
                     .setHint("Datum vydání předlohy, rok nebo rozsah let, kdy ročník vycházel.")
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @encoding, @qualifier, @point, @keyDate

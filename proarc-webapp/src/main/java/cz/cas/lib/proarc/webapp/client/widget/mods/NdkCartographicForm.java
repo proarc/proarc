@@ -34,7 +34,7 @@ public final class NdkCartographicForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard)").setMaxOccurrences(1)
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
                 .setType(Field.COMBO).setRequired(true)
                 .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
                 .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
@@ -587,6 +587,7 @@ public final class NdkCartographicForm {
                     .addMapValue("url", "URL")
                     .addMapValue("urnnbn", "URN:NBN")
                     .addMapValue("uuid", "UUID")
+                    .addMapValue("oclc", "OCLC")
                 .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())

@@ -34,7 +34,7 @@ public final class NdkMonographVolumeForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard)").setMaxOccurrences(1)
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
                 .setType(Field.COMBO).setRequired(true)
                 .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
                 .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
@@ -285,7 +285,7 @@ public final class NdkMonographVolumeForm {
                         .addMapValue("temper", "temper")
                         .addMapValue("w3cdtf", "W3CDTF")
                     .createField()) // @encoding
-                    .addField(new FieldBuilder("point").setTitle("Point - MA").setMaxOccurrences(1).setType(Field.SELECT)
+                    .addField(new FieldBuilder("point").setTitle("Point - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
                         .setHint("Hodnoty „start“ resp. „end“ jen u údaje z pole 008, pro rozmezí dat.")
                         .addMapValue("start", "start")
                         .addMapValue("end", "end")
@@ -621,6 +621,7 @@ public final class NdkMonographVolumeForm {
                     .addMapValue("url", "URL")
                     .addMapValue("urnnbn", "URN:NBN")
                     .addMapValue("uuid", "UUID")
+                    .addMapValue("oclc", "OCLC")
                 .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())

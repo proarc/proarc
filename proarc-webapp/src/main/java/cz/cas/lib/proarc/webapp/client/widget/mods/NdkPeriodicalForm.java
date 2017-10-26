@@ -34,7 +34,7 @@ public final class NdkPeriodicalForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard)").setMaxOccurrences(1)
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
                 .setType(Field.COMBO).setRequired(true)
                 .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
                 .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
@@ -106,7 +106,7 @@ public final class NdkPeriodicalForm {
                 // partNumber, type="stringPlusLanguage"
                 .addField(new FieldBuilder("partNumber").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Part Number - R").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setTitle("Part Number - MA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Číslo části<p>Např. určité části/edice, k použití u ročenek a specializovaných periodik.")
                     .createField()) // value
                 .createField()) // partNumber
@@ -653,7 +653,7 @@ public final class NdkPeriodicalForm {
                     .addMapValue("ccnb", "čČNB")
                     .addMapValue("doi", "DOI")
                     .addMapValue("hdl", "Handle")
-//                    .addMapValue("isbn", "ISBN")
+                    .addMapValue("isbn", "ISBN")
                     .addMapValue("issn", "ISSN")
                     .addMapValue("oclc", "OCLC")
                     .addMapValue("permalink", "Permalink")
