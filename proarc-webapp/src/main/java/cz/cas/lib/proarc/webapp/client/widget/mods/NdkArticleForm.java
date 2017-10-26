@@ -316,7 +316,7 @@ public final class NdkArticleForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @type
                     // XXX autority.nkp.cz datasource
-                    .addField(new FieldBuilder("value").setTitle("Geographic - R").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setTitle("Geographic - MA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Geografické věcné třídění."
                             + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (geografický termín)"
                             + " nebo obsah pole 651 záznamu MARC21.")
@@ -417,6 +417,7 @@ public final class NdkArticleForm {
                     .addMapValue("url", "URL")
                     .addMapValue("urnnbn", "URN:NBN")
                     .addMapValue("uuid", "UUID")
+                    .addMapValue("oclc", "OCLC")
                 .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())

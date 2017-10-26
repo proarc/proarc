@@ -158,7 +158,7 @@ public class StreamProfileDataSource extends ProarcDataSource {
             template("NDK_USER", i18n.DigitalObjectEditor_MediaEditor_DSNdkUser_Title());
 
             reorderTemplates(source);
-            return TEMPLATES;
+            return Collections.unmodifiableList(TEMPLATES);
         }
 
         /**

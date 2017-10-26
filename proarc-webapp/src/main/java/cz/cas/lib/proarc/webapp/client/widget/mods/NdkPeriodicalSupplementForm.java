@@ -34,7 +34,7 @@ public final class NdkPeriodicalSupplementForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard)").setMaxOccurrences(1)
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
                 .setType(Field.RADIOGROUP).setRequired(true)
                 .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
                 .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
@@ -456,7 +456,7 @@ public final class NdkPeriodicalSupplementForm {
 
     private Field abstractElm() {
         // abstract, abstractDefinition extends stringPlusLanguage
-        return new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
+        return new FieldBuilder("abstract").setTitle("Abstract - RA").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
@@ -615,6 +615,7 @@ public final class NdkPeriodicalSupplementForm {
                     .addMapValue("url", "URL")
                     .addMapValue("urnnbn", "URN:NBN")
                     .addMapValue("uuid", "UUID")
+                    .addMapValue("oclc", "OCLC")
                 .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
