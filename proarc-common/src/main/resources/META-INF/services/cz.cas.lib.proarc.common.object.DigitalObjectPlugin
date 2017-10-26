@@ -4,5 +4,6 @@ cz.cas.lib.proarc.common.object.DerDesaPlugin
 cz.cas.lib.proarc.common.object.DesDesaPlugin
 cz.cas.lib.proarc.common.object.K4Plugin
 cz.cas.lib.proarc.common.object.ndk.NdkPlugin
+cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin
 cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin
 cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin
