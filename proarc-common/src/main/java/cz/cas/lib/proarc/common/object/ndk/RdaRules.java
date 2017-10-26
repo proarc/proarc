@@ -128,7 +128,7 @@ public class RdaRules {
         }
         List<OriginInfoDefinition> originInfoDefinitions = mods.getOriginInfo();
         List<PhysicalDescriptionDefinition> physicalDescriptions = mods.getPhysicalDescription();
-        if (descriptionStandard.equalsIgnoreCase("aacr")) {
+        if (ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equals(descriptionStandard)) {
             for (OriginInfoDefinition oi : originInfoDefinitions) {
                 if (oi.getEventType() != null) {
                     exception.addValidation("RDA rules", ERR_NDK_AACR_EMPTYVALUE);
