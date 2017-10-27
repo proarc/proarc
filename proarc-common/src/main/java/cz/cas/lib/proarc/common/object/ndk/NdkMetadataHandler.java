@@ -282,8 +282,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     @Override
     public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message) throws DigitalObjectException {
         String json = jsonData.getData();
-        String editorId = jsonData.getEditor();
-        String modelId = handler.relations().getModel();
+        String modelId = handler.getModel().getPid();
         ModsDefinition mods;
         if (json == null) {
             mods = createDefault(modelId);
@@ -303,7 +302,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     @Override
     public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message) throws DigitalObjectException {
         ModsDefinition mods;
-        String modelId = handler.relations().getModel();
+        String modelId = handler.getModel().getPid();
         if (xmlData.getData() != null) {
             ValidationErrorHandler errHandler = new ValidationErrorHandler();
             try {
@@ -434,7 +433,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     }
 
     private void checkIdentifiers(ModsDefinition mods, ModsDefinition oldMods, DigitalObjectValidationException ex) throws DigitalObjectException {
-        ModsStreamEditor.addPid(mods, fobject.getPid());
+        if (fobject != null && fobject.getPid() != null) {
+            ModsStreamEditor.addPid(mods, fobject.getPid());
+        }
         List<IdentifierDefinition> oldIds = oldMods != null ? oldMods.getIdentifier()
                 : Collections.<IdentifierDefinition>emptyList();
         // check URN:NBN

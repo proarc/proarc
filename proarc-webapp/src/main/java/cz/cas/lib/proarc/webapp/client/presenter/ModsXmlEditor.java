@@ -107,9 +107,7 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
                 if (digitalObject.getBatchId() != null) {
                     pidCriteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, digitalObject.getBatchId());
                 }
-
                 TextDataSource.getMods().fetchData(pidCriteria, new DSCallback() {
-
                     @Override
                     public void execute(DSResponse response, Object rawData, DSRequest request) {
                         handleFetchResponse(response, TextDataSource.FIELD_CONTENT, cleanHistory);

@@ -71,7 +71,7 @@ import java.util.logging.Logger;
  * @author Jan Pokorsky
  */
 // XXX rename to DescriptionFormEditor
-public class ModsCustomEditor extends AbstractDatastreamEditor implements Refreshable {
+public final class ModsCustomEditor extends AbstractDatastreamEditor implements Refreshable {
 
     private static final Logger LOG = Logger.getLogger(ModsCustomEditor.class.getName());
 
@@ -245,7 +245,12 @@ public class ModsCustomEditor extends AbstractDatastreamEditor implements Refres
             }
 
         };
-        ModsCustomDataSource.getInstance().saveDescription(metadata, dsh, true);
+        // workflow has a separate api endpoint
+        if (this.digitalObject.getWorkflowJobId() != null) {
+            WorkflowModsCustomDataSource.getInstance().saveDescription(metadata, digitalObject.getModelId(), digitalObject.getWorkflowJobId(), dsh, true);
+        } else {
+            ModsCustomDataSource.getInstance().saveDescription(metadata, dsh, true);
+        }
     }
 
     @Override

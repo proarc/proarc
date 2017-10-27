@@ -38,7 +38,6 @@ import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -220,11 +219,11 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
         private Record record;
 
         public static DigitalObject create(String pid, String batchId, MetaModelRecord model) {
-            return new DigitalObject(pid, batchId, null, model, null,null);
+            return new DigitalObject(pid, batchId, null, model, null, null);
         }
 
         public static DigitalObject create(String pid, String batchId, String modelId) {
-            return new DigitalObject(pid, batchId, modelId, null, null,null);
+            return new DigitalObject(pid, batchId, modelId, null, null, null);
         }
 
         public static DigitalObject create(Record r) {

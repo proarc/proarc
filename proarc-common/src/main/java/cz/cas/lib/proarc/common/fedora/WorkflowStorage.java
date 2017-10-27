@@ -17,26 +17,39 @@
 package cz.cas.lib.proarc.common.fedora;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.JobFilter;
+import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
-
 import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Workflow storage
  *
  * It contains objects with metadata BIBILIO MODS.
  * These objects are not stored in the Fedora Repository and are only a small subset of FOXML objects.
+ *
+ * @author Martin Rumanek
  */
 public class WorkflowStorage {
 
@@ -49,6 +62,9 @@ public class WorkflowStorage {
         private final String modelId;
         private final BigDecimal workflowJobId;
         private final Locale locale;
+        private String label;
+
+        private final Set<XmlStreamEditor> editors = new LinkedHashSet<>();
 
         WorkflowObject(BigDecimal workflowJobId, Locale locale, String modelId) {
             this.modelId = modelId;
@@ -77,17 +93,19 @@ public class WorkflowStorage {
 
         @Override
         public void register(XmlStreamEditor editor) {
-            throw new UnsupportedOperationException();
+            editors.add(editor);
         }
 
         @Override
         public void setLabel(String label) {
-            throw new UnsupportedOperationException();
+            this.label = label;
         }
 
         @Override
-        public void flush() {
-            throw new UnsupportedOperationException();
+        public void flush() throws DigitalObjectException {
+            for (XmlStreamEditor editor : editors) {
+                editor.flush();
+            }
         }
 
         @Override
@@ -97,6 +115,10 @@ public class WorkflowStorage {
 
         public String getModel() {
             return modelId;
+        }
+
+        public String getLabel() {
+            return label;
         }
 
         public Locale getLocale() {
@@ -112,23 +134,39 @@ public class WorkflowStorage {
     public static final class WorkflowXmlStreamEditor implements XmlStreamEditor {
 
         private final WorkflowObject workflowObject;
+        private final String dsId;
+        private byte[] data;
 
         public WorkflowXmlStreamEditor(WorkflowObject workflowObject, DatastreamProfile datastream) {
-            if (ModsStreamEditor.DATASTREAM_ID.equals(datastream.getDsID())) {
-               this.workflowObject = workflowObject;
-            } else {
-                throw new UnsupportedOperationException(datastream.getDsID());
+            dsId = datastream.getDsID();
+
+            switch (dsId) {
+                case ModsStreamEditor.DATASTREAM_ID:
+                case DcStreamEditor.DATASTREAM_ID:
+                    this.workflowObject = workflowObject;
+                    break;
+                case RelationEditor.DATASTREAM_ID:
+                    this.workflowObject = null;
+                    break;
+                default:
+                    throw new UnsupportedOperationException(dsId);
             }
         }
 
         @Override
         public EditorResult createResult() {
-            throw new UnsupportedOperationException();
+            return new EditorStreamResult();
         }
 
         @Override
         public long getLastModified() {
-            return 0;
+            Objects.requireNonNull(workflowObject);
+
+            JobFilter jobFilter = new JobFilter();
+            jobFilter.setLocale(workflowObject.getLocale());
+            jobFilter.setId(workflowObject.getWorkflowJobId());
+            return WorkflowManager.getInstance().findJob(jobFilter)
+                    .stream().map(JobView::getTimestampAsLong).findFirst().orElse(Long.MIN_VALUE);
         }
 
         @Override
@@ -143,13 +181,15 @@ public class WorkflowStorage {
 
         @Override
         public Source read() throws DigitalObjectException {
+            if (workflowObject == null) {
+                return null;
+            }
             MaterialFilter filter = new MaterialFilter();
             filter.setLocale(workflowObject.getLocale());
             filter.setType(MaterialType.PHYSICAL_DOCUMENT);
             filter.setJobId(workflowObject.getWorkflowJobId());
             WorkflowManager workflowManager = WorkflowManager.getInstance();
             List<MaterialView> mvs = workflowManager.findMaterial(filter);
-
             if (mvs == null || mvs.isEmpty()) {
                 throw new DigitalObjectNotFoundException(workflowObject.getWorkflowJobId().toString());
             } else {
@@ -164,12 +204,18 @@ public class WorkflowStorage {
 
         @Override
         public void write(EditorResult data, long timestamp, String message) {
-            throw new UnsupportedOperationException();
+            if (!(data instanceof EditorStreamResult)) {
+                throw new IllegalArgumentException("Unsupported data: " + data);
+            }
+            EditorStreamResult result = (EditorStreamResult) data;
+            write(result.asBytes(), timestamp, message);
+            workflowObject.register(this);
         }
 
         @Override
         public void write(byte[] data, long timestamp, String message) {
-            throw new UnsupportedOperationException();
+            Objects.requireNonNull(workflowObject);
+            this.data = data;
         }
 
         @Override
@@ -182,9 +228,53 @@ public class WorkflowStorage {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * Save BIBLIO_MODS to Physical material and label to JOB
+         *
+         * Only one editor is used (BIBLIO_MODS), but a label is saved later. DC from plugins and RELS-EXT are ignored.
+         *
+         * @throws DigitalObjectException
+         */
         @Override
-        public void flush() {
-            throw new UnsupportedOperationException();
+        public void flush() throws DigitalObjectException {
+            Objects.requireNonNull(workflowObject);
+
+            if (!dsId.equals(ModsStreamEditor.DATASTREAM_ID)) {
+                return;
+            }
+
+            try {
+                MaterialFilter filter = new MaterialFilter();
+                filter.setLocale(workflowObject.getLocale());
+                filter.setJobId(workflowObject.getWorkflowJobId());
+                filter.setType(MaterialType.PHYSICAL_DOCUMENT);
+                WorkflowManager manager = WorkflowManager.getInstance();
+                List<MaterialView> materials = manager.findMaterial(filter);
+                if (materials != null && materials.size() == 1) {
+                    MaterialView material = materials.get(0);
+                    material.setMetadata(new String(data, StandardCharsets.UTF_8));
+                    manager.updateMaterial(material);
+                    JobFilter jobFilter = new JobFilter();
+                    jobFilter.setId(workflowObject.getWorkflowJobId());
+                    jobFilter.setLocale(workflowObject.getLocale());
+                    Job job = manager.findJob(jobFilter).get(0);
+                    job.setLabel(workflowObject.getLabel());
+                }
+            } catch(WorkflowException e) {
+                throw new DigitalObjectException(e.getMessage());
+            }
         }
+    }
+
+    private static final class EditorStreamResult extends StreamResult implements XmlStreamEditor.EditorResult {
+
+        public EditorStreamResult() {
+            super(new ByteArrayOutputStream());
+        }
+
+        public byte[] asBytes() {
+            return ((ByteArrayOutputStream) getOutputStream()).toByteArray();
+        }
+
     }
 }

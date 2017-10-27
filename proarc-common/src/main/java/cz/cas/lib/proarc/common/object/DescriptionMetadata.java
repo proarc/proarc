@@ -23,7 +23,7 @@ package cz.cas.lib.proarc.common.object;
  * @author Jan Pokorsky
  */
 public class DescriptionMetadata<T> {
-    
+
     private String pid;
     private Integer batchId;
     private long timestamp;

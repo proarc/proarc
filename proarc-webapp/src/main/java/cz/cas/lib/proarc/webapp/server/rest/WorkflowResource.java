@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
@@ -30,6 +31,7 @@ import cz.cas.lib.proarc.common.mods.custom.Mapping;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
@@ -54,7 +56,9 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -69,6 +73,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -466,13 +471,53 @@ public class WorkflowResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DescriptionMetadata<Object>> getDescriptionMetadata(
-            @QueryParam(WorkflowModelConsts.MATERIALFILTER_JOBID) BigDecimal jobId,
+            @QueryParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
             @QueryParam(MetaModelDataSource.FIELD_EDITOR) String editorId,
             @QueryParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId
     ) throws DigitalObjectException {
+        if (jobId == null) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, jobId.toString());
+        }
+
         DigitalObjectHandler doHandler = findHandler(jobId, modelId);
         DescriptionMetadata<Object> metadata = doHandler.metadata().getMetadataAsJsonObject(editorId);
         return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+    @PUT
+    @Path(WorkflowResourceApi.MODS_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadata(
+            @FormParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA) String xmlData,
+            @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId,
+            @DefaultValue("false")
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation
+    ) throws DigitalObjectException {
+        if (jobId == null) {
+            throw RestException.plainNotFound(WorkflowModelConsts.PARAMETER_JOBID, jobId.toString());
+        }
+        LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, ignoreValidation: %s, json: %s, xml: %s",
+                jobId, editorId, timestamp, ignoreValidation, jsonData, xmlData));
+        final boolean isJsonData = xmlData == null;
+        String data = isJsonData ? jsonData : xmlData;
+        DigitalObjectHandler doHandler = findHandler(jobId, modelId);
+        MetadataHandler<?> mHandler = doHandler.metadata();
+        DescriptionMetadata<String> dMetadata = new DescriptionMetadata<String>();
+        dMetadata.setEditor(editorId);
+        dMetadata.setData(data);
+        dMetadata.setTimestamp(timestamp);
+        dMetadata.setIgnoreValidation(ignoreValidation);
+        if (isJsonData) {
+            mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog());
+        } else {
+            mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog());
+        }
+        doHandler.commit();
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }
 
     private DigitalObjectHandler findHandler(BigDecimal jobId, String modelId) throws DigitalObjectNotFoundException {

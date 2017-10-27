@@ -29,7 +29,11 @@ import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 
-
+/**
+ * Workflow job editor form
+ *
+ * @author Martin Rumanek
+ */
 public class WorkflowNewJobEditor {
     private final ClientMessages i18n;
     private final PlaceController places;

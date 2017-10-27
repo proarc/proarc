@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import java.util.ArrayList;
@@ -246,6 +247,13 @@ public final class RelationEditor {
                 throw new DigitalObjectException(fobject.getPid(), "missing RELS-EXT!");
             }
             relsExt = new Rdf(fobject.getPid());
+
+            // WorkflowObject RDF cannot be unmarshalled from RELS-EXT datastream (WorkflowObject has only MODS)
+            if (fobject instanceof WorkflowStorage.WorkflowObject) {
+                WorkflowStorage.WorkflowObject workflowObject = (WorkflowStorage.WorkflowObject) fobject;
+                relsExt.getDescription().setModel(RdfRelation.fromPid(workflowObject.getModel()));
+            }
+
         } else {
             relsExt = Relations.unmarshal(source, Rdf.class);
         }
