@@ -22,17 +22,14 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.mods.ModsUtils;
-import cz.cas.lib.proarc.common.mods.custom.Mapping;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
@@ -53,13 +50,11 @@ import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
-import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 import java.io.IOException;
-import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -87,7 +82,6 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.transform.stream.StreamSource;
 
 /**
  * It allows to manage workflow remotely.
@@ -383,14 +377,25 @@ public class WorkflowResource {
             return profileError();
         }
         try {
-            Task updatedTask = workflowManager.tasks().updateTask(task, task.params, workflow);
             TaskFilter taskFilter = new TaskFilter();
-            taskFilter.setId(updatedTask.getId());
+            taskFilter.setId(task.getId());
             taskFilter.setLocale(session.getLocale(httpHeaders));
+            Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
+                    .findFirst().get().getState();
+            Task updatedTask = workflowManager.tasks().updateTask(task, task.params, workflow);
             List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+
+            // status of task changed
+            if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
+                WorkflowActionHandler workflowActionHandler = new WorkflowActionHandler(workflow, session.getLocale(httpHeaders));
+                workflowActionHandler.runAction(task);
+            }
+
             return new SmartGwtResponse<TaskView>(result);
         } catch (WorkflowException ex) {
             return toError(ex, null);
+        } catch (IOException e) {
+            return toError(new WorkflowException(e.getMessage()), null);
         }
     }
 
