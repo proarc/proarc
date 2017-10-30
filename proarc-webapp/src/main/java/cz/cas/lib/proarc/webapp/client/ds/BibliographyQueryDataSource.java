@@ -42,6 +42,7 @@ public final class BibliographyQueryDataSource extends DataSource {
     public static final String FIELD_MODS = "mods";
     public static final String FIELD_PREVIEW = "preview";
     public static final String FIELD_TITLE = "title";
+    public static final String FIELD_RDCZ_ID = "rdczId";
 
     public BibliographyQueryDataSource() {
         setID(ID);
@@ -64,7 +65,10 @@ public final class BibliographyQueryDataSource extends DataSource {
 
         DataSourceField fieldTitle = new DataSourceField(FIELD_TITLE, FieldType.TEXT);
 
-        setFields(fieldId, fieldMods, fieldPreview, fieldTitle);
+        DataSourceField fieldRdczId = new DataSourceField(FIELD_RDCZ_ID, FieldType.TEXT);
+        fieldRdczId.setHidden(true);
+
+        setFields(fieldId, fieldMods, fieldPreview, fieldTitle, fieldRdczId);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
 

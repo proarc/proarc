@@ -191,7 +191,8 @@ public class WorkflowResource {
             @FormParam(WorkflowResourceApi.NEWJOB_PROFILE) String profileName,
             @FormParam(WorkflowResourceApi.NEWJOB_METADATA) String metadata,
             @FormParam(WorkflowResourceApi.NEWJOB_CATALOGID) String catalogId,
-            @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId
+            @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId,
+            @FormParam(WorkflowResourceApi.NEWJOB_RDCZID) BigDecimal rdczId
     ) {
         metadata = "null".equals(metadata) ? null : metadata;
         catalogId = "null".equals(catalogId) ? null : catalogId;
@@ -214,7 +215,7 @@ public class WorkflowResource {
             return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
         }
         try {
-            Job job = workflowManager.addJob(profile, metadata, catalog, session.getUser());
+            Job job = workflowManager.addJob(profile, metadata, catalog, rdczId, session.getUser());
             JobFilter filter = new JobFilter();
             filter.setLocale(session.getLocale(httpHeaders));
             filter.setId(job.getId());

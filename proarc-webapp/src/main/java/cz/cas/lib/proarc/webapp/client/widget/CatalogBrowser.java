@@ -88,6 +88,12 @@ public class CatalogBrowser implements DatastreamEditor {
         return val;
     }
 
+    public Long getRdczId() {
+        ListGridRecord r = lgResult.getSelectedRecord();
+        Long val = (r == null) ? null : r.getAttributeAsLong(BibliographyQueryDataSource.FIELD_RDCZ_ID);
+        return val;
+    }
+
     public void bind() {
         formCatalog.clearErrors(true);
         fixExpandedListGrid();

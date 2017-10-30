@@ -23,18 +23,19 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
-import java.io.IOException;
-import java.io.StringReader;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import java.io.IOException;
+import java.io.StringReader;
+import java.math.BigDecimal;
 
 /**
  *
@@ -80,6 +81,13 @@ class PhysicalMaterialBuilder {
         }
     }
 
+    public PhysicalMaterialBuilder setRdczId(BigDecimal rdczId) {
+        if (rdczId != null) {
+            m.setRdczId(rdczId);
+        }
+        return this;
+    }
+
     private PhysicalMaterialBuilder setMetadataImpl(String modsXml) throws IOException, SAXException, XPathExpressionException {
         if (modsXml != null) {
             Document modsDom = db.parse(new InputSource(new StringReader(modsXml)));
@@ -87,10 +95,15 @@ class PhysicalMaterialBuilder {
                     "m:mods | m:modsCollection/m:mods", modsDom, XPathConstants.NODE);
             String barcode = xpath.evaluate(
                     "m:identifier[@type='barcode' and not(@invalid)]", modsElm);
+            String sigla = xpath.evaluate("m:location/m:physicalLocation", modsElm);
+            String signature = xpath.evaluate("m:location/m:shelfLocator", modsElm);
+            String field001 = xpath.evaluate("m:recordInfo/m:recordIdentifier", modsElm);
             StringBuilder label = getTitle(new StringBuilder(), modsElm);
             m.setMetadata(modsXml);
             m.setBarcode(barcode);
-            m.setField001(null);
+            m.setSigla(sigla);
+            m.setSignature(signature);
+            m.setField001(field001);
             m.setLabel(label.length() == 0
                     ? "?"
                     : label.length() > 2000
