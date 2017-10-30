@@ -211,7 +211,7 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
             String json = jsonData.getData();
             Object metadata;
             if (json == null) {
-                String modelId = handler.relations().getModel();
+                String modelId = handler.getModel().getPid();
                 metadata = createDefaultMetadata(modelId);
             } else {
                 ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
@@ -232,7 +232,7 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
             String xml = xmlData.getData();
             Object metadata;
             if (xml == null) {
-                String modelId = handler.relations().getModel();
+                String modelId = handler.getModel().getPid();
                 metadata = createDefaultMetadata(modelId);
             } else {
                 metadata = NsesssUtils.unmarshal(xml, getType());

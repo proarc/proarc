@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
@@ -94,11 +95,14 @@ public class DigitalObjectManager {
 
     /**
      * Creates the handler to edit a digital object contents.
-     * @param fo digital object
+     * @param fobject digital object
      * @return the handler
      */
-    public DigitalObjectHandler createHandler(FedoraObject fo) {
-        return new DigitalObjectHandler(fo, models);
+    public DigitalObjectHandler createHandler(FedoraObject fobject) {
+        if (fobject == null) {
+            throw new NullPointerException("fobject");
+        }
+        return new DigitalObjectHandler(fobject, models);
     }
 
     public FedoraObject find(String pid, Integer batchId) throws DigitalObjectNotFoundException {
@@ -111,6 +115,16 @@ public class DigitalObjectManager {
             }
         }
         return find2(pid, batch);
+    }
+
+    /**
+     * Object in workflow doesn't have a PID, so they are identified by workflow job id
+     *
+     * @return WorkflowObject with BIBLIO MODS
+     * @throws DigitalObjectNotFoundException
+     */
+    public FedoraObject find(BigDecimal workflowJobId, String modelId, Locale locale) throws DigitalObjectNotFoundException {
+        return new WorkflowStorage().load(workflowJobId, modelId, locale);
     }
 
     public FedoraObject find2(String pid, Batch batch) throws DigitalObjectNotFoundException {

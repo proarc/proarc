@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.object;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
@@ -53,6 +54,9 @@ public final class DigitalObjectHandler {
     private final Map<String, Object> parameters = new HashMap<String, Object>();
 
     public DigitalObjectHandler(FedoraObject fobject, MetaModelRepository models) {
+        if (fobject == null) {
+            throw new NullPointerException("fobject");
+        }
         this.fobject = fobject;
         this.models = models;
     }
@@ -120,6 +124,19 @@ public final class DigitalObjectHandler {
         return relationEditor;
     }
 
+    public MetaModel getModel() throws DigitalObjectException {
+        MetaModel model;
+        if (getFedoraObject() instanceof WorkflowStorage.WorkflowObject) {
+            WorkflowStorage.WorkflowObject workflowObject = (WorkflowStorage.WorkflowObject)getFedoraObject();
+            model = models.find(workflowObject.getModel());
+        } else {
+            // XXX optimize not to require rels-ext fetch
+            String modelId = relations().getModel();
+            model = models.find(modelId);
+        }
+        return model;
+    }
+
     public DigitalObjectHandler getParameterParent() {
         return getParameter(PARAM_PARENT);
     }
@@ -151,11 +168,9 @@ public final class DigitalObjectHandler {
         return (P) parameters.get(name);
     }
 
-    // XXX optimize not to require rels-ext fetch
     private DigitalObjectPlugin getPlugin() throws DigitalObjectException {
         if (plugin == null) {
-            String modelId = relations().getModel();
-            MetaModel model = models.find(modelId);
+            MetaModel model = getModel();
             plugin = model.getPlugin();
         }
         return plugin;

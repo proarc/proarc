@@ -17,28 +17,24 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
-import cz.cas.lib.proarc.common.object.ndk.RdaRules;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
-import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.mods.RecordInfoDefinition;
-import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import org.apache.empire.commons.StringUtils;
 import java.io.IOException;
 import java.util.List;
-import org.apache.empire.commons.StringUtils;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 
 /**
  * Subclass to implement transformations of MODS data in NDK flavor
@@ -101,7 +97,9 @@ public abstract class NdkMapper {
      */
     public void createMods(ModsDefinition mods, Context ctx) {
         mods.setVersion(ModsUtils.VERSION);
-        addPid(mods, ctx.getPid());
+        if (ctx.getPid() != null) {
+            addPid(mods, ctx.getPid());
+        }
     }
 
     /**

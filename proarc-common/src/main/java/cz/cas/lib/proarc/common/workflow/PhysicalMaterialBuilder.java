@@ -62,7 +62,9 @@ class PhysicalMaterialBuilder {
     }
 
     public PhysicalMaterialBuilder setCatalog(CatalogConfiguration catalog) {
-        m.setSource(catalog.getUrl());
+        if (catalog != null) {
+            m.setSource(catalog.getUrl());
+        }
         return this;
     }
 
@@ -79,19 +81,21 @@ class PhysicalMaterialBuilder {
     }
 
     private PhysicalMaterialBuilder setMetadataImpl(String modsXml) throws IOException, SAXException, XPathExpressionException {
-        Document modsDom = db.parse(new InputSource(new StringReader(modsXml)));
-        Element modsElm = (Element) xpath.evaluate(
-                "m:mods | m:modsCollection/m:mods", modsDom, XPathConstants.NODE);
-        String barcode = xpath.evaluate(
-                "m:identifier[@type='barcode' and not(@invalid)]", modsElm);
-        StringBuilder label = getTitle(new StringBuilder(), modsElm);
-        m.setMetadata(modsXml);
-        m.setBarcode(barcode);
-        m.setField001(null);
-        m.setLabel(label.length() == 0
-                ? "?"
-                : label.length() > 2000
-                        ? label.substring(0, 2000) : label.toString());
+        if (modsXml != null) {
+            Document modsDom = db.parse(new InputSource(new StringReader(modsXml)));
+            Element modsElm = (Element) xpath.evaluate(
+                    "m:mods | m:modsCollection/m:mods", modsDom, XPathConstants.NODE);
+            String barcode = xpath.evaluate(
+                    "m:identifier[@type='barcode' and not(@invalid)]", modsElm);
+            StringBuilder label = getTitle(new StringBuilder(), modsElm);
+            m.setMetadata(modsXml);
+            m.setBarcode(barcode);
+            m.setField001(null);
+            m.setLabel(label.length() == 0
+                    ? "?"
+                    : label.length() > 2000
+                    ? label.substring(0, 2000) : label.toString());
+        }
         return this;
     }
 

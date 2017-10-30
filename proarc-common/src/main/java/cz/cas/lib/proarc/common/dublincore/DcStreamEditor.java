@@ -118,7 +118,9 @@ public final class DcStreamEditor {
     static void addDigitalObjectMetadata(DigitalObjectHandler handler, OaiDcType dc) throws DigitalObjectException {
         if (handler != null) {
             RelationEditor relations = handler.relations();
-            DcUtils.addPid(dc, handler.getFedoraObject().getPid());
+            if (handler.getFedoraObject().getPid() != null) {
+                DcUtils.addPid(dc, handler.getFedoraObject().getPid());
+            }
             DcUtils.addModel(dc, relations.getModel());
             DcUtils.addOwner(dc, relations.getOwners());
         }

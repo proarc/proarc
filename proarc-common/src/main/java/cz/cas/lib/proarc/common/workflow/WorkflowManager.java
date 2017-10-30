@@ -70,6 +70,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 
 /**
  *
@@ -405,7 +406,7 @@ public class WorkflowManager {
         paramDao.setTransaction(tx);
         materialDao.setTransaction(tx);
         Timestamp now = new Timestamp(System.currentTimeMillis());
-        String jobLabel = physicalMaterial.getLabel();
+        String jobLabel = StringUtils.defaultIfEmpty(physicalMaterial.getLabel(), "?");
 
         try {
             Job job = createJob(jobDao, now, jobLabel, jobProfile, null, users, defaultUser);

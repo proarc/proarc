@@ -20,7 +20,18 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.LocalStorage;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.custom.Mapping;
+import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
@@ -42,8 +53,13 @@ import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -57,6 +73,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -70,6 +87,7 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.transform.stream.StreamSource;
 
 /**
  * It allows to manage workflow remotely.
@@ -175,16 +193,18 @@ public class WorkflowResource {
             @FormParam(WorkflowResourceApi.NEWJOB_CATALOGID) String catalogId,
             @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId
     ) {
+        metadata = "null".equals(metadata) ? null : metadata;
+        catalogId = "null".equals(catalogId) ? null : catalogId;
+
         if (parentId != null) {
             return addSubjob(profileName, parentId);
         }
-        if (metadata == null) {
-            return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_METADATA + " - missing value! ");
+
+        CatalogConfiguration catalog = null;
+        if (catalogId != null) {
+            catalog = appConfig.getCatalogs().findConfiguration(catalogId);
         }
-        CatalogConfiguration catalog = appConfig.getCatalogs().findConfiguration(catalogId);
-        if (catalog == null) {
-            return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_CATALOGID + " - invalid value! " + catalogId);
-        }
+
         WorkflowDefinition profiles = workflowProfiles.getProfiles();
         if (profiles == null) {
             return profileError();
@@ -439,6 +459,71 @@ public class WorkflowResource {
         } catch (WorkflowException ex) {
             return toError(ex, null);
         }
+    }
+
+    /**
+     * Gets subset of MODS properties in JSON.
+     *
+     * @param jobId workflow job id of requested digital object
+     * @param editorId view defining subset of MODS properties
+     */
+    @Path(WorkflowResourceApi.MODS_PATH)
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DescriptionMetadata<Object>> getDescriptionMetadata(
+            @QueryParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
+            @QueryParam(MetaModelDataSource.FIELD_EDITOR) String editorId,
+            @QueryParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId
+    ) throws DigitalObjectException {
+        if (jobId == null) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, jobId.toString());
+        }
+
+        DigitalObjectHandler doHandler = findHandler(jobId, modelId);
+        DescriptionMetadata<Object> metadata = doHandler.metadata().getMetadataAsJsonObject(editorId);
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+    @PUT
+    @Path(WorkflowResourceApi.MODS_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadata(
+            @FormParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA) String xmlData,
+            @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId,
+            @DefaultValue("false")
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation
+    ) throws DigitalObjectException {
+        if (jobId == null) {
+            throw RestException.plainNotFound(WorkflowModelConsts.PARAMETER_JOBID, jobId.toString());
+        }
+        LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, ignoreValidation: %s, json: %s, xml: %s",
+                jobId, editorId, timestamp, ignoreValidation, jsonData, xmlData));
+        final boolean isJsonData = xmlData == null;
+        String data = isJsonData ? jsonData : xmlData;
+        DigitalObjectHandler doHandler = findHandler(jobId, modelId);
+        MetadataHandler<?> mHandler = doHandler.metadata();
+        DescriptionMetadata<String> dMetadata = new DescriptionMetadata<String>();
+        dMetadata.setEditor(editorId);
+        dMetadata.setData(data);
+        dMetadata.setTimestamp(timestamp);
+        dMetadata.setIgnoreValidation(ignoreValidation);
+        if (isJsonData) {
+            mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog());
+        } else {
+            mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog());
+        }
+        doHandler.commit();
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+    }
+
+    private DigitalObjectHandler findHandler(BigDecimal jobId, String modelId) throws DigitalObjectNotFoundException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        FedoraObject fobject = dom.find(jobId, modelId, session.getLocale(httpHeaders));
+        return dom.createHandler(fobject);
     }
 
     @Path(WorkflowResourceApi.PARAMETER_PATH)
