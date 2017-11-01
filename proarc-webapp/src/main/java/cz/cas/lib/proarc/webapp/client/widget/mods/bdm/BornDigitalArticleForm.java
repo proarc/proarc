@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods.bdm;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
@@ -33,6 +34,12 @@ public final class BornDigitalArticleForm {
 
     public Form build() {
         Form f = new Form();
+
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
+                .setType(Field.RADIOGROUP).setRequired(true)
+                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
+                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
+                .createField());
 
         // CEJSH, issue 234
         f.getFields().add(new FieldBuilder("reviewed").setTitle("Peer Review").setMaxOccurrences(1)
@@ -116,7 +123,7 @@ public final class BornDigitalArticleForm {
                 .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
                     .addField(new FieldBuilder("value").setTitle("Subtitle - MA").setMaxOccurrences(1)
                         .setType(Field.TEXTAREA)
-                        .setRequired(true)
+                        .setRequired(false)
                         .setHeight("50")
                         .setHint("Podnázev článku. Za podnázev lze považovat i perex.")
                     .createField()) // value
@@ -184,7 +191,7 @@ public final class BornDigitalArticleForm {
                 // namePart, namePartDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("namePart").setTitle("Name Parts - MA").setMaxOccurrences(5)
                     // @type(date, family, given, termsOfAddress)
-                    .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
+                    .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("<dl>"
                             + "<dt>date</dt><dd>RA - datum</dd>"
                             + "<dt>family</dt><dd>MA -příjmení </dd>"
@@ -324,19 +331,21 @@ public final class BornDigitalArticleForm {
 
     private Field physicalDescription() {
         // physicalDescription, physicalDescriptionDefinition
-        return new FieldBuilder("physicalDescription").setTitle("Physical Description - R").setMaxOccurrences(10)
+        return new FieldBuilder("physicalDescription").setTitle("Physical Description - M").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu článku.")
                 // form, formDefinition extends stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("form").setTitle("Form - R").setMaxOccurrences(1)
+                .addField(new FieldBuilder("form").setTitle("Form - M").setMaxOccurrences(1)
                     // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @type, string
                     // XXX autofill "marcform"
-                    .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("marcform")
+                    .addField(new FieldBuilder("authority").setTitle("Authority - MA").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("marcform")
                         .addMapValue("marcform", "marcform")
                         .addMapValue("gmd", "gmd")
+                        .addMapValue("rdamedia", "rdamedia")
+                        .addMapValue("rdacarrier", "rdacarrier")
                     .createField()) // authority
-                    .addField(new FieldBuilder("value").setTitle("Form - R").setMaxOccurrences(1).setType(Field.COMBO)
+                    .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
                             + "<p>Odpovídá hodnotě v poli 008/23")
                         .addMapValue("braille", "braille")
@@ -345,6 +354,19 @@ public final class BornDigitalArticleForm {
                         .addMapValue("microfilm", "microfilm")
                         .addMapValue("microfiche", "microfiche")
                         .addMapValue("print", "print")
+                        .addMapValue("jiný", "jiný")
+                        .addMapValue("audio", "rdamedia - audio")
+                        .addMapValue("počítač", "rdamedia - počítač")
+                        .addMapValue("mikroforma", "rdamedia - mikroforma")
+                        .addMapValue("mikroskop", "rdamedia - mikroskop")
+                        .addMapValue("projekce", "rdamedia - projekce")
+                        .addMapValue("stereograf", "rdamedia - stereograf")
+                        .addMapValue("bez média", "rdamedia - bez média")
+                        .addMapValue("video", "rdamedia - video")
+                        .addMapValue("svazek", "rdacarrier - svazek")
+                        .addMapValue("online zdroj", "rdacarrier - online zdroj")
+                        .addMapValue("audiodisk", "rdacarrier - audiodisk")
+                        .addMapValue("počítačový disk", "rdacarrier - počítačový disk")
                     .createField()) // value
                 .createField()) // form
                 // reformattingQuality
@@ -384,9 +406,10 @@ public final class BornDigitalArticleForm {
         return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(30)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
-                .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.TEXT)
+                .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.COMBO)
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("Konspekt", "Konspekt")
                 .createField()) // authority
 
                 // topic, stringPlusLanguagePlusAuthority
@@ -406,7 +429,7 @@ public final class BornDigitalArticleForm {
                     .addField(new FieldBuilder("value").setTitle("Topic - M").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Libovolný výraz specifikující nebo charakterizující obsah článku."
                             + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (věcné téma)"
-                            + " nebo obsah pole 650 záznamu MARC21.")
+                            + " nebo obsah pole 650 záznamu MARC21 nebo obsah pole 072 $x.")
                     .createField()) // value
                 .createField()) // topic
 
@@ -473,11 +496,19 @@ public final class BornDigitalArticleForm {
         return new FieldBuilder("classification").setTitle("Classification - RA").setMaxOccurrences(10)
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // autofill "udc"
-                .addField(new FieldBuilder("authority").setTitle("Authority - RA").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("udc").createField())
-                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("udc", "udc")
+                        .addMapValue("Konspekt", "Konspekt")
+                .createField()) // authority
+                .addField(new FieldBuilder("edition").setTitle("Edition - M").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("", "")
+                        .addMapValue("Konspekt", "Konspekt")
+                .createField()) // edition
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
                     .setHint("Klasifikační údaje věcného třídění podle Mezinárodního"
-                        + " desetinného třídění.<p>Odpovídá poli 080 MARC21.")
+                        + " desetinného třídění. Odpovídá poli 080 MARC21."
+                        + "<p>Klasifikační údaje věcného třídění podle Konspektu."
+                        + " Odpovídá poli 072 $a MARC21.")
                 .createField()) // value
         .createField(); // classification
     }
@@ -509,6 +540,7 @@ public final class BornDigitalArticleForm {
                     .addMapValue("url", "URL")
                     .addMapValue("urnnbn", "URN:NBN")
                     .addMapValue("uuid", "UUID")
+                    .addMapValue("oclc", "OCLC")
                 .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
@@ -592,7 +624,7 @@ public final class BornDigitalArticleForm {
                         .addMapValue("human prepared", "human prepared")
                     .createField()) // value
                 .createField()) // recordOrigin
-                // descriptionStandard
+                .addField(new FieldBuilder("descriptionStandard").setTitle("Description").setMaxOccurrences(1).setType(Field.TEXT).setHidden(true).createField())// descriptionStandard
         .createField(); // recordInfo
     }
 

@@ -182,7 +182,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+                ).setPriority(2));
         models.add(new MetaModel(
                 MODEL_CHAPTER, null, null,
                 Arrays.asList(new ElementType("NDK Chapter", "en"), new ElementType("NDK Kapitola", "cs")),
@@ -220,7 +220,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 ModsCutomEditorType.EDITOR_PAGE,
                 this,
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
-                ).setPriority(2)) // override K4 plugin
+                ).setPriority(3)) // override K4 plugin
                 ;
 
         return models;

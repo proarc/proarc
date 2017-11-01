@@ -112,6 +112,7 @@ public final class RestConfig {
     public static final String URL_WORKFLOW_PARAMETER = path(URL_WORKFLOW, WorkflowResourceApi.PARAMETER_PATH);
     public static final String URL_WORKFLOW_PROFILE = path(URL_WORKFLOW, WorkflowResourceApi.PROFILE_PATH);
     public static final String URL_WORKFLOW_TASK = path(URL_WORKFLOW, WorkflowResourceApi.TASK_PATH);
+    public static final String URL_WORKFLOW_MODS = path(URL_WORKFLOW, WorkflowResourceApi.MODS_PATH);
 
     public static DSRequest createRestRequest(DSDataFormat format) {
         DSRequest dsr = new DSRequest();

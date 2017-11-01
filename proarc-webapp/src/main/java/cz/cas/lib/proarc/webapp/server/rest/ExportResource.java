@@ -27,13 +27,13 @@ import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.KWISExport;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
-import cz.cas.lib.proarc.common.export.NdkExport;
 import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.export.cejsh.CejshConfig;
 import cz.cas.lib.proarc.common.export.cejsh.CejshExport;
 import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
 import cz.cas.lib.proarc.common.export.crossref.CrossrefExport;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
+import cz.cas.lib.proarc.common.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
@@ -263,7 +263,7 @@ public class ExportResource {
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         List<ExportResult> result = new ArrayList<ExportResult>(pids.size());
-        NdkExport export = new NdkExport(RemoteStorage.getInstance());
+        NdkExport export = new NdkExport(RemoteStorage.getInstance(), appConfig.getNdkExportOptions());
         List<NdkExport.Result> ndkResults = export.export(exportFolder, pids, true, true, session.asFedoraLog());
         for (NdkExport.Result r : ndkResults) {
             if (r.getValidationError() != null) {

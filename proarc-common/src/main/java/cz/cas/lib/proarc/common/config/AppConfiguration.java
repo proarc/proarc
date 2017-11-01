@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.config;
 
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
+import cz.cas.lib.proarc.common.export.mets.NdkExportOptions;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
@@ -167,6 +168,10 @@ public final class AppConfiguration {
 
     public Kramerius4ExportOptions getKramerius4Export() {
         return Kramerius4ExportOptions.from(config);
+    }
+
+    public NdkExportOptions getNdkExportOptions() {
+        return NdkExportOptions.getOptions(config);
     }
 
     public Configuration getAuthenticators() {

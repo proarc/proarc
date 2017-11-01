@@ -31,6 +31,7 @@ import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
@@ -45,10 +46,10 @@ import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetadata;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionSaveHandler;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.dc.DcEditor;
-import cz.cas.lib.proarc.webapp.client.widget.mods.bdm.BornDigitalForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.MonographForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.MonographUnitForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
@@ -56,8 +57,10 @@ import cz.cas.lib.proarc.webapp.client.widget.mods.PageForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalIssueForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalVolumeForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.bdm.BornDigitalForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.oldprint.OldPrintForms;
 import cz.cas.lib.proarc.webapp.client.widget.nsesss.NsesssV2Form;
+
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -210,6 +213,8 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                     metadata = dm;
                     Record customModsRecord = dm.getDescription();
                     if (customModsRecord != null) {
+                        // fix https://github.com/proarc/proarc/issues/557
+                        activeEditor.clear();
                         // refresh editor with server values
                         activeEditor.editRecord(customModsRecord);
                     }
@@ -240,7 +245,12 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
             }
 
         };
-        ModsCustomDataSource.getInstance().saveDescription(metadata, dsh, true);
+        // workflow has a separate api endpoint
+        if (this.digitalObject.getWorkflowJobId() != null) {
+            WorkflowModsCustomDataSource.getInstance().saveDescription(metadata, digitalObject.getModelId(), digitalObject.getWorkflowJobId(), dsh, true);
+        } else {
+            ModsCustomDataSource.getInstance().saveDescription(metadata, dsh, true);
+        }
     }
 
     @Override
@@ -344,7 +354,41 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
     }
 
     private void loadCustom(final DynamicForm editor, DigitalObject dobj, final BooleanCallback loadCallback) {
-        loadCustom(editor, dobj.getPid(), dobj.getBatchId(), dobj.getModel(), loadCallback);
+        if (dobj.getWorkflowJobId() != null) {
+            loadCustom(editor, dobj.getWorkflowJobId(), dobj.getModel(), loadCallback);
+        } else {
+            loadCustom(editor, dobj.getPid(), dobj.getBatchId(), dobj.getModel(), loadCallback);
+        }
+    }
+
+    /**
+     * Loads a digital object from the workflow
+     *
+     * @param editor form
+     * @param workflowJobId identifier of digital object in workflow
+     * @param model model of digital object (do in workflow has not saved model)
+     * @param loadCallback listens to load status
+     */
+    private void loadCustom(final DynamicForm editor, Long workflowJobId,
+                            MetaModelDataSource.MetaModelRecord model, final BooleanCallback loadCallback) {
+
+        Criteria criteria = new Criteria(MetaModelDataSource.FIELD_EDITOR, model.getEditorId());
+        Criteria workflowJobIdCriteria = new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, workflowJobId.toString());
+        criteria.addCriteria(workflowJobIdCriteria);
+        Criteria modelIdCriteria = new Criteria(MetaModelDataSource.FIELD_MODELOBJECT, model.getId());
+        criteria.addCriteria(modelIdCriteria);
+        DSRequest request = new DSRequest();
+        if (showFetchPrompt != null) {
+            request.setShowPrompt(showFetchPrompt);
+        }
+
+        WorkflowModsCustomDataSource.getInstance().fetchData(criteria, new DSCallback() {
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                handleFetch(response, editor, loadCallback);
+            }
+        }, request);
+
     }
 
     private void loadCustom(final DynamicForm editor, String pid, String batchId,
@@ -383,6 +427,8 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                 Record customModsRecord = dm.getDescription();
                 if (customModsRecord != null) {
                     metadata = dm;
+                    // fix https://github.com/proarc/proarc/issues/557
+                    editor.clear();
                     editor.editRecord(customModsRecord);
                     editor.clearErrors(true);
                     loadCallback.execute(Boolean.TRUE);

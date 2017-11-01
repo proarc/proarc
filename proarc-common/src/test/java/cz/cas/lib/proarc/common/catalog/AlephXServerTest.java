@@ -124,11 +124,11 @@ public class AlephXServerTest {
 
     @Test
     public void testSetQuery() throws Exception {
+        AlephXServer server = loadDefaultAlephXServer();
 
-        URI alephURI = new URI("http://aleph.nkp.cz/X?base=nkc");
+        Criteria issnCriteria = server.fields.getCriteria("issn", "ISSNVALUE");
 
-        Criteria issnCriteria = new AlephXServer(alephURI).criteria.get("issn", "ISSNVALUE");
-        URI result = AlephXServer.setQuery(alephURI,
+        URI result = AlephXServer.setQuery(new URI("http://aleph.nkp.cz/X?base=nkc"),
                 issnCriteria.toUrlParams(), true);
         assertEquals("http://aleph.nkp.cz/X?base=nkc&op=find&request=ssn=ISSNVALUE", result.toASCIIString());
         System.out.println("URI: " + result.toASCIIString());
@@ -136,38 +136,34 @@ public class AlephXServerTest {
 
     @Test
     public void testSetFurtherQuery() throws Exception {
+        AlephXServer server = loadDefaultAlephXServer();
 
-        URI alephURI = new URI("http://aleph.nkp.cz/X?base=nkc");
-
-        Criteria issnCriteria = new AlephXServer(alephURI).criteria.get("issn", "ISSNVALUE");
-        URI result = AlephXServer.setQuery(alephURI,
+        Criteria issnCriteria = server.fields.getCriteria("issn", "ISSNVALUE");
+        URI result = AlephXServer.setQuery(new URI("http://aleph.nkp.cz/X?base=nkc"),
                 issnCriteria.toUrlParams(), false);
         assertEquals("http://aleph.nkp.cz/X?op=find&request=ssn=ISSNVALUE", result.toASCIIString());
         System.out.println("URI: " + result.toASCIIString());
     }
 
     @Test
-    public  void testCustomConfiguration() throws Exception {
-
-        final String id = "aleph_nkp";
-
-        CatalogConfiguration c = new CatalogConfiguration(id, "", new BaseConfiguration() {{
-            addProperty(CatalogConfiguration.PROPERTY_URL, "http://aleph.nkp.cz/X?base=nkc");
-            addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
-            addProperty(CatalogConfiguration.PROPERTY_TYPE, AlephXServer.TYPE);
-            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "sg");
-            addProperty(CatalogConfiguration.FIELD_PREFIX + ".sg.title", "Short Signature");
-            addProperty(CatalogConfiguration.FIELD_PREFIX + ".sg.query", "sg");
-        }});
-
-        AlephXServer result = AlephXServer.get(c);
+    public void testCustomConfiguration() throws Exception {
+        AlephXServer result = loadDefaultAlephXServer();
 
         assertNotNull(result);
-        assertEquals("op=find&request=sg=test", result.criteria.get("sg", "test").toUrlParams());
-        assertEquals(null, result.criteria.get("sig", "test"));
+        assertEquals("op=find&request=sg=test", result.fields.getCriteria("sg", "test").toUrlParams());
+        assertEquals(null, result.fields.getCriteria("sig", "test"));
     }
 
+    @Test
+    public void testInvalidFieldConfiguration() throws Exception {
+        AlephXServer result = loadDefaultAlephXServer();
 
+        String urlParams = result.fields.getCriteria("sg", "test").toUrlParams();
+
+        result.fields.addField("sg", null);
+
+        assertEquals(urlParams, result.fields.getCriteria("sg", "test").toUrlParams());
+    }
 
 //    @Test
 //    public void testFind() throws Exception {
@@ -180,4 +176,21 @@ public class AlephXServerTest {
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
+
+    private AlephXServer loadDefaultAlephXServer() {
+        final String id = "aleph_nkp";
+
+        CatalogConfiguration c = new CatalogConfiguration(id, "", new BaseConfiguration() {{
+            addProperty(CatalogConfiguration.PROPERTY_URL, "http://aleph.nkp.cz/X?base=nkc");
+            addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
+            addProperty(CatalogConfiguration.PROPERTY_TYPE, AlephXServer.TYPE);
+            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "sg, issn");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + ".sg.title", "Short Signature");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + ".issn.title", "ISSN");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + ".sg.query", "sg");
+            addProperty(CatalogConfiguration.FIELD_PREFIX + ".issn.query", "ssn");
+        }});
+
+        return AlephXServer.get(c);
+    }
 }

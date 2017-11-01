@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.shared.GWT;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
@@ -24,9 +25,11 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceTextField;
+import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.BooleanItem;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -50,10 +53,9 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
     public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     public static final String FIELD_MODEL = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
     public static final String FIELD_MODS = DigitalObjectResourceApi.NEWOBJECT_XML_PARAM;
+    public static final String FIELD_WF_JOB_ID = DigitalObjectResourceApi.WORKFLOW_JOB_ID;
     /** Synthetic attribute holding {@link DigitalObject}. */
     private static final String FIELD_INSTANCE = "DIGITALOBJECT_INSTANCE";
-
-    private static final Logger LOG = Logger.getLogger(DigitalObjectDataSource.class.getName());
 
     public DigitalObjectDataSource() {
         setID(ID);
@@ -119,6 +121,49 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
         delete(pids, Collections.emptyMap());
     }
 
+    public void saveNewDigitalObject(String modelId, String pid, String mods, Long workflowJobId, Callback<String, ErrorSavingDigitalObject> callback) {
+        Record r = new Record();
+        DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
+        r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
+        if (mods != null) {
+            r.setAttribute(DigitalObjectDataSource.FIELD_MODS, mods);
+        }
+        if (pid != null && !pid.isEmpty()) {
+            r.setAttribute(DigitalObjectDataSource.FIELD_PID, pid);
+        }
+
+        if (workflowJobId != null) {
+            r.setAttribute(DigitalObjectDataSource.FIELD_WF_JOB_ID, workflowJobId);
+        }
+
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setWillHandleError(true);
+        ds.addData(r, new DSCallback() {
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (response.getStatus() == RPCResponse.STATUS_VALIDATION_ERROR) {
+                    ErrorSavingDigitalObject validationError = ErrorSavingDigitalObject.VALIDATION_ERROR;
+                    validationError.setValidationErrors(response.getErrors());
+                    callback.onFailure(validationError);
+                    request.setWillHandleError(true);
+                }
+                if (response.getHttpResponseCode() >= 400) {
+                    callback.onFailure(null);
+                } else if (RestConfig.isConcurrentModification(response)) {
+                    callback.onFailure(ErrorSavingDigitalObject.CONCURRENT_MODIFICATION);
+                } else {
+                    Record[] data = response.getData();
+                    if (data != null && data.length > 0) {
+                        String pid = data[0].getAttribute(DigitalObjectDataSource.FIELD_PID);
+                        callback.onSuccess(pid);
+                    } else {
+                        callback.onFailure(ErrorSavingDigitalObject.ERROR_SAVING_DIGITAL_OBJECT);
+                    }
+                }
+            }
+        }, dsRequest);
+    }
+
     private static String option(Object val, String defval) {
         return val != null ? val.toString() : defval;
     }
@@ -150,20 +195,35 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
         }, dsRequest);
     }
 
+    public static enum ErrorSavingDigitalObject {
+        VALIDATION_ERROR, CONCURRENT_MODIFICATION, ERROR_SAVING_DIGITAL_OBJECT;
+
+        private Map validationErrors;
+
+        public Map getValidationErrors() {
+            return validationErrors;
+        }
+
+        public void setValidationErrors(Map validationErrors) {
+            this.validationErrors = validationErrors;
+        }
+    }
+
     public static final class DigitalObject {
 
         private final String pid;
         private final String batchId;
         private final String modelId;
+        private final Long workflowJobId;
         private MetaModelRecord model;
         private Record record;
 
         public static DigitalObject create(String pid, String batchId, MetaModelRecord model) {
-            return new DigitalObject(pid, batchId, null, model, null);
+            return new DigitalObject(pid, batchId, null, model, null, null);
         }
 
         public static DigitalObject create(String pid, String batchId, String modelId) {
-            return new DigitalObject(pid, batchId, modelId, null, null);
+            return new DigitalObject(pid, batchId, modelId, null, null, null);
         }
 
         public static DigitalObject create(Record r) {
@@ -213,14 +273,18 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
             if (dobj != null) {
                 return dobj;
             }
-            String pid = getAttribute(r, FIELD_PID, checked);
+
+
+            Long workflowJobId = r.getAttributeAsLong(WorkflowModelConsts.JOB_ID);
+            String pid = getAttribute(r, FIELD_PID, checked && workflowJobId == null);
+
             String modelId = getAttribute(r, FIELD_MODEL, checked);
-            if (pid == null || modelId == null) {
+            if ((pid == null && workflowJobId == null) || modelId == null) {
                 return null;
             }
             String batchId = r.getAttribute(ModsCustomDataSource.FIELD_BATCHID);
             MetaModelRecord model = MetaModelDataSource.getModel(r);
-            return new DigitalObject(pid, batchId, modelId, model, r);
+            return new DigitalObject(pid, batchId, modelId, model, workflowJobId, r);
         }
 
         public static boolean hasPid(Record r) {
@@ -235,14 +299,16 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
             return attr;
         }
 
-        private DigitalObject(String pid, String batchId, String modelId, MetaModelRecord model, Record record) {
-            if (pid == null || pid.isEmpty()) {
-                throw new IllegalArgumentException("PID");
+        private DigitalObject(String pid, String batchId, String modelId, MetaModelRecord model, Long worfklowjobId, Record record) {
+            if ((pid == null || pid.isEmpty()) && worfklowjobId == null) {
+                throw new IllegalArgumentException("No PID or WorkflowJobId was set");
             }
             this.pid = pid;
             this.batchId = batchId;
             this.modelId = model == null ? modelId : model.getId();
             this.model = model;
+            this.workflowJobId = worfklowjobId;
+
             if (this.modelId == null || this.modelId.isEmpty()) {
                 throw new IllegalArgumentException("No model for: " + pid);
             }
@@ -254,6 +320,10 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
 
         public String getPid() {
             return pid;
+        }
+
+        public Long getWorkflowJobId() {
+            return workflowJobId;
         }
 
         public String getBatchId() {

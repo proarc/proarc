@@ -70,6 +70,7 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
+import cz.cas.lib.proarc.webapp.client.widget.CanvasSizePersistence;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
 
 /**
@@ -88,6 +89,8 @@ public class WorkflowJobFormView implements Refreshable {
     private Record lastJob;
     private final ActionSource actionSource = new ActionSource(this);
     private Action editTaskAction;
+
+    public static final String VIEW_NAME = "WorkflowJobFormView";
 
     public WorkflowJobFormView(ClientMessages i18n) {
         this.i18n = i18n;
@@ -237,6 +240,10 @@ public class WorkflowJobFormView implements Refreshable {
         jobForm.setColWidths("*", "*", "*");
         jobForm.setTitleOrientation(TitleOrientation.TOP);
         jobForm.setItemHoverWidth(300);
+        jobForm.setShowResizeBar(true);
+
+        CanvasSizePersistence sizePersistence = new CanvasSizePersistence("WorkflowJobFormView.form", jobForm);
+        jobForm.setHeight(sizePersistence.getHeight());
 
         SelectItem owner = new SelectItem(WorkflowJobDataSource.FIELD_OWNER);
         owner.setOptionDataSource(UserDataSource.getInstance());
@@ -249,6 +256,8 @@ public class WorkflowJobFormView implements Refreshable {
         note.setStartRow(true);
         note.setColSpan("*");
         note.setWidth("*");
+        note.setMinHeight(50);
+        note.setHeight("*");
 
         // title tooltip is broken in SmartGWT 4.0
         final FormItemIcon jobHelpIcon = new FormItemIcon();
@@ -304,6 +313,8 @@ public class WorkflowJobFormView implements Refreshable {
         taskView.setCanSort(false);
         taskView.setDataFetchMode(FetchMode.BASIC);
         taskView.setGenerateDoubleClickOnEnter(true);
+        taskView.setShowResizeBar(true);
+        taskView.setResizeBarTarget("next");
         ListGridPersistance taskViewPersistance = new ListGridPersistance("WorkflowJobFormView.taskList", taskView);
 
         ResultSet rs = new ResultSet();
@@ -404,7 +415,7 @@ public class WorkflowJobFormView implements Refreshable {
     }
 
     private Widget createMaterialList() {
-        materialView = new WorkflowMaterialView(i18n, true);
+        materialView = new WorkflowMaterialView(i18n, true, VIEW_NAME);
         return materialView.getWidget();
     }
 

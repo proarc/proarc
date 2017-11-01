@@ -214,6 +214,7 @@ public final class NdkChapterForm {
                     // XXX autofill "marcform"
                     .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("marcform")
                         .addMapValue("marcform", "marcform")
+                        .addMapValue("gmd", "gmd")
                     .createField()) // authority
                     .addField(new FieldBuilder("value").setTitle("Form - R").setMaxOccurrences(1).setType(Field.COMBO)
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
@@ -257,9 +258,10 @@ public final class NdkChapterForm {
         modsFields.add(new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
-                .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.TEXT)
+                .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.COMBO)
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("Konspekt", "Konspekt")
                 .createField()) // authority
 
                 // topic, stringPlusLanguagePlusAuthority
@@ -271,7 +273,7 @@ public final class NdkChapterForm {
                     .addField(new FieldBuilder("value").setTitle("Topic - M").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Libovolný výraz specifikující nebo charakterizující obsah kapitoly."
                             + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (věcné téma)"
-                            + " nebo obsah pole 650 záznamu MARC21.")
+                            + " nebo obsah pole 650 záznamu MARC21 nebo obsah pole 072 $x.")
                     .createField()) // value
                 .createField()) // topic
 
@@ -281,7 +283,7 @@ public final class NdkChapterForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @type
                     // XXX autority.nkp.cz datasource
-                    .addField(new FieldBuilder("value").setTitle("Geographic - R").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setTitle("Geographic - MA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Geografické věcné třídění."
                             + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (geografický termín)"
                             + " nebo obsah pole 651 záznamu MARC21.")
@@ -336,11 +338,19 @@ public final class NdkChapterForm {
         modsFields.add(new FieldBuilder("classification").setTitle("Classification - RA").setMaxOccurrences(10)
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // autofill "udc"
-                .addField(new FieldBuilder("authority").setTitle("Authority - RA").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("udc").createField())
-                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("udc", "udc")
+                        .addMapValue("Konspekt", "Konspekt")
+                .createField()) // authority
+                .addField(new FieldBuilder("edition").setTitle("Edition - M").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("", "")
+                        .addMapValue("Konspekt", "Konspekt")
+                .createField()) // edition
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
                     .setHint("Klasifikační údaje věcného třídění podle Mezinárodního"
-                        + " desetinného třídění.<p>Odpovídá poli 080 MARC21.")
+                        + " desetinného třídění. Odpovídá poli 080 MARC21."
+                        + "<p>Klasifikační údaje věcného třídění podle Konspektu."
+                        + " Odpovídá poli 072 $a MARC21.")
                 .createField()) // value
         .createField()); // classification
 
@@ -370,6 +380,7 @@ public final class NdkChapterForm {
                     .addMapValue("url", "URL")
                     .addMapValue("urnnbn", "URN:NBN")
                     .addMapValue("uuid", "UUID")
+                    .addMapValue("oclc", "OCLC")
                 .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())

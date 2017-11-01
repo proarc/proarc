@@ -17,12 +17,18 @@
 package cz.cas.lib.proarc.webapp.client.widget;
 
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.data.SortSpecifier;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.SortDirection;
 import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.Offline;
 import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.form.ColorPicker;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.events.ColorSelectedEvent;
@@ -43,6 +49,7 @@ import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import cz.cas.lib.proarc.webapp.client.ds.MediaDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -58,6 +65,15 @@ import java.util.ArrayList;
  */
 public final class MediaEditor implements DatastreamEditor, Refreshable {
 
+    public static final String MEDIA_EDITOR_LAST_SELECTION = "mediaEditorLastSelection";
+
+    public static final String SOURCE_DIGITAL_OBJECT_EDITOR = "DigitalObjectEditor";
+    public static final String SOURCE_IMPORT_BATCH_ITEM_EDITOR = "ImportBatchItemEditor";
+
+    public static final String RAW_ID = "RAW";
+
+    public static final String SOURCE_IDENTIFIER = "source";
+
     private static String REFRESH;
 
     private final ClientMessages i18n;
@@ -67,14 +83,17 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private Action fullAction;
     private AbstractAction backgroundAction;
     private AbstractAction uploadAction;
+    private AbstractAction removeAction;
     private DigitalObject digitalObject;
     private SelectItem streamMenu;
     private boolean showRefreshButton;
     private final ActionSource actionSource;
+    private String source;
 
-    public MediaEditor(ClientMessages i18n) {
+    public MediaEditor(ClientMessages i18n, String source) {
         this.i18n = i18n;
         this.actionSource = new ActionSource(this);
+        this.source = source;
         doPreview = new DigitalObjectPreview(i18n);
         initActions(i18n);
     }
@@ -119,6 +138,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         }
         toolbar.add(Actions.asIconButton(fullAction, this));
         toolbar.add(Actions.asIconButton(uploadAction, actionSource));
+        toolbar.add(Actions.asIconButton(removeAction, actionSource));
         toolbar.add(Actions.asIconButton(backgroundAction, this));
         toolbar.add(zoomer);
         toolbar.add(createStreamMenu());
@@ -219,6 +239,93 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
                 });
             }
         };
+
+        removeAction = new AbstractAction(
+                i18n.DigitalObjectEditor_MediaEditor_RemoverAction_Title(),
+                "[SKIN]/MultiUploadItem/icon_remove_files.png",
+                i18n.DigitalObjectEditor_MediaEditor_RemoverAction_Hint()) {
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                String modelId = digitalObject.getModelId();
+
+                return modelId != null && (modelId.startsWith("model:bdm")
+                        || "model:derFile".equals(modelId)
+                        || "model:desFile".equals(modelId)
+                );
+            }
+
+            @Override
+            public void performAction(ActionEvent event) {
+
+                DynamicForm optionsForm = createExpandOptionsForm();
+
+                optionsForm.clearValues();
+                final Dialog d = new Dialog(i18n.RemoveDSAction_Window_Title());
+                d.getDialogLabelContainer().setContents(i18n.RemoveDSAction_Window_Msg());
+                d.getDialogContentContainer().setMembers(optionsForm);
+                d.addYesButton((ClickEvent eventX) -> {
+                    Record options = optionsForm.getValuesAsRecord();
+                    d.destroy();
+
+                    removeDS();
+                    refresh();
+                });
+                d.addNoButton(new Dialog.DialogCloseHandler() {
+                    @Override
+                    public void onClose() {
+                        d.destroy();
+                    }
+                });
+                d.setWidth(400);
+                d.show();
+            }
+        };
+    }
+
+    private static DynamicForm createExpandOptionsForm() {
+        DynamicForm f = new DynamicForm();
+        f.setAutoHeight();
+        return f;
+    }
+
+    private void removeDS() {
+        if (digitalObject == null) {
+            throw new IllegalArgumentException("uuid cannot be null");
+        }
+
+        String pid = digitalObject.getPid();
+        String batchId = digitalObject.getBatchId();
+
+        Record query = new Record();
+        query.setAttribute(MediaDataSource.OBJECT_PID, pid);
+
+        if (batchId != null) {
+            query.setAttribute(MediaDataSource.BATCH_ID, batchId);
+        }
+
+        query.setAttribute(MediaDataSource.DATASTREAM_ID, "RAW");
+
+        BooleanCallback call = new BooleanCallback() {
+            @Override
+            public void execute(Boolean value) {
+            }
+        };
+
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setData(query); // prevents removeData to drop other than primary key attributes
+
+        MediaDataSource.getInstance().removeData(query, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (!RestConfig.isStatusOk(response)) {
+                    call.execute(false);
+                    return;
+                }
+                call.execute(true);
+            }
+        }, dsRequest);
     }
 
     private DynamicForm createStreamMenu() {
@@ -256,7 +363,11 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
     private void updateStreamMenu(DigitalObject dobj) {
         Criteria streamMenuFilter = dobj.toCriteria();
         streamMenu.setPickListCriteria(streamMenuFilter);
-        streamMenu.fetchData();
+
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setAttribute(SOURCE_IDENTIFIER, getLastSelectionId(dobj, source));
+
+        streamMenu.fetchData((dsResponse, o, dsRequest1) -> {}, dsRequest);
     }
 
     private void updateStreamMenu(ResultSet data, SelectItem view) {
@@ -271,7 +382,10 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
     private void showStream() {
         StreamProfile stream = StreamProfile.get(streamMenu.getSelectedRecord());
+
         if (stream != null) {
+            Offline.put(getLastSelectionId(digitalObject, source), stream.getId());
+
             StringBuilder sb = new StringBuilder();
             sb.append(DigitalObjectResourceApi.DIGITALOBJECT_PID).append('=')
                     .append(digitalObject.getPid())
@@ -321,4 +435,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         return url;
     }
 
+    private static String getLastSelectionId(DigitalObject digitalObject, String source) {
+        return MEDIA_EDITOR_LAST_SELECTION + "_" + source + "_" + digitalObject.getModelId();
+    }
 }

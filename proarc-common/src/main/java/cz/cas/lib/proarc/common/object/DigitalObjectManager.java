@@ -20,12 +20,14 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.fedora.FedoraDao;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
@@ -33,7 +35,13 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.workflow.WorkflowException;
+import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
+import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -43,6 +51,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -86,11 +95,14 @@ public class DigitalObjectManager {
 
     /**
      * Creates the handler to edit a digital object contents.
-     * @param fo digital object
+     * @param fobject digital object
      * @return the handler
      */
-    public DigitalObjectHandler createHandler(FedoraObject fo) {
-        return new DigitalObjectHandler(fo, models);
+    public DigitalObjectHandler createHandler(FedoraObject fobject) {
+        if (fobject == null) {
+            throw new NullPointerException("fobject");
+        }
+        return new DigitalObjectHandler(fobject, models);
     }
 
     public FedoraObject find(String pid, Integer batchId) throws DigitalObjectNotFoundException {
@@ -103,6 +115,16 @@ public class DigitalObjectManager {
             }
         }
         return find2(pid, batch);
+    }
+
+    /**
+     * Object in workflow doesn't have a PID, so they are identified by workflow job id
+     *
+     * @return WorkflowObject with BIBLIO MODS
+     * @throws DigitalObjectNotFoundException
+     */
+    public FedoraObject find(BigDecimal workflowJobId, String modelId, Locale locale) throws DigitalObjectNotFoundException {
+        return new WorkflowStorage().load(workflowJobId, modelId, locale);
     }
 
     public FedoraObject find2(String pid, Batch batch) throws DigitalObjectNotFoundException {
@@ -168,7 +190,7 @@ public class DigitalObjectManager {
         }
     }
 
-    public class CreateHandler {
+    public class CreateHandler extends FedoraDao  {
 
         private final String modelId;
         private String pid;
@@ -201,6 +223,14 @@ public class DigitalObjectManager {
             this.parentPid = parentPid;
             this.xml = xml;
             this.message = message;
+        }
+
+        public void setMetadataXml(String xml) {
+            this.xml = xml;
+        }
+
+        public String getMetadataXml() {
+            return xml;
         }
 
         /**
@@ -317,6 +347,39 @@ public class DigitalObjectManager {
             }
         }
 
+        /**
+         * Creates a fedora object and connects it to workflow
+         *
+         * @param wfJobId workflow job id
+         * @return list of created items with pid
+         * @throws DigitalObjectException
+         * @throws WorkflowException
+         */
+        public List<Item> createAndConnectToWorkflowJob(BigDecimal wfJobId, Locale locale) throws WorkflowException {
+            if (isBatch()) {
+                throw new IllegalArgumentException("Only single object (usually top level) is supported to be connected to job");
+            } else if (wfJobId == null) {
+                throw new IllegalArgumentException("Workwlow job id cannot be null");
+            }
+            WorkflowManager workflowManager = WorkflowManager.getInstance();
+            MaterialFilter filter = new MaterialFilter();
+            filter.setLocale(locale);
+            filter.setJobId(wfJobId);
+            filter.setType(MaterialType.PHYSICAL_DOCUMENT);
+            List<MaterialView> physicalMaterials = workflowManager.findMaterial(filter);
+
+            if (physicalMaterials.size() != 1) {
+                throw new WorkflowException("Wrong number of physical materials").addUnexpectedError();
+            }
+
+            MaterialView digitalMaterial = workflowManager.createDigitalMaterialFromPhysical(this, physicalMaterials.get(0));
+
+            Item item = new Item(digitalMaterial.getPid());
+            item.setLabel(digitalMaterial.getLabel());
+
+            return Collections.singletonList(item);
+        }
+
         private List<Item> createBatch() throws DigitalObjectException {
             ArrayList<Item> items = new ArrayList<>();
             while (hasNext()) {
@@ -363,6 +426,10 @@ public class DigitalObjectManager {
             getRemotes().ingest(localObject, user.getUserName(), message);
             if (parentHandler != null) {
                 parentHandler.commit();
+            }
+
+            if (tx != null) {
+                tx.addPid(localObject.getPid());
             }
 
             Item item = new Item(localObject.getPid());

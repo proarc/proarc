@@ -39,7 +39,6 @@ import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils.ControlGroup;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -311,6 +310,22 @@ public final class RemoteStorage {
             try {
                 FedoraClient.purgeObject(getPid()).logMessage(qpEncode(logMessage)).execute(client);
             } catch (FedoraClientException ex) {
+                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    throw new DigitalObjectNotFoundException(getPid(), ex);
+                } else {
+                    throw new DigitalObjectException(getPid(), ex);
+                }
+            }
+        }
+
+        @Override
+        public void purgeDatastream(String datastream ,String logMessage) throws DigitalObjectException {
+            try {
+                FedoraClient.purgeDatastream(getPid(), datastream).logMessage(qpEncode(logMessage)).execute(client);
+            } catch (FedoraClientException ex) {
+                //if submitted pid was invalid, then 404 was received and client set NOT_FOUND status
+                //datastream presence is not checked and 200 is returned by Fedora whether datastream existed or not prior to purging
+
                 if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                     throw new DigitalObjectNotFoundException(getPid(), ex);
                 } else {

@@ -39,4 +39,5 @@ public class WorkflowResourceApi {
 
     public static final String TASK_PATH = "task";
 
+    public static final String MODS_PATH = "mods";
 }

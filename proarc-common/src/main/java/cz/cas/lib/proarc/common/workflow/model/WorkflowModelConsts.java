@@ -144,5 +144,5 @@ public final class WorkflowModelConsts {
     public static final String MATERIALFILTER_OFFSET = "_startRow";
     public static final String MATERIALFILTER_SORTBY = "_sortBy";
     public static final String MATERIALFILTER_TASKID = "taskId";
-
+    public static final String MATERIALFILTER_TYPE = "materialType";
 }

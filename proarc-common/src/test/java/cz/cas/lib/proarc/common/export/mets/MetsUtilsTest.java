@@ -30,6 +30,9 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
+import org.apache.commons.configuration.BaseConfiguration;
+import org.apache.commons.configuration.Configuration;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,7 +55,7 @@ public class MetsUtilsTest {
      *
      */
     private void initTestElements() {
-        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph", "monograph", 6, 20, 4, "Monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
+        MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph", "monograph", 6, 32, 4, "Monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
         this.testElements.add(monografieTestElement);
         MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum", "periodikum", 42, 323, 5, "Periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
         this.testElements.add(periodikumTestElement);
@@ -179,12 +182,16 @@ public class MetsUtilsTest {
             File resultDir = tmp.newFolder("result" + testElement.getResultFolder());
             String path = sourceDirPath + testElement.getInitialDocument();
             DigitalObject dbObj = MetsUtils.readFoXML(path);
+            Configuration config = new BaseConfiguration();
+            config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
+            config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "Creator");
             MetsContext context = new MetsContext();
             context.setPath(sourceDirPath);
             context.setFsParentMap(TestConst.parents);
             context.setOutputPath(resultDir.getAbsolutePath());
             context.setAllowNonCompleteStreams(true);
             context.setAllowMissingURNNBN(true);
+            context.setConfig(NdkExportOptions.getOptions(config));
             MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
             MetsElementVisitor visitor = new MetsElementVisitor();
             metsElement.accept(visitor);
@@ -210,6 +217,69 @@ public class MetsUtilsTest {
             assertEquals(testElement.getNumberOfFiles(),
                     mets.getFileSec().getFileGrp().size());
             assertEquals(testElement.getType(), mets.getTYPE());
+        }
+    }
+
+    /**
+     * Tests if all roles are fill
+     */
+    @Test
+    public void missingRole() throws Exception {
+        for (MetsExportTestElement testElement : testElements) {
+            // copyFiles(testElement);
+            String sourceDirPath = getTargetPath() + File.separator +
+                    testElement.getDirectory() + File.separator;
+            File resultDir = tmp.newFolder("result" + testElement.getResultFolder());
+            String path = sourceDirPath + testElement.getInitialDocument();
+            DigitalObject dbObj = MetsUtils.readFoXML(path);
+            Configuration config = new BaseConfiguration();
+            config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
+            config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "");
+            MetsContext context = new MetsContext();
+            context.setPath(sourceDirPath);
+            context.setFsParentMap(TestConst.parents);
+            context.setOutputPath(resultDir.getAbsolutePath());
+            context.setAllowNonCompleteStreams(true);
+            context.setAllowMissingURNNBN(true);
+            context.setConfig(NdkExportOptions.getOptions(config));
+            MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
+            MetsElementVisitor visitor = new MetsElementVisitor();
+            try {
+                metsElement.accept(visitor);
+                Assert.fail("The validation error expected.");
+            } catch (MetsExportException ex) {
+                String message = "Error - missing role. Please insert value in proarc.cfg into export.ndk.agent.creator and export.ndk.agent.archivist";
+                assertEquals(message, ex.getMessage());
+            }
+        }
+    }
+
+    @Test
+    public void missingTitle()throws Exception{
+        MetsExportTestElement testElement = new MetsExportTestElement("periodikum", "periodikum", 7, 39, 5, "Periodical", "2ad73397-ef9d-429a-b3a5-65083fa4c333.xml");
+        String sourceDirPath = getTargetPath() + File.separator +
+                testElement.getDirectory() + File.separator;
+        File resultDir = tmp.newFolder("result" + testElement.getResultFolder());
+        String path = sourceDirPath + testElement.getInitialDocument();
+        DigitalObject dbObj = MetsUtils.readFoXML(path);
+        Configuration config = new BaseConfiguration();
+        config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
+        config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "Creator");
+        MetsContext context = new MetsContext();
+        context.setPath(sourceDirPath);
+        context.setFsParentMap(TestConst.parents);
+        context.setOutputPath(resultDir.getAbsolutePath());
+        context.setAllowNonCompleteStreams(true);
+        context.setAllowMissingURNNBN(true);
+        context.setConfig(NdkExportOptions.getOptions(config));
+        MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
+        MetsElementVisitor visitor = new MetsElementVisitor();
+        try{
+            metsElement.accept(visitor);
+            Assert.fail("The missing title expected");
+        } catch (MetsExportException ex){
+            String message =  "Error - missing title. Please insert title.";
+            assertEquals(message, ex.getMessage());
         }
     }
 }

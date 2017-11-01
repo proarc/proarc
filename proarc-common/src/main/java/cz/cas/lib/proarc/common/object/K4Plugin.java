@@ -187,7 +187,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
         public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message) throws DigitalObjectException {
             String json = jsonData.getData();
             String editorId = jsonData.getEditor();
-            String modelId = handler.relations().getModel();
+            String modelId = handler.getModel().getPid();
             ModsDefinition mods = json == null ? createDefault(modelId)
                     : editor.read();
             Mapping mapping = new Mapping();
@@ -210,7 +210,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
         @Override
         public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message) throws DigitalObjectException {
             ModsDefinition mods;
-            String modelId = handler.relations().getModel();
+            String modelId = handler.getModel().getPid();
             if (xmlData.getData() != null) {
                 mods = ModsStreamEditor.create33(fobject.getPid(), modelId, xmlData.getData());
             } else {
