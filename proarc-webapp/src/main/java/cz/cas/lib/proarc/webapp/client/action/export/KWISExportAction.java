@@ -1,24 +1,34 @@
-package cz.cas.lib.proarc.webapp.client.action;
+package cz.cas.lib.proarc.webapp.client.action.export;
 
 import com.smartgwt.client.data.*;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.SC;
+import com.smartgwt.client.widgets.form.fields.FormItem;
+import com.smartgwt.client.widgets.form.fields.RadioGroupItem;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.ds.*;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import static cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi.KRAMERIUS4_POLICY_PARAM;
 
 /**
  * @author Jakub Kremlacek
  */
-public class KWISExportAction extends AbstractAction {
+public class KWISExportAction extends ExportAction {
 
     private final ClientMessages i18n;
 
+    private RadioGroupItem rgi;
+
     public KWISExportAction(ClientMessages i18n) {
-        super(i18n.KWISExportAction_Title(), null, i18n.KWISExportAction_Hint());
+        super(i18n, i18n.KWISExportAction_Title(), null, i18n.KWISExportAction_Hint());
         this.i18n = i18n;
     }
 
@@ -41,7 +51,7 @@ public class KWISExportAction extends AbstractAction {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setPromptStyle(PromptStyle.DIALOG);
         dsRequest.setPrompt(i18n.KWISExportAction_Add_Msg());
-        ds.addData(export, new DSCallback() {
+        dsAddData(ds, export, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
@@ -79,5 +89,29 @@ public class KWISExportAction extends AbstractAction {
             break;
         }
         return accept;
+    }
+
+    @Override
+    protected List<FormItem> createExportFormOptions() {
+        List<FormItem> formItems = new ArrayList<>();
+
+        //RadioGroupItem requires specifically LinkedHashMap
+        LinkedHashMap<String, String> radioButtonMap = new LinkedHashMap<>();
+        radioButtonMap.put(KrameriusExportAction.K4_POLICY_PUBLIC, i18n.ExportAction_Request_K4_Policy_Public());
+        radioButtonMap.put(KrameriusExportAction.K4_POLICY_PRVIATE, i18n.ExportAction_Request_K4_Policy_Private());
+
+        rgi = new RadioGroupItem();
+        rgi.setTitle(i18n.ExportAction_Request_K4_Policy_Msg());
+        rgi.setValueMap(radioButtonMap);
+        rgi.setDefaultValue(KrameriusExportAction.K4_POLICY_PUBLIC);
+        rgi.setVertical(false);
+        formItems.add(rgi);
+
+        return formItems;
+    }
+
+    @Override
+    protected void setRequestOptions(Record record) {
+        record.setAttribute(KRAMERIUS4_POLICY_PARAM, rgi.getValueAsString());
     }
 }

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action;
+package cz.cas.lib.proarc.webapp.client.action.export;
 
 import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.client.GWT;
@@ -47,6 +47,8 @@ import com.smartgwt.client.widgets.layout.HStack;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ExportDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -59,12 +61,11 @@ import java.util.HashSet;
  *
  * @author Jan Pokorsky
  */
-public class DesaExportAction extends AbstractAction {
+public class DesaExportAction extends ExportAction {
 
     private static final HashSet<String> MODELS = new HashSet<String>(Arrays.asList(
             "model:desFolder", "model:desInternalRecord", "model:desExternalRecord",
             "model:derFolder", "model:derDocument"));
-    private final ClientMessages i18n;
     private final ExportType type;
 
     private enum ExportType { DOWNLOAD, EXPORT, VALIDATION}
@@ -86,8 +87,7 @@ public class DesaExportAction extends AbstractAction {
     }
 
     DesaExportAction(ClientMessages i18n, String title, String hint, ExportType type) {
-        super(title, null, hint);
-        this.i18n = i18n;
+        super(i18n, title, null, hint);
         this.type = type;
     }
 
@@ -147,7 +147,7 @@ public class DesaExportAction extends AbstractAction {
         dsRequest.setPromptStyle(PromptStyle.DIALOG);
         dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
         DataSource ds = ExportDataSource.getDesa();
-        ds.addData(export, new DSCallback() {
+        dsAddData(ds, export, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
@@ -190,7 +190,7 @@ public class DesaExportAction extends AbstractAction {
         dsRequest.setPromptStyle(PromptStyle.DIALOG);
         dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
         DataSource ds = ExportDataSource.getDesa();
-        ds.addData(export, new DSCallback() {
+        dsAddData(ds, export, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {

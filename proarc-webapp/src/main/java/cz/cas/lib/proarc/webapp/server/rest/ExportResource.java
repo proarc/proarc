@@ -111,10 +111,11 @@ public class ExportResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> kramerius4(
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
     ) throws IOException {
 
-        URI targetPath = runK4Export(pids, hierarchy);
+        URI targetPath = runK4Export(pids, hierarchy, policy);
         return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath));
     }
 
@@ -123,6 +124,7 @@ public class ExportResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> kwis(
             @FormParam(ExportResourceApi.KWIS_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
     ) throws IOException, ExportException {
 
@@ -131,7 +133,7 @@ public class ExportResource {
         }
 
         URI imagesPath = runDatastreamExport(pids, Collections.singletonList("NDK_USER"), hierarchy);
-        URI k4Path = runK4Export(pids, hierarchy);
+        URI k4Path = runK4Export(pids, hierarchy, policy);
 
         String outputPath = user.getExportFolder().getPath();
         String imp = imagesPath.getPath();
@@ -528,15 +530,13 @@ public class ExportResource {
 
     }
 
-    private URI runK4Export(
-            List<String> pids,
-            boolean hierarchy) throws IOException {
+    private URI runK4Export(List<String> pids, boolean hierarchy, String policy) throws IOException {
                 if (pids.isEmpty()) {
                         throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
                     }
 
                         Kramerius4Export export = new Kramerius4Export(
-                                RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export());
+                                RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export(), policy);
                 URI exportUri = user.getExportFolder();
                 File exportFolder = new File(exportUri);
                 File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));

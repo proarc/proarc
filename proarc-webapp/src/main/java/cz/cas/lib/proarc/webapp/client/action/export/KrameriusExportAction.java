@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action;
+package cz.cas.lib.proarc.webapp.client.action.export;
 
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -23,8 +23,13 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.SC;
+import com.smartgwt.client.widgets.form.fields.FormItem;
+import com.smartgwt.client.widgets.form.fields.RadioGroupItem;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.Selectable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ExportDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
@@ -32,7 +37,10 @@ import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+
+import static cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi.KRAMERIUS4_POLICY_PARAM;
 
 /**
  * Exports selected digital objects in Kramerius 4 format.
@@ -41,13 +49,15 @@ import java.util.List;
  *
  * @author Jan Pokorsky
  */
-public final class KrameriusExportAction extends AbstractAction {
+public final class KrameriusExportAction extends ExportAction {
 
-    private final ClientMessages i18n;
+    public static final String K4_POLICY_PUBLIC = "policy:public";
+    public static final String K4_POLICY_PRVIATE = "policy:private";
+
+    private RadioGroupItem rgi;
 
     public KrameriusExportAction(ClientMessages i18n) {
-        super(i18n.KrameriusExportAction_Title(), null, i18n.KrameriusExportAction_Hint());
-        this.i18n = i18n;
+        super(i18n, i18n.KrameriusExportAction_Title(), null, i18n.KrameriusExportAction_Hint());
     }
 
     @Override
@@ -98,7 +108,7 @@ public final class KrameriusExportAction extends AbstractAction {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setPromptStyle(PromptStyle.DIALOG);
         dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
-        ds.addData(export, new DSCallback() {
+        dsAddData(ds, export, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
@@ -111,4 +121,27 @@ public final class KrameriusExportAction extends AbstractAction {
         }, dsRequest);
     }
 
+    @Override
+    protected List<FormItem> createExportFormOptions() {
+        List<FormItem> formItems = new ArrayList<>();
+
+        //RadioGroupItem requires specifically LinkedHashMap
+        LinkedHashMap<String, String> radioButtonMap = new LinkedHashMap<>();
+        radioButtonMap.put(K4_POLICY_PUBLIC, i18n.ExportAction_Request_K4_Policy_Public());
+        radioButtonMap.put(K4_POLICY_PRVIATE, i18n.ExportAction_Request_K4_Policy_Private());
+
+        rgi = new RadioGroupItem();
+        rgi.setTitle(i18n.ExportAction_Request_K4_Policy_Msg());
+        rgi.setValueMap(radioButtonMap);
+        rgi.setDefaultValue(K4_POLICY_PUBLIC);
+        rgi.setVertical(false);
+        formItems.add(rgi);
+
+        return formItems;
+    }
+
+    @Override
+    protected void setRequestOptions(Record record) {
+        record.setAttribute(KRAMERIUS4_POLICY_PARAM, rgi.getValueAsString());
+    }
 }

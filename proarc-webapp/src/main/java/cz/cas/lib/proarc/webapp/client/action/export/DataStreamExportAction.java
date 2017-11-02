@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action;
+package cz.cas.lib.proarc.webapp.client.action.export;
 
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -24,6 +24,8 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.SC;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.ds.ExportDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
@@ -36,9 +38,8 @@ import java.util.List;
  *
  * @author Jan Pokorsky
  */
-public final class DataStreamExportAction extends AbstractAction {
+public final class DataStreamExportAction extends ExportAction {
 
-    private final ClientMessages i18n;
     private final String dsId;
 
     public static DataStreamExportAction full(ClientMessages i18n) {
@@ -63,8 +64,7 @@ public final class DataStreamExportAction extends AbstractAction {
     }
 
     private DataStreamExportAction(ClientMessages i18n, String dsId) {
-        super(null, null, null);
-        this.i18n = i18n;
+        super(i18n,null, null, null);
         this.dsId = dsId;
     }
 
@@ -92,7 +92,7 @@ public final class DataStreamExportAction extends AbstractAction {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setPromptStyle(PromptStyle.DIALOG);
         dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
-        ds.addData(export, new DSCallback() {
+        dsAddData(ds, export, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
