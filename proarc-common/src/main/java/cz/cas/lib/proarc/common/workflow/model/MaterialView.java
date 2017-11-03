@@ -47,7 +47,7 @@ public class MaterialView extends Material {
     @XmlElement(name = WorkflowModelConsts.MATERIAL_FIELD001)
     private String field001;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_RDCZID)
-    private String rdczId;
+    private BigDecimal rdczId;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_CATALOG)
     private String source;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_SIGNATURE)
@@ -137,11 +137,11 @@ public class MaterialView extends Material {
         this.field001 = field001;
     }
 
-    public String getRdczId() {
+    public BigDecimal getRdczId() {
         return rdczId;
     }
 
-    public void setRdczId(String rdczId) {
+    public void setRdczId(BigDecimal rdczId) {
         this.rdczId = rdczId;
     }
 

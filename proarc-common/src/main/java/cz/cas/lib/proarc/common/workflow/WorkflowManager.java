@@ -390,11 +390,11 @@ public class WorkflowManager {
     }
 
     public Job addJob(JobDefinition jobProfile, String xml,
-            CatalogConfiguration catalog, UserProfile defaultUser
+            CatalogConfiguration catalog, BigDecimal rdczId, UserProfile defaultUser
     ) throws WorkflowException {
         Map<String, UserProfile> users = createUserMap();
         PhysicalMaterial physicalMaterial = new PhysicalMaterialBuilder()
-                .setCatalog(catalog).setMetadata(xml)
+                .setCatalog(catalog).setMetadata(xml).setRdczId(rdczId)
                 .build();
         Transaction tx = daoFactory.createTransaction();
         WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();

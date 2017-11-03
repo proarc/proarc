@@ -162,7 +162,7 @@ public class WorkflowManagerTest {
             addProperty(CatalogConfiguration.PROPERTY_TYPE, Z3950Catalog.TYPE);
         }});
         String mods = IOUtils.toString(WorkflowManagerTest.class.getResource("rdczmods.xml"));
-        Job job = wm.addJob(jobProfile, mods, c, null);
+        Job job = wm.addJob(jobProfile, mods, c, null, null);
         assertNotNull(job);
 
         Job getJob = wm.getJob(job.getId());
