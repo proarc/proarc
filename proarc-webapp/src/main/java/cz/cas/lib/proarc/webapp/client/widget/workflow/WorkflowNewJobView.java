@@ -119,6 +119,10 @@ public class WorkflowNewJobView {
             optionForm.setValue(WorkflowResourceApi.NEWJOB_METADATA, mods);
             optionForm.getField(WorkflowResourceApi.NEWJOB_METADATA).setVisible(mods == null);
             optionForm.setValue(WorkflowResourceApi.NEWJOB_CATALOGID, catalogBrowser.getCatalogId());
+            // rdcz is available only in rd search
+            if (catalogBrowser.getRdczId() != null) {
+                optionForm.setValue(WorkflowResourceApi.NEWJOB_RDCZID, catalogBrowser.getRdczId());
+            }
             boolean valid = optionForm.validate();
             if (valid) {
                 handler.onCreateNew(model.getAttributeAsString("name"), optionForm.getValuesAsRecord());

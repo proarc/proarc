@@ -180,7 +180,7 @@ public class EmpireWorkflowMaterialDaoTest {
         m.setField001("field001");
         m.setIssue("12");
         m.setMetadata("<xml/>");
-        m.setRdczId("12345");
+        m.setRdczId(BigDecimal.ONE);
         m.setSource("http://something.somewhere");
         m.setSigla("ABA123");
         m.setVolume("13");
