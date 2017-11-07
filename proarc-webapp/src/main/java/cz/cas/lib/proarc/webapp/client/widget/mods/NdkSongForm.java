@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods;
 
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
@@ -48,8 +47,9 @@ public final class NdkSongForm {
         modsFields.add(genre());
         modsFields.add(originInfo());
         modsFields.add(language());
-        // modsFields.add(physicalDescription());
+        modsFields.add(physicalDescription());
         // modsFields.add(abstracts());
+        modsFields.add(tableOfContents());
         modsFields.add(note());
         modsFields.add(subject());
         // modsFields.add(classification());
@@ -295,27 +295,6 @@ public final class NdkSongForm {
         return new FieldBuilder("physicalDescription").setTitle("Physical Description - M").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu zdroje/předlohy.")
                 // form, formDefinition extends stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("form").setTitle("Form - M").setMaxOccurrences(1)
-                        // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        // @type
-                        // XXX autofill "marcform"
-                        .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
-                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM)
-                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)
-                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)
-                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)
-                                .createField()) // authority
-                        .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
-                                .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("audio")
-                                .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
-                                        + "<p>Odpovídá hodnotě v poli 008/23")
-                                .addMapValue("unspecified", "nespecifikováno")
-                                .addMapValue("other", "jiný")
-                                .addMapValue("audio", "rdamedia - audio")
-                                .addMapValue("audiodisk", "rdacarrier - audiodisk")
-                                .createField()) // value
-                        .createField()) // form
                 // reformattingQuality
                 // internetMediaType
                 // digitalOrigin
@@ -324,15 +303,6 @@ public final class NdkSongForm {
                         .setHint("Údaje o rozsahu.")
                         .createField()) // extent
                 // note, physicalDescriptionNote extends stringPlusLanguage
-                .addField(new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(5)
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        // @displayLabel, @type, @typeURI, @xlinkSimpleLink, @ID
-                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
-                                .setHint("Poznámka o fyzickém stavu dokumentu."
-                                        + "<p>Pro každou poznámku je nutno vytvořit nový &lt;note> element."
-                                        + "<p>Zde se zapíší defekty zjištěné při digitalizaci pro úroveň titulu periodika (např. chybějící ročník).")
-                                .createField()) // value
-                        .createField()) // note
                 .createField(); // physicalDescription
     }
 
@@ -346,6 +316,21 @@ public final class NdkSongForm {
                         .setHint("Shrnutí obsahu jako celku. Odpovídá poli 520 MARC21")
                         .createField()) // value
                 .createField(); // abstract
+    }
+
+    private Field tableOfContents() {
+        // tableOfContents, TableOfContentsDefinition extends StringPlusLanguage
+        return new FieldBuilder("tableOfContents").setTitle("Table Of Contents - R").setMaxOccurrences(10)
+                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
+                // altFormatAttributeGroup: @altFormat, @contentType
+                .addField(new FieldBuilder("displayLabel").setTitle("Display Label - R").setMaxOccurrences(1).setType(Field.COMBO)
+                        .setHint("Formalizovaná poznámka k obsahu - text formalizované poznámky")
+                        .addMapValue("Contents", "Contents")
+                        .addMapValue("Incomplete contents", "Incomplete contents")
+                        .addMapValue("Partial contents", "Partial contents")
+                        .createField()) // displeyLabel
+                .createField(); // tableOfContent
     }
 
     private Field note() {
@@ -458,6 +443,18 @@ public final class NdkSongForm {
                 // cartographics
                 // occupation
                 // genre
+                .addField(new FieldBuilder("genre").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(10)
+                                .setHint("Bližší údaje o typu dokumentu.<p>Pro periodikum hodnota “title”.")
+                                .setType(Field.TEXT)
+                                .setRequired(true)
+                                // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
+                                // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+                                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                                // XXX auto fill with issue
+                                .createField()) // value
+                        .createField()) // genre
+
                 .createField(); // subject
     }
 

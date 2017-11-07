@@ -193,7 +193,6 @@ public final class NdkMusicDocumentForm {
                 // resourceTypeDefinition
                 .addField(new FieldBuilder("value").setTitle("Type of Resource - R").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("Druh dokumentu.")
-                        .addMapValue("sound recording", "sound recording")
                         .addMapValue("sound recording-musical", "sound recording-musical")
                         .addMapValue("sound recording-nonmusical", "sound recording-nonmusical")
                         .createField()) // value
@@ -210,7 +209,8 @@ public final class NdkMusicDocumentForm {
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // XXX auto fill with issue
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField()).setDefaultValue("sound recording")
+                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).createField())
+                .addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
                 .createField(); // genre
     }
 
@@ -318,22 +318,10 @@ public final class NdkMusicDocumentForm {
                                 .createField()) // value
                         .createField()) // copyrightDate
                 // dateCreated, dateDefinition extends stringPlusLanguage
-                .addField(new FieldBuilder("dateCreated").setMaxOccurrences(1)
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        // @encoding, @qualifier, @point, @keyDate
-                        .addField(new FieldBuilder("value").setTitle("Date Created - R").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
-                                .setHint("Datum vytvoření předlohy."
-                                        + "<p>Bude použito pouze při popisu tiskaře, viz poznámka u"
-                                        + " elementu &lt;originInfo>."
-                                        + "<p>Odpovídá hodnotě z katalogizačního záznamu pole 260, podpole „g“")
-                                .createField()) // value
-                        .createField()) // dateCreated
                 // dateCaptured
                 // dateValid
                 // dateModified
-                .addField(new FieldBuilder("edition").setTitle("Edition - R").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Údaj o pořadí vydání")
-                        .createField())// edition
+                // edition
                 // issuance, issuanceDefinition, enum
                 .addField(new FieldBuilder("issuance").setTitle("Issuance - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
                         .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
@@ -443,6 +431,7 @@ public final class NdkMusicDocumentForm {
                 .addField(new FieldBuilder("type").setTitle("Type - O").setMaxOccurrences(1).setType(Field.COMBO)
                         .setHint("Upřesnění obsahu poznámky.")
                         .addMapValue("ownership", "ownership")
+                        .addMapValue("statement of responsibility", "statement of responsibility")
                         .addMapValue("version identification", "version identification")
                         .createField()) // type
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
@@ -591,11 +580,14 @@ public final class NdkMusicDocumentForm {
                                 + "<br>ISSN - MA - převzít z katalogizačního záznamu"
                                 + "<br>URN:NBN - O - zápis ve tvaru urn:nbn:cz:ndk-123456 pro projekt NDK"
                                 + "<br>jiný interní identifikátor - R - type = barcode, oclc, sysno, permalink apod.")
-                        .addMapValue("issue number", "issue number")
-                        .addMapValue("uuid", "UUID")
                         .addMapValue("ccnb", "čČNB")
-                        .addMapValue("urnnbn", "URN:NBN")
+                        .addMapValue("issue number", "issue number")
                         .addMapValue("local", "local")
+                        .addMapValue("matrix number", "matrix number")
+                        .addMapValue("music-publisher", "music-publisher")
+                        .addMapValue("upc", "upc")
+                        .addMapValue("urnnbn", "URN:NBN")
+                        .addMapValue("uuid", "UUID")
                         .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())

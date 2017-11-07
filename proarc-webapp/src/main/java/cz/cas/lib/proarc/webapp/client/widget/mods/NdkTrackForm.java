@@ -48,7 +48,7 @@ public final class NdkTrackForm {
         modsFields.add(genre());
         //   modsFields.add(originInfo());
         //   modsFields.add(language());
-        //   modsFields.add(physicalDescription());
+        modsFields.add(physicalDescription());
         //  modsFields.add(abstracts());
         modsFields.add(note());
         //   modsFields.add(subject());
@@ -364,27 +364,6 @@ public final class NdkTrackForm {
         return new FieldBuilder("physicalDescription").setTitle("Physical Description - M").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu zdroje/předlohy.")
                 // form, formDefinition extends stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("form").setTitle("Form - M").setMaxOccurrences(1)
-                        // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        // @type
-                        // XXX autofill "marcform"
-                        .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
-                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM)
-                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)
-                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)
-                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)
-                                .createField()) // authority
-                        .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
-                                .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("audio")
-                                .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
-                                        + "<p>Odpovídá hodnotě v poli 008/23")
-                                .addMapValue("unspecified", "nespecifikováno")
-                                .addMapValue("other", "jiný")
-                                .addMapValue("audio", "rdamedia - audio")
-                                .addMapValue("audiodisk", "rdacarrier - audiodisk")
-                                .createField()) // value
-                        .createField()) // form
                 // reformattingQuality
                 // internetMediaType
                 // digitalOrigin
@@ -393,15 +372,6 @@ public final class NdkTrackForm {
                         .setHint("Údaje o rozsahu.")
                         .createField()) // extent
                 // note, physicalDescriptionNote extends stringPlusLanguage
-                .addField(new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(5)
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        // @displayLabel, @type, @typeURI, @xlinkSimpleLink, @ID
-                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
-                                .setHint("Poznámka o fyzickém stavu dokumentu."
-                                        + "<p>Pro každou poznámku je nutno vytvořit nový &lt;note> element."
-                                        + "<p>Zde se zapíší defekty zjištěné při digitalizaci pro úroveň titulu periodika (např. chybějící ročník).")
-                                .createField()) // value
-                        .createField()) // note
                 .createField(); // physicalDescription
     }
 
