@@ -61,6 +61,7 @@ public class WorkflowProfileConsts {
 
     public static final String TASK_MATERIAL_EL = "setMaterial";
     public static final String TASK_PARAM_EL = "param";
+    public static final String TASK_ACTION_EL = "action";
 
     public static final String SETPARAM_PARAMREF_ATT = "paramRef";
 
@@ -70,6 +71,9 @@ public class WorkflowProfileConsts {
     public static final String PARAM_DISPLAYTYPE = "displayType";
     public static final String PARAM_OPTIONVALUEFIELD = "optionValueField";
     public static final String PARAM_OPTIONDISPLAYFIELD = "optionDisplayField";
+
+    public static final String ACTION_COMMAND = "command";
+    public static final String ACTION_COMMAND_ARG = "arg";
 
     public static final String MATERIAL_TYPE = "type";
 
