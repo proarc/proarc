@@ -35,18 +35,24 @@ public class TaskDefinition extends DisplayableType<TaskDefinition> {
     @XmlElement(name = WorkflowProfileConsts.TASK_PARAM_EL)
     private List<ParamDefinition> params;
 
+    @XmlElement(name = WorkflowProfileConsts.TASK_ACTION_EL)
+    private List<ActionDefinition> actions = new ArrayList<>();
+
     public List<SetMaterialDefinition> getMaterialSetters() {
         if (materialSetters == null) {
-            materialSetters = new ArrayList<SetMaterialDefinition>();
+            materialSetters = new ArrayList<>();
         }
         return materialSetters;
     }
 
     public List<ParamDefinition> getParams() {
         if (params == null) {
-            params = new ArrayList<ParamDefinition>();
+            params = new ArrayList<>();
         }
         return params;
     }
 
+    public List<ActionDefinition> getActions() {
+        return actions;
+    }
 }

@@ -217,8 +217,6 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                         activeEditor.clear();
                         // refresh editor with server values
                         activeEditor.editRecord(customModsRecord);
-                        //https://github.com/proarc/proarc/issues/645 GWT v.6.0-p20161023 form draw issue
-                        activeEditor.draw();
                     }
                 }
                 callback.execute(true);
@@ -432,8 +430,6 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                     // fix https://github.com/proarc/proarc/issues/557
                     editor.clear();
                     editor.editRecord(customModsRecord);
-                    //https://github.com/proarc/proarc/issues/645 GWT v.6.0-p20161023 form draw issue
-                    editor.draw();
                     editor.clearErrors(true);
                     loadCallback.execute(Boolean.TRUE);
                     fireEvent(new EditorLoadEvent(false));

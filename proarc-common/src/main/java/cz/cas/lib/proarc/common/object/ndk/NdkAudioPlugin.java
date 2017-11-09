@@ -105,7 +105,7 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 ModsCutomEditorType.EDITOR_PAGE,
                 this,
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
-        ).setPriority(3)) // override K4 plugin
+        ).setPriority(2)) // override K4 plugin
         ;
 
 

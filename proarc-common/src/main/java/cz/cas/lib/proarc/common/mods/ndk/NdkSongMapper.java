@@ -18,9 +18,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import java.util.List;
 
 /**
  *
@@ -35,21 +33,6 @@ public class NdkSongMapper extends NdkMapper {
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
 
-        //  mods/typeOfResource="text" or fill with MARC21 06; see NDK
-        List<TypeOfResourceDefinition> typeOfResources = mods.getTypeOfResource();
-        TypeOfResourceDefinition reqTypeOfResource = null;
-        for (TypeOfResourceDefinition typeOfResource : typeOfResources) {
-            if ("text".equals(typeOfResource.getValue())) {
-                reqTypeOfResource = typeOfResource;
-                break;
-            }
-        }
-        if (reqTypeOfResource == null) {
-            TypeOfResourceDefinition type = new TypeOfResourceDefinition();
-            type.setValue("text");
-            typeOfResources.add(0, type);
-        }
-        // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
 
         fillRecordInfo(mods);

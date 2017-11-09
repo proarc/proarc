@@ -29,7 +29,6 @@ import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
-import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
 
@@ -37,7 +36,7 @@ import java.util.List;
  *
  * @author Lukas Sykora
  */
-public class NdkMusicDocumentMapper extends NdkMapper {
+public class NdkMusicDocumentMapper extends RdaNdkMapper {
 
     /**
      * Updates missing required attribute and elements.
@@ -46,22 +45,7 @@ public class NdkMusicDocumentMapper extends NdkMapper {
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
 
-        //  mods/typeOfResource="text" or fill with MARC21 06; see NDK
-        List<TypeOfResourceDefinition> typeOfResources = mods.getTypeOfResource();
-        TypeOfResourceDefinition reqTypeOfResource = null;
-        for (TypeOfResourceDefinition typeOfResource : typeOfResources) {
-            if ("text".equals(typeOfResource.getValue())) {
-                reqTypeOfResource = typeOfResource;
-                break;
-            }
-        }
-        if (reqTypeOfResource == null) {
-            TypeOfResourceDefinition type = new TypeOfResourceDefinition();
-            type.setValue("text");
-            typeOfResources.add(0, type);
-        }
         //  mods/genre="title"
-        addGenre(mods, "sound recording");
         //  mods/originInfo/issuance="continuing"
         //  mods/originInfo/place/placeTerm/type="text"
         List<OriginInfoDefinition> originInfos = mods.getOriginInfo();
