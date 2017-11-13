@@ -101,17 +101,17 @@ public class TiffAsJp2Importer implements ImageImporter {
             }
 
             String processorType = processorConfig.getString("type");
-            ExternalProcess process = null;
+            ExternalProcess process;
             if (KakaduExpand.ID.equals(processorType)) {
                 process = new KakaduExpand(processorConfig, jp.getFile(), tiff);
+            } else {
+                throw new IllegalArgumentException("No suitable convertor found.");
             }
-            if (process != null) {
-                process.run();
-                if (!process.isOk()) {
-                    throw new IOException(tiff.toString() + "\n" + process.getFullOutput());
-                }
+            process.run();
+            if (!process.isOk()) {
+                throw new IOException(tiff.toString() + "\n" + process.getFullOutput());
             }
-            return  new FileEntry(tiff);
+            return new FileEntry(tiff);
         }
         return null;
     }

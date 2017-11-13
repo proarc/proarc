@@ -108,19 +108,19 @@ public class TiffAsJpegImporter implements ImageImporter {
             }
 
             String processorType = processorConfig.getString("type");
-            ExternalProcess process = null;
+            ExternalProcess process;
             if (GhostConvert.ID.equals(processorType)) {
                 process = new GhostConvert(processorConfig, jp.getFile(), tiff);
             } else if (VIPSConvert.ID.equals(processorType)) {
                 process = new VIPSConvert(processorConfig, jp.getFile(), tiff);
+            } else {
+                throw new IllegalArgumentException("No suitable convertor found.");
             }
-            if (process != null) {
-                process.run();
-                if (!process.isOk()) {
-                    throw new IOException(tiff.toString() + "\n" + process.getFullOutput());
-                }
+            process.run();
+            if (!process.isOk()) {
+                throw new IOException(tiff.toString() + "\n" + process.getFullOutput());
             }
-            return  new FileEntry(tiff);
+            return new FileEntry(tiff);
         }
         return null;
     }
