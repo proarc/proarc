@@ -47,7 +47,7 @@ import java.util.logging.Logger;
 public final class ImportProcess implements Runnable {
 
     private static final Logger LOG = Logger.getLogger(ImportProcess.class.getName());
-    static final String TMP_DIR_NAME = "proarc_import";
+    public static final String TMP_DIR_NAME = "proarc_import";
     private final ImportBatchManager batchManager;
     private static List<ImageImporter> consumerRegistery;
     private final ImportOptions importConfig;
