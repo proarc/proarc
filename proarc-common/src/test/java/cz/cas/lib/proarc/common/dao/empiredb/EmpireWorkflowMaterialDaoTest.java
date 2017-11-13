@@ -180,7 +180,7 @@ public class EmpireWorkflowMaterialDaoTest {
         m.setField001("field001");
         m.setIssue("12");
         m.setMetadata("<xml/>");
-        m.setRdczId(BigDecimal.ONE);
+        m.setRdczId(BigDecimal.valueOf(12345));
         m.setSource("http://something.somewhere");
         m.setSigla("ABA123");
         m.setVolume("13");
@@ -194,7 +194,7 @@ public class EmpireWorkflowMaterialDaoTest {
         assertEquals("field001", result.getField001());
         assertEquals("12", result.getIssue());
         assertEquals("<xml/>", result.getMetadata());
-        assertEquals("12345", result.getRdczId());
+        assertEquals(BigDecimal.valueOf(12345), result.getRdczId());
         assertEquals("http://something.somewhere", result.getSource());
         assertEquals("ABA123", result.getSigla());
         assertEquals("13", result.getVolume());
@@ -243,7 +243,7 @@ public class EmpireWorkflowMaterialDaoTest {
         assertEquals("1234", ms.get(0).getBarcode());
         assertEquals("001", ms.get(0).getField001());
         assertEquals("Metadata", ms.get(0).getMetadata());
-        assertEquals("3", ms.get(0).getRdczId());
+        assertEquals(BigDecimal.valueOf(3), ms.get(0).getRdczId());
         assertEquals("sig123", ms.get(0).getSignature());
         assertEquals("http://catalog", ms.get(0).getSource());
         assertEquals("detail", ms.get(0).getDetail());
