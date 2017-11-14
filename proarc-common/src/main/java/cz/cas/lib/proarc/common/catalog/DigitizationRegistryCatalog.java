@@ -99,19 +99,19 @@ public final class DigitizationRegistryCatalog implements BibliographicCatalog {
     }
 
     private List<MetadataItem> buildResponse(List<DigitizationRecord> records, Locale locale) throws TransformerException, UnsupportedEncodingException {
-        ArrayList<MetadataItem> result = new ArrayList<MetadataItem>(records.size());
+        ArrayList<MetadataItem> result = new ArrayList<>(records.size());
         int index = 1;
         for (DigitizationRecord record : records) {
             Source descriptor = record.getDescriptor();
             if (descriptor != null) {
-                MetadataItem item = createResponse(index++, descriptor, locale);
+                MetadataItem item = createResponse(index++, record.getRecordId(), descriptor, locale);
                 result.add(item);
             }
         }
         return result;
     }
 
-    private MetadataItem createResponse(int entryIdx, Source marcxmlSrc, Locale locale)
+    private MetadataItem createResponse(int entryIdx, long recordId, Source marcxmlSrc, Locale locale)
             throws TransformerException, UnsupportedEncodingException {
 
         byte[] modsBytes = transformers.transformAsBytes(
@@ -120,7 +120,7 @@ public final class DigitizationRegistryCatalog implements BibliographicCatalog {
         byte[] modsTitleBytes = transformers.transformAsBytes(
                 new StreamSource(new ByteArrayInputStream(modsBytes)),
                 Transformers.Format.ModsAsTitle);
-        return new MetadataItem(entryIdx, new String(modsBytes, "UTF-8"),
+        return new MetadataItem(entryIdx, recordId, new String(modsBytes, "UTF-8"),
                 new String(modsHtmlBytes, "UTF-8"), new String(modsTitleBytes, "UTF-8"));
     }
 

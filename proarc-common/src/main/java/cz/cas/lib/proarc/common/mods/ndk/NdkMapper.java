@@ -19,17 +19,22 @@ package cz.cas.lib.proarc.common.mods.ndk;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import org.apache.empire.commons.StringUtils;
 import java.io.IOException;
 import java.util.List;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 
 /**
  * Subclass to implement transformations of MODS data in NDK flavor
@@ -75,6 +80,12 @@ public abstract class NdkMapper {
             mapper = new NdkCartographicMapper();
         } else if (NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)) {
             mapper = new NdkSheetMusicMapper();
+        } else if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(modelId)) {
+            mapper = new NdkMusicDocumentMapper();
+        } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
+            mapper = new NdkSongMapper();
+        } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
+            mapper = new NdkTrackMapper();
         } else {
             throw new IllegalStateException("Unsupported model: " + modelId);
         }
@@ -86,7 +97,9 @@ public abstract class NdkMapper {
      */
     public void createMods(ModsDefinition mods, Context ctx) {
         mods.setVersion(ModsUtils.VERSION);
-        addPid(mods, ctx.getPid());
+        if (ctx.getPid() != null) {
+            addPid(mods, ctx.getPid());
+        }
     }
 
     /**
@@ -170,6 +183,16 @@ public abstract class NdkMapper {
         return null;
     }
 
+    /** Set default Authority value or repair it if needed. */
+    protected void repairAuthorityInClassification(ClassificationDefinition classification){
+        if (classification.getAuthority() == null) {
+            classification.setAuthority("udc");
+        }
+        if (StringUtils.isNotEmpty(classification.getEdition()) && classification.getEdition().equals("Konspekt")){
+            classification.setAuthority("udc"); // edition = "Konspekt" only if authority = "udc"
+        }
+    }
+
     public static class Context {
 
         private DigitalObjectHandler handler;
@@ -196,4 +219,16 @@ public abstract class NdkMapper {
 
     }
 
+    public static class RdaModsWrapper extends ModsWrapper {
+
+        private Boolean rdaRules;
+
+        public Boolean getRdaRules() {
+            return rdaRules == null ? true : rdaRules;
+        }
+
+        public void setRdaRules(Boolean rdaRules) {
+            this.rdaRules = rdaRules;
+        }
+    }
 }

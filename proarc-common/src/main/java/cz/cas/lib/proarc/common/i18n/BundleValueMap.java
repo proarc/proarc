@@ -44,7 +44,7 @@ public class BundleValueMap extends ValueMap<BundleValue> {
      * @return the sorted value map
      */
     public static ValueMap<BundleValue> fromBundle(String mapId, String baseName, Locale locale) {
-        Control control = ResourceBundle.Control.getControl(ResourceBundle.Control.FORMAT_PROPERTIES);
+        Control control = ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES);
         ResourceBundle rb = ResourceBundle.getBundle(baseName, locale, control);
         ArrayList<BundleValue> items = new ArrayList<BundleValue>();
         for (String key : rb.keySet()) {

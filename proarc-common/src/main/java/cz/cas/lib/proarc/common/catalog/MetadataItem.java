@@ -34,8 +34,15 @@ public class MetadataItem {
     private String preview;
     /** short descriptor of the item; used in ListGrid */
     private String title;
+    /** optional id from rd */
+    private Long rdczId;
 
-    public MetadataItem() {
+    public MetadataItem(int id,  Long rdczId, String mods, String preview, String title) {
+        this.id = id;
+        this.mods = mods;
+        this.preview = preview;
+        this.title = title;
+        this.rdczId = rdczId;
     }
 
     public MetadataItem(int id, String mods, String preview, String title) {
@@ -61,4 +68,7 @@ public class MetadataItem {
         return title;
     }
 
+    public Long getRdczId() {
+        return rdczId;
+    }
 }

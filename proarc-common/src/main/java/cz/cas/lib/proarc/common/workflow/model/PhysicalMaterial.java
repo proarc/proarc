@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import java.math.BigDecimal;
+
 /**
  *
  * @author Jan Pokorsky
@@ -24,7 +26,7 @@ public class PhysicalMaterial extends Material {
 
     private String barcode;
     private String field001;
-    private String rdczId;
+    private BigDecimal rdczId;
     private String signature;
     /** The URL to a catalog. */
     private String source;
@@ -56,11 +58,11 @@ public class PhysicalMaterial extends Material {
         this.field001 = field001;
     }
 
-    public String getRdczId() {
+    public BigDecimal getRdczId() {
         return rdczId;
     }
 
-    public void setRdczId(String rdczId) {
+    public void setRdczId(BigDecimal rdczId) {
         this.rdczId = rdczId;
     }
 

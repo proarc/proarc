@@ -182,7 +182,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+                ).setPriority(2));
         models.add(new MetaModel(
                 MODEL_CHAPTER, null, null,
                 Arrays.asList(new ElementType("NDK Chapter", "en"), new ElementType("NDK Kapitola", "cs")),
@@ -220,7 +220,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 ModsCutomEditorType.EDITOR_PAGE,
                 this,
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
-                ).setPriority(2)) // override K4 plugin
+                ).setPriority(3)) // override K4 plugin
                 ;
 
         return models;
@@ -252,7 +252,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
     private ValueMap<? extends LanguageTermDefinition> readLangs(Locale locale) {
         ArrayList<LangTermValue> langs = new ArrayList<LangTermValue>();
         // to read properties file in UTF-8 use PropertyResourceBundle(Reader)
-        Control control = ResourceBundle.Control.getControl(ResourceBundle.Control.FORMAT_PROPERTIES);
+        Control control = ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES);
+
         ResourceBundle rb = ResourceBundle.getBundle(BundleName.LANGUAGES_ISO639_2.toString(), locale, control);
         for (String key : rb.keySet()) {
             LangTermValue lt = new LangTermValue();

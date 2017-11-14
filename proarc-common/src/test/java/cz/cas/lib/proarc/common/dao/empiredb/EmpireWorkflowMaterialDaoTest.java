@@ -28,7 +28,10 @@ import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
+
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
@@ -177,7 +180,7 @@ public class EmpireWorkflowMaterialDaoTest {
         m.setField001("field001");
         m.setIssue("12");
         m.setMetadata("<xml/>");
-        m.setRdczId("12345");
+        m.setRdczId(BigDecimal.valueOf(12345));
         m.setSource("http://something.somewhere");
         m.setSigla("ABA123");
         m.setVolume("13");
@@ -191,7 +194,7 @@ public class EmpireWorkflowMaterialDaoTest {
         assertEquals("field001", result.getField001());
         assertEquals("12", result.getIssue());
         assertEquals("<xml/>", result.getMetadata());
-        assertEquals("12345", result.getRdczId());
+        assertEquals(BigDecimal.valueOf(12345), result.getRdczId());
         assertEquals("http://something.somewhere", result.getSource());
         assertEquals("ABA123", result.getSigla());
         assertEquals("13", result.getVolume());
@@ -240,7 +243,7 @@ public class EmpireWorkflowMaterialDaoTest {
         assertEquals("1234", ms.get(0).getBarcode());
         assertEquals("001", ms.get(0).getField001());
         assertEquals("Metadata", ms.get(0).getMetadata());
-        assertEquals("3", ms.get(0).getRdczId());
+        assertEquals(BigDecimal.valueOf(3), ms.get(0).getRdczId());
         assertEquals("sig123", ms.get(0).getSignature());
         assertEquals("http://catalog", ms.get(0).getSource());
         assertEquals("detail", ms.get(0).getDetail());
@@ -286,6 +289,15 @@ public class EmpireWorkflowMaterialDaoTest {
         assertNull(ms.get(0).getTaskId());
         assertEquals(MaterialType.FOLDER, ms.get(0).getType());
         assertNull(ms.get(0).getWay());
+
+        // view job's material with specific type
+        for (MaterialType type : MaterialType.values()) {
+            filter = new MaterialFilter();
+            filter.setJobId(BigDecimal.ONE);
+            filter.setType(type);
+            assertTrue("returned objects should be " + type.name(), dao.view(filter).stream().allMatch(material-> type.equals(material.getType())));
+        }
+
     }
 
     @Test

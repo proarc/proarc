@@ -59,14 +59,18 @@ public class TiffAsJpegImporter implements ImageImporter {
     @Override
     public BatchItemObject consume(FileSet fileSet, ImportOptions ctx) {
 
-        FileEntry imageFile = fileSet.getFiles().get(0);
+        FileEntry jpegEntry = findJpeg(fileSet);
+        // check jpeg file
+        if (jpegEntry == null) {
+            return null;
+        }
 
         try {
             FileEntry tiff;
-            if (imageFile.getFile().length() > SMALL_IMAGE_SIZE_LIMIT) {
-                tiff = convertToTiff(imageFile, ctx.getConfig().getConvertorJpgLargeProcessor());
+            if (jpegEntry.getFile().length() > SMALL_IMAGE_SIZE_LIMIT) {
+                tiff = convertToTiff(jpegEntry, ctx.getConfig().getConvertorJpgLargeProcessor());
             } else {
-                tiff = convertToTiff(imageFile, ctx.getConfig().getConvertorJpgSmallProcessor());
+                tiff = convertToTiff(jpegEntry, ctx.getConfig().getConvertorJpgSmallProcessor());
             }
 
             if (tiff == null) {
@@ -77,7 +81,7 @@ public class TiffAsJpegImporter implements ImageImporter {
 
             return importer.consume(fileSet, ctx);
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, imageFile.toString(), ex);
+            LOG.log(Level.SEVERE, jpegEntry.toString(), ex);
         }
 
         return null;

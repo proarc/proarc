@@ -20,7 +20,16 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
@@ -28,6 +37,7 @@ import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
@@ -40,8 +50,11 @@ import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -49,10 +62,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -169,18 +185,21 @@ public class WorkflowResource {
             @FormParam(WorkflowResourceApi.NEWJOB_PROFILE) String profileName,
             @FormParam(WorkflowResourceApi.NEWJOB_METADATA) String metadata,
             @FormParam(WorkflowResourceApi.NEWJOB_CATALOGID) String catalogId,
-            @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId
+            @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId,
+            @FormParam(WorkflowResourceApi.NEWJOB_RDCZID) BigDecimal rdczId
     ) {
+        metadata = "null".equals(metadata) ? null : metadata;
+        catalogId = "null".equals(catalogId) ? null : catalogId;
+
         if (parentId != null) {
             return addSubjob(profileName, parentId);
         }
-        if (metadata == null) {
-            return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_METADATA + " - missing value! ");
+
+        CatalogConfiguration catalog = null;
+        if (catalogId != null) {
+            catalog = appConfig.getCatalogs().findConfiguration(catalogId);
         }
-        CatalogConfiguration catalog = appConfig.getCatalogs().findConfiguration(catalogId);
-        if (catalog == null) {
-            return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_CATALOGID + " - invalid value! " + catalogId);
-        }
+
         WorkflowDefinition profiles = workflowProfiles.getProfiles();
         if (profiles == null) {
             return profileError();
@@ -190,7 +209,7 @@ public class WorkflowResource {
             return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
         }
         try {
-            Job job = workflowManager.addJob(profile, metadata, catalog, session.getUser());
+            Job job = workflowManager.addJob(profile, metadata, catalog, rdczId, session.getUser());
             JobFilter filter = new JobFilter();
             filter.setLocale(session.getLocale(httpHeaders));
             filter.setId(job.getId());
@@ -358,14 +377,25 @@ public class WorkflowResource {
             return profileError();
         }
         try {
-            Task updatedTask = workflowManager.tasks().updateTask(task, task.params, workflow);
             TaskFilter taskFilter = new TaskFilter();
-            taskFilter.setId(updatedTask.getId());
+            taskFilter.setId(task.getId());
             taskFilter.setLocale(session.getLocale(httpHeaders));
+            Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
+                    .findFirst().get().getState();
+            Task updatedTask = workflowManager.tasks().updateTask(task, task.params, workflow);
             List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+
+            // status of task changed
+            if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
+                WorkflowActionHandler workflowActionHandler = new WorkflowActionHandler(workflow, session.getLocale(httpHeaders));
+                workflowActionHandler.runAction(task);
+            }
+
             return new SmartGwtResponse<TaskView>(result);
         } catch (WorkflowException ex) {
             return toError(ex, null);
+        } catch (IOException e) {
+            return toError(new WorkflowException(e.getMessage()), null);
         }
     }
 
@@ -382,6 +412,7 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_ID) BigDecimal id,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_JOBID) BigDecimal jobId,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_TASKID) BigDecimal taskId,
+            @QueryParam(WorkflowModelConsts.MATERIAL_TYPE) MaterialType materialType,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_SORTBY) String sortBy
     ) {
@@ -391,7 +422,7 @@ public class WorkflowResource {
         filter.setMaxCount(pageSize);
         filter.setOffset(startRow);
         filter.setSortBy(sortBy);
-
+        filter.setType(materialType);
         filter.setId(id);
         filter.setJobId(jobId);
         filter.setTaskId(taskId);
@@ -434,6 +465,71 @@ public class WorkflowResource {
         } catch (WorkflowException ex) {
             return toError(ex, null);
         }
+    }
+
+    /**
+     * Gets subset of MODS properties in JSON.
+     *
+     * @param jobId workflow job id of requested digital object
+     * @param editorId view defining subset of MODS properties
+     */
+    @Path(WorkflowResourceApi.MODS_PATH)
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DescriptionMetadata<Object>> getDescriptionMetadata(
+            @QueryParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
+            @QueryParam(MetaModelDataSource.FIELD_EDITOR) String editorId,
+            @QueryParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId
+    ) throws DigitalObjectException {
+        if (jobId == null) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, jobId.toString());
+        }
+
+        DigitalObjectHandler doHandler = findHandler(jobId, modelId);
+        DescriptionMetadata<Object> metadata = doHandler.metadata().getMetadataAsJsonObject(editorId);
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+    @PUT
+    @Path(WorkflowResourceApi.MODS_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadata(
+            @FormParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA) String xmlData,
+            @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId,
+            @DefaultValue("false")
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation
+    ) throws DigitalObjectException {
+        if (jobId == null) {
+            throw RestException.plainNotFound(WorkflowModelConsts.PARAMETER_JOBID, jobId.toString());
+        }
+        LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, ignoreValidation: %s, json: %s, xml: %s",
+                jobId, editorId, timestamp, ignoreValidation, jsonData, xmlData));
+        final boolean isJsonData = xmlData == null;
+        String data = isJsonData ? jsonData : xmlData;
+        DigitalObjectHandler doHandler = findHandler(jobId, modelId);
+        MetadataHandler<?> mHandler = doHandler.metadata();
+        DescriptionMetadata<String> dMetadata = new DescriptionMetadata<String>();
+        dMetadata.setEditor(editorId);
+        dMetadata.setData(data);
+        dMetadata.setTimestamp(timestamp);
+        dMetadata.setIgnoreValidation(ignoreValidation);
+        if (isJsonData) {
+            mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog());
+        } else {
+            mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog());
+        }
+        doHandler.commit();
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+    }
+
+    private DigitalObjectHandler findHandler(BigDecimal jobId, String modelId) throws DigitalObjectNotFoundException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        FedoraObject fobject = dom.find(jobId, modelId, session.getLocale(httpHeaders));
+        return dom.createHandler(fobject);
     }
 
     @Path(WorkflowResourceApi.PARAMETER_PATH)
@@ -483,6 +579,18 @@ public class WorkflowResource {
         for (JobDefinition job : workflowDefinition.getJobs()) {
             if ((name == null || name.equals(job.getName()))
                     && (disabled == null || disabled == job.isDisabled())) {
+                Set<String> modelPids = MetaModelRepository.getInstance().find()
+                        .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
+
+
+                List<String> unknownModels = job.getModel().stream().map(metamodel -> metamodel.getPid())
+                        .filter(p -> !modelPids.contains(p)).collect(Collectors.toList());
+
+                if (!unknownModels.isEmpty()) {
+                    return SmartGwtResponse.asError(WorkflowProfileConsts.MODEL_PID + " - invalid values! "
+                            + String.join(", ", unknownModels));
+                }
+
                 profiles.add(new JobDefinitionView(job, lang));
             }
         }

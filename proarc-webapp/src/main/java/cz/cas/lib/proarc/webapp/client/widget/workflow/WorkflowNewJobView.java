@@ -35,16 +35,18 @@ import com.smartgwt.client.widgets.grid.HoverCustomizer;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.menu.IconMenuButton;
+import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItem;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
-import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.Action;
-import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJobEditor;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJob;
 import cz.cas.lib.proarc.webapp.client.widget.CatalogBrowser;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 
@@ -58,7 +60,8 @@ public class WorkflowNewJobView {
     private DynamicForm optionForm;
     private CatalogBrowser catalogBrowser;
     private final Canvas widget;
-    private WorkflowNewJobEditor handler;
+    private WorkflowNewJob handler;
+    private IconMenuButton newJobButton;
 
     public WorkflowNewJobView(ClientMessages i18n) {
         this.i18n = i18n;
@@ -79,7 +82,7 @@ public class WorkflowNewJobView {
         catalogBrowser.bind();
     }
 
-    public void setHandler(WorkflowNewJobEditor handler) {
+    public void setHandler(WorkflowNewJob handler) {
         this.handler = handler;
     }
 
@@ -103,44 +106,56 @@ public class WorkflowNewJobView {
     }
 
     private ToolStrip createToolbar() {
-        Action actionNew = new AbstractAction(
-                i18n.WorkflowJob_NewJobView_NewAction_Title(),
-                "[SKIN]/actions/save.png",
-                i18n.WorkflowJob_NewJobView_NewAction_Hint()) {
-
-                    @Override
-                    public void performAction(ActionEvent event) {
-                        fireOnCreateNew();
-                    }
-                };
         ToolStrip toolbar = Actions.createToolStrip();
-        toolbar.addMember(Actions.asIconButton(actionNew, this));
+        Action actionNew = Actions.emptyAction(i18n.WorkflowJob_NewJobView_NewAction_Title(), "[SKIN]/actions/save.png", i18n.WorkflowJob_NewJobView_NewAction_Hint());
+        newJobButton = Actions.asIconMenuButton(actionNew, this);
+        toolbar.addMember(newJobButton);
         return toolbar;
     }
 
-    private void fireOnCreateNew() {
+    private void fireOnCreateNew(Record model) {
         if (handler != null) {
             String mods = catalogBrowser.getMods();
             optionForm.setValue(WorkflowResourceApi.NEWJOB_METADATA, mods);
             optionForm.getField(WorkflowResourceApi.NEWJOB_METADATA).setVisible(mods == null);
             optionForm.setValue(WorkflowResourceApi.NEWJOB_CATALOGID, catalogBrowser.getCatalogId());
+            // rdcz is available only in rd search
+            if (catalogBrowser.getRdczId() != null) {
+                optionForm.setValue(WorkflowResourceApi.NEWJOB_RDCZID, catalogBrowser.getRdczId());
+            }
             boolean valid = optionForm.validate();
             if (valid) {
-                handler.onCreateNew(optionForm.getValuesAsRecord());
+                handler.onCreateNew(model.getAttributeAsString("name"), optionForm.getValuesAsRecord());
             }
         }
     }
 
+    private void fetchModelMenu(Record profile) {
+        String jobName = profile.getAttributeAsString("name");
+
+        WorkflowProfileDataSource.getInstance().getModels(false, jobName, (models) -> {
+            Menu menu = new Menu();
+            for (Record model : models) {
+                MenuItem menuItem = new MenuItem(model.getAttribute(WorkflowProfileConsts.MODEL_TITLE));
+                menu.addItem(menuItem);
+                menuItem.addClickHandler(event -> {
+                      fireOnCreateNew(model);
+                });
+            }
+            newJobButton.setMenu(menu);
+        });
+
+    }
+
     private Widget createOptionForm() {
         final SelectItem profile = createProfileSelector();
+        profile.addChangedHandler(changedEvent -> fetchModelMenu(changedEvent.getItem().getSelectedRecord()));
 
         TextItem metadata = new TextItem(WorkflowResourceApi.NEWJOB_METADATA, "Metadata");
-        metadata.setRequired(true);
         metadata.setShowTitle(false);
         metadata.setCanEdit(false);
         metadata.setStartRow(true);
         metadata.setReadOnlyDisplay(ReadOnlyDisplayAppearance.STATIC);
-        metadata.setRequiredMessage(i18n.WorkflowJob_NewJobView_Err_NoMetadata_Msg());
         // show empty value instead of XML
         metadata.setEditorValueFormatter(new FormItemValueFormatter() {
 

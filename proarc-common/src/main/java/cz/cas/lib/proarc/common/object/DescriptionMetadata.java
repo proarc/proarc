@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  * The description metadata of a digital object.
@@ -31,6 +30,12 @@ public class DescriptionMetadata<T> {
     private String editor;
     private T data;
     private boolean ignoreValidation = false;
+
+    /**
+     * an alternative id of a digital object from the workflow
+     * a digital object that exists only in the workflow may not have a pid
+     */
+    private Long worfklowJobId;
 
     public DescriptionMetadata() {
     }
@@ -83,4 +88,11 @@ public class DescriptionMetadata<T> {
         this.timestamp = timestamp;
     }
 
+    public Long getWorfklowJobId() {
+        return worfklowJobId;
+    }
+
+    public void setWorfklowJobId(Long worfklowJobId) {
+        this.worfklowJobId = worfklowJobId;
+    }
 }

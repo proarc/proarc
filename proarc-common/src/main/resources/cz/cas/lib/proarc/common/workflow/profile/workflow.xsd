@@ -37,6 +37,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     <xs:complexType name="jobDefinition">
         <xs:sequence>
             <xs:element name="worker" type="tns:workerDefinition" minOccurs="0" />
+            <xs:element name="model" type="tns:modelDefinition" minOccurs="0" maxOccurs="unbounded" />
             <xs:choice minOccurs="0" maxOccurs="unbounded">
                 <!--
                 The name reference to a job that can be added as a subjob of this job.
@@ -89,6 +90,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
             <xs:element name="param" type="tns:paramDefinition"/>
             <xs:element name="hint" type="tns:i18NString"/>
             <xs:element name="title" type="tns:i18NString"/>
+            <xs:element name="action" type="tns:actionDefinition" />
         </xs:choice>
         <xs:attribute name="name" type="xs:ID" use="required"/>
         <xs:attribute name="disabled" type="xs:boolean"/>
@@ -134,6 +136,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
         </xs:simpleContent>
     </xs:complexType>
 
+    <!-- these models (defined by PID of model) can be created; optional (in case empty list is not possible to create a new object)   -->
+    <xs:complexType name="modelDefinition">
+        <xs:attribute name="pid" type="xs:string" use="required"/>
+    </xs:complexType>
+
     <xs:complexType name="i18NString">
         <xs:simpleContent>
             <xs:extension base="xs:string">
@@ -167,6 +174,27 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
         <!--specifies how to display the param value-->
         <xs:attribute name="displayType" type="tns:displayTypeDefinition" default="TEXT"/>
     </xs:complexType>
+
+    <xs:complexType name="actionDefinition">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="arg" type="tns:actionArgTypeDefinition" />
+        </xs:choice>
+        <xs:attribute name="command" type="xs:string" />
+    </xs:complexType>
+
+    <xs:simpleType name="actionArgTypeDefinition">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="path"/>
+            <xs:enumeration value="pid"/>
+            <xs:enumeration value="barcode"/>
+            <xs:enumeration value="source"/>
+            <xs:enumeration value="field001"/>
+            <xs:enumeration value="metadata"/>
+            <xs:enumeration value="sigla"/>
+            <xs:enumeration value="signature"/>
+            <xs:enumeration value="rdczId"/>
+        </xs:restriction>
+    </xs:simpleType>
 
     <xs:simpleType name="valueTypeDefinition">
         <xs:restriction base="xs:string">

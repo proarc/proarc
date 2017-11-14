@@ -16,9 +16,13 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
+import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
@@ -33,19 +37,21 @@ import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
 import cz.cas.lib.proarc.mods.RoleDefinition;
 import cz.cas.lib.proarc.mods.RoleTermDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.SubjectDefinition;
 import cz.cas.lib.proarc.mods.SubjectNameDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.mods.UrlDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.io.IOException;
 import java.util.List;
 
 /**
  *
  * @author Jan Pokorsky
  */
-public class NdkCartographicMapper extends NdkMapper {
+public class NdkCartographicMapper extends RdaNdkMapper {
 
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
@@ -92,6 +98,10 @@ public class NdkCartographicMapper extends NdkMapper {
                     }
                 }
             }
+            // sets type in element dateOther
+            for (DateOtherDefinition dateOther : oi.getDateOther()) {
+                dateOther.setType(oi.getEventType());
+            }
         }
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
@@ -99,16 +109,21 @@ public class NdkCartographicMapper extends NdkMapper {
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {
                 if (form.getAuthority() == null) {
-                    form.setAuthority("marcform");
+                    form.setAuthority(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM);
+                }
+                if (ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA.equals(form.getAuthority())) {
+                    form.setType("media");
+                } else if (ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER.equals(form.getAuthority())) {
+                    form.setType("carrier");
+                } else {
+                    form.setType(null);
                 }
             }
         }
         //  mods/classification@authority="udc"
         List<ClassificationDefinition> classifications = mods.getClassification();
         for (ClassificationDefinition classification : classifications) {
-            if (classification.getAuthority() == null) {
-                classification.setAuthority("udc");
-            }
+            repairAuthorityInClassification(classification);
         }
         //  mods/location/physicalLocation@authority="siglaADR"
         List<LocationDefinition> locations = mods.getLocation();

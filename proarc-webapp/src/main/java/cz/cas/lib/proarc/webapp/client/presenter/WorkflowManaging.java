@@ -46,13 +46,17 @@ public class WorkflowManaging extends AbstractActivity {
             panel.setWidget(presenter.getUI());
             presenter.open((WorkflowJobPlace) place);
         } else if (place instanceof WorkflowNewJobPlace) {
-            WorkflowNewJobEditor presenter = presenterFactory.getWorkflowNewJob();
+            WorkflowNewJob presenter = presenterFactory.getWorkflowNewJob();
             panel.setWidget(presenter.getUI());
             presenter.init();
         } else if (place instanceof WorkflowTaskPlace) {
             WorkflowTasksEditor presenter = presenterFactory.getWorkflowTasks();
             panel.setWidget(presenter.getUI());
             presenter.open((WorkflowTaskPlace) place);
+        } else if(place instanceof WorkflowNewJobEditPlace) {
+            WorkflowNewJobEditor presenter = presenterFactory.getWorkflowNewJobEdit();
+            panel.setWidget(presenter.getUI());
+            presenter.open((WorkflowNewJobEditPlace) place);
         } else {
             panel.setWidget(null);
         }
@@ -134,16 +138,71 @@ public class WorkflowManaging extends AbstractActivity {
 
     }
 
+    public static class WorkflowNewJobEditPlace extends WorkflowPlace {
+
+        private String jobId;
+
+        private String modelPid;
+
+        public String getJobId() {
+            return jobId;
+        }
+
+        public WorkflowNewJobEditPlace setJobId(String jobId) {
+            this.jobId = jobId;
+            return this;
+        }
+
+        public WorkflowNewJobEditPlace setModelPid(String modelPid) {
+            this.modelPid = modelPid;
+            return this;
+        }
+
+        public String getModelPid() {
+            return modelPid;
+        }
+
+        @Override
+        public String toToken() {
+            JSONObject json = new JSONObject();
+            JsonTokenizer.putString(json, Tokenizer.TYPE, Type.NEWJOBEDIT.name());
+            JsonTokenizer.putString(json, Tokenizer.JOB_ID, jobId);
+            JsonTokenizer.putString(json, Tokenizer.MODEL_PID, modelPid);
+
+            return json.toString();
+        }
+
+
+        public static WorkflowNewJobEditPlace from(String type, JSONObject json) {
+            if (!Type.NEWJOBEDIT.name().equals(type)) {
+                return null;
+            }
+            WorkflowNewJobEditPlace place = new WorkflowNewJobEditPlace();
+            if (json != null) {
+                place.jobId = JsonTokenizer.getString(json, Tokenizer.JOB_ID);
+                place.modelPid = JsonTokenizer.getString(json, Tokenizer.MODEL_PID);
+            }
+
+            return place;
+        }
+
+    }
+
+
+
+
     public static abstract class WorkflowPlace extends Place {
 
         public abstract String toToken();
 
-        enum Type {NEWJOB, JOBS, TASKS}
+        enum Type {NEWJOB, NEWJOBEDIT, JOBS, TASKS}
 
         @Prefix("workflow")
         public static final class Tokenizer implements PlaceTokenizer<WorkflowPlace> {
 
             private static final String TYPE = "type";
+            private static final String JOB_ID = "jobId";
+            private static final String MODEL_PID = "modelPid";
 
             @Override
             public WorkflowPlace getPlace(String token) {
@@ -154,6 +213,7 @@ public class WorkflowManaging extends AbstractActivity {
                     if ((place = WorkflowJobPlace.from(type, json)) == null) {
                         if ((place = WorkflowTaskPlace.from(type, json)) == null) {
                             if ((place = WorkflowNewJobPlace.from(type, json)) == null) {
+                                place = WorkflowNewJobEditPlace.from(type, json);
                             }
                         }
                     }

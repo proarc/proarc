@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+    <leader>01312nas a2200373 a 450 </leader>
+    <controlfield tag="001">000182787</controlfield>
+    <controlfield tag="003">CZ HkSVK</controlfield>
+    <controlfield tag="005">20140404095605.0</controlfield>
+    <controlfield tag="008">991229d19761980xr ur pe      0    |cze  </controlfield>
+    <datafield ind1=" " ind2=" " tag="015">
+        <subfield code="a">cnb002372848</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="040">
+        <subfield code="a">HKA001</subfield>
+        <subfield code="b">cze</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="043">
+        <subfield code="a">e-xr---</subfield>
+        <subfield code="b">e-xr-kr</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="072">
+        <subfield code="a">7.01/.09</subfield>
+        <subfield code="x">Umění</subfield>
+        <subfield code="2">Konspekt</subfield>
+        <subfield code="9">21</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">379.824</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">061.2</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">(437.313)</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">(051)379.81/.84</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="080">
+        <subfield code="a">908(437.1)Hradec Králové</subfield>
+        <subfield code="2">MRF</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="0" tag="245">
+        <subfield code="a">Zpravodaj Klubu sběratelů</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="1" tag="264">
+        <subfield code="a">Hradec Králové :</subfield>
+        <subfield code="b">Kulturní dům ROH,</subfield>
+        <subfield code="c">1976-1980</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="4" tag="264">
+        <subfield code="a">Praha</subfield>
+        <subfield code="b">Albatros</subfield>
+        <subfield code="c">2015</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="310">
+        <subfield code="a">Periodicita není známa</subfield>
+    </datafield>
+    <datafield ind1="0" ind2=" " tag="362">
+        <subfield code="a">Rok 1976-1980</subfield>
+    </datafield>
+    <datafield ind1="2" ind2="4" tag="610">
+        <subfield code="a">Klub sběratelů (Hradec Králové, Česko)</subfield>
+        <subfield code="7">367442</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="7" tag="650">
+        <subfield code="a">sběratelství</subfield>
+        <subfield code="7">ph116111</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1="0" ind2="7" tag="650">
+        <subfield code="a">zájmové organizace</subfield>
+        <subfield code="7">ph127723</subfield>
+        <subfield code="z">Česko</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="651">
+        <subfield code="a">Hradec Králové (Česko)</subfield>
+        <subfield code="7">ge129332</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2="7" tag="655">
+        <subfield code="a">zájmové časopisy</subfield>
+        <subfield code="7">fd133885</subfield>
+        <subfield code="2">czenas</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="910">
+        <subfield code="a">HKA001</subfield>
+        <subfield code="a">test sigla</subfield>
+        <subfield code="b">54 487</subfield>
+        <subfield code="b">test signatura</subfield>
+        <subfield code="r">1976-1980</subfield>
+        <subfield code="u">trvale</subfield>
+    </datafield>
+    <datafield ind1="9" ind2=" " tag="928">
+        <subfield code="a">Kulturní dům ROH</subfield>
+        <subfield code="c">Hradec Králové</subfield>
+        <subfield code="7">nak61795</subfield>
+        <subfield code="4">pbl</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="962">
+        <subfield code="b">05</subfield>
+        <subfield code="b">689</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="967">
+        <subfield code="a">Hradec Králové</subfield>
+        <subfield code="b">Hradec Králové (okres)</subfield>
+        <subfield code="c">Královéhradecký kraj</subfield>
+        <subfield code="c">východní Čechy</subfield>
+        <subfield code="d">cz-ce</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="984">
+        <subfield code="a">Hradec Králové</subfield>
+        <subfield code="7">geo36</subfield>
+    </datafield>
+    <datafield ind1=" " ind2=" " tag="991"/>
+    <datafield ind1=" " ind2=" " tag="998">
+        <subfield code="a">-----nas-a22------a-0-0-</subfield>
+    </datafield>
+</record>

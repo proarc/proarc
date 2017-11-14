@@ -88,6 +88,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public static final String ERR_NDK_CHANGE_MODS_WITH_MEMBERS = "Err_Ndk_Change_Mods_With_Members";
     public static final String ERR_NDK_DOI_DUPLICITY = "Err_Ndk_Doi_Duplicity";
     public static final String ERR_NDK_REMOVE_URNNBN = "Err_Ndk_Remove_UrnNbn";
+    public static final String DEFAULT_PAGE_TYPE = "NormalPage";
 
     /**
      * The set of model IDs that should be checked for connected members.
@@ -281,8 +282,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     @Override
     public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message) throws DigitalObjectException {
         String json = jsonData.getData();
-        String editorId = jsonData.getEditor();
-        String modelId = handler.relations().getModel();
+        String modelId = handler.getModel().getPid();
         ModsDefinition mods;
         if (json == null) {
             mods = createDefault(modelId);
@@ -302,10 +302,13 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     @Override
     public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message) throws DigitalObjectException {
         ModsDefinition mods;
-        String modelId = handler.relations().getModel();
+        String modelId = handler.getModel().getPid();
         if (xmlData.getData() != null) {
             ValidationErrorHandler errHandler = new ValidationErrorHandler();
             try {
+                String data = xmlData.getData();
+                xmlData.setData(data);
+
                 Validator validator = ModsUtils.getSchema().newValidator();
                 validator.setErrorHandler(errHandler);
                 validator.validate(new StreamSource(new StringReader(xmlData.getData())));
@@ -408,7 +411,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    private void checkBeforeWrite(ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations) throws DigitalObjectException {
+    private void checkBeforeWrite(ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations, String modelId) throws DigitalObjectException {
         if (ignoreValidations) {
             checkIdentifiers(mods, oldMods, null);
             return ;
@@ -424,10 +427,15 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (!ex.getValidations().isEmpty()) {
             throw ex;
         }
+
+        RdaRules rdaRules = new RdaRules(modelId, mods, ex);
+        rdaRules.check();
     }
 
     private void checkIdentifiers(ModsDefinition mods, ModsDefinition oldMods, DigitalObjectValidationException ex) throws DigitalObjectException {
-        ModsStreamEditor.addPid(mods, fobject.getPid());
+        if (fobject != null && fobject.getPid() != null) {
+            ModsStreamEditor.addPid(mods, fobject.getPid());
+        }
         List<IdentifierDefinition> oldIds = oldMods != null ? oldMods.getIdentifier()
                 : Collections.<IdentifierDefinition>emptyList();
         // check URN:NBN
@@ -494,7 +502,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (timestamp > 0) {
             oldMods = editor.read();
         }
-        checkBeforeWrite(mods, oldMods, options.isIgnoreValidation());
+        checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId);
         NdkMapper mapper = mapperFactory.get(modelId);
         Context context = new Context(handler);
         mapper.createMods(mods, context);
@@ -573,5 +581,4 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             this.mods = mods;
         }
     }
-
 }

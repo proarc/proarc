@@ -75,6 +75,11 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
      */
     public static final String MODEL_PAGE = "model:oldprintpage";
 
+    /**
+     * The multipart volume of old prints.
+     */
+    public static final String MODEL_MONOGRAPHTITLE = "model:oldprintmonographtitle";
+
     private OldPrintSearchViewHandler searchViewHandler;
 
     @Override
@@ -87,13 +92,22 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
         // for now it is read only repository
         List<MetaModel> models = new ArrayList<MetaModel>();
         models.add(new MetaModel(
+                MODEL_MONOGRAPHTITLE, true, null,
+                Arrays.asList(new ElementType("Old Print Multipart Monograph", "en"), new ElementType("STT Vícedílná monografie", "cs")),
+                ModsConstants.NS,
+                MODEL_MONOGRAPHTITLE,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
                 MODEL_VOLUME, true, null,
                 Arrays.asList(new ElementType("Old Print Volume", "en"), new ElementType("STT Svazek monografie", "cs")),
                 ModsConstants.NS,
                 MODEL_VOLUME,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        /*DatastreamEditorType.PARENT, */DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(

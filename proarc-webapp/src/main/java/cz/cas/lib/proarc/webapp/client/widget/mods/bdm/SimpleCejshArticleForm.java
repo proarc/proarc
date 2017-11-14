@@ -47,6 +47,7 @@ public final class SimpleCejshArticleForm {
         modsFields.add(genre());
         modsFields.add(language());
         modsFields.add(identifier());
+        modsFields.add(physicalDescription());
 //        modsFields.add(part());
         modsFields.add(titleInfo(f.getItemWidth()));
         modsFields.add(name());
@@ -112,7 +113,7 @@ public final class SimpleCejshArticleForm {
                 .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
                     .addField(new FieldBuilder("value").setTitle("Podnázev - MA").setMaxOccurrences(1)
                         .setType(Field.TEXTAREA)
-                        .setRequired(true)
+                        .setRequired(false)
                         .setHeight("50")
                         .setHint("Podnázev článku. Za podnázev lze považovat i perex.")
                     .createField()) // value
@@ -304,27 +305,22 @@ public final class SimpleCejshArticleForm {
 
     private Field physicalDescription() {
         // physicalDescription, physicalDescriptionDefinition
-        return new FieldBuilder("physicalDescription").setTitle("Physical Description - R").setMaxOccurrences(10)
+        return new FieldBuilder("physicalDescription").setTitle("Fyzický popis - M").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu článku.")
                 // form, formDefinition extends stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("form").setTitle("Form - R").setMaxOccurrences(1)
+                .addField(new FieldBuilder("form").setTitle("Typ média - M").setMaxOccurrences(1)
                     // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @type, string
                     // XXX autofill "marcform"
-                    .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("marcform")
-                        .addMapValue("marcform", "marcform")
-                        .addMapValue("gmd", "gmd")
+                    .addField(new FieldBuilder("authority").setTitle("Authority - MA").setMaxOccurrences(1).setType(Field.TEXT).setReadOnly(true)
                     .createField()) // authority
-                    .addField(new FieldBuilder("value").setTitle("Form - R").setMaxOccurrences(1).setType(Field.COMBO)
+                    .addField(new FieldBuilder("value").setTitle("Typ média - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
                             + "<p>Odpovídá hodnotě v poli 008/23")
-                        .addMapValue("braille", "braille")
-                        .addMapValue("electronic", "electronic")
-                        .addMapValue("large print", "large print")
-                        .addMapValue("microfilm", "microfilm")
-                        .addMapValue("microfiche", "microfiche")
-                        .addMapValue("print", "print")
+                        .addMapValue("bez média", "bez média")
+                        .addMapValue("jiný", "jiný")
+                        .addMapValue("počítač", "počítač")
                     .createField()) // value
                 .createField()) // form
                 // reformattingQuality

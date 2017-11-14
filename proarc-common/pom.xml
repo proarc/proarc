@@ -60,18 +60,16 @@
             <artifactId>proarc-urnnbn</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>edu.harvard.hul.ois</groupId>
-            <artifactId>jhove</artifactId>
-            <!--
-                The jar based on 1.12.0-SNAPSHOT revision c770951dfbadc4b5795480cdf3e4306a447b292b.
-                It is accessible from https://github.com/proarc/proarc.mvnrepo/
-                until JHove does not release 1.12.
-            -->
-            <version>1.12.0-SNAPSHOT</version>
+            <groupId>org.openpreservation.jhove</groupId>
+            <artifactId>jhove-core</artifactId>
+            <version>1.16.7</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.openpreservation.jhove</groupId>
+            <artifactId>jhove-modules</artifactId>
+            <version>1.16.7</version>
+        </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
@@ -255,5 +253,34 @@
         </plugins>
 
     </build>
+
+    <profiles>
+        <profile>
+            <id>travis</id>
+            <activation>
+                <property>
+                    <name>env.TRAVIS</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>
+                                <proarc-common.DbUnitSupport.jdbc.url>jdbc:postgresql://localhost:5432/proarc_test</proarc-common.DbUnitSupport.jdbc.url>
+                                <proarc-common.DbUnitSupport.jdbc.user>postgres</proarc-common.DbUnitSupport.jdbc.user>
+                                <proarc-common.DbUnitSupport.jdbc.passwd></proarc-common.DbUnitSupport.jdbc.passwd>
+                                <proarc-common.DbUnitSupport.jdbc.driver>org.postgresql.Driver</proarc-common.DbUnitSupport.jdbc.driver>
+                                <proarc-common.DbUnitSupport.empiredb.driver>org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL</proarc-common.DbUnitSupport.empiredb.driver>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

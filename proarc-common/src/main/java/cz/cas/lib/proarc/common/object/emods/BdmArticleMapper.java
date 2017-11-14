@@ -17,11 +17,17 @@
 package cz.cas.lib.proarc.common.object.emods;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkArticleMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
+import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Maps born digital articles.
@@ -34,6 +40,70 @@ public class BdmArticleMapper extends NdkArticleMapper {
     public static final String GENRE_ARTICLE_VALUE = "article";
     /** {@code mods/genre/@type='peer-reviewed'}. */
     public static final String GENRE_PEER_REVIEWED_TYPE = "peer-reviewed";
+
+    @Override
+    public void createMods(ModsDefinition mods, Context ctx) {
+        super.createMods(mods, ctx);
+
+        List<PhysicalDescriptionDefinition> listPhysicalDescription = new ArrayList<>();
+        for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
+            for (FormDefinition form : pd.getForm()) {
+                FormDefinition newFormDefinition = new FormDefinition();
+                if ("bez média".equals(form.getValue())) {
+                    setFormDefinition(form, newFormDefinition, "svazek");
+                } else if ("počítač".equals(form.getValue())) {
+                    setFormDefinition(form, newFormDefinition, "online zdroj");
+                } else if ("jiný".equals(form.getValue()) && (form.getAuthority() == null || "rdamedia".equals(form.getAuthority()))) {
+                    setFormDefinition(form, newFormDefinition, "jiný");
+                } else {
+                    if (form.getAuthority() == null) {
+                        form.setAuthority("marcform");
+                    }
+                }
+                PhysicalDescriptionDefinition pdd = new PhysicalDescriptionDefinition();
+                pdd.getForm().add(newFormDefinition);
+                listPhysicalDescription.add(pdd);
+            }
+        }
+        for (PhysicalDescriptionDefinition pd : listPhysicalDescription) {
+            if (checkNewFormDefinition(pd.getForm().get(0), mods)) {
+                mods.getPhysicalDescription().add(pd);
+            }
+        }
+    }
+
+    /**
+     * Checks formDefinition created by computer
+     *
+     * @return true if formDefinition is not empty and if formDefinition is unique
+     */
+    private boolean checkNewFormDefinition(FormDefinition newForm, ModsDefinition mods) {
+        for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
+            for (FormDefinition form : pd.getForm()) {
+                if (newForm.getValue() == null || form.getValue() == null) {
+                    return false;
+                }
+                if (form.getValue().equals(newForm.getValue()) && form.getAuthority().equals(newForm.getAuthority()) && form.getType().equals(newForm.getType())) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Sets FormDefinitions
+     *
+     * @param form element created by user
+     * @param newFormDefinition element created by computer
+     */
+    private void setFormDefinition(FormDefinition form, FormDefinition newFormDefinition, String value) {
+        form.setType("media");
+        form.setAuthority("rdamedia");
+        newFormDefinition.setType("carrier");
+        newFormDefinition.setAuthority("rdacarrier");
+        newFormDefinition.setValue(value);
+    }
 
     @Override
     public ModsWrapper toJsonObject(ModsDefinition mods, Context ctx) {
@@ -52,7 +122,18 @@ public class BdmArticleMapper extends NdkArticleMapper {
         } else {
             mw.setReviewed(Boolean.FALSE);
         }
-        return mw;
+        if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()){
+            return mw;
+        } else {
+           String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
+           if (descriptionStandard.equals(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)) {
+               mw.setRdaRules(true);
+           } else {
+               mw.setRdaRules(false);
+           }
+            mods.getRecordInfo().get(0).getDescriptionStandard().clear();
+           return mw;
+        }
     }
 
     @Override
@@ -65,6 +146,13 @@ public class BdmArticleMapper extends NdkArticleMapper {
             reviewed.setType(GENRE_PEER_REVIEWED_TYPE);
             mods.getGenre().add(0, reviewed);
         }
+        StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
+        if (wrapper.getRdaRules() != null && wrapper.getRdaRules()) {
+            descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
+        } else {
+            descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
+        }
+        mods.getRecordInfo().get(0).getDescriptionStandard().add(0, descriptionStandard);
         return mods;
     }
 
@@ -74,6 +162,15 @@ public class BdmArticleMapper extends NdkArticleMapper {
          * A reviewed article. {@code mods/genre[@type'peer-reviewed' and text()='article'] }
          */
         private Boolean reviewed;
+        private Boolean rdaRules;
+
+        public Boolean getRdaRules() {
+            return rdaRules == null ? true : rdaRules;
+        }
+
+        public void setRdaRules(Boolean rdaRules) {
+            this.rdaRules = rdaRules;
+        }
 
         public Boolean getReviewed() {
             return reviewed;

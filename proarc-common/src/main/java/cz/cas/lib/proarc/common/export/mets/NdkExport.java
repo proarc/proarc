@@ -14,15 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.export;
+package cz.cas.lib.proarc.common.export.mets;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.export.ExportException;
+import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
-import cz.cas.lib.proarc.common.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -44,9 +44,11 @@ public final class NdkExport {
 
     private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
     private final RemoteStorage rstorage;
+    private final NdkExportOptions options;
 
-    public NdkExport(RemoteStorage rstorage) {
+    public NdkExport(RemoteStorage rstorage, NdkExportOptions options) {
         this.rstorage = rstorage;
+        this.options = options;
     }
 
 //    /**
@@ -177,6 +179,7 @@ public final class NdkExport {
         mc.setOutputPath(targetFolder.getAbsolutePath());
         mc.setAllowNonCompleteStreams(false);
         mc.setAllowMissingURNNBN(false);
+        mc.setConfig(options);
         return mc;
     }
 

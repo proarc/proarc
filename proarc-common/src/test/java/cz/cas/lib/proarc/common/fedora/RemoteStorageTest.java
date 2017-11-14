@@ -54,6 +54,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TestName;
 
+import java.io.IOException;
 /**
  *
  * @author Jan Pokorsky
@@ -179,6 +180,52 @@ public class RemoteStorageTest {
             }
         }
         fail(id);
+    }
+
+    @Test
+    public void testDatastreamPurge() throws Exception {
+        RemoteStorage fedora = new RemoteStorage(client);
+        LocalObject local = new LocalStorage().create();
+        String model = "model:page";
+
+        prepareLocalObject(local, model);
+
+        String label = "datastreamPurgeTest";
+        local.setLabel(label);
+        fedora.ingest(local, "junit");
+        ListDatastreamsResponse response = FedoraClient.listDatastreams(local.getPid()).execute(client);
+        List<DatastreamType> datastreams = response.getDatastreams();
+        assertDatastream(DcStreamEditor.DATASTREAM_ID, datastreams);
+        assertDatastream(ModsStreamEditor.DATASTREAM_ID, datastreams);
+        assertDatastream(RelationEditor.DATASTREAM_ID, datastreams);
+        assertDatastream(StringEditor.OCR_ID, datastreams);
+        assertDatastream(BinaryEditor.THUMB_ID, datastreams);
+
+        RemoteObject robject = fedora.find(local.getPid());
+        robject.purgeDatastream(BinaryEditor.THUMB_ID, "{\"key\":\"val\"}");
+        response = FedoraClient.listDatastreams(local.getPid()).execute(client);
+        datastreams = response.getDatastreams();
+
+        assertFalse(datastreams.contains(BinaryEditor.THUMB_ID));
+    }
+
+    private void prepareLocalObject(LocalObject local, String model) throws DigitalObjectException, IOException {
+        RelationEditor relsExt = new RelationEditor(local);
+        relsExt.setModel(model);
+        relsExt.write(0, null);
+        ModsStreamEditor modsEditor = new ModsStreamEditor(local);
+        ModsDefinition mods = modsEditor.createPage(local.getPid(), "1", "[1]", "Blank");
+        DcStreamEditor dcEditor = new DcStreamEditor(local);
+        dcEditor.write(mods, model, 0, null);
+        modsEditor.write(mods, 0, null);
+
+        StringEditor ocrEditor = StringEditor.ocr(local);
+        ocrEditor.write("ocr", 0, null);
+
+        File thumb = tmp.newFile();
+        assertTrue(thumb.exists());
+        BinaryEditor.dissemination(local, BinaryEditor.THUMB_ID).write(thumb, 0, null);
+        local.flush();
     }
 
     @Test

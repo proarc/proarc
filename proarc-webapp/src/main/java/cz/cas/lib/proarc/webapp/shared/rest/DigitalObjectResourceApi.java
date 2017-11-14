@@ -176,6 +176,7 @@ public final class DigitalObjectResourceApi {
     public static final String URNNBN_ITEM_STATUSTYPE = "statusType";
     public static final String URNNBN_ITEM_WARNING = "warning";
     public static final String URNNBN_ITEM_LOG = "log";
+    public static final String WORKFLOW_JOB_ID = "wfJobId";
 
     public enum SearchType {
         

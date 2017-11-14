@@ -384,7 +384,7 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
     }
 
     private void saveXmlData(BooleanCallback callback) {
-        modsSourceEditor.save(callback, true, SaveAction.SaveValidation.RUN);
+        modsSourceEditor.save(callback, true, SaveAction.SaveValidation.ASK);
     }
 
     private void saveBatchData(BooleanCallback callback) {

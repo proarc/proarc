@@ -35,7 +35,9 @@ public class OldPrintPageMapper extends NdkPageMapper {
 
     public static ResourceBundle getPageTypeLabels(Locale locale) {
         ResourceBundle rb = ResourceBundle.getBundle(
-                BundleName.MODS_OLDPRINT_PAGE_TYPES.toString(), locale);
+                BundleName.MODS_OLDPRINT_PAGE_TYPES.toString(),
+                locale,
+                ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES));
         return rb;
     }
 

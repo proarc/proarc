@@ -170,6 +170,11 @@ public class NdkPeriodicalMapperTest {
                 + "<titleInfo>"
                     + "<title>T2</title><subTitle>S2</subTitle>"
                 + "</titleInfo>"
+                + "<name usage = 'primary' type='personal'>"
+                + "<namePart type='family'>Novotny</namePart>"
+                + "<namePart type='given'>Tomas</namePart>"
+                + "<namePart type='date'>12.9.1999</namePart>"
+                + "<role><roleTerm>cre</roleTerm></role></name>"
                 + "</mods>";
         ModsDefinition mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xml)));
         NdkPeriodicalMapper mapper = new NdkPeriodicalMapper();
@@ -180,6 +185,7 @@ public class NdkPeriodicalMapperTest {
         assertEquals("T2: S2", result.getTitles().get(1).getValue());
         assertEquals("PNum1", result.getDescriptions().get(0).getValue());
         assertEquals("PNam1", result.getDescriptions().get(1).getValue());
+        assertEquals("Novotny, Tomas, 12.9.1999", result.getCreators().get(0).getValue());
 
     }
 

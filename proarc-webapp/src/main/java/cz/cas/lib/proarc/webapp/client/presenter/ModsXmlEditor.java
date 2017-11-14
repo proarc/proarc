@@ -24,6 +24,10 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
+import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
+import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
@@ -33,8 +37,11 @@ import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetada
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionSaveHandler;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.TextDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.CodeMirror;
 import cz.cas.lib.proarc.webapp.client.widget.DatastreamEditor;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -95,26 +102,38 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
 
     private void refresh(final boolean cleanHistory) {
         if (digitalObject != null) {
-            Criteria pidCriteria = new Criteria(ModsCustomDataSource.FIELD_PID, digitalObject.getPid());
-            if (digitalObject.getBatchId() != null) {
-                pidCriteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, digitalObject.getBatchId());
-            }
-            TextDataSource.getMods().fetchData(pidCriteria, new DSCallback() {
-
-                @Override
-                public void execute(DSResponse response, Object rawData, DSRequest request) {
-                    handleFetchResponse(response, cleanHistory);
+            if (digitalObject.getPid() != null) {
+                Criteria pidCriteria = new Criteria(ModsCustomDataSource.FIELD_PID, digitalObject.getPid());
+                if (digitalObject.getBatchId() != null) {
+                    pidCriteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, digitalObject.getBatchId());
                 }
-            });
+                TextDataSource.getMods().fetchData(pidCriteria, new DSCallback() {
+                    @Override
+                    public void execute(DSResponse response, Object rawData, DSRequest request) {
+                        handleFetchResponse(response, TextDataSource.FIELD_CONTENT, cleanHistory);
+                    }
+                });
+            }
+
+            if (digitalObject.getWorkflowJobId() != null) {
+                Criteria criteria = new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, digitalObject.getWorkflowJobId().toString());
+                criteria.addCriteria(new Criteria(WorkflowModelConsts.MATERIAL_TYPE, MaterialType.PHYSICAL_DOCUMENT.name()));
+                WorkflowMaterialDataSource.getInstance().fetchData(criteria, new DSCallback() {
+                    @Override
+                    public void execute(DSResponse response, Object rawData, DSRequest request) {
+                        handleFetchResponse(response, WorkflowModelConsts.MATERIAL_METADATA, cleanHistory);
+                    }
+                });
+            }
         }
     }
 
-    private void handleFetchResponse(DSResponse response, boolean cleanHistory) {
+    private void handleFetchResponse(DSResponse response, String property, boolean cleanHistory) {
         xml = "";
         if (RestConfig.isStatusOk(response)) {
             Record[] data = response.getData();
             if (data != null && data.length == 1) {
-                xml = data[0].getAttribute(TextDataSource.FIELD_CONTENT);
+                xml = data[0].getAttribute(property);
                 timestamp = data[0].getAttributeAsLong(TextDataSource.FIELD_TIMESTAMP);
             }
         }
@@ -174,8 +193,14 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
             @Override
             protected void onValidationError() {
                 // Do not ignore XML validation!
-                SC.warn(i18n.SaveAction_Title(), getValidationMessage());
-                callback.execute(Boolean.FALSE);
+                String msg = i18n.SaveAction_IgnoreRemoteInvalid_Msg(getValidationMessage());
+
+                SC.ask(i18n.SaveAction_Title(), msg, value -> {
+                    // save again
+                    if (value != null && value) {
+                        ModsCustomDataSource.getInstance().saveXmlDescription(digitalObject, newXml, timestamp, this, true);
+                    }
+                });
             }
 
         });
