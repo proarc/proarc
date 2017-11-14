@@ -86,7 +86,7 @@ public class TiffAsJp2Importer implements ImageImporter {
             fileSet.getFiles().add(tiff);
 
             return importer.consume(fileSet, ctx);
-        } catch (Throwable ex) {
+        } catch (IOException ex) {
             LOG.log(Level.SEVERE, jp2Entry.toString(), ex);
         }
 
@@ -94,29 +94,30 @@ public class TiffAsJp2Importer implements ImageImporter {
     }
 
     private FileEntry convertToTiff(FileEntry jp, Configuration processorConfig) throws IOException {
-        if (processorConfig != null && !processorConfig.isEmpty()) {
-            File tiff = new File(
-                    jp.getFile().getParent(),
-                    FilenameUtils.removeExtension(jp.getFile().getName()) + ".tiff");
-
-            //conversion was done before
-            if (tiff.exists()) {
-                return null;
-            }
-
-            String processorType = processorConfig.getString("type");
-            ExternalProcess process = null;
-            if (KakaduExpand.ID.equals(processorType)) {
-                process = new KakaduExpand(processorConfig, jp.getFile(), tiff);
-            }
-            if (process != null) {
-                process.run();
-                if (!process.isOk()) {
-                    throw new IOException(tiff.toString() + "\n" + process.getFullOutput());
-                }
-            }
-            return  new FileEntry(tiff);
+        if (processorConfig == null || processorConfig.isEmpty()) {
+            throw new IllegalArgumentException("Convertor config must be set.");
         }
-        return null;
+
+        File tiff = new File(
+                jp.getFile().getParent(),
+                FilenameUtils.removeExtension(jp.getFile().getName()) + ".tiff");
+
+        //conversion was done before
+        if (tiff.exists()) {
+            return null;
+        }
+
+        String processorType = processorConfig.getString("type");
+        ExternalProcess process;
+        if (KakaduExpand.ID.equals(processorType)) {
+            process = new KakaduExpand(processorConfig, jp.getFile(), tiff);
+        } else {
+            throw new IllegalArgumentException("No suitable convertor found.");
+        }
+        process.run();
+        if (!process.isOk()) {
+            throw new IOException(tiff.toString() + "\n" + process.getFullOutput());
+        }
+        return new FileEntry(tiff);
     }
 }
