@@ -5,6 +5,8 @@ addons:
   apt:
     packages:
       - ghostscript
+services:
+  - postgresql
 before_install:
   - curl -fSL "https://github.com/proarc/proarc/releases/download/v3.2/proarc-3.2-release.zip" -o proarc.zip
   - unzip proarc.zip
@@ -17,4 +19,5 @@ before_install:
   - mvn -B install:install-file -Dfile=./WEB-INF/lib/org.moxieapps.gwt.uploader-1.1.0.jar -DgroupId=org.moxieapps.gwt -DartifactId=org.moxieapps.gwt.uploader -Dversion=1.1.0 -Dpackaging=jar
   - mvn -B com.isomorphic:isc-maven-plugin:1.1.1:install -Dproduct=SMARTGWT -Dlicense=LGPL -DbuildNumber=6.0p -DbuildDate=2016-10-23
 before_script:
+  - psql -c 'create database proarc_test;' -U postgres
   - export TZ=Europe/Prague
