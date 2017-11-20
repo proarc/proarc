@@ -44,6 +44,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
@@ -199,7 +200,7 @@ public final class ProarcInitializer {
         try {
             JobHandler.getInstance().init(config);
         } catch (SchedulerException e) {
-            System.err.println("Schedulers initializing failed");
+            LOG.log(Level.SEVERE,"Scheduler initializing failed");
             e.printStackTrace();
         }
     }
