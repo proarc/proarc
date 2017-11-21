@@ -40,10 +40,13 @@ import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -67,6 +70,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Resource to handle imports.
@@ -251,6 +255,23 @@ public class ImportResource {
         }
         if (state == Batch.State.INGESTING) {
             // ingest or reingest for INGESTING_FAILED
+            batch.getFolder();
+
+            if (user.getId() != batch.getUserId()) {
+                // batch was imported by different user (store metadata editor userid instead)
+                File batchDir = new File(appConfig.getDefaultUsersHome(), batch.getFolder() + "/" + ImportProcess.TMP_DIR_NAME);
+                File [] batchFiles = batchDir.listFiles((dir, name) -> name.endsWith(".foxml") && !name.startsWith(".proarc"));
+
+                for (File batchFile : batchFiles) {
+                    String fileContents = IOUtils.toString(new FileInputStream(batchFile), Charset.defaultCharset());
+                    fileContents = fileContents.replaceAll(
+                            "<property NAME=\"info:fedora/fedora-system:def/model#ownerId\" VALUE=\"" + "[^/]*" + "\"/>",
+                            "<property NAME=\"info:fedora/fedora-system:def/model#ownerId\" VALUE=\"" + user.getUserName() + "\"/>"
+                    );
+                    IOUtils.write(fileContents, new FileOutputStream(batchFile), Charset.defaultCharset());
+                }
+            }
+
             batch = new FedoraImport(RemoteStorage.getInstance(appConfig), importManager)
                     .importBatch(batch, user.getUserName(), session.asFedoraLog());
         } else if (state == Batch.State.LOADING_FAILED) {
