@@ -102,7 +102,7 @@ public final class PageForm extends AbstractModelForm {
         TextAreaItem note = new TextAreaItem(ModsCustomDataSource.FIELD_NOTE, i18n.PageForm_Note_Title());
         note.setWidth("*");
         //https://github.com/proarc/proarc/issues/645 GWT v.6.0-p20161023 form draw issue
-        note.setHeight("1000");
+        note.setHeight("*");
         note.setColSpan("*");
 
         setFields(pageType, pageIndex, pageNumber, identifiers, note);
