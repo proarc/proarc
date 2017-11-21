@@ -37,6 +37,8 @@ import javax.sql.DataSource;
  */
 public final class UserUtil {
 
+    public static final String DEFAULT_ADMIN_USER = "proarc";
+
     static final String IMPORT_FOLDER_NAME = "import";
     static final String EXPORT_FOLDER_NAME = "export";
     static final String EDIT_FOLDER_NAME = "images";
@@ -175,7 +177,7 @@ public final class UserUtil {
 
     public static void initDefaultAdmin() {
         UserManager mgr = getDefaultManger();
-        final String proarcName = "proarc";
+        final String proarcName = DEFAULT_ADMIN_USER;
         final String logMsg = "Init ProArc.";
         Group gadmin = mgr.findGroup(1);
         if (gadmin == null) {
