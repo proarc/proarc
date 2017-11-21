@@ -44,7 +44,6 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 
-import static cz.cas.lib.proarc.common.jobs.JobHandler.JOB_SCHEDULE;
 import static cz.cas.lib.proarc.common.user.UserUtil.DEFAULT_ADMIN_USER;
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobBuilder.newJob;
@@ -60,6 +59,9 @@ public class BatchImportJob implements Job, ProArcJob {
     public static final String BATCH_IMPORT_JOB_TYPE = "BatchImportJob";
     public static final String BATCH_IMPORT_JOB_PATH = "path";
     public static final String BATCH_IMPORT_JOB_PROFILES = "profiles";
+    public static final String BATCH_IMPORT_JOB_DETAIL_SUFFIX = "_batchImportJob";
+    public static final String BATCH_IMPORT_JOB_TRIGGER_SUFFIX = "_batchImportTrigger";
+    public static final String BATCH_IMPORT_JOB_GROUP = "importGroup";
 
     private static final Logger LOG = Logger.getLogger(BatchImportJob.class.getName());
 
@@ -70,8 +72,12 @@ public class BatchImportJob implements Job, ProArcJob {
 
     @Override
     public void initJob(Scheduler scheduler, String jobId, Configuration jobConfig) throws SchedulerException {
+        if (jobId == null || jobId.isEmpty()) {
+            throw new IllegalArgumentException("JobId must be set");
+        }
+
         //job.name.schedule
-        String schedule = jobConfig.getString(JOB_SCHEDULE);
+        String schedule = jobConfig.getString(JobHandler.JOB_SCHEDULE);
 
         if (schedule == null || schedule.isEmpty()) {
             throw new IllegalArgumentException("Job: "+jobId+" is not set properly, schedule missing");
@@ -85,19 +91,19 @@ public class BatchImportJob implements Job, ProArcJob {
         //job.name.profiles
         List<String> jobProfiles = Arrays.asList(jobConfig.getStringArray(BATCH_IMPORT_JOB_PROFILES));
 
-        if (jobProfiles.isEmpty()) {
+        if (jobProfiles.isEmpty() || jobProfiles.contains("")) {
             throw new IllegalArgumentException("Job: " + jobId + "is not set properly, profiles missing");
         }
 
         JobDetail importJobDetail = newJob(BatchImportJob.class)
-                .withIdentity(jobId + "_batchImportJob", "importGroup")
+                .withIdentity(jobId + BATCH_IMPORT_JOB_DETAIL_SUFFIX, BATCH_IMPORT_JOB_GROUP)
                 .build();
 
         importJobDetail.getJobDataMap().put(BATCH_IMPORT_JOB_PATH, importPath);
         importJobDetail.getJobDataMap().put(BATCH_IMPORT_JOB_PROFILES, jobProfiles);
 
         Trigger importJobTrigger = newTrigger()
-                .withIdentity(jobId + "_batchImportTrigger", "importGroup")
+                .withIdentity(jobId + BATCH_IMPORT_JOB_TRIGGER_SUFFIX, BATCH_IMPORT_JOB_GROUP)
                 .withSchedule(cronSchedule(schedule))
                 .build();
 
