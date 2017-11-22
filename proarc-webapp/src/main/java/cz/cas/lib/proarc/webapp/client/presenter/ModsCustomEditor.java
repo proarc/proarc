@@ -424,6 +424,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                 DescriptionMetadata dm = new DescriptionMetadata(customRecord);
                 Record customModsRecord = dm.getDescription();
                 if (customModsRecord != null) {
+                    metadata = dm;
                     editor.editRecord(customModsRecord);
                     editor.clearErrors(true);
                     loadCallback.execute(Boolean.TRUE);
