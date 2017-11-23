@@ -20,6 +20,7 @@ import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
@@ -28,6 +29,7 @@ import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -193,7 +195,16 @@ public class WorkflowStorage {
             if (mvs == null || mvs.isEmpty()) {
                 throw new DigitalObjectNotFoundException(workflowObject.getWorkflowJobId().toString());
             } else {
-               return new StreamSource(new StringReader(mvs.get(0).getMetadata()));
+                String xmlMetadata;
+                if (mvs.get(0).getMetadata() == null) {
+                    ModsDefinition mods = new ModsDefinition();
+                    mods.setVersion(ModsUtils.VERSION);
+                    xmlMetadata = ModsUtils.toXml(mods, true);
+                } else {
+                    xmlMetadata = mvs.get(0).getMetadata();
+                }
+
+                return new StreamSource(new StringReader(xmlMetadata));
             }
         }
 
