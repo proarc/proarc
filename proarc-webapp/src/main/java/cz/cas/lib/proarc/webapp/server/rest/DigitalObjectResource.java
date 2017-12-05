@@ -254,6 +254,8 @@ public class DigitalObjectResource {
             return SmartGwtResponse.<Item>asError().error("pid", ex.getMessage()).build();
         } catch (WorkflowException ex) {
             return SmartGwtResponse.asError(ex.getMessage());
+        } catch (DigitalObjectValidationException ex) {
+            return toError(ex);
         }
     }
 

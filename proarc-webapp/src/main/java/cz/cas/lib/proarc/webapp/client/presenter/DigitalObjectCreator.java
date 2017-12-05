@@ -31,6 +31,7 @@ import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.client.widget.Wizard;
 import cz.cas.lib.proarc.webapp.client.widget.Wizard.StepKind;
 import cz.cas.lib.proarc.webapp.client.widget.Wizard.WizardStep;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -187,7 +188,14 @@ public final class DigitalObjectCreator {
                             newDigObject.setValidationErrors(reason.getValidationErrors());
                             break;
                         default:
-                            SC.warn("Failed to create digital object!");
+                            String errors = "";
+                            Map<?,?> errorMap = reason.getValidationErrors();
+
+                            for (Map.Entry<?,?> entry: errorMap.entrySet()) {
+                                errors += entry.getKey().toString() + " : " + entry.getValue().toString() + "<br>";
+                            }
+
+                            SC.warn("<b>Failed to create digital object.</b><br><br>" + errors);
                     }
                 }
 
