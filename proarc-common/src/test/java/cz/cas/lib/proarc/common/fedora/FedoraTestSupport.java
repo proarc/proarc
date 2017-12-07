@@ -22,6 +22,7 @@ import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import java.io.StringReader;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -77,6 +78,12 @@ public class FedoraTestSupport {
         }
     }
 
+    public void ingest(String... xml) throws Exception {
+        for (String x : xml) {
+            ingestFromXML(x);
+        }
+    }
+
     public String getTestUser() {
         return "junit";
     }
@@ -84,6 +91,13 @@ public class FedoraTestSupport {
     private void ingestFromUrl(URL foxml) throws Exception {
         assertNotNull(foxml);
         DigitalObject dobj = FoxmlUtils.unmarshal(new StreamSource(foxml.toExternalForm()), DigitalObject.class);
+        LocalObject object = new LocalStorage().create(dobj);
+        storage.ingest(object, "junit");
+    }
+
+    private void ingestFromXML(String xml) throws Exception {
+        assertNotNull(xml);
+        DigitalObject dobj = FoxmlUtils.unmarshal(new StreamSource(new StringReader(xml)), DigitalObject.class);
         LocalObject object = new LocalStorage().create(dobj);
         storage.ingest(object, "junit");
     }
