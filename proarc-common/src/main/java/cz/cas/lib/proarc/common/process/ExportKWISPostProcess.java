@@ -41,11 +41,6 @@ public class ExportKWISPostProcess extends ExternalProcess {
     }
 
     @Override
-    public boolean isOk() {
-        return new File(exportPath).listFiles().length > 0;
-    }
-
-    @Override
     protected List<String> buildCmdLine(Configuration conf) {
         String imageInput = new File(imagesPath).getAbsolutePath();
         String k4Input = new File(k4Path).getAbsolutePath();
