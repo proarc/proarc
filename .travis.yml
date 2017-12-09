@@ -1,6 +1,9 @@
 language: java
 jdk:
   - oraclejdk8
+cache:
+  directories:
+  - $HOME/.m2
 addons:
   apt:
     packages:
@@ -17,7 +20,7 @@ before_install:
   - mvn -B install:install-file -Dfile=./WEB-INF/lib/javadjvu-0.8.09.jar  -DgroupId=com.foxtrottechnologies -DartifactId=javadjvu -Dversion=0.8.09 -Dpackaging=jar
   - mvn -B install:install-file -Dfile=./WEB-INF/lib/djvuframe-0.8.09.jar  -DgroupId=com.foxtrottechnologies -DartifactId=djvuframe -Dversion=0.8.09 -Dpackaging=jar
   - mvn -B install:install-file -Dfile=./WEB-INF/lib/org.moxieapps.gwt.uploader-1.1.0.jar -DgroupId=org.moxieapps.gwt -DartifactId=org.moxieapps.gwt.uploader -Dversion=1.1.0 -Dpackaging=jar
-  - mvn -B com.isomorphic:isc-maven-plugin:1.1.1:install -Dproduct=SMARTGWT -Dlicense=LGPL -DbuildNumber=6.0p -DbuildDate=2017-11-02
+  - mvn -B com.isomorphic:isc-maven-plugin:1.1.1:install -Dproduct=SMARTGWT -Dlicense=LGPL -DbuildNumber=6.0p -DbuildDate=2017-12-08
 before_script:
   - psql -c 'create database proarc_test;' -U postgres
   - export TZ=Europe/Prague
