@@ -1914,7 +1914,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 metsElement.getMetsContext().setPackageDir(packageDirFile);
             }
 
-            saveMets(mets, new File(metsElement.getMetsContext().getPackageDir().getAbsolutePath() + File.separator + "mets_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
+            saveMets(mets, new File(metsElement.getMetsContext().getPackageDir().getAbsolutePath() + File.separator +"mets_"+ MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
         } finally {
             JhoveUtility.destroyConfigFiles(metsElement.getMetsContext().getJhoveContext());
         }
