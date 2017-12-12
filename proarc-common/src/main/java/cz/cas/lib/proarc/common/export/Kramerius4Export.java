@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.fedora.relation.Relations;
@@ -275,6 +276,7 @@ public final class Kramerius4Export {
             renameDatastream(datastream);
             processDublinCore(datastream);
             processMods(datastream);
+            processOcr(datastream);
             processRelsExt(dobj.getPID(), datastream, editor, null);
         }
     }
@@ -356,6 +358,22 @@ public final class Kramerius4Export {
         Element mods = xmlContent.getAny().get(0);
         removeNils(mods);
         wrapModsInCollection(xmlContent);
+    }
+
+    /**
+     * Replace empty OCR with lineseparator
+     * Fedora 3.8 can't ingest empty stream (https://github.com/proarc/proarc/issues/658)
+     *
+     * @param datastream
+     */
+    private void processOcr(DatastreamType datastream) {
+        if (!StringEditor.OCR_ID.equals(datastream.getID())) {
+            return ;
+        }
+        DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
+        if (version.getBinaryContent().length == 0) {
+            version.setBinaryContent(System.lineSeparator().getBytes());
+        }
     }
 
     /**
