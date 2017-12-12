@@ -91,7 +91,7 @@ public class NdkExportTest {
         MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
         MetsElementVisitor visitor = new MetsElementVisitor();
         metsElement.accept(visitor);
-        File amdSecFile = new File(resultDir.getAbsolutePath()+File.separator+"44589055-9fad-4a9f-b6a8-75be399f332d"+File.separator+"amdSec"+File.separator+"AMD_METS_44589055-9fad-4a9f-b6a8-75be399f332d_0000.xml");
+        File amdSecFile = new File(resultDir.getAbsolutePath()+File.separator+"44589055-9fad-4a9f-b6a8-75be399f332d"+File.separator+"amdsec"+File.separator+"amd_mets_44589055-9fad-4a9f-b6a8-75be399f332d_0000.xml");
         JAXBContext jaxbContextMets = JAXBContext.newInstance(Mets.class);
         Unmarshaller unmarshallerMets = jaxbContextMets.createUnmarshaller();
         Mets mets = (Mets) unmarshallerMets.unmarshal(amdSecFile);

@@ -175,17 +175,17 @@ public class Const {
         streamMapping.put("TECHMDGRP", new ArrayList<String>());
         streamMapping.get("TECHMDGRP").add("FULL_AMD");
 
-        streamMappingPrefix.put(MC_GRP_ID, "MC");
-        streamMappingPrefix.put(UC_GRP_ID, "UC");
-        streamMappingPrefix.put(ALTO_GRP_ID, "ALTO");
-        streamMappingPrefix.put(TXT_GRP_ID, "TXT");
-        streamMappingPrefix.put("TECHMDGRP", "AMD_METS");
+        streamMappingPrefix.put(MC_GRP_ID, "mc");
+        streamMappingPrefix.put(UC_GRP_ID, "uc");
+        streamMappingPrefix.put(ALTO_GRP_ID, "alto");
+        streamMappingPrefix.put(TXT_GRP_ID, "txt");
+        streamMappingPrefix.put("TECHMDGRP", "amd_mets");
 
-        streamMappingFile.put(MC_GRP_ID, "masterCopy");
-        streamMappingFile.put(UC_GRP_ID, "userCopy");
-        streamMappingFile.put(ALTO_GRP_ID, "ALTO");
-        streamMappingFile.put(TXT_GRP_ID, "TXT");
-        streamMappingFile.put("TECHMDGRP", "amdSec");
+        streamMappingFile.put(MC_GRP_ID, "mastercopy");
+        streamMappingFile.put(UC_GRP_ID, "usercopy");
+        streamMappingFile.put(ALTO_GRP_ID, "alto");
+        streamMappingFile.put(TXT_GRP_ID, "txt");
+        streamMappingFile.put("TECHMDGRP", "amdsec");
 
         canContainPage.add(Const.ISSUE);
         canContainPage.add(Const.MONOGRAPH_MULTIPART);
