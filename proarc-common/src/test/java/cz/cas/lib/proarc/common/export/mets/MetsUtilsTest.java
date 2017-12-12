@@ -201,7 +201,7 @@ public class MetsUtilsTest {
             JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             Info info = (Info) unmarshaller.unmarshal(infoFile);
-            assertEquals(testElement.getTotalItems(),
+            assertEquals(1 + testElement.getTotalItems(),
                     info.getItemlist().getItemtotal().intValue());
             if (System.getProperty("os.name").toLowerCase().contains("win")) {
                 // this is an aproximation as the precompute sizes ignore win EOLs
