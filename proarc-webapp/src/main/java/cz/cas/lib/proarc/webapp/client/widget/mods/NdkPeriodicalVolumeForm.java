@@ -71,7 +71,9 @@ public class NdkPeriodicalVolumeForm {
                 .setHint("Údaje o odpovědnosti za titul periodika.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
-                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
+                        // issue: 612 not required
+                        .setRequired(false)
                         .setHint("<dl>"
                                 + "<dt>personal</dt><dd>celé jméno osoby</dd>"
                                 + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
@@ -106,7 +108,9 @@ public class NdkPeriodicalVolumeForm {
                                 .createField()) // @type
                         // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                         .addField(new FieldBuilder("value").setTitle("Name Part - R").setMaxOccurrences(1)
-                                .setType(Field.TEXT).setRequired(true)
+                                .setType(Field.TEXT)
+                                // issue: 612 not required
+                                .setRequired(false)
                                 .setHint("Údaje o křestním jméně, příjmení apod."
                                         + "<p>Nutno vyjádřit pro křestní jméno i příjmení."
                                         + "<p>Pokud nelze rozlišit křestní jméno a příjmení,"
@@ -123,8 +127,11 @@ public class NdkPeriodicalVolumeForm {
                 .addField(new FieldBuilder("role").setTitle("Role - R").setMaxOccurrences(5)
                         .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                         // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
+                        // issue: 612 not required
                         .addField(NdkForms.roleTerm(
-                                "Role Term - R", true, "Authority - M", true, "Type - M", true
+                                "Role Term - R", false, "Authority - M",
+                                false,
+                                "Type - M", false
                         )) // roleTerm
                         .createField()) // role
                 // description
