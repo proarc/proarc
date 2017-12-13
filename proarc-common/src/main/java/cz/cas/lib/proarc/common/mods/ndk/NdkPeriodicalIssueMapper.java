@@ -110,10 +110,7 @@ public final class NdkPeriodicalIssueMapper extends NdkMapper {
             addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartName());
         }
         addName(mods.getName(), dc.getCreators());
-        for (GenreDefinition genre : mods.getGenre()) {
-            addElementType(dc.getTypes(), genre.getValue());
-            addElementType(dc.getTypes(), genre.getType());
-        }
+        addElementType(dc.getTypes(), getDcType());
         addOriginInfo(mods.getOriginInfo(), dc);
         addLanguage(mods.getLanguage(), dc);
         for (PhysicalDescriptionDefinition physicalDesc : mods.getPhysicalDescription()) {

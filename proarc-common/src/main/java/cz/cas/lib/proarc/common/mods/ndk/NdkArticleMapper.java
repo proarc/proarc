@@ -87,9 +87,8 @@ public class NdkArticleMapper extends NdkMapper {
             addElementType(dc.getTitles(), createTitleString(titleInfo));
         }
         addName(mods.getName(), dc.getCreators());
-        for (GenreDefinition genre : mods.getGenre()) {
-            addElementType(dc.getTypes(), genre.getValue());
-        }
+        addElementType(dc.getTypes(), getDcType());
+
         for (PhysicalDescriptionDefinition physicalDesc : mods.getPhysicalDescription()) {
             for (FormDefinition form : physicalDesc.getForm()) {
                 addElementType(dc.getFormats(), form.getValue());
