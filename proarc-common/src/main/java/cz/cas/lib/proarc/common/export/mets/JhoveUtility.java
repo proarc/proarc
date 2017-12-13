@@ -102,7 +102,7 @@ public class JhoveUtility {
      *
      * Inits the Jhove app
      *
-     * @param metsInfo
+     * @param metsContext
      */
     public static void initJhove(MetsContext metsContext) throws MetsExportException {
         if (metsContext.getJhoveContext() == null) {
@@ -253,12 +253,12 @@ public class JhoveUtility {
     }
 
     /**
-     * Inserts dateCreated into Mix
+     * Inserts ImageCaptureMetadata into Mix
      *
      * @param mix
      * @param dateCreated
      */
-    public static void insertDateCreated(Mix mix, XMLGregorianCalendar dateCreated) {
+    public static void insertImageCaptureMetadata(Mix mix, XMLGregorianCalendar dateCreated) {
         // inserts DateCreated if missing
         if ((mix.getImageCaptureMetadata() == null) ||
                 (mix.getImageCaptureMetadata().getGeneralCaptureInformation() == null) ||
@@ -373,7 +373,7 @@ public class JhoveUtility {
             mergeMix(mix, deviceMix);
             // insert date time created
             if ((dateCreated != null) && (mix != null)) {
-                insertDateCreated(mix, dateCreated);
+                insertImageCaptureMetadata(mix, dateCreated);
             }
 
             // insert ChangeHistory
