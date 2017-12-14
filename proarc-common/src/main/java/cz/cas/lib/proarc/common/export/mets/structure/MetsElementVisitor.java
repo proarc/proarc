@@ -920,7 +920,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         JhoveUtility.insertObjectIdentifier(jHoveOutputRaw.getMix(), originalPid, "RAW");
         JhoveUtility.addDenominator(jHoveOutputRaw);
         JhoveUtility.addOrientation(jHoveOutputRaw);
-        JhoveUtility.insertDateCreated(jHoveOutputRaw.getMix(), rawCreated);
+        JhoveUtility.insertImageCaptureMetadata(jHoveOutputRaw.getMix(), rawCreated);
     }
 
     /**
@@ -938,7 +938,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         JhoveUtility.addPhotometricInformation(jHoveOutputMC, photometricInterpretation);
         JhoveUtility.addDenominator(jHoveOutputMC);
         JhoveUtility.addOrientation(jHoveOutputMC);
-        JhoveUtility.insertDateCreated(jHoveOutputMC.getMix(), mcCreated);
     }
 
     /**
