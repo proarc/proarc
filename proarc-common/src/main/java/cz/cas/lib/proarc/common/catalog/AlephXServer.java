@@ -136,7 +136,17 @@ public final class AlephXServer implements BibliographicCatalog {
                 MetadataItem item;
                 try {
                     item = createResponse(record.getEntry(), domSource, locale);
-                    result.add(item);
+
+                    MetadataItem itemWithBarcode = null;
+
+                    try {
+                        itemWithBarcode = addBarcodeMetadata(item, record.getDocNumber());
+                    } catch (IOException ex) {
+                        LOG.log(Level.SEVERE, null, ex);
+                    }
+
+                    result.add(itemWithBarcode != null ? itemWithBarcode : item);
+
                 } catch (UnsupportedEncodingException ex) {
                     LOG.log(Level.SEVERE, null, ex);
                 }
@@ -149,6 +159,38 @@ public final class AlephXServer implements BibliographicCatalog {
                 LOG.log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    private MetadataItem addBarcodeMetadata(MetadataItem item, int sysno) throws IOException, TransformerException {
+        //add before ending tag of </mods>
+        //identifier type="barcode">XXXX</identifier>
+        String mods = item.getMods();
+        int pos = mods.indexOf("\n</mods>");
+
+        if (pos == -1) {
+            LOG.log(Level.WARNING, "Barcode could not be added. Missing ending tag \"</mods>\"");
+            return item;
+        }
+
+        ItemDataResponse details = JAXB.unmarshal(fetchItemData(sysno), ItemDataResponse.class);
+
+        if (details == null) {
+            LOG.log(Level.WARNING, "Could not read item data response. Details null.");
+            return item;
+        }
+
+        for (ItemDataResponse.Item idr : details.getItems()) {
+            String barcode = idr.getBarcode();
+
+            if (barcode == null || barcode.length() != 10 || !barcode.matches("[0-9]+")) {
+                LOG.log(Level.WARNING, "Could not load barcode, invalid format: " + barcode);
+                continue;
+            }
+
+            mods = mods.substring(0,pos) + "\n<identifier type=\"barcode\">" + barcode + "</identifier>" + mods.substring(pos);
+        }
+
+        return new MetadataItem(item.getId(), item.getRdczId(), mods, item.getPreview(), item.getTitle());
     }
 
     FindResponse createFindResponse(InputStream is) {
@@ -216,6 +258,12 @@ public final class AlephXServer implements BibliographicCatalog {
         String entries = (entryCount == 1) ? "1" : "1-" + entryCount;
         String query = String.format("op=present&set_number=%s&set_entry=%s", number, entries);
         URL alephDetails = setQuery(server, query, false).toURL();
+        return new BufferedInputStream(alephDetails.openStream());
+    }
+
+    private InputStream fetchItemData(int sysno) throws IOException {
+        String query = String.format("op=item-data&doc_num=%s", sysno);
+        URL alephDetails = setQuery(server, query, true).toURL();
         return new BufferedInputStream(alephDetails.openStream());
     }
 
@@ -317,6 +365,9 @@ public final class AlephXServer implements BibliographicCatalog {
             @XmlElement(name = "record_header")
             private Header header;
 
+            @XmlElement(name= "doc_number")
+            private int docNumber;
+
             @XmlElement
             private Metadata metadata;
 
@@ -339,6 +390,9 @@ public final class AlephXServer implements BibliographicCatalog {
                 return metadata.getOaiMarc();
             }
 
+            public int getDocNumber() {
+                return docNumber;
+            }
 
             public static class Header {
 
@@ -392,6 +446,34 @@ public final class AlephXServer implements BibliographicCatalog {
 
         public int getRecordCount() {
             return recordCount;
+        }
+    }
+
+    @XmlRootElement(name = "item-data")
+    public static class ItemDataResponse {
+
+        @XmlElement
+        private List<Item> item;
+
+        public ItemDataResponse() {
+        }
+
+        public List<Item> getItems() {
+            if (item == null) {
+                return new ArrayList<>();
+            }
+
+            return item;
+        }
+
+        public static class Item {
+
+            @XmlElement(name = "barcode")
+            private String barcode;
+
+            public String getBarcode() {
+                return barcode;
+            }
         }
     }
 }
