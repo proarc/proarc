@@ -170,7 +170,9 @@ public final class NdkPeriodicalIssueForm {
                 // namePart, namePartDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("namePart").setTitle("Name Part - M").setMaxOccurrences(5)
                     // @type(date, family, given, termsOfAddress)
-                    .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                    .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT)
+                        // issue: 612 not required
+                        .setRequired(false)
                         .setHint("<dl>"
                             + "<dt>date</dt><dd>RA - datum</dd>"
                             + "<dt>family</dt><dd>MA -příjmení </dd>"
