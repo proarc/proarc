@@ -29,6 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -117,7 +118,11 @@ public final class AlephXServer implements BibliographicCatalog {
         return createDetailResponse(is, locale);
     }
 
-    List<MetadataItem> createDetailResponse(InputStream is, Locale locale) throws TransformerException {
+    public List<MetadataItem> createDetailResponse(InputStream is, Locale locale) throws TransformerException {
+        return createDetailResponse(is, locale, true);
+    }
+
+    public List<MetadataItem> createDetailResponse(InputStream is, Locale locale, boolean loadBarcodes) throws TransformerException {
         try {
             StreamSource fixedOaiMarc = (StreamSource) transformers.transform(new StreamSource(is), Transformers.Format.AlephOaiMarcFix);
 //            StringBuilder sb = new StringBuilder();
@@ -129,7 +134,7 @@ public final class AlephXServer implements BibliographicCatalog {
             if (details == null) {
                 return Collections.emptyList();
             }
-            List<MetadataItem> result = new ArrayList<MetadataItem>();
+            List<MetadataItem> result = new ArrayList<>();
             for (DetailResponse.Record record : details.getRecords()) {
                 Element oaiMarc = record.getOaiMarc();
                 DOMSource domSource = new DOMSource(oaiMarc);
@@ -137,15 +142,21 @@ public final class AlephXServer implements BibliographicCatalog {
                 try {
                     item = createResponse(record.getEntry(), domSource, locale);
 
-                    MetadataItem itemWithBarcode = null;
+                    if (loadBarcodes) {
+                        MetadataItem itemWithBarcode;
 
-                    try {
-                        itemWithBarcode = addBarcodeMetadata(item, record.getDocNumber());
-                    } catch (IOException ex) {
-                        LOG.log(Level.SEVERE, null, ex);
+                        try {
+                            itemWithBarcode = addBarcodeMetadata(item, record.getDocNumber());
+                        } catch (IOException ex) {
+                            LOG.log(Level.SEVERE, null, ex);
+                            itemWithBarcode = null;
+                        }
+
+                        result.add(itemWithBarcode != null ? itemWithBarcode : item);
+                    } else {
+
+                        result.add(item);
                     }
-
-                    result.add(itemWithBarcode != null ? itemWithBarcode : item);
 
                 } catch (UnsupportedEncodingException ex) {
                     LOG.log(Level.SEVERE, null, ex);
@@ -172,7 +183,13 @@ public final class AlephXServer implements BibliographicCatalog {
             return item;
         }
 
-        ItemDataResponse details = JAXB.unmarshal(fetchItemData(sysno), ItemDataResponse.class);
+        ItemDataResponse details = null;
+
+        try {
+            details = JAXB.unmarshal(fetchItemData(sysno), ItemDataResponse.class);
+        } catch (UnknownHostException ex) {
+            LOG.log(Level.WARNING, "Unknown host: " + ex.getMessage());
+        }
 
         if (details == null) {
             LOG.log(Level.WARNING, "Could not read item data response. Details null.");
