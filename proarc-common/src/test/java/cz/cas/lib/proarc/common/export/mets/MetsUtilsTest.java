@@ -210,7 +210,7 @@ public class MetsUtilsTest {
                 assertEquals(testElement.getSize(), info.getSize());
             }
             File metsFile = new File(resultDir.getAbsolutePath() + File.separator + packageId + File.separator +
-                    "METS_" + packageId + ".xml");
+                    "mets_" + packageId + ".xml");
             JAXBContext jaxbContextMets = JAXBContext.newInstance(Mets.class);
             Unmarshaller unmarshallerMets = jaxbContextMets.createUnmarshaller();
             Mets mets = (Mets) unmarshallerMets.unmarshal(metsFile);

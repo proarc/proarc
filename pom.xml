@@ -49,7 +49,7 @@
             in proarc-webapp/src/main/webapp/META-INF/context.xml
         -->
         <jerseyVersion2>2.23.1</jerseyVersion2>
-        <smartGwtVersion>6.0-p20171102</smartGwtVersion>
+        <smartGwtVersion>6.0-p20171208</smartGwtVersion>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <!--

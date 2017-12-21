@@ -303,7 +303,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 byte[] digest = md.digest();
                 String result = new String(Hex.encodeHex(digest));
                 metsElement.getMetsContext().getFileList().add(new FileMD5Info("." + File.separator + outputFile.getName(), result, totalBytes));
-                fileMd5Name = "MD5_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".md5";
+                fileMd5Name = "md5_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".md5";
                 File fileMd5 = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + fileMd5Name);
                 OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(fileMd5));
                 for (FileMD5Info info : metsElement.getMetsContext().getFileList()) {
@@ -920,7 +920,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         JhoveUtility.insertObjectIdentifier(jHoveOutputRaw.getMix(), originalPid, "RAW");
         JhoveUtility.addDenominator(jHoveOutputRaw);
         JhoveUtility.addOrientation(jHoveOutputRaw);
-        JhoveUtility.insertDateCreated(jHoveOutputRaw.getMix(), rawCreated);
+        JhoveUtility.insertImageCaptureMetadata(jHoveOutputRaw.getMix(), rawCreated);
     }
 
     /**
@@ -938,7 +938,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         JhoveUtility.addPhotometricInformation(jHoveOutputMC, photometricInterpretation);
         JhoveUtility.addDenominator(jHoveOutputMC);
         JhoveUtility.addOrientation(jHoveOutputMC);
-        JhoveUtility.insertDateCreated(jHoveOutputMC.getMix(), mcCreated);
     }
 
     /**
@@ -1914,7 +1913,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 metsElement.getMetsContext().setPackageDir(packageDirFile);
             }
 
-            saveMets(mets, new File(metsElement.getMetsContext().getPackageDir().getAbsolutePath() + File.separator + "METS_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
+            saveMets(mets, new File(metsElement.getMetsContext().getPackageDir().getAbsolutePath() + File.separator +"mets_"+ MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
         } finally {
             JhoveUtility.destroyConfigFiles(metsElement.getMetsContext().getJhoveContext());
         }
