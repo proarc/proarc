@@ -86,11 +86,11 @@ public final class Aes57Utils {
     /**
      * Dumps object to XML string.
      */
-    /*public static String toXml(Aes57Type aes, boolean indent) {
+    public static String toXml(Aes57Type aes, boolean indent) {
         StringWriter dump = new StringWriter();
         marshal(new StreamResult(dump), aes, indent);
         return dump.toString();
-    }*/
+    }
 
     public static void marshal(Result target, Object aesElement, boolean indent) {
         try {
