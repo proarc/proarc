@@ -67,7 +67,6 @@ import javax.xml.bind.annotation.*;
         Aes57.class
 })
 public class Aes57Type {
-
     @XmlElement(name = "audioObjectType", namespace = "http://www.aes.org/audioObject")
     protected AudioObjectType audioObjectType;
     @XmlElement(name = "physicalPropertiesType", namespace = "http://www.aes.org/audioObject")
@@ -468,4 +467,5 @@ public class Aes57Type {
     public void setChecksumKindType(ChecksumKindType checksumKindType) {
         this.checksumKindType = checksumKindType;
     }
+
 }
