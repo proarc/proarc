@@ -130,11 +130,4 @@ public final class Aes57Utils {
             throw new DataBindingException(ex);
         }
     }
-
-    /*public static StringType stringType(String value) {
-        StringType stringType = new StringType();
-        stringType.setValue(value);
-        return stringType;
-    }*/
-
 }

@@ -17,33 +17,7 @@
 package cz.cas.lib.proarc.aes57;
 
 import org.aes.audioobject.*;
-
 import javax.xml.bind.annotation.*;
-
-/**
- * <p>Java class for aes57Type complex type.
- *
- * <p>The following schema fragment specifies the expected content contained within this class.
- *
- * <pre>
- * &lt;complexType name="aes57Type"&gt;
- *   &lt;complexContent&gt;
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
- *       &lt;sequence&gt;
- *         &lt;element name="BasicDigitalObjectInformation" type="{http://www.loc.gov/mix/v20}BasicDigitalObjectInformationType" minOccurs="0"/&gt;
- *         &lt;element name="BasicImageInformation" type="{http://www.loc.gov/mix/v20}BasicImageInformationType" minOccurs="0"/&gt;
- *         &lt;element name="ImageCaptureMetadata" type="{http://www.loc.gov/mix/v20}ImageCaptureMetadataType" minOccurs="0"/&gt;
- *         &lt;element name="ImageAssessmentMetadata" type="{http://www.loc.gov/mix/v20}ImageAssessmentMetadataType" minOccurs="0"/&gt;
- *         &lt;element name="ChangeHistory" type="{http://www.loc.gov/mix/v20}ChangeHistoryType" minOccurs="0"/&gt;
- *         &lt;element name="Extension" type="{http://www.loc.gov/mix/v20}extensionType" maxOccurs="unbounded" minOccurs="0"/&gt;
- *       &lt;/sequence&gt;
- *     &lt;/restriction&gt;
- *   &lt;/complexContent&gt;
- * &lt;/complexType&gt;
- * </pre>
- *
- *
- */
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "Aes57Type", namespace ="http://www.aes.org/audioObject", propOrder = {
