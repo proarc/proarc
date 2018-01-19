@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.aes57;
 
+import org.aes.audioobject.ObjectType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -23,7 +24,6 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.naming.spi.ObjectFactory;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -56,7 +56,7 @@ public final class Aes57Utils {
      */
     public static JAXBContext defaultJaxbContext() throws JAXBException {
         if (defaultJaxbContext == null) {
-            defaultJaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+            defaultJaxbContext = JAXBContext.newInstance(org.aes.audioobject.ObjectFactory.class);
         }
         return defaultJaxbContext;
     }
@@ -86,7 +86,7 @@ public final class Aes57Utils {
     /**
      * Dumps object to XML string.
      */
-    public static String toXml(Aes57Type aes, boolean indent) {
+    public static String toXml(ObjectType aes, boolean indent) {
         StringWriter dump = new StringWriter();
         marshal(new StreamResult(dump), aes, indent);
         return dump.toString();
