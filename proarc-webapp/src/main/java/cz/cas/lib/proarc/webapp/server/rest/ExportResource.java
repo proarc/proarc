@@ -396,6 +396,25 @@ public class ExportResource {
         return new SmartGwtResponse<ExportResult>(result);
     }
 
+    @GET
+    @Path("alephexport")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<String> alephExportState() {
+        File[] listOfFiles = new File("/tmp/aleph").listFiles();
+
+        if (listOfFiles == null) {
+            return new ArrayList<>();
+        }
+
+        List<String> fileNames = new ArrayList<>();
+
+        for (File file : listOfFiles) {
+            fileNames.add(file.getName());
+        }
+
+        return fileNames;
+    }
+
     /**
      * The export result.
      */
