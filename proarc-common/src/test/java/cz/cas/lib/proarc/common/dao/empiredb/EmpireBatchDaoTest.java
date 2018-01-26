@@ -272,7 +272,7 @@ public class EmpireBatchDaoTest {
         view = dao.view(1, null, State.LOADING_FAILED, 0);
         assertEquals(0, view.size());
         view = dao.view(2, null, null, 0);
-        assertEquals(0, view.size());
+        assertEquals(1, view.size());
     }
 
     @Test
@@ -292,7 +292,7 @@ public class EmpireBatchDaoTest {
         view = dao.view(1, null, State.LOADING, 0);
         assertEquals(1, view.size());
         view = dao.view(20, null, null, 0);
-        assertEquals(0, view.size());
+        assertEquals(2, view.size());
 
         // test paging
         view = dao.view(1, null, null, null, null, 0, 1, null);
