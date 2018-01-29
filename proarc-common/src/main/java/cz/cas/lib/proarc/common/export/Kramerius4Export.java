@@ -82,6 +82,8 @@ public final class Kramerius4Export {
     public static final String KRAMERIUS_RELATION_PREFIX = "kramerius";
     public static final String OAI_NS = "http://www.openarchives.org/OAI/2.0/";
 
+    public static final String[] ALLOWED_POLICY = {"policy:private", "policy:public"};
+
     private RemoteStorage rstorage;
     private LocalStorage lstorage = new LocalStorage();
     private DigitalObjectCrawler crawler;
@@ -94,11 +96,23 @@ public final class Kramerius4Export {
     
     private final Kramerius4ExportOptions options;
 
+    private final String policy;
+
     public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options) {
+        this(rstorage, options, options.getPolicy());
+    }
+
+    public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options, String policy) {
         this.rstorage = rstorage;
         this.options = options;
         this.search = rstorage.getSearch();
         this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
+
+        if (Arrays.asList(ALLOWED_POLICY).contains(policy)) {
+            this.policy = policy;
+        } else {
+            this.policy = options.getPolicy();
+        }
     }
 
     public File export(File output, boolean hierarchy, String log, String... pids) {
@@ -330,7 +344,6 @@ public final class Kramerius4Export {
         Element dcElm = xmlContent.getAny().get(0);
         FoxmlUtils.fixFoxmlDc(dcElm);
         // add policy
-        String policy = options.getPolicy();
         if (policy != null) {
             Element elmRights = dcElm.getOwnerDocument().createElementNS(
                     DcConstants.NS_PURL, DcConstants.PREFIX_NS_PURL + ':' + DcConstants.RIGHTS);
@@ -455,7 +468,7 @@ public final class Kramerius4Export {
             
             setImportFile(editor, relations, doc);
 
-            setPolicy(options.getPolicy(), relations, doc);
+            setPolicy(policy, relations, doc);
 
             editor.setDevice(null);
             editor.setExportResult(null);

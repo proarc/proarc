@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jan Pokorsky
+ * Copyright (C) 2015 Jan Pokorsky
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action;
+package cz.cas.lib.proarc.webapp.client.action.export;
 
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -26,26 +26,26 @@ import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.SC;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import cz.cas.lib.proarc.webapp.client.action.DesaExportAction.ExportResultWidget;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ExportDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 
 /**
- * The NDK PSP export action.
+ * The CEJSH export action.
  *
  * @author Jan Pokorsky
  */
-public class NdkExportAction extends AbstractAction {
-    private final ClientMessages i18n;
+public class CrossrefExportAction extends ExportAction {
 
-    public NdkExportAction(ClientMessages i18n) {
-        this(i18n, i18n.NdkExportAction_Title(), null, i18n.NdkExportAction_Hint());
+    public CrossrefExportAction(ClientMessages i18n) {
+        this(i18n, i18n.CrossrefExportAction_Title(), null, i18n.CrossrefExportAction_Hint());
     }
-    public NdkExportAction(ClientMessages i18n, String title, String icon, String tooltip) {
-        super(title, icon, tooltip);
-        this.i18n = i18n;
+
+    public CrossrefExportAction(ClientMessages i18n, String title, String icon, String tooltip) {
+        super(i18n, title, icon, tooltip);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class NdkExportAction extends AbstractAction {
         boolean accept = false;
         if (selection != null && selection instanceof Record[]) {
             Record[] records = (Record[]) selection;
-            accept = acceptNdk(records);
+            accept = accept(records);
         }
         return accept;
     }
@@ -62,11 +62,11 @@ public class NdkExportAction extends AbstractAction {
     @Override
     public void performAction(ActionEvent event) {
         Record[] records = Actions.getSelection(event);
-        String[] pids = ClientUtils.toFieldValues(records, ExportResourceApi.NDK_PID_PARAM);
+        String[] pids = ClientUtils.toFieldValues(records, ExportResourceApi.CROSSREF_PID_PARAM);
         askForExportOptions(pids);
     }
 
-    private boolean acceptNdk(Record[] records) {
+    private boolean accept(Record[] records) {
         boolean accept = false;
         for (Record record : records) {
             DigitalObject dobj = DigitalObject.createOrNull(record);
@@ -75,7 +75,8 @@ public class NdkExportAction extends AbstractAction {
 //                String metadataFormat = model.getMetadataFormat();
                 String modelId = dobj.getModelId();
                 // XXX hack; it needs support to query model/object for action availability
-                if (modelId != null && modelId.startsWith("model:ndk")) {
+                if (modelId != null && (modelId.equals("model:bdmarticle")
+                         || modelId.startsWith("model:ndkperiodical"))) {
                     accept = true;
                     continue;
                 }
@@ -91,7 +92,7 @@ public class NdkExportAction extends AbstractAction {
             return ;
         }
         Record export = new Record();
-        export.setAttribute(ExportResourceApi.NDK_PID_PARAM, pids);
+        export.setAttribute(ExportResourceApi.CROSSREF_PID_PARAM, pids);
 //        ExportOptionsWidget.showOptions(export, new Callback<Record, Void>() {
 //
 //            @Override
@@ -111,8 +112,8 @@ public class NdkExportAction extends AbstractAction {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setPromptStyle(PromptStyle.DIALOG);
         dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
-        DataSource ds = ExportDataSource.getNdk();
-        ds.addData(export, new DSCallback() {
+        DataSource ds = ExportDataSource.getCrossref();
+        dsAddData(ds, export, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
@@ -120,12 +121,13 @@ public class NdkExportAction extends AbstractAction {
                     Record[] data = response.getData();
                     RecordList erl = errorsFromExportResult(data);
                     if (erl.isEmpty()) {
-                        String dryRun = export.getAttribute(ExportResourceApi.DESA_DRYRUN_PARAM);
-                        SC.say(dryRun == null
-                                ? i18n.NdkExportAction_ExportDone_Msg()
-                                : i18n.DesaExportAction_ValidationDone_Msg());
+                        String target = "";
+                        if (data != null && data.length > 0) {
+                            target = data[0].getAttribute(ExportResourceApi.RESULT_TARGET);
+                        }
+                        SC.say(i18n.ExportResultWidget_Window_Title(), i18n.CrossrefExportAction_ExportDone_Msg(target));
                     } else {
-                        ExportResultWidget.showErrors(erl.toArray());
+                        DesaExportAction.ExportResultWidget.showErrors(erl.toArray());
                     }
                 }
             }

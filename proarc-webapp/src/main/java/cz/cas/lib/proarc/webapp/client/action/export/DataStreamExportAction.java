@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action;
+package cz.cas.lib.proarc.webapp.client.action.export;
 
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -23,11 +23,10 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.SC;
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.ds.ExportDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
@@ -35,44 +34,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Exports selected digital objects in Kramerius 4 format.
- *
- * It expects the event source to implement {@link Selectable}.
+ * Exports data streams of selected digital objects.
  *
  * @author Jan Pokorsky
  */
-public final class KrameriusExportAction extends AbstractAction {
+public final class DataStreamExportAction extends ExportAction {
 
-    private final ClientMessages i18n;
+    private final String dsId;
 
-    public KrameriusExportAction(ClientMessages i18n) {
-        super(i18n.KrameriusExportAction_Title(), null, i18n.KrameriusExportAction_Hint());
-        this.i18n = i18n;
+    public static DataStreamExportAction full(ClientMessages i18n) {
+        DataStreamExportAction action = new DataStreamExportAction(i18n, "FULL");
+        action.setTitle(i18n.DataStreamExportAction_Full_Title());
+        action.setTooltip(i18n.DataStreamExportAction_Full_Hint());
+        return action;
     }
 
-    @Override
-    public boolean accept(ActionEvent event) {
-        Object[] selection = Actions.getSelection(event);
-        return selection != null && selection.length > 0 && selection instanceof Record[]
-                && acceptMods((Record[]) selection);
+    public static DataStreamExportAction raw(ClientMessages i18n) {
+        DataStreamExportAction action = new DataStreamExportAction(i18n, "RAW");
+        action.setTitle(i18n.DataStreamExportAction_Raw_Title());
+        action.setTooltip(i18n.DataStreamExportAction_Raw_Hint());
+        return action;
     }
 
-    /** Accepts only if all records are objects with description metadata in MODS format */
-    private boolean acceptMods(Record[] records) {
-        boolean accept = false;
-        for (Record record : records) {
-            DigitalObject dobj = DigitalObject.createOrNull(record);
-            if (dobj != null) {
-                MetaModelRecord model = dobj.getModel();
-                if (model != null && ModsConstants.NS.equals(model.getMetadataFormat())) {
-                    accept = true;
-                    continue;
-                }
-            }
-            accept = false;
-            break;
-        }
-        return accept;
+    private DataStreamExportAction(ClientMessages i18n, String dsId) {
+        super(i18n,null, null, null);
+        this.dsId = dsId;
     }
 
     @Override
@@ -91,14 +77,15 @@ public final class KrameriusExportAction extends AbstractAction {
     }
 
     private void export(List<String> pids) {
-        DataSource ds = ExportDataSource.getKramerius4();
+        DataSource ds = ExportDataSource.getDataStream();
         Record export = new Record();
-        export.setAttribute(ExportResourceApi.KRAMERIUS4_PID_PARAM,
+        export.setAttribute(ExportResourceApi.DATASTREAM_PID_PARAM,
                 pids.toArray(new String[pids.size()]));
+        export.setAttribute(ExportResourceApi.DATASTREAM_DSID_PARAM, dsId);
         DSRequest dsRequest = new DSRequest();
         dsRequest.setPromptStyle(PromptStyle.DIALOG);
         dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
-        ds.addData(export, new DSCallback() {
+        dsAddData(ds, export, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {

@@ -118,6 +118,7 @@ public class ExportResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> kramerius4(
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
             ) throws IOException {
 
@@ -125,7 +126,7 @@ public class ExportResource {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
         Kramerius4Export export = new Kramerius4Export(
-                RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export());
+                RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export(), policy);
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
