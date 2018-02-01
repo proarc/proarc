@@ -57,6 +57,7 @@ public final class ImportProfile {
     public static final String CONVERTOR_JPG_SMALL_PROCESSOR = "import.jpg_small_convertor.processor";
     public static final String CONVERTOR_JPG_LARGE_PROCESSOR = "import.jpg_large_convertor.processor";
     public static final String CONVERTOR_JP2_PROCESSOR = "import.jp2_convertor.processor";
+    public static final String CONVERTOR_TIFF_JPG_PROCESSOR = "import.tiff_to_jpg_convertor.processor";
 
 
     private final Configuration config;
@@ -138,6 +139,15 @@ public final class ImportProfile {
         return config.subset(PROCESSOR + "." + processor);
     }
 
+    public Configuration getConvertorTiffToJpgProcessor () {
+        String processor = config.getString(CONVERTOR_TIFF_JPG_PROCESSOR, "-");
+        return config.subset(PROCESSOR + "." + processor);
+    }
+
+    public boolean isTiffToJpgDefined() {
+        return !config.getString(CONVERTOR_TIFF_JPG_PROCESSOR, "-").equals("-");
+    }
+
     public Integer getPreviewMaxHeight() {
         return getPositiveInteger(PREVIEW_MAX_HEIGHT);
     }
@@ -214,5 +224,4 @@ public final class ImportProfile {
         }
         return val;
     }
-
 }
