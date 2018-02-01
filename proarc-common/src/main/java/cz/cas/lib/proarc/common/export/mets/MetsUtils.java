@@ -893,13 +893,14 @@ public class MetsUtils {
             }
             Itemlist itemList = new Itemlist();
             infoJaxb.setItemlist(itemList);
-            itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size()));
+            itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size() + 1)); // size of list + info file
             List<FileMD5Info> fileList = metsContext.getFileList();
         long size = 0;
             for (FileMD5Info fileName : fileList) {
                 itemList.getItem().add(fileName.getFileName().replaceAll(Matcher.quoteReplacement(File.separator), "/"));
                 size += fileName.getSize();
             }
+            itemList.getItem().add("." + File.separator + infoFile.getName());
             int infoTotalSize = (int) (size/1024);
         infoJaxb.setSize(infoTotalSize);
             try {

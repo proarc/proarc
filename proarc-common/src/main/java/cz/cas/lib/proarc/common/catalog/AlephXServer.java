@@ -57,11 +57,14 @@ public final class AlephXServer implements BibliographicCatalog {
 
     public static final String TYPE = "AlephXServer";
     public static final String PROPERTY_FIELD_QUERY = "query";
+    public static final String PROPERTY_LOAD_BARCODES = "barcode";
 
     private static final Logger LOG = Logger.getLogger(AlephXServer.class.getName());
 
     private final Transformers transformers = new Transformers();
     private final URI server;
+    private boolean loadBarcodes = false;
+
     final FieldConfig fields = new FieldConfig();
 
     public static AlephXServer get(CatalogConfiguration c) {
@@ -74,6 +77,12 @@ public final class AlephXServer implements BibliographicCatalog {
             try {
                 AlephXServer aleph = new AlephXServer(url);
                 aleph.loadFields(c);
+
+                String loadBarcodes = c.getProperty(PROPERTY_LOAD_BARCODES);
+                if (loadBarcodes != null) {
+                    aleph.setLoadBarcodes(loadBarcodes.equals("true"));
+                }
+
                 return aleph;
             } catch (MalformedURLException | URISyntaxException ex) {
                 LOG.log(Level.SEVERE, c.toString(), ex);
@@ -119,10 +128,6 @@ public final class AlephXServer implements BibliographicCatalog {
     }
 
     public List<MetadataItem> createDetailResponse(InputStream is, Locale locale) throws TransformerException {
-        return createDetailResponse(is, locale, true);
-    }
-
-    public List<MetadataItem> createDetailResponse(InputStream is, Locale locale, boolean loadBarcodes) throws TransformerException {
         try {
             StreamSource fixedOaiMarc = (StreamSource) transformers.transform(new StreamSource(is), Transformers.Format.AlephOaiMarcFix);
 //            StringBuilder sb = new StringBuilder();
@@ -170,6 +175,10 @@ public final class AlephXServer implements BibliographicCatalog {
                 LOG.log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    public void setLoadBarcodes(boolean loadBarcodes) {
+        this.loadBarcodes = loadBarcodes;
     }
 
     private MetadataItem addBarcodeMetadata(MetadataItem item, int sysno) throws IOException, TransformerException {

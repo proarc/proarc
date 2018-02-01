@@ -106,7 +106,7 @@ public class AlephXServerTest {
 
         try {
             AlephXServer server = new AlephXServer("http://dummyUrl");
-            List<MetadataItem> details = server.createDetailResponse(xmlIS, null, false);
+            List<MetadataItem> details = server.createDetailResponse(xmlIS, null);
             assertNotNull(server);
             assertEquals(1, details.size());
             MetadataItem detail = details.get(0);
