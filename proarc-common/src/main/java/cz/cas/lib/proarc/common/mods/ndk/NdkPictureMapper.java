@@ -21,7 +21,6 @@ import cz.cas.lib.proarc.mods.CartographicsDefinition;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
-import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NameDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
@@ -79,9 +78,7 @@ public final class NdkPictureMapper extends NdkMapper {
             addElementType(dc.getTitles(), createTitleString(titleInfo));
         }
         addName(mods.getName(), dc.getCreators());
-        for (GenreDefinition genre : mods.getGenre()) {
-            addElementType(dc.getTypes(), genre.getValue());
-        }
+        addElementType(dc.getTypes(), getDcType());
         addStringPlusLanguage(dc.getDescriptions(), mods.getAbstract());
         addStringPlusLanguage(dc.getDescriptions(), mods.getNote());
         for (SubjectDefinition subject : mods.getSubject()) {

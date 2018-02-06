@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -29,9 +30,11 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import org.apache.empire.commons.StringUtils;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.apache.empire.commons.StringUtils;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
@@ -43,6 +46,11 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
  * @author Jan Pokorsky
  */
 public abstract class NdkMapper {
+
+    /**
+     * model ID
+     */
+    private String modelId;
 
     /**
      * Gets a NDK mapper for the given model ID.
@@ -89,6 +97,7 @@ public abstract class NdkMapper {
         } else {
             throw new IllegalStateException("Unsupported model: " + modelId);
         }
+        mapper.modelId = modelId;
         return mapper;
     }
 
@@ -170,6 +179,29 @@ public abstract class NdkMapper {
     }
 
     /**
+     *  @see <a href="http://www.ndk.cz/standardy-digitalizace/elementy-modsgenre_dctype">modsgenre elements</a>
+     */
+    protected final String getDcType() {
+        Map<String, String> modelMap = new HashMap<String, String>() {
+            {
+                put(NdkPlugin.MODEL_ARTICLE, "model:internalpart");
+                put(NdkPlugin.MODEL_CARTOGRAPHIC, "model:map");
+                put(NdkPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
+                put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
+                put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monographunit");
+                put(NdkPlugin.MODEL_PERIODICAL, "model:periodical");
+                put(NdkPlugin.MODEL_PERIODICALISSUE, "model:periodicalitem");
+                put(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, "model:supplement");
+                put(NdkPlugin.MODEL_PERIODICALVOLUME, "model:periodicalvolume");
+                put(NdkPlugin.MODEL_PICTURE, "model:internalpart");
+                put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
+            }
+        };
+
+        return modelMap.get(modelId);
+    }
+
+    /**
      * The default implementation creates label from titleInfo subelements.
      * @return label or {@code null}
      */
@@ -197,6 +229,7 @@ public abstract class NdkMapper {
 
         private DigitalObjectHandler handler;
         private String pid;
+        private String parentModel = null;
 
         public Context(DigitalObjectHandler handler) {
             this.handler = handler;
@@ -209,8 +242,24 @@ public abstract class NdkMapper {
             this.pid = pid;
         }
 
+        /**
+         * Use this just in case there is no handler to provide.
+         */
+        public Context(String pid, String parentModel) {
+            this.pid = pid;
+            this.parentModel = parentModel;
+        }
+
         public String getPid() {
             return handler == null ? pid: handler.getFedoraObject().getPid();
+        }
+
+        public String getParentModel() {
+            try {
+                return handler != null && handler.getParameterParent() != null && handler.getParameterParent().getModel() != null ? handler.getParameterParent().getModel().getPid() : parentModel;
+            } catch (DigitalObjectException e) {
+                return null;
+            }
         }
 
         public DigitalObjectHandler getHandler() {

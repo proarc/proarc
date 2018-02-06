@@ -16,26 +16,20 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
-import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
-import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
-import cz.cas.lib.proarc.mods.RecordInfoDefinition;
-import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.SubjectDefinition;
 import cz.cas.lib.proarc.mods.SubjectNameDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -102,9 +96,7 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
         for (TypeOfResourceDefinition resType : mods.getTypeOfResource()) {
             addElementType(dc.getTypes(), resType.getValue());
         }
-        for (GenreDefinition genre : mods.getGenre()) {
-            addElementType(dc.getTypes(), genre.getValue());
-        }
+        addElementType(dc.getTypes(), getDcType());
         addOriginInfo(mods.getOriginInfo(), dc);
         addLanguage(mods.getLanguage(), dc);
         for (PhysicalDescriptionDefinition physicalDesc : mods.getPhysicalDescription()) {

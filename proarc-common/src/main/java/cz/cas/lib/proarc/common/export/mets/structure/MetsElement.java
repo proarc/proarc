@@ -281,6 +281,20 @@ public class MetsElement implements IMetsElement {
         model = MetsUtils.getModel(relsExt);
         this.elementType = Const.typeMap.get(model);
 
+
+        if (parent instanceof MetsElement) {
+            this.parent = (MetsElement) parent;
+        }
+
+        if (parent == null) {
+            this.parent = initParent();
+        }
+
+        if (this.parent == null) {
+            metsContext.setRootElement(this);
+            LOG.log(Level.FINE, "Root element found:" + getOriginalPid() + "(" + getElementType() + ")");
+        }
+
         if (!Const.PAGE.equals(elementType)) {
             NdkMapper mapper = NdkMapper.get(model.replaceAll("info:fedora/", ""));
             Document modsDocument = MetsUtils.getDocumentFromList(modsStream);
@@ -300,7 +314,13 @@ public class MetsElement implements IMetsElement {
                     }
                 }
             }
-            OaiDcType dcType = mapper.toDc(modsDefinition, null);
+
+            String parentModel = null;
+            if (this.parent != null) {
+               parentModel = Const.typeMap.get(this.parent.getModel());
+            }
+            NdkMapper.Context context = new NdkMapper.Context(digitalObject.getPID(), parentModel);
+            OaiDcType dcType = mapper.toDc(modsDefinition, context);
             DOMResult dcDOMResult = new DOMResult();
             DcUtils.marshal(dcDOMResult, dcType, true);
             this.descriptor = new ArrayList<Element>();
@@ -326,20 +346,8 @@ public class MetsElement implements IMetsElement {
             this.elementID = elementID.replaceAll(this.elementType, modsName);
         }
 
-        if (parent instanceof MetsElement) {
-            this.parent = (MetsElement) parent;
-        }
-
         if (fillChildren) {
             fillChildren();
-        }
-        if (parent == null) {
-            this.parent = initParent();
-        }
-
-        if (this.parent == null) {
-            metsContext.setRootElement(this);
-            LOG.log(Level.FINE, "Root element found:" + getOriginalPid() + "(" + getElementType() + ")");
         }
     }
 
