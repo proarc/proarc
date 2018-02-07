@@ -19,6 +19,7 @@ public class CustomUUIDValidator extends CustomValidator {
     private final String INVALID_UUID_LENGTH_LONG;
 
     private static final int UUID_LENGTH = 32;
+    private static final int UUID_PREFIX_LENGTH = 5;
     private static final int UUID_DASH_COUNT = 4;
     private static final int[] UUID_SEGMENT_LENGTHS = {8,4,4,4,12};
 
@@ -26,7 +27,7 @@ public class CustomUUIDValidator extends CustomValidator {
     private static final String UUID_REGEXP = "[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}";
 
     //note that uuid prefix is not required
-    private final RegExp UUID_PATTERN = RegExp.compile("(" + UUID_PREFIX + ")?" + UUID_REGEXP);
+    private final RegExp UUID_PATTERN = RegExp.compile(UUID_PREFIX + UUID_REGEXP);
 
     public CustomUUIDValidator(ClientMessages i18n) {
         this.i18n = i18n;
@@ -38,6 +39,11 @@ public class CustomUUIDValidator extends CustomValidator {
 
     @Override
     protected boolean condition(Object value) {
+        //empty UUID is valid - will be created random new
+        if (value == null) {
+            return true;
+        }
+
         String line = value.toString();
 
         //full check
@@ -45,43 +51,50 @@ public class CustomUUIDValidator extends CustomValidator {
             return true;
         }
 
-        //remove prefix if present
-        if (line.startsWith(UUID_PREFIX)) {
-            line = line.substring(line.indexOf(':') + 1);
-        }
-
         String errorMessage = INVALID_UUID_FORMAT;
 
+        //enable empty UUID - will be randomly generated
+        if (line.length() == 0) {
+            return true;
+        }
+
+        //check prefix
+        if (!line.startsWith(UUID_PREFIX)) {
+            errorMessage += "Missing 'uuid:'";
+            reportMessage(errorMessage);
+            return false;
+        }
+
         //check length
-        if (line.length() != UUID_LENGTH) {
-            if (line.length() < UUID_LENGTH) {
-                errorMessage += "\n" + INVALID_UUID_LENGTH_SHORT;
-            } else if (line.length() > UUID_LENGTH) {
-                errorMessage += "\n" + INVALID_UUID_LENGTH_LONG;
+        if (line.length() != UUID_LENGTH + UUID_PREFIX_LENGTH) {
+            if (line.length() < UUID_LENGTH + UUID_PREFIX_LENGTH) {
+                errorMessage += INVALID_UUID_LENGTH_SHORT;
+            } else if (line.length() > UUID_LENGTH + UUID_PREFIX_LENGTH) {
+                errorMessage += INVALID_UUID_LENGTH_LONG;
             }
         }
 
         //check dashes
 
         List<Integer> pos = new ArrayList<>();
-        for (int i = 0; i >= line.length(); i++) {
+        for (int i = 0; i < line.length(); i++) {
             //note: char == char does not work
-            if (new String(line.substring(i,i+1)).equals("-")) {
+            if (line.charAt(i) == '-' ) {
                 pos.add(i);
             }
         }
 
         if (pos.size() != UUID_DASH_COUNT) {
-            errorMessage += "\n" + i18n.Validation_UUID_Invalid_Dash_Count(Integer.toString(pos.size()), Integer.toString(UUID_DASH_COUNT));
+            errorMessage += i18n.Validation_UUID_Invalid_Dash_Count(Integer.toString(pos.size()), Integer.toString(UUID_DASH_COUNT));
         }
 
         //add EoL for last segment validation
         pos.add(line.length());
 
         //check segment sizes
-        int lastPos = 0;
+        int lastPos = 5;
 
-        for (int i = 0; i < UUID_DASH_COUNT; i++) {
+        for (int i = 0; i < UUID_DASH_COUNT + 1; i++) {
             if (i >= pos.size()) {
                 reportMessage(errorMessage);
                 return false;
