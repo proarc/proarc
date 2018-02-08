@@ -1,5 +1,23 @@
+/*
+ * Copyright (C) 2018 Jakub Kremlacek
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package cz.cas.lib.proarc.webapp.client.widget.form;
 
+import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.form.validator.CustomValidator;
@@ -8,6 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * UUID validator with custom messages thrown via SC.warn,
+ * for other channel reporting override reportMessage(String message)
+ *
  * @author Jakub Kremlacek
  */
 public class CustomUUIDValidator extends CustomValidator {
@@ -17,6 +38,7 @@ public class CustomUUIDValidator extends CustomValidator {
     private final String INVALID_UUID_FORMAT;
     private final String INVALID_UUID_LENGTH_SHORT;
     private final String INVALID_UUID_LENGTH_LONG;
+    private final String INVALID_UUID_MISSING_PREFIX;
 
     private static final int UUID_LENGTH = 32;
     private static final int UUID_PREFIX_LENGTH = 5;
@@ -25,16 +47,18 @@ public class CustomUUIDValidator extends CustomValidator {
 
     private static final String UUID_PREFIX = "uuid:";
     private static final String UUID_REGEXP = "[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}";
+    private static final String UUID_INVALID_CHAR_REGEXP = "((uuid:)[A-Fa-f0-9-]*[^A-Fa-f0-9-])";
 
-    //note that uuid prefix is not required
     private final RegExp UUID_PATTERN = RegExp.compile(UUID_PREFIX + UUID_REGEXP);
+    private final RegExp UUID_INVALID_CHAR_PATTERN = RegExp.compile(UUID_INVALID_CHAR_REGEXP);
 
     public CustomUUIDValidator(ClientMessages i18n) {
         this.i18n = i18n;
 
-        INVALID_UUID_FORMAT = i18n.Validation_Invalid_UUID_Msg();
+        INVALID_UUID_FORMAT = i18n.Validation_UUID_Invalid();
         INVALID_UUID_LENGTH_SHORT = i18n.Validation_UUID_Invalid_Length_Short();
         INVALID_UUID_LENGTH_LONG = i18n.Validation_UUID_Invalid_Length_Long();
+        INVALID_UUID_MISSING_PREFIX = i18n.Validation_UUID_Invalid_Missing_Prefix();
     }
 
     @Override
@@ -60,9 +84,18 @@ public class CustomUUIDValidator extends CustomValidator {
 
         //check prefix
         if (!line.startsWith(UUID_PREFIX)) {
-            errorMessage += "Missing 'uuid:'";
+            errorMessage += INVALID_UUID_MISSING_PREFIX;
             reportMessage(errorMessage);
             return false;
+        }
+
+        //check invalid characters
+        MatchResult matcher = UUID_INVALID_CHAR_PATTERN.exec(line);
+
+        if (matcher != null) {
+            char invalidChar = matcher.getGroup(1).charAt(matcher.getGroup(1).length() - 1);
+
+            errorMessage += i18n.Validation_UUID_Invalid_Character(String.valueOf(invalidChar));
         }
 
         //check length
@@ -74,8 +107,7 @@ public class CustomUUIDValidator extends CustomValidator {
             }
         }
 
-        //check dashes
-
+        //check dash count
         List<Integer> pos = new ArrayList<>();
         for (int i = 0; i < line.length(); i++) {
             //note: char == char does not work
