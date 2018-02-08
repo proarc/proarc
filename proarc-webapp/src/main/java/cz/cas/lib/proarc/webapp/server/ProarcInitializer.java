@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportDispatcher;
 import cz.cas.lib.proarc.common.imports.ImportProcess;
+import cz.cas.lib.proarc.common.jobs.JobHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.sql.DbUtils;
@@ -43,9 +44,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+import org.quartz.SchedulerException;
 
 /**
  * Initializes the application.
@@ -94,6 +97,7 @@ public final class ProarcInitializer {
                 MetaModelRepository.getInstance(), UserUtil.getDefaultManger()));
         Authenticators.setInstance(new Authenticators(config.getAuthenticators()));
         initWorkflow(config, daoFactory, UserUtil.getDefaultManger());
+        initSchedulers(config);
         asyncTask = executor.submit(new Callable<Void>() {
 
             @Override
@@ -189,6 +193,15 @@ public final class ProarcInitializer {
                     WorkflowProfiles.getInstance(), daoFactory, users));
         } catch (Exception ex) {
             throw new IllegalStateException("The workflow initialization failed!", ex);
+        }
+    }
+
+    private void initSchedulers(AppConfiguration config) {
+        try {
+            JobHandler.getInstance().init(config);
+        } catch (SchedulerException e) {
+            LOG.log(Level.SEVERE,"Scheduler initializing failed");
+            e.printStackTrace();
         }
     }
 
