@@ -873,7 +873,7 @@ public class MetsUtils {
         }
             Info infoJaxb = new Info();
             infoJaxb.setCreated(date2);
-            infoJaxb.setMainmets("./" + metsFile.getName());
+            infoJaxb.setMainmets(metsFile.getName());
             Checksum checkSum = new Checksum();
             checkSum.setChecksum(md5);
             checkSum.setType("MD5");
@@ -900,7 +900,7 @@ public class MetsUtils {
                 itemList.getItem().add(fileName.getFileName().replaceAll(Matcher.quoteReplacement(File.separator), "/"));
                 size += fileName.getSize();
             }
-            itemList.getItem().add("." + File.separator + infoFile.getName());
+            itemList.getItem().add("./" + infoFile.getName());
             int infoTotalSize = (int) (size/1024);
         infoJaxb.setSize(infoTotalSize);
             try {

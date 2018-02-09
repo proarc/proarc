@@ -187,9 +187,6 @@ public class NdkPeriodicalMapper extends RdaNdkMapper {
         }
         addName(mods.getName(), dc.getCreators());
         addElementType(dc.getTypes(), getDcType());
-        for (TypeOfResourceDefinition resType : mods.getTypeOfResource()) {
-            addElementType(dc.getTypes(), resType.getValue());
-        }
         addOriginInfo(mods.getOriginInfo(), dc);
         addLanguage(mods.getLanguage(), dc);
         for (PhysicalDescriptionDefinition physicalDesc : mods.getPhysicalDescription()) {
