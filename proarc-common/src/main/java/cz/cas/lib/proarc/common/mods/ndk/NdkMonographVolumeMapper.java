@@ -166,9 +166,7 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
             addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartName());
         }
         addName(mods.getName(), dc.getCreators());
-        for (TypeOfResourceDefinition resType : mods.getTypeOfResource()) {
-            addElementType(dc.getTypes(), resType.getValue());
-        }
+
         if (ctx != null && ctx.getParentModel() != null && Const.MONOGRAPH_MULTIPART.equals(ctx.getParentModel())) {
             addElementType(dc.getTypes(), getDcType());
         } else {

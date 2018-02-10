@@ -480,6 +480,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         fileType.setSEQ(seq);
         fileType.setMIMETYPE(mimeTypes.get(metsStreamName));
         InputStream is = null;
+        seq = seq + 1;
         fileType.setID(Const.streamMappingPrefix.get(metsStreamName) + "_" + MetsUtils.removeNonAlpabetChars(metsContext.getPackageID()) + "_" + String.format("%04d", seq));
         if (fileNames.get(metsStreamName) instanceof String) {
             String fileNameOriginal = (String) fileNames.get(metsStreamName);
@@ -995,7 +996,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             FLocat flocatAmd = new FLocat();
                             FLocat pageFlocat = fileTypePage.getFLocat().get(0);
                             if (pageFlocat.getHref() != null) {
-                                flocatAmd.setHref(".." + pageFlocat.getHref().substring(1));
+                                flocatAmd.setHref("." + pageFlocat.getHref().substring(1));
                             }
                             flocatAmd.setLOCTYPE(pageFlocat.getLOCTYPE());
                             fileTypeAmdSec.getFLocat().add(flocatAmd);

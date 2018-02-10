@@ -254,7 +254,7 @@ final class MapperUtils {
             addStringPlusLanguage(dc.getPublishers(), originInfo.getPublisher());
             for (DateDefinition date : originInfo.getDateIssued()) {
                 String point = toValue(date.getPoint());
-                if (point == null) {
+                if (point != null) {
                     addElementType(dc.getDates(), date.getValue());
                 }
             }

@@ -93,9 +93,6 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
             addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartNumber());
         }
         addName(mods.getName(), dc.getCreators());
-        for (TypeOfResourceDefinition resType : mods.getTypeOfResource()) {
-            addElementType(dc.getTypes(), resType.getValue());
-        }
         addElementType(dc.getTypes(), getDcType());
         addOriginInfo(mods.getOriginInfo(), dc);
         addLanguage(mods.getLanguage(), dc);

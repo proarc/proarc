@@ -68,7 +68,7 @@ public final class NdkPeriodicalVolumeMapper extends NdkMapper {
         if (partNumber != null) {
             dc.getDescriptions().add(new ElementType(partNumber, null));
         }
-        if (dateIssued == null) {
+        if (dateIssued != null) {
             dc.getDates().add(new ElementType(dateIssued, null));
         }
         addName(mods.getName(), dc.getCreators());
