@@ -43,11 +43,14 @@ import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.xml.sax.InputSource;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -293,14 +296,16 @@ public class TransformersTest {
             XMLAssert.assertXpathExists("/m:mods/m:name[@type='personal'"
                         + " and @authorityURI='http://aut.nkp.cz'"
                         + " and @valueURI='http://aut.nkp.cz/xx0113245']"
-                    + "/m:namePart[text()='Kocina, Jan']"
+                    + "/m:namePart[@type='family' and text()='Kocina']"
+                    + "/../m:namePart[@type='given' and text()='Jan']"
                     + "/../m:namePart[@type='date' and text()='1960-']"
                     + "/../m:role/m:roleTerm[text()='aut']", xmlResult);
             // test 700 1# $a Honzík, Bohumil, $d 1972- $4 aut $7 jn20020422016
             XMLAssert.assertXpathExists("/m:mods/m:name[@type='personal'"
                         + " and @authorityURI='http://aut.nkp.cz'"
                         + " and @valueURI='http://aut.nkp.cz/jn20020422016']"
-                    + "/m:namePart[text()='Honzík, Bohumil']"
+                    + "/m:namePart[@type='family' and text()='Honzík']"
+                    + "/../m:namePart[@type='given' and text()='Bohumil']"
                     + "/../m:namePart[@type='date' and text()='1972-']"
                     + "/../m:role/m:roleTerm[text()='aut']", xmlResult);
             // test 700 1# $a Test Without AuthorityId $d 1972- $4 aut

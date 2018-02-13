@@ -5,6 +5,7 @@
     <!-- 08/08/08: tmee added corrected chopPunctuation templates for 260c -->
     <!-- 08/19/04: ntra added "marc:" prefix to datafield element -->
     <!-- 12/14/07: ntra added url encoding template -->
+    <!-- 18/09/02: added template for separating family and given namePart for 689-->
     <!-- url encoding -->
 
     <xsl:variable name="ascii">
@@ -96,6 +97,47 @@
         </xsl:choose>
     </xsl:template>
 
+    <xsl:template name="stringPunctuationFront">
+        <xsl:param name="chopString"/>
+        <xsl:param name="punctuation">
+            <xsl:text>,</xsl:text>
+        </xsl:param>
+        <xsl:variable name="length" select="string-length($chopString)"/>
+        <xsl:choose>
+            <xsl:when test="$length=0"/>
+            <xsl:when test="contains($chopString, $punctuation)">
+                <xsl:call-template name="chopPunctuation">
+                    <xsl:with-param name="chopString" select="substring-before($chopString,$punctuation)"/>
+                    <xsl:with-param name="punctuation" select="$punctuation"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:when test="not($chopString)"/>
+            <xsl:otherwise>
+                <xsl:value-of select="$chopString"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template name="stringPunctuationBack">
+        <xsl:param name="chopString"/>
+        <xsl:param name="punctuation">
+            <xsl:text>,</xsl:text>
+        </xsl:param>
+        <xsl:variable name="length" select="string-length($chopString)"/>
+        <xsl:choose>
+            <xsl:when test="$length=0"/>
+            <xsl:when test="contains($chopString, $punctuation)">
+                <xsl:call-template name="chopPunctuationFrontAndBack">
+                    <xsl:with-param name="chopString" select="substring-after($chopString,$punctuation)"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:when test="not($chopString)"/>
+            <xsl:otherwise>
+                <xsl:value-of select="$chopString"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
     <xsl:template name="chopPunctuationFront">
         <xsl:param name="chopString"/>
         <xsl:variable name="length" select="string-length($chopString)"/>
@@ -124,6 +166,33 @@
             <xsl:when test="$length=0"/>
             <xsl:when test="contains($punctuation, substring($chopString,$length,1))">
                 <xsl:call-template name="chopPunctuation">
+                    <xsl:with-param name="chopString" select="substring($chopString,1,$length - 1)"/>
+                    <xsl:with-param name="punctuation" select="$punctuation"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:when test="not($chopString)"/>
+            <xsl:otherwise>
+                <xsl:value-of select="$chopString"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template name="chopPunctuationFrontAndBack">
+        <xsl:param name="chopString"/>
+        <xsl:param name="punctuation">
+            <xsl:text>.:,;/] </xsl:text>
+        </xsl:param>
+        <xsl:variable name="length" select="string-length($chopString)"/>
+        <xsl:choose>
+            <xsl:when test="$length=0"/>
+            <xsl:when test="contains('.:,;/[ ', substring($chopString,1,1))">
+                <xsl:call-template name="chopPunctuationFrontAndBack">
+                    <xsl:with-param name="chopString" select="substring($chopString,2,$length - 1)"
+                    />
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:when test="contains($punctuation, substring($chopString,$length,1))">
+                <xsl:call-template name="chopPunctuationFrontAndBack">
                     <xsl:with-param name="chopString" select="substring($chopString,1,$length - 1)"/>
                     <xsl:with-param name="punctuation" select="$punctuation"/>
                 </xsl:call-template>
