@@ -86,6 +86,7 @@ public final class Kramerius4ExportOptions {
             put(BornDigitalModsPlugin.MODEL_ARTICLE, "hasIntCompPart");
             put(OldPrintPlugin.MODEL_PAGE, "hasPage");
             put(OldPrintPlugin.MODEL_SUPPLEMENT, "hasIntCompPart");
+            put(OldPrintPlugin.MODEL_VOLUME, "hasUnit");
         }
     };
 
@@ -108,6 +109,7 @@ public final class Kramerius4ExportOptions {
             put(OldPrintPlugin.MODEL_VOLUME, "model:monograph");
             put(OldPrintPlugin.MODEL_SUPPLEMENT, "model:supplement");
             put(OldPrintPlugin.MODEL_PAGE, "model:page");
+            put(OldPrintPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
         }
     };
 
