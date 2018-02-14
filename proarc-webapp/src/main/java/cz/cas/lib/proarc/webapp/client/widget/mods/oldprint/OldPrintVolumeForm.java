@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods.oldprint;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkMonographVolumeForm;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
@@ -39,8 +40,15 @@ public final class OldPrintVolumeForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
-        List<Field> modsFields = f.getFields().get(0).getFields();
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
+                .setType(Field.RADIOGROUP).setRequired(true)
+                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
+                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
+                .createField());
+
+        Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
+        f.getFields().add(mods); // mods
+        List<Field> modsFields = mods.getFields();
 
         modsFields.add(titleInfo());
         modsFields.add(name());
