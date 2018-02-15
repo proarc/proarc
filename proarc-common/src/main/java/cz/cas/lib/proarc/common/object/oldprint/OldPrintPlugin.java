@@ -167,7 +167,16 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
                         inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                     }
+                } else if (OldPrintPlugin.MODEL_VOLUME.equals(modelId)) {
+                    //issue 540
+                    DigitalObjectHandler title = findEnclosingObject(parent, OldPrintPlugin.MODEL_MONOGRAPHTITLE);
+                    if (title != null) {
+                        ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                        defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
+                        defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                    }
                 }
+
                 return defaultMods;
             }
 
