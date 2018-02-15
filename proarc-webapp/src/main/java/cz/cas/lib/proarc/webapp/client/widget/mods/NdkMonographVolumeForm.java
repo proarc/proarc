@@ -310,7 +310,7 @@ public final class NdkMonographVolumeForm {
                 .addField(new FieldBuilder("dateOther").setMaxOccurrences(1)
                     .addField(new FieldBuilder("value").setTitle("Date Other - R").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Datum vytvoření, distribuce, výroby předlohy."
-                            + "<p>Tento elemet se využije v případě výskytu $c v:"
+                            + "<p>Tento element se využije v případě výskytu $c v:"
                             + "<p>264_0 je production"
                             + "<p>264_2 je distribution"
                             + "<p>264_3 je manufacture")

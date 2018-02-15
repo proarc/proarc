@@ -313,6 +313,21 @@ public final class OldPrintVolumeForm {
                         + "<p>Odpovídá hodnotě z katalogizačního záznamu, pole 260, podpole „c“ a pole 008/07-10.")
                     .createField()) // value
                 .createField()) // dateIssued
+                .addField(new FieldBuilder("dateOther").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setTitle("Date Other - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Datum vytvoření, distribuce, výroby předlohy."
+                            + "<p>Tento element se využije v případě výskytu $c v:"
+                            + "<p>264_0 je production"
+                            + "<p>264_2 je distribution"
+                            + "<p>264_3 je manufacture")
+                    .createField()) // value
+                .createField()) // dateOther
+                // copyrightDate, dateDefinition extends stringPlusLanguage
+                .addField(new FieldBuilder("copyrightDate").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setTitle("Copyright Date - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Využije se pouze v případě výskuytu pole 264 s druhým indikátorem \"4\" a podpolem $c.")
+                    .createField()) // value
+                .createField()) // copyrightDate
                 // dateCreated, dateDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("dateCreated").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
