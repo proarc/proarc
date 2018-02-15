@@ -61,7 +61,7 @@ public class RdaRules {
 
     public void check() throws DigitalObjectValidationException{
         if (HAS_MEMBER_RDA_VALIDATION_MODELS.contains(modelId)) {
-            checkRules(mods);
+            checkAndRepairRules(mods);
             for (OriginInfoDefinition oi : mods.getOriginInfo()) {
                 checkOriginInfoRdaRules(oi);
             }
@@ -116,7 +116,7 @@ public class RdaRules {
     }
 
     /** Checks if the correct fields are filled depending on eventType */
-    protected void checkRules(ModsDefinition mods) {
+    protected void checkAndRepairRules(ModsDefinition mods) {
         if (mods.getRecordInfo().isEmpty()) {
             return;
         }
