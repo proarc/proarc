@@ -23,7 +23,6 @@ import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.validator.CustomValidator;
-import com.smartgwt.client.widgets.form.validator.RegExpValidator;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.layout.SectionStack;
 import com.smartgwt.client.widgets.layout.SectionStackSection;
@@ -38,6 +37,7 @@ import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.cas.lib.proarc.webapp.client.widget.form.CustomUUIDValidator;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -173,8 +173,9 @@ public final class NewDigObject extends VLayout {
         newPid.setTooltip(i18n.NewDigObject_OptionPid_Hint());
         newPid.setLength(36 + 5);
         newPid.setWidth((36 + 5) * 8);
-        newPid.setValidators(new RegExpValidator(
-                "uuid:[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}"));
+        newPid.setValidators(new CustomUUIDValidator(i18n));
+        //newPid.setValidators(new RegExpValidator(
+        //        "uuid:[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}"));
         DynamicForm form = new DynamicForm();
         form.setWrapItemTitles(false);
         form.setAutoFocus(true);
