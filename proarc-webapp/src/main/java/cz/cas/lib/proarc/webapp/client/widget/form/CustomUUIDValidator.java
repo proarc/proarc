@@ -99,10 +99,10 @@ public class CustomUUIDValidator extends CustomValidator {
         }
 
         //check length
-        if (line.length() != UUID_LENGTH + UUID_PREFIX_LENGTH) {
-            if (line.length() < UUID_LENGTH + UUID_PREFIX_LENGTH) {
+        if (line.length() != UUID_LENGTH + UUID_PREFIX_LENGTH + UUID_DASH_COUNT) {
+            if (line.length() < UUID_LENGTH + UUID_PREFIX_LENGTH + UUID_DASH_COUNT) {
                 errorMessage += INVALID_UUID_LENGTH_SHORT;
-            } else if (line.length() > UUID_LENGTH + UUID_PREFIX_LENGTH) {
+            } else if (line.length() > UUID_LENGTH + UUID_PREFIX_LENGTH + UUID_DASH_COUNT) {
                 errorMessage += INVALID_UUID_LENGTH_LONG;
             }
         }
