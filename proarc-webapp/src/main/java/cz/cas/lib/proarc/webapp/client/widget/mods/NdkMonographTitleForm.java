@@ -39,6 +39,7 @@ public final class NdkMonographTitleForm {
         modsFields.add(titleInfo());
         modsFields.add(originInfo());
         modsFields.add(genre());
+        modsFields.add(language());
         modsFields.add(identifier());
 
         return f;
@@ -153,6 +154,50 @@ public final class NdkMonographTitleForm {
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
         .createField(); // genre
+    }
+
+    private Field language() {
+        // language, languageDefinition
+        return new FieldBuilder("language").setTitle("Languages - O").setMaxOccurrences(10)
+                .setHint("Údaje o jazyce dokumentu; v případě vícenásobného výskytu nutno element <language> opakovat")
+                // @objectPart, @displayLabel, @altRepGroup, @usage
+                .addField(new FieldBuilder("objectPart").setTitle("Object Part - O").setMaxOccurrences(1).setType(Field.COMBO).setWidth("300")
+                        .setHint("Možnost vyjádřit jazyk konkrétní části svazku.")
+                       // .addMapValue("summary", "summary")
+                       // .addMapValue("table of contents", "table of contents")
+                       // .addMapValue("accompanying material", "accompanying material")
+                        .addMapValue("translation", "translation")
+                        .createField()) // @objectPart
+                // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
+                // languageTerm, languageTermDefinition
+                .addField(new FieldBuilder("languageTerm").setMaxOccurrences(1)
+                        .setHint("Přesné určení jazyka – kódem nutno použít kontrolovaný slovník ISO 639-2,"
+                                + "http://www.loc.gov/standards/iso639-2/php/code_list.php"
+                                + "<p>Odpovídá poli 008/35-37, resp. 041")
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        // @authorityURI, @valueURI
+                        // @authority, enum
+                        .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1)
+                                .setType(Field.SELECT).setRequired(true)
+                                .setHint("Použít hodnotu „iso639-2b“.")
+                                .addMapValue("iso639-2b", "ISO 639-2B")
+                                .addMapValue("rfc3066", "RFC 3066")
+                                .addMapValue("iso639-3", "ISO 639-3")
+                                .addMapValue("rfc4646", "RFC 4646")
+                                .addMapValue("rfc5646", "RFC 5646")
+                                .createField()) // authority
+                        // type, codeOrText('code', 'text')
+                        .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
+                                .setType(Field.SELECT).setRequired(true)
+                                .setHint("Typ popisu.")
+                                .addMapValue("code", "code")
+                                .addMapValue("text", "text")
+                                .createField()) // type
+                        .addField(NdkForms.createLangTermValue()
+                                .createField()) // value
+                        .createField()) // languageTerm
+                // scriptTerm
+                .createField(); // language
     }
 
     private Field identifier() {
