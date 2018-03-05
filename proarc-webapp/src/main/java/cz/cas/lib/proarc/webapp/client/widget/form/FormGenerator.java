@@ -110,11 +110,24 @@ public class FormGenerator {
     }
 
     public FormItem createItem(final Field f, final String lang) {
+        return createItem(f, lang, null);
+    }
+
+    public FormItem createItem(final Field f, final String lang, List<FormItem> itemsToCheck) {
         ItemType itemType = getType(f);
         FormItem formItem = null;
         switch (itemType) {
             case PLAIN:
                 formItem = getFormItem(f, lang);
+                if (itemsToCheck != null) {
+                    itemsToCheck.add(formItem);
+
+                    String childTitle = f.getTitle(lang);
+
+                    if ( childTitle != null && childTitle.endsWith("M")) {
+                        formItem.setValidators(new MAMFieldValidator(itemsToCheck));
+                    }
+                }
                 break;
             case ARRAY:
                 // XXX replace StringFormFactory with a generic type solution
@@ -122,7 +135,7 @@ public class FormGenerator {
                         new StringFormFactory(f.getName(), f.getTitle(lang), false));
                 break;
             case FORM:
-                formItem = createNestedFormItem(f, lang);
+                formItem = createNestedFormItem(f, lang, itemsToCheck);
                 break;
             case CUSTOM_FORM:
                 formItem = createNestedCustomFormItem(f, lang);
@@ -151,10 +164,20 @@ public class FormGenerator {
     }
 
     public DynamicForm createNestedForm(Field f, String lang) {
+        return createNestedForm(f, lang, null);
+    }
+
+    public DynamicForm createNestedForm(Field f, String lang, List<FormItem> itemsToCheck) {
+
+        if (itemsToCheck == null && f.getTitle(lang) != null && f.getTitle(lang).endsWith("MA")) {
+            itemsToCheck = new ArrayList<>();
+        }
+
         List<Field> fields = f.getFields();
         ArrayList<FormItem> formItems = new ArrayList<FormItem>(fields.size());
         for (Field child : fields) {
-            FormItem formItem = createItem(child, lang);
+            FormItem formItem = createItem(child, lang, itemsToCheck);
+
             if (formItem != null) {
                 formItems.add(formItem);
             }
@@ -485,11 +508,15 @@ public class FormGenerator {
     }
 
     public RepeatableFormItem createNestedFormItem(final Field f, final String lang) {
+        return createNestedFormItem(f, lang, null);
+    }
+
+    public RepeatableFormItem createNestedFormItem(final Field f, final String lang, List<FormItem> itemsToCheck) {
         RepeatableFormItem rfi = new RepeatableFormItem(f, new CustomFormFactory() {
 
             @Override
             public DynamicForm create() {
-                return createNestedForm(f, lang);
+                return createNestedForm(f, lang, itemsToCheck);
             }
         });
         rfi.setPrompt(f.getHint(lang));

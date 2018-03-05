@@ -360,6 +360,7 @@ public final class RepeatableForm extends VLayout implements HasListChangedHandl
             // 1. member is formError
             RepeatableForm.this.removeMember(row.getView());
             setAddDisabled(false);
+            row.getForm().clearValues();
         }
         RepeatableForm.this.fireEvent(new ListChangedEvent());
     }
