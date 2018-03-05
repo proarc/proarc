@@ -296,10 +296,9 @@ public final class NdkMonographVolumeForm {
                         .addMapValue("end", "end")
                     .createField()) // @point
                     .addField(new FieldBuilder("qualifier").setTitle("Qualifier - R").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
+                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
                         .addMapValue("approximate", "Approximate")
                         .addMapValue("inferred", "Inferred")
-                        .addMapValue("questionable", "Questionable")
                     .createField()) // @qualifier
                     .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                     .setHint("Datum vydání předlohy."
@@ -442,8 +441,6 @@ public final class NdkMonographVolumeForm {
                 .addField(new FieldBuilder("extent").setTitle("Extent - RA").setMaxOccurrences(5)
                     // stringPlusLanguagePlusSupplied: @supplied
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    // @unit
-                    .addField(new FieldBuilder("unit").setTitle("Unit - O").setMaxOccurrences(1).setType(Field.TEXT).createField())
                     .addField(new FieldBuilder("value").setTitle("Extent - RA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Údaje o rozsahu (stran, svazků nebo rozměrů)"
                                 + "<p>Odpovídá hodnotě v poli 300, podpole „a“, „b“ a „c“"

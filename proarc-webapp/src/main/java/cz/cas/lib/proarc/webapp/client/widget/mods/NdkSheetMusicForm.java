@@ -50,7 +50,7 @@ public final class NdkSheetMusicForm {
                 .setHint("Název titulu.<p>Pro plnění použít katalogizační záznam.")
                 // titleInfo@type, enum
                 .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
-                    .setHint("Hlavní název bez type.<dl>Hodnoty:"
+                    .setHint("Pokud jde o hlavní název, pak nechat tuto hodnotu prázdnou.<dl>Jinak použít jednu z hodnot:"
                         + "<dt>abbreviated</dt><dd>zkrácený název</dd>"
                         + "<dt>alternative</dt><dd>alternativní název</dd>"
                         + "<dt>translated</dt><dd>přeložený název</dd>"
@@ -264,10 +264,9 @@ public final class NdkSheetMusicForm {
                         .addMapValue("end", "end")
                     .createField()) // @point
                     .addField(new FieldBuilder("qualifier").setTitle("Qualifier - R").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
+                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
                         .addMapValue("approximate", "Approximate")
                         .addMapValue("inferred", "Inferred")
-                        .addMapValue("questionable", "Questionable")
                     .createField()) // @qualifier
                     .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                     .setHint("Datum vydání předlohy."
@@ -337,7 +336,7 @@ public final class NdkSheetMusicForm {
                     // type, codeOrText('code', 'text')
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
                         .setType(Field.SELECT).setRequired(true)
-                        .setHint("Typ popisu.")
+                        .setHint("Typ popisu. Použít hodnotu code")
                         .addMapValue("code", "code")
                         .addMapValue("text", "text")
                     .createField()) // type
@@ -394,8 +393,6 @@ public final class NdkSheetMusicForm {
                 .addField(new FieldBuilder("extent").setTitle("Extent - RA").setMaxOccurrences(5)
                     // stringPlusLanguagePlusSupplied: @supplied
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    // @unit
-                    .addField(new FieldBuilder("unit").setTitle("Unit - O").setMaxOccurrences(1).setType(Field.TEXT).createField())
                     .addField(new FieldBuilder("value").setTitle("Extent - RA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Údaje o rozsahu (stran, svazků nebo rozměrů)"
                                 + "<p>Odpovídá hodnotě v poli 300, podpole „a“, „b“ a „c“"

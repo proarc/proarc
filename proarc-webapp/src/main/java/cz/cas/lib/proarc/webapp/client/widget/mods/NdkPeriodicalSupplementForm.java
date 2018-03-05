@@ -103,7 +103,7 @@ public final class NdkPeriodicalSupplementForm {
                 .addField(new FieldBuilder("partName").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     .addField(new FieldBuilder("value").setTitle("Part Name - MA").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Název přílohy.")
+                        .setHint("Název přílohy - vyplnit pouze v případě, pokud dané číslo přélohy má ještě vlastní název")
                     .createField()) // value
                 .createField()) // partName
                 // nonSort, type="stringPlusLanguage"
@@ -290,10 +290,9 @@ public final class NdkPeriodicalSupplementForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @encoding, @qualifier, @point, @keyDate
                     .addField(new FieldBuilder("qualifier").setTitle("Qualifier - O").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
+                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
                         .addMapValue("approximate", "Approximate")
                         .addMapValue("inferred", "Inferred")
-                        .addMapValue("questionable", "Questionable")
                     .createField()) // @qualifier
                     .addField(new FieldBuilder("value").setTitle("Date - MA").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                         .setHint("Datum vydání přílohy.")
@@ -320,10 +319,9 @@ public final class NdkPeriodicalSupplementForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @encoding, @qualifier, @point, @keyDate
                     .addField(new FieldBuilder("qualifier").setTitle("Qualifier - O").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
+                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
                         .addMapValue("approximate", "Approximate")
                         .addMapValue("inferred", "Inferred")
-                        .addMapValue("questionable", "Questionable")
                     .createField()) // @qualifier
                     .addField(new FieldBuilder("value").setTitle("Date - R").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                         .setHint("Datum vytvoření přílohy."
@@ -375,7 +373,7 @@ public final class NdkPeriodicalSupplementForm {
                     // type, codeOrText('code', 'text')
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
                         .setType(Field.SELECT).setRequired(true)
-                        .setHint("Typ popisu.")
+                        .setHint("Použít hodnotu \"code\".")
                         .addMapValue("code", "code")
                         .addMapValue("text", "text")
                     .createField()) // type
@@ -405,6 +403,7 @@ public final class NdkPeriodicalSupplementForm {
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
                         .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("print")
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
+                            + "<p>Pro tištěné předlohy hodnota \"print\", pro elektronické přílohy hodnota \"electronic\"."
                             + "<p>Odpovídá hodnotě v poli 008/23")
                         .addMapValue("braille", "braille")
                         .addMapValue("electronic", "electronic")
@@ -434,8 +433,6 @@ public final class NdkPeriodicalSupplementForm {
                 .addField(new FieldBuilder("extent").setTitle("Extent - RA").setMaxOccurrences(5)
                     // stringPlusLanguagePlusSupplied: @supplied
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    // @unit
-                    .addField(new FieldBuilder("unit").setTitle("Unit - O").setMaxOccurrences(1).setType(Field.TEXT).createField())
                     .addField(new FieldBuilder("value").setTitle("Extent - RA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Údaje o rozsahu (stran, svazků nebo rozměrů)"
                                 + "<p>Odpovídá hodnotě v poli 300, podpole „a“, „b“ a „c“"
@@ -472,7 +469,7 @@ public final class NdkPeriodicalSupplementForm {
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
-                    .setHint("Obecná poznámka k dokumentu.")
+                    .setHint("Obecná poznámka k dokumentu. Odpovídá poli 500 MARC21")
                 .createField()) // value
         .createField(); // note
     }
@@ -483,7 +480,7 @@ public final class NdkPeriodicalSupplementForm {
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 // autofill "czenas"
-                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)
+                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO).setHint("Použít jednu z hodnot: czenas, eczenas nebo Konspekt")
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
                     .addMapValue("Konspekt", "Konspekt")
