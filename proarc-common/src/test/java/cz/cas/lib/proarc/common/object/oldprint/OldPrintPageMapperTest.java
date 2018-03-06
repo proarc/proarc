@@ -104,7 +104,7 @@ public class OldPrintPageMapperTest {
         Page page = new Page();
         page.setIndex("1");
         page.setNumber("[1]");
-        page.setType("NormalPage");
+        page.setType("normalPage");
         page.setNote("note");
         page.setIdentifiers(Arrays.asList(new IdentifierItem(null, "uuid", "1")));
 
@@ -127,12 +127,12 @@ public class OldPrintPageMapperTest {
     public void testGetPageTypeLabel() {
         Locale.setDefault(Locale.ENGLISH);
 
-        assertEquals("Front Endpaper", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", Locale.ENGLISH));
-        assertEquals("Přední předsádka", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", new Locale("cs")));
+        assertEquals("Front Endpaper", OldPrintPageMapper.getPageTypeLabel("frontEndpaper", Locale.ENGLISH));
+        assertEquals("Přední předsádka", OldPrintPageMapper.getPageTypeLabel("frontEndpaper", new Locale("cs")));
 
         Locale.setDefault(new Locale("cs", "CZ"));
 
-        assertEquals("Front Endpaper", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", Locale.ENGLISH));
-        assertEquals("Přední předsádka", OldPrintPageMapper.getPageTypeLabel("FrontEndpaper", new Locale("cs")));
+        assertEquals("Front Endpaper", OldPrintPageMapper.getPageTypeLabel("frontEndpaper", Locale.ENGLISH));
+        assertEquals("Přední předsádka", OldPrintPageMapper.getPageTypeLabel("frontEndpaper", new Locale("cs")));
     }
 }

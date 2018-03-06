@@ -18,11 +18,14 @@ package cz.cas.lib.proarc.common.object.ndk;
 
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -42,7 +45,8 @@ public class RdaRules {
 
     public static final Set<String> HAS_MEMBER_RDA_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHVOLUME,
-                    NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_SHEETMUSIC)));
+                    NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_SHEETMUSIC,
+                    OldPrintPlugin.MODEL_VOLUME)));
 
     public static final String ERR_NDK_RDA_EMPTYVALUE = "Err_Ndk_Rda_EmptyValue";
     public static final String ERR_NDK_RDA_FILLVALUE = "Err_Ndk_Rda_FillValue";
@@ -59,7 +63,7 @@ public class RdaRules {
 
     public void check() throws DigitalObjectValidationException{
         if (HAS_MEMBER_RDA_VALIDATION_MODELS.contains(modelId)) {
-            checkRules(mods);
+            checkAndRepairRules(mods);
             for (OriginInfoDefinition oi : mods.getOriginInfo()) {
                 checkOriginInfoRdaRules(oi);
             }
@@ -114,14 +118,18 @@ public class RdaRules {
     }
 
     /** Checks if the correct fields are filled depending on eventType */
-    protected void checkRules(ModsDefinition mods) {
+    protected void checkAndRepairRules(ModsDefinition mods) {
         if (mods.getRecordInfo().isEmpty()) {
             return;
         }
         List<StringPlusLanguagePlusAuthority> descriptionStandards = mods.getRecordInfo().get(0).getDescriptionStandard();
         String descriptionStandard = descriptionStandards.isEmpty() ? null : descriptionStandards.get(0).getValue();
         if (descriptionStandard == null) {
-            exception.addValidation("RDA rules", ERR_NDK_DESCRIPTIONSTANDARD);
+            StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
+            description.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
+            RecordInfoDefinition recordInfoDefinition = new RecordInfoDefinition();
+            recordInfoDefinition.getDescriptionStandard().add(description);
+            mods.getRecordInfo().add(recordInfoDefinition);
         } else if (!ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA.equalsIgnoreCase(descriptionStandard)
                 && !ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(descriptionStandard)) {
             exception.addValidation("RDA rules", ERR_NDK_DESCRIPTIONSTANDARD);

@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
-import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
@@ -42,9 +41,7 @@ public class NdkMonographTitleMapper extends NdkMapper {
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
             addElementType(dc.getTitles(), createTitleString(titleInfo));
         }
-        for (GenreDefinition genre : mods.getGenre()) {
-            addElementType(dc.getTypes(), genre.getValue());
-        }
+        addElementType(dc.getTypes(), getDcType());
         return dc;
     }
 
