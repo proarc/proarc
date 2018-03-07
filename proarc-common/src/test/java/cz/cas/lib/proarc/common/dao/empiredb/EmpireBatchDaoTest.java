@@ -127,6 +127,21 @@ public class EmpireBatchDaoTest {
         batch.setUserId(1);
         batch.setProfileId(ConfigurationProfile.DEFAULT);
         dao.update(batch);
+
+        batch = dao.create();
+        batch.setCreate(Timestamp.valueOf("2013-01-17 12:12:12.000"));
+        batch.setDevice("device:scanner");
+        batch.setEstimateItemNumber(2);
+        batch.setFolder("folder/");
+        batch.setGenerateIndices(true);
+        batch.setLog("log");
+        batch.setParentPid("uuid:0eaa6730-9068-11dd-97de-000d606f5dc6");
+        batch.setState(State.LOADING);
+        batch.setTitle("title_folder/");
+        batch.setUserId(800);
+        batch.setProfileId(ConfigurationProfile.DEFAULT);
+        dao.update(batch);
+
         tx.commit();
 
         ReplacementTable expected = new ReplacementTable(
