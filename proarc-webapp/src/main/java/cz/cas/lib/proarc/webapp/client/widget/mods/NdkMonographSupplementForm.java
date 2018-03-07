@@ -283,10 +283,9 @@ public final class NdkMonographSupplementForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @encoding, @qualifier, @point, @keyDate
                     .addField(new FieldBuilder("qualifier").setTitle("Qualifier - O").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
+                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
                         .addMapValue("approximate", "Approximate")
                         .addMapValue("inferred", "Inferred")
-                        .addMapValue("questionable", "Questionable")
                     .createField()) // @qualifier
                     .addField(new FieldBuilder("value").setTitle("Date - MA").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                         .setHint("Datum vydání přílohy.")
@@ -313,11 +312,10 @@ public final class NdkMonographSupplementForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @encoding, @qualifier, @point, @keyDate
                     .addField(new FieldBuilder("qualifier").setTitle("Qualifier - O").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
+                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
                         .addMapValue("approximate", "Approximate")
                         .addMapValue("inferred", "Inferred")
-                        .addMapValue("questionable", "Questionable")
-                    .createField())
+                    .createField()) // @qualifier
                     .addField(new FieldBuilder("value").setTitle("Date - R").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setWidth("200")
                         .setHint("Datum vytvoření přílohy."
                             + "<p>Bude použito pouze při popisu tiskaře, viz poznámka"
@@ -428,8 +426,6 @@ public final class NdkMonographSupplementForm {
                 .addField(new FieldBuilder("extent").setTitle("Extent - RA").setMaxOccurrences(5)
                     // stringPlusLanguagePlusSupplied: @supplied
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    // @unit
-                    .addField(new FieldBuilder("unit").setTitle("Unit - O").setMaxOccurrences(1).setType(Field.TEXT).createField())
                     .addField(new FieldBuilder("value").setTitle("Extent - RA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Údaje o rozsahu (stran, svazků nebo rozměrů)"
                                 + "<p>Odpovídá hodnotě v poli 300, podpole „a“, „b“ a „c“"

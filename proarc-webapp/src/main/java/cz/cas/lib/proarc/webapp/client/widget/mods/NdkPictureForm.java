@@ -41,7 +41,7 @@ public final class NdkPictureForm {
                 .setHint("Názvová informace vnitřní části.")
                 // titleInfo@type, enum
                 .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
-                    .setHint("Hlavní název bez type.<dl>Hodnoty:"
+                    .setHint("Pokud jde o hlavní název, pak nechat tuto hodnotu prázdnou.<dl>Jinak použít jednu z hodnot:"
                         + "<dt>abbreviated</dt><dd>zkrácený název</dd>"
                         + "<dt>alternative</dt><dd>alternativní název</dd>"
                         + "<dt>translated</dt><dd>přeložený název</dd>"
@@ -234,7 +234,7 @@ public final class NdkPictureForm {
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
-                    .setHint("Shrnutí obsahu obrazu.")
+                    .setHint("Shrnutí obsahu vnitřní části.")
                 .createField()) // value
         .createField()); // abstract
 

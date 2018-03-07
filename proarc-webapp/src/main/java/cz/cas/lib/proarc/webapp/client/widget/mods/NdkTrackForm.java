@@ -273,11 +273,10 @@ public final class NdkTrackForm {
                                 .createField()) // @point
                         // @qualifier
                         .addField(new FieldBuilder("qualifier").setTitle("Qualifier - R").setMaxOccurrences(1).setType(Field.SELECT)
-                                .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
-                                .addMapValue("approximate", "Approximate")
-                                .addMapValue("inferred", "Inferred")
-                                .addMapValue("questionable", "Questionable")
-                                .createField()) // @qualifier
+                            .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
+                            .addMapValue("approximate", "Approximate")
+                            .addMapValue("inferred", "Inferred")
+                        .createField()) // @qualifier
                         .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                                 .setHint("Datum vydání předlohy, nutno zaznamenat rok v nichž časopis vycházel - formu zápisu přebírat z katalogu (např. 1900-1939)"
                                         + "<p>Odpovídá hodnotě z katalogizačního záznamu, pole 260, podpole „c“ a pole 008/07-10.")

@@ -126,6 +126,8 @@ public final class NdkMonographTitleForm {
                     // stringPlusLanguagePlusSupplied: @supplied
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     .addField(new FieldBuilder("value").setTitle("Publisher - MA").setMaxOccurrences(1).setType(Field.TEXT).createField())
+                    .setHint("Jméno entity, která dokument vydala, vytiskla nebo jinak vyprodukovala."
+                        +"<p>Pokud existuje více vydavatelů, přebírají se ze záznamu všechny.")
                 .createField()) // publisher
                 // dateIssued, dateDefinition extends stringPlusLanguage
                 // dateCreated, dateDefinition extends stringPlusLanguage
