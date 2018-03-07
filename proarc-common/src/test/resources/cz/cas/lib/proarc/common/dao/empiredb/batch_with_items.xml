@@ -11,7 +11,7 @@
         estimate_number="3" device="device:scanner2" generate_indices="1" log="log2"
         CREATE="2013-01-18 12:12:12.000" timestamp="{$now}"
     />
-    <proarc_batch id="3" folder="folder3/" title="title_folder3/" user_id="800"
+    <proarc_batch id="3" folder="folder3/" title="title_folder3/" user_id="2"
                   state="LOADED" parent_pid="pid:3"
                   estimate_number="3" device="device:scanner2" generate_indices="1" log="log2"
                   CREATE="2013-01-18 12:13:12.000" timestamp="{$now}"

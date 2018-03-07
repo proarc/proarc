@@ -8,6 +8,7 @@ addons:
   apt:
     packages:
       - ghostscript
+  postgresql: "9.6"
 services:
   - postgresql
 before_install:
