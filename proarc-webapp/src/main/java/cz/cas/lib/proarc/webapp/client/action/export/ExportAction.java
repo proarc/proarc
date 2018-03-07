@@ -68,6 +68,7 @@ public abstract class ExportAction extends AbstractAction {
 
         if (optionsForm == null) {
             dataSource.addData(record, dsCallback, dsRequest);
+            SC.say(i18n.ExportAction_Sent_Msg());
             return;
         }
 
