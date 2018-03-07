@@ -22,6 +22,7 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.types.Alignment;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.IButton;
 import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.form.DynamicForm;
@@ -67,6 +68,7 @@ public abstract class ExportAction extends AbstractAction {
 
         if (optionsForm == null) {
             dataSource.addData(record, dsCallback, dsRequest);
+            SC.say(i18n.ExportAction_Sent_Msg());
             return;
         }
 
@@ -77,6 +79,7 @@ public abstract class ExportAction extends AbstractAction {
             setRequestOptions(record);
             dataSource.addData(record, dsCallback, dsRequest);
             d.destroy();
+            SC.say(i18n.ExportAction_Sent_Msg());
         });
 
         d.addCancelButton(() -> d.destroy());

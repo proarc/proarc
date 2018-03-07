@@ -21,7 +21,6 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.SC;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -83,15 +82,16 @@ public final class DataStreamExportAction extends ExportAction {
                 pids.toArray(new String[pids.size()]));
         export.setAttribute(ExportResourceApi.DATASTREAM_DSID_PARAM, dsId);
         DSRequest dsRequest = new DSRequest();
-        dsRequest.setPromptStyle(PromptStyle.DIALOG);
-        dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
+        //dsRequest.setPromptStyle(PromptStyle.DIALOG);
+        //dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
+        dsRequest.setShowPrompt(false);
         dsAddData(ds, export, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
-                    SC.say(i18n.KrameriusExportAction_AddDone_Msg(
+                    SC.say(i18n.DataStreamExportAction_Done_Msg(
                             data[0].getAttribute(ExportResourceApi.RESULT_TARGET)));
                 }
             }
