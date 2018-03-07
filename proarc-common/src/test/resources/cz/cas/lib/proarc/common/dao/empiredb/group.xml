@@ -9,4 +9,6 @@
     <proarc_group_permissions />
     <proarc_batch />
     <proarc_batch_item />
+
+    <proarc_wf_job/>
 </dataset>
