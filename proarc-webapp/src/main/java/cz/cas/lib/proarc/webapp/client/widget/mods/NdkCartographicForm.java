@@ -299,10 +299,10 @@ public final class NdkCartographicForm {
                     .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
                     .addMapValue("continuing", "continuing")
                     .addMapValue("monographic", "monographic")
-                    .addMapValue("single_unit", "single unit")
-                    .addMapValue("multipart_monograph", "multipart monograph")
+                    .addMapValue("single unit", "single unit")
+                    .addMapValue("multipart monograph", "multipart monograph")
                     .addMapValue("serial", "serial")
-                    .addMapValue("integrating_resource", "integrating resource")
+                    .addMapValue("integrating resource", "integrating resource")
                 .createField()) // issuance
                 // frequency, stringPlusLanguagePlusAuthority
         .createField()); // originInfo
