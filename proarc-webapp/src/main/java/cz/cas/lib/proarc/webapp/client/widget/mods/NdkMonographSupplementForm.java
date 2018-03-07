@@ -397,7 +397,7 @@ public final class NdkMonographSupplementForm {
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
                         .setType(Field.COMBO).setRequired(true).setHint("form")
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
-                            + "<p>Odpovídá hodnotě v poli 008/23")
+                            + "<p>Odpovídá hodnotě v poli 008/23 a 008/29")
                         .addMapValue("braille", "braille")
                         .addMapValue("electronic", "electronic")
                         .addMapValue("large print", "large print")
