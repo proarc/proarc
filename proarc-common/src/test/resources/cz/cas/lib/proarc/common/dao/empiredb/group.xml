@@ -11,4 +11,11 @@
     <proarc_batch_item />
 
     <proarc_wf_job/>
+    <proarc_wf_task />
+    <proarc_wf_parameter />
+    <proarc_wf_material />
+    <proarc_wf_folder />
+    <proarc_wf_digital_document />
+    <proarc_wf_physical_document />
+    <proarc_wf_material_in_task />
 </dataset>
