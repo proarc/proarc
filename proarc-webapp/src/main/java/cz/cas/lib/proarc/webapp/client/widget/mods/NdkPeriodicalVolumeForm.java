@@ -146,7 +146,8 @@ public class NdkPeriodicalVolumeForm {
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // XXX auto fill with "volume"
                 .addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
-                    .setHint("bližší údaje o typu dokumentu\n hodnota “volume”")
+                    .setHint("bližší údaje o typu dokumentu."
+                            +"<p>Použít hodnota “volume”")
                 .createField()) // value
         .createField(); // genre
     }
@@ -171,11 +172,10 @@ public class NdkPeriodicalVolumeForm {
                         .addMapValue("end", "Konec")
                     .createField()) // @point
                     .addField(new FieldBuilder("qualifier").setTitle("Qualifier - O").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
+                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
                         .addMapValue("approximate", "Approximate")
                         .addMapValue("inferred", "Inferred")
-                        .addMapValue("questionable", "Questionable")
-                    .createField()) // qualifier
+                    .createField()) // @qualifier
                     .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setWidth("200")
                         .setHint("Datum vydání předlohy, rok nebo rozsah let, kdy ročník vycházel.")
                     .createField()) // value
@@ -218,8 +218,7 @@ public class NdkPeriodicalVolumeForm {
         // identifier, identifierDefinition, [0,*]
         return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
                 .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
-                    + " mezinárodní nebo lokální."
-                    + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
+                    + " mezinárodní nebo lokální.")
                 // stringPlusLanguage@languageAttributeGroup
                 //   lang, xs:string
                 //   xml:lang
