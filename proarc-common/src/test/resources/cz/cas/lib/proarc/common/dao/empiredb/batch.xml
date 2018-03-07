@@ -10,7 +10,7 @@
     <proarc_batch id="2" folder="folder2/" title="title_folder2/" user_id="2"
         state="LOADING" parent_pid="uuid:0eaa6730-9068-11dd-97de-111d606f5dc6"
         estimate_number="2" device="device:scanner" generate_indices="1" log="log"
-        CREATE="2013-01-17 12:12:12.000" timestamp="{$now}" profile_id="profile.default"
+        CREATE="2013-01-17 13:13:13.000" timestamp="{$now}" profile_id="profile.default"
     />
 
     <proarc_batch_item />

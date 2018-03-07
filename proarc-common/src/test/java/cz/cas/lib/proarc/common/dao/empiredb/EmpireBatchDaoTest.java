@@ -128,25 +128,12 @@ public class EmpireBatchDaoTest {
         batch.setProfileId(ConfigurationProfile.DEFAULT);
         dao.update(batch);
 
-        batch = dao.create();
-        batch.setCreate(Timestamp.valueOf("2013-01-17 12:12:12.000"));
-        batch.setDevice("device:scanner");
-        batch.setEstimateItemNumber(2);
-        batch.setFolder("folder/");
-        batch.setGenerateIndices(true);
-        batch.setLog("log");
-        batch.setParentPid("uuid:0eaa6730-9068-11dd-97de-000d606f5dc6");
-        batch.setState(State.LOADING);
-        batch.setTitle("title_folder/");
-        batch.setUserId(800);
-        batch.setProfileId(ConfigurationProfile.DEFAULT);
-        dao.update(batch);
-
         tx.commit();
 
         ReplacementTable expected = new ReplacementTable(
-                support.loadFlatXmlDataStream(getClass(), "batch.xml")
+                support.loadFlatXmlDataStream(getClass(), "batch_single_item.xml")
                         .getTable(schema.tableBatch.getName()));
+
         expected.addReplacementObject("{$now}", batch.getTimestamp());
         Assertion.assertEquals(expected, dbcon.createTable(schema.tableBatch.getName()));
     }
@@ -247,14 +234,14 @@ public class EmpireBatchDaoTest {
         tx.commit();
 
         List<Batch> result = dao.findLoadingBatches();
-        assertEquals(1, result.size());
+        assertEquals(2, result.size());
 
         Batch batch = dao.find(1);
         batch.setState(State.LOADED);
         dao.update(batch);
 
         result = dao.findLoadingBatches();
-        assertEquals(0, result.size());
+        assertEquals(1, result.size());
     }
 
     @Test
@@ -287,7 +274,7 @@ public class EmpireBatchDaoTest {
         view = dao.view(1, null, State.LOADING_FAILED, 0);
         assertEquals(0, view.size());
         view = dao.view(2, null, null, 0);
-        assertEquals(1, view.size());
+        assertEquals(2, view.size());
     }
 
     @Test
@@ -332,8 +319,8 @@ public class EmpireBatchDaoTest {
         List<BatchView> view = dao.view(new BatchViewFilter()
                 .setCreatedFrom(Timestamp.valueOf("2013-01-18 01:00:00.000"))
         );
-        assertEquals(1, view.size());
-        assertEquals((Integer) 2, view.get(0).getId());
+        assertEquals(2, view.size());
+        assertEquals((Integer) 3, view.get(0).getId());
 
         view = dao.view(new BatchViewFilter()
                 .setCreatedTo(Timestamp.valueOf("2013-01-18 01:00:00.000")));
@@ -351,19 +338,19 @@ public class EmpireBatchDaoTest {
         tx.commit();
 
         List<BatchView> view = dao.view(null, null, null, null, null, 0, 100, "-create");
-        assertEquals(2, view.size());
-        assertEquals((Integer) 2, view.get(0).getId());
-        assertEquals((Integer) 1, view.get(1).getId());
+        assertEquals(3, view.size());
+        assertEquals((Integer) 3, view.get(0).getId());
+        assertEquals((Integer) 2, view.get(1).getId());
 
         view = dao.view(null, null, null, null, null, 0, 100, "create");
-        assertEquals(2, view.size());
+        assertEquals(3, view.size());
         assertEquals((Integer) 1, view.get(0).getId());
         assertEquals((Integer) 2, view.get(1).getId());
 
         view = dao.view(null, null, EnumSet.of(State.LOADING, State.LOADED), null, null, 0, 100, "-estimateItemNumber");
-        assertEquals(2, view.size());
-        assertEquals((Integer) 2, view.get(0).getId());
-        assertEquals((Integer) 1, view.get(1).getId());
+        assertEquals(3, view.size());
+        assertEquals((Integer) 3, view.get(0).getId());
+        assertEquals((Integer) 2, view.get(1).getId());
     }
 
     @Test
