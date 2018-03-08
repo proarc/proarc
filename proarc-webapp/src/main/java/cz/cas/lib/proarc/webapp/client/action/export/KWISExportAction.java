@@ -49,8 +49,9 @@ public class KWISExportAction extends ExportAction {
         export.setAttribute(ExportResourceApi.KWIS_PID_PARAM,
                 pids.toArray(new String[pids.size()]));
         DSRequest dsRequest = new DSRequest();
-        dsRequest.setPromptStyle(PromptStyle.DIALOG);
-        dsRequest.setPrompt(i18n.KWISExportAction_Add_Msg());
+        //dsRequest.setPromptStyle(PromptStyle.DIALOG);
+        //dsRequest.setPrompt(i18n.KWISExportAction_Add_Msg());
+        dsRequest.setShowPrompt(false);
         dsAddData(ds, export, new DSCallback() {
 
             @Override
