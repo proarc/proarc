@@ -318,10 +318,9 @@ public final class NdkPeriodicalForm {
                     .createField()) // @point
                     // @qualifier
                     .addField(new FieldBuilder("qualifier").setTitle("Qualifier - R").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
-                        .addMapValue("approximate", "Approximate")
-                        .addMapValue("inferred", "Inferred")
-                        .addMapValue("questionable", "Questionable")
+                            .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
+                            .addMapValue("approximate", "Approximate")
+                            .addMapValue("inferred", "Inferred")
                     .createField()) // @qualifier
                     .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                         .setHint("Datum vydání předlohy, nutno zaznamenat rok v nichž časopis vycházel - formu zápisu přebírat z katalogu (např. 1900-1939)"
@@ -349,7 +348,7 @@ public final class NdkPeriodicalForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @encoding, @qualifier, @point, @keyDate
                     .addField(new FieldBuilder("value").setTitle("Date Created - R").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
-                        .setHint("Datum vytvoření předlohy."
+                        .setHint("Datum vytvoření předlohy pro rukopisy."
                             + "<p>Bude použito pouze při popisu tiskaře, viz poznámka u"
                             + " elementu &lt;originInfo>."
                             + "<p>Odpovídá hodnotě z katalogizačního záznamu pole 260, podpole „g“")
@@ -365,10 +364,10 @@ public final class NdkPeriodicalForm {
                     .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
                     .addMapValue("continuing", "continuing")
                     .addMapValue("monographic", "monographic")
-                    .addMapValue("single_unit", "single unit")
-                    .addMapValue("multipart_monograph", "multipart monograph")
+                    .addMapValue("single unit", "single unit")
+                    .addMapValue("multipart monograph", "multipart monograph")
                     .addMapValue("serial", "serial")
-                    .addMapValue("integrating_resource", "integrating resource")
+                    .addMapValue("integrating resource", "integrating resource")
                 .createField()) // issuance
                 // frequency, stringPlusLanguagePlusAuthority
                 .addField(new FieldBuilder("frequency").setTitle("Frequencies - R").setMaxOccurrences(5)
@@ -467,8 +466,6 @@ public final class NdkPeriodicalForm {
                 .addField(new FieldBuilder("extent").setTitle("Extent - RA").setMaxOccurrences(5)
                     // stringPlusLanguagePlusSupplied: @supplied
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    // @unit
-                    .addField(new FieldBuilder("unit").setTitle("Unit - O").setMaxOccurrences(1).setType(Field.TEXT).createField())
                     .addField(new FieldBuilder("value").setTitle("Extent - RA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Údaje o rozsahu (stran, svazků nebo rozměrů)"
                                 + "<p>Odpovídá hodnotě v poli 300, podpole „a“, „b“ a „c“"
@@ -522,6 +519,8 @@ public final class NdkPeriodicalForm {
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)
+                        .setHint("Odpovídá hodnotě v $2."
+                                +"<p>Vybrat jednu z hodnot: czenas, eczenas nebo konspekt")
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
                     .addMapValue("Konspekt", "Konspekt")
@@ -593,7 +592,7 @@ public final class NdkPeriodicalForm {
                     .addField(new FieldBuilder("namePart").setMaxOccurrences(1)
                         // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                         // @type, enum: date, family, given, termsOfAddress
-                        .addField(new FieldBuilder("value").setTitle("Name Part - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .addField(new FieldBuilder("value").setTitle("Name - R").setMaxOccurrences(1).setType(Field.TEXT)
                             .setHint("Jméno použité jako věcné záhlaví."
                                 + "<p>Použít kontrolovaný slovník ‐ např. z báze autorit AUT NK ČR (jméno osobní)"
                                 + " nebo obsah pole 600 záznamu MARC21."
@@ -691,7 +690,9 @@ public final class NdkPeriodicalForm {
                 .addField(new FieldBuilder("physicalLocation").setTitle("Physical Location - M").setMaxOccurrences(1)
                     // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                     // autofill "siglaADR"
-                    .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("siglaADR").createField())
+                    .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("siglaADR")
+                        .setHint("Použít hodnotu \"siglaADR\"")
+                        .createField())
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @xlink:simpleLink, @displayLabel, @type
                     .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
@@ -759,7 +760,9 @@ public final class NdkPeriodicalForm {
                     // script, String
                     // transliteration, String
                     // @source, string
-                    .addField(new FieldBuilder("source").setTitle("Source - R").setMaxOccurrences(1).setType(Field.TEXT).createField())
+                    .addField(new FieldBuilder("source").setTitle("Source - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Katalogová hodnota pole 003")
+                    .createField())
                     .addField(new FieldBuilder("value").setTitle("Identifier - R").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Identifikátor záznamu v katalogu, přebírá se z pole 001.")
                     .createField())
@@ -768,7 +771,7 @@ public final class NdkPeriodicalForm {
                 .addField(new FieldBuilder("recordOrigin").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     .addField(new FieldBuilder("value").setTitle("Record Origin - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
-                        .setHint("Údaje o vzniku záznamu.")
+                        .setHint("Údaje o vzniku záznamu.").setDefaultValue("human prepared")
                         .addMapValue("machine generated", "machine generated")
                         .addMapValue("human prepared", "human prepared")
                     .createField()) // value

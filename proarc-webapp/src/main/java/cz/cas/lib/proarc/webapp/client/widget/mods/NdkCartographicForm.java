@@ -48,7 +48,7 @@ public final class NdkCartographicForm {
                 .setHint("Název titulu.<p>Pro plnění použít katalogizační záznam.")
                 // titleInfo@type, enum
                 .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
-                    .setHint("Hlavní název bez type.<dl>Hodnoty:"
+                    .setHint("Pokud jde o hlavní název, pak nechat tuto hodnotu prázdnou.<dl>Jinak použít jednu z hodnot:"
                         + "<dt>abbreviated</dt><dd>zkrácený název</dd>"
                         + "<dt>alternative</dt><dd>alternativní název</dd>"
                         + "<dt>translated</dt><dd>přeložený název</dd>"
@@ -139,7 +139,7 @@ public final class NdkCartographicForm {
                     .addField(new FieldBuilder("value").setTitle("Name Part - M").setMaxOccurrences(1)
                         .setType(Field.TEXT).setRequired(true)
                         .setHint("Údaje o křestním jméně, příjmení apod."
-                            + "<p>Nutno vyjádřit pro křestní jméno i příjmení."
+                            + "<p>Pokud je možné, tak vyjádřit pro křestní jméno i příjmení."
                             + "<p>Pokud nelze rozlišit křestní jméno a příjmení,"
                             + " nepoužije se type a jméno se zaznamená"
                             + " v podobě jaké je do jednoho elementu &lt;namePart>.")
@@ -263,10 +263,9 @@ public final class NdkCartographicForm {
                         .addMapValue("end", "end")
                     .createField()) // @point
                     .addField(new FieldBuilder("qualifier").setTitle("Qualifier - R").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
+                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
                         .addMapValue("approximate", "Approximate")
                         .addMapValue("inferred", "Inferred")
-                        .addMapValue("questionable", "Questionable")
                     .createField()) // @qualifier
                     .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                     .setHint("Datum vydání předlohy."
@@ -299,10 +298,10 @@ public final class NdkCartographicForm {
                     .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
                     .addMapValue("continuing", "continuing")
                     .addMapValue("monographic", "monographic")
-                    .addMapValue("single_unit", "single unit")
-                    .addMapValue("multipart_monograph", "multipart monograph")
+                    .addMapValue("single unit", "single unit")
+                    .addMapValue("multipart monograph", "multipart monograph")
                     .addMapValue("serial", "serial")
-                    .addMapValue("integrating_resource", "integrating resource")
+                    .addMapValue("integrating resource", "integrating resource")
                 .createField()) // issuance
                 // frequency, stringPlusLanguagePlusAuthority
         .createField()); // originInfo
@@ -336,7 +335,7 @@ public final class NdkCartographicForm {
                     // type, codeOrText('code', 'text')
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
                         .setType(Field.SELECT).setRequired(true)
-                        .setHint("Typ popisu.")
+                        .setHint("Typ popisu. Použít hodnotu code")
                         .addMapValue("code", "code")
                         .addMapValue("text", "text")
                     .createField())
@@ -363,7 +362,7 @@ public final class NdkCartographicForm {
                     .createField()) //authority
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
                         .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("print")
-                        .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
+                        .setHint("Údaje o fyzické podobě dokumentu, např. kartografický dokument, mapa apod."
                             + "<p>Odpovídá hodnotě v poli 008/23")
                         .addMapValue("braille", "braille")
                         .addMapValue("electronic", "electronic")
@@ -393,8 +392,6 @@ public final class NdkCartographicForm {
                 .addField(new FieldBuilder("extent").setTitle("Extent - RA").setMaxOccurrences(5)
                     // stringPlusLanguagePlusSupplied: @supplied
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    // @unit
-                    .addField(new FieldBuilder("unit").setTitle("Unit - O").setMaxOccurrences(1).setType(Field.TEXT).createField())
                     .addField(new FieldBuilder("value").setTitle("Extent - RA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Údaje o rozsahu (stran, svazků nebo rozměrů)"
                                 + "<p>Odpovídá hodnotě v poli 300, podpole „a“, „b“ a „c“"
@@ -439,6 +436,7 @@ public final class NdkCartographicForm {
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 // autofill "czenas"
                 .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)
+                    .setHint("Odpovídá hodnotě v poli $2.")
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
                     .addMapValue("Konspekt", "Konspekt")

@@ -60,7 +60,7 @@ public final class NdkPeriodicalIssueForm {
                     + "<p>Pro plnění použít katalogizační záznam nebo názvové autority.")
                 // titleInfo@type, enum
                 .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
-                    .setHint("Hlavní název bez type.<dl>Hodnoty:"
+                    .setHint("Pokud jde o hlavní název, pak nechat tuto hodnotu prázdnou.<dl>Jinak použít jednu z hodnot:"
                         + "<dt>abbreviated</dt><dd>zkrácený název</dd>"
                         + "<dt>alternative</dt><dd>alternativní název</dd>"
                         + "<dt>translated</dt><dd>přeložený název</dd>"
@@ -74,7 +74,7 @@ public final class NdkPeriodicalIssueForm {
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
                     .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
-                        .setHint("Názvová informace - název titulu periodika.")
+                        .setHint("Názvová informace - název čísla periodika.")
                     .createField()) // value
                     // lang, String
                     // xmlLang, lang
@@ -85,7 +85,7 @@ public final class NdkPeriodicalIssueForm {
                 .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     .addField(new FieldBuilder("value").setTitle("Subtitle - RA").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Podnázev titulu periodika.")
+                        .setHint("Podnázev čísla periodika.")
                     .createField()) // value
                 .createField()) // subTitle
                 // partNumber, type="stringPlusLanguage"
@@ -111,7 +111,8 @@ public final class NdkPeriodicalIssueForm {
     private Field part() {
         // part, type="partDefinition"
         return new FieldBuilder("part").setTitle("Part - O").setMaxOccurrences(1)
-                .setHint("Popis části, pokud je svazek částí souboru.")
+                .setHint("Popis části, pokud je svazek částí souboru."
+                    + "<p>element může být využit jen na zaznamenání <caption>.")
                 // @ID, @type, @order, @displayLabel, @altRepGroup
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("issue")
@@ -328,10 +329,9 @@ public final class NdkPeriodicalIssueForm {
                     .createField()) // @point
                     // @qualifier
                     .addField(new FieldBuilder("qualifier").setTitle("Qualifier - R").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
+                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
                         .addMapValue("approximate", "Approximate")
                         .addMapValue("inferred", "Inferred")
-                        .addMapValue("questionable", "Questionable")
                     .createField()) // @qualifier
                     .addField(new FieldBuilder("value").setTitle("Date - MA").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setWidth("200")
                         .setHint("Datum vydání předlohy. V případě čísla datum"
@@ -351,11 +351,10 @@ public final class NdkPeriodicalIssueForm {
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @encoding, @qualifier, @point, @keyDate
                     .addField(new FieldBuilder("qualifier").setTitle("Qualifier - R").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
+                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
                         .addMapValue("approximate", "Approximate")
                         .addMapValue("inferred", "Inferred")
-                        .addMapValue("questionable", "Questionable")
-                    .createField())
+                    .createField()) // @qualifier
                     .addField(new FieldBuilder("value").setTitle("Date - R").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                         .setHint("Datum vytvoření předlohy."
                             + "<p>Bude použito pouze při popisu tiskaře, viz poznámka u"
@@ -403,8 +402,8 @@ public final class NdkPeriodicalIssueForm {
                     .createField()) // authority
                     // type, codeOrText('code', 'text')
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
-                        .setType(Field.SELECT).setRequired(true)
-                        .setHint("Typ popisu.")
+                        .setType(Field.SELECT).setRequired(true).setDefaultValue("code")
+                        .setHint("Použít hodnotu \"code\".")
                         .addMapValue("code", "code")
                         .addMapValue("text", "text")
                     .createField()) // type
@@ -427,8 +426,6 @@ public final class NdkPeriodicalIssueForm {
                 .addField(new FieldBuilder("extent").setTitle("Extent - RA").setMaxOccurrences(5)
                     // stringPlusLanguagePlusSupplied: @supplied
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    // @unit
-                    .addField(new FieldBuilder("unit").setTitle("Unit - O").setMaxOccurrences(1).setType(Field.TEXT).createField())
                     .addField(new FieldBuilder("value").setTitle("Extent - RA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Údaje o rozsahu (stran, svazků nebo rozměrů)"
                                 + "<p>Odpovídá hodnotě v poli 300, podpole „a“, „b“ a „c“"
@@ -455,7 +452,8 @@ public final class NdkPeriodicalIssueForm {
                 // altFormatAttributeGroup: @altFormat, @contentType
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
                     .setHint("Shrnutí obsahu dokumentu. Zvláště pro ročenky, zvláštní vydání a tematická čísla."
-                        + "<p>Plnit pouze v případech, že se liší od abstraktu na úrovni titulu.")
+                        + "<p>Plnit pouze v případech, že se liší od abstraktu na úrovni titulu."
+                        + "<p>Odpovídá hodnotě 520 MARC21.")
                 .createField()) // value
         .createField(); // abstract
     }
@@ -569,7 +567,8 @@ public final class NdkPeriodicalIssueForm {
                 .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
                     .setHint("UUID - M - vygeneruje dodavatel"
                             + "<br>URN:NBN - M - zápis ve tvaru urn:nbn:cz:ndk-123456 pro projekt NDK"
-                            + "<br>jiný interní identifikátor - R - type = barcode, oclc, sysno, permalink apod.")
+                            + "<br>ISBN - pokud existuje, převzít z katalogizačního záznamu pole 020, $a, $z"
+                            + "<br>Jiný interní identifikátor: type = barcode, oclc, sysno, permalink apod.")
                     // XXX use ValueMap
                     .addMapValue("barcode", "Čárový kód")
                     .addMapValue("ccnb", "čČNB")
@@ -615,6 +614,7 @@ public final class NdkPeriodicalIssueForm {
                         .setHint("Údaje o instituci, kde je fyzicky uložen popisovaný dokument. Např. NK ČR."
                             + "<p>Nutno použít kontrolovaný slovník - sigly knihovnen (ABA001 atd.)"
                             + "<p>Odpovídá poli 910 $a v MARC21."
+                            + "<p>Neopakovatelný element."
                             + "<p>Pozn. u dokumentů v digitální podobě není možné vyplnit.")
                     .createField()) // value
                 .createField()) // physicalLocation

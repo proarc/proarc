@@ -303,10 +303,9 @@ public final class OldPrintVolumeForm {
                         .addMapValue("end", "end")
                     .createField()) // @point
                     .addField(new FieldBuilder("qualifier").setTitle("Qualifier - R").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj.")
+                        .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
                         .addMapValue("approximate", "Approximate")
                         .addMapValue("inferred", "Inferred")
-                        .addMapValue("questionable", "Questionable")
                     .createField()) // @qualifier
                     .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).setWidth("200")
                     .setHint("Datum vydání předlohy."
@@ -352,8 +351,8 @@ public final class OldPrintVolumeForm {
                     .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
 //                    .addMapValue("continuing", "continuing")
                     .addMapValue("monographic", "monographic")
-                    .addMapValue("single_unit", "single unit")
-                    .addMapValue("multipart_monograph", "multipart monograph")
+                    .addMapValue("single unit", "single unit")
+                    .addMapValue("multipart monograph", "multipart monograph")
 //                    .addMapValue("serial", "serial")
 //                    .addMapValue("integrating_resource", "integrating resource")
                 .createField()) // issuance
@@ -437,8 +436,6 @@ public final class OldPrintVolumeForm {
                 .addField(new FieldBuilder("extent").setTitle("Extent - RA").setMaxOccurrences(5)
                     // stringPlusLanguagePlusSupplied: @supplied
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    // @unit
-                    .addField(new FieldBuilder("unit").setTitle("Unit - O").setMaxOccurrences(1).setType(Field.TEXT).createField())
                     .addField(new FieldBuilder("value").setTitle("Extent - RA").setMaxOccurrences(1).setType(Field.TEXT)
                         .setHint("Údaje o rozsahu (stran, svazků nebo rozměrů)"
                                 + "<p>Odpovídá hodnotě v poli 300, podpole „a“, „b“ a „c“"
