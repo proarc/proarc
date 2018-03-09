@@ -69,20 +69,20 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
         // for now it is read only repository
         List<MetaModel> models = new ArrayList<>();
         models.add(new MetaModel(MODEL_MUSICDOCUMENT, true, null,
-                Arrays.asList(new ElementType("NDK Music Document", "en"), new ElementType("NDK Zvukový dokument", "cs")),
+                Arrays.asList(new ElementType("NDK Sound Collectiont", "en"), new ElementType("NDK Zvukový dokument", "cs")),
                 ModsConstants.NS, MODEL_MUSICDOCUMENT, this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
         ));
         models.add(new MetaModel(MODEL_SONG, null, null,
-                Arrays.asList(new ElementType("NDK Song", "en"), new ElementType("NDK Skladba", "cs")),
+                Arrays.asList(new ElementType("NDK Sound Recording", "en"), new ElementType("NDK Skladba", "cs")),
                 ModsConstants.NS, MODEL_SONG, this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
         ));
         models.add(new MetaModel(MODEL_TRACK, null, null,
-               Arrays.asList(new ElementType("NDK Track", "en"), new ElementType("NDK Část skladby", "cs")),
+               Arrays.asList(new ElementType("NDK Sound Part", "en"), new ElementType("NDK Část skladby", "cs")),
                ModsConstants.NS, MODEL_TRACK, this,
                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,

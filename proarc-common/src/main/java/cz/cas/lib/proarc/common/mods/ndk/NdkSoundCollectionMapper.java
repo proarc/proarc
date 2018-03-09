@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
+import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -29,6 +30,7 @@ import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
 
@@ -36,7 +38,7 @@ import java.util.List;
  *
  * @author Lukas Sykora
  */
-public class NdkMusicDocumentMapper extends RdaNdkMapper {
+public class NdkSoundCollectionMapper extends RdaNdkMapper {
 
     /**
      * Updates missing required attribute and elements.
@@ -105,6 +107,34 @@ public class NdkMusicDocumentMapper extends RdaNdkMapper {
     @Override
     protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
         OaiDcType dc = super.createDc(mods, ctx);
+        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+            StringBuilder title = new StringBuilder();
+            addNonSort(title, titleInfo);
+            addTitle(title, titleInfo);
+            addSubTitle(title, titleInfo);
+            addElementType(dc.getTitles(), title.toString());
+        }
+
+        addName(mods.getName(), dc.getCreators());
+        addElementType(dc.getTypes(), mods.getTypeOfResource().get(0).getValue());
+        addElementType(dc.getTypes(), getDcType());
+        addOriginInfo(mods.getOriginInfo(), dc);
+
+        for (PhysicalDescriptionDefinition physicalDescription : mods.getPhysicalDescription()) {
+            for (FormDefinition form : physicalDescription.getForm()) {
+                addElementType(dc.getFormats(), form.getValue());
+            }
+            for (Extent extent : physicalDescription.getExtent()) {
+                addElementType(dc.getCoverages(), extent.getValue());
+            }
+        }
+
+        addStringPlusLanguage(dc.getDescriptions(), mods.getNote());
+
+        for (LocationDefinition location : mods.getLocation()) {
+            addStringPlusLanguage(dc.getSources(), location.getPhysicalLocation());
+            addStringPlusLanguage(dc.getSources(), location.getShelfLocator());
+        }
         return dc;
     }
 }

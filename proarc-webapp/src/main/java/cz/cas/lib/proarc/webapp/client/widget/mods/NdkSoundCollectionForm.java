@@ -23,16 +23,22 @@ import cz.cas.lib.proarc.webapp.shared.form.Form;
 import java.util.List;
 
 /**
- * The NDK Song
+ * The NDK Sound Collection
  *
- * Version "excel document by Filip Sir (NDK Standard 0.2)"
+ * Version NDK Standard 0.3"
  *
  * @author Lukas Sykora
  */
-public final class NdkTrackForm {
+public final class NdkSoundCollectionForm {
 
     public Form build() {
         Form f = new Form();
+
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard)").setMaxOccurrences(1)
+                .setType(Field.RADIOGROUP).setRequired(true)
+                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
+                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
+                .createField());
 
         Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
         f.getFields().add(mods);
@@ -44,19 +50,19 @@ public final class NdkTrackForm {
 
         modsFields.add(titleInfo());
         modsFields.add(name());
-        //   modsFields.add(typeOfResource());
+        modsFields.add(typeOfResource());
         modsFields.add(genre());
-        //   modsFields.add(originInfo());
-        //   modsFields.add(language());
+        modsFields.add(originInfo());
+        // modsFields.add(language());
         modsFields.add(physicalDescription());
-        //  modsFields.add(abstracts());
+        // modsFields.add(abstracts());
         modsFields.add(note());
-        //   modsFields.add(subject());
-        //   modsFields.add(classification());
+        // modsFields.add(subject());
+        // modsFields.add(classification());
         // XXX unsupported yet
         // relatedItem
         modsFields.add(identifier());
-        //  modsFields.add(location());
+        modsFields.add(location());
         modsFields.add(recordInfo());
 
         return f;
@@ -71,12 +77,12 @@ public final class NdkTrackForm {
                 .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("Hlavní název bez type.<dl>Hodnoty:"
                                 + "<dt>alternative</dt><dd>alternativní název</dd>"
-                                // + "<dt>translated</dt><dd>přeložený název</dd>"
-                                // + "<dt>uniform</dt><dd>stejný/jednotný název</dd>"
+                                + "<dt>translated</dt><dd>přeložený název</dd>"
+                                + "<dt>uniform</dt><dd>stejný/jednotný název</dd>"
                                 + "</dl>")
                         .addMapValue("alternative", "Alternative")
-                        //.addMapValue("translated", "Translated")
-                        // .addMapValue("uniform", "Uniform")
+                        .addMapValue("translated", "Translated")
+                        .addMapValue("uniform", "Uniform")
                         .createField()) // type
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
@@ -89,6 +95,12 @@ public final class NdkTrackForm {
                         // transliteration, String
                         .createField()) // title
                 // subTitle, type="stringPlusLanguage"
+                .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Subtitle - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Podnázev titulu zvukový dokument.")
+                                .createField()) // value
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .createField()) // subTitle
                 // partNumber, type="stringPlusLanguage"
                 .addField(new FieldBuilder("partNumber").setMaxOccurrences(1)
                         // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
@@ -97,6 +109,12 @@ public final class NdkTrackForm {
                                 .createField()) // value
                         .createField()) // partNumber
                 // partName, type="stringPlusLanguage"
+                .addField(new FieldBuilder("partName").setMaxOccurrences(1)
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("value").setTitle("Part Name - R").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Unifikovaný název - číslo části/sekce díla.")
+                                .createField()) // value
+                        .createField()) // partName
                 // nonSort, type="stringPlusLanguage"
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
                 .createField(); // titleInfo
@@ -105,7 +123,7 @@ public final class NdkTrackForm {
     private Field name() {
         // name, nameDefinition
         return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
-                .setHint("Údaje o odpovědnosti za titul periodika.")
+                .setHint("Údaje o odpovědnosti za zvukový dokument.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
                 .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
@@ -192,13 +210,14 @@ public final class NdkTrackForm {
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // XXX auto fill with issue
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
+                .addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(1).setType(Field.COMBO)
+                        .setRequired(true).setDefaultValue("sound recording").createField())
                 .createField(); // genre
     }
 
     private Field originInfo() {
         // originInfo, originInfoDefinition
-        return new FieldBuilder("originInfo").setTitle("Origin Info - MA").setMaxOccurrences(10)
+        return new FieldBuilder("originInfo").setTitle("Origin Info - M").setMaxOccurrences(10)
                 .setHint("Informace o původu předlohy.")
                 // eventType
                 .addField(new FieldBuilder("eventType").setTitle("Event Type - M").setMaxOccurrences(1). setType(Field.COMBO)
@@ -226,7 +245,7 @@ public final class NdkTrackForm {
                         // placeTerm, placeTermDefinition extends stringPlusLanguage
                         .addField(new FieldBuilder("placeTerm").setMaxOccurrences(1)
                                 // type, codeOrText('code', 'text')
-                                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("TEXT")
+                                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("text")
                                         .setHint("Typ popisu místa. Kódem nebo textově."
                                                 + "<p>Pokud má dokument více míst vydání v poli 260, podpole „a“, přebírají se ze záznamu všechna místa"
                                                 + "<li>“code” pro údaj z pole 008</li><li>“text” pro údaj z pole 260</li>")
@@ -300,22 +319,10 @@ public final class NdkTrackForm {
                                 .createField()) // value
                         .createField()) // copyrightDate
                 // dateCreated, dateDefinition extends stringPlusLanguage
-                .addField(new FieldBuilder("dateCreated").setMaxOccurrences(1)
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        // @encoding, @qualifier, @point, @keyDate
-                        .addField(new FieldBuilder("value").setTitle("Date Created - R").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
-                                .setHint("Datum vytvoření předlohy."
-                                        + "<p>Bude použito pouze při popisu tiskaře, viz poznámka u"
-                                        + " elementu &lt;originInfo>."
-                                        + "<p>Odpovídá hodnotě z katalogizačního záznamu pole 260, podpole „g“")
-                                .createField()) // value
-                        .createField()) // dateCreated
                 // dateCaptured
                 // dateValid
                 // dateModified
-                .addField(new FieldBuilder("edition").setTitle("Edition - R").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Údaj o pořadí vydání")
-                        .createField())// edition
+                // edition
                 // issuance, issuanceDefinition, enum
                 .addField(new FieldBuilder("issuance").setTitle("Issuance - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
                         .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
@@ -364,6 +371,27 @@ public final class NdkTrackForm {
         return new FieldBuilder("physicalDescription").setTitle("Physical Description - M").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu zdroje/předlohy.")
                 // form, formDefinition extends stringPlusLanguagePlusAuthority
+                .addField(new FieldBuilder("form").setTitle("Form - M").setMaxOccurrences(1)
+                        // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        // @type
+                        // XXX autofill "marcform"
+                        .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
+                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM)
+                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)
+                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)
+                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)
+                                .createField()) // authority
+                        .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
+                                .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("audio")
+                                .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
+                                        + "<p>Odpovídá hodnotě v poli 008/23")
+                                .addMapValue("unspecified", "nespecifikováno")
+                                .addMapValue("other", "jiný")
+                                .addMapValue("audio", "rdamedia - audio")
+                                .addMapValue("audiodisk", "rdacarrier - audiodisk")
+                                .createField()) // value
+                        .createField()) // form
                 // reformattingQuality
                 // internetMediaType
                 // digitalOrigin
@@ -394,13 +422,9 @@ public final class NdkTrackForm {
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("type").setTitle("Type - O").setMaxOccurrences(1).setType(Field.COMBO)
                         .setHint("Upřesnění obsahu poznámky.")
+                        .addMapValue("ownership", "ownership")
                         .addMapValue("statement of responsibility", "statement of responsibility")
-                        .addMapValue("creation", "creation")
-                        .addMapValue("production", "production")
-                        .addMapValue("credits", "credits")
-                        .addMapValue("performers", "performers")
-                        .addMapValue("venue", "venue")
-                        .addMapValue("language", "language")
+                        .addMapValue("version identification", "version identification")
                         .createField()) // type
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
                         .setHint("Obecná poznámka k titulu periodika jako celku."
@@ -544,15 +568,18 @@ public final class NdkTrackForm {
                 //   type, xs:string
                 .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
                         .setHint("UUID - M - vygeneruje dodavatel"
-                        //        + "<br>čČNB - MA - převzít z katalogizačního záznamu z pole 015, podpole „a“, „z“"
-                        //        + "<br>ISSN - MA - převzít z katalogizačního záznamu"
-                        //        + "<br>URN:NBN - O - zápis ve tvaru urn:nbn:cz:ndk-123456 pro projekt NDK"
-                        //        + "<br>jiný interní identifikátor - R - type = barcode, oclc, sysno, permalink apod."
-                                )
-                        .addMapValue("uuid", "UUID")
-                        .addMapValue("matrix number", "matrix number")
+                                + "<br>čČNB - MA - převzít z katalogizačního záznamu z pole 015, podpole „a“, „z“"
+                                + "<br>ISSN - MA - převzít z katalogizačního záznamu"
+                                + "<br>URN:NBN - O - zápis ve tvaru urn:nbn:cz:ndk-123456 pro projekt NDK"
+                                + "<br>jiný interní identifikátor - R - type = barcode, oclc, sysno, permalink apod.")
+                        .addMapValue("ccnb", "čČNB")
                         .addMapValue("issue number", "issue number")
+                        .addMapValue("local", "local")
+                        .addMapValue("matrix number", "matrix number")
                         .addMapValue("music-publisher", "music-publisher")
+                        .addMapValue("upc", "upc")
+                        .addMapValue("urnnbn", "URN:NBN")
+                        .addMapValue("uuid", "UUID")
                         .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
@@ -651,7 +678,7 @@ public final class NdkTrackForm {
                                 .createField()) // value
                         .createField()) // recordOrigin
                 // languageOfCataloging, languageDefinition
-                .addField(new FieldBuilder("languageOfCataloging").setTitle("Language of Cataloging - R").setMaxOccurrences(10).setHidden(true)
+                .addField(new FieldBuilder("languageOfCataloging").setTitle("Language of Cataloging - R").setMaxOccurrences(10)
                         // @objectPart, @displayLabel, @altRepGroup, @usage
                         // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
                         // languageTerm, languageTermDefinition

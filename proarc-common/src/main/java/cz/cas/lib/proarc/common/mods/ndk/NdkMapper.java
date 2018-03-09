@@ -89,11 +89,11 @@ public abstract class NdkMapper {
         } else if (NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)) {
             mapper = new NdkSheetMusicMapper();
         } else if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(modelId)) {
-            mapper = new NdkMusicDocumentMapper();
+            mapper = new NdkSoundCollectionMapper();
         } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
-            mapper = new NdkSongMapper();
+            mapper = new NdkSoundRecordingMapper();
         } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
-            mapper = new NdkTrackMapper();
+            mapper = new NdkSoundPartMapper();
         } else {
             throw new IllegalStateException("Unsupported model: " + modelId);
         }
@@ -195,6 +195,7 @@ public abstract class NdkMapper {
                 put(NdkPlugin.MODEL_PERIODICALVOLUME, "model:periodicalvolume");
                 put(NdkPlugin.MODEL_PICTURE, "model:internalpart");
                 put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
+                put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, "model:soundrecording");
             }
         };
 

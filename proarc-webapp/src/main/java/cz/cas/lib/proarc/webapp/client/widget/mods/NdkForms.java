@@ -71,11 +71,11 @@ public final class NdkForms {
         } else if ("model:page".equals(modelId)) {
             return new PageForm(i18n);
         } else if ("model:ndkmusicdocument".equals(modelId)) {
-            f = new NdkMusicDocumentForm().build();
+            f = new NdkSoundCollectionForm().build();
         } else if ("model:ndksong".equals(modelId)) {
-            f = new NdkSongForm().build();
+            f = new NdkSoundRecordingForm().build();
         } else if ("model:ndktrack".equals(modelId)) {
-            f = new NdkTrackForm().build();
+            f = new NdkSoundPartForm().build();
         } else {
             return null;
         }

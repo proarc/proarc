@@ -23,19 +23,19 @@ import cz.cas.lib.proarc.webapp.shared.form.Form;
 import java.util.List;
 
 /**
- * The NDK Music Document.
+ * The NDK Sound Part
  *
- * Version "excel document by Filip Sir (NDK Standard 0.2)"
+ * Version NDK Standard 0.3"
  *
  * @author Lukas Sykora
  */
-public final class NdkMusicDocumentForm {
+public final class NdkSoundPartForm {
 
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard)").setMaxOccurrences(1)
-                .setType(Field.RADIOGROUP).setRequired(true)
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
+                .setType(Field.RADIOGROUP).setRequired(true).setDefaultValue("true")
                 .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
                 .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
                 .createField());
@@ -52,17 +52,17 @@ public final class NdkMusicDocumentForm {
         modsFields.add(name());
         modsFields.add(typeOfResource());
         modsFields.add(genre());
-        modsFields.add(originInfo());
-        // modsFields.add(language());
+        //   modsFields.add(originInfo());
+        //   modsFields.add(language());
         modsFields.add(physicalDescription());
-        // modsFields.add(abstracts());
+        //  modsFields.add(abstracts());
         modsFields.add(note());
-        // modsFields.add(subject());
-        // modsFields.add(classification());
+        //   modsFields.add(subject());
+        //   modsFields.add(classification());
         // XXX unsupported yet
         // relatedItem
         modsFields.add(identifier());
-        modsFields.add(location());
+        //  modsFields.add(location());
         modsFields.add(recordInfo());
 
         return f;
@@ -77,12 +77,12 @@ public final class NdkMusicDocumentForm {
                 .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("Hlavní název bez type.<dl>Hodnoty:"
                                 + "<dt>alternative</dt><dd>alternativní název</dd>"
-                                + "<dt>translated</dt><dd>přeložený název</dd>"
-                                + "<dt>uniform</dt><dd>stejný/jednotný název</dd>"
+                                // + "<dt>translated</dt><dd>přeložený název</dd>"
+                                // + "<dt>uniform</dt><dd>stejný/jednotný název</dd>"
                                 + "</dl>")
                         .addMapValue("alternative", "Alternative")
-                        .addMapValue("translated", "Translated")
-                        .addMapValue("uniform", "Uniform")
+                        //.addMapValue("translated", "Translated")
+                        // .addMapValue("uniform", "Uniform")
                         .createField()) // type
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
@@ -95,26 +95,14 @@ public final class NdkMusicDocumentForm {
                         // transliteration, String
                         .createField()) // title
                 // subTitle, type="stringPlusLanguage"
-                .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
-                        .addField(new FieldBuilder("value").setTitle("Subtitle - MA").setMaxOccurrences(1).setType(Field.TEXT)
-                                .setHint("Podnázev titulu zvukový dokument.")
-                                .createField()) // value
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        .createField()) // subTitle
                 // partNumber, type="stringPlusLanguage"
                 .addField(new FieldBuilder("partNumber").setMaxOccurrences(1)
                         // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        .addField(new FieldBuilder("value").setTitle("Part Number - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .addField(new FieldBuilder("value").setTitle("Part Number - MA").setMaxOccurrences(1).setType(Field.TEXT)
                                 .setHint("Údaje o názvu - číslo části/sekce.")
                                 .createField()) // value
                         .createField()) // partNumber
                 // partName, type="stringPlusLanguage"
-                .addField(new FieldBuilder("partName").setMaxOccurrences(1)
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        .addField(new FieldBuilder("value").setTitle("Part Name - R").setMaxOccurrences(1).setType(Field.TEXT)
-                                .setHint("Unifikovaný název - číslo části/sekce díla.")
-                                .createField()) // value
-                        .createField()) // partName
                 // nonSort, type="stringPlusLanguage"
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
                 .createField(); // titleInfo
@@ -122,8 +110,8 @@ public final class NdkMusicDocumentForm {
 
     private Field name() {
         // name, nameDefinition
-        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
-                .setHint("Údaje o odpovědnosti za zvukový dokument.")
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - RA")
+                .setHint("Údaje o odpovědnosti za titul periodika.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
                 .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
@@ -191,17 +179,15 @@ public final class NdkMusicDocumentForm {
                 //   altRepGroup
                 //   usage
                 // resourceTypeDefinition
-                .addField(new FieldBuilder("value").setTitle("Type of Resource - R").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Druh dokumentu.")
-                        .addMapValue("sound recording-musical", "sound recording-musical")
-                        .addMapValue("sound recording-nonmusical", "sound recording-nonmusical")
+                .addField(new FieldBuilder("value").setTitle("Type of Resource - MA").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("sound recording")
+                        .addMapValue("sound recording", "sound recording")
                         .createField()) // value
                 .createField(); // typeOfResource
     }
 
     private Field genre() {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
-        return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(10)
+        return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(1)
                 .setHint("Bližší údaje o typu dokumentu (dle mapování LoC by zde měla být"
                         + "<p>převedená z pole 655 a 336 v MARC21."
                         + "<p>Je možné použít jen jednu stanovenou hodnotu)")
@@ -209,8 +195,7 @@ public final class NdkMusicDocumentForm {
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // XXX auto fill with issue
-                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).createField())
-                .addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("sound part").setRequired(true).createField())
                 .createField(); // genre
     }
 
@@ -318,10 +303,22 @@ public final class NdkMusicDocumentForm {
                                 .createField()) // value
                         .createField()) // copyrightDate
                 // dateCreated, dateDefinition extends stringPlusLanguage
+                .addField(new FieldBuilder("dateCreated").setMaxOccurrences(1)
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        // @encoding, @qualifier, @point, @keyDate
+                        .addField(new FieldBuilder("value").setTitle("Date Created - R").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
+                                .setHint("Datum vytvoření předlohy."
+                                        + "<p>Bude použito pouze při popisu tiskaře, viz poznámka u"
+                                        + " elementu &lt;originInfo>."
+                                        + "<p>Odpovídá hodnotě z katalogizačního záznamu pole 260, podpole „g“")
+                                .createField()) // value
+                        .createField()) // dateCreated
                 // dateCaptured
                 // dateValid
                 // dateModified
-                // edition
+                .addField(new FieldBuilder("edition").setTitle("Edition - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Údaj o pořadí vydání")
+                        .createField())// edition
                 // issuance, issuanceDefinition, enum
                 .addField(new FieldBuilder("issuance").setTitle("Issuance - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
                         .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
@@ -370,44 +367,14 @@ public final class NdkMusicDocumentForm {
         return new FieldBuilder("physicalDescription").setTitle("Physical Description - M").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu zdroje/předlohy.")
                 // form, formDefinition extends stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("form").setTitle("Form - M").setMaxOccurrences(1)
-                        // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        // @type
-                        // XXX autofill "marcform"
-                        .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
-                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM)
-                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)
-                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)
-                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)
-                                .createField()) // authority
-                        .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
-                                .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("audio")
-                                .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
-                                        + "<p>Odpovídá hodnotě v poli 008/23")
-                                .addMapValue("unspecified", "nespecifikováno")
-                                .addMapValue("other", "jiný")
-                                .addMapValue("audio", "rdamedia - audio")
-                                .addMapValue("audiodisk", "rdacarrier - audiodisk")
-                                .createField()) // value
-                        .createField()) // form
                 // reformattingQuality
                 // internetMediaType
                 // digitalOrigin
                 // extent, stringPlusLanguagePlusSupplied
-                .addField(new FieldBuilder("extent").setTitle("Extent - RA").setMaxOccurrences(5).setType(Field.TEXT)
+                .addField(new FieldBuilder("extent").setTitle("Extent - M").setMaxOccurrences(5).setType(Field.TEXT).setRequired(true)
                         .setHint("Údaje o rozsahu.")
                         .createField()) // extent
                 // note, physicalDescriptionNote extends stringPlusLanguage
-                .addField(new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(5)
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        // @displayLabel, @type, @typeURI, @xlinkSimpleLink, @ID
-                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
-                                .setHint("Poznámka o fyzickém stavu dokumentu."
-                                        + "<p>Pro každou poznámku je nutno vytvořit nový &lt;note> element."
-                                        + "<p>Zde se zapíší defekty zjištěné při digitalizaci pro úroveň titulu periodika (např. chybějící ročník).")
-                                .createField()) // value
-                        .createField()) // note
                 .createField(); // physicalDescription
     }
 
@@ -428,11 +395,13 @@ public final class NdkMusicDocumentForm {
         return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
-                .addField(new FieldBuilder("type").setTitle("Type - O").setMaxOccurrences(1).setType(Field.COMBO)
+                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.COMBO)
                         .setHint("Upřesnění obsahu poznámky.")
-                        .addMapValue("ownership", "ownership")
                         .addMapValue("statement of responsibility", "statement of responsibility")
-                        .addMapValue("version identification", "version identification")
+                        .addMapValue("creation/production credits", "creation/production credits")
+                        .addMapValue("performers", "performers")
+                        .addMapValue("venue", "venue")
+                        .addMapValue("language", "language")
                         .createField()) // type
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
                         .setHint("Obecná poznámka k titulu periodika jako celku."
@@ -576,18 +545,13 @@ public final class NdkMusicDocumentForm {
                 //   type, xs:string
                 .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
                         .setHint("UUID - M - vygeneruje dodavatel"
-                                + "<br>čČNB - MA - převzít z katalogizačního záznamu z pole 015, podpole „a“, „z“"
-                                + "<br>ISSN - MA - převzít z katalogizačního záznamu"
-                                + "<br>URN:NBN - O - zápis ve tvaru urn:nbn:cz:ndk-123456 pro projekt NDK"
-                                + "<br>jiný interní identifikátor - R - type = barcode, oclc, sysno, permalink apod.")
-                        .addMapValue("ccnb", "čČNB")
-                        .addMapValue("issue number", "issue number")
-                        .addMapValue("local", "local")
-                        .addMapValue("matrix number", "matrix number")
-                        .addMapValue("music-publisher", "music-publisher")
-                        .addMapValue("upc", "upc")
-                        .addMapValue("urnnbn", "URN:NBN")
+                        //        + "<br>čČNB - MA - převzít z katalogizačního záznamu z pole 015, podpole „a“, „z“"
+                        //        + "<br>ISSN - MA - převzít z katalogizačního záznamu"
+                        //        + "<br>URN:NBN - O - zápis ve tvaru urn:nbn:cz:ndk-123456 pro projekt NDK"
+                        //        + "<br>jiný interní identifikátor - R - type = barcode, oclc, sysno, permalink apod."
+                                )
                         .addMapValue("uuid", "UUID")
+                        .addMapValue("local", "local")
                         .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
@@ -686,7 +650,7 @@ public final class NdkMusicDocumentForm {
                                 .createField()) // value
                         .createField()) // recordOrigin
                 // languageOfCataloging, languageDefinition
-                .addField(new FieldBuilder("languageOfCataloging").setTitle("Language of Cataloging - R").setMaxOccurrences(10)
+                .addField(new FieldBuilder("languageOfCataloging").setTitle("Language of Cataloging - R").setMaxOccurrences(10).setHidden(false)
                         // @objectPart, @displayLabel, @altRepGroup, @usage
                         // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
                         // languageTerm, languageTermDefinition
