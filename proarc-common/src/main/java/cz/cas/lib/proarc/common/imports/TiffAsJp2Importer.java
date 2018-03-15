@@ -93,7 +93,7 @@ public class TiffAsJp2Importer implements ImageImporter {
         return null;
     }
 
-    private FileEntry convertToTiff(FileEntry jp, Configuration processorConfig) throws IOException {
+    public static FileEntry convertToTiff(FileEntry jp, Configuration processorConfig) throws IOException {
         if (processorConfig == null || processorConfig.isEmpty()) {
             throw new IllegalArgumentException("Convertor config must be set.");
         }

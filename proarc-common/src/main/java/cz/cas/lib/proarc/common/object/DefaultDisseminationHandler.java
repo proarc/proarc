@@ -18,6 +18,8 @@ package cz.cas.lib.proarc.common.object;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
@@ -27,10 +29,18 @@ import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.imports.FileSet;
+import cz.cas.lib.proarc.common.imports.TiffAsJp2Importer;
+import cz.cas.lib.proarc.common.process.TiffToJpgConvert;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -41,6 +51,10 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+
+import static cz.cas.lib.proarc.common.fedora.BinaryEditor.NDK_ARCHIVAL_ID;
+import static cz.cas.lib.proarc.common.fedora.BinaryEditor.NDK_USER_ID;
+import static cz.cas.lib.proarc.common.fedora.BinaryEditor.RAW_ID;
 
 /**
  * Handles datastream contents in its raw form.
@@ -97,12 +111,25 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                 return evaluatePreconditions.build();
             }
 
-            return Response.ok(entity, loader.getProfile().getDsMIME())
-                    .header("Content-Disposition", "inline; filename=\"" + entity.getName() + '"')
-                    .lastModified(lastModification)
+            //transform jp2 or tiff to jpg
+            if (NDK_ARCHIVAL_ID.equals(dsId) || NDK_USER_ID.equals(dsId) || RAW_ID.equals(dsId)) {
+                try {
+                    return Response.ok(convertToBrowserCompatible(entity, dsId), "image/jpeg")
+                            .header("Content-Disposition", "inline; filename=\"" + entity.getName() + ".jpg\"")
+                            .lastModified(lastModification)
+                            .build();
+                } catch (Exception e) {
+                    LOG.log(Level.SEVERE,"Converting " + dsId + " to jpg failed.");
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                }
+            } else {
+                return Response.ok(entity, loader.getProfile().getDsMIME())
+                        .header("Content-Disposition", "inline; filename=\"" + entity.getName() + '"')
+                        .lastModified(lastModification)
 //                    .cacheControl(null)
 //                    .expires(new Date(2100, 1, 1))
-                    .build();
+                        .build();
+            }
         } else if (fobject instanceof RemoteObject) {
             RemoteObject remote = (RemoteObject) fobject;
             return getResponse(remote, dsId);
@@ -124,9 +151,78 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         MultivaluedMap<String, String> headers = response.getHeaders();
         String filename = headers.getFirst("Content-Disposition");
         filename = filename != null ? filename : "inline; filename=" + pid + '-' + dsId;
-        return Response.ok(response.getEntity(InputStream.class), headers.getFirst("Content-Type"))
-                .header("Content-Disposition", filename)
-                .build();
+
+        //transform jp2 or tiff to jpg
+        if (NDK_ARCHIVAL_ID.equals(dsId) || NDK_USER_ID.equals(dsId) || RAW_ID.equals(dsId)) {
+
+            try {
+                return Response.ok(convertToBrowserCompatible(response.getEntity(InputStream.class), dsId), "image/jpeg")
+                        .header("Content-Disposition", filename + ".jpg")
+                        .build();
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE,"Converting " + dsId + " to jpg failed.");
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } else {
+            return Response.ok(response.getEntity(InputStream.class), headers.getFirst("Content-Type"))
+                    .header("Content-Disposition", filename)
+                    .build();
+        }
+    }
+
+    private static InputStream convertToBrowserCompatible(InputStream entity, String dsId) throws IOException, AppConfigurationException {
+        File inFile = File.createTempFile(String.valueOf(new Timestamp(System.currentTimeMillis())),".jp2");
+
+        OutputStream out = new FileOutputStream(inFile);
+        org.apache.commons.io.IOUtils.copy(entity, out);
+        out.close();
+
+        InputStream is = new FileInputStream(convertToBrowserCompatible(inFile, dsId));
+
+        inFile.delete();
+
+        return is;
+    }
+
+    private static File convertToBrowserCompatible(File entity, String dsId) throws IOException, AppConfigurationException {
+
+        FileSet.FileEntry tiff = null;
+
+        if (NDK_ARCHIVAL_ID.equals(dsId) || NDK_USER_ID.equals(dsId)) {
+            //convert JP2 to TIFF
+
+            tiff = TiffAsJp2Importer.convertToTiff(
+                    new FileSet.FileEntry(entity),
+                    AppConfigurationFactory.getInstance().defaultInstance().getImportConfiguration().getConvertorJp2Processor()
+            );
+        }
+
+        if (NDK_ARCHIVAL_ID.equals(dsId) || NDK_USER_ID.equals(dsId) || RAW_ID.equals(dsId)) {
+            //convert TIFF to JPG
+
+            if (RAW_ID.equals(dsId)) {
+                tiff = new FileSet.FileEntry(entity);
+            }
+
+            File out = File.createTempFile(String.valueOf(new Timestamp(System.currentTimeMillis())), ".jpg");
+
+            if (!out.exists()) {
+                new TiffToJpgConvert(
+                    AppConfigurationFactory.getInstance().defaultInstance().getImportConfiguration().getConvertorTiffToJpgProcessor(),
+                    tiff.getFile(),
+                    out,
+                    500 ,
+                    500).run();
+            }
+
+            if (!RAW_ID.equals(dsId)) {
+                tiff.getFile().delete();
+            }
+
+            return out;
+        }
+
+        return entity;
     }
 
     // XXX add impl of other data streams (PREVIEW, THUMB)

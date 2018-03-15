@@ -400,7 +400,12 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
             }
             imgParams = sb.toString();
             String previewUrl = buildResourceUrl(RestConfig.URL_DIGOBJECT_DISSEMINATION, imgParams);
-            doPreview.show(previewUrl, stream.getMime());
+
+            if (stream.getMime().equals("image/tiff") || stream.getMime().equals("image/jp2")) {
+                doPreview.show(previewUrl, "image/jpeg");
+            } else {
+                doPreview.show(previewUrl, stream.getMime());
+            }
         } else {
             doPreview.show(null);
         }
