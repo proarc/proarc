@@ -206,14 +206,12 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
 
             File out = File.createTempFile(String.valueOf(new Timestamp(System.currentTimeMillis())), ".jpg");
 
-            if (!out.exists()) {
-                new TiffToJpgConvert(
-                    AppConfigurationFactory.getInstance().defaultInstance().getImportConfiguration().getConvertorTiffToJpgProcessor(),
-                    tiff.getFile(),
-                    out,
-                    500 ,
-                    500).run();
-            }
+            new TiffToJpgConvert(
+                AppConfigurationFactory.getInstance().defaultInstance().getImportConfiguration().getConvertorTiffToJpgProcessor(),
+                tiff.getFile(),
+                out,
+                500 ,
+                500).run();
 
             if (!RAW_ID.equals(dsId)) {
                 tiff.getFile().delete();
