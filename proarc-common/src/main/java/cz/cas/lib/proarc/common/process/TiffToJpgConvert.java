@@ -94,7 +94,7 @@ public class TiffToJpgConvert extends ExternalProcess {
             throw new IllegalStateException(input.getAbsolutePath() + " not exists!");
         }
         if (output.exists()) {
-            throw new IllegalStateException(output.getAbsolutePath() + " exists!");
+            output.delete();
         }
         super.run();
     }
