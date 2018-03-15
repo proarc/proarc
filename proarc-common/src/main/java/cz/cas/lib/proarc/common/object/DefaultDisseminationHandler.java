@@ -33,13 +33,13 @@ import cz.cas.lib.proarc.common.imports.FileSet;
 import cz.cas.lib.proarc.common.imports.TiffAsJp2Importer;
 import cz.cas.lib.proarc.common.process.TiffToJpgConvert;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -170,21 +170,21 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         }
     }
 
-    private static InputStream convertToBrowserCompatible(InputStream entity, String dsId) throws IOException, AppConfigurationException {
+    private static byte[] convertToBrowserCompatible(InputStream entity, String dsId) throws IOException, AppConfigurationException {
         File inFile = File.createTempFile(String.valueOf(new Timestamp(System.currentTimeMillis())),".jp2");
 
         OutputStream out = new FileOutputStream(inFile);
         org.apache.commons.io.IOUtils.copy(entity, out);
         out.close();
 
-        InputStream is = new FileInputStream(convertToBrowserCompatible(inFile, dsId));
+        byte[] bFile = convertToBrowserCompatible(inFile, dsId);
 
         inFile.delete();
 
-        return is;
+        return bFile;
     }
 
-    private static File convertToBrowserCompatible(File entity, String dsId) throws IOException, AppConfigurationException {
+    private static byte[] convertToBrowserCompatible(File entity, String dsId) throws IOException, AppConfigurationException {
 
         FileSet.FileEntry tiff = null;
 
@@ -217,10 +217,14 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                 tiff.getFile().delete();
             }
 
-            return out;
+            byte[] bFile = Files.readAllBytes(out.toPath());
+
+            out.delete();
+
+            return bFile;
         }
 
-        return entity;
+        return Files.readAllBytes(entity.toPath());
     }
 
     // XXX add impl of other data streams (PREVIEW, THUMB)
