@@ -51,6 +51,7 @@ import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -70,6 +71,8 @@ public class FormGenerator {
     public int defaultHoverWidth = 300;
     private int defaultTextLength = 1000;
     private String defaultWidth = "400";
+    private RadioGroupItem rdaRadio = null;
+    private Map<String, String> fieldsToIgnore = new HashMap<>();
 
     public FormGenerator(Form f, String activeLocale) {
         this.formDeclaration = f;
@@ -77,6 +80,9 @@ public class FormGenerator {
         if (f.getItemWidth() != null) {
             defaultWidth = f.getItemWidth();
         }
+
+        //                  Item name, true - RDA, false - AACR
+        fieldsToIgnore.put("eventType", "false");
     }
 
     /**
@@ -86,6 +92,8 @@ public class FormGenerator {
     public final DynamicForm generateForm() {
         List<Field> fields = formDeclaration.getFields();
         ArrayList<FormItem> formItems = new ArrayList<FormItem>(fields.size());
+
+
         for (Field child : fields) {
             FormItem formItem = createItem(child, activeLocale);
             if (formItem != null) {
@@ -125,7 +133,7 @@ public class FormGenerator {
                     String childTitle = f.getTitle(lang);
 
                     if ( childTitle != null && childTitle.endsWith("M")) {
-                        formItem.setValidators(new MAMFieldValidator(itemsToCheck));
+                        formItem.setValidators(new MAMFieldValidator(itemsToCheck, fieldsToIgnore, rdaRadio, f));
                     }
                 }
                 break;
@@ -449,6 +457,11 @@ public class FormGenerator {
         item.setValueMap(f.getValueMap());
         item.setWrap(false);
         item.setWrapTitle(false);
+
+        if (f.getName().equals("rdaRules")) {
+            rdaRadio = item;
+        }
+
         return item;
     }
 
