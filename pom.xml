@@ -8,7 +8,7 @@
     <groupId>cz.cas.lib.proarc</groupId>
     <artifactId>proarc</artifactId>
     <packaging>pom</packaging>
-    <version>3.4.1</version>
+    <version>3.4.2</version>
     <name>ProArc</name>
     <url>${proarc.wiki}</url>
 
@@ -25,6 +25,7 @@
     </scm>
 
     <modules>
+        <module>proarc-aes57</module>
         <module>proarc-common</module>
         <module>proarc-auth</module>
         <module>proarc-desa</module>
@@ -37,7 +38,7 @@
         <module>proarc-urnnbn</module>
         <module>proarc-webapp</module>
         <module>proarc-z3950</module>
-        <module>proarc-aes57</module>
+
   </modules>
 
     <properties>
