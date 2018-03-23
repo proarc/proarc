@@ -18,6 +18,9 @@ package cz.cas.lib.proarc.common.object.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
@@ -58,7 +61,9 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
@@ -103,6 +108,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     protected final FedoraObject fobject;
     protected DigitalObjectCrawler crawler;
     private final NdkMapperFactory mapperFactory;
+    private static AppConfiguration appConfiguration;
 
     public NdkMetadataHandler(DigitalObjectHandler handler) {
         this(handler, new NdkMapperFactory());
@@ -115,6 +121,11 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, DESCRIPTION_DATASTREAM_LABEL));
         this.editor = new ModsStreamEditor(streamEditor, fobject);
         this.mapperFactory = mapperFactory;
+        try {
+            this.appConfiguration = AppConfigurationFactory.getInstance().defaultInstance();
+        } catch (AppConfigurationException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -134,6 +145,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     protected ModsDefinition createDefault(String modelId) throws DigitalObjectException {
         ModsDefinition defaultMods = ModsStreamEditor.defaultMods(fobject.getPid());
         DigitalObjectHandler parent = handler.getParameterParent();
+        if (RdaRules.HAS_MEMBER_RDA_VALIDATION_MODELS.contains(modelId)) {
+            setRules(defaultMods);
+        }
         if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)) {
             // issue 124
             DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICAL);
@@ -176,8 +190,26 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
             }
+        } else if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
+            //issue 540
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHTITLE);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
+                defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+            }
         }
+
         return defaultMods;
+    }
+
+    private void setRules(ModsDefinition mods) {
+        StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
+        String rules = appConfiguration.getRules();
+        descriptionStandard.setValue("aacr".equalsIgnoreCase(rules)? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
+        RecordInfoDefinition recordInfo = new RecordInfoDefinition();
+        recordInfo.getDescriptionStandard().add(0, descriptionStandard);
+        mods.getRecordInfo().add(0, recordInfo);
     }
 
     private void fillIssueSeries(ModsDefinition mods, String partNumberVal, String dateIssuedVal) {

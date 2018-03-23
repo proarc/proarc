@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 
+import org.apache.commons.configuration.Configuration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -42,6 +43,9 @@ public class RdaRules {
     String modelId;
     ModsDefinition mods;
     DigitalObjectValidationException exception;
+    static final String PROP_MODS_RULES = "metadata.mods.rules";
+    private String rdaRules;
+
 
     public static final Set<String> HAS_MEMBER_RDA_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHVOLUME,
@@ -60,6 +64,8 @@ public class RdaRules {
         this.mods = mods;
         this.exception = ex;
     }
+
+    public RdaRules() {}
 
     public void check() throws DigitalObjectValidationException{
         if (HAS_MEMBER_RDA_VALIDATION_MODELS.contains(modelId)) {
@@ -127,16 +133,20 @@ public class RdaRules {
         if (descriptionStandard == null) {
             StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
             description.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
-            RecordInfoDefinition recordInfoDefinition = new RecordInfoDefinition();
-            recordInfoDefinition.getDescriptionStandard().add(description);
-            mods.getRecordInfo().add(recordInfoDefinition);
+            if (mods.getRecordInfo().get(0) == null) {
+                RecordInfoDefinition recordInfoDefinition = new RecordInfoDefinition();
+                recordInfoDefinition.getDescriptionStandard().add(description);
+                mods.getRecordInfo().add(recordInfoDefinition);
+            } else {
+                mods.getRecordInfo().get(0).getDescriptionStandard().add(description);
+            }
         } else if (!ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA.equalsIgnoreCase(descriptionStandard)
                 && !ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(descriptionStandard)) {
             exception.addValidation("RDA rules", ERR_NDK_DESCRIPTIONSTANDARD);
         }
         List<OriginInfoDefinition> originInfoDefinitions = mods.getOriginInfo();
         List<PhysicalDescriptionDefinition> physicalDescriptions = mods.getPhysicalDescription();
-        if (ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equals(descriptionStandard)) {
+        if (ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(descriptionStandard)) {
             for (OriginInfoDefinition oi : originInfoDefinitions) {
                 if (oi.getEventType() != null) {
                     exception.addValidation("RDA rules", ERR_NDK_AACR_EMPTYVALUE);
@@ -149,5 +159,23 @@ public class RdaRules {
                 }
             }
         }
+    }
+
+    public static RdaRules getOptions(Configuration config) {
+        RdaRules options = new RdaRules();
+
+        String modsRules = config.getString(PROP_MODS_RULES);
+        if (modsRules != null && !modsRules.isEmpty()) {
+            options.setModsRules(modsRules);
+        }
+        return options;
+    }
+
+    public void setModsRules(String modsRules) {
+        this.rdaRules = modsRules;
+    }
+
+    public String getRules() {
+        return rdaRules;
     }
 }
