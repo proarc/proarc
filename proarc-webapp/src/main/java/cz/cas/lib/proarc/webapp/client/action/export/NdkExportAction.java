@@ -22,7 +22,6 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
-import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.SC;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
@@ -109,8 +108,9 @@ public class NdkExportAction extends ExportAction {
 
     private void exportOrValidate(final Record export) {
         DSRequest dsRequest = new DSRequest();
-        dsRequest.setPromptStyle(PromptStyle.DIALOG);
-        dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
+        //dsRequest.setPromptStyle(PromptStyle.DIALOG);
+        //dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
+        dsRequest.setShowPrompt(false);
         DataSource ds = ExportDataSource.getNdk();
 
         dsAddData(ds, export, new DSCallback() {

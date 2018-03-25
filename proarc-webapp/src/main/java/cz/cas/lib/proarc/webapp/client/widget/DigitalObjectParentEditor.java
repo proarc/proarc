@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
+import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.widgets.Canvas;
@@ -27,6 +28,7 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectManaging.DigitalObjectManagerPlace;
 import cz.cas.lib.proarc.webapp.client.widget.ImportParentChooser.ImportParentHandler;
 
 /**
@@ -41,9 +43,11 @@ public final class DigitalObjectParentEditor implements BatchDatastreamEditor, R
     private boolean autosave = false;
     private SaveAction saveAction;
     private final ClientMessages i18n;
+    private final PlaceController place;
 
-    public DigitalObjectParentEditor(ClientMessages i18n) {
+    public DigitalObjectParentEditor(ClientMessages i18n, PlaceController place) {
         this.i18n = i18n;
+        this.place = place;
         chooser = new ImportParentChooser(i18n);
         chooser.setHandler(new ImportParentHandler() {
 
@@ -139,6 +143,7 @@ public final class DigitalObjectParentEditor implements BatchDatastreamEditor, R
                         chooser.onSave(newParent);
                         StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
                         ds.fireRelationChange(digitalObjects[0].getPid());
+                        place.goTo(new DigitalObjectManagerPlace());
                     }
                     // else refresh?
                 }

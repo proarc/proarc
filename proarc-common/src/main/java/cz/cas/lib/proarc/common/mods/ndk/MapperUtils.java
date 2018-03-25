@@ -253,10 +253,11 @@ final class MapperUtils {
             }
             addStringPlusLanguage(dc.getPublishers(), originInfo.getPublisher());
             for (DateDefinition date : originInfo.getDateIssued()) {
-                String point = toValue(date.getPoint());
-                if (point != null) {
+                //issue #706 - write dc:data even if point is not present
+                //String point = toValue(date.getPoint());
+                //if (point != null) {
                     addElementType(dc.getDates(), date.getValue());
-                }
+                //}
             }
         }
     }

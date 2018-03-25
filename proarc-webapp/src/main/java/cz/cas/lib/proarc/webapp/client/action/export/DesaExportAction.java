@@ -144,8 +144,9 @@ public class DesaExportAction extends ExportAction {
         export.setAttribute(ExportResourceApi.DESA_PID_PARAM, pids[0]);
         export.setAttribute(ExportResourceApi.DESA_FORDOWNLOAD_PARAM, true);
         DSRequest dsRequest = new DSRequest();
-        dsRequest.setPromptStyle(PromptStyle.DIALOG);
-        dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
+        //dsRequest.setPromptStyle(PromptStyle.DIALOG);
+        //dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
+        dsRequest.setShowPrompt(false);
         DataSource ds = ExportDataSource.getDesa();
         dsAddData(ds, export, new DSCallback() {
 

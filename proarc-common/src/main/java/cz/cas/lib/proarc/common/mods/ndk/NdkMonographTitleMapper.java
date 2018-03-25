@@ -42,6 +42,7 @@ public class NdkMonographTitleMapper extends NdkMapper {
             addElementType(dc.getTitles(), createTitleString(titleInfo));
         }
         addElementType(dc.getTypes(), getDcType());
+        addLanguage(mods.getLanguage(), dc);
         return dc;
     }
 

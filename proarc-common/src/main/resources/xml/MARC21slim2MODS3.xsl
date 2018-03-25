@@ -8,6 +8,7 @@
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
     MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 11.433) 20160318
 
+Revision 1.98.proarc.14.704 - Repair mapping of 041$b to objectPart-summary
 Revision 1.98.proarc.13.689 - Changed handling 100,700: value is split into given and family <namePart> if it contains ',' 2018/02/09
 Revision 1.97.proarc.12.298 - Added mapping for 264 ind 4 to originInfo 2017/09/01
 Revision 1.97.proarc.11.433 - ProArc patch of mapping 653$09 and 653$0_ to subject/topic@lang 2016/03/18
@@ -1800,7 +1801,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 
         <!-- 245c 362az 502-585 5XX-->
 
-        <xsl:for-each select="marc:datafield[@tag=245]">
+        <xsl:for-each select="marc:datafield[@tag=245 and */@code='c']">
             <xsl:call-template name="createNoteFrom245c"/>
         </xsl:for-each>
 
@@ -2740,7 +2741,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:for-each>
 
             <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3.xsl
-                (Revision 1.98 2018/02/09, ProArc patch 13.689 2018/02/09)</recordOrigin>
+                (Revision 1.98 2018/02/09, ProArc patch 14.704 2018/03/02)</recordOrigin>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>
@@ -3522,7 +3523,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     <xsl:if test="@code!='a'">
                         <xsl:attribute name="objectPart">
                             <xsl:choose>
-                                <xsl:when test="@code='b'">summary or subtitle</xsl:when>
+                                <!--Revision 1.98.proarc.14.704-->
+                                <xsl:when test="@code='b'">summary</xsl:when>
                                 <xsl:when test="@code='d'">sung or spoken text</xsl:when>
                                 <xsl:when test="@code='e'">libretto</xsl:when>
                                 <xsl:when test="@code='f'">table of contents</xsl:when>

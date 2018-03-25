@@ -21,7 +21,6 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.RadioGroupItem;
@@ -106,8 +105,9 @@ public final class KrameriusExportAction extends ExportAction {
         export.setAttribute(ExportResourceApi.KRAMERIUS4_PID_PARAM,
                 pids.toArray(new String[pids.size()]));
         DSRequest dsRequest = new DSRequest();
-        dsRequest.setPromptStyle(PromptStyle.DIALOG);
-        dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
+        //dsRequest.setPromptStyle(PromptStyle.DIALOG);
+        //dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
+        dsRequest.setShowPrompt(false);
         dsAddData(ds, export, new DSCallback() {
 
             @Override

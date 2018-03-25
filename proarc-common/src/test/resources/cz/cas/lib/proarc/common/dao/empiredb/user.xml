@@ -2,6 +2,7 @@
 
 <dataset>
     <proarc_users userid="1" username="test" surname="TestSurname" home="{$user.home}" created="2013-01-12" timestamp="{$now}" />
+    <proarc_users userid="2" username="test2" surname="TestSurname2" home="{$user.home}" created="2013-01-13" timestamp="{$now}" />
 
     <proarc_groups />
     <proarc_group_members />

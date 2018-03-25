@@ -558,7 +558,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 break;
             case PARENT:
                 title = i18n.DigitalObjectEditor_ParentEditor_Title();
-                deditor = new DigitalObjectParentEditor(i18n);
+                deditor = new DigitalObjectParentEditor(i18n, places);
                 break;
             case CHILDREN:
                 title = i18n.DigitalObjectEditor_ChildrenEditor_Title();
