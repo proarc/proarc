@@ -54,10 +54,12 @@ public class MAMFieldValidator extends CustomValidator {
         if (o == null || o.toString().equals("")) {
             //empty M field, check if other items are empty
 
-            String ignoredRadioVal = ignoredTitles != null ? ignoredTitles.get(field.getName()) : null;
+            if (ignoredTitles != null) {
+                String ignoredRadioVal = ignoredTitles.get(field.getName());
 
-            if (rdaRadioItem != null && rdaRadioItem.getValueAsString().equals(ignoredRadioVal)) {
-                return true;
+                if (rdaRadioItem != null && rdaRadioItem.getValueAsString() != null && rdaRadioItem.getValueAsString().equals(ignoredRadioVal)) {
+                    return true;
+                }
             }
 
             for (FormItem item : itemsToCheck) {
