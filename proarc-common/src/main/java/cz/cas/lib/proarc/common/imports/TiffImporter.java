@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.ExternalProcess;
 import cz.cas.lib.proarc.common.process.KakaduCompress;
+import cz.cas.lib.proarc.common.process.TiffToJpgConvert;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
@@ -277,15 +278,37 @@ public class TiffImporter implements ImageImporter {
         BinaryEditor.dissemination(foxml, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF)
                 .write(original, 0, null);
 
-        long start = System.nanoTime();
-        BufferedImage tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
-        long endRead = System.nanoTime() - start;
+        boolean runCustomConversion = config.isTiffToJpgDefined();
+
+        long start;
+        long endRead = 0;
+        BufferedImage tiff = null;
+        File f;
+
+        if (!runCustomConversion) {
+            start = System.nanoTime();
+            tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+            endRead = System.nanoTime() - start;
+        }
+
         ImageMimeType imageType = ImageMimeType.JPEG;
         MediaType mediaType = MediaType.valueOf(imageType.getMimeType());
 
         start = System.nanoTime();
         String targetName = String.format("%s.full.%s", originalFilename, imageType.getDefaultFileExtension());
-        File f = writeImage(tiff, tempBatchFolder, targetName, imageType);
+
+        if (runCustomConversion) {
+            f  = new File(tempBatchFolder, targetName);
+            ExternalProcess p = new TiffToJpgConvert(config.getConvertorTiffToJpgProcessor(), original, f);
+            p.run();
+
+            if (!p.isOk()) {
+                throw new IllegalStateException("Converting tiff to FULL jpg failed: " + p.getFullOutput());
+            }
+        } else {
+            f = writeImage(tiff, tempBatchFolder, targetName, imageType);
+        }
+
         if (!InputUtils.isJpeg(f)) {
             throw new IllegalStateException("Not a JPEG content: " + f);
         }
@@ -297,17 +320,46 @@ public class TiffImporter implements ImageImporter {
         Integer previewMaxWidth = config.getPreviewMaxWidth();
         config.checkPreviewScaleParams();
         targetName = String.format("%s.preview.%s", originalFilename, imageType.getDefaultFileExtension());
-        f = writeImage(
-                scale(tiff, config.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
-                tempBatchFolder, targetName, imageType);
+
+        if (runCustomConversion) {
+            f  = new File(tempBatchFolder, targetName);
+            ExternalProcess p = new TiffToJpgConvert(config.getConvertorTiffToJpgProcessor(), original, f, previewMaxWidth, previewMaxHeight);
+            p.run();
+
+            if (!p.isOk()) {
+                throw new IllegalStateException("Converting tiff to PREVIEW jpg failed: " + p.getFullOutput());
+            }
+        } else {
+            f = writeImage(
+                    scale(tiff, config.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
+                    tempBatchFolder, targetName, imageType);
+        }
         if (!InputUtils.isJpeg(f)) {
             throw new IllegalStateException("Not a JPEG content: " + f);
         }
+
         long endPreview = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, BinaryEditor.PREVIEW_ID, mediaType).write(f, 0, null);
 
         start = System.nanoTime();
-        f = createThumbnail(tempBatchFolder, originalFilename, original, tiff, config);
+        if (runCustomConversion) {
+            //check is done within createThumbnail() unlike full and preview variants, should be unified
+            targetName = String.format("%s.thumb.%s", originalFilename, imageType.getDefaultFileExtension());
+            Integer thumbMaxHeight = config.getThumbnailMaxHeight();
+            Integer thumbMaxWidth = config.getThumbnailMaxWidth();
+            config.checkThumbnailScaleParams();
+
+            f  = new File(tempBatchFolder, targetName);
+            ExternalProcess p = new TiffToJpgConvert(config.getConvertorTiffToJpgProcessor(), original, f, thumbMaxWidth, thumbMaxHeight);
+            p.run();
+
+            if (!p.isOk()) {
+                throw new IllegalStateException("Converting tiff to THUMBNAIL jpg failed: " + p.getFullOutput());
+            }
+        } else {
+            f = createThumbnail(tempBatchFolder, originalFilename, original, tiff, config);
+        }
+
         long endThumb = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, BinaryEditor.THUMB_ID, mediaType).write(f, 0, null);
 
