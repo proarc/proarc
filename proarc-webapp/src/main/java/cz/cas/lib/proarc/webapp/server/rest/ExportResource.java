@@ -115,7 +115,7 @@ public class ExportResource {
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
     ) throws IOException {
 
-        URI targetPath = runK4Export(pids, hierarchy, policy);
+        URI targetPath = runK4Export(pids, hierarchy, policy, null);
         return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath));
     }
 
@@ -133,7 +133,7 @@ public class ExportResource {
         }
 
         URI imagesPath = runDatastreamExport(pids, Collections.singletonList("NDK_USER"), hierarchy);
-        URI k4Path = runK4Export(pids, hierarchy, policy);
+        URI k4Path = runK4Export(pids, hierarchy, policy, "public");
 
         String outputPath = user.getExportFolder().getPath();
         String imp = imagesPath.getPath();
@@ -549,13 +549,13 @@ public class ExportResource {
 
     }
 
-    private URI runK4Export(List<String> pids, boolean hierarchy, String policy) throws IOException {
+    private URI runK4Export(List<String> pids, boolean hierarchy, String policy, String exportPageContext) throws IOException {
                 if (pids.isEmpty()) {
                         throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
                     }
 
                         Kramerius4Export export = new Kramerius4Export(
-                                RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export(), policy);
+                                RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export(), policy, exportPageContext);
                 URI exportUri = user.getExportFolder();
                 File exportFolder = new File(exportUri);
                 File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
