@@ -98,15 +98,18 @@ public final class Kramerius4Export {
 
     private final String policy;
 
+    private final String exportPageContext;
+
     public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options) {
-        this(rstorage, options, options.getPolicy());
+        this(rstorage, options, options.getPolicy(), null);
     }
 
-    public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options, String policy) {
+    public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options, String policy, String exportPageContext) {
         this.rstorage = rstorage;
         this.options = options;
         this.search = rstorage.getSearch();
         this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
+        this.exportPageContext = exportPageContext;
 
         if (Arrays.asList(ALLOWED_POLICY).contains(policy)) {
             this.policy = policy;
@@ -160,7 +163,7 @@ public final class Kramerius4Export {
             exportedPids.add(pid);
             RemoteObject robject = rstorage.find(pid);
             FedoraClient client = robject.getClient();
-            DigitalObject dobj = FedoraClient.export(pid).context("archive")
+            DigitalObject dobj = FedoraClient.export(pid).context(exportPageContext == null ? "archive" : exportPageContext)
                     .format("info:fedora/fedora-system:FOXML-1.1")
                     .execute(client).getEntity(DigitalObject.class);
             File foxml = ExportUtils.pidAsXmlFile(output, pid);
@@ -384,7 +387,7 @@ public final class Kramerius4Export {
             return ;
         }
         DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
-        if (version.getBinaryContent().length == 0) {
+        if (version.getBinaryContent() == null || version.getBinaryContent().length == 0) {
             version.setBinaryContent(System.lineSeparator().getBytes());
         }
     }
