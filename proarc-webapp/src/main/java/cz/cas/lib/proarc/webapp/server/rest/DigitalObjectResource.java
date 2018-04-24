@@ -601,9 +601,33 @@ public class DigitalObjectResource {
         // XXX loadLocalSearchItems
         Map<String, Item> memberSearchMap = loadSearchItems(addPidSet);
         DigitalObjectHandler handler = findHandler(parentPid, batchId, false);
+
+        checkModelRelations(toAddPids, batchId, handler);
+
         List<Item> added = addMembers(handler, toAddPids, memberSearchMap);
         handler.commit();
         return new SmartGwtResponse<Item>(added);
+    }
+
+    private void checkModelRelations(
+            List<String> toAddPids,
+            Integer batchId,
+            DigitalObjectHandler parentHandler
+    ) throws DigitalObjectException {
+        for (String pid : toAddPids) {
+            MetaModel child = findHandler(pid, batchId).getModel();
+
+            StringBuilder reason = new StringBuilder();
+
+            if (!child.isAllowedRelation(findHandler(pid, batchId, true), parentHandler.getModel().getPid(), reason)) {
+                throw RestException.plainText(Status.BAD_REQUEST,
+                        child.getPid() + "<br/> " +
+                        "cannot be in direct relation with:<br/>" +
+                        parentHandler.getModel().getPid() + "<br/> " +
+                        "<br/>" +
+                        reason.toString());
+            }
+        }
     }
 
     private List<Item> addMembers(DigitalObjectHandler parent,
@@ -781,11 +805,15 @@ public class DigitalObjectResource {
 
         Batch batch = batchId == null ? null : importManager.get(batchId);
         DigitalObjectHandler srcHandler = findHandler(srcParentPid, batch, false);
+        DigitalObjectHandler dstHandler = findHandler(dstParentPid, batch, false);
+
+        checkModelRelations(movePids, batchId, dstHandler);
+
         deleteMembers(srcHandler, movePidSet);
 
         // XXX loadLocalSearchItems
         Map<String, Item> memberSearchMap = loadSearchItems(movePidSet);
-        DigitalObjectHandler dstHandler = findHandler(dstParentPid, batch, false);
+
         List<Item> added = addMembers(dstHandler, movePids, memberSearchMap);
 
         srcHandler.commit();
