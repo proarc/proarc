@@ -621,9 +621,8 @@ public class DigitalObjectResource {
 
             if (!child.isAllowedRelation(findHandler(pid, batchId, true), parentHandler.getModel().getPid(), reason)) {
                 throw RestException.plainText(Status.BAD_REQUEST,
-                        child.getPid() + "<br/> " +
-                        "cannot be in direct relation with:<br/>" +
-                        parentHandler.getModel().getPid() + "<br/> " +
+                        "NDK restrictions do not allow: " + child.getPid() + "<br/> " +
+                        "to be in direct relation with: " + parentHandler.getModel().getPid() + "<br/> " +
                         "<br/>" +
                         reason.toString());
             }
