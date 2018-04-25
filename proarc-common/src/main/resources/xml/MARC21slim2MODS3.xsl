@@ -638,6 +638,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 
         <!-- originInfo 250 and 260 -->
 
+        <xsl:if test="marc:datafield[(@tag=260 or @tag=250)]">
         <originInfo>
             <xsl:call-template name="scriptCode"/>
             <xsl:for-each
@@ -935,7 +936,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </xsl:for-each>
             </xsl:if>
         </originInfo>
-
+        </xsl:if>
 
         <!-- originInfo - 264 -->
 
@@ -1801,7 +1802,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 
         <!-- 245c 362az 502-585 5XX-->
 
-        <xsl:for-each select="marc:datafield[@tag=245]">
+        <xsl:for-each select="marc:datafield[@tag=245 and */@code='c']">
             <xsl:call-template name="createNoteFrom245c"/>
         </xsl:for-each>
 

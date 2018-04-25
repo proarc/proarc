@@ -18,8 +18,11 @@
 package cz.cas.lib.proarc.webapp.client.widget.form;
 
 import com.smartgwt.client.widgets.form.fields.FormItem;
+import com.smartgwt.client.widgets.form.fields.RadioGroupItem;
 import com.smartgwt.client.widgets.form.validator.CustomValidator;
+import cz.cas.lib.proarc.webapp.shared.form.Field;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Validator for M field in MA form
@@ -31,19 +34,33 @@ import java.util.List;
 public class MAMFieldValidator extends CustomValidator {
 
     List<FormItem> itemsToCheck;
+    Map<String, String> ignoredTitles;
+    RadioGroupItem rdaRadioItem;
+    Field field;
 
-    public MAMFieldValidator(List<FormItem> items) {
+    public MAMFieldValidator(List<FormItem> items, Map<String, String> ignoredTitles, RadioGroupItem rdaRadioItem, Field field) {
         if (items == null) {
             throw new IllegalArgumentException("items cannot be null");
         }
 
         this.itemsToCheck = items;
+        this.ignoredTitles = ignoredTitles;
+        this.rdaRadioItem = rdaRadioItem;
+        this.field = field;
     }
 
     @Override
     protected boolean condition(Object o) {
         if (o == null || o.toString().equals("")) {
             //empty M field, check if other items are empty
+
+            if (ignoredTitles != null) {
+                String ignoredRadioVal = ignoredTitles.get(field.getName());
+
+                if (rdaRadioItem != null && rdaRadioItem.getValueAsString() != null && rdaRadioItem.getValueAsString().equals(ignoredRadioVal)) {
+                    return true;
+                }
+            }
 
             for (FormItem item : itemsToCheck) {
                 Object itemValue = item.getValue();

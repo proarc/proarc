@@ -363,9 +363,6 @@ public final class NdkPeriodicalForm {
                 .addField(new FieldBuilder("issuance").setTitle("Issuance - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
                     .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
                     .addMapValue("continuing", "continuing")
-                    .addMapValue("monographic", "monographic")
-                    .addMapValue("single unit", "single unit")
-                    .addMapValue("multipart monograph", "multipart monograph")
                     .addMapValue("serial", "serial")
                     .addMapValue("integrating resource", "integrating resource")
                 .createField()) // issuance

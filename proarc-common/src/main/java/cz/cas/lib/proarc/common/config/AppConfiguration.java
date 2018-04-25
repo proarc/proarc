@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.export.mets.NdkExportOptions;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.jobs.JobHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.ndk.RdaRules;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
 import java.io.BufferedReader;
 import java.io.File;
@@ -177,6 +178,10 @@ public final class AppConfiguration {
 
     public NdkExportOptions getNdkExportOptions() {
         return NdkExportOptions.getOptions(config);
+    }
+
+    public String getRules() {
+        return RdaRules.getOptions(config).getRules();
     }
 
     public Configuration getAuthenticators() {
