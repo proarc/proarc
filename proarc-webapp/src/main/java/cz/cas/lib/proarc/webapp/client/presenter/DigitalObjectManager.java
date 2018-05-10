@@ -21,6 +21,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.SelectionStyle;
+import com.smartgwt.client.util.Offline;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
@@ -41,7 +42,6 @@ import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
-import cz.cas.lib.proarc.webapp.client.action.export.NdkExportAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
@@ -52,6 +52,7 @@ import cz.cas.lib.proarc.webapp.client.action.export.CrossrefExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.DataStreamExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.DesaExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.KrameriusExportAction;
+import cz.cas.lib.proarc.webapp.client.action.export.NdkExportAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
@@ -66,6 +67,8 @@ import java.util.LinkedHashMap;
  * @author Jan Pokorsky
  */
 public final class DigitalObjectManager {
+
+    public static final String LAST_SELECTED_MODEL_TAG = "DigitalObjectManager_LastSelectedModel";
 
     private final ClientMessages i18n;
     private final PlaceController places;
@@ -109,7 +112,7 @@ public final class DigitalObjectManager {
         widget.setWidth100();
         widget.setHeight100();
 
-        foundView = new DigitalObjectSearchView(i18n);
+        foundView = new DigitalObjectSearchView(i18n, LAST_SELECTED_MODEL_TAG);
         foundView.getGrid().setSelectionType(SelectionStyle.MULTIPLE);
         final ActionSource listSource = new ActionSource(foundView);
         foundView.getGrid().addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
@@ -177,8 +180,12 @@ public final class DigitalObjectManager {
                 treeView.setModels(valueMap);
                 foundView.setModels(valueMap);
                 if (!reload) {
-                    // init the view filter with the first modelId on first show
-                    if (!valueMap.isEmpty()) {
+                    //issue #499
+                    Object previousId = Offline.get(LAST_SELECTED_MODEL_TAG);
+                    if (previousId != null) {
+                        foundView.setFilterModel(previousId);
+                    } else if (!valueMap.isEmpty()) {
+                        // init the view filter with the first modelId on first show
                         Object firstModel = valueMap.keySet().iterator().next();
                         foundView.setFilterModel(firstModel);
                     }

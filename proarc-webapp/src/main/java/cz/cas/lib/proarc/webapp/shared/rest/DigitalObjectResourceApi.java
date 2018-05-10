@@ -46,6 +46,7 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_PHRASE_PARAM = "phrase";
     public static final String SEARCH_PID_PARAM = "pid";
     public static final String SEARCH_BATCHID_PARAM = "batchId";
+    public static final String SEARCH_MODEL_PARAM_REMEMBER = "modelRemember";
     public static final String SEARCH_QUERY_CREATOR_PARAM = "queryCreator";
     public static final String SEARCH_QUERY_IDENTIFIER_PARAM = "queryIdentifier";
     public static final String SEARCH_QUERY_LABEL_PARAM = "queryLabel";

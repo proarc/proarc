@@ -23,6 +23,7 @@ import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.Offline;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IButton;
@@ -56,6 +57,8 @@ import java.util.LinkedHashMap;
  */
 public final class ImportParentChooser {
 
+    public static final String LAST_SELECTED_MODEL_TAG = "ImportParentChooser_LastSelectedModel";
+
     private final ClientMessages i18n;
     private ImportParentHandler handler;
     private final DigitalObjectSearchView foundView;
@@ -78,7 +81,7 @@ public final class ImportParentChooser {
         widget.setOverflow(Overflow.AUTO);
 
         selectionView = createSelectionView(i18n);
-        foundView = new DigitalObjectSearchView(i18n);
+        foundView = new DigitalObjectSearchView(i18n, LAST_SELECTED_MODEL_TAG);
         treeView = new DigitalObjectTreeView(i18n);
 
         foundView.getGrid().setSelectionType(SelectionStyle.SINGLE);
@@ -169,8 +172,12 @@ public final class ImportParentChooser {
                 foundView.setModels(valueMap);
                 selectionView.setModels(valueMap);
                 if (firstShowParentFetch) {
-                    // init the view filter with the first modelId on first show
-                    if (!valueMap.isEmpty()) {
+                    //issue #499
+                    Object previousId = Offline.get(LAST_SELECTED_MODEL_TAG);
+                    if (previousId != null) {
+                        foundView.setFilterModel(previousId);
+                    } else if (!valueMap.isEmpty()) {
+                        // init the view filter with the first modelId on first show
                         Object firstModel = valueMap.keySet().iterator().next();
                         foundView.setFilterModel(firstModel);
                     }

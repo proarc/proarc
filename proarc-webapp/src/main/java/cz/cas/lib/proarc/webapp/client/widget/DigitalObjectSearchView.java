@@ -22,6 +22,7 @@ import com.smartgwt.client.i18n.SmartGwtMessages;
 import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.SelectionType;
+import com.smartgwt.client.util.Offline;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.events.ClickEvent;
@@ -30,6 +31,7 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.FormItemIfFunction;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
+import com.smartgwt.client.widgets.form.fields.CheckboxItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.RadioGroupItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
@@ -82,8 +84,9 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     private final ClientMessages i18n;
     private final SmartGwtMessages i18nSmartGwt;
     private final ToolStrip toolbar;
+    private final String sourceName;
 
-    public DigitalObjectSearchView(ClientMessages i18n) {
+    public DigitalObjectSearchView(ClientMessages i18n, String sourceName) {
         this.i18n = i18n;
         this.i18nSmartGwt = ClientUtils.createSmartGwtMessages();
 
@@ -98,6 +101,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         vLayout.addMember(toolbar);
         vLayout.addMember(foundGrid);
         rootWidget = vLayout;
+        this.sourceName = sourceName;
     }
 
     private ListGrid createList() {
@@ -192,7 +196,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         form.setSaveOnEnter(true);
         form.setAutoHeight();
         form.setWidth100();
-        form.setNumCols(3);
+        form.setNumCols(6);
 
         final RadioGroupItem filterType = new RadioGroupItem(DigitalObjectResourceApi.SEARCH_TYPE_PARAM);
         filterType.setVertical(false);
@@ -200,7 +204,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         filterType.setWrap(false);
         // setRedrawOnChange(true) enforces evaluation of other FormItem.setShowIfCondition
         filterType.setRedrawOnChange(true);
-        filterType.setColSpan(2);
+        filterType.setColSpan(5);
         final LinkedHashMap<String, String> filterMap = new LinkedHashMap<String, String>();
         filterMap.put(FILTER_LAST_CREATED, i18n.DigitalObjectSearchView_FilterGroupLastCreated_Title());
         filterMap.put(FILTER_LAST_MODIFIED, i18n.DigitalObjectSearchView_FilterGroupLastModified_Title());
@@ -213,6 +217,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
         FormItemIfFunction showIfAdvanced = new StringMatchFunction(filterType, FILTER_QUERY);
         FormItemIfFunction showIfPhrase = new StringMatchFunction(filterType, FILTER_PHRASE);
+        FormItemIfFunction showIfCreatedModifiedQuery = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY);
 
         final TextItem phrase = createAdvancedItem(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM,
                 i18n.DigitalObjectSearchView_FilterPhrase_Title(), showIfPhrase);
@@ -225,23 +230,24 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         }), new LengthRangeValidator() {{
             setMax(1000);
         }});
-        
+
         SubmitItem submit = new SubmitItem("search", i18n.DigitalObjectSearchView_FilterSearchButton_Title());
 
-        form.setFields(filterType, new SpacerItem() {{setWidth("100%");}},
+        form.setFields(filterType, createSpacerItem("100%", null),
                 phrase,
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_TITLE_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedTitle_Title(), showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedTitle_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedIdentifier_Title(), showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedIdentifier_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedCreator_Title(), showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedCreator_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedLabel_Title(), showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedLabel_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_OWNER_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfAdvanced),
-                createModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Title(),
-                        new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY)),
+                        i18n.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
+                createModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Title(), showIfCreatedModifiedQuery),
+                createRememberModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Remember_Title(), showIfCreatedModifiedQuery),
+                createSpacerItem("100%", showIfCreatedModifiedQuery),
                 submit);
         
         form.addSubmitValuesHandler(new SubmitValuesHandler() {
@@ -262,6 +268,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
             item.setShowIfCondition(showIf);
         }
         item.setWidth("100%");
+        item.setColSpan(3);
         item.setValidators(new LengthRangeValidator() {{ setMax(1000); }});
         return item;
     }
@@ -274,6 +281,26 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         // see setFilterModel
 //        item.setValue("model:periodical");
 //        item.setDefaultToFirstOption(true);
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
+    }
+
+    private CheckboxItem createRememberModelItem(String title, FormItemIfFunction showIf) {
+        CheckboxItem item = new CheckboxItem(DigitalObjectResourceApi.SEARCH_MODEL_PARAM_REMEMBER, title);
+        item.setColSpan(2);
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
+    }
+
+    private SpacerItem createSpacerItem(String width, FormItemIfFunction showIf) {
+        SpacerItem item = new SpacerItem();
+        if (width != null) {
+            item.setWidth(width);
+        }
         if (showIf != null) {
             item.setShowIfCondition(showIf);
         }
@@ -320,6 +347,11 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     }
 
     private void filter() {
+        CheckboxItem checkbox = ((CheckboxItem)filters.getField(DigitalObjectResourceApi.SEARCH_MODEL_PARAM_REMEMBER));
+        if (checkbox.getValueAsBoolean()) {
+            checkbox.setValue(false);
+            Offline.put(sourceName, filters.getField(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM).getValue());
+        }
         Criteria valuesAsCriteria = filters.getValuesAsCriteria();
         foundGrid.deselectAllRecords();
         foundGrid.fetchData(valuesAsCriteria);
