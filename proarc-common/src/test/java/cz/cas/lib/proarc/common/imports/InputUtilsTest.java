@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.imports;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
+import cz.cas.lib.proarc.common.imports.audio.WaveImporterTest;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -67,6 +68,20 @@ public class InputUtilsTest {
     }
 
     @Test
+    public void testIsWav() throws Exception {
+        String templatePath = "test_wav.wav";
+        File result = createAudioTestFile(templatePath, new File(temp.getRoot(), "test.wav"));
+        assertTrue(templatePath, InputUtils.isWave(result));
+    }
+
+    @Test
+    public void testIsMp3() throws Exception {
+        String templatePath = "test_mp3.mp3";
+        File result = createAudioTestFile(templatePath, new File(temp.getRoot(), "test.wav"));
+        assertTrue(templatePath, InputUtils.isMp3(result));
+    }
+
+    @Test
     public void testIsTiffInvalid() throws Exception {
         String templatePath = "testscan.jpg";
         File result = createTestFile(templatePath, new File(temp.getRoot(), "test.tiff"));
@@ -87,6 +102,13 @@ public class InputUtilsTest {
 
     private File createTestFile(String templatePath, File file) throws IOException {
         URL resource = TiffImporterTest.class.getResource(templatePath);
+        assertNotNull(resource);
+        FileUtils.copyURLToFile(resource, file);
+        return file;
+    }
+
+    private File createAudioTestFile(String templatePath, File file) throws IOException {
+        URL resource = WaveImporterTest.class.getResource(templatePath);
         assertNotNull(resource);
         FileUtils.copyURLToFile(resource, file);
         return file;
