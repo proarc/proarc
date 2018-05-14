@@ -192,6 +192,32 @@ public class AppConfigurationTest {
         assertEquals(expDefaultProfileValue, config.getImportConfiguration().getPlainOcrCharset());
     }
 
+    @Test
+    public void testGetSoundRecordingProfile() throws Exception {
+        // init proarc.cfg
+        final String expDefaultProfileValue = "defaultProfileValue";
+        final String importProfileGroup = ImportProfile.PROFILES;
+
+        createConfigFile(new Properties() {{
+                             put(importProfileGroup, "profile.soundrecording_import");
+                             put("profile.soundrecording_import.label", "NDK SoundRecording label");
+                             put("profile.soundrecording_import.description", "NDK SoundRecording description");
+                             put(ImportProfile.PLAIN_OCR_CHARSET, expDefaultProfileValue);
+                         }},
+                new File(confHome, AppConfiguration.CONFIG_FILE_NAME));
+
+        AppConfiguration config = factory.create(new HashMap<String, String>() {{
+            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
+        }});
+
+        List<ConfigurationProfile> profiles = config.getProfiles().getProfiles(importProfileGroup);
+        assertNotNull(profiles);
+        assertEquals("profile.soundrecording_import", profiles.get(0).getId());
+        assertEquals("NDK SoundRecording label", profiles.get(0).getLabel());
+        assertEquals("NDK SoundRecording description", profiles.get(0).getDescription());
+        assertEquals(expDefaultProfileValue, config.getImportConfiguration().getPlainOcrCharset());
+    }
+
     private File createConfigFile(Properties props, File configFile) throws IOException {
         FileOutputStream propsOut = new FileOutputStream(configFile);
         props.store(propsOut, null);
