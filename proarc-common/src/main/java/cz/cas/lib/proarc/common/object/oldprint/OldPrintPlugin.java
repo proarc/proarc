@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
 import cz.cas.lib.proarc.common.object.HasMetadataHandler;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.RelationCriteria;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
@@ -98,7 +99,8 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 MODEL_MONOGRAPHTITLE,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
+                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[]{}
                 ));
         models.add(new MetaModel(
                 MODEL_VOLUME, true, null,
@@ -108,7 +110,8 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_SUPPLEMENT, true, null,
@@ -118,7 +121,8 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
@@ -126,7 +130,11 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 ModsConstants.NS,
                 MODEL_PAGE,
                 this,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
+                new RelationCriteria[]{
+                        new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_SUPPLEMENT, RelationCriteria.Type.PID)
+                }
                 ));
         return models;
     }
