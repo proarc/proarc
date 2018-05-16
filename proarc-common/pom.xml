@@ -281,6 +281,9 @@
                                 <proarc-common.DbUnitSupport.jdbc.passwd></proarc-common.DbUnitSupport.jdbc.passwd>
                                 <proarc-common.DbUnitSupport.jdbc.driver>org.postgresql.Driver</proarc-common.DbUnitSupport.jdbc.driver>
                                 <proarc-common.DbUnitSupport.empiredb.driver>org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL</proarc-common.DbUnitSupport.empiredb.driver>
+                                <proarc-common.FedoraTestSupport.url>http://localhost:8085/fedora</proarc-common.FedoraTestSupport.url>
+                                <proarc-common.FedoraTestSupport.user>fedoraAdmin</proarc-common.FedoraTestSupport.user>
+                                <proarc-common.FedoraTestSupport.passwd>fedoraAdmin</proarc-common.FedoraTestSupport.passwd>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>

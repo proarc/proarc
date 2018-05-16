@@ -1,0 +1,23 @@
+version: "2"
+services:
+  fcrepo:
+    image: moravianlibrary/fcrepo:3.8.1-mulgara
+    environment:
+      - FEDORA_PASSWORD=fedoraAdmin
+      - "FEDORA_DB_JDBC_URL=jdbc:postgresql://fedoraPostgres:5432/fedora3"
+      - FEDORA_DB_USER=fedoraAdmin
+      - FEDORA_DB_PASSWORD=fedoraAdmin
+    ports:
+      - "8085:8080"
+  proarcPostgres:
+    image: "postgres:9.6"
+    environment:
+      - POSTGRES_USER=proarcAdmin
+      - POSTGRES_PASSWORD=proarcAdmin
+      - POSTGRES_DB=proarc
+  fedoraPostgres:
+    image: "postgres:9.6"
+    environment:
+      - POSTGRES_USER=fedoraAdmin
+      - POSTGRES_PASSWORD=fedoraAdmin
+      - POSTGRES_DB=fedora3
