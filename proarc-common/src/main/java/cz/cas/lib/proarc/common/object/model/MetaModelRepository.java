@@ -56,7 +56,11 @@ public final class MetaModelRepository {
         }
         for (String pluginId : pluginIds) {
             DigitalObjectPlugin plugin = pluginMap.get(pluginId);
-            mmr.registerModels(plugin.getModel());
+            if (plugin == null) {
+                LOG.warning("Nonexxisting plugin {} " + pluginId);
+            } else {
+                mmr.registerModels(plugin.getModel());
+            }
         }
         INSTANCE = mmr;
     }
