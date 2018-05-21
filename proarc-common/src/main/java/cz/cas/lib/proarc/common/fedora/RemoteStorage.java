@@ -217,7 +217,7 @@ public final class RemoteStorage {
         return repositoryVersion.compareTo(version) >= 0;
     }
 
-    FedoraClient getClient() {
+    public FedoraClient getClient() {
         return client;
     }
 

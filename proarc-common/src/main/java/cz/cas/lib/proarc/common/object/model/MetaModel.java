@@ -142,4 +142,10 @@ public class MetaModel {
 
         return false;
     }
+    @Override
+    public String toString() {
+        return "MetaModel{" +
+                "pid='" + pid + '\'' +
+                '}';
+    }
 }

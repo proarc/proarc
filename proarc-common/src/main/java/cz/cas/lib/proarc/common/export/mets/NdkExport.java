@@ -40,7 +40,7 @@ import java.util.logging.Logger;
  * @author Jan Pokorsky
  * @see <a href='http://ndk.cz/digitalizace/nove-standardy-digitalizace-od-roku-2011'>NDK</a>
  */
-public final class NdkExport {
+public class NdkExport {
 
     private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
     private final RemoteStorage rstorage;
@@ -126,7 +126,7 @@ public final class NdkExport {
         return results;
     }
 
-    Result export(File target, String pid, String packageId,
+    protected Result export(File target, String pid, String packageId,
             boolean hierarchy, boolean keepResult, String log
             ) throws ExportException {
 
@@ -171,7 +171,7 @@ public final class NdkExport {
         }
     }
 
-    private MetsContext buildContext(RemoteObject fo, String packageId, File targetFolder) {
+    protected MetsContext buildContext(RemoteObject fo, String packageId, File targetFolder) {
         MetsContext mc = new MetsContext();
         mc.setFedoraClient(fo.getClient());
         mc.setRemoteStorage(rstorage);
@@ -201,7 +201,7 @@ public final class NdkExport {
         }
     }
 
-    private void logResult(Result r, ExportResultLog.ExportResult logItem) {
+    protected void logResult(Result r, ExportResultLog.ExportResult logItem) {
         if (r.getValidationError() != null) {
             logItem.setStatus(ResultStatus.FAILED);
             List<MetsExportExceptionElement> exceptions = r.getValidationError().getExceptions();
@@ -244,7 +244,7 @@ public final class NdkExport {
             return targetFolder;
         }
 
-        Result setTargetFolder(File targetFolder) {
+        public Result setTargetFolder(File targetFolder) {
             this.targetFolder = targetFolder;
             return this;
         }

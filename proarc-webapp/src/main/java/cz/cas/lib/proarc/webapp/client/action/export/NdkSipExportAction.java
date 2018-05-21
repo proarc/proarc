@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2014 Jan Pokorsky
- *
+ * Copyright (C) 2018 Martin Rumanek
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -14,6 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package cz.cas.lib.proarc.webapp.client.action.export;
 
 import com.smartgwt.client.data.DSCallback;
@@ -27,89 +27,32 @@ import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
-import cz.cas.lib.proarc.webapp.client.action.export.DesaExportAction.ExportResultWidget;
-import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ExportDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 
-/**
- * The NDK PSP export action.
- *
- * @author Jan Pokorsky
- */
-public class NdkExportAction extends ExportAction {
+public class NdkSipExportAction extends ExportAction {
 
-    public NdkExportAction(ClientMessages i18n) {
-        this(i18n, i18n.NdkExportAction_Title(), null, i18n.NdkExportAction_Hint());
-    }
-    public NdkExportAction(ClientMessages i18n, String title, String icon, String tooltip) {
-        super(i18n, title, icon, tooltip);
+    public NdkSipExportAction(ClientMessages i18n) {
+        super(i18n, i18n.NdkSipExportAction_Title(), null, i18n.NdkSipExportAction_Hint());
     }
 
-    @Override
-    public boolean accept(ActionEvent event) {
-        Object[] selection = Actions.getSelection(event);
-        boolean accept = false;
-        if (selection != null && selection instanceof Record[]) {
-            Record[] records = (Record[]) selection;
-            accept = acceptNdk(records);
-        }
-        return accept;
-    }
 
     @Override
     public void performAction(ActionEvent event) {
         Record[] records = Actions.getSelection(event);
         String[] pids = ClientUtils.toFieldValues(records, ExportResourceApi.NDK_PID_PARAM);
-        askForExportOptions(pids);
-    }
-
-    private boolean acceptNdk(Record[] records) {
-        boolean accept = false;
-        for (Record record : records) {
-            DigitalObject dobj = DigitalObject.createOrNull(record);
-            if (dobj != null) {
-//                MetaModelRecord model = dobj.getModel();
-//                String metadataFormat = model.getMetadataFormat();
-                String modelId = dobj.getModelId();
-                // XXX hack; it needs support to query model/object for action availability
-                if (modelId != null && modelId.startsWith("model:ndk") && !modelId.startsWith("model:ndke")) {
-                    accept = true;
-                    continue;
-                }
-            }
-            accept = false;
-            break;
-        }
-        return accept;
-    }
-
-    private void askForExportOptions(String[] pids) {
         if (pids == null || pids.length == 0) {
             return ;
         }
         Record export = new Record();
         export.setAttribute(ExportResourceApi.NDK_PID_PARAM, pids);
-//        ExportOptionsWidget.showOptions(export, new Callback<Record, Void>() {
-//
-//            @Override
-//            public void onFailure(Void reason) {
-//                // no-op
-//            }
-//
-//            @Override
-//            public void onSuccess(Record result) {
-//                exportOrValidate(result);
-//            }
-//        });
+        export.setAttribute(ExportResourceApi.NDK_PACKAGE, ExportResourceApi.Package.SIP.name());
         exportOrValidate(export);
     }
 
     private void exportOrValidate(final Record export) {
         DSRequest dsRequest = new DSRequest();
-        //dsRequest.setPromptStyle(PromptStyle.DIALOG);
-        //dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());
         dsRequest.setShowPrompt(false);
         DataSource ds = ExportDataSource.getNdk();
 
@@ -121,12 +64,9 @@ public class NdkExportAction extends ExportAction {
                     Record[] data = response.getData();
                     RecordList erl = errorsFromExportResult(data);
                     if (erl.isEmpty()) {
-                        String dryRun = export.getAttribute(ExportResourceApi.DESA_DRYRUN_PARAM);
-                        SC.say(dryRun == null
-                                ? i18n.NdkExportAction_ExportDone_Msg()
-                                : i18n.DesaExportAction_ValidationDone_Msg());
+                        SC.say(i18n.NdkExportAction_ExportDone_Msg());
                     } else {
-                        ExportResultWidget.showErrors(erl.toArray());
+                        DesaExportAction.ExportResultWidget.showErrors(erl.toArray());
                     }
                 }
             }
@@ -144,4 +84,18 @@ public class NdkExportAction extends ExportAction {
         return recordList;
     }
 
+    @Override
+    public boolean accept(ActionEvent event) {
+        Object[] selection = Actions.getSelection(event);
+        boolean accept = false;
+        if (selection != null && selection instanceof Record[]) {
+            Record[] records = (Record[]) selection;
+            accept = acceptRecord(records);
+        }
+        return accept;
+    }
+
+    private boolean acceptRecord(Record[] records) {
+        return true; //TODO-MR implement
+    }
 }

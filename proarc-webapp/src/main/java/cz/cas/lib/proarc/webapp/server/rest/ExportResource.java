@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
 import cz.cas.lib.proarc.common.export.crossref.CrossrefExport;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.export.mets.NdkExport;
+import cz.cas.lib.proarc.common.export.sip.NdkSipExport;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
@@ -228,19 +229,31 @@ public class ExportResource {
     @Path(ExportResourceApi.NDK_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newNdkExport(
-            @FormParam(ExportResourceApi.NDK_PID_PARAM) List<String> pids
+            @FormParam(ExportResourceApi.NDK_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage
 //            @FormParam(ExportResourceApi.DESA_HIERARCHY_PARAM) @DefaultValue("false") boolean hierarchy,
 //            @FormParam(ExportResourceApi.DESA_FORDOWNLOAD_PARAM) @DefaultValue("false") boolean forDownload,
 //            @FormParam(ExportResourceApi.DESA_DRYRUN_PARAM) @DefaultValue("false") boolean dryRun
             ) throws ExportException {
-
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
         }
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
-        List<ExportResult> result = new ArrayList<ExportResult>(pids.size());
-        NdkExport export = new NdkExport(RemoteStorage.getInstance(), appConfig.getNdkExportOptions());
+        List<ExportResult> result = new ArrayList<>(pids.size());
+        NdkExport export;
+
+        switch (typeOfPackage) {
+            case "PSP":
+                export = new NdkExport(RemoteStorage.getInstance(), appConfig.getNdkExportOptions());
+                break;
+            case "SIP":
+                export = new NdkSipExport(RemoteStorage.getInstance(), appConfig.getNdkExportOptions());
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported type of package");
+        }
+
         List<NdkExport.Result> ndkResults = export.export(exportFolder, pids, true, true, session.asFedoraLog());
         for (NdkExport.Result r : ndkResults) {
             if (r.getValidationError() != null) {
@@ -250,7 +263,7 @@ public class ExportResource {
                 result.add(new ExportResult((Integer) null, "done"));
             }
         }
-        return new SmartGwtResponse<ExportResult>(result);
+        return new SmartGwtResponse<>(result);
     }
 
     /**
