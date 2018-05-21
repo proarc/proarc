@@ -53,6 +53,7 @@ import cz.cas.lib.proarc.webapp.client.action.export.DataStreamExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.DesaExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.KrameriusExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.NdkExportAction;
+import cz.cas.lib.proarc.webapp.client.action.export.NdkSipExportAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
@@ -79,6 +80,7 @@ public final class DigitalObjectManager {
     private ArchiveExportAction archiveExportAction;
     private KrameriusExportAction krameriusExportAction;
     private NdkExportAction ndkExportAction;
+    private NdkSipExportAction ndkSipExportAction;
     private CejshExportAction cejshExportAction;
     private CrossrefExportAction crossrefExportAction;
     private DesaExportAction desaDownloadAction;
@@ -204,6 +206,7 @@ public final class DigitalObjectManager {
         foxmlAction = new FoxmlViewAction(i18n);
         krameriusExportAction = new KrameriusExportAction(i18n);
         ndkExportAction = new NdkExportAction(i18n);
+        ndkSipExportAction = new NdkSipExportAction(i18n);
         cejshExportAction = new CejshExportAction(i18n);
         crossrefExportAction = new CrossrefExportAction(i18n);
         desaExportAction = DesaExportAction.export(i18n);
@@ -267,6 +270,7 @@ public final class DigitalObjectManager {
         menuExport.addItem(Actions.asMenuItem(archiveExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(ndkSipExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(cejshExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(crossrefExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(desaExportAction, actionSource, true));

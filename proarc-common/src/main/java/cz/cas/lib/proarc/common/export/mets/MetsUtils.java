@@ -28,6 +28,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -174,18 +175,24 @@ public class MetsUtils {
         }
     }
 
+    /**
+     * Fetch PSP id - this is usually determined by some level of model.
+     * @see Const#PSPElements
+     *
+     * @param pid   pid of exported model
+     * @param ctx
+     * @param fillChildren
+     * @return
+     * @throws MetsExportException
+     */
     public static List<String> findPSPPIDs(String pid, MetsContext ctx, boolean fillChildren) throws MetsExportException {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         DigitalObject dObj;
         if (ctx.getFedoraClient() != null) {
             dObj = readFoXML(pid, ctx.getFedoraClient());
         } else {
             dObj = readFoXML(ctx.getPath() + File.separator + pid + ".xml");
         }
-        // List<Element> relsExt = FoxmlUtils.findDatastream(dObj,
-        // "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
-        // String model = MetsUtils.getModel(relsExt);
-        // String elementType = Const.typeMap.get(model);
 
         String parentId = pid;
         String parentModel = null;
@@ -193,16 +200,6 @@ public class MetsUtils {
         List<Element> parentRels = null;
         DigitalObject parentdbObj = null;
         String firstParentType = null;
-
-        // if (ctx.getFedoraClient() != null) {
-        // parentId = MetsUtils.getParent(pid, ctx.getRemoteStorage());
-        // } else {
-        // parentId = MetsUtils.getParent(pid, ctx.getFsParentMap());
-        // }
-        //
-        // if (Const.PSPElements.contains(parentType)) {
-        // result.add(e)
-        // }
 
         while (parentId != null) {
             if (ctx.getFedoraClient() != null) {
@@ -254,7 +251,7 @@ public class MetsUtils {
             findChildPSPs(dObj, ctx, result, firstParentType);
         }
 
-        return result;
+        return Collections.unmodifiableList(result);
     }
 
     /**

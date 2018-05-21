@@ -221,6 +221,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
                 return modelId != null && (modelId.startsWith("model:bdm")
                         || "model:derFile".equals(modelId)
                         || "model:desFile".equals(modelId)
+                        || "model:ndkemonographvolume".equals(modelId)
                         );
             }
 
@@ -252,6 +253,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
                 return modelId != null && (modelId.startsWith("model:bdm")
                         || "model:derFile".equals(modelId)
                         || "model:desFile".equals(modelId)
+                        || "model:ndkemonographvolume".equals(modelId)
                 );
             }
 
