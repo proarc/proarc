@@ -123,8 +123,8 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         grid.setSelectionType(SelectionStyle.SINGLE);
         grid.setCanSort(false);
         grid.setDataSource(SearchDataSource.getInstance());
-        ListGridPersistance gridPersistence = new ListGridPersistance("DigitalObjectSearchView.searchList", grid);
-        grid.setViewState(gridPersistence.getViewState());
+        //ListGridPersistance gridPersistence = new ListGridPersistance("DigitalObjectSearchView.searchList", grid);
+        //grid.setViewState(gridPersistence.getViewState());
 
         ListGridField label = new ListGridField(SearchDataSource.FIELD_LABEL,
                 i18n.DigitalObjectSearchView_ListHeaderLabel_Title());
@@ -347,11 +347,11 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     }
 
     private void filter() {
-        CheckboxItem checkbox = ((CheckboxItem)filters.getField(DigitalObjectResourceApi.SEARCH_MODEL_PARAM_REMEMBER));
-        if (checkbox.getValueAsBoolean()) {
-            checkbox.setValue(false);
-            Offline.put(sourceName, filters.getField(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM).getValue());
-        }
+//        CheckboxItem checkbox = ((CheckboxItem)filters.getField(DigitalObjectResourceApi.SEARCH_MODEL_PARAM_REMEMBER));
+//        if (checkbox.getValueAsBoolean()) {
+//            checkbox.setValue(false);
+//            Offline.put(sourceName, filters.getField(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM).getValue());
+//        }
         Criteria valuesAsCriteria = filters.getValuesAsCriteria();
         foundGrid.deselectAllRecords();
         foundGrid.fetchData(valuesAsCriteria);

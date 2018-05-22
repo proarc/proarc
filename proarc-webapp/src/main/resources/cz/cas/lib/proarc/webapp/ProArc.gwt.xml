@@ -32,9 +32,11 @@
 
     <!-- Logging setup       -->
     <inherits name="com.google.gwt.logging.Logging"/>
-<!--    <set-property name="gwt.logging.enabled" value="FALSE"/> -->
-<!--    <set-property name="gwt.logging.logLevel" value="FINE"/>-->
-<!--    <set-property name="gwt.logging.consoleHandler" value="DISABLED" />-->
+    <set-property name="gwt.logging.enabled" value="TRUE"/>
+<!--    <define-property name="cz.cas.lib.proarc.webapp.client.widget.DCEditor.level" values="ALL, FINEST, FINER, FINE, CONFIG, INFO, WARNING, SEVERE"/>-->
+<!--    <set-property name="cz.cas.lib.proarc.webapp.client.widget.DCEditor.level" value="FINE"/>-->
+    <set-property name="gwt.logging.logLevel" value="FINE"/>
+    <set-property name="gwt.logging.consoleHandler" value="ENABLED" />
 <!--    <set-property name="gwt.logging.developmentModeHandler" value="DISABLED" />-->
     <!--<set-property name="gwt.logging.popupHandler" value="DISABLED" />-->
 <!--    <set-property name="gwt.logging.systemHandler" value="DISABLED" />-->
@@ -43,6 +45,9 @@
 
     <!-- Specify the app entry point class.                         -->
     <entry-point class="cz.cas.lib.proarc.webapp.client.Editor" />
+
+    <!--<set-property name="user.agent" value="gecko1_8"/>-->
+    <set-property name="user.agent" value="safari"/>
 
     <!-- Specify the paths for translatable code                    -->
     <source path="client" />

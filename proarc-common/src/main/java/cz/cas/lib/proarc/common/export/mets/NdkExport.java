@@ -29,9 +29,12 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import org.apache.commons.lang.Validate;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
@@ -102,6 +105,7 @@ public class NdkExport {
             boolean hierarchy, boolean keepResult, String log
             ) throws ExportException {
 
+        Validate.notEmpty(pids, "Pids to export are empty");
         ExportResultLog reslog = new ExportResultLog();
         File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)));
         ArrayList<Result> results = new ArrayList<Result>(pids.size());

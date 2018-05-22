@@ -34,10 +34,18 @@ public class NdkSipExport extends NdkExport {
     private static final Logger LOG = Logger.getLogger(NdkSipExport.class.getName());
 
     private final RemoteStorage rstorage;
+    private final MetsUtils metsUtils;
 
     public NdkSipExport(RemoteStorage rstorage, NdkExportOptions options) {
         super(rstorage, options);
         this.rstorage = rstorage;
+        metsUtils = new MetsUtils();
+    }
+
+    public NdkSipExport(RemoteStorage rstorage, NdkExportOptions options, MetsUtils metsUtils) {
+        super(rstorage, options);
+        this.rstorage = rstorage;
+        this.metsUtils = metsUtils;
     }
 
 
@@ -50,8 +58,8 @@ public class NdkSipExport extends NdkExport {
         RemoteStorage.RemoteObject fo = rstorage.find(pid);
         MetsContext mc = buildContext(fo, packageId, target);
         try {
-            List<String> packageIdentifiers = MetsUtils.findPSPPIDs(fo.getPid(), mc, hierarchy);
-            DigitalObject dobj = MetsUtils.readFoXML(pid, fo.getClient());
+            List<String> packageIdentifiers = metsUtils.findPSPPIDs(fo.getPid(), mc, hierarchy);
+            DigitalObject dobj = metsUtils.readFoXML(pid, fo.getClient());
             SipTree tree = SipTree.getTree(dobj, rstorage);
             List<SipTree> sipTree = tree.flattened().collect(Collectors.toList());
             List<SipTree> path = tree.getPathToRoot();
