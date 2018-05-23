@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.export.mets;
 
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 
@@ -138,6 +139,7 @@ public class Const {
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_PERIODICALSUPPLEMENT, SUPPLEMENT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_CARTOGRAPHIC, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_SHEETMUSIC, MONOGRAPH_UNIT);
+        typeMap.put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, MONOGRAPH_UNIT);
 
         typeMap.put(FEDORAPREFIX + CHAPTER_MODEL, CHAPTER);
 

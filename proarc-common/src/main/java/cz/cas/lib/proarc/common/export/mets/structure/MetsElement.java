@@ -65,7 +65,7 @@ public class MetsElement implements IMetsElement {
     private final String originalPid;
     private final Logger LOG = Logger.getLogger(MetsElement.class.getName());
     private MetsElement parent;
-    private final List<MetsElement> children = new ArrayList<MetsElement>();
+    private final List<MetsElement> children = new ArrayList<>();
     private final List<Element> relsExt;
     private final DigitalObject sourceObject;
     public final List<Element> modsStream;

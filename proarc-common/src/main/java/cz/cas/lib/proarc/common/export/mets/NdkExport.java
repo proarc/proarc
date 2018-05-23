@@ -29,6 +29,8 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import org.apache.commons.lang.Validate;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -101,10 +103,11 @@ public class NdkExport {
     public List<Result> export(File exportsFolder, List<String> pids,
             boolean hierarchy, boolean keepResult, String log
             ) throws ExportException {
+        Validate.notEmpty(pids, "Pids to export are empty");
 
         ExportResultLog reslog = new ExportResultLog();
         File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)));
-        ArrayList<Result> results = new ArrayList<Result>(pids.size());
+        ArrayList<Result> results = new ArrayList<>(pids.size());
         for (String pid : pids) {
             ExportResultLog.ExportResult logItem = new ExportResultLog.ExportResult();
             logItem.setInputPid(pid);
@@ -143,7 +146,7 @@ public class NdkExport {
                     dc.resetContext();
                     DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
                     MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
-                    mElm.accept(new MetsElementVisitor());
+                    mElm.accept(createMetsVisitor());
                     // XXX use relative path to users folder?
                 }
                 storeExportResult(dc, target.toURI().toASCIIString(), log);
@@ -169,6 +172,10 @@ public class NdkExport {
 //                }
             }
         }
+    }
+
+    protected MetsElementVisitor createMetsVisitor() {
+        return new MetsElementVisitor();
     }
 
     protected MetsContext buildContext(RemoteObject fo, String packageId, File targetFolder) {

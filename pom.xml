@@ -38,7 +38,7 @@
         <module>proarc-webapp</module>
         <module>proarc-z3950</module>
         <module>proarc-aes57</module>
-  </modules>
+    </modules>
 
     <properties>
         <proarc.version>${project.version}</proarc.version>
@@ -160,6 +160,12 @@
                 <version>3.4</version>
                 <!--<scope>test</scope>-->
             </dependency>
+            <!-- Don't use 1.39! https://github.com/jmockit/jmockit1/issues/516 -->
+            <dependency>
+                <groupId>org.jmockit</groupId>
+                <artifactId>jmockit</artifactId>
+                <version>1.38</version>
+            </dependency>
             <dependency>
                 <groupId>postgresql</groupId>
                 <artifactId>postgresql</artifactId>
@@ -199,7 +205,7 @@
             </plugin>
 
         </plugins>
-        
+
         <pluginManagement>
 
             <plugins>
@@ -258,12 +264,12 @@
                     <!--<version>3.1</version>-->
                     <version>3.5.1</version>
                     <configuration>
-<!--                        <showDeprecation>true</showDeprecation>
-                        <showWarnings>true</showWarnings>
-                        <compilerArguments>
-                            <Xlint />
-                            <Xlint:-path />
-                        </compilerArguments>-->
+                        <!--                        <showDeprecation>true</showDeprecation>
+                                                <showWarnings>true</showWarnings>
+                                                <compilerArguments>
+                                                    <Xlint />
+                                                    <Xlint:-path />
+                                                </compilerArguments>-->
                     </configuration>
                 </plugin>
 

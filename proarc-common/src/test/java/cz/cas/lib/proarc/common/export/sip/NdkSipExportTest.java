@@ -1,0 +1,165 @@
+/*
+ * Copyright (C) 2018 Martin Rumanek
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package cz.cas.lib.proarc.common.export.sip;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
+
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.request.GetObjectXML;
+import com.yourmediashelf.fedora.client.response.FedoraResponse;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.export.ExportUtils;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.mets.NdkExport;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.mets.info.Info;
+import mockit.Expectations;
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.Mocked;
+import org.apache.commons.lang.StringUtils;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
+
+public class NdkSipExportTest {
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
+    @Mocked
+    FedoraClient client;
+
+    @Mocked
+    SearchView searchView;
+
+    AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+
+    public NdkSipExportTest() throws Exception {
+    }
+
+    @Test
+    public void export() throws Exception {
+        RemoteStorage remoteStorage = new RemoteStorage(client);
+
+        new Expectations(RemoteStorage.class) {{
+            remoteStorage.getSearch();
+            result = searchView;
+        }};
+
+        // MetaModelRepository.setInstance(appConfig.getPlugins());
+        DigitalObjectManager.setDefault(new DigitalObjectManager(
+                appConfig,
+                null,
+                remoteStorage,
+                null,
+                null));
+
+        new MockUp<ExportUtils>() {
+            @Mock
+            void storeObjectExportResult(String pid, String target, String log) {
+                //no-op
+            }
+        };
+
+        new MockUp<FedoraClient>() {
+            @Mock
+            GetObjectXML getObjectXML(String pid) {
+                return new GetObjectXML(pid) {
+                    @Override
+                    public FedoraResponse execute(FedoraClient fedora) {
+                        return new FedoraResponse() {
+                            @Override
+                            public int getStatus() {
+                                return 200;
+                            }
+
+                            @Override
+                            public InputStream getEntityInputStream() {
+                                try {
+                                    return getClass().getResource(StringUtils.remove(pid, "uuid:") + ".xml").openStream();
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+
+                            @Override
+                            public <T> T getEntity(Class<T> c) {
+                                return null;
+                            }
+
+                            @Override
+                            public String getType() {
+                                return null;
+                            }
+
+                            @Override
+                            public void close() {
+
+                            }
+                        };
+                    }
+                };
+            }
+        };
+
+
+        NdkExport export = new NdkSipExport(remoteStorage, appConfig.getNdkExportOptions());
+
+        String pid = "uuid:acd66301-4e75-4d12-9d98-b323ff5beee9";
+        List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
+                true, true, null);
+
+        for (NdkExport.Result result : resultsList) {
+            if (result.getValidationError() != null) {
+                throw result.getValidationError();
+            }
+        }
+
+        Path sip = folder.getRoot().toPath().resolve(StringUtils.removeStart(pid, "uuid:")).resolve("test");
+        validatePackage(sip);
+    }
+
+    private void validatePackage(Path sip) throws IOException {
+        assertTrue("No SIP package", Files.isDirectory(sip));
+
+        String identifier = sip.getFileName().toString();
+
+        assertTrue("No original files", Files.list(sip.resolve("original")).count() > 0);
+        assertTrue("No metadata files", Files.list(sip.resolve("metadata")).count() > 0);
+        assertTrue("No info.xml", Files.exists(sip.resolve("info_" + identifier +".xml")));
+        assertTrue("No pdf file", Files.exists(sip.resolve("original/oc_" + identifier +".pdf")));
+
+        try {
+            List<String> errors = MetsUtils.validateAgainstXSD(sip.resolve("info_test.xml").toFile(), Info.class.getResourceAsStream("info.xsd"));
+            assertTrue(errors.toString(), errors.isEmpty());
+        } catch(Exception e) {
+            fail();
+        }
+    }
+}
