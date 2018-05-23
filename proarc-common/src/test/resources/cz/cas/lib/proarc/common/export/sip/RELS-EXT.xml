@@ -1,0 +1,7 @@
+<rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:fedora-rels-ext="info:fedora/fedora-system:def/relations-external#" xmlns:proarc-rels="http://proarc.lib.cas.cz/relations#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <rdf:Description rdf:about="info:fedora/uuid:acd66301-4e75-4d12-9d98-b323ff5beee9">
+        <fedora-model:hasModel rdf:resource="info:fedora/model:ndkemonographvolume"></fedora-model:hasModel>
+        <proarc-rels:importFile>nyan-cat-sheet-music.pdf</proarc-rels:importFile>
+        <proarc-rels:hasExport>file:/C:/Users/martin.rumanek/.proarc/users/proarc_1/export/acd66301-4e75-4d12-9d98-b323ff5beee9_2/</proarc-rels:hasExport>
+    </rdf:Description>
+</rdf:RDF>
