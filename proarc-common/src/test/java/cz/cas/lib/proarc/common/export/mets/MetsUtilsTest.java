@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.junit.Assert;
@@ -69,6 +70,7 @@ public class MetsUtilsTest {
     @Before
     public void setUp() {
         initTestElements();
+        MetaModelRepository.setInstance();
     }
 
     /**

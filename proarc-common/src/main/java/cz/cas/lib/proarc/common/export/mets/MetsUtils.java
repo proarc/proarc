@@ -64,7 +64,10 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -870,7 +873,9 @@ public class MetsUtils {
         }
             Info infoJaxb = new Info();
             infoJaxb.setCreated(date2);
-            infoJaxb.setMainmets(metsFile.getName());
+            if (metsFile != null) {
+                infoJaxb.setMainmets(metsFile.getName());
+            }
             Checksum checkSum = new Checksum();
             checkSum.setChecksum(md5);
             checkSum.setType("MD5");
@@ -883,11 +888,17 @@ public class MetsUtils {
             infoJaxb.setValidation(validation);
             infoJaxb.setCreator(metsContext.getOptions().getCreator());
             infoJaxb.setPackageid(metsContext.getPackageID());
+
+        if (metsContext.getPackageVersion().isPresent()) {
+            infoJaxb.setMetadataversion(metsContext.getPackageVersion().get());
+        } else {
             if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
                 infoJaxb.setMetadataversion((float) 1.6);
             } else {
                 infoJaxb.setMetadataversion((float) 1.2);
             }
+        }
+
             Itemlist itemList = new Itemlist();
             infoJaxb.setItemlist(itemList);
             itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size() + 1)); // size of list + info file
