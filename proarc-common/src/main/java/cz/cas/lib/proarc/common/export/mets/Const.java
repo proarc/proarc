@@ -17,16 +17,18 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.StringEditor;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
-import cz.cas.lib.proarc.common.ocr.AltoDatastream;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.StringEditor;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 
 /**
  *
@@ -99,6 +101,7 @@ public class Const {
     public static final String ALTO_GRP_ID = "ALTOGRP";
     public static final String UC_GRP_ID = "UC_IMGGRP";
     public static final String TXT_GRP_ID = "TXTGRP";
+    public static final MetaModelRepository metaModelRepository = MetaModelRepository.getInstance();
 
     public static final List<String> PSPElements = new ArrayList<String>();
 
@@ -139,9 +142,15 @@ public class Const {
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_PERIODICALSUPPLEMENT, SUPPLEMENT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_CARTOGRAPHIC, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_SHEETMUSIC, MONOGRAPH_UNIT);
-        typeMap.put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, MONOGRAPH_UNIT);
 
         typeMap.put(FEDORAPREFIX + CHAPTER_MODEL, CHAPTER);
+
+        Stream<NdkEbornPlugin> pluginsWithConstants = metaModelRepository.find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
+                .filter(plugin -> plugin instanceof NdkEbornPlugin)
+                .map(plugin -> ((NdkEbornPlugin) plugin));
+        pluginsWithConstants.map(plugin -> plugin.typeMap).forEach(typeMap::putAll);
+
+
 
         typeNameMap.put(ISSUE, ISSUE);
         typeNameMap.put(PERIODICAL_VOLUME, VOLUME);

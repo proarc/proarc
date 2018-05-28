@@ -16,6 +16,8 @@
 
 package cz.cas.lib.proarc.common.export.sip;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -29,21 +31,26 @@ import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.export.ExportUtils;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mets.info.Info;
 import mockit.Expectations;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
 import org.apache.commons.lang.StringUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 
@@ -58,14 +65,16 @@ public class NdkSipExportTest {
     @Mocked
     SearchView searchView;
 
+    RemoteStorage remoteStorage;
+
     AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
 
     public NdkSipExportTest() throws Exception {
     }
 
-    @Test
-    public void export() throws Exception {
-        RemoteStorage remoteStorage = new RemoteStorage(client);
+    @Before
+    public void setUp() throws Exception {
+        remoteStorage = new RemoteStorage(client);
 
         new Expectations(RemoteStorage.class) {{
             remoteStorage.getSearch();
@@ -82,6 +91,7 @@ public class NdkSipExportTest {
 
         new MockUp<ExportUtils>() {
             @Mock
+            @SuppressWarnings("unused")
             void storeObjectExportResult(String pid, String target, String log) {
                 //no-op
             }
@@ -89,6 +99,7 @@ public class NdkSipExportTest {
 
         new MockUp<FedoraClient>() {
             @Mock
+            @SuppressWarnings("unused")
             GetObjectXML getObjectXML(String pid) {
                 return new GetObjectXML(pid) {
                     @Override
@@ -128,6 +139,11 @@ public class NdkSipExportTest {
             }
         };
 
+        MetaModelRepository.setInstance("ndk", "ndkEborn");
+    }
+
+    @Test
+    public void export() throws Exception {
 
         NdkExport export = new NdkSipExport(remoteStorage, appConfig.getNdkExportOptions());
 
@@ -152,14 +168,36 @@ public class NdkSipExportTest {
 
         assertTrue("No original files", Files.list(sip.resolve("original")).count() > 0);
         assertTrue("No metadata files", Files.list(sip.resolve("metadata")).count() > 0);
-        assertTrue("No info.xml", Files.exists(sip.resolve("info_" + identifier +".xml")));
-        assertTrue("No pdf file", Files.exists(sip.resolve("original/oc_" + identifier +".pdf")));
+        assertTrue("No info.xml", Files.exists(sip.resolve("info_" + identifier + ".xml")));
+        assertTrue("No pdf file", Files.exists(sip.resolve("original/oc_" + identifier + ".pdf")));
 
         try {
             List<String> errors = MetsUtils.validateAgainstXSD(sip.resolve("info_test.xml").toFile(), Info.class.getResourceAsStream("info.xsd"));
             assertTrue(errors.toString(), errors.isEmpty());
-        } catch(Exception e) {
+
+            JAXBContext jContext = JAXBContext.newInstance(Info.class);
+            Unmarshaller unmarshallerObj = jContext.createUnmarshaller();
+            Info info = (Info) unmarshallerObj.unmarshal(sip.resolve("info_test.xml").toFile());
+            assertTrue(info.getMetadataversion() >= 2.2);
+            assertEquals(info.getPackageid(), "test");
+            // assertEquals(info.getMainmets(), ""); //TODO-MR ???
+            //TODO-MR validation
+            assertTrue(!info.getTitleid().isEmpty());
+            assertTrue(!info.getCreator().isEmpty());
+
+            assertTrue(info.getItemlist().getItem().size() > 1); //TODO-MR check fileexist
+            assertTrue(info.getChecksum().getChecksum().matches("^[a-fA-F0-9]{32}$"));
+        } catch (Exception e) {
             fail();
         }
+    }
+
+    @Test
+    public void findPSPPIDsTest() throws MetsExportException {
+        MetsContext ctx = new MetsContext();
+        ctx.setRemoteStorage(remoteStorage);
+        ctx.setFedoraClient(remoteStorage.getClient());
+        List<String> pids = MetsUtils.findPSPPIDs("uuid:acd66301-4e75-4d12-9d98-b323ff5beee9", ctx, true);
+        assertTrue(pids.size() > 0);
     }
 }
