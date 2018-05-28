@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object.model;
 
-import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,6 +23,8 @@ import java.util.HashMap;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 
 /**
  * The repository of models of digital objects.
@@ -43,7 +44,7 @@ public final class MetaModelRepository {
      * Creates the repository for digital object plugins.
      * @param pluginIds
      */
-    public static void setInstance(String[] pluginIds) {
+    public static void setInstance(String... pluginIds) {
         MetaModelRepository mmr = new MetaModelRepository();
         ServiceLoader<DigitalObjectPlugin> pluginLoader = ServiceLoader.load(DigitalObjectPlugin.class);
         HashMap<String, DigitalObjectPlugin> pluginMap = new HashMap<String, DigitalObjectPlugin>();
