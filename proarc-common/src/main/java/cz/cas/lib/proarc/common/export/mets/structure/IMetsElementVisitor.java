@@ -17,6 +17,9 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 
 /**
@@ -33,5 +36,5 @@ public interface IMetsElementVisitor {
      * @param metsElement
      * @throws MetsExportException
      */
-    public void insertIntoMets(IMetsElement metsElement) throws MetsExportException;
+    public void insertIntoMets(IMetsElement metsElement) throws MetsExportException, IOException, NoSuchAlgorithmException;
 }

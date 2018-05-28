@@ -21,7 +21,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.i18n.BundleName;
@@ -42,12 +44,16 @@ import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 
+import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
+
 
 public class NdkEbornPlugin implements DigitalObjectPlugin {
 
     public static final String ID = "ndkEborn";
 
     public static final String MODEL_EMONOGRAPHVOLUME = "model:ndkemonographvolume";
+
+    public final static Map<String, String> typeMap = Collections.singletonMap(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "MONOGRAPH_UNIT");
 
     @Override
     public String getId() {

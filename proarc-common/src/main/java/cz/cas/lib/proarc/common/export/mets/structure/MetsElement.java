@@ -17,7 +17,9 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +33,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
+import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
+import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -489,6 +496,7 @@ public class MetsElement implements IMetsElement {
         List<Element> relsExt = FoxmlUtils.findDatastream(object, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
         String model = MetsUtils.getModel(relsExt);
         String type = Const.typeMap.get(model);
+
         if (type == null) {
             throw new MetsExportException(object.getPID(), "Unknown model:" + model, false, null);
         }
@@ -530,7 +538,11 @@ public class MetsElement implements IMetsElement {
      */
     @Override
     public void accept(IMetsElementVisitor metsVisitor) throws MetsExportException {
-        metsVisitor.insertIntoMets(this);
+        try {
+            metsVisitor.insertIntoMets(this);
+        } catch (IOException | NoSuchAlgorithmException e) {
+            throw new MetsExportException(e.getMessage());
+        }
     }
 
     /*

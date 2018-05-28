@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
 
@@ -57,6 +58,7 @@ public class MetsContext {
     private boolean allowMissingURNNBN = false;
     private File packageDir;
     private String proarcVersion;
+    private Float packageVersion;
     private JhoveContext jhoveContext;
     private NdkExportOptions options;
 
@@ -198,6 +200,14 @@ public class MetsContext {
      */
     public void setPackageID(String packageID) {
         this.packageID = packageID;
+    }
+
+    public Optional<Float> getPackageVersion() {
+        return Optional.ofNullable(packageVersion);
+    }
+
+    public void setPackageVersion(Float packageVersion) {
+        this.packageVersion = packageVersion;
     }
 
     /**

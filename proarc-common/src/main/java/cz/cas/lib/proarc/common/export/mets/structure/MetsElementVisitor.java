@@ -1883,7 +1883,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * (cz.cas.lib.proarc.common.export.mets.structure.IMetsElement)
      */
     @Override
-    public void insertIntoMets(IMetsElement metsElement) throws MetsExportException {
+    public void insertIntoMets(IMetsElement metsElement) throws MetsExportException, IOException, NoSuchAlgorithmException {
         try {
             // clear the output fileList before the generation starts
             metsElement.getMetsContext().getFileList().clear();
