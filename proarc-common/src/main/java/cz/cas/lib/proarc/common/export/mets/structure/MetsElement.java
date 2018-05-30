@@ -279,7 +279,7 @@ public class MetsElement implements IMetsElement {
         Kramerius4Export.removeNils(modsStream.get(0));
 
         model = MetsUtils.getModel(relsExt);
-        this.elementType = Const.typeMap.get(model);
+        this.elementType = MetsUtils.getElementType(model);
 
 
         if (parent instanceof MetsElement) {
@@ -488,7 +488,7 @@ public class MetsElement implements IMetsElement {
     public static MetsElement getElement(DigitalObject object, MetsElement parent, MetsContext metsContext, boolean withChildren) throws MetsExportException {
         List<Element> relsExt = FoxmlUtils.findDatastream(object, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
         String model = MetsUtils.getModel(relsExt);
-        String type = Const.typeMap.get(model);
+        String type = MetsUtils.getElementType(model);
         if (type == null) {
             throw new MetsExportException(object.getPID(), "Unknown model:" + model, false, null);
         }

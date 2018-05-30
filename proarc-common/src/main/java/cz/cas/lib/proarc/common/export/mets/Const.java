@@ -101,7 +101,6 @@ public class Const {
     public static final String ALTO_GRP_ID = "ALTOGRP";
     public static final String UC_GRP_ID = "UC_IMGGRP";
     public static final String TXT_GRP_ID = "TXTGRP";
-    public static final MetaModelRepository metaModelRepository = MetaModelRepository.getInstance();
 
     public static final List<String> PSPElements = new ArrayList<String>();
 
@@ -144,13 +143,6 @@ public class Const {
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_SHEETMUSIC, MONOGRAPH_UNIT);
 
         typeMap.put(FEDORAPREFIX + CHAPTER_MODEL, CHAPTER);
-
-        Stream<NdkEbornPlugin> pluginsWithConstants = metaModelRepository.find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
-                .filter(plugin -> plugin instanceof NdkEbornPlugin)
-                .map(plugin -> ((NdkEbornPlugin) plugin));
-        pluginsWithConstants.map(plugin -> plugin.typeMap).forEach(typeMap::putAll);
-
-
 
         typeNameMap.put(ISSUE, ISSUE);
         typeNameMap.put(PERIODICAL_VOLUME, VOLUME);
