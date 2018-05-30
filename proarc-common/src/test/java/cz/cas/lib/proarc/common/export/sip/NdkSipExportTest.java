@@ -40,7 +40,6 @@ import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mets.info.Info;
-import mockit.Expectations;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
@@ -76,11 +75,6 @@ public class NdkSipExportTest {
     public void setUp() throws Exception {
         remoteStorage = new RemoteStorage(client);
 
-        new Expectations(RemoteStorage.class) {{
-            remoteStorage.getSearch();
-            result = searchView;
-        }};
-
         // MetaModelRepository.setInstance(appConfig.getPlugins());
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 appConfig,
@@ -91,7 +85,6 @@ public class NdkSipExportTest {
 
         new MockUp<ExportUtils>() {
             @Mock
-            @SuppressWarnings("unused")
             void storeObjectExportResult(String pid, String target, String log) {
                 //no-op
             }
@@ -99,7 +92,6 @@ public class NdkSipExportTest {
 
         new MockUp<FedoraClient>() {
             @Mock
-            @SuppressWarnings("unused")
             GetObjectXML getObjectXML(String pid) {
                 return new GetObjectXML(pid) {
                     @Override
@@ -144,10 +136,12 @@ public class NdkSipExportTest {
 
     @Test
     public void export() throws Exception {
-
         NdkExport export = new NdkSipExport(remoteStorage, appConfig.getNdkExportOptions());
 
         String pid = "uuid:acd66301-4e75-4d12-9d98-b323ff5beee9";
+
+        assertTrue("Junit didn't create a temporary folder", folder.getRoot().exists());
+
         List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
                 true, true, null);
 

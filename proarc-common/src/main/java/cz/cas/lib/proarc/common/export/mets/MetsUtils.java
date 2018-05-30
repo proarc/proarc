@@ -28,6 +28,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -38,6 +39,8 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -65,6 +68,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
@@ -163,7 +167,7 @@ public class MetsUtils {
                 }
                 relsExt = FoxmlUtils.findDatastream(object, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
                 String model = MetsUtils.getModel(relsExt);
-                String elementType = Const.typeMap.get(model);
+                String elementType = getElementType(model);
 
                 if (Const.PSPElements.contains(elementType)) {
                     if (((Const.MONOGRAPH_UNIT.equals(parentType) || (Const.ISSUE.equals(parentType)))) && (Const.SUPPLEMENT.equals(elementType))) {
@@ -178,6 +182,19 @@ public class MetsUtils {
         }
     }
 
+    public static String getElementType(String model) {
+     String type = Const.typeMap.get(model);
+     if (type == null) {
+         List<NdkEbornPlugin> plugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
+                 .filter(plugin -> plugin instanceof NdkEbornPlugin).map(plugin -> ((NdkEbornPlugin) plugin)).collect(Collectors.toList());
+         for (NdkEbornPlugin plugin : plugins) {
+            if (plugin.typeMap.containsKey(model)) {
+                return plugin.typeMap.get(model);
+            }
+         }
+     }
+     return type;
+    }
     /**
      * Fetch PSP id - this is usually determined by some level of model.
      * @see Const#PSPElements
@@ -212,7 +229,7 @@ public class MetsUtils {
             }
             parentRels = FoxmlUtils.findDatastream(parentdbObj, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
             parentModel = MetsUtils.getModel(parentRels);
-            parentType = Const.typeMap.get(parentModel);
+            parentType =  getElementType(parentModel);
 
             if ((parentId.equals(pid)) && (firstParentType == null)) {
                 firstParentType = parentType;
@@ -236,7 +253,7 @@ public class MetsUtils {
                             parentdbObjSupp = readFoXML(ctx.getPath() + File.separator + parentId + ".xml");
                         }
                         List<Element> parentRelsSupp = FoxmlUtils.findDatastream(parentdbObjSupp, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
-                        String parentTypeSupp = Const.typeMap.get(MetsUtils.getModel(parentRelsSupp));
+                        String parentTypeSupp =  getElementType(MetsUtils.getModel(parentRelsSupp));
                         if (Const.MONOGRAPH_UNIT.equals(parentTypeSupp) || (Const.ISSUE.equals(parentTypeSupp))) {
                             // do not add an PSP for Supplement under monograph
                             // unit or issue
