@@ -36,6 +36,8 @@ public class OldPrintMapperFactory extends NdkMapperFactory {
             return new OldPrintSupplementMapper();
         } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)) {
             return new OldPrintMonographTitleMapper();
+        } else if (OldPrintPlugin.MODEL_CHAPTER.equals(modelId)) {
+            return new OldPrintChapterMapper();
         } else {
             throw new IllegalStateException("Unsupported model: " + modelId);
         }
