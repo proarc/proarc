@@ -46,7 +46,8 @@
             <xs:attribute type="xs:integer" name="itemtotal" use="required" />
           </xs:complexType>
         </xs:element>
-        <xs:element name="checksum">
+          <!--https://github.com/NLCR/Standard_NDK/issues/60-->
+        <xs:element name="checksum" minOccurs="0">
           <xs:complexType>
             <xs:simpleContent>
               <xs:extension base="xs:string">
