@@ -27,9 +27,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
@@ -48,16 +51,13 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import org.apache.commons.codec.digest.DigestUtils;
 
 /**
- * @see http://www.ndk.cz/standardy-digitalizace/E_born_MONO_NDK_22.pdf
+ * @see {@linktourl http://www.ndk.cz/standardy-digitalizace/E_born_MONO_NDK_22.pdf}
  */
 public class NdkSipExport extends NdkExport {
     private static final Logger LOG = Logger.getLogger(NdkSipExport.class.getName());
 
-    private final RemoteStorage rstorage;
-
     public NdkSipExport(RemoteStorage rstorage, NdkExportOptions options) {
         super(rstorage, options);
-        this.rstorage = rstorage;
     }
 
 
@@ -84,27 +84,11 @@ public class NdkSipExport extends NdkExport {
                 return "test";
             }
 
-            private void  saveInfoFile(Path packageRoot, IMetsElement metsElement) throws MetsExportException, IOException, NoSuchAlgorithmException {
-                // calculate md5 for md5file - it's inserted into info.xml
-                //TODO-MR extract
-                String fileMd5Name = "md5_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".md5";
-                File fileMd5 = new File(packageRoot.getParent().toString() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + fileMd5Name);
-
-                //md5
-                OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(fileMd5));
-                for (FileMD5Info info : metsElement.getMetsContext().getFileList()) {
-                    osw.write(info.getMd5() + " " + info.getFileName() + "\n");
-                }
-
-                InputStream is = new FileInputStream(fileMd5);
-                FileMD5Info md5InfoMd5File = MetsUtils.getDigest(is);
-                is.close();
-                metsElement.getMetsContext().getFileList().add(new FileMD5Info("." + File.separator + fileMd5Name, null, fileMd5.length()));
-
-                MetsUtils.saveInfoFile(packageRoot.getParent().toString(), metsElement.getMetsContext(), md5InfoMd5File.getMd5(), md5InfoMd5File.getFileName(), null);
+            private void saveInfoFile(Path packageRoot, IMetsElement metsElement) throws MetsExportException, IOException, NoSuchAlgorithmException {
+                MetsUtils.saveInfoFile(packageRoot.getParent().toString(), metsElement.getMetsContext(), null, null, null);
             }
         };
- }
+    }
 
     private Path createPackageDir(IMetsElement metsElement) throws MetsExportException {
         if (metsElement.getMetsContext().getPackageID() == null) {
@@ -118,54 +102,41 @@ public class NdkSipExport extends NdkExport {
             Path metadataPath = Files.createDirectory(packageDir.resolve("metadata"));
 
             Optional<DatastreamType> rawDatastream = metsElement.getSourceObject().getDatastream().stream().filter(stream -> "RAW".equalsIgnoreCase(stream.getID())).findFirst();
-            rawDatastream.ifPresent(type -> {
-                        GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
-                        try {
-                            InputStream dsStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                            Path originalPathDoc = originalPath.resolve("oc_" + metsElement.getMetsContext().getPackageID() + ".pdf");
-                            Files.copy(dsStream, originalPathDoc);
-                            packageFiles.add(originalPathDoc);
-                        } catch (FedoraClientException e) {
-                            e.printStackTrace(); //TODO-MR
-                        } catch (IOException e) {
-                            e.printStackTrace(); //TODO-MR
-                        }
-                    }
-            );
+            if (rawDatastream.isPresent()) {
+                GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
+                InputStream dsStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                Path originalPathDoc = originalPath.resolve("oc_" + metsElement.getMetsContext().getPackageID() + ".pdf");
+                Files.copy(dsStream, originalPathDoc);
+                packageFiles.add(originalPathDoc);
+            }
 
             Optional<DatastreamType> modsDatastream = metsElement.getSourceObject().getDatastream().stream().filter(stream -> "BIBLIO_MODS".equalsIgnoreCase(stream.getID())).findFirst();
-            modsDatastream.ifPresent(type -> {
-                        GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "BIBLIO_MODS");
+            if (modsDatastream.isPresent()) {
+
+                GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "BIBLIO_MODS");
+                InputStream dsStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                Path metadataPathDoc = metadataPath.resolve("mods_volume.xml");
+                Files.copy(dsStream, metadataPathDoc);
+                packageFiles.add(metadataPathDoc);
+            }
+
+
+            metsElement.getMetsContext().getFileList().addAll(
+                    packageFiles.stream().map(filePath -> {
+                        String md5 = null;
+                        Long size = null;
                         try {
-                            InputStream dsStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                            Path metadataPathDoc =  metadataPath.resolve("mods.xml");
-                            Files.copy(dsStream, metadataPathDoc);
-                            packageFiles.add(metadataPathDoc);
-                        } catch (FedoraClientException e) {
-                            e.printStackTrace(); //TODO-MR
+                            md5 = DigestUtils.md5Hex(Files.readAllBytes(filePath));
+                            size = Files.size(filePath);
                         } catch (IOException e) {
-                            e.printStackTrace(); //TODO-MR
+                            LOG.warning(filePath + ": md5 is not calculated");
                         }
-                    }
-            );
+                        return new FileMD5Info(filePath.toString(), md5, size);
+                    }).collect(Collectors.toList()));
 
-
-            List<FileMD5Info> fileList  = metsElement.getMetsContext().getFileList();
-            packageFiles.stream().map(filePath -> {
-                String md5 = null;
-                Long size = null;
-                try {
-                    md5 = DigestUtils.md5Hex(Files.readAllBytes(filePath));
-                    size = Files.size(filePath);
-                } catch (IOException e) {
-                    e.printStackTrace(); //TODO-MR
-                }
-                return new FileMD5Info(filePath.toString(), md5, size);
-            }).forEach(fileList::add);
 
             return packageDir;
-
-        } catch (IOException e) {
+        } catch (FedoraClientException | IOException e) {
             throw new MetsExportException(e.getMessage());
         }
     }

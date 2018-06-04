@@ -880,31 +880,33 @@ public class MetsUtils {
      */
     public static void saveInfoFile(String path, MetsContext metsContext, String md5, String fileMd5Name, File metsFile) throws MetsExportException {
         File infoFile = new File(path + File.separator + metsContext.getPackageID() + File.separator + "info_" + metsContext.getPackageID() + ".xml");
-            GregorianCalendar c = new GregorianCalendar();
-            c.setTime(new Date());
+        GregorianCalendar c = new GregorianCalendar();
+        c.setTime(new Date());
         XMLGregorianCalendar date2;
         try {
             date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
         } catch (DatatypeConfigurationException e1) {
             throw new MetsExportException("Error while generating info.xml file", false, e1);
         }
-            Info infoJaxb = new Info();
-            infoJaxb.setCreated(date2);
-            if (metsFile != null) {
-                infoJaxb.setMainmets(metsFile.getName());
-            }
+        Info infoJaxb = new Info();
+        infoJaxb.setCreated(date2);
+        if (metsFile != null) {
+            infoJaxb.setMainmets(metsFile.getName());
+        }
+        if (md5 != null) {
             Checksum checkSum = new Checksum();
             checkSum.setChecksum(md5);
             checkSum.setType("MD5");
-        addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb);
             checkSum.setValue(fileMd5Name);
             infoJaxb.setChecksum(checkSum);
-            Validation validation = new Validation();
-            validation.setValue("W3C-XML");
-            validation.setVersion(Float.valueOf("0.0"));
-            infoJaxb.setValidation(validation);
-            infoJaxb.setCreator(metsContext.getOptions().getCreator());
-            infoJaxb.setPackageid(metsContext.getPackageID());
+        }
+        addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb);
+        Validation validation = new Validation();
+        validation.setValue("W3C-XML");
+        validation.setVersion(Float.valueOf("0.0"));
+        infoJaxb.setValidation(validation);
+        infoJaxb.setCreator(metsContext.getOptions().getCreator());
+        infoJaxb.setPackageid(metsContext.getPackageID());
 
         if (metsContext.getPackageVersion().isPresent()) {
             infoJaxb.setMetadataversion(metsContext.getPackageVersion().get());
@@ -916,33 +918,33 @@ public class MetsUtils {
             }
         }
 
-            Itemlist itemList = new Itemlist();
-            infoJaxb.setItemlist(itemList);
-            itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size() + 1)); // size of list + info file
-            List<FileMD5Info> fileList = metsContext.getFileList();
+        Itemlist itemList = new Itemlist();
+        infoJaxb.setItemlist(itemList);
+        itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size() + 1)); // size of list + info file
+        List<FileMD5Info> fileList = metsContext.getFileList();
         long size = 0;
-            for (FileMD5Info fileName : fileList) {
-                itemList.getItem().add(fileName.getFileName().replaceAll(Matcher.quoteReplacement(File.separator), "/"));
-                size += fileName.getSize();
-            }
-            itemList.getItem().add("./" + infoFile.getName());
-            int infoTotalSize = (int) (size/1024);
+        for (FileMD5Info fileName : fileList) {
+            itemList.getItem().add(fileName.getFileName().replaceAll(Matcher.quoteReplacement(File.separator), "/"));
+            size += fileName.getSize();
+        }
+        itemList.getItem().add("./" + infoFile.getName());
+        int infoTotalSize = (int) (size / 1024);
         infoJaxb.setSize(infoTotalSize);
-            try {
-                JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
-                Marshaller marshaller = jaxbContext.createMarshaller();
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
             // SchemaFactory factory =
             // SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             // factory.setResourceResolver(MetsLSResolver.getInstance());
             // Schema schema = factory.newSchema(new
             // StreamSource(Info.class.getResourceAsStream("info.xsd")));
             // marshaller.setSchema(schema);
-                marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-                marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-                marshaller.marshal(infoJaxb, infoFile);
-            } catch (Exception ex) {
-                throw new MetsExportException("Error while generating info.xml", false, ex);
-            }
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+            marshaller.marshal(infoJaxb, infoFile);
+        } catch (Exception ex) {
+            throw new MetsExportException("Error while generating info.xml", false, ex);
+        }
 
         List<String> validationErrors;
         try {
