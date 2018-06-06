@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -34,8 +35,7 @@ import java.util.Set;
 public class ArchiveObjectSelector {
     
     private final DigitalObjectCrawler crawler;
-    private final List<List<DigitalObjectElement>> selectedObjects
-            = new ArrayList<List<DigitalObjectElement>>();
+    private final List<List<DigitalObjectElement>> selectedObjects = new ArrayList<>();
     private final Set<String> processedPids = new HashSet<String>();
 
     public ArchiveObjectSelector(DigitalObjectCrawler crawler) {
@@ -79,6 +79,7 @@ public class ArchiveObjectSelector {
                 || NdkPlugin.MODEL_CARTOGRAPHIC.equals(modelId)
                 || NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)
                 || NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)
+                || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)
                 ) {
             addSelection(entryPath);
         } else if (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)

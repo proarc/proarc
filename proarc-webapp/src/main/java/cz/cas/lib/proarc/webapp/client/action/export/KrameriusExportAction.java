@@ -73,7 +73,8 @@ public final class KrameriusExportAction extends ExportAction {
             DigitalObject dobj = DigitalObject.createOrNull(record);
             if (dobj != null) {
                 MetaModelRecord model = dobj.getModel();
-                if (model != null && ModsConstants.NS.equals(model.getMetadataFormat())) {
+
+                if (model != null && ModsConstants.NS.equals(model.getMetadataFormat()) && !model.getId().startsWith("model:ndke")) {
                     accept = true;
                     continue;
                 }
