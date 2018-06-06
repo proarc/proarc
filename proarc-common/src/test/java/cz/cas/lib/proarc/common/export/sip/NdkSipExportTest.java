@@ -148,8 +148,10 @@ public class NdkSipExportTest {
                 throw result.getValidationError();
             }
         }
+        resultsList.get(0).getTargetFolder();
 
-        Path sip = folder.getRoot().toPath().resolve(StringUtils.removeStart(pid, "uuid:")).resolve("test");
+        String packageId = "123";
+        Path sip = folder.getRoot().toPath().resolve(StringUtils.removeStart(pid, "uuid:")).resolve(packageId);
         validatePackage(sip);
     }
 
@@ -164,14 +166,14 @@ public class NdkSipExportTest {
         assertTrue("No pdf file", Files.exists(sip.resolve("original/oc_" + identifier + ".pdf")));
         assertTrue("No mods file", Files.exists(sip.resolve("metadata/mods_volume.xml")));
 
-        List<String> errors = MetsUtils.validateAgainstXSD(sip.resolve("info_test.xml").toFile(), Info.class.getResourceAsStream("info.xsd"));
+        List<String> errors = MetsUtils.validateAgainstXSD(sip.resolve("info_" + identifier + ".xml").toFile(), Info.class.getResourceAsStream("info.xsd"));
         assertTrue(errors.toString(), errors.isEmpty());
 
         JAXBContext jContext = JAXBContext.newInstance(Info.class);
         Unmarshaller unmarshallerObj = jContext.createUnmarshaller();
-        Info info = (Info) unmarshallerObj.unmarshal(sip.resolve("info_test.xml").toFile());
+        Info info = (Info) unmarshallerObj.unmarshal(sip.resolve("info_" + identifier + ".xml").toFile());
         assertTrue(info.getMetadataversion() >= 2.2);
-        assertEquals(info.getPackageid(), "test");
+        assertEquals(info.getPackageid(), identifier);
         // assertEquals(info.getMainmets(), ""); //??? https://github.com/NLCR/Standard_NDK/issues/60
 
         assertTrue(!info.getTitleid().isEmpty());

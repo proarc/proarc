@@ -70,7 +70,7 @@ public class NdkSipExport extends NdkExport {
                     IMetsElement rootElement = metsElement.getMetsContext().getRootElement();
 
                     if (Const.MONOGRAPH_UNIT.equalsIgnoreCase(rootElement.getElementType())) {
-                        metsElement.getMetsContext().setPackageID(getPackageID(metsElement));
+                        metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
                         Path packageRoot = createPackageDir(rootElement);
                         saveInfoFile(packageRoot, metsElement);
                     }
@@ -79,10 +79,6 @@ public class NdkSipExport extends NdkExport {
                 }
             }
 
-            //TODO-MR
-            private String getPackageID(IMetsElement metsElement) {
-                return "test";
-            }
 
             private void saveInfoFile(Path packageRoot, IMetsElement metsElement) throws MetsExportException, IOException, NoSuchAlgorithmException {
                 MetsUtils.saveInfoFile(packageRoot.getParent().toString(), metsElement.getMetsContext(), null, null, null);
