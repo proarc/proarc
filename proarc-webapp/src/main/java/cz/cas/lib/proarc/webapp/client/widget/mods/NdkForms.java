@@ -21,7 +21,7 @@ import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
-import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEMonographVolume;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographVolumeForm;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
@@ -78,7 +78,7 @@ public final class NdkForms {
         } else if ("model:ndktrack".equals(modelId)) {
             f = new NdkTrackForm().build();
         } else if ("model:ndkemonographvolume".equals(modelId)) {
-            f = new NdkEMonographVolume().build();
+            f = new NdkEmonographVolumeForm().build();
         } else {
             return null;
         }

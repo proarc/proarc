@@ -92,8 +92,7 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
             type.setValue("text");
             typeOfResources.add(0, type);
         }
-        //  mods/genre="volume"
-        addGenre(mods, "volume");
+        addGenre(mods);
         //  mods/originInfo/place/placeTerm/type="text"
         List<OriginInfoDefinition> originInfos = mods.getOriginInfo();
         for (OriginInfoDefinition oi : originInfos) {
@@ -150,6 +149,11 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
             }
         }
         fillRecordInfo(mods);
+    }
+
+    protected void addGenre(ModsDefinition mods) {
+        //  mods/genre="volume"
+        MapperUtils.addGenre(mods, "volume");
     }
 
     @Override
