@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
-import cz.cas.lib.proarc.common.mods.ndk.edocument.NdkEMonographVolume;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
@@ -97,7 +96,7 @@ public abstract class NdkMapper {
         } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
             mapper = new NdkTrackMapper();
         } else if (NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)) {
-            mapper = new NdkEMonographVolume();
+            mapper = new NdkEMonographVolumeMapper();
         } else {
             throw new IllegalStateException("Unsupported model: " + modelId);
         }

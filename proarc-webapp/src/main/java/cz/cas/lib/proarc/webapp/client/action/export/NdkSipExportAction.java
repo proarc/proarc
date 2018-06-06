@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ExportDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
@@ -96,6 +97,19 @@ public class NdkSipExportAction extends ExportAction {
     }
 
     private boolean acceptRecord(Record[] records) {
-        return true; //TODO-MR implement
+        boolean accept = false;
+        for (Record record : records) {
+            DigitalObjectDataSource.DigitalObject dobj = DigitalObjectDataSource.DigitalObject.createOrNull(record);
+            if (dobj != null) {
+                String modelId = dobj.getModelId();
+                if (modelId != null && modelId.startsWith("model:ndke")) {
+                    accept = true;
+                    continue;
+                }
+            }
+            accept = false;
+            break;
+        }
+        return accept;
     }
 }

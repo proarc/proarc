@@ -28,7 +28,7 @@ import cz.cas.lib.proarc.webapp.shared.form.Form;
  * http://www.ndk.cz/standardy-digitalizace/E_born_MONO_NDK_22.pdf
  * 3.5.2
  */
-public class NdkEMonographVolume {
+public class NdkEmonographVolumeForm {
 
     public Form build() {
         Form f = new Form();
@@ -42,9 +42,12 @@ public class NdkEMonographVolume {
         modsFields.add(originInfo());
         modsFields.add(language());
         modsFields.add(physicalDescription());
+        modsFields.add(abstracts());
+        modsFields.add(note());
+        // XXX unsupported yet
+        // relatedItem
         modsFields.add(subject());
         modsFields.add(identifier());
-        modsFields.add(part());
         modsFields.add(recordInfo());
 
         return f;
@@ -137,7 +140,7 @@ public class NdkEMonographVolume {
                 // namePart, namePartDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("namePart").setTitle("Name Parts - M").setMaxOccurrences(5)
                         // @type(date, family, given, termsOfAddress)
-                        .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
+                        .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
                                 .setHint("<dl>"
                                         + "<dt>date</dt><dd>RA - datum</dd>"
                                         + "<dt>family</dt><dd>MA -příjmení </dd>"
@@ -353,7 +356,7 @@ public class NdkEMonographVolume {
         return new FieldBuilder("language").setTitle("Languages - M").setMaxOccurrences(10)
                 .setHint("Údaje o jazyce dokumentu; v případě vícenásobného výskytu nutno element &lt;language> opakovat")
                 // @objectPart, @displayLabel, @altRepGroup, @usage
-                .addField(new FieldBuilder("objectPart").setTitle("Object Part - MA").setMaxOccurrences(1).setType(Field.COMBO).setWidth("300")
+                .addField(new FieldBuilder("objectPart").setTitle("Object Part - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("300")
                         .setHint("Možnost vyjádřit jazyk konkrétní části svazku." +
                                 "<p>041 $b „summary“ " +
                                 "<p>041 $f „table of contents“ " +
@@ -396,7 +399,7 @@ public class NdkEMonographVolume {
     private Field physicalDescription() {
         // physicalDescription, physicalDescriptionDefinition
         return new FieldBuilder("physicalDescription").setTitle("Physical Description - MA").setMaxOccurrences(10)
-                .setHint("Údaje o fyzickém popisu zdroje")
+                .setHint("Obsahuje údaje o fyzickém popisu zdroje.")
                 // form, formDefinition extends stringPlusLanguagePlusAuthority
                 .addField(new FieldBuilder("form").setTitle("Form - MA").setMaxOccurrences(1)
                         // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
@@ -409,38 +412,44 @@ public class NdkEMonographVolume {
                                 .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)
                                 .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)
                                 .createField()) // authority
-                        .addField(new FieldBuilder("value").setTitle("Form - MA").setMaxOccurrences(1)
-                                .setType(Field.COMBO).setHint("Údaje o podobě dokumentu, př. elektronický zdroj, electronic atd."
+                        .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
+                                .setType(Field.COMBO).setRequired(true).setHint("form")
+                                .setHint("Údaje o fyzické podobě dokumentu, např. electronic apod."
                                         + "<p>Odpovídá hodnotě v poli 008/23")
+                                .addMapValue("braille", "braille")
                                 .addMapValue("electronic", "electronic")
+                                .addMapValue("large print", "large print")
+                                .addMapValue("microfilm", "microfilm")
+                                .addMapValue("microfiche", "microfiche")
+                                .addMapValue("print", "print")
+                                .addMapValue("jiný", "jiný")
+                                .addMapValue("audio", "rdamedia - audio")
+                                .addMapValue("počítač", "rdamedia - počítač")
+                                .addMapValue("mikroforma", "rdamedia - mikroforma")
+                                .addMapValue("mikroskop", "rdamedia - mikroskop")
+                                .addMapValue("projekce", "rdamedia - projekce")
+                                .addMapValue("stereograf", "rdamedia - stereograf")
+                                .addMapValue("bez media", "rdamedia - bez media")
+                                .addMapValue("video", "rdamedia - video")
+                                .addMapValue("svazek", "rdacarrier - svazek")
+                                .addMapValue("online zdroj", "rdacarrier - online zdroj")
+                                .addMapValue("audiodisk", "rdacarrier - audiodisk")
+                                .addMapValue("počítačový disk", "rdacarrier - počítačový disk")
                                 .createField()) // value
-                        .addField(new FieldBuilder("value").setTitle("Type - MA").setMaxOccurrences(1)
-                                .setType(Field.SELECT)
-                                .addMapValue("media", "media")
-                                .addMapValue("carrier", "carrier")
-                                .createField()) // type
                         .createField()) // form
-                // digitalOrigin
-
-                // abstract, abstractDefinition extends stringPlusLanguage
-                        .addField(new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
-                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
-                // altFormatAttributeGroup: @altFormat, @contentType
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
-                                .setHint("Shrnutí obsahu vnitřní části.")
-                        .createField()) // value
-                .createField()) // abstract
-
-                // note, physicalDescriptionNote extends stringPlusLanguage
-                .addField(new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(5)
+                // reformattingQuality
+                // internetMediaType
+                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setHint("Indikátor zdroje digitálního dokumentu").createField())
+                // extent, stringPlusLanguagePlusSupplied
+                .addField(new FieldBuilder("extent").setTitle("Extent - RA").setMaxOccurrences(5)
+                        // stringPlusLanguagePlusSupplied: @supplied
                         // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        // @displayLabel, @type, @typeURI, @xlinkSimpleLink, @ID
-                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
-                                .setHint("Poznámka o fyzickém stavu dokumentu."
-                                        + "<p>Pro každou poznámku je nutno vytvořit nový &lt;note> element.")
+                        .addField(new FieldBuilder("value").setTitle("Extent - RA").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Údaje o rozsahu (stran, svazků)"
+                                        + "<p>Odpovídá hodnotě v poli 300, podpole „a“, „b“ a „c“")
                                 .createField()) // value
-                        .createField()) // note
+                        .createField()) // extent
+                // note, physicalDescriptionNote extends stringPlusLanguage
                 .createField(); // physicalDescription
     }
 
@@ -495,7 +504,7 @@ public class NdkEMonographVolume {
                         .addField(new FieldBuilder("namePart").setMaxOccurrences(1)
                                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                                 // @type, enum: date, family, given, termsOfAddress
-                                .addField(new FieldBuilder("value").setTitle("Name Part - M").setMaxOccurrences(1).setType(Field.TEXT)
+                                .addField(new FieldBuilder("value").setTitle("Name Part - R").setMaxOccurrences(1).setType(Field.TEXT)
                                         .setHint("Jméno použité jako věcné záhlaví."
                                                 + "<p>Použít kontrolovaný slovník ‐ např. z báze autorit AUT NK ČR (jméno osobní)"
                                                 + " nebo obsah pole 600 záznamu MARC21."
@@ -564,35 +573,6 @@ public class NdkEMonographVolume {
                 .createField(); // identifier
     }
 
-
-    private Field part() {
-        // part, type="partDefinition"
-        return new FieldBuilder("part").setTitle("Part - RA").setMaxOccurrences(1)
-                .setHint("Popis rozsahu.")
-                // @ID, @type, @order, @displayLabel, @altRepGroup
-                // @languageAttributeGroup(lang, XmlLang, script, transliteration)
-                // detail, type="detailDefinition"
-                // extent, type="extentDefinition"
-                .addField(new FieldBuilder("extent").setTitle("Extent - MA").setMaxOccurrences(10)
-                        // start, type="stringPlusLanguage"
-                        .addField(new FieldBuilder("start").setMaxOccurrences(1)
-                                .addField(new FieldBuilder("value").setTitle("Start - MA").setMaxOccurrences(1).setType(Field.TEXT)
-                                        .setHint("První stránka, na které kapitola začíná.")
-                                        .createField()) // value
-                                .createField()) // start
-                        // end, type="stringPlusLanguage"
-                        .addField(new FieldBuilder("end").setMaxOccurrences(1)
-                                .addField(new FieldBuilder("value").setTitle("End - MA").setMaxOccurrences(1).setType(Field.TEXT)
-                                        .setHint("Poslední stránka, na které kapitola končí.")
-                                        .createField()) // value
-                                .createField()) // end
-                        // total, type="xs:positiveInteger"
-                        // list, type="stringPlusLanguage"
-                        .createField()) // extent
-                // date
-                // text
-                .createField(); // part
-    }
 
     private Field recordInfo() {
         // recordInfo, recordInfoDefinition
@@ -673,6 +653,31 @@ public class NdkEMonographVolume {
                         .createField()) // recordChangeDate
                 .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField()) //descriptionStandard
                 .createField(); // recordInfo
+    }
+
+    private Field abstracts() {
+        // abstract, abstractDefinition extends stringPlusLanguage
+        return new FieldBuilder("abstract").setTitle("Abstract - R").setMaxOccurrences(10)
+                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
+                // altFormatAttributeGroup: @altFormat, @contentType
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
+                        .setHint("Shrnutí obsahu jako celku. Odpovídá poli 520 MARC21")
+                        .createField()) // value
+                .createField(); // abstract
+    }
+
+    private Field note() {
+        // note, noteDefinition extends stringPlusLanguage
+        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
+                        .setHint("Obecná poznámka k titulu jako celku."
+                                + "<p>Odpovídá hodnotám v poli 245, podpole „c“ (statement of responsibility)"
+                                + " a v polích 5XX (poznámky) katalogizačního záznamu")
+                        .createField()) // value
+                .createField(); // note
     }
 
 
