@@ -34,7 +34,6 @@ import org.apache.commons.lang.Validate;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Exports digital object and transforms its data streams to NDK format.
@@ -44,43 +43,12 @@ import java.util.logging.Logger;
  */
 public class NdkExport {
 
-    private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
     private final RemoteStorage rstorage;
     private final NdkExportOptions options;
 
     public NdkExport(RemoteStorage rstorage, NdkExportOptions options) {
         this.rstorage = rstorage;
         this.options = options;
-    }
-
-//    /**
-//     * Runs export to validate inputs. It cleans outputs on exit.
-//     * @param exportsFolder folder with user exports
-//     * @param pid PID to validate
-//     * @param hierarchy export PID ant its children
-//     * @return validation report
-//     * @throws ExportException unexpected failure
-//     */
-//    public List<MetsExportExceptionElement> validate(File exportsFolder, String pid,
-//            boolean hierarchy) throws ExportException {
-//
-//        Result export = export(exportsFolder, pid, "ValPKGID", hierarchy, false, null);
-//        if (export.getValidationError() != null) {
-//            return export.getValidationError().getExceptions();
-//        } else {
-//            return null;
-//        }
-//    }
-
-    /**
-     * Prepares export package of a single PID without children for later download.
-     * @param exportsFolder folder with user exports
-     * @param pid PID to export
-     * @return the result with token or validation errors
-     * @throws ExportException unexpected failure
-     */
-    public Result exportDownload(File exportsFolder, String pid) throws ExportException {
-        return export(exportsFolder, pid, null, true, false, null);
     }
 
     /**
@@ -107,13 +75,13 @@ public class NdkExport {
 
         ExportResultLog reslog = new ExportResultLog();
         File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)));
-        ArrayList<Result> results = new ArrayList<>(pids.size());
+        List<Result> results = new ArrayList<>(pids.size());
         for (String pid : pids) {
             ExportResultLog.ExportResult logItem = new ExportResultLog.ExportResult();
             logItem.setInputPid(pid);
             reslog.getExports().add(logItem);
             try {
-                Result r = export(target, pid, null, hierarchy, keepResult, log);
+                Result r = export(target, pid, hierarchy, keepResult, log);
                 results.add(r);
                 logResult(r, logItem);
             } catch (ExportException ex) {
@@ -129,48 +97,34 @@ public class NdkExport {
         return results;
     }
 
-    protected Result export(File target, String pid, String packageId,
-            boolean hierarchy, boolean keepResult, String log
-            ) throws ExportException {
+    private Result export(File target, String pid,
+                          boolean hierarchy, boolean keepResult, String log) throws ExportException {
 
         Result result = new Result();
+
+        if (keepResult) {
+            result.setTargetFolder(target);
+        }
+        RemoteObject fo = rstorage.find(pid);
+        MetsContext dc = buildContext(fo, null, target);
         try {
-            if (keepResult) {
-                result.setTargetFolder(target);
+            List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
+            for (String pspPid : PSPs) {
+                dc.resetContext();
+                DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
+                MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
+                mElm.accept(createMetsVisitor());
+                // XXX use relative path to users folder?
             }
-            RemoteObject fo = rstorage.find(pid);
-            MetsContext dc = buildContext(fo, packageId, target);
-            try {
-                List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
-                for (String pspPid : PSPs) {
-                    dc.resetContext();
-                    DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
-                    MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
-                    mElm.accept(createMetsVisitor());
-                    // XXX use relative path to users folder?
-                }
-                storeExportResult(dc, target.toURI().toASCIIString(), log);
-                return result;
-            } catch (MetsExportException ex) {
-                keepResult = false;
-                // do not clean folder as i it is possilbe to write status.log
-                if (ex.getExceptions().isEmpty()) {
-                    throw new ExportException(pid, ex);
-                }
-                return result.setValidationError(ex);
-            } catch (Throwable ex) {
-                keepResult = false;
-                // do not clean folder as i it is possilbe to write status.log
+            storeExportResult(dc, target.toURI().toASCIIString(), log);
+            return result;
+        } catch (MetsExportException ex) {
+            if (ex.getExceptions().isEmpty()) {
                 throw new ExportException(pid, ex);
             }
-        } finally {
-            if (!keepResult) {
-//                // run asynchronously not to block client request?
-//                boolean deleted = FileUtils.deleteQuietly(target);
-//                if (!deleted) {
-//                    LOG.warning("Cannot delete: " + target.toString());
-//                }
-            }
+            return result.setValidationError(ex);
+        } catch (Throwable ex) {
+            throw new ExportException(pid, ex);
         }
     }
 
@@ -193,12 +147,12 @@ public class NdkExport {
     /**
      * Stores logs to the digital object hierarchy.
      *
-     * @param mElm
-     *            exported elements
+     * @param metsContext
+     *            context with exported elements
      * @throws MetsExportException
      *             write failure
      */
-    void storeExportResult(MetsContext metsContext, String target, String log) throws MetsExportException {
+    private void storeExportResult(MetsContext metsContext, String target, String log) throws MetsExportException {
         for (String pid : metsContext.getPidElements().keySet()) {
             try {
                 ExportUtils.storeObjectExportResult(pid, target, log);
@@ -208,7 +162,7 @@ public class NdkExport {
         }
     }
 
-    protected void logResult(Result r, ExportResultLog.ExportResult logItem) {
+    private void logResult(Result r, ExportResultLog.ExportResult logItem) {
         if (r.getValidationError() != null) {
             logItem.setStatus(ResultStatus.FAILED);
             List<MetsExportExceptionElement> exceptions = r.getValidationError().getExceptions();
@@ -251,17 +205,9 @@ public class NdkExport {
             return targetFolder;
         }
 
-        public Result setTargetFolder(File targetFolder) {
+        Result setTargetFolder(File targetFolder) {
             this.targetFolder = targetFolder;
             return this;
-        }
-
-        /**
-         * Gets the token for future requests.
-         * @return the token
-         */
-        public String getDownloadToken() {
-            return targetFolder == null ? null: targetFolder.getName();
         }
 
     }

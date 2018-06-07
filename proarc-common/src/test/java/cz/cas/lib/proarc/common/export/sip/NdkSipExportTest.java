@@ -148,7 +148,6 @@ public class NdkSipExportTest {
                 throw result.getValidationError();
             }
         }
-        resultsList.get(0).getTargetFolder();
 
         String packageId = "123";
         Path sip = folder.getRoot().toPath().resolve(StringUtils.removeStart(pid, "uuid:")).resolve(packageId);
@@ -172,7 +171,7 @@ public class NdkSipExportTest {
         JAXBContext jContext = JAXBContext.newInstance(Info.class);
         Unmarshaller unmarshallerObj = jContext.createUnmarshaller();
         Info info = (Info) unmarshallerObj.unmarshal(sip.resolve("info_" + identifier + ".xml").toFile());
-        assertTrue(info.getMetadataversion() >= 2.2);
+        assertTrue(info.getMetadataversion() >= 2.2f);
         assertEquals(info.getPackageid(), identifier);
         // assertEquals(info.getMainmets(), ""); //??? https://github.com/NLCR/Standard_NDK/issues/60
 
