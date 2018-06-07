@@ -16,14 +16,6 @@
 
 package cz.cas.lib.proarc.common.object.ndk;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.JsonValueMap;
@@ -35,24 +27,29 @@ import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
 import cz.cas.lib.proarc.common.object.HasDisseminationHandler;
 import cz.cas.lib.proarc.common.object.HasMetadataHandler;
-import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalDisseminationHandler;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
-import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 
 import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
 
 
+@SuppressWarnings("MethodParameterOfConcreteClass")
 public class NdkEbornPlugin implements DigitalObjectPlugin {
 
-    public static final String ID = "ndkEborn";
+    private static final String ID = "ndkEborn";
 
     public static final String MODEL_EMONOGRAPHVOLUME = "model:ndkemonographvolume";
 
-    public final static Map<String, String> typeMap = Collections.singletonMap(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "MONOGRAPH_UNIT");
+    public static final Map<String, String> TYPE_MAP = Collections.singletonMap(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "MONOGRAPH_UNIT");
 
     @Override
     public String getId() {
@@ -64,7 +61,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
         List<MetaModel> models = new ArrayList<>();
         models.add(new MetaModel(
                 MODEL_EMONOGRAPHVOLUME, true, null,
-                Arrays.asList(new ElementType("NDK Svazek eBorn monografie", "cs")),
+                Collections.singletonList(new ElementType("NDK Svazek eBorn monografie", "cs")),
                 ModsConstants.NS,
                 MODEL_EMONOGRAPHVOLUME,
                 this,
@@ -81,6 +78,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
         if (!type.equals(HasMetadataHandler.class)) {
             return null;
         } else if (type.equals(HasDisseminationHandler.class)) {
+            //noinspection unchecked
             return (T) new HasDisseminationHandler() {
 
                 @Override
@@ -91,18 +89,13 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
             };
         }
 
-        return (T) new HasMetadataHandler() {
-
-            @Override
-            public MetadataHandler createMetadataHandler(DigitalObjectHandler handler) {
-                return new NdkMetadataHandler(handler);
-            }
-        };
+        //noinspection unchecked
+        return (T) (HasMetadataHandler) NdkMetadataHandler::new;
     }
 
     @Override
     public List<ValueMap> getValueMaps(ValueMap.Context context) {
-        final ArrayList<ValueMap> maps = new ArrayList<>();
+        final List<ValueMap> maps = new ArrayList<>();
         maps.add(JsonValueMap.fromBundle(BundleName.MODS_ROLES, context.getLocale()));
         return maps;
     }

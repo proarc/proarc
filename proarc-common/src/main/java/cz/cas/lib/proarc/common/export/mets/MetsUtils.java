@@ -23,12 +23,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -40,7 +38,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -53,9 +50,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -67,11 +62,9 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -83,17 +76,13 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
-import cz.cas.lib.proarc.mets.DivType;
-import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
-import cz.cas.lib.proarc.mets.StructMapType;
 import cz.cas.lib.proarc.mets.info.Info;
 import cz.cas.lib.proarc.mets.info.Info.Checksum;
 import cz.cas.lib.proarc.mets.info.Info.Itemlist;
@@ -108,8 +97,8 @@ import cz.cas.lib.proarc.mets.info.Info.Validation;
  */
 public class MetsUtils {
 
-    private static Logger LOG = Logger.getLogger(MetsUtils.class.getName());
-    private static Properties mimeToExtension = new Properties();
+    private static final Logger LOG = Logger.getLogger(MetsUtils.class.getName());
+    private static final Properties mimeToExtension = new Properties();
 
     /**
      * Retuns an XMLGregorianCalendar representation of current date
@@ -188,8 +177,8 @@ public class MetsUtils {
          List<NdkEbornPlugin> plugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
                  .filter(plugin -> plugin instanceof NdkEbornPlugin).map(plugin -> ((NdkEbornPlugin) plugin)).collect(Collectors.toList());
          for (NdkEbornPlugin plugin : plugins) {
-            if (plugin.typeMap.containsKey(model)) {
-                return plugin.typeMap.get(model);
+            if (plugin.TYPE_MAP.containsKey(model)) {
+                return plugin.TYPE_MAP.get(model);
             }
          }
      }
@@ -276,49 +265,6 @@ public class MetsUtils {
 
     /**
      *
-     * Converts byte array to hex string
-     *
-     * @param byteArray
-     * @return
-     */
-    public static String byteToHex(byte[] byteArray) {
-        StringBuffer result = new StringBuffer();
-        for (byte b : byteArray) {
-            result.append(String.format("%02X", b));
-        }
-        return result.toString();
-    }
-
-    /**
-     *
-     * Returns a file name (content location) from the datastream
-     *
-     * @param elements
-     * @return
-     */
-    public static String getFileNameFromStream(List<Element> elements) throws MetsExportException {
-        if (elements == null) {
-            return null;
-        }
-        return MetsUtils.xPathEvaluateString(elements, "*[local-name()='datastreamVersion']/*[local-name()='contentLocation'/@REF");
-    }
-
-    /**
-     *
-     * Returns a mime type attribute from datastream
-     *
-     * @param elements
-     * @return
-     */
-    public static String getMimeFromStream(List<Element> elements) throws MetsExportException {
-        if (elements == null) {
-            return null;
-        }
-        return MetsUtils.xPathEvaluateString(elements, "*[local-name()='datastreamVersion']/@MIMETYPE");
-    }
-
-    /**
-     *
      * Returns a property value from a list of properties
      *
      * @param name
@@ -371,28 +317,6 @@ public class MetsUtils {
                 return result;
             } else {
                 return elements;
-            }
-        }
-        return null;
-    }
-
-    /**
-     *
-     * Returns a datastream of given type
-     *
-     * @param datastreams
-     * @param type
-     * @return
-     */
-    public static List<Element> getDataStreams(List<DatastreamType> datastreams, String type) {
-        for (DatastreamType streamType : datastreams) {
-            if (streamType.getID().startsWith(type)) {
-                List<DatastreamVersionType> dsVersions = streamType.getDatastreamVersion();
-                for (DatastreamVersionType dsVersion : dsVersions) {
-                    XmlContentType dcContent = dsVersion.getXmlContent();
-                    List<Element> elements = dcContent.getAny();
-                    return elements;
-                }
             }
         }
         return null;
@@ -532,31 +456,6 @@ public class MetsUtils {
 
     /**
      *
-     * Returns a dataStream from Fedora for given pid
-     *
-     * @param fedoraClient
-     * @param pid
-     * @param streamName
-     * @return
-     * @throws MetsExportException
-     */
-    public static List<Element> getDataStreams(FedoraClient fedoraClient, String pid, String streamName) throws MetsExportException {
-        try {
-            FedoraResponse response = FedoraClient.getDatastreamDissemination(pid, streamName).execute(fedoraClient);
-            InputStream is = response.getEntityInputStream();
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(is);
-            List<Element> elements = new ArrayList<Element>();
-            elements.add(doc.getDocumentElement());
-            return elements;
-        } catch (Exception ex) {
-            throw new MetsExportException("Error while getting stream " + streamName + " from " + pid, false, ex);
-        }
-    }
-
-    /**
-     *
      * Copies inputStream to outputStream
      *
      * @param is
@@ -598,26 +497,6 @@ public class MetsUtils {
         } catch (Exception ex) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting stream " + streamName + " from " + metsElement.getElementType(), false, ex);
         }
-    }
-
-    /**
-     *
-     * Prepares a logical/physical structure divs in mets
-     *
-     * @param mets
-     * @param label
-     * @param type
-     * @return
-     */
-    public static DivType createStructureDiv(Mets mets, String label, String type) {
-        StructMapType structType = new StructMapType();
-        mets.getStructMap().add(structType);
-        structType.setLabel2(label);
-        structType.setTYPE(type);
-        DivType divType = new DivType();
-        structType.setDiv(divType);
-        divType.setLabel(mets.getLabel1());
-        return divType;
     }
 
     /**
@@ -705,30 +584,6 @@ public class MetsUtils {
             throw new MetsExportException("Unable to get " + uuid + " from Fedora", false, e);
         }
         return foXMLObject;
-    }
-
-    /**
-     *
-     * Transforms the xml document to a string
-     *
-     * @param doc
-     * @return
-     */
-    public static String documentToString(Document doc) throws MetsExportException {
-        try {
-            StringWriter sw = new StringWriter();
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-
-            transformer.transform(new DOMSource(doc), new StreamResult(sw));
-            return sw.toString();
-        } catch (TransformerException ex) {
-            throw new MetsExportException("Error converting Document to String", false, ex);
-        }
     }
 
     /**
@@ -846,7 +701,7 @@ public class MetsUtils {
         return output;
     }
 
-    public static void addModsIdentifiersRecursive(MetsElement element, Info infoJaxb) throws MetsExportException {
+    private static void addModsIdentifiersRecursive(MetsElement element, Info infoJaxb) throws MetsExportException {
         Map<String, String> identifiers = element.getModsIdentifiers();
         for (String type : identifiers.keySet()) {
             if (Const.allowedIdentifiers.contains(type)) {
@@ -903,7 +758,7 @@ public class MetsUtils {
         addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb);
         Validation validation = new Validation();
         validation.setValue("W3C-XML");
-        validation.setVersion(Float.valueOf("0.0"));
+        validation.setVersion(0.0f);
         infoJaxb.setValidation(validation);
         infoJaxb.setCreator(metsContext.getOptions().getCreator());
         infoJaxb.setPackageid(metsContext.getPackageID());
@@ -912,9 +767,9 @@ public class MetsUtils {
             infoJaxb.setMetadataversion(metsContext.getPackageVersion().get());
         } else {
             if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
-                infoJaxb.setMetadataversion((float) 1.6);
+                infoJaxb.setMetadataversion(1.6f);
             } else {
-                infoJaxb.setMetadataversion((float) 1.2);
+                infoJaxb.setMetadataversion(1.2f);
             }
         }
 
@@ -988,20 +843,6 @@ public class MetsUtils {
             // URNNBN is mandatory
             throw new MetsExportException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
         }
-    }
-
-    /**
-     *
-     * Returns an ObjectID from the rels-ext stream
-     *
-     * @param relExtElements
-     * @return
-     */
-    public static String getObjectId(List<Element> relExtElements) throws MetsExportException {
-        String XPATH = "*[local-name()='RDF']/*[local-name()='Description']";
-        Node descNode = xPathEvaluateNode(relExtElements, XPATH);
-        String ID = descNode.getAttributes().getNamedItem("rdf:about").getNodeValue();
-        return ID.substring(ID.indexOf("/") + 1);
     }
 
     /**
@@ -1119,24 +960,6 @@ public class MetsUtils {
         String result = fileSystemParents.get(uuid);
         LOG.log(Level.FINE, "Parent from FS for :" + uuid + " found:" + result);
         return result;
-    }
-
-    /**
-     *
-     * Checks if a monograph is MultiUnit
-     *
-     * @param monograph
-     * @return
-     */
-    public static boolean isMultiUnitMonograph(MetsElement monograph) {
-        if (Const.VOLUME.equals(monograph.getElementType())) {
-            for (MetsElement element : monograph.getChildren()) {
-                if (Const.MONOGRAPH_UNIT.equalsIgnoreCase(element.getElementType())) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**
