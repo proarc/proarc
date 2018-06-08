@@ -43,6 +43,7 @@ import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
@@ -160,15 +161,14 @@ public final class Kramerius4Export {
         HashSet<String> pidsToExport = new HashSet<>();
         Queue<String> queueToExport = new LinkedList<String>();
         queueToExport.addAll(selectedPids);
-        if (selectedPidIsHighestNode(queueToExport, pidsToExport, output, hierarchy, selectedPids, models)) {
+        if (isMonographTitle(queueToExport, pidsToExport, output, hierarchy, models)) {
             return true;
-        } else if (selectedPidHasParent(queueToExport, pidsToExport, output, hierarchy, selectedPids, models)) {
-            return true;
-        } else return false;
+        }
+        return selectedPidHasParent(pidsToExport, output, selectedPids, models);
     }
 
 
-    private boolean selectedPidIsHighestNode(Queue<String> queueToExport, HashSet<String> pidsToExport, File output, boolean hierarchy, HashSet<String> selectedPids, String[] models) {
+    private boolean isMonographTitle(Queue<String> queueToExport, HashSet<String> pidsToExport, File output, boolean hierarchy, String[] models) {
         for (String pid = queueToExport.poll(); pid != null; pid = queueToExport.poll()) {
             try {
                 if (pidsToExport.contains(pid)) {
@@ -212,11 +212,10 @@ public final class Kramerius4Export {
        return false;
     }
 
-    private boolean selectedPidHasParent(Queue<String> queueToExport, HashSet<String> pidsToExport, File output, boolean hierarchy, HashSet<String> selectedPids, String[] models) {
+    private boolean selectedPidHasParent(HashSet<String> pidsToExport, File output,HashSet<String> selectedPids, String[] models) {
         Map<String, Set<String>> buildPidTree = buildPidTree(selectedPids, pidsToExport);
         for (Entry<String, Set<String>> node : buildPidTree.entrySet()) {
             String pid = node.getKey();
-            Set<String> children = node.getValue();
             try {
                 pidsToExport.add(pid);
                 RemoteObject robject = rstorage.find(pid);
@@ -224,9 +223,6 @@ public final class Kramerius4Export {
                 DigitalObject dobj = FedoraClient.export(pid).context("archive")
                         .format("info:fedora/fedora-system:FOXML-1.1")
                         .execute(client).getEntity(DigitalObject.class);
-                File foxml = ExportUtils.pidAsXmlFile(output, pid);
-                LocalObject local = lstorage.create(foxml, dobj);
-                RelationEditor editor = new RelationEditor(local);
                 for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
                     DatastreamType datastream = it.next();
                     if (options.getExcludeDatastreams().contains(datastream.getID())) {
@@ -473,7 +469,7 @@ public final class Kramerius4Export {
             String type = typeElm.getTextContent();
             String k4ModelId;
             if (hasParent && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(type) || OldPrintPlugin.MODEL_VOLUME.equals(type))) {
-                k4ModelId = "model:monographunit";
+                k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
             } else {
                 k4ModelId = options.getModelMap().get(type);
             }
@@ -599,7 +595,7 @@ public final class Kramerius4Export {
             String modelId = editor.getModel();
             String k4ModelId;
             if (hasParent && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) || OldPrintPlugin.MODEL_VOLUME.equals(modelId))) {
-                k4ModelId = "model:monographunit";
+                k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
             } else {
                 k4ModelId = options.getModelMap().get(modelId);
             }
