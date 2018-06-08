@@ -43,6 +43,9 @@ import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.K4Plugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import java.io.File;
 import java.io.IOException;
@@ -132,10 +135,12 @@ public final class Kramerius4Export {
         HashSet<String> selectedPids = new HashSet<String>(Arrays.asList(pids));
         toExport.addAll(selectedPids);
         try {
+            String[] parentModels = {NdkPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHTITLE};
+            boolean hasParent = hasParent(target, hierarchy, selectedPids, parentModels);
             for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
-                exportPid(target, hierarchy, pid);
+                exportPid(target, hierarchy, pid, hasParent);
             }
-            exportParents(target, selectedPids);
+            exportParents(target, selectedPids, hasParent);
             storeExportResult(target, log);
         } catch (RuntimeException ex) {
             result.setStatus(ResultStatus.FAILED);
@@ -152,7 +157,114 @@ public final class Kramerius4Export {
         return target;
     }
 
-    void exportPid(File output, boolean hierarchy, String pid) {
+    private boolean hasParent(File output, boolean hierarchy, HashSet<String> selectedPids, String[] models) {
+        HashSet<String> pidsToExport = new HashSet<>();
+        Queue<String> queueToExport = new LinkedList<String>();
+        queueToExport.addAll(selectedPids);
+        if (isMonographTitle(queueToExport, pidsToExport, output, hierarchy, models)) {
+            return true;
+        }
+        return selectedPidHasParent(pidsToExport, output, selectedPids, models);
+    }
+
+
+    private boolean isMonographTitle(Queue<String> queueToExport, HashSet<String> pidsToExport, File output, boolean hierarchy, String[] models) {
+        for (String pid = queueToExport.poll(); pid != null; pid = queueToExport.poll()) {
+            try {
+                if (pidsToExport.contains(pid)) {
+                    return false;
+                }
+                pidsToExport.add(pid);
+                RemoteObject robject = rstorage.find(pid);
+                FedoraClient client = robject.getClient();
+                DigitalObject dobj = FedoraClient.export(pid).context("archive")
+                        .format("info:fedora/fedora-system:FOXML-1.1")
+                        .execute(client).getEntity(DigitalObject.class);
+                File foxml = ExportUtils.pidAsXmlFile(output, pid);
+                LocalObject local = lstorage.create(foxml, dobj);
+                RelationEditor editor = new RelationEditor(local);
+                if (hierarchy) {
+                    List<String> children = editor.getMembers();
+                    queueToExport.addAll(children);
+                }
+                DatastreamType fullDs = FoxmlUtils.findDatastream(dobj, BinaryEditor.FULL_ID);
+                DatastreamType rawDs = fullDs != null ? null : FoxmlUtils.findDatastream(dobj, BinaryEditor.RAW_ID);
+                for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext(); ) {
+                    DatastreamType datastream = it.next();
+                    if (options.getExcludeDatastreams().contains(datastream.getID())) {
+                        // use RAW if FULL is not available
+                        if (rawDs != datastream) {
+                            it.remove();
+                            continue;
+                        }
+                    }
+                    if (hasParentFromDublincore(datastream, models)) {
+                        return true;
+                    }
+                }
+            } catch (DigitalObjectException ex) {
+                throw new IllegalStateException(pid, ex);
+            } catch (FedoraClientException ex) {
+                // replace with ExportException
+                throw new IllegalStateException(pid, ex);
+            }
+        }
+       return false;
+    }
+
+    private boolean selectedPidHasParent(HashSet<String> pidsToExport, File output,HashSet<String> selectedPids, String[] models) {
+        Map<String, Set<String>> buildPidTree = buildPidTree(selectedPids, pidsToExport);
+        for (Entry<String, Set<String>> node : buildPidTree.entrySet()) {
+            String pid = node.getKey();
+            try {
+                pidsToExport.add(pid);
+                RemoteObject robject = rstorage.find(pid);
+                FedoraClient client = robject.getClient();
+                DigitalObject dobj = FedoraClient.export(pid).context("archive")
+                        .format("info:fedora/fedora-system:FOXML-1.1")
+                        .execute(client).getEntity(DigitalObject.class);
+                for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
+                    DatastreamType datastream = it.next();
+                    if (options.getExcludeDatastreams().contains(datastream.getID())) {
+                        it.remove();
+                        continue;
+                    }
+                    if (hasParentFromDublincore(datastream, models)) {
+                        return true;
+                    }
+                }
+            } catch (FedoraClientException ex) {
+                // replace with ExportException
+                throw new IllegalStateException(pid, ex);
+            }
+        }
+        return false;
+    }
+
+
+
+    private boolean hasParentFromDublincore(DatastreamType datastream, String[] models) {
+        if (DcStreamEditor.DATASTREAM_ID.equals(datastream.getID())) {
+            DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
+            XmlContentType xmlContent = version.getXmlContent();
+            Element dcElm = xmlContent.getAny().get(0);
+            FoxmlUtils.fixFoxmlDc(dcElm);
+            NodeList typeNodes = dcElm.getElementsByTagNameNS(DcConstants.NS_PURL, DcConstants.TYPE);
+            for (int i = 0; i < typeNodes.getLength(); i++) {
+                Element typeElm = (Element) typeNodes.item(i);
+                String type = typeElm.getTextContent();
+                for (int j = 0; j < models.length; j++) {
+                    String model = models[j];
+                    if (!model.isEmpty() && model.equals(type)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    void exportPid(File output, boolean hierarchy, String pid, boolean hasParent) {
         try {
             if (exportedPids.contains(pid)) {
                 return ;
@@ -170,7 +282,7 @@ public final class Kramerius4Export {
                 List<String> children = editor.getMembers();
                 toExport.addAll(children);
             }
-            exportDatastreams(local, editor);
+            exportDatastreams(local, editor, hasParent);
             local.flush();
         } catch (DigitalObjectException ex) {
             throw new IllegalStateException(pid, ex);
@@ -189,16 +301,16 @@ public final class Kramerius4Export {
      * @param output output folder
      * @param pids PIDs selected for export
      */
-    private void exportParents(File output, Collection<String> pids) {
+    private void exportParents(File output, Collection<String> pids, boolean hasParent) {
         Map<String, Set<String>> buildPidTree = buildPidTree(pids, exportedPids);
         for (Entry<String, Set<String>> node : buildPidTree.entrySet()) {
             String pid = node.getKey();
             Set<String> children = node.getValue();
-            exportParentPid(output, pid, children);
+            exportParentPid(output, pid, children, hasParent);
         }
     }
 
-    void exportParentPid(File output, String pid, Collection<String> includeChildPids) {
+    void exportParentPid(File output, String pid, Collection<String> includeChildPids, boolean hasParent) {
         try {
             exportedPids.add(pid);
             RemoteObject robject = rstorage.find(pid);
@@ -208,7 +320,7 @@ public final class Kramerius4Export {
                     .execute(client).getEntity(DigitalObject.class);
             File foxml = ExportUtils.pidAsXmlFile(output, pid);
             LocalObject local = lstorage.create(foxml, dobj);
-            exportParentDatastreams(local, includeChildPids);
+            exportParentDatastreams(local, includeChildPids, hasParent);
             local.flush();
         } catch (DigitalObjectException ex) {
             throw new IllegalStateException(pid, ex);
@@ -272,7 +384,7 @@ public final class Kramerius4Export {
         }
     }
 
-    private void exportDatastreams(LocalObject local, RelationEditor editor) {
+    private void exportDatastreams(LocalObject local, RelationEditor editor,  boolean hasParent) {
         DigitalObject dobj = local.getDigitalObject();
         // XXX replace DS only for other than image/* MIMEs?
         DatastreamType fullDs = FoxmlUtils.findDatastream(dobj, BinaryEditor.FULL_ID);
@@ -288,14 +400,14 @@ public final class Kramerius4Export {
             }
             excludeVersions(datastream);
             renameDatastream(datastream);
-            processDublinCore(datastream);
+            processDublinCore(datastream, hasParent);
             processMods(datastream);
             processOcr(datastream);
-            processRelsExt(dobj.getPID(), datastream, editor, null);
+            processRelsExt(dobj.getPID(), datastream, editor, null, hasParent);
         }
     }
 
-    private void exportParentDatastreams(LocalObject local, Collection<String> includeChildPids) {
+    private void exportParentDatastreams(LocalObject local, Collection<String> includeChildPids, boolean hasParent) {
         DigitalObject dobj = local.getDigitalObject();
         RelationEditor editor = new RelationEditor(local);
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
@@ -306,9 +418,9 @@ public final class Kramerius4Export {
             }
             excludeVersions(datastream);
             renameDatastream(datastream);
-            processDublinCore(datastream);
+            processDublinCore(datastream, hasParent);
             processMods(datastream);
-            processRelsExt(dobj.getPID(), datastream, editor, includeChildPids);
+            processRelsExt(dobj.getPID(), datastream, editor, includeChildPids, hasParent);
         }
     }
 
@@ -335,7 +447,7 @@ public final class Kramerius4Export {
         }
     }
 
-    private void processDublinCore(DatastreamType datastream) {
+    private void processDublinCore(DatastreamType datastream,  boolean hasParent) {
         if (!DcStreamEditor.DATASTREAM_ID.equals(datastream.getID())) {
             return ;
         }
@@ -355,7 +467,12 @@ public final class Kramerius4Export {
         for (int i = 0; i < typeNodes.getLength(); i++) {
             Element typeElm = (Element) typeNodes.item(i);
             String type = typeElm.getTextContent();
-            String k4ModelId = options.getModelMap().get(type);
+            String k4ModelId;
+            if (hasParent && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(type) || OldPrintPlugin.MODEL_VOLUME.equals(type))) {
+                k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
+            } else {
+                k4ModelId = options.getModelMap().get(type);
+            }
             if (k4ModelId != null) {
                 typeElm.setTextContent(k4ModelId);
             }
@@ -427,15 +544,15 @@ public final class Kramerius4Export {
     }
 
     private void processRelsExt(String pid, DatastreamType datastream,
-            RelationEditor editor, Collection<String> includePids
-            ) {
+            RelationEditor editor, Collection<String> includePids,
+            boolean hasParent) {
 
         if (!RelationEditor.DATASTREAM_ID.equals(datastream.getID())) {
             return ;
         }
         try {
             List<Item> childDescriptors = search.findChildren(pid);
-            transformRelation2Kramerius(pid, editor, childDescriptors, includePids);
+            transformRelation2Kramerius(pid, editor, childDescriptors, includePids, hasParent);
         } catch (DigitalObjectException ex) {
             throw new IllegalStateException(ex);
         } catch (FedoraClientException ex) {
@@ -454,7 +571,7 @@ public final class Kramerius4Export {
 
     private void transformRelation2Kramerius(
             String pid, RelationEditor editor, List<Item> childDescriptors,
-            Collection<String> includePids
+            Collection<String> includePids, boolean hasParent
             ) throws DigitalObjectException {
 
         List<String> children = editor.getMembers();
@@ -476,7 +593,12 @@ public final class Kramerius4Export {
             editor.setMembership(Collections.<String>emptyList());
 
             String modelId = editor.getModel();
-            String k4ModelId = options.getModelMap().get(modelId);
+            String k4ModelId;
+            if (hasParent && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) || OldPrintPlugin.MODEL_VOLUME.equals(modelId))) {
+                k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
+            } else {
+                k4ModelId = options.getModelMap().get(modelId);
+            }
             k4ModelId = k4ModelId == null ? modelId : k4ModelId;
             editor.setModel(k4ModelId);
 

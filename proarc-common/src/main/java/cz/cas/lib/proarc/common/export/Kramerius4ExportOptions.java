@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.export;
 
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -71,9 +72,9 @@ public final class Kramerius4ExportOptions {
     private Map<String, String> relationMap = new HashMap<String, String>() {
         {
             put(NdkPlugin.MODEL_PAGE, "hasPage");
-            put("model:monographunit", "hasUnit");
-            put("model:periodicalvolume", "hasVolume");
-            put("model:periodicalitem", "hasItem");
+            put(K4Plugin.MODEL_MONOGRAPHUNIT, "hasUnit");
+            put(K4Plugin.MODEL_PERIODICALVOLUME, "hasVolume");
+            put(K4Plugin.MODEL_PERIODICALITEM, "hasItem");
             put(NdkPlugin.MODEL_ARTICLE, "hasIntCompPart");
             put(NdkPlugin.MODEL_CARTOGRAPHIC, "hasUnit");
             put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "hasIntCompPart");

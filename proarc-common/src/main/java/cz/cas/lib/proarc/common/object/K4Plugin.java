@@ -64,6 +64,12 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
      * The plugin ID.
      */
     public static final String ID = "k4";
+    public static final String MODEL_MONOGRAPH="model:monograph";
+    public static final String MODEL_MONOGRAPHUNIT = "model:monographunit";
+    public static final String MODEL_PAGE="model:page";
+    public static final String MODEL_PERIODICAL="model:periodical";
+    public static final String MODEL_PERIODICALITEM="model:periodicalitem";
+    public static final String MODEL_PERIODICALVOLUME="model:periodicalvolume";
 
     @Override
     public String getId() {
@@ -80,7 +86,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
         // for now it is read only repository
         List<MetaModel> models = new ArrayList<>();
         models.add(new MetaModel(
-                "model:periodical", true, null,
+                MODEL_PERIODICAL, true, null,
                 Arrays.asList(new ElementType("K4 Periodical", "en"), new ElementType("K4 Periodikum", "cs")),
                 ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PERIODICAL,
@@ -89,7 +95,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                "model:periodicalvolume", null, null,
+                MODEL_PERIODICALVOLUME, null, null,
                 Arrays.asList(new ElementType("K4 Periodical Volume", "en"), new ElementType("K4 Ročník", "cs")),
                 ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PERIODICAL_VOLUME,
@@ -99,7 +105,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                         DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                "model:periodicalitem", null, null,
+                MODEL_PERIODICALITEM, null, null,
                 Arrays.asList(new ElementType("K4 Periodical Item", "en"), new ElementType("K4 Výtisk", "cs")),
                 ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PERIODICAL_ISSUE,
@@ -109,7 +115,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                         DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                "model:monograph", true, null,
+                MODEL_MONOGRAPH, true, null,
                 Arrays.asList(new ElementType("K4 Monograph", "en"), new ElementType("K4 Monografie", "cs")),
                 ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_MONOGRAPH,
@@ -118,7 +124,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                "model:monographunit", null, null,
+                MODEL_MONOGRAPHUNIT, null, null,
                 Arrays.asList(new ElementType("K4 Monograph Unit", "en"), new ElementType("K4 Monografie - volná část", "cs")),
                 ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_MONOGRAPH_UNIT,
@@ -128,7 +134,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                         DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
-                "model:page", null, true,
+                MODEL_PAGE, null, true,
                 Arrays.asList(new ElementType("Page", "en"), new ElementType("Strana", "cs")),
                 ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PAGE,
