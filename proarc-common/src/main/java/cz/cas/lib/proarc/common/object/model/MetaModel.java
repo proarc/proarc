@@ -16,10 +16,14 @@
  */
 package cz.cas.lib.proarc.common.object.model;
 
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
+import cz.cas.lib.proarc.common.object.RelationCriteria;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -38,16 +42,30 @@ public class MetaModel {
     private DigitalObjectPlugin plugin;
     private EnumSet<DatastreamEditorType> dataStreamEditors;
     private double priority = 1.0;
+    private List<RelationCriteria> parentCriteria;
 
     public MetaModel() {
     }
 
+    // creates Metamodel without any parent relation limitation
+    public MetaModel(String pid, Boolean root, Boolean leaf,
+                     Collection<ElementType> displayNames,
+                     String metadataFormat,
+                     String editorId,
+                     DigitalObjectPlugin plugin,
+                     EnumSet<DatastreamEditorType> dataStreamEditors) {
+
+        this(pid, root, leaf, displayNames, metadataFormat, editorId, plugin, dataStreamEditors, null);
+    }
+
+    // creates Metamodel with parent relation limitation
     public MetaModel(String pid, Boolean root, Boolean leaf,
             Collection<ElementType> displayNames,
             String metadataFormat,
             String editorId,
             DigitalObjectPlugin plugin,
-            EnumSet<DatastreamEditorType> dataStreamEditors) {
+            EnumSet<DatastreamEditorType> dataStreamEditors,
+            RelationCriteria[] parentModelsCriteria) {
 
         this.pid = pid;
         this.root = root;
@@ -57,6 +75,7 @@ public class MetaModel {
         this.editorId = editorId;
         this.plugin = plugin;
         this.dataStreamEditors = dataStreamEditors;
+        this.parentCriteria = parentModelsCriteria == null ? null : Arrays.asList(parentModelsCriteria);
     }
 
     public String getDisplayName(String lang) {
@@ -110,4 +129,23 @@ public class MetaModel {
         return this;
     }
 
+    public boolean isAllowedRelation(DigitalObjectHandler childHandler, String parentPid, StringBuilder reason) {
+        if (parentCriteria == null) {
+            return true;
+        }
+
+        for (RelationCriteria criteria : parentCriteria) {
+            if (criteria.isSatisfied(childHandler, parentPid, reason)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    @Override
+    public String toString() {
+        return "MetaModel{" +
+                "pid='" + pid + '\'' +
+                '}';
+    }
 }

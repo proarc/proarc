@@ -313,7 +313,7 @@ public final class NdkMonographVolumeForm {
                             + "<p>264_0 je production"
                             + "<p>264_2 je distribution"
                             + "<p>264_3 je manufacture")
-                    .createField()) // value
+                    .createField())// value
                 .createField()) // dateOther
                 // copyrightDate, dateDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("copyrightDate").setMaxOccurrences(1)

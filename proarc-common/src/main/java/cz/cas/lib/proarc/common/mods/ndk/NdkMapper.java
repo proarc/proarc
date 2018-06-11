@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
@@ -94,6 +95,8 @@ public abstract class NdkMapper {
             mapper = new NdkSongMapper();
         } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
             mapper = new NdkTrackMapper();
+        } else if (NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)) {
+            mapper = new NdkEMonographVolumeMapper();
         } else {
             throw new IllegalStateException("Unsupported model: " + modelId);
         }
