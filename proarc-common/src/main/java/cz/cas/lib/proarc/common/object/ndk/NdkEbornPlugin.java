@@ -27,12 +27,14 @@ import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
 import cz.cas.lib.proarc.common.object.HasDisseminationHandler;
 import cz.cas.lib.proarc.common.object.HasMetadataHandler;
+import cz.cas.lib.proarc.common.object.RelationCriteria;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalDisseminationHandler;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -48,6 +50,8 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
     private static final String ID = "ndkEborn";
 
     public static final String MODEL_EMONOGRAPHVOLUME = "model:ndkemonographvolume";
+    public static final String MODEL_EMONOGRAPHTITLE = "model:ndkemonographtitle";
+    public static final String MODEL_ECHAPTER = "model:ndkechapter";
 
     public static final Map<String, String> TYPE_MAP = Collections.singletonMap(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "MONOGRAPH_UNIT");
 
@@ -59,15 +63,39 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
     @Override
     public Collection<MetaModel> getModel() {
         List<MetaModel> models = new ArrayList<>();
+
+        models.add(new MetaModel(
+                MODEL_EMONOGRAPHTITLE, true, null,
+                Arrays.asList(new ElementType("NDK Multipart eMonograph", "en"), new ElementType("NDK Vícedílná eMonografie", "cs")),
+                ModsConstants.NS,
+                MODEL_EMONOGRAPHTITLE,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[] {}
+        ));
         models.add(new MetaModel(
                 MODEL_EMONOGRAPHVOLUME, true, null,
-                Collections.singletonList(new ElementType("NDK Svazek eBorn monografie", "cs")),
+                Arrays.asList(new ElementType("NDK eMonograph Volume", "en"), new ElementType("NDK Svazek eMonografie", "cs")),
                 ModsConstants.NS,
                 MODEL_EMONOGRAPHVOLUME,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM, DatastreamEditorType.MEDIA)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_ECHAPTER, null, null,
+                Arrays.asList(new ElementType("NDK eChapter", "en"), new ElementType("NDK eKapitola", "cs")),
+                ModsConstants.NS,
+                MODEL_ECHAPTER,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                //new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)} why periodical?
+                new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID)}
         ));
 
         return Collections.unmodifiableList(models);

@@ -97,6 +97,10 @@ public abstract class NdkMapper {
             mapper = new NdkTrackMapper();
         } else if (NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)) {
             mapper = new NdkEMonographVolumeMapper();
+        } else if (NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(modelId)) {
+            mapper = new NdkEMonographTitleMapper();
+        } else if (NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId)) {
+            mapper = new NdkEChapterMapper();
         } else {
             throw new IllegalStateException("Unsupported model: " + modelId);
         }
