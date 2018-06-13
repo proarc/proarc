@@ -21,6 +21,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.ResultSet;
 import com.smartgwt.client.types.SelectionStyle;
+import com.smartgwt.client.util.Offline;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
@@ -53,6 +54,7 @@ import cz.cas.lib.proarc.webapp.client.action.export.DesaExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.KWISExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.KrameriusExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.NdkExportAction;
+import cz.cas.lib.proarc.webapp.client.action.export.NdkSipExportAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
@@ -68,6 +70,8 @@ import java.util.LinkedHashMap;
  */
 public final class DigitalObjectManager {
 
+    public static final String LAST_SELECTED_MODEL_TAG = "DigitalObjectManager_LastSelectedModel";
+
     private final ClientMessages i18n;
     private final PlaceController places;
     private final VLayout widget;
@@ -78,6 +82,7 @@ public final class DigitalObjectManager {
     private KrameriusExportAction krameriusExportAction;
     private KWISExportAction kwisExportAction;
     private NdkExportAction ndkExportAction;
+    private NdkSipExportAction ndkSipExportAction;
     private CejshExportAction cejshExportAction;
     private CrossrefExportAction crossrefExportAction;
     private DesaExportAction desaDownloadAction;
@@ -112,7 +117,7 @@ public final class DigitalObjectManager {
         widget.setWidth100();
         widget.setHeight100();
 
-        foundView = new DigitalObjectSearchView(i18n);
+        foundView = new DigitalObjectSearchView(i18n, LAST_SELECTED_MODEL_TAG);
         foundView.getGrid().setSelectionType(SelectionStyle.MULTIPLE);
         final ActionSource listSource = new ActionSource(foundView);
         foundView.getGrid().addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
@@ -180,8 +185,12 @@ public final class DigitalObjectManager {
                 treeView.setModels(valueMap);
                 foundView.setModels(valueMap);
                 if (!reload) {
-                    // init the view filter with the first modelId on first show
-                    if (!valueMap.isEmpty()) {
+                    //issue #499
+                    Object previousId = Offline.get(LAST_SELECTED_MODEL_TAG);
+                    if (previousId != null) {
+                        foundView.setFilterModel(previousId);
+                    } else if (!valueMap.isEmpty()) {
+                        // init the view filter with the first modelId on first show
                         Object firstModel = valueMap.keySet().iterator().next();
                         foundView.setFilterModel(firstModel);
                     }
@@ -201,6 +210,7 @@ public final class DigitalObjectManager {
         krameriusExportAction = new KrameriusExportAction(i18n);
         kwisExportAction = new KWISExportAction(i18n);
         ndkExportAction = new NdkExportAction(i18n);
+        ndkSipExportAction = new NdkSipExportAction(i18n);
         cejshExportAction = new CejshExportAction(i18n);
         crossrefExportAction = new CrossrefExportAction(i18n);
         desaExportAction = DesaExportAction.export(i18n);
@@ -265,6 +275,7 @@ public final class DigitalObjectManager {
         menuExport.addItem(Actions.asMenuItem(archiveExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(ndkSipExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(cejshExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(crossrefExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(desaExportAction, actionSource, true));

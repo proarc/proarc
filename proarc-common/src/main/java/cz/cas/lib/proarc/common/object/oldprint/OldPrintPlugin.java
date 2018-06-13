@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
 import cz.cas.lib.proarc.common.object.HasMetadataHandler;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.RelationCriteria;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
@@ -80,6 +81,11 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
      */
     public static final String MODEL_MONOGRAPHTITLE = "model:oldprintmonographtitle";
 
+    /**
+     * The chapter of old prints.
+     */
+    public static final String MODEL_CHAPTER = "model:oldprintchapter";
+
     private OldPrintSearchViewHandler searchViewHandler;
 
     @Override
@@ -98,7 +104,8 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 MODEL_MONOGRAPHTITLE,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
+                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[]{}
                 ));
         models.add(new MetaModel(
                 MODEL_VOLUME, true, null,
@@ -108,7 +115,8 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_SUPPLEMENT, true, null,
@@ -118,7 +126,19 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID)}
+                ));
+        models.add(new MetaModel(
+                MODEL_CHAPTER, null, null,
+                Arrays.asList(new ElementType("Old Print Chapter", "en"), new ElementType("STT  Kapitola", "cs")),
+                ModsConstants.NS,
+                MODEL_CHAPTER,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
@@ -126,7 +146,11 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 ModsConstants.NS,
                 MODEL_PAGE,
                 this,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
+                new RelationCriteria[]{
+                        new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_SUPPLEMENT, RelationCriteria.Type.PID)
+                }
                 ));
         return models;
     }
@@ -174,6 +198,15 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                         defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                         defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                    }
+                } else if (OldPrintPlugin.MODEL_CHAPTER.equals(modelId)) {
+                    // issue 241
+                    DigitalObjectHandler title = findEnclosingObject(parent, OldPrintPlugin.MODEL_VOLUME);
+                    if (title != null) {
+                        ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                        defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                        inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
+                        inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                     }
                 }
 

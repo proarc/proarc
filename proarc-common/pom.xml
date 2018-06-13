@@ -9,7 +9,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>3.5-SNAPSHOT</version>
+        <version>3.4.4</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -170,10 +170,15 @@
         <dependency>
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
-            <version>2.2.1</version>
+            <version>2.3.0</version>
         </dependency>
 
         <!-- tests -->
+        <dependency>
+            <groupId>org.jmockit</groupId>
+            <artifactId>jmockit</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -281,6 +286,9 @@
                                 <proarc-common.DbUnitSupport.jdbc.passwd></proarc-common.DbUnitSupport.jdbc.passwd>
                                 <proarc-common.DbUnitSupport.jdbc.driver>org.postgresql.Driver</proarc-common.DbUnitSupport.jdbc.driver>
                                 <proarc-common.DbUnitSupport.empiredb.driver>org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL</proarc-common.DbUnitSupport.empiredb.driver>
+                                <proarc-common.FedoraTestSupport.url>http://localhost:8085/fedora</proarc-common.FedoraTestSupport.url>
+                                <proarc-common.FedoraTestSupport.user>fedoraAdmin</proarc-common.FedoraTestSupport.user>
+                                <proarc-common.FedoraTestSupport.passwd>fedoraAdmin</proarc-common.FedoraTestSupport.passwd>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>

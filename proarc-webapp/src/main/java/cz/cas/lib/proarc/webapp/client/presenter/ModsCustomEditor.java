@@ -62,6 +62,7 @@ import cz.cas.lib.proarc.webapp.client.widget.mods.oldprint.OldPrintForms;
 import cz.cas.lib.proarc.webapp.client.widget.nsesss.NsesssV2Form;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -219,6 +220,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                 }
                 callback.execute(true);
                 activeEditor.focus();
+                Optional.ofNullable(dm).ifPresent(f  -> refresh());
             }
 
             @Override

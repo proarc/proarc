@@ -1447,33 +1447,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     }
 
     /**
-     * Generates PackageID from the metsElement info
-     *
-     * @param element
-     * @return
-     * @throws MetsExportException
-     */
-    private String getPackageID(IMetsElement element) throws MetsExportException {
-        Map<String, String> identifiersMap = element.getModsIdentifiers();
-        if (identifiersMap.containsKey(Const.URNNBN)) {
-            String urnnbn = identifiersMap.get(Const.URNNBN);
-            return urnnbn.substring(urnnbn.lastIndexOf(":") + 1);
-        } else if (element.getMetsContext().isAllowMissingURNNBN()) {
-            // if missing URNNBN is allowed, then try to use UUID - otherwise
-            // throw an exception
-            element.getMetsContext().getMetsExportException().addException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
-            if (identifiersMap.containsKey(Const.UUID)) {
-                return identifiersMap.get(Const.UUID);
-            } else {
-                throw new MetsExportException(element.getOriginalPid(), "Unable to find identifier URNNBN and UUID is missing", false, null);
-            }
-        } else {
-            // URNNBN is mandatory
-            throw new MetsExportException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
-        }
-    }
-
-    /**
      * Creates a directory for package
      *
      * @param metsElement
@@ -1566,13 +1539,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         logicalDiv.getDiv().add(divType);
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.ISSUE.equals(element.getElementType())) {
-                element.getMetsContext().setPackageID(getPackageID(element));
+                element.getMetsContext().setPackageID(MetsUtils.getPackageID(element));
                 insertIssue(physicalDiv, divType, element);
                 continue;
             } else
             if (Const.SUPPLEMENT.equals(element.getElementType())) {
                 if (!Const.MONOGRAPH_UNIT.equals(metsElement.getElementType())) {
-                    element.getMetsContext().setPackageID(getPackageID(element));
+                    element.getMetsContext().setPackageID(MetsUtils.getPackageID(element));
                 }
                 insertSupplement(divType, physicalDiv, element);
             } else
@@ -1621,7 +1594,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         logicalDiv.setTYPE("MONOGRAPH");
         logicalDiv.setID("MONOGRAPH_0001");
         if (!containsUnit) {
-            metsElement.getMetsContext().setPackageID(getPackageID(metsElement));
+            metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
             insertVolume(logicalDiv, physicalDiv, metsElement, false);
         } else {
             metsElement.setModsElementID("TITLE_0001");
@@ -1633,7 +1606,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     continue;
                 } else
                 if (Const.SUPPLEMENT.equals(childMetsElement.getElementType())) {
-                    childMetsElement.getMetsContext().setPackageID(getPackageID(childMetsElement));
+                    childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
                     insertSupplement(logicalDiv, physicalDiv, childMetsElement);
                 } else
                 if (Const.PAGE.equals(childMetsElement.getElementType())) {
@@ -1648,7 +1621,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
             for (IMetsElement childMetsElement : metsElement.getChildren()) {
                 if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
-                    childMetsElement.getMetsContext().setPackageID(getPackageID(childMetsElement));
+                    childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
                     insertVolume(logicalDiv, physicalDiv, childMetsElement, true);
                 }
             }
@@ -1735,10 +1708,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (Const.PERIODICAL_VOLUME.equals(childMetsElement.getElementType())) {
                 insertVolume(divType, physicalDiv, childMetsElement, false);
             } else if (Const.ISSUE.equals(childMetsElement.getElementType())) {
-                childMetsElement.getMetsContext().setPackageID(getPackageID(childMetsElement));
+                childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
                 insertIssue(physicalDiv, divType, childMetsElement);
             } else if (Const.SUPPLEMENT.equals(childMetsElement.getElementType())) {
-                childMetsElement.getMetsContext().setPackageID(getPackageID(childMetsElement));
+                childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
                 insertSupplement(divType, physicalDiv, childMetsElement);
             } else
                 throw new MetsExportException(childMetsElement.getOriginalPid(), "Expected Supplement, Volume or Issue, got:" + childMetsElement.getElementType(), false, null);

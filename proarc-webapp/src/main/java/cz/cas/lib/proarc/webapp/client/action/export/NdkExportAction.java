@@ -74,7 +74,7 @@ public class NdkExportAction extends ExportAction {
 //                String metadataFormat = model.getMetadataFormat();
                 String modelId = dobj.getModelId();
                 // XXX hack; it needs support to query model/object for action availability
-                if (modelId != null && modelId.startsWith("model:ndk")) {
+                if (modelId != null && modelId.startsWith("model:ndk") && !modelId.startsWith("model:ndke")) {
                     accept = true;
                     continue;
                 }

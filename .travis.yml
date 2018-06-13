@@ -1,4 +1,5 @@
 language: java
+sudo: required
 jdk:
   - oraclejdk8
 cache:
@@ -11,7 +12,9 @@ addons:
   postgresql: "9.6"
 services:
   - postgresql
+  - docker
 before_install:
+  - docker-compose -f fedora-test.yml up -d
   - curl -fSL "https://github.com/proarc/proarc/releases/download/v3.2/proarc-3.2-release.zip" -o proarc.zip
   - unzip proarc.zip
   - unzip proarc-3.2-20161121223439/proarc.war
@@ -25,3 +28,5 @@ before_install:
 before_script:
   - psql -c 'create database proarc_test;' -U postgres
   - export TZ=Europe/Prague
+script:
+  - mvn test -Dtest=\!RemoteStorageTest#testDatastreamPurge+testDatastreamEditorWriteReference_External+testIngestPage+testDatastreamEditorRewriteControlGroup+testDatastreamEditorRewriteControlGroup,\!Kramerius4ExportTest#testEmptyOcrExport -pl proarc-common
