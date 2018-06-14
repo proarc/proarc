@@ -29,11 +29,10 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import org.apache.commons.lang.Validate;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang.Validate;
 
 /**
  * Exports digital object and transforms its data streams to NDK format.
@@ -97,6 +96,19 @@ public class NdkExport {
         return results;
     }
 
+    /**
+     * Exports packages. These can be split by PSP identifier (some level of model, for example issue for periodical)
+     *
+     * Each digital object is processed by visitor. This visitor create package on his own (and can be overriden for other NDK formats)
+     *
+     * @param target filepath to export
+     * @param pid pid of exported object. This can be a root of object.
+     * @param hierarchy recursive search for packages
+     * @param keepResult delete or not export folder on exit
+     * @param log message for storage logging
+     * @return Result with target path and possible errors
+     * @throws ExportException
+     */
     private Result export(File target, String pid,
                           boolean hierarchy, boolean keepResult, String log) throws ExportException {
 

@@ -16,15 +16,6 @@
 
 package cz.cas.lib.proarc.common.export.sip;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.request.GetObjectXML;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
@@ -40,15 +31,28 @@ import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mets.info.Info;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static junit.framework.Assert.fail;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
@@ -152,6 +156,45 @@ public class NdkSipExportTest {
         String packageId = "123";
         Path sip = folder.getRoot().toPath().resolve(StringUtils.removeStart(pid, "uuid:")).resolve(packageId);
         validatePackage(sip);
+
+        Files.walkFileTree(sip, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                System.out.println(file);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    @Test
+    @Ignore
+    //TODO-MR test multipart with multiple chapter as well
+    public void exportMultipartMonograph() throws Exception {
+        NdkExport export = new NdkSipExport(remoteStorage, appConfig.getNdkExportOptions());
+        String pid = "uuid:26342028-12c8-4446-9217-d3c9f249bd13";
+        List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
+                true, true, null);
+
+        for (NdkExport.Result result : resultsList) {
+            if (result.getValidationError() != null) {
+                MetsExportException.MetsExportExceptionElement exception = result.getValidationError().getExceptions().get(0);
+                fail(exception.getMessage() + " " + exception.getPid());
+            }
+        }
+
+        String packageId = "123";
+        Path sip = folder.getRoot().toPath().resolve(StringUtils.removeStart(pid, "uuid:")).resolve(packageId);
+
+        Files.walkFileTree(sip, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                System.out.println(file);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+
+       // validatePackage(sip);
     }
 
     private void validatePackage(Path sip) throws Exception {

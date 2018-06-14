@@ -17,18 +17,15 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.StringEditor;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
-
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.StringEditor;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
-import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 
 /**
  *
@@ -37,14 +34,15 @@ import cz.cas.lib.proarc.common.ocr.AltoDatastream;
  * @author Robert Simonovsky
  *
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class Const {
     public final static String FEDORAPREFIX = "info:fedora/";
-    public static HashMap<String, List<String>> streamMapping;
-    public static List<String> allowedIdentifiers = new ArrayList<String>();
-    public static ArrayList<String> mandatoryStreams = new ArrayList<String>();
-    public static ArrayList<String> canContainPage = new ArrayList<String>();
-    public static HashMap<String, String> streamMappingFile = new HashMap<String, String>();
-    public static HashMap<String, String> streamMappingPrefix = new HashMap<String, String>();
+    public static final HashMap<String, List<String>> streamMapping;
+    public static final List<String> allowedIdentifiers = new ArrayList<>();
+    public static final List<String> mandatoryStreams = new ArrayList<>();
+    public static final List<String> canContainPage = new ArrayList<>();
+    public static final Map<String, String> streamMappingFile = new HashMap<>();
+    public static final Map<String, String> streamMappingPrefix = new HashMap<>();
     public static final String FEDORA_CREATEDATE = "info:fedora/fedora-system:def/model#createdDate";
     public static final String FEDORA_LASTMODIFIED = "info:fedora/fedora-system:def/view#lastModifiedDate";
     public static final String FEDORA_LABEL = "info:fedora/fedora-system:def/model#label";
@@ -102,14 +100,14 @@ public class Const {
     public static final String UC_GRP_ID = "UC_IMGGRP";
     public static final String TXT_GRP_ID = "TXTGRP";
 
-    public static final List<String> PSPElements = new ArrayList<String>();
+    public static final Collection<String> PSPElements = new ArrayList<>();
 
-    public final static Map<String, String> typeMap = new HashMap<String, String>();
-    public final static Map<String, String> typeNameMap = new HashMap<String, String>();
-    public final static Map<String, String> mimeToFmtMap = new HashMap<String, String>();
+    public final static Map<String, String> typeMap = new HashMap<>();
+    public final static Map<String, String> typeNameMap = new HashMap<>();
+    public final static Map<String, String> mimeToFmtMap = new HashMap<>();
     // Tech MD creation constants
-    public final static Map<String, String> dataStreamToModel = new HashMap<String, String>();
-    public final static Map<String, String> dataStreamToEvent = new HashMap<String, String>();
+    public final static Map<String, String> dataStreamToModel = new HashMap<>();
+    public final static Map<String, String> dataStreamToEvent = new HashMap<>();
 
     static {
         allowedIdentifiers.add("isbn");
@@ -160,22 +158,22 @@ public class Const {
         mandatoryStreams.add(ALTO_GRP_ID);
         mandatoryStreams.add(TXT_GRP_ID);
 
-        streamMapping = new HashMap<String, List<String>>();
-        streamMapping.put(MC_GRP_ID, new ArrayList<String>());
+        streamMapping = new HashMap<>();
+        streamMapping.put(MC_GRP_ID, new ArrayList<>());
         streamMapping.get(MC_GRP_ID).add(BinaryEditor.NDK_ARCHIVAL_ID);
         // streamMapping.get("MC_IMGGRP").add("RAW");
 
-        streamMapping.put(UC_GRP_ID, new ArrayList<String>());
+        streamMapping.put(UC_GRP_ID, new ArrayList<>());
         streamMapping.get(UC_GRP_ID).add(BinaryEditor.NDK_USER_ID);
         // streamMapping.get("UC_IMGGRP").add("FULL");
 
-        streamMapping.put(ALTO_GRP_ID, new ArrayList<String>());
+        streamMapping.put(ALTO_GRP_ID, new ArrayList<>());
         streamMapping.get(ALTO_GRP_ID).add(AltoDatastream.ALTO_ID);
 
-        streamMapping.put(TXT_GRP_ID, new ArrayList<String>());
+        streamMapping.put(TXT_GRP_ID, new ArrayList<>());
         streamMapping.get(TXT_GRP_ID).add(StringEditor.OCR_ID);
 
-        streamMapping.put("TECHMDGRP", new ArrayList<String>());
+        streamMapping.put("TECHMDGRP", new ArrayList<>());
         streamMapping.get("TECHMDGRP").add("FULL_AMD");
 
         streamMappingPrefix.put(MC_GRP_ID, "mc");

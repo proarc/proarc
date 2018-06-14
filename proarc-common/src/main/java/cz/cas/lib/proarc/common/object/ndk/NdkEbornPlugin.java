@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +54,11 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
     public static final String MODEL_EMONOGRAPHTITLE = "model:ndkemonographtitle";
     public static final String MODEL_ECHAPTER = "model:ndkechapter";
 
-    public static final Map<String, String> TYPE_MAP = Collections.singletonMap(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "MONOGRAPH_UNIT");
+    public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "MONOGRAPH_UNIT");
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, "MONOGRAPH_MULTIPART");
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_ECHAPTER, "CHAPTER");
+    }});
 
     @Override
     public String getId() {

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress ALL -->
+<foxml:digitalObject VERSION="1.1" PID="uuid:d5d5e950-3668-4458-8fdb-aeb7028f4fcc"
+                     xmlns:foxml="info:fedora/fedora-system:def/foxml#"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
+    <foxml:objectProperties>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="?"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#ownerId" VALUE="proarc"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#createdDate" VALUE="2018-06-12T10:07:41.338Z"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="2018-06-12T10:07:41.338Z"/>
+    </foxml:objectProperties>
+    <foxml:datastream ID="AUDIT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="AUDIT.0" LABEL="Audit Trail for this object" CREATED="2018-06-12T10:07:41.338Z" MIMETYPE="text/xml" FORMAT_URI="info:fedora/fedora-system:format/xml.fedora.audit">
+            <foxml:xmlContent>
+                <audit:auditTrail xmlns:audit="info:fedora/fedora-system:def/audit#">
+                    <audit:record ID="AUDREC1">
+                        <audit:process type="Fedora API-M"/>
+                        <audit:action>ingest</audit:action>
+                        <audit:componentID></audit:componentID>
+                        <audit:responsibility>fedoraAdmin</audit:responsibility>
+                        <audit:date>2018-06-12T10:07:41.338Z</audit:date>
+                        <audit:justification>{&quot;proarc&quot;:{&quot;user&quot;:&quot;proarc&quot;,&quot;ip&quot;:&quot;0:0:0:0:0:0:0:1&quot;}}</audit:justification>
+                    </audit:record>
+                </audit:auditTrail>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="RELS-EXT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="RELS-EXT.0" LABEL="RDF Statements about this object" CREATED="2018-06-12T10:07:41.338Z" MIMETYPE="text/xml" FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0" SIZE="458">
+            <foxml:xmlContent>
+                <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:fedora-model="info:fedora/fedora-system:def/model#"><rdf:Description rdf:about="info:fedora/uuid:d5d5e950-3668-4458-8fdb-aeb7028f4fcc"><fedora-model:hasModel rdf:resource="info:fedora/model:ndkechapter"></fedora-model:hasModel></rdf:Description></rdf:RDF>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="BIBLIO_MODS" STATE="A" CONTROL_GROUP="X" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="BIBLIO_MODS.0" LABEL="Metadata Object Description" CREATED="2018-06-12T10:07:41.338Z" MIMETYPE="text/xml" FORMAT_URI="http://www.loc.gov/mods/v3" SIZE="438">
+            <foxml:xmlContent>
+                <mods:mods xmlns:mods="http://www.loc.gov/mods/v3" version="3.5"><mods:genre>chapter</mods:genre><mods:identifier type="uuid">d5d5e950-3668-4458-8fdb-aeb7028f4fcc</mods:identifier><mods:recordInfo><mods:recordCreationDate encoding="iso8601">20180612T120741</mods:recordCreationDate><mods:recordChangeDate encoding="iso8601">20180612T120741</mods:recordChangeDate></mods:recordInfo></mods:mods>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="DC" STATE="A" CONTROL_GROUP="X" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="DC.0" LABEL="Dublin Core Record for this object" CREATED="2018-06-12T10:07:41.338Z" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/" SIZE="409">
+            <foxml:xmlContent>
+                <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+                    <dc:type>model:ndkechapter</dc:type>
+                    <dc:identifier>uuid:d5d5e950-3668-4458-8fdb-aeb7028f4fcc</dc:identifier>
+                </oai_dc:dc>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+</foxml:digitalObject>
