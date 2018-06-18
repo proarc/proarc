@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.export.sip;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.client.request.GetObjectXML;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -30,9 +31,13 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
 import cz.cas.lib.proarc.mets.info.Info;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,8 +45,19 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
@@ -51,31 +67,35 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
-import static junit.framework.Assert.fail;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 
 public class NdkSipExportTest {
+
+    private static final int STATUS_OK = 200;
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Mocked
-    FedoraClient client;
+    private FedoraClient client;
 
     @Mocked
-    SearchView searchView;
+    private SearchView searchView;
 
-    RemoteStorage remoteStorage;
+    private RemoteStorage remoteStorage;
 
-    AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+    private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
 
     public NdkSipExportTest() throws Exception {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         remoteStorage = new RemoteStorage(client);
 
         DigitalObjectManager.setDefault(new DigitalObjectManager(
@@ -86,9 +106,9 @@ public class NdkSipExportTest {
                 null));
 
         new MockUp<ExportUtils>() {
+            @SuppressWarnings("EmptyMethod")
             @Mock
             void storeObjectExportResult(String pid, String target, String log) {
-                //no-op
             }
         };
 
@@ -101,7 +121,7 @@ public class NdkSipExportTest {
                         return new FedoraResponse() {
                             @Override
                             public int getStatus() {
-                                return 200;
+                                return STATUS_OK;
                             }
 
                             @Override
@@ -125,18 +145,80 @@ public class NdkSipExportTest {
 
                             @Override
                             public void close() {
-
                             }
                         };
                     }
                 };
             }
+
+            @Mock
+            GetDatastreamDissemination getDatastreamDissemination(
+                    String pid, String dsId) {
+                return new GetDatastreamDissemination(pid, dsId) {
+                    @Override
+                    public FedoraResponse execute(FedoraClient fedora) {
+                        return new FedoraResponse() {
+                            @Override
+                            public int getStatus() {
+                                return STATUS_OK;
+                            }
+
+                            @Override
+                            public InputStream getEntityInputStream() {
+                                try {
+                                    Optional<URL> stream = Optional.ofNullable(getClass().getResource(dsId + "/" + StringUtils.remove(pid, "uuid:")));
+                                    if (stream.isPresent()) {
+                                        return stream.get().openStream();
+                                    } else {
+                                        URL objectUrl = getClass().getResource(StringUtils.remove(pid, "uuid:") + ".xml");
+                                        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                                        dbf.setNamespaceAware(true);
+                                        DocumentBuilder db = dbf.newDocumentBuilder();
+                                        Document objectXML = db.parse(objectUrl.openStream());
+                                        XPath xPath = XPathFactory.newInstance().newXPath();
+                                        SimpleNamespaceContext namespaces = new SimpleNamespaceContext().add("foxml", "info:fedora/fedora-system:def/foxml#");
+                                        xPath.setNamespaceContext(namespaces);
+                                        Document datastreamXML = db.newDocument();
+                                        Node node = (Node) xPath.compile("//foxml:datastream[@ID='BIBLIO_MODS']").evaluate(objectXML, XPathConstants.NODE);
+                                        Node importedNode = datastreamXML.importNode(node, true);
+                                        datastreamXML.appendChild(importedNode);
+
+                                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                                        Source xmlSource = new DOMSource(datastreamXML);
+                                        Result outputTarget = new StreamResult(outputStream);
+                                        TransformerFactory.newInstance().newTransformer().transform(xmlSource, outputTarget);
+                                        return new ByteArrayInputStream(outputStream.toByteArray());
+                                    }
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+
+                            @Override
+                            public <T> T getEntity(Class<T> c) {
+                                return null;
+                            }
+
+                            @Override
+                            public String getType() {
+                                return null;
+                            }
+
+                            @Override
+                            public void close() {
+                            }
+                        };
+                    }
+                };
+            }
+
         };
 
         MetaModelRepository.setInstance("ndk", "ndkEborn");
     }
 
     @Test
+    //TODO-MR test missing media (pdf)
     public void export() throws Exception {
         NdkExport export = new NdkSipExport(remoteStorage, appConfig.getNdkExportOptions());
 
@@ -194,7 +276,7 @@ public class NdkSipExportTest {
         });
 
 
-       // validatePackage(sip);
+        // validatePackage(sip);
     }
 
     private void validatePackage(Path sip) throws Exception {
@@ -206,7 +288,9 @@ public class NdkSipExportTest {
         assertTrue("No metadata files", Files.list(sip.resolve("metadata")).count() > 0);
         assertTrue("No info.xml", Files.exists(sip.resolve("info_" + identifier + ".xml")));
         assertTrue("No pdf file", Files.exists(sip.resolve("original/oc_" + identifier + ".pdf")));
+        assertTrue("Empty pdf file", Files.size(sip.resolve("original/oc_" + identifier + ".pdf")) > 0);
         assertTrue("No mods file", Files.exists(sip.resolve("metadata/mods_volume.xml")));
+
 
         List<String> errors = MetsUtils.validateAgainstXSD(sip.resolve("info_" + identifier + ".xml").toFile(), Info.class.getResourceAsStream("info.xsd"));
         assertTrue(errors.toString(), errors.isEmpty());
@@ -214,7 +298,7 @@ public class NdkSipExportTest {
         JAXBContext jContext = JAXBContext.newInstance(Info.class);
         Unmarshaller unmarshallerObj = jContext.createUnmarshaller();
         Info info = (Info) unmarshallerObj.unmarshal(sip.resolve("info_" + identifier + ".xml").toFile());
-        assertTrue(info.getMetadataversion() >= 2.2f);
+        assertTrue(info.getMetadataversion() >= NdkSipExport.PACKAGE_VERSION);
         assertEquals(info.getPackageid(), identifier);
         // assertEquals(info.getMainmets(), ""); //??? https://github.com/NLCR/Standard_NDK/issues/60
 

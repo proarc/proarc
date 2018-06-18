@@ -79,6 +79,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
                 new RelationCriteria[] {}
         ));
+        // eMonograph volume should contain some media (e.g. PDF)
         models.add(new MetaModel(
                 MODEL_EMONOGRAPHVOLUME, true, null,
                 Arrays.asList(new ElementType("NDK eMonograph Volume", "en"), new ElementType("NDK Svazek eMonografie", "cs")),
@@ -87,7 +88,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM),
+                        DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
                 new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(

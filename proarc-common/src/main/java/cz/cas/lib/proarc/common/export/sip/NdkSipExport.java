@@ -54,7 +54,7 @@ import static cz.cas.lib.proarc.common.export.mets.Const.MONOGRAPH_UNIT;
  */
 public class NdkSipExport extends NdkExport {
     private static final Logger LOG = Logger.getLogger(NdkSipExport.class.getName());
-    private static final float PACKAGE_VERSION = 2.2f;
+    public static final float PACKAGE_VERSION = 2.2f;
 
     public NdkSipExport(RemoteStorage rstorage, NdkExportOptions options) {
         super(rstorage, options);
@@ -75,40 +75,36 @@ public class NdkSipExport extends NdkExport {
     private static class SipElementVisitor extends MetsElementVisitor {
         @Override
         public void insertIntoMets(IMetsElement metsElement) throws MetsExportException {
-            try {
-                Collection<Path> packageFiles = new ArrayList<>();
-                metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
-                IMetsElement rootElement = metsElement.getMetsContext().getRootElement();
-                Path packageRoot = createPackageDir(rootElement);
 
-                if (MONOGRAPH_UNIT.equalsIgnoreCase(rootElement.getElementType())) {
-                    //metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
-                    packageFiles.addAll(saveStreams(metsElement, packageRoot));
+            Collection<Path> packageFiles = new ArrayList<>();
+            metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
+            IMetsElement rootElement = metsElement.getMetsContext().getRootElement();
+            Path packageRoot = createPackageDir(rootElement);
 
-                    for (MetsElement childElement : metsElement.getChildren()) {
-                        packageFiles.addAll(saveStreams(childElement, packageRoot));
-                    }
+            if (MONOGRAPH_UNIT.equalsIgnoreCase(rootElement.getElementType())) {
+                //metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
+                packageFiles.addAll(saveStreams(metsElement, packageRoot));
+
+                for (MetsElement childElement : metsElement.getChildren()) {
+                    packageFiles.addAll(saveStreams(childElement, packageRoot));
                 }
-
-                metsElement.getMetsContext().getFileList().addAll(
-                        packageFiles.stream().map(filePath -> {
-                            String md5 = null;
-                            long size = -1;
-                            try {
-                                md5 = DigestUtils.md5Hex(Files.readAllBytes(filePath));
-                                size = Files.size(filePath);
-                            } catch (IOException e) {
-                                LOG.warning(filePath + ": md5 or size is not calculated");
-                            }
-                            return new FileMD5Info(filePath.toString(), md5, size);
-                        }).collect(Collectors.toList()));
-
-                saveInfoFile(packageRoot, metsElement);
-            } catch (FedoraClientException | IOException e) {
-                MetsExportException ex = new MetsExportException(e.getMessage());
-                ex.addException(e.getMessage(), true, e);
-                throw ex;
             }
+
+            metsElement.getMetsContext().getFileList().addAll(
+                    packageFiles.stream().map(filePath -> {
+                        String md5 = null;
+                        long size = -1;
+                        try {
+                            md5 = DigestUtils.md5Hex(Files.readAllBytes(filePath));
+                            size = Files.size(filePath);
+                        } catch (IOException e) {
+                            LOG.warning(filePath + ": md5 or size is not calculated");
+                        }
+                        return new FileMD5Info(filePath.toString(), md5, size);
+                    }).collect(Collectors.toList()));
+
+            saveInfoFile(packageRoot, metsElement);
+
         }
 
         private void saveInfoFile(Path packageRoot, IMetsElement metsElement) throws MetsExportException {
@@ -141,43 +137,52 @@ public class NdkSipExport extends NdkExport {
         }
 
         private List<Path> saveStreams(IMetsElement metsElement, Path packageDir) throws
-                FedoraClientException, IOException {
-            List<Path> packageFiles = new ArrayList<>();
+                MetsExportException {
+            try {
+                List<Path> packageFiles = new ArrayList<>();
 
-            Optional<DatastreamType> rawDatastream = metsElement.getSourceObject().getDatastream().stream().filter(stream -> "RAW".equalsIgnoreCase(stream.getID())).findFirst();
-            if (rawDatastream.isPresent()) {
-                GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
-                InputStream dsStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                Path originalPathDoc = packageDir.resolve("original").resolve("oc_" + metsElement.getMetsContext().getPackageID() + ".pdf");
-                Files.copy(dsStream, originalPathDoc);
-                packageFiles.add(originalPathDoc);
-            }
-
-            Optional<DatastreamType> modsDatastream = metsElement.getSourceObject().getDatastream().stream().filter(stream -> "BIBLIO_MODS".equalsIgnoreCase(stream.getID())).findFirst();
-            if (modsDatastream.isPresent()) {
-                GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "BIBLIO_MODS");
-                InputStream dsStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-
-                String modsName;
-                switch (MetsUtils.getElementType(metsElement.getModel())) {
-                    case MONOGRAPH_UNIT:
-                        modsName = "mods_volume.xml";
-                        break;
-                    case MONOGRAPH_MULTIPART:
-                        modsName = "mods_title.xml";
-                        break;
-                    case CHAPTER:
-                        modsName = "mods_chapter.xml";
-                        break;
-                    default:
-                        throw new IllegalArgumentException("unknown model " + metsElement.getModel());
+                Optional<DatastreamType> rawDatastream = metsElement.getSourceObject().getDatastream().stream().filter(stream -> "RAW".equalsIgnoreCase(stream.getID())).findFirst();
+                if (rawDatastream.isPresent()) {
+                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
+                    InputStream dsStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                    Path originalPathDoc = packageDir.resolve("original").resolve("oc_" + metsElement.getMetsContext().getPackageID() + ".pdf");
+                    // check null
+                    if (Files.copy(dsStream, originalPathDoc) == 0) {
+                        throw new MetsExportException("empty RAW datastream " + metsElement.getOriginalPid());
+                    }
+                    packageFiles.add(originalPathDoc);
                 }
-                Path metadataPathDoc = packageDir.resolve("metadata").resolve(modsName);
-                Files.copy(dsStream, metadataPathDoc);
-                packageFiles.add(metadataPathDoc);
-            }
 
-            return Collections.unmodifiableList(packageFiles);
+                Optional<DatastreamType> modsDatastream = metsElement.getSourceObject().getDatastream().stream().filter(stream -> "BIBLIO_MODS".equalsIgnoreCase(stream.getID())).findFirst();
+                if (modsDatastream.isPresent()) {
+                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "BIBLIO_MODS");
+                    InputStream dsStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+
+                    String modsName;
+                    switch (MetsUtils.getElementType(metsElement.getModel())) {
+                        case MONOGRAPH_UNIT:
+                            modsName = "mods_volume.xml";
+                            break;
+                        case MONOGRAPH_MULTIPART:
+                            modsName = "mods_title.xml";
+                            break;
+                        case CHAPTER:
+                            modsName = "mods_chapter.xml";
+                            break;
+                        default:
+                            throw new IllegalArgumentException("unknown model " + metsElement.getModel());
+                    }
+                    Path metadataPathDoc = packageDir.resolve("metadata").resolve(modsName);
+                    Files.copy(dsStream, metadataPathDoc);
+                    packageFiles.add(metadataPathDoc);
+                }
+
+                return Collections.unmodifiableList(packageFiles);
+            } catch (FedoraClientException | IOException e) {
+                MetsExportException ex = new MetsExportException(e.getMessage());
+                ex.addException(e.getMessage(), true, e);
+                throw ex;
+            }
         }
     }
 }
