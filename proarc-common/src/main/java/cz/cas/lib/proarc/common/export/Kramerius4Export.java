@@ -180,7 +180,7 @@ public final class Kramerius4Export {
                 pidsToExport.add(pid);
                 RemoteObject robject = rstorage.find(pid);
                 FedoraClient client = robject.getClient();
-                DigitalObject dobj = FedoraClient.export(pid).context("archive")
+                DigitalObject dobj = FedoraClient.export(pid).context("public")
                         .format("info:fedora/fedora-system:FOXML-1.1")
                         .execute(client).getEntity(DigitalObject.class);
                 File foxml = ExportUtils.pidAsXmlFile(output, pid);
@@ -223,7 +223,7 @@ public final class Kramerius4Export {
                 pidsToExport.add(pid);
                 RemoteObject robject = rstorage.find(pid);
                 FedoraClient client = robject.getClient();
-                DigitalObject dobj = FedoraClient.export(pid).context("archive")
+                DigitalObject dobj = FedoraClient.export(pid).context("public")
                         .format("info:fedora/fedora-system:FOXML-1.1")
                         .execute(client).getEntity(DigitalObject.class);
                 for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
