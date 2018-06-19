@@ -17,6 +17,24 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.response.FedoraResponse;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
+import cz.cas.lib.proarc.mets.info.Info;
+import cz.cas.lib.proarc.mets.info.Info.Checksum;
+import cz.cas.lib.proarc.mets.info.Info.Itemlist;
+import cz.cas.lib.proarc.mets.info.Info.Titleid;
+import cz.cas.lib.proarc.mets.info.Info.Validation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -38,7 +56,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
-
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -61,33 +78,11 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import org.apache.commons.codec.binary.Hex;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.response.FedoraResponse;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-
-import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
-import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
-import cz.cas.lib.proarc.mets.info.Info;
-import cz.cas.lib.proarc.mets.info.Info.Checksum;
-import cz.cas.lib.proarc.mets.info.Info.Itemlist;
-import cz.cas.lib.proarc.mets.info.Info.Titleid;
-import cz.cas.lib.proarc.mets.info.Info.Validation;
 
 /**
  * @author Robert Simonovsky
@@ -701,7 +696,7 @@ public class MetsUtils {
         return output;
     }
 
-    private static void addModsIdentifiersRecursive(MetsElement element, Info infoJaxb) throws MetsExportException {
+    private static void addModsIdentifiersRecursive(IMetsElement element, Info infoJaxb) throws MetsExportException {
         Map<String, String> identifiers = element.getModsIdentifiers();
         for (String type : identifiers.keySet()) {
             if (Const.allowedIdentifiers.contains(type)) {
@@ -721,7 +716,7 @@ public class MetsUtils {
             }
         }
 
-        for (MetsElement child : element.getChildren()) {
+        for (IMetsElement child : element.getChildren()) {
             addModsIdentifiersRecursive(child, infoJaxb);
         }
     }

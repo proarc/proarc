@@ -17,69 +17,19 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.StringWriter;
-import java.math.BigInteger;
-import java.net.URI;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
-
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.JHoveOutput;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
@@ -89,7 +39,6 @@ import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.AreaType;
 import cz.cas.lib.proarc.mets.DivType;
-import cz.cas.lib.proarc.mets.MetsType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.FileType.FLocat;
@@ -97,9 +46,10 @@ import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.MdSecType.MdWrap;
 import cz.cas.lib.proarc.mets.MdSecType.MdWrap.XmlData;
 import cz.cas.lib.proarc.mets.Mets;
+import cz.cas.lib.proarc.mets.MetsType;
 import cz.cas.lib.proarc.mets.MetsType.FileSec;
-import cz.cas.lib.proarc.mets.MetsType.MetsHdr;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
+import cz.cas.lib.proarc.mets.MetsType.MetsHdr;
 import cz.cas.lib.proarc.mets.MetsType.MetsHdr.Agent;
 import cz.cas.lib.proarc.mets.MetsType.StructLink;
 import cz.cas.lib.proarc.mets.StructLinkType.SmLink;
@@ -130,6 +80,52 @@ import cz.cas.lib.proarc.premis.PreservationLevelComplexType;
 import cz.cas.lib.proarc.premis.RelatedEventIdentificationComplexType;
 import cz.cas.lib.proarc.premis.RelatedObjectIdentificationComplexType;
 import cz.cas.lib.proarc.premis.RelationshipComplexType;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.StringWriter;
+import java.math.BigInteger;
+import java.net.URI;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Marshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Visitor class for creating mets document out of Mets objects
@@ -1754,6 +1750,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * Adds the info about linkage between an element and page into the
      * struct-link
      *
+     * @implNote This only creates number sequence from Mods (Part->Extent->Start:Part->Extent->End).
+     * @implNote When the pages not exist the exception is thrown later by @link{ {@link #addStructLink()} }
+     *
      * @param metsElement
      */
     private void addStructLinkFromMods(IMetsElement metsElement) throws MetsExportException {
@@ -1796,7 +1795,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
         logicalDiv.getDiv().add(elementDivType);
         addInternalElements(elementDivType, metsElement);
-        for (MetsElement element : metsElement.getChildren()) {
+        for (IMetsElement element : metsElement.getChildren()) {
             if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(elementDivType, physicalDiv, element);
             } else
@@ -1830,7 +1829,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         logicalDiv.getDiv().add(elementDivType);
         addInternalElements(elementDivType, metsElement);
         addStructLinkFromMods(metsElement);
-        for (MetsElement element : metsElement.getChildren()) {
+        for (IMetsElement element : metsElement.getChildren()) {
             if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(elementDivType, physicalDiv, element);
                 // } else if (Const.PAGE.equals(element.getElementType())) {
