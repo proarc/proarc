@@ -20,6 +20,8 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
 import cz.cas.lib.proarc.common.export.archive.ArchiveImport;
+import cz.cas.lib.proarc.common.imports.audio.SoundRecordingImport;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.util.List;
@@ -39,6 +41,7 @@ public final class ImportProfile {
 
     public static final String ALTO_SUFFIX = "import.alto.file.suffix";
     public static final String MODEL_ID = "import.page.modelId";
+    public static final String MODEL_AUDIO_ID="import.ndkaudiopage.modelId";
     public static final String NDK_ARCHIVAL_PROCESSOR = "import.ndk_archival.processor";
     public static final String NDK_ARCHIVAL_SUFFIX = "import.ndk_archival.file.suffix";
     public static final String NDK_USER_PROCESSOR = "import.ndk_user.processor";
@@ -58,6 +61,8 @@ public final class ImportProfile {
     public static final String CONVERTOR_JPG_LARGE_PROCESSOR = "import.jpg_large_convertor.processor";
     public static final String CONVERTOR_JP2_PROCESSOR = "import.jp2_convertor.processor";
     public static final String CONVERTOR_TIFF_JPG_PROCESSOR = "import.tiff_to_jpg_convertor.processor";
+    public static final String NDK_ARCHOVAL_AUDIO_SUFFIX = "import.ndk_archival_audio.file.suffix";
+    public static final String NDK_USER_AUDIO_SUFFIX = "import.ndk_user_audio.file.suffix";
 
 
     private final Configuration config;
@@ -79,6 +84,8 @@ public final class ImportProfile {
     public ImportHandler createImporter() {
         if (ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT.equals(getProfileId())) {
             return new ArchiveImport();
+        } else if (ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT.equals(getProfileId())) {
+            return new SoundRecordingImport();
         } else {
             return new FileSetImport();
         }
@@ -86,6 +93,11 @@ public final class ImportProfile {
 
     public String getModelId() {
         String val = config.getString(MODEL_ID, NdkPlugin.MODEL_PAGE);
+        return val;
+    }
+
+    public String getAudioModelID() {
+        String val = config.getString(MODEL_AUDIO_ID, NdkAudioPlugin.MODEL_PAGE);
         return val;
     }
 
@@ -119,8 +131,18 @@ public final class ImportProfile {
         return suffix.toLowerCase();
     }
 
+    public String getNdkArchivalAudioFileSuffix() {
+        String suffix = config.getString(NDK_ARCHOVAL_AUDIO_SUFFIX, ".ac.wav");
+        return suffix.toLowerCase();
+    }
+
     public String getNdkUserFileSuffix() {
         String suffix = config.getString(NDK_USER_SUFFIX, ".uc.jp2");
+        return suffix.toLowerCase();
+    }
+
+    public String getNdkUserAudioFileSuffix() {
+        String suffix = config.getString(NDK_USER_AUDIO_SUFFIX, ".uc.mp3");
         return suffix.toLowerCase();
     }
 

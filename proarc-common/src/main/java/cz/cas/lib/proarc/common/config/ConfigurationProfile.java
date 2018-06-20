@@ -30,6 +30,7 @@ public class ConfigurationProfile {
     public static final String DEFAULT = "profile.default";
     /** The ID of the default archive import profile that is based on {@code proarc.cfg}. */
     public static final String DEFAULT_ARCHIVE_IMPORT = "profile.default_archive_import";
+    public static final String DEFAULT_SOUNDRECORDING_IMPORT = "profile.soundrecording_import";
     private final String id;
     private File file;
     private String label;

@@ -50,6 +50,8 @@ public final class BinaryEditor {
     public static final MediaType IMAGE_JP2 = new MediaType("image", "jp2");
     public static final MediaType IMAGE_JPEG = new MediaType("image", "jpeg");
     public static final MediaType IMAGE_TIFF = new MediaType("image", "tiff");
+    public static final MediaType AUDIO_WAVE = new MediaType("audio", "wave");
+    public static final MediaType AUDIO_MP3 = new MediaType("audio", "mp3");
     /**
      * Data stream IDs with binary contents.
      */

@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPageMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -64,6 +65,8 @@ public abstract class NdkMapper {
         if (NdkPlugin.MODEL_PAGE.equals(modelId)
                 || ModsCutomEditorType.EDITOR_PAGE.equals(modelId)) {
             mapper = new NdkPageMapper();
+        } else if (NdkAudioPlugin.MODEL_PAGE.equals(modelId)) {
+            mapper = new NdkAudioPageMapper();
         } else if (NdkPlugin.MODEL_PERIODICAL.equals(modelId)) {
             mapper = new NdkPeriodicalMapper();
         } else if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)) {

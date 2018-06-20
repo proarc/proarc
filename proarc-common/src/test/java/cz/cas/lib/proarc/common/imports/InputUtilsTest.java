@@ -69,14 +69,14 @@ public class InputUtilsTest {
 
     @Test
     public void testIsWav() throws Exception {
-        String templatePath = "test_wav.wav";
+        String templatePath = "test_wav.mc.wav";
         File result = createAudioTestFile(templatePath, new File(temp.getRoot(), "test.wav"));
         assertTrue(templatePath, InputUtils.isWave(result));
     }
 
     @Test
     public void testIsMp3() throws Exception {
-        String templatePath = "test_mp3.mp3";
+        String templatePath = "test_mp3.uc.mp3";
         File result = createAudioTestFile(templatePath, new File(temp.getRoot(), "test.wav"));
         assertTrue(templatePath, InputUtils.isMp3(result));
     }

@@ -76,6 +76,8 @@ public final class NdkForms {
             f = new NdkSoundRecordingForm().build();
         } else if ("model:ndktrack".equals(modelId)) {
             f = new NdkSoundPartForm().build();
+        } else if ("model:ndkaudiopage".equals(modelId)) {
+            return new NdkAudioPageForm(i18n, BundleName.MODS_AUDIO_PAGE_TYPES);
         } else {
             return null;
         }
