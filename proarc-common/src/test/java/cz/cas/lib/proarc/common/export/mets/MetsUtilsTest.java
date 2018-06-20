@@ -17,20 +17,29 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
-import static org.junit.Assert.*;
-
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
+import cz.cas.lib.proarc.common.export.mockrepository.MockFedoraClient;
+import cz.cas.lib.proarc.common.export.mockrepository.MockSearchView;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.mets.Mets;
+import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
+import cz.cas.lib.proarc.mets.info.Info;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
-
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import mockit.Mocked;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.junit.Assert;
@@ -39,17 +48,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
-import cz.cas.lib.proarc.mets.Mets;
-import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
-import cz.cas.lib.proarc.mets.info.Info;
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 public class MetsUtilsTest {
     private static final Logger LOG = Logger.getLogger(MetsUtilsTest.class.getName());
-    private final List<MetsExportTestElement> testElements = new ArrayList<MetsExportTestElement>();
+    private final List<MetsExportTestElement> testElements = new ArrayList<>();
+
+    @Mocked
+    private FedoraClient client;
 
     /**
      * Inits the elements to test - documents which are in repository
@@ -283,5 +290,21 @@ public class MetsUtilsTest {
             String message =  "Error - missing title. Please insert title.";
             assertEquals(message, ex.getMessage());
         }
+    }
+
+    @Test
+    public void findPSPPIDsTest() throws MetsExportException {
+        new MockFedoraClient();
+        new MockSearchView();
+
+        MetaModelRepository.setInstance("ndk", "ndkEborn");
+        RemoteStorage remoteStorage = new RemoteStorage(client);
+        MetsContext ctx = new MetsContext();
+        ctx.setRemoteStorage(remoteStorage);
+        ctx.setFedoraClient(remoteStorage.getClient());
+
+        List<String> pspIDs = MetsUtils.findPSPPIDs("uuid:26342028-12c8-4446-9217-d3c9f249bd13", ctx, true);
+        Set<String> setPspIDs = new HashSet<>(pspIDs);
+        assertTrue("pspIds aren't unique", pspIDs.size() == setPspIDs.size());
     }
 }

@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -107,7 +108,7 @@ public class NdkExport {
      * @param keepResult delete or not export folder on exit
      * @param log message for storage logging
      * @return Result with target path and possible errors
-     * @throws ExportException
+     * @throws ExportException contains PID and exception
      */
     private Result export(File target, String pid,
                           boolean hierarchy, boolean keepResult, String log) throws ExportException {
@@ -140,7 +141,7 @@ public class NdkExport {
         }
     }
 
-    protected MetsElementVisitor createMetsVisitor() {
+    protected IMetsElementVisitor createMetsVisitor() {
         return new MetsElementVisitor();
     }
 
