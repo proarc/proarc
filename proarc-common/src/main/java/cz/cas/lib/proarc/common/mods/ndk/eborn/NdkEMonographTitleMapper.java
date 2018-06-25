@@ -14,7 +14,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cz.cas.lib.proarc.common.mods.ndk;
+package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
-public class NdkEChapterMapper extends NdkChapterMapper {
+import cz.cas.lib.proarc.common.mods.ndk.NdkMonographTitleMapper;
+
+public class NdkEMonographTitleMapper extends NdkMonographTitleMapper {
 }

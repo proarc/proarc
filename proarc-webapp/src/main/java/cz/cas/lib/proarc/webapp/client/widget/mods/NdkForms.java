@@ -18,9 +18,16 @@ package cz.cas.lib.proarc.webapp.client.widget.mods;
 
 import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.cas.lib.proarc.common.i18n.BundleName;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEArticleForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEPeriodicalForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEPeriodicalIssueForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEPeriodicalVolumeForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographChapterForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographTitleForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographVolumeForm;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
@@ -77,8 +84,20 @@ public final class NdkForms {
             f = new NdkSongForm().build();
         } else if ("model:ndktrack".equals(modelId)) {
             f = new NdkTrackForm().build();
-        } else if ("model:ndkemonographvolume".equals(modelId)) {
+        } else if (NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)) {
             f = new NdkEmonographVolumeForm().build();
+        } else if (NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId)) {
+            f = new NdkEmonographChapterForm().build();
+        } else if (NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(modelId)) {
+            f = new NdkEmonographTitleForm().build();
+        } else if (NdkEbornPlugin.MODEL_EPERIODICAL.equals(modelId)) {
+            f = new NdkEPeriodicalForm().build();
+        } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)) {
+            f = new NdkEPeriodicalIssueForm().build();
+        } else if (NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(modelId)) {
+            f = new NdkEPeriodicalVolumeForm().build();
+        } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
+            f = new NdkEArticleForm().build();
         } else {
             return null;
         }

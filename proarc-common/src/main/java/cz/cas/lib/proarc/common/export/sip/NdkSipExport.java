@@ -25,6 +25,7 @@ import java.io.File;
 
 /**
  * @see <a href="http://www.ndk.cz/standardy-digitalizace/E_born_MONO_NDK_22.pdf">Specification of emonograph</a>
+ * @see <a href="https://www.ndk.cz/standardy-digitalizace/dmf_eborn_perio">Specification of eperiodical</a>
  */
 public class NdkSipExport extends NdkExport {
     static final float PACKAGE_VERSION = 2.2f;

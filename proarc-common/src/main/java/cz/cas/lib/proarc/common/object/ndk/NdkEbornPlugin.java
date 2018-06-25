@@ -54,6 +54,11 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
     public static final String MODEL_EMONOGRAPHTITLE = "model:ndkemonographtitle";
     public static final String MODEL_ECHAPTER = "model:ndkechapter";
 
+    public static final String MODEL_EPERIODICALISSUE = "model:ndkeperiodicalissue";
+    public static final String MODEL_EPERIODICALVOLUME = "model:ndkeperiodicalvolume";
+    public static final String MODEL_EPERIODICAL = "model:ndkeperiodical";
+    public static final String MODEL_EARTICLE = "model:ndkearticle";
+
     public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "MONOGRAPH_UNIT");
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, "MONOGRAPH_MULTIPART");
@@ -66,6 +71,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
     }
 
     @Override
+    //TODO-MR check these relations, now it is just copied from ndkplugin
     public Collection<MetaModel> getModel() {
         List<MetaModel> models = new ArrayList<>();
 
@@ -102,6 +108,51 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
                         DatastreamEditorType.ATM),
                 //new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)} why periodical?
                 new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_EPERIODICAL, true, null,
+                Arrays.asList(new ElementType("NDK ePeriodical", "en"), new ElementType("NDK ePeriodikum", "cs")),
+                ModsConstants.NS,
+                MODEL_EPERIODICAL,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[] {}
+        ));
+        models.add(new MetaModel(
+                MODEL_EPERIODICALVOLUME, null, null,
+                Arrays.asList(new ElementType("NDK ePeriodical Volume", "en"), new ElementType("NDK eRočník", "cs")),
+                ModsConstants.NS,
+                MODEL_EPERIODICALVOLUME,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICAL, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_EPERIODICALISSUE, null, null,
+                Arrays.asList(new ElementType("NDK ePeriodical Issue", "en"), new ElementType("NDK eČíslo", "cs")),
+                ModsConstants.NS,
+                MODEL_EPERIODICALISSUE,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_EARTICLE, null, null,
+                Arrays.asList(new ElementType("NDK eArticle", "en"), new ElementType("NDK eČlánek", "cs")),
+                ModsConstants.NS,
+                MODEL_EARTICLE,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.OCR, DatastreamEditorType.MEDIA,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICALISSUE, RelationCriteria.Type.PID)}
+
         ));
 
         return Collections.unmodifiableList(models);

@@ -44,7 +44,7 @@ import java.util.List;
  *
  * @author Jan Pokorsky
  */
-final class MapperUtils {
+public final class MapperUtils {
 
     static ModsDefinition addPid(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);
@@ -60,7 +60,7 @@ final class MapperUtils {
         return mods;
     }
 
-    static GenreDefinition addGenre(ModsDefinition mods, String value) {
+    public static GenreDefinition addGenre(ModsDefinition mods, String value) {
         List<GenreDefinition> genres = mods.getGenre();
         GenreDefinition reqGenre = null;
         for (GenreDefinition genre : genres) {

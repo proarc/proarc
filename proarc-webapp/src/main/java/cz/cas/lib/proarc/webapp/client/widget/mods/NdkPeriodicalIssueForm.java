@@ -28,7 +28,7 @@ import java.util.List;
  *
  * @author Jan Pokorsky
  */
-public final class NdkPeriodicalIssueForm {
+public class NdkPeriodicalIssueForm {
 
     public Form build() {
         Form f = new Form();

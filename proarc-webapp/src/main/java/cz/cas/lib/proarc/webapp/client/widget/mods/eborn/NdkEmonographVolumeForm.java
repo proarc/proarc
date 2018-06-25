@@ -16,19 +16,18 @@
 
 package cz.cas.lib.proarc.webapp.client.widget.mods.eborn;
 
-import java.util.List;
-
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
+import java.util.List;
 
 /**
  * http://www.ndk.cz/standardy-digitalizace/E_born_MONO_NDK_22.pdf
  * 3.5.2
  */
-public class NdkEmonographVolumeForm {
+public final class NdkEmonographVolumeForm {
 
     public Form build() {
         Form f = new Form();
@@ -439,7 +438,6 @@ public class NdkEmonographVolumeForm {
                         .createField()) // form
                 // reformattingQuality
                 // internetMediaType
-                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setHint("Indikátor zdroje digitálního dokumentu").createField())
                 // extent, stringPlusLanguagePlusSupplied
                 .addField(new FieldBuilder("extent").setTitle("Extent - RA").setMaxOccurrences(5)
                         // stringPlusLanguagePlusSupplied: @supplied
@@ -449,6 +447,8 @@ public class NdkEmonographVolumeForm {
                                         + "<p>Odpovídá hodnotě v poli 300, podpole „a“, „b“ a „c“")
                                 .createField()) // value
                         .createField()) // extent
+                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Indikátor zdroje digitálního dokumentu").createField())
                 // note, physicalDescriptionNote extends stringPlusLanguage
                 .createField(); // physicalDescription
     }

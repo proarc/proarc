@@ -20,6 +20,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
+import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEArticleMapper;
+import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEChapterMapper;
+import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEMonographTitleMapper;
+import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEMonographVolumeMapper;
+import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalIssueMapper;
+import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalMapper;
+import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalVolumeMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
@@ -36,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.empire.commons.StringUtils;
+
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
@@ -101,6 +109,14 @@ public abstract class NdkMapper {
             mapper = new NdkEMonographTitleMapper();
         } else if (NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId)) {
             mapper = new NdkEChapterMapper();
+        } else if (NdkEbornPlugin.MODEL_EPERIODICAL.equals(modelId)) {
+            mapper = new NdkEPeriodicalMapper();
+        } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)) {
+            mapper = new NdkEPeriodicalIssueMapper();
+        } else if (NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(modelId)) {
+            mapper = new NdkEPeriodicalVolumeMapper();
+        } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
+            mapper = new NdkEArticleMapper();
         } else {
             throw new IllegalStateException("Unsupported model: " + modelId);
         }

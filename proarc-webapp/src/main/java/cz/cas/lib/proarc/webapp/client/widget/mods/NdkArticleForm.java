@@ -28,7 +28,7 @@ import java.util.List;
  *
  * @author Jan Pokorsky
  */
-public final class NdkArticleForm {
+public class NdkArticleForm {
 
     public Form build() {
         Form f = new Form();
