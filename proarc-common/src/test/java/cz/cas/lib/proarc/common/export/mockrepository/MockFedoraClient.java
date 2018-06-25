@@ -113,7 +113,7 @@ public class MockFedoraClient extends MockUp<FedoraClient> {
                                 SimpleNamespaceContext namespaces = new SimpleNamespaceContext().add("foxml", "info:fedora/fedora-system:def/foxml#");
                                 xPath.setNamespaceContext(namespaces);
                                 Document datastreamXML = db.newDocument();
-                                Node node = (Node) xPath.compile("//foxml:datastream[@ID='BIBLIO_MODS']").evaluate(objectXML, XPathConstants.NODE);
+                                Node node = (Node) xPath.compile("//foxml:datastream[@ID='" + dsId + "']").evaluate(objectXML, XPathConstants.NODE);
                                 Node importedNode = datastreamXML.importNode(node, true);
                                 datastreamXML.appendChild(importedNode);
 

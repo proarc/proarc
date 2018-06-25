@@ -79,7 +79,6 @@ public class NdkSipExportTest {
         new MockSearchView();
 
         remoteStorage = new RemoteStorage(client);
-//
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 appConfig,
                 null,

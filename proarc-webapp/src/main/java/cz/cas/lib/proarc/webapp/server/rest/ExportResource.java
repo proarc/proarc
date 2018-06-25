@@ -46,7 +46,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -443,8 +442,13 @@ public class ExportResource {
             return target;
         }
 
+        /**
+         * Muset be mutable {@link ExportResource#newArchive(List)}
+         * @return
+         */
+        @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
         public List<ExportError> getErrors() {
-            return Collections.unmodifiableList(errors);
+            return errors;
         }
 
         public void setExportId(Integer exportId) {
