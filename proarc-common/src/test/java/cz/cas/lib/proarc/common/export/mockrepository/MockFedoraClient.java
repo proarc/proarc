@@ -44,6 +44,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 
+/**
+ * Mock of Fedora Object repository. If you add some foxml object to resources, you should manually add relation to {@link MockSearchView}.
+ */
 public class MockFedoraClient extends MockUp<FedoraClient> {
     private static final int STATUS_OK = 200;
 

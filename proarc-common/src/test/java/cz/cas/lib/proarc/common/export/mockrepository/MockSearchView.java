@@ -38,6 +38,10 @@ import mockit.Mocked;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 
+/**
+ * Part of mocking of Fedora repository (risearch). Methods which are neccessary for NDK SIP export are implemented.
+ * Others method returns null, so please don't blame me when you get nullpointerexception and expand this class :-)
+ */
 public class MockSearchView extends MockUp<SearchView> {
 
     @Mocked
@@ -48,9 +52,9 @@ public class MockSearchView extends MockUp<SearchView> {
         //child (has) parent
         Map<String, String> relations = new HashMap<>();
         relations.put("uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4", "uuid:26342028-12c8-4446-9217-d3c9f249bd13");
-        relations.put("uuid:d5d5e950-3668-4458-8fdb-aeb7028f4fcc", "uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4");
+        relations.put("uuid:d5d5e950-3668-4458-8fdb-aeb7028f4fcc", "uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4"); // echapter has emonographvolume
+        relations.put("uuid:b04c5787-49ef-4c62-91e0-4252e98bdca5", "uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4"); // echapter has emonographvolume
         relations.put("uuid:26342028-12c8-4446-9217-d3c9f249bd13", null);
-        relations.put("uuid:acd66301-4e75-4d12-9d98-b323ff5beee9", null);
 
         if (relations.containsKey(pid)) {
             return relations.get(pid) == null ? Collections.EMPTY_LIST :Collections.singletonList(new SearchView.Item(relations.get(pid)));

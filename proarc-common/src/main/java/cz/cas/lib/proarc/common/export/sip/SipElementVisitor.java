@@ -48,6 +48,8 @@ class SipElementVisitor implements IMetsElementVisitor {
 
     private static final Logger LOG = Logger.getLogger(NdkSipExport.class.getName());
 
+    private int chapterCounter = 0;
+
     @Override
     public void insertIntoMets(IMetsElement metsElement) throws MetsExportException {
 
@@ -69,6 +71,11 @@ class SipElementVisitor implements IMetsElementVisitor {
                 for (MetsElement childElement: metsElement.getChildren()) {
                     packageFiles.addAll(saveStreams(childElement, packageRoot));
                 }
+
+                if (metsElement.getParent() != null) {
+                    packageFiles.addAll(saveStreams(metsElement.getParent(), packageRoot));
+                }
+
                 break;
             default:
                 throw new MetsExportException("Uknown element type " + rootElement.getElementType());
@@ -152,7 +159,10 @@ class SipElementVisitor implements IMetsElementVisitor {
                         modsName = "mods_volume.xml";
                         break;
                     case CHAPTER:
-                        modsName = "mods_chapter.xml";
+                        modsName = "mods_chapter" + String.format("%04d", ++chapterCounter) + ".xml";
+                        break;
+                    case MONOGRAPH_MULTIPART:
+                        modsName = "mods_title.xml";
                         break;
                     default:
                         throw new IllegalArgumentException("unknown model " + metsElement.getModel());

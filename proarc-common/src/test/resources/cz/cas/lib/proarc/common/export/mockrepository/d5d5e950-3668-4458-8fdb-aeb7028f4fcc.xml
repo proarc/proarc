@@ -5,14 +5,13 @@
                      xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
     <foxml:objectProperties>
         <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
-        <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="?"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="Testovací eKapitola 1"/>
         <foxml:property NAME="info:fedora/fedora-system:def/model#ownerId" VALUE="proarc"/>
         <foxml:property NAME="info:fedora/fedora-system:def/model#createdDate" VALUE="2018-06-12T10:07:41.338Z"/>
-        <foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="2018-06-12T10:07:41.338Z"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="2018-06-25T14:57:23.184Z"/>
     </foxml:objectProperties>
     <foxml:datastream ID="AUDIT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="false">
-        <foxml:datastreamVersion ID="AUDIT.0" LABEL="Audit Trail for this object" CREATED="2018-06-12T10:07:41.338Z"
-                                 MIMETYPE="text/xml" FORMAT_URI="info:fedora/fedora-system:format/xml.fedora.audit">
+        <foxml:datastreamVersion ID="AUDIT.0" LABEL="Audit Trail for this object" CREATED="2018-06-12T10:07:41.338Z" MIMETYPE="text/xml" FORMAT_URI="info:fedora/fedora-system:format/xml.fedora.audit">
             <foxml:xmlContent>
                 <audit:auditTrail xmlns:audit="info:fedora/fedora-system:def/audit#">
                     <audit:record ID="AUDREC1">
@@ -23,52 +22,119 @@
                         <audit:date>2018-06-12T10:07:41.338Z</audit:date>
                         <audit:justification>{&quot;proarc&quot;:{&quot;user&quot;:&quot;proarc&quot;,&quot;ip&quot;:&quot;0:0:0:0:0:0:0:1&quot;}}</audit:justification>
                     </audit:record>
+                    <audit:record ID="AUDREC2">
+                        <audit:process type="Fedora API-M"/>
+                        <audit:action>modifyDatastreamByValue</audit:action>
+                        <audit:componentID>RELS-EXT</audit:componentID>
+                        <audit:responsibility>fedoraAdmin</audit:responsibility>
+                        <audit:date>2018-06-25T05:19:06.970Z</audit:date>
+                        <audit:justification>{&quot;proarc&quot;:{&quot;user&quot;:&quot;proarc&quot;,&quot;ip&quot;:&quot;127.0.0.1&quot;}}</audit:justification>
+                    </audit:record>
+                    <audit:record ID="AUDREC3">
+                        <audit:process type="Fedora API-M"/>
+                        <audit:action>modifyDatastreamByValue</audit:action>
+                        <audit:componentID>RELS-EXT</audit:componentID>
+                        <audit:responsibility>fedoraAdmin</audit:responsibility>
+                        <audit:date>2018-06-25T05:20:31.179Z</audit:date>
+                        <audit:justification>{&quot;proarc&quot;:{&quot;user&quot;:&quot;proarc&quot;,&quot;ip&quot;:&quot;127.0.0.1&quot;}}</audit:justification>
+                    </audit:record>
+                    <audit:record ID="AUDREC4">
+                        <audit:process type="Fedora API-M"/>
+                        <audit:action>modifyDatastreamByValue</audit:action>
+                        <audit:componentID>RELS-EXT</audit:componentID>
+                        <audit:responsibility>fedoraAdmin</audit:responsibility>
+                        <audit:date>2018-06-25T05:46:29.332Z</audit:date>
+                        <audit:justification>{&quot;proarc&quot;:{&quot;user&quot;:&quot;proarc&quot;,&quot;ip&quot;:&quot;0:0:0:0:0:0:0:1&quot;}}</audit:justification>
+                    </audit:record>
+                    <audit:record ID="AUDREC5">
+                        <audit:process type="Fedora API-M"/>
+                        <audit:action>modifyDatastreamByValue</audit:action>
+                        <audit:componentID>RELS-EXT</audit:componentID>
+                        <audit:responsibility>fedoraAdmin</audit:responsibility>
+                        <audit:date>2018-06-25T14:54:03.129Z</audit:date>
+                        <audit:justification>{&quot;proarc&quot;:{&quot;user&quot;:&quot;proarc&quot;,&quot;ip&quot;:&quot;0:0:0:0:0:0:0:1&quot;}}</audit:justification>
+                    </audit:record>
+                    <audit:record ID="AUDREC6">
+                        <audit:process type="Fedora API-M"/>
+                        <audit:action>modifyDatastreamByValue</audit:action>
+                        <audit:componentID>BIBLIO_MODS</audit:componentID>
+                        <audit:responsibility>fedoraAdmin</audit:responsibility>
+                        <audit:date>2018-06-25T14:56:22.899Z</audit:date>
+                        <audit:justification>{&quot;proarc&quot;:{&quot;user&quot;:&quot;proarc&quot;,&quot;ip&quot;:&quot;0:0:0:0:0:0:0:1&quot;}}</audit:justification>
+                    </audit:record>
+                    <audit:record ID="AUDREC7">
+                        <audit:process type="Fedora API-M"/>
+                        <audit:action>modifyDatastreamByValue</audit:action>
+                        <audit:componentID>DC</audit:componentID>
+                        <audit:responsibility>fedoraAdmin</audit:responsibility>
+                        <audit:date>2018-06-25T14:56:22.988Z</audit:date>
+                        <audit:justification>{&quot;proarc&quot;:{&quot;user&quot;:&quot;proarc&quot;,&quot;ip&quot;:&quot;0:0:0:0:0:0:0:1&quot;}}</audit:justification>
+                    </audit:record>
+                    <audit:record ID="AUDREC8">
+                        <audit:process type="Fedora API-M"/>
+                        <audit:action>modifyObject</audit:action>
+                        <audit:componentID></audit:componentID>
+                        <audit:responsibility>fedoraAdmin</audit:responsibility>
+                        <audit:date>2018-06-25T14:56:23.058Z</audit:date>
+                        <audit:justification></audit:justification>
+                    </audit:record>
+                    <audit:record ID="AUDREC9">
+                        <audit:process type="Fedora API-M"/>
+                        <audit:action>modifyDatastreamByValue</audit:action>
+                        <audit:componentID>RELS-EXT</audit:componentID>
+                        <audit:responsibility>fedoraAdmin</audit:responsibility>
+                        <audit:date>2018-06-25T14:56:37.696Z</audit:date>
+                        <audit:justification>{&quot;proarc&quot;:{&quot;user&quot;:&quot;proarc&quot;,&quot;ip&quot;:&quot;0:0:0:0:0:0:0:1&quot;}}</audit:justification>
+                    </audit:record>
+                    <audit:record ID="AUDREC10">
+                        <audit:process type="Fedora API-M"/>
+                        <audit:action>modifyDatastreamByValue</audit:action>
+                        <audit:componentID>RELS-EXT</audit:componentID>
+                        <audit:responsibility>fedoraAdmin</audit:responsibility>
+                        <audit:date>2018-06-25T14:57:23.184Z</audit:date>
+                        <audit:justification>{&quot;proarc&quot;:{&quot;user&quot;:&quot;proarc&quot;,&quot;ip&quot;:&quot;0:0:0:0:0:0:0:1&quot;}}</audit:justification>
+                    </audit:record>
                 </audit:auditTrail>
             </foxml:xmlContent>
         </foxml:datastreamVersion>
     </foxml:datastream>
-    <foxml:datastream ID="RELS-EXT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="false">
-        <foxml:datastreamVersion ID="RELS-EXT.0" LABEL="RDF Statements about this object"
-                                 CREATED="2018-06-12T10:07:41.338Z" MIMETYPE="text/xml"
-                                 FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0" SIZE="458">
-            <foxml:xmlContent>
-                <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-                         xmlns:fedora-model="info:fedora/fedora-system:def/model#">
-                    <rdf:Description rdf:about="info:fedora/uuid:d5d5e950-3668-4458-8fdb-aeb7028f4fcc">
-                        <fedora-model:hasModel rdf:resource="info:fedora/model:ndkechapter"></fedora-model:hasModel>
-                    </rdf:Description>
-                </rdf:RDF>
-            </foxml:xmlContent>
-        </foxml:datastreamVersion>
-    </foxml:datastream>
     <foxml:datastream ID="BIBLIO_MODS" STATE="A" CONTROL_GROUP="X" VERSIONABLE="false">
-        <foxml:datastreamVersion ID="BIBLIO_MODS.0" LABEL="Metadata Object Description"
-                                 CREATED="2018-06-12T10:07:41.338Z" MIMETYPE="text/xml"
-                                 FORMAT_URI="http://www.loc.gov/mods/v3" SIZE="438">
+        <foxml:datastreamVersion ID="BIBLIO_MODS.1" LABEL="Metadata Object Description" CREATED="2018-06-25T14:56:22.899Z" MIMETYPE="text/xml" FORMAT_URI="http://www.loc.gov/mods/v3" SIZE="552">
             <foxml:xmlContent>
-                <mods:mods xmlns:mods="http://www.loc.gov/mods/v3" version="3.5">
+                <mods:mods xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xlink="http://www.w3.org/1999/xlink" version="3.5">
                     <mods:genre>chapter</mods:genre>
                     <mods:identifier type="uuid">d5d5e950-3668-4458-8fdb-aeb7028f4fcc</mods:identifier>
                     <mods:recordInfo>
                         <mods:recordCreationDate encoding="iso8601">20180612T120741</mods:recordCreationDate>
-                        <mods:recordChangeDate encoding="iso8601">20180612T120741</mods:recordChangeDate>
+                        <mods:recordChangeDate encoding="iso8601">20180625T165622</mods:recordChangeDate>
                     </mods:recordInfo>
+                    <mods:titleInfo>
+                        <mods:title>Testovací eKapitola 1</mods:title>
+                    </mods:titleInfo>
                 </mods:mods>
             </foxml:xmlContent>
         </foxml:datastreamVersion>
     </foxml:datastream>
     <foxml:datastream ID="DC" STATE="A" CONTROL_GROUP="X" VERSIONABLE="false">
-        <foxml:datastreamVersion ID="DC.0" LABEL="Dublin Core Record for this object" CREATED="2018-06-12T10:07:41.338Z"
-                                 MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/"
-                                 SIZE="409">
+        <foxml:datastreamVersion ID="DC.1" LABEL="Dublin Core Record for this object" CREATED="2018-06-25T14:56:22.988Z" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/" SIZE="455">
             <foxml:xmlContent>
-                <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
-                           xmlns:dc="http://purl.org/dc/elements/1.1/"
-                           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                           xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+                <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+                    <dc:title>Testovací eKapitola 1</dc:title>
                     <dc:type>model:ndkechapter</dc:type>
                     <dc:identifier>uuid:d5d5e950-3668-4458-8fdb-aeb7028f4fcc</dc:identifier>
                 </oai_dc:dc>
+            </foxml:xmlContent>
+        </foxml:datastreamVersion>
+    </foxml:datastream>
+    <foxml:datastream ID="RELS-EXT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="false">
+        <foxml:datastreamVersion ID="RELS-EXT.6" LABEL="RDF Statements about this object" CREATED="2018-06-25T14:57:23.184Z" MIMETYPE="text/xml" FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0" SIZE="619">
+            <foxml:xmlContent>
+                <rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:fedora-rels-ext="info:fedora/fedora-system:def/relations-external#" xmlns:proarc-rels="http://proarc.lib.cas.cz/relations#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                    <rdf:Description rdf:about="info:fedora/uuid:d5d5e950-3668-4458-8fdb-aeb7028f4fcc">
+                        <fedora-model:hasModel rdf:resource="info:fedora/model:ndkechapter"></fedora-model:hasModel>
+                        <proarc-rels:hasExport>file:/C:/Users/martin.rumanek/.proarc/users/proarc_1/export/d5d5e950-3668-4458-8fdb-aeb7028f4fcc/</proarc-rels:hasExport>
+                    </rdf:Description>
+                </rdf:RDF>
             </foxml:xmlContent>
         </foxml:datastreamVersion>
     </foxml:datastream>
