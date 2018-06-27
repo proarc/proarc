@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -46,12 +47,13 @@ import static cz.cas.lib.proarc.common.export.mets.Const.MONOGRAPH_UNIT;
 
 class SipElementVisitor implements IMetsElementVisitor {
 
-    private static final Logger LOG = Logger.getLogger(NdkSipExport.class.getName());
+    private static final Logger LOG = Logger.getLogger(SipElementVisitor.class.getName());
 
     private int chapterCounter = 0;
 
     @Override
     public void insertIntoMets(IMetsElement metsElement) throws MetsExportException {
+        Objects.requireNonNull(metsElement, "metsElement can not be null");
 
         Collection<Path> packageFiles = new ArrayList<>();
         metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
@@ -78,7 +80,7 @@ class SipElementVisitor implements IMetsElementVisitor {
 
                 break;
             default:
-                throw new MetsExportException("Uknown element type " + rootElement.getElementType());
+                throw new MetsExportException("Unknown element type " + rootElement.getElementType());
         }
 
         metsElement.getMetsContext().getFileList().addAll(

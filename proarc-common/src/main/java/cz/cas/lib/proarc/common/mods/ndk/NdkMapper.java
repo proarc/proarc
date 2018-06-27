@@ -19,17 +19,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
-import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
-import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEArticleMapper;
-import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEChapterMapper;
-import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEMonographTitleMapper;
-import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEMonographVolumeMapper;
-import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalIssueMapper;
-import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalMapper;
-import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalVolumeMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
@@ -61,65 +51,16 @@ public abstract class NdkMapper {
      */
     private String modelId;
 
+    private static final NdkMapperFactory ndkMapperFactory = new NdkMapperFactory();
+
     /**
      * Gets a NDK mapper for the given model ID.
      * @param modelId model ID
      * @return the mapper
-     * @deprecated Replaced with {@link NdkMapperFactory#get}.
      */
     @Deprecated
     public static NdkMapper get(String modelId) {
-        NdkMapper mapper;
-        if (NdkPlugin.MODEL_PAGE.equals(modelId)
-                || ModsCutomEditorType.EDITOR_PAGE.equals(modelId)) {
-            mapper = new NdkPageMapper();
-        } else if (NdkPlugin.MODEL_PERIODICAL.equals(modelId)) {
-            mapper = new NdkPeriodicalMapper();
-        } else if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)) {
-            mapper = new NdkPeriodicalVolumeMapper();
-        } else if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)) {
-            mapper = new NdkPeriodicalIssueMapper();
-        } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
-            mapper = new NdkPeriodicalSupplementMapper();
-        } else if (NdkPlugin.MODEL_ARTICLE.equals(modelId)) {
-            mapper = new NdkArticleMapper();
-        } else if (NdkPlugin.MODEL_PICTURE.equals(modelId)) {
-            mapper = new NdkPictureMapper();
-        } else if (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)) {
-            mapper = new NdkMonographTitleMapper();
-        } else if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
-            mapper = new NdkMonographVolumeMapper();
-        } else if (NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(modelId)) {
-            mapper = new NdkMonographSupplementMapper();
-        } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
-            mapper = new NdkChapterMapper();
-        } else if (NdkPlugin.MODEL_CARTOGRAPHIC.equals(modelId)) {
-            mapper = new NdkCartographicMapper();
-        } else if (NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)) {
-            mapper = new NdkSheetMusicMapper();
-        } else if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(modelId)) {
-            mapper = new NdkMusicDocumentMapper();
-        } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
-            mapper = new NdkSongMapper();
-        } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
-            mapper = new NdkTrackMapper();
-        } else if (NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)) {
-            mapper = new NdkEMonographVolumeMapper();
-        } else if (NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(modelId)) {
-            mapper = new NdkEMonographTitleMapper();
-        } else if (NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId)) {
-            mapper = new NdkEChapterMapper();
-        } else if (NdkEbornPlugin.MODEL_EPERIODICAL.equals(modelId)) {
-            mapper = new NdkEPeriodicalMapper();
-        } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)) {
-            mapper = new NdkEPeriodicalIssueMapper();
-        } else if (NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(modelId)) {
-            mapper = new NdkEPeriodicalVolumeMapper();
-        } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
-            mapper = new NdkEArticleMapper();
-        } else {
-            throw new IllegalStateException("Unsupported model: " + modelId);
-        }
+        NdkMapper mapper = ndkMapperFactory.get(modelId);
         mapper.modelId = modelId;
         return mapper;
     }

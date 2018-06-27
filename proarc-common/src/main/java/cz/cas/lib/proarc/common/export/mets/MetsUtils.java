@@ -168,7 +168,13 @@ public class MetsUtils {
         }
     }
 
-    public static String getElementType(String model) {
+    /**
+     *
+     * @param model fedora model with info prefix
+     * @return simplified name of model
+     * @throws NoSuchElementException no mapping for model<->type
+     */
+    public static String getElementType(String  model) {
         String type = Const.typeMap.get(model);
         if (type == null) {
             List<NdkEbornPlugin> plugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()

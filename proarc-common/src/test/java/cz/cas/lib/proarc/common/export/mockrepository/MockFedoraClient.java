@@ -25,6 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Optional;
 import javax.xml.parsers.DocumentBuilder;
@@ -48,8 +49,6 @@ import org.w3c.dom.Node;
  * Mock of Fedora Object repository. If you add some foxml object to resources, you should manually add relation to {@link MockSearchView}.
  */
 public class MockFedoraClient extends MockUp<FedoraClient> {
-    private static final int STATUS_OK = 200;
-
     @Mock
     GetObjectXML getObjectXML(String pid) {
         return new GetObjectXML(pid) {
@@ -58,7 +57,7 @@ public class MockFedoraClient extends MockUp<FedoraClient> {
                 return new FedoraResponse() {
                     @Override
                     public int getStatus() {
-                        return STATUS_OK;
+                        return HttpURLConnection.HTTP_OK;
                     }
 
                     @Override
@@ -97,7 +96,7 @@ public class MockFedoraClient extends MockUp<FedoraClient> {
                 return new FedoraResponse() {
                     @Override
                     public int getStatus() {
-                        return STATUS_OK;
+                        return HttpURLConnection.HTTP_OK;
                     }
 
                     @Override

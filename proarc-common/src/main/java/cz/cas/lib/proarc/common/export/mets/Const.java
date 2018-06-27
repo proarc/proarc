@@ -22,7 +22,6 @@ import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +34,7 @@ import java.util.Map;
  *
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class Const {
+public final class Const {
     public final static String FEDORAPREFIX = "info:fedora/";
     public static final HashMap<String, List<String>> streamMapping;
     public static final List<String> allowedIdentifiers = new ArrayList<>();
@@ -99,8 +98,9 @@ public class Const {
     public static final String ALTO_GRP_ID = "ALTOGRP";
     public static final String UC_GRP_ID = "UC_IMGGRP";
     public static final String TXT_GRP_ID = "TXTGRP";
+    public static final String TECHMDGRP = "TECHMDGRP";
 
-    public static final Collection<String> PSPElements = new ArrayList<>();
+    public static final List<String> PSPElements = new ArrayList<>();
 
     public final static Map<String, String> typeMap = new HashMap<>();
     public final static Map<String, String> typeNameMap = new HashMap<>();
@@ -108,6 +108,10 @@ public class Const {
     // Tech MD creation constants
     public final static Map<String, String> dataStreamToModel = new HashMap<>();
     public final static Map<String, String> dataStreamToEvent = new HashMap<>();
+
+    private Const() {
+    }
+
 
     static {
         allowedIdentifiers.add("isbn");
@@ -173,20 +177,20 @@ public class Const {
         streamMapping.put(TXT_GRP_ID, new ArrayList<>());
         streamMapping.get(TXT_GRP_ID).add(StringEditor.OCR_ID);
 
-        streamMapping.put("TECHMDGRP", new ArrayList<>());
-        streamMapping.get("TECHMDGRP").add("FULL_AMD");
+        streamMapping.put(TECHMDGRP, new ArrayList<>());
+        streamMapping.get(TECHMDGRP).add("FULL_AMD");
 
         streamMappingPrefix.put(MC_GRP_ID, "mc");
         streamMappingPrefix.put(UC_GRP_ID, "uc");
         streamMappingPrefix.put(ALTO_GRP_ID, "alto");
         streamMappingPrefix.put(TXT_GRP_ID, "txt");
-        streamMappingPrefix.put("TECHMDGRP", "amd_mets");
+        streamMappingPrefix.put(TECHMDGRP, "amd_mets");
 
         streamMappingFile.put(MC_GRP_ID, "mastercopy");
         streamMappingFile.put(UC_GRP_ID, "usercopy");
         streamMappingFile.put(ALTO_GRP_ID, "alto");
         streamMappingFile.put(TXT_GRP_ID, "txt");
-        streamMappingFile.put("TECHMDGRP", "amdsec");
+        streamMappingFile.put(TECHMDGRP, "amdsec");
 
         canContainPage.add(Const.ISSUE);
         canContainPage.add(Const.MONOGRAPH_MULTIPART);
