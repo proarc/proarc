@@ -28,7 +28,7 @@ import java.util.List;
  *
  * @author Jan Pokorsky
  */
-public final class NdkArticleForm {
+public class NdkArticleForm {
 
     public Form build() {
         Form f = new Form();
@@ -52,7 +52,7 @@ public final class NdkArticleForm {
         return f;
     }
 
-    private Field titleInfo(String width) {
+    protected Field titleInfo(String width) {
         // titleInfo, titleInfoDefinition
         return new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
                 .setHint("Názvová informace vnitřní části.")
@@ -107,7 +107,7 @@ public final class NdkArticleForm {
             .createField(); // titleInfo
     }
 
-    private Field name() {
+    protected Field name() {
         // name, nameDefinition
         return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
                 .setHint("Údaje o odpovědnosti za článek.")
@@ -170,7 +170,7 @@ public final class NdkArticleForm {
             .createField(); // name
     }
 
-    private Field genre() {
+    protected Field genre() {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
         return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(1)
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
@@ -197,7 +197,7 @@ public final class NdkArticleForm {
         .createField(); // genre
     }
 
-    private Field language() {
+    protected Field language() {
         // language, languageDefinition
         return new FieldBuilder("language").setTitle("Languages - MA").setMaxOccurrences(10)
                 .setHint("Údaje o jazyce dokumentu; v případě vícenásobného výskytu nutno element &lt;language> opakovat")
@@ -229,7 +229,7 @@ public final class NdkArticleForm {
         .createField(); // language
     }
 
-    private Field physicalDescription() {
+    protected Field physicalDescription() {
         // physicalDescription, physicalDescriptionDefinition
         return new FieldBuilder("physicalDescription").setTitle("Physical Description - R").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu článku.")
@@ -286,7 +286,7 @@ public final class NdkArticleForm {
         .createField(); // note
     }
 
-    private Field subject() {
+    protected Field subject() {
         // subject, subjectDefinition
         return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
                 .setHint("Údaje o věcném třídění.")
@@ -368,7 +368,7 @@ public final class NdkArticleForm {
         .createField(); // subject
     }
 
-    private Field classification() {
+    protected Field classification() {
         // classification, classificationDefinition extends stringPlusLanguagePlusAuthority
         return new FieldBuilder("classification").setTitle("Classification - RA").setMaxOccurrences(10)
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
@@ -390,7 +390,7 @@ public final class NdkArticleForm {
         .createField(); // classification
     }
 
-    private Field identifier() {
+    protected Field identifier() {
         // identifier, identifierDefinition, [0,*]
         return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
                 .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
@@ -433,7 +433,7 @@ public final class NdkArticleForm {
         .createField(); // identifier
     }
 
-    private Field part() {
+    protected Field part() {
         // part, type="partDefinition"
         return new FieldBuilder("part").setTitle("Part - RA").setMaxOccurrences(1)
                 .setHint("Popis rozsahu.")

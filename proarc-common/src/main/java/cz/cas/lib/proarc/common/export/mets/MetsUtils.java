@@ -51,6 +51,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -166,19 +167,27 @@ public class MetsUtils {
         }
     }
 
-    public static String getElementType(String model) {
-     String type = Const.typeMap.get(model);
-     if (type == null) {
-         List<NdkEbornPlugin> plugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
-                 .filter(plugin -> plugin instanceof NdkEbornPlugin).map(plugin -> ((NdkEbornPlugin) plugin)).collect(Collectors.toList());
-         for (NdkEbornPlugin plugin : plugins) {
-            if (plugin.TYPE_MAP.containsKey(model)) {
-                return plugin.TYPE_MAP.get(model);
+    /**
+     *
+     * @param model fedora model with info prefix
+     * @return simplified name of model
+     * @throws NoSuchElementException no mapping for model<->type
+     */
+    public static String getElementType(String  model) {
+        String type = Const.typeMap.get(model);
+        if (type == null) {
+            List<NdkEbornPlugin> plugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
+                    .filter(plugin -> plugin instanceof NdkEbornPlugin).map(plugin -> ((NdkEbornPlugin) plugin)).collect(Collectors.toList());
+            for (NdkEbornPlugin plugin : plugins) {
+                if (plugin.TYPE_MAP.containsKey(model)) {
+                    return plugin.TYPE_MAP.get(model);
+                }
             }
-         }
-     }
-     return type;
+            throw new NoSuchElementException("unknown element type for : " + model);
+        }
+        return type;
     }
+
     /**
      * Fetch PSP id - this is usually determined by some level of model.
      * @see Const#PSPElements

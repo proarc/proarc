@@ -222,6 +222,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
                         || "model:derFile".equals(modelId)
                         || "model:desFile".equals(modelId)
                         || "model:ndkemonographvolume".equals(modelId)
+                        || "model:ndkeperiodicalissue".equals(modelId)
                         );
             }
 

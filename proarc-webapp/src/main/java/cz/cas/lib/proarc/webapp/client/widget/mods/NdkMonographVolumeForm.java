@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @author Jan Pokorsky
  */
-public final class NdkMonographVolumeForm {
+public class NdkMonographVolumeForm {
 
     public Form build() {
         Form f = new Form();

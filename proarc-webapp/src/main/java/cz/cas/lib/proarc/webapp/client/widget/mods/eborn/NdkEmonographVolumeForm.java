@@ -16,22 +16,26 @@
 
 package cz.cas.lib.proarc.webapp.client.widget.mods.eborn;
 
-import java.util.List;
-
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
+import java.util.List;
 
 /**
- * http://www.ndk.cz/standardy-digitalizace/E_born_MONO_NDK_22.pdf
- * 3.5.2
+ * {@link <a href="https://www.ndk.cz/standardy-digitalizace/E_born_MONO_NDK_22.pdf#page=18">3.4.2 Pole MODS pro svazek monografie</a>}
  */
-public class NdkEmonographVolumeForm {
+public final class NdkEmonographVolumeForm {
 
     public Form build() {
         Form f = new Form();
+
+        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
+                .setType(Field.RADIOGROUP).setRequired(true)
+                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
+                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
+                .createField());
 
         f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
         List<Field> modsFields = f.getFields().get(0).getFields();
@@ -47,7 +51,9 @@ public class NdkEmonographVolumeForm {
         // XXX unsupported yet
         // relatedItem
         modsFields.add(subject());
+        modsFields.add(classification());
         modsFields.add(identifier());
+        modsFields.add(location());
         modsFields.add(recordInfo());
 
         return f;
@@ -213,7 +219,7 @@ public class NdkEmonographVolumeForm {
     private Field originInfo() {
         // originInfo, originInfoDefinition
         return new FieldBuilder("originInfo").setTitle("Origin Info - M").setMaxOccurrences(10)
-                .setHint("Informace o původu předlohy.")
+                .setHint("Informace o původu předlohy. <p>Odpovídá poli 264.</p>")
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 // @displayLabel
                 // @altRepGroup
@@ -249,10 +255,11 @@ public class NdkEmonographVolumeForm {
                         // placeTerm, placeTermDefinition extends stringPlusLanguage
                         .addField(new FieldBuilder("placeTerm").setMaxOccurrences(1)
                                 // type, codeOrText('code', 'text')
-                                .addField(new FieldBuilder("type").setTitle("Type").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("TEXT")
+                                .addField(new FieldBuilder("type").setTitle("Type").setMaxOccurrences(1)
                                         .setHint("Typ popisu místa. Kódem nebo textově."
                                                 + "<p>Pokud má dokument více míst vydání, distribuce a výroby v poli  264, podpole „a, přebírají se ze záznamu všechna místa"
                                                 + "<li>“code” pro údaj z pole 008</li><li>“text” pro údaj z pole 264</li>")
+                                        .setType(Field.SELECT).setDefaultValue("TEXT")
                                         .addMapValue("code", "code")
                                         .addMapValue("text", "text")
                                         .createField()) // type
@@ -269,17 +276,18 @@ public class NdkEmonographVolumeForm {
                                 .createField()) // placeTerm
                         .createField()) // place
                 // publisher, stringPlusLanguagePlusSupplied
-                .addField(new FieldBuilder("publisher").setTitle("Publisher - MA").setMaxOccurrences(10)
+                .addField(new FieldBuilder("publisher").setTitle("Publisher - M").setMaxOccurrences(10)
                         // stringPlusLanguagePlusSupplied: @supplied
                         // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
                                 .setHint("Jméno entity, která dokument vydala, vytiskla nebo jinak vyprodukovala."
                                         + "<p>Odpovídá poli 264 podpoli „b“ katalogizačního záznamu v MARC21;"
                                         + "<p>Pokud má monografie více vydavatelů, přebírají se ze záznamu všichni (jsou v jednom poli 264).")
+                                .setType(Field.TEXT)
                                 .createField()) // value
                         .createField()) // publisher
                 // dateIssued, dateDefinition extends stringPlusLanguage
-                .addField(new FieldBuilder("dateIssued").setTitle("Date Issued - M").setMaxOccurrences(10)
+                .addField(new FieldBuilder("dateIssued").setTitle("Date Issued - MA").setMaxOccurrences(10)
                         .setHint("Datum vydání dokumentu, přebírat z katalogu"
                                 + "<p>Odpovídá hodnotě z katalogizačního záznamu, pole 264_1, podpole „c“ a pole 008/07-10."
                                 + "<p>pro všechny ostatní výskyty v poli 264 $c:"
@@ -308,7 +316,7 @@ public class NdkEmonographVolumeForm {
                                 .addMapValue("approximate", "Approximate")
                                 .addMapValue("inferred", "Inferred")
                                 .createField()) // @qualifier
-                        .addField(new FieldBuilder("value").setTitle("Date - M").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
+                        .addField(new FieldBuilder("value").setTitle("Date - MA").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                                 .setHint("Datum vydání dokumentu."
                                         + "<p>Odpovídá hodnotě z katalogizačního záznamu, pole 264, podpole „c“ a pole 008/07-10.")
                                 .createField()) // value
@@ -414,8 +422,10 @@ public class NdkEmonographVolumeForm {
                                 .createField()) // authority
                         .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
                                 .setType(Field.COMBO).setRequired(true).setHint("form")
-                                .setHint("Údaje o fyzické podobě dokumentu, např. electronic apod."
-                                        + "<p>Odpovídá hodnotě v poli 008/23")
+                                .setHint("Údaje o podobě dokumentu, např. elektronický zdroj, electronic apod."
+                                        + "<p>Odpovídá hodnotě v poli 008/23</p>"
+                                        + "<p>337 nepovinné (hodnota např. \"bez média\") </p>"
+                                        + "<p>338 povinné  (hodnota např. \"svazek\") </p>")
                                 .addMapValue("braille", "braille")
                                 .addMapValue("electronic", "electronic")
                                 .addMapValue("large print", "large print")
@@ -439,26 +449,23 @@ public class NdkEmonographVolumeForm {
                         .createField()) // form
                 // reformattingQuality
                 // internetMediaType
-                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setHint("Indikátor zdroje digitálního dokumentu").createField())
                 // extent, stringPlusLanguagePlusSupplied
-                .addField(new FieldBuilder("extent").setTitle("Extent - RA").setMaxOccurrences(5)
-                        // stringPlusLanguagePlusSupplied: @supplied
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        .addField(new FieldBuilder("value").setTitle("Extent - RA").setMaxOccurrences(1).setType(Field.TEXT)
-                                .setHint("Údaje o rozsahu (stran, svazků)"
-                                        + "<p>Odpovídá hodnotě v poli 300, podpole „a“, „b“ a „c“")
-                                .createField()) // value
-                        .createField()) // extent
+                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Indikátor zdroje digitálního dokumentu").createField())
                 // note, physicalDescriptionNote extends stringPlusLanguage
                 .createField(); // physicalDescription
     }
 
     private Field subject() {
-        return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
+        return new FieldBuilder("subject").setTitle("Subject - RA/MA").setMaxOccurrences(10)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 // autofill "czenas"
-                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)
+                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1)
+                        .setHint("Údaje o věcném třízení" +
+                                "<p>Odpovídá hodnotě v podpoli $2, Konspekt</p>" +
+                                "<p>Při použití volných klíčových slov atribut authority nepoužívat.</p>")
+                        .setType(Field.COMBO)
                         .addMapValue("czenas", "czenas")
                         .addMapValue("eczenas", "eczenas")
                         .addMapValue("Konspekt", "Konspekt")
@@ -472,7 +479,7 @@ public class NdkEmonographVolumeForm {
 //                    .addField(new FieldBuilder("authority").setTitle("Authority").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200").createField())
                         // @type
                         // XXX autority.nkp.cz datasource
-                        .addField(new FieldBuilder("value").setTitle("Topic - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .addField(new FieldBuilder("value").setTitle("Topic - O").setMaxOccurrences(1).setType(Field.TEXT)
                                 .setHint("Libovolný výraz specifikující nebo charakterizující obsah dokumentu."
                                         + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (věcné téma)"
                                         + " nebo obsah pole 650 záznamu MARC21 nebo obsah pole 072 $x.")
@@ -480,6 +487,19 @@ public class NdkEmonographVolumeForm {
                         .createField()) // topic
 
                 // geographic, stringPlusLanguagePlusAuthority
+                .addField(new FieldBuilder("geographic").setMaxOccurrences(1)
+                        // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        // @type
+                        // XXX autority.nkp.cz datasource
+                        .addField(new FieldBuilder("value").setTitle("Geographic - O").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Geografické věcné třídění."
+                                        + "<p>Použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (geografický termín)"
+                                        + " nebo obsah pole 651 záznamu MARC21.")
+                                .createField()) // value
+                        .createField()) // geographic
+
+                // stringPlusLanguagePlusAuthority
 
                 // temporal, temporalDefinition extends dateDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("temporal").setMaxOccurrences(1)
@@ -523,6 +543,28 @@ public class NdkEmonographVolumeForm {
                 // occupation
                 // genre
                 .createField(); // subject
+    }
+
+    private Field classification() {
+        // classification, classificationDefinition extends stringPlusLanguagePlusAuthority
+        return new FieldBuilder("classification").setTitle("Classification - R").setMaxOccurrences(10)
+                // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+                // autofill "udc"
+                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("udc", "udc")
+                        .addMapValue("Konspekt", "Konspekt")
+                        .createField()) // authority
+                .addField(new FieldBuilder("edition").setTitle("Edition - R").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("", "")
+                        .addMapValue("Konspekt", "Konspekt")
+                        .createField()) // edition
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Klasifikační údaje věcného třídění podle Mezinárodního"
+                                + " desetinného třídění. Odpovídá poli 080 MARC21."
+                                + "<p>Klasifikační údaje věcného třídění podle Konspektu."
+                                + " Odpovídá poli 072 $a MARC21.")
+                        .createField()) // value
+                .createField(); // classification
     }
 
 
@@ -573,6 +615,33 @@ public class NdkEmonographVolumeForm {
                 .createField(); // identifier
     }
 
+    protected Field location() {
+        // location, locationDefinition
+        return new FieldBuilder("location").setTitle("Location - MA").setMaxOccurrences(10)
+                .setHint("Informace o uložení dokumentu.")
+                // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
+                // @displayLabel, @altRepGroup
+                // physicalLocation, physicalLocationDefinition extends stringPlusLanguagePlusAuthority
+                // shelfLocator, stringPlusLanguage
+                // url, urlDefinition extends xs:anyURI
+                .addField(new FieldBuilder("url").setTitle("URL - MA").setMaxOccurrences(1)
+                        // @dateLastAccessed, @displayLabel, @access(preview, raw object, object in context), @usage(primary display, primary)
+                        // @note
+                        .addField(new FieldBuilder("note").setTitle("Note - R").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Informace o vyžadovaném softwaru pro zobrazení dokumentu" +
+                                        "<p>např. \"Adobe Acrobat Reader required\"</p>")
+                                .createField()) // note
+                        .addField(new FieldBuilder("usage").setTitle("Usage - R").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Hodnota \"primary\" v případě, že link vede k přímému zobrazení dokumentu.")
+                                .createField()) // note
+                        .addField(new FieldBuilder("value").setTitle("URL - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Odkaz na adresu dokumentu.")
+                                .createField()) // value
+                        .createField()) // url
+                // holdingSimple
+                // holdingExternal
+                .createField(); // location
+    }
 
     private Field recordInfo() {
         // recordInfo, recordInfoDefinition
@@ -673,14 +742,9 @@ public class NdkEmonographVolumeForm {
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
-                        .setHint("Obecná poznámka k titulu jako celku."
-                                + "<p>Odpovídá hodnotám v poli 245, podpole „c“ (statement of responsibility)"
-                                + " a v polích 5XX (poznámky) katalogizačního záznamu")
+                        .setHint("Všeobecná poznámka k dokumentu" +
+                                "<p>Pro každou poznámku je potřeba vytvořit samostatný element.</p>")
                         .createField()) // value
                 .createField(); // note
     }
-
-
-
-
 }
