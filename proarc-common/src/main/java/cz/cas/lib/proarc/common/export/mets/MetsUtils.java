@@ -24,7 +24,6 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
@@ -706,7 +705,7 @@ public class MetsUtils {
         return output;
     }
 
-    private static void addModsIdentifiersRecursive(MetsElement element, Info infoJaxb) throws MetsExportException {
+    private static void addModsIdentifiersRecursive(IMetsElement element, Info infoJaxb) throws MetsExportException {
         Map<String, String> identifiers = element.getModsIdentifiers();
         for (String type : identifiers.keySet()) {
             if (Const.allowedIdentifiers.contains(type)) {
@@ -726,7 +725,7 @@ public class MetsUtils {
             }
         }
 
-        for (MetsElement child : element.getChildren()) {
+        for (IMetsElement child : element.getChildren()) {
             addModsIdentifiersRecursive(child, infoJaxb);
         }
     }

@@ -25,7 +25,6 @@ import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -70,13 +69,13 @@ class SipElementVisitor implements IMetsElementVisitor {
         switch (rootElement.getElementType()) {
             case MONOGRAPH_UNIT:
                 packageFiles.addAll(saveStreams(metsElement, packageRoot));
-                for (MetsElement childElement: metsElement.getChildren()) {
+                for (IMetsElement childElement: metsElement.getChildren()) {
                     packageFiles.addAll(saveStreams(childElement, packageRoot));
                 }
                 break;
             case MONOGRAPH_MULTIPART:
                 packageFiles.addAll(saveStreams(metsElement, packageRoot));
-                for (MetsElement childElement: metsElement.getChildren()) {
+                for (IMetsElement childElement: metsElement.getChildren()) {
                     packageFiles.addAll(saveStreams(childElement, packageRoot));
                 }
 
@@ -87,11 +86,11 @@ class SipElementVisitor implements IMetsElementVisitor {
                 break;
             case PERIODICAL_TITLE:
                 packageFiles.addAll(saveStreams(metsElement, packageRoot));
-                for (MetsElement childElement: metsElement.getChildren()) {
+                for (IMetsElement childElement: metsElement.getChildren()) {
                     packageFiles.addAll(saveStreams(childElement, packageRoot));
                 }
 
-                MetsElement parent = metsElement.getParent();
+                IMetsElement parent = metsElement.getParent();
                 while (parent != null) {
                     packageFiles.addAll(saveStreams(parent, packageRoot));
                     parent = parent.getParent();
