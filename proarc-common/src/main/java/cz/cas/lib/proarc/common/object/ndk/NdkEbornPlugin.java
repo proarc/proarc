@@ -76,7 +76,6 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
     }
 
     @Override
-    //TODO-MR check these relations, now it is just copied from ndkplugin
     public Collection<MetaModel> getModel() {
         List<MetaModel> models = new ArrayList<>();
 

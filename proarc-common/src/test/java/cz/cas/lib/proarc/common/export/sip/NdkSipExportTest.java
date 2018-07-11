@@ -123,7 +123,8 @@ public class NdkSipExportTest {
         resultsList.stream().filter(result -> result.getValidationError() != null).flatMap(result -> result.getValidationError().getExceptions().stream())
                 .forEach(exception -> collector.addError(exception.getEx() != null ? exception.getEx() : new AssertException(exception.getMessage())));
 
-        Path sip = resultsList.get(0).getTargetFolder().toPath();
+        String sipIdentifier = "123";
+        Path sip = resultsList.get(0).getTargetFolder().toPath().resolve(sipIdentifier);
         Files.walkFileTree(sip, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
