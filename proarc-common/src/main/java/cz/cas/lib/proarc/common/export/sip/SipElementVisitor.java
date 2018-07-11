@@ -41,15 +41,21 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import static cz.cas.lib.proarc.common.export.mets.Const.ARTICLE;
 import static cz.cas.lib.proarc.common.export.mets.Const.CHAPTER;
+import static cz.cas.lib.proarc.common.export.mets.Const.ISSUE;
 import static cz.cas.lib.proarc.common.export.mets.Const.MONOGRAPH_MULTIPART;
 import static cz.cas.lib.proarc.common.export.mets.Const.MONOGRAPH_UNIT;
+import static cz.cas.lib.proarc.common.export.mets.Const.PERIODICAL_TITLE;
+import static cz.cas.lib.proarc.common.export.mets.Const.PERIODICAL_VOLUME;
 
 class SipElementVisitor implements IMetsElementVisitor {
 
     private static final Logger LOG = Logger.getLogger(SipElementVisitor.class.getName());
 
     private int chapterCounter = 0;
+    private int issueCounter = 0;
+    private int articleCounter = 0;
 
     @Override
     public void insertIntoMets(IMetsElement metsElement) throws MetsExportException {
@@ -76,6 +82,19 @@ class SipElementVisitor implements IMetsElementVisitor {
 
                 if (metsElement.getParent() != null) {
                     packageFiles.addAll(saveStreams(metsElement.getParent(), packageRoot));
+                }
+
+                break;
+            case PERIODICAL_TITLE:
+                packageFiles.addAll(saveStreams(metsElement, packageRoot));
+                for (MetsElement childElement: metsElement.getChildren()) {
+                    packageFiles.addAll(saveStreams(childElement, packageRoot));
+                }
+
+                MetsElement parent = metsElement.getParent();
+                while (parent != null) {
+                    packageFiles.addAll(saveStreams(parent, packageRoot));
+                    parent = parent.getParent();
                 }
 
                 break;
@@ -165,6 +184,18 @@ class SipElementVisitor implements IMetsElementVisitor {
                         break;
                     case MONOGRAPH_MULTIPART:
                         modsName = "mods_title.xml";
+                        break;
+                    case PERIODICAL_TITLE:
+                        modsName = "mods_title.xml";
+                        break;
+                    case PERIODICAL_VOLUME:
+                        modsName = "mods_volume.xml";
+                        break;
+                    case ISSUE:
+                        modsName = "mods_issue" + String.format("%04d", ++issueCounter) + ".xml";
+                        break;
+                    case ARTICLE:
+                        modsName = "mods_article" + String.format("%04d", ++articleCounter) + ".xml";
                         break;
                     default:
                         throw new IllegalArgumentException("unknown model " + metsElement.getModel());

@@ -107,38 +107,38 @@ public final class NdkForms {
     }
 
     public static Field roleTerm(String valueTitle, Boolean isValueRequired,
-            String authorityTitle, Boolean isAuthorityRequired,
-            String typeTitle, Boolean isTypeRequired) {
+                                 String authorityTitle, Boolean isAuthorityRequired,
+                                 String typeTitle, Boolean isTypeRequired) {
 
         // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
         return new FieldBuilder("roleTerm").setMaxOccurrences(1)
-            .addField(new FieldBuilder("value").setTitle(valueTitle).setMaxOccurrences(1)
-                .setType(Field.COMBO)
-                .setWidth("200")
-                .setRequired(isValueRequired)
-                .setHint("Kód role z kontrolovaného slovníku.")
-                .setOptionDataSource(new FieldBuilder(BundleName.MODS_ROLES.getValueMapId()).setWidth("300")
-                    .addField(new FieldBuilder("value").setTitle("Kód").createField())
-                    .addField(new FieldBuilder("label").setTitle("Popis").createField())
-                .createField(), "value", "type", "authority")
-            .createField()) // value
-            // @type, codeOrText(code, text)
-            .addField(new FieldBuilder("type").setTitle(typeTitle).setMaxOccurrences(1)
-                .setType(Field.SELECT)
-                .setRequired(isTypeRequired)
-                .addMapValue("code", "code")
-                .addMapValue("text", "text")
-            .createField()) // @type
-            // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-            // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-            .addField(new FieldBuilder("authority").setTitle(authorityTitle).setMaxOccurrences(1)
-                .setType(Field.COMBO)
-                .setWidth("200")
-                .setRequired(isAuthorityRequired)
-                .addMapValue("marcrelator", "marcrelator")
-                .setHint("Údaje o kontrolovaném slovníku využitém k popisu role."
-                    + "<p>K popisu výše uvedeného MARC seznamu nutno uvést authority=“marcrelator“.")
-            .createField()) // authority
-        .createField(); // roleTerm
+                .addField(new FieldBuilder("value").setTitle(valueTitle).setMaxOccurrences(1)
+                        .setType(Field.COMBO)
+                        .setWidth("200")
+                        .setRequired(isValueRequired)
+                        .setHint("Kód role z kontrolovaného slovníku.")
+                        .setOptionDataSource(new FieldBuilder(BundleName.MODS_ROLES.getValueMapId()).setWidth("300")
+                                .addField(new FieldBuilder("value").setTitle("Kód").createField())
+                                .addField(new FieldBuilder("label").setTitle("Popis").createField())
+                                .createField(), "value", "type", "authority")
+                        .createField()) // value
+                // @type, codeOrText(code, text)
+                .addField(new FieldBuilder("type").setTitle(typeTitle).setMaxOccurrences(1)
+                        .setType(Field.SELECT)
+                        .setRequired(isTypeRequired)
+                        .addMapValue("code", "code")
+                        .addMapValue("text", "text")
+                        .createField()) // @type
+                // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                .addField(new FieldBuilder("authority").setTitle(authorityTitle).setMaxOccurrences(1)
+                        .setType(Field.COMBO)
+                        .setWidth("200")
+                        .setRequired(isAuthorityRequired)
+                        .addMapValue("marcrelator", "marcrelator")
+                        .setHint("Údaje o kontrolovaném slovníku využitém k popisu role."
+                                + "<p>K popisu výše uvedeného MARC seznamu nutno uvést authority=“marcrelator“.")
+                        .createField()) // authority
+                .createField(); // roleTerm
     }
 }

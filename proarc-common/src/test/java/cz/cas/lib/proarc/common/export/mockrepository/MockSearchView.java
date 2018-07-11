@@ -52,9 +52,13 @@ public class MockSearchView extends MockUp<SearchView> {
         //child (has) parent
         Map<String, String> relations = new HashMap<>();
         relations.put("uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4", "uuid:26342028-12c8-4446-9217-d3c9f249bd13");
-        relations.put("uuid:d5d5e950-3668-4458-8fdb-aeb7028f4fcc", "uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4"); // echapter has emonographvolume
-        relations.put("uuid:b04c5787-49ef-4c62-91e0-4252e98bdca5", "uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4"); // echapter has emonographvolume
-        relations.put("uuid:26342028-12c8-4446-9217-d3c9f249bd13", null);
+        relations.put("uuid:d5d5e950-3668-4458-8fdb-aeb7028f4fcc", "uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4"); // echapter hasParent emonographvolume
+        relations.put("uuid:b04c5787-49ef-4c62-91e0-4252e98bdca5", "uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4"); // echapter hasParent emonographvolume
+        relations.put("uuid:26342028-12c8-4446-9217-d3c9f249bd13", null); //multipart monograph (title)
+
+        relations.put("uuid:8548cc82-3601-45a6-8eb0-df6538db4de6", null); // peridocial title
+        relations.put("uuid:8db4b5ba-4681-4187-9ebe-ba5b45fc534b", "uuid:15d30091-a3f1-4acc-86d9-09c2493454b4"); // issue hasParent volume
+        relations.put("uuid:15d30091-a3f1-4acc-86d9-09c2493454b4", "uuid:8548cc82-3601-45a6-8eb0-df6538db4de6"); // volume hasParent periodical
 
         if (relations.containsKey(pid)) {
             return relations.get(pid) == null ? Collections.EMPTY_LIST :Collections.singletonList(new SearchView.Item(relations.get(pid)));

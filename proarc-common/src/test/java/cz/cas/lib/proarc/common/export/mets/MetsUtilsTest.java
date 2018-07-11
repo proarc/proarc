@@ -306,5 +306,8 @@ public class MetsUtilsTest {
         List<String> pspIDs = MetsUtils.findPSPPIDs("uuid:26342028-12c8-4446-9217-d3c9f249bd13", ctx, true);
         Set<String> setPspIDs = new HashSet<>(pspIDs);
         assertTrue("pspIds aren't unique", pspIDs.size() == setPspIDs.size());
+
+        List<String> pspIdPeriodical = MetsUtils.findPSPPIDs("uuid:8548cc82-3601-45a6-8eb0-df6538db4de6", ctx, true);
+        assertTrue(pspIdPeriodical.size() > 0);
     }
 }

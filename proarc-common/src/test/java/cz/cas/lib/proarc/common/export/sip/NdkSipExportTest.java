@@ -112,6 +112,30 @@ public class NdkSipExportTest {
         assertNotNull("missing parent for " + mElm.getOriginalPid() + " (" + mElm.getElementType() + ")", mElm.getParent());
     }
 
+    @Test
+    public void exportPeriodical() throws Exception {
+        NdkExport export = new NdkSipExport(remoteStorage, appConfig.getNdkExportOptions());
+        String pid = "uuid:8548cc82-3601-45a6-8eb0-df6538db4de6";
+
+        List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
+                true, true, null);
+
+        resultsList.stream().filter(result -> result.getValidationError() != null).flatMap(result -> result.getValidationError().getExceptions().stream())
+                .forEach(exception -> collector.addError(exception.getEx() != null ? exception.getEx() : new AssertException(exception.getMessage())));
+
+        Path sip = resultsList.get(0).getTargetFolder().toPath();
+        Files.walkFileTree(sip, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                System.out.println(file);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+        validatePackage(sip, 4);
+
+    }
+
     /**
      * Test export of multipart monograph, 1 eVolume, 2 eChapter
      */

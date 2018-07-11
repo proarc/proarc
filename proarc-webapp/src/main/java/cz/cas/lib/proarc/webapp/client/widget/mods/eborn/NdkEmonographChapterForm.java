@@ -22,6 +22,12 @@ import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
 import java.util.List;
 
+/**
+ * {@link <a href="https://www.ndk.cz/standardy-digitalizace/E_born_MONO_NDK_22.pdf#page=26">3.4.3 Pole MODS pro kapitolu monografie</a>}
+ * Unfortunately specification of eborn contains several unclarities. You might be interested in specification of classic monograph is newer. But be aware some fields (and their requirements flag) are slightly different.
+ * {@link <a href="https://www.ndk.cz/standardy-digitalizace/dmf_monografie_1-3-1#page=59">Pole MODS a DC provnitřní částmonografického dokumentu(vnitřní část-kapitola, obraz, mapa apod.)</a>
+ * https://github.com/NLCR/Standard_NDK/issues/63
+ */
 public final class NdkEmonographChapterForm {
 
         public Form build() {
@@ -49,7 +55,7 @@ public final class NdkEmonographChapterForm {
                     // subTitle, type="stringPlusLanguage"
                     .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
                             .addField(new FieldBuilder("value").setTitle("Subtitle - MA").setMaxOccurrences(1).setType(Field.TEXT)
-                                    .setHint("Podnázev kapitoly.")
+                                    .setHint("Podnázev vnitřní části (oddílu), např. podnázev kapitoly.")
                                     .createField()) // value
                             // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                             .createField()) // subTitle
@@ -121,8 +127,9 @@ public final class NdkEmonographChapterForm {
                     .addField(new FieldBuilder("role").setTitle("Role - MA").setMaxOccurrences(5)
                             .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                             // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
+                            //TODO-MR Authority and Type should be rather hidden
                             .addField(NdkForms.roleTerm(
-                                    "Role Term - MA", true, "Authority - M", true, "Type - M", true
+                                    "Role Term - MA", true, "Authority - M", false, "Type - M", false
                             )) // roleTerm
                             .createField()) // role
                     // description
@@ -131,7 +138,9 @@ public final class NdkEmonographChapterForm {
             // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
             modsFields.add(new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(1)
                     // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
-                    .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
+                    .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1)
+                            .setHint("Možnost vyplnit bližší určení typu oddílu.")
+                            .setType(Field.COMBO).setWidth("200")
                             .addMapValue("table of content", "obsah")
                             .addMapValue("advertisement", "reklama")
                             .addMapValue("abstract", "abstrakt")
@@ -199,8 +208,7 @@ public final class NdkEmonographChapterForm {
                                     .addMapValue("gmd", "gmd")
                                     .createField()) // authority
                             .addField(new FieldBuilder("value").setTitle("Form - R").setMaxOccurrences(1).setType(Field.COMBO)
-                                    .setHint("Údaje o fyzické podobě vnitřní části, hodnota electronic"
-                                            + "<p>Odpovídá hodnotě v poli 008/23")
+                                    .setHint("Údaje o fyzické podobě vnitřní části, hodnota electronic.")
                                     .addMapValue("electronic", "electronic")
                                     .createField()) // value
                             .createField()) // form
@@ -318,15 +326,20 @@ public final class NdkEmonographChapterForm {
             modsFields.add(new FieldBuilder("classification").setTitle("Classification - RA").setMaxOccurrences(10)
                     // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                     // autofill "udc"
-                    .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
+                    .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1)
+                            .setHint("vyplnit hodnotu \"udc\" (v případě 072 $a vyplnit  hodnotu  \"Konspekt\"" +
+                                    " (v  případě  072 $9)")
+                            .setType(Field.COMBO)
                             .addMapValue("udc", "udc")
                             .addMapValue("Konspekt", "Konspekt")
                             .createField()) // authority
-                    .addField(new FieldBuilder("edition").setTitle("Edition - M").setMaxOccurrences(1).setType(Field.COMBO)
+                    .addField(new FieldBuilder("edition").setTitle("Edition - M").setMaxOccurrences(1)
+                            .setHint("Vyplnit hodnotu \"Konspekt\" (v případě 072 $a).")
+                            .setType(Field.COMBO)
                             .addMapValue("", "")
                             .addMapValue("Konspekt", "Konspekt")
                             .createField()) // edition
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("value").setTitle("Classification - RA").setMaxOccurrences(1).setType(Field.TEXT)
                             .setHint("Klasifikační údaje věcného třídění podle Mezinárodního"
                                     + " desetinného třídění. Odpovídá poli 080 MARC21."
                                     + "<p>Klasifikační údaje věcného třídění podle Konspektu."
@@ -368,21 +381,22 @@ public final class NdkEmonographChapterForm {
                     //   displayLabel, xs:string
                     //   typeURI, xs:anyURI
                     //   invalid, fixed="yes"
-//                .addField(new FieldBuilder("invalid").setTitle("Neplatný").setMaxOccurrences(1).setType(Field.SELECT)
-//                    .addMapValue("", "Platný")
-//                    .addMapValue("yes", "Neplatný")
-//                .createField())
+                .addField(new FieldBuilder("invalid").setTitle("Neplatný").setMaxOccurrences(1).setType(Field.SELECT)
+                    .addMapValue("", "Platný")
+                    .addMapValue("yes", "Neplatný")
+                .createField())
                     //   altRepGroup, xs:string
                     .createField()); // identifier
 
             // part, type="partDefinition"
             modsFields.add(new FieldBuilder("part").setTitle("Part - RA").setMaxOccurrences(1)
-                    .setHint("Popis rozsahu.")
+                    .setHint("Záznam o rozsahu popisované části.")
                     // @ID, @type, @order, @displayLabel, @altRepGroup
                     // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                     // detail, type="detailDefinition"
                     // extent, type="extentDefinition"
                     .addField(new FieldBuilder("extent").setTitle("Extent - MA").setMaxOccurrences(10)
+                            .setHint("Upřesnění - rozsah na stránkách")
                             // start, type="stringPlusLanguage"
                             .addField(new FieldBuilder("start").setMaxOccurrences(1)
                                     .addField(new FieldBuilder("value").setTitle("Start - MA").setMaxOccurrences(1).setType(Field.TEXT)
@@ -403,12 +417,12 @@ public final class NdkEmonographChapterForm {
                     .createField()); // part
 
             // recordInfo, recordInfoDefinition
-            modsFields.add(new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
+            modsFields.add(new FieldBuilder("recordInfo").setTitle("Record Info - MA").setMaxOccurrences(1)
                     .setHint("Údaje o metadatovém záznamu - jeho vzniku, změnách apod.")
                     // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
                     // @displayLabel, @altRepGroup
                     // recordContentSource, stringPlusLanguagePlusAuthority
-                    .addField(new FieldBuilder("recordContentSource").setTitle("Record Content Source - R").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("recordContentSource").setTitle("Record Content Source - M").setMaxOccurrences(1)
                             // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                             .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("marcorg").createField())
                             .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
@@ -420,14 +434,18 @@ public final class NdkEmonographChapterForm {
                             // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                             // @encoding, @qualifier, @point, @keyDate
                             .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
-                            .addField(new FieldBuilder("value").setTitle("Record Creation Date - M").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
+                            .addField(new FieldBuilder("value").setTitle("Record Creation Date - M").setMaxOccurrences(1)
+                                    .setHint("Datum  prvního  vytvoření  záznamu  vnitřní části.")
+                                    .setReadOnly(true).setType(Field.TEXT).createField())
                             .createField()) // recordCreationDate
                     // recordChangeDate, dateDefinition
                     .addField(new FieldBuilder("recordChangeDate").setMaxOccurrences(1)
                             // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                             // @encoding, @qualifier, @point, @keyDate
                             .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
-                            .addField(new FieldBuilder("value").setTitle("Record Change Date - R").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
+                            .addField(new FieldBuilder("value").setTitle("Record Change Date - R").setMaxOccurrences(1)
+                                    .setHint("Datum změny záznamu vnitřní části.")
+                                    .setReadOnly(true).setType(Field.TEXT).createField())
                             .createField()) // recordChangeDate
                     // recordIdentifier
                     // languageOfCataloging

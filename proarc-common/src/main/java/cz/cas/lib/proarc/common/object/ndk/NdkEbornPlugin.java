@@ -16,6 +16,7 @@
 
 package cz.cas.lib.proarc.common.object.ndk;
 
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.JsonValueMap;
@@ -60,9 +61,13 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
     public static final String MODEL_EARTICLE = "model:ndkearticle";
 
     public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
-        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "MONOGRAPH_UNIT");
-        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, "MONOGRAPH_MULTIPART");
-        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_ECHAPTER, "CHAPTER");
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, Const.MONOGRAPH_MULTIPART);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_ECHAPTER, Const.CHAPTER);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EPERIODICALVOLUME, Const.PERIODICAL_VOLUME);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EPERIODICAL, Const.PERIODICAL_TITLE);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EPERIODICALISSUE, Const.ISSUE);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EARTICLE, Const.ARTICLE);
     }});
 
     @Override
@@ -130,6 +135,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
                         DatastreamEditorType.ATM),
                 new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICAL, RelationCriteria.Type.PID)}
         ));
+        // eIssue volume should contain some media (e.g. PDF)
         models.add(new MetaModel(
                 MODEL_EPERIODICALISSUE, null, null,
                 Arrays.asList(new ElementType("NDK ePeriodical Issue", "en"), new ElementType("NDK eČíslo", "cs")),
@@ -138,7 +144,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM),
+                        DatastreamEditorType.ATM, DatastreamEditorType.MEDIA),
                 new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(

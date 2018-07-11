@@ -53,7 +53,7 @@ public class NdkPeriodicalIssueForm {
         return f;
     }
 
-    private Field titleInfo() {
+    protected Field titleInfo() {
         // titleInfo, titleInfoDefinition
         return new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
                 .setHint("Název titulu periodika, kterého je číslo součástí."
@@ -141,7 +141,7 @@ public class NdkPeriodicalIssueForm {
             .createField(); // part
     }
 
-    private Field name() {
+    protected Field name() {
         // name, nameDefinition
         return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - MA")
                 .setHint("Údaje o odpovědnosti za číslo periodika.<p>Použití u ročenek,"
@@ -209,7 +209,7 @@ public class NdkPeriodicalIssueForm {
             .createField(); // name
     }
 
-    private Field genre() {
+    protected Field genre() {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
         return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(1)
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
@@ -241,7 +241,7 @@ public class NdkPeriodicalIssueForm {
         .createField(); // genre
     }
 
-    private Field originInfo() {
+    protected Field originInfo() {
         // originInfo, originInfoDefinition
         return new FieldBuilder("originInfo").setTitle("Origin Info - MA").setMaxOccurrences(10)
                 .setHint("informace o původu předlohy."
@@ -373,12 +373,12 @@ public class NdkPeriodicalIssueForm {
         .createField(); // originInfo
     }
 
-    private Field language() {
+    protected Field language() {
         // language, languageDefinition
-        return new FieldBuilder("language").setTitle("Languages - M").setMaxOccurrences(10)
+        return new FieldBuilder("language").setTitle("Languages - R").setMaxOccurrences(10)
                 .setHint("Údaje o jazyce dokumentu; v případě vícenásobného výskytu nutno element &lt;language> opakovat")
                 // @objectPart, @displayLabel, @altRepGroup, @usage
-                .addField(new FieldBuilder("objectPart").setTitle("Object Part - MA").setMaxOccurrences(1).setType(Field.COMBO).setWidth("300")
+                .addField(new FieldBuilder("objectPart").setTitle("Object Part - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("300")
                     .setHint("Možnost vyjádřit jazyk konkrétní části svazku.")
                     .addMapValue("summary", "summary")
                     .addMapValue("table of contents", "table of contents")
@@ -407,14 +407,22 @@ public class NdkPeriodicalIssueForm {
                         .addMapValue("code", "code")
                         .addMapValue("text", "text")
                     .createField()) // type
-                    .addField(NdkForms.createLangTermValue()
-                    .createField()) // value
+                    .addField(new FieldBuilder("value").setTitle("Language - R").setMaxOccurrences(1)
+                                .setType(Field.COMBO).setRequired(true)
+                                .setHint("Přesné určení jazyka kódem.<p>Nutno použít kontrolovaný slovník ISO 639-2.")
+                                .setOptionDataSource(new FieldBuilder("ndk.mods.languageTerms").setWidth("300")
+                                                .addField(new FieldBuilder("title").setTitle("Name").createField())
+                                                .addField(new FieldBuilder("value").setTitle("Language").createField())
+                                                .addField(new FieldBuilder("type").setTitle("Type").createField())
+                                                .addField(new FieldBuilder("authority").setTitle("Authority").createField())
+                                                .createField(),
+                                        "value", "type", "authority").createField()) // value) // value
                 .createField()) // languageTerm
                 // scriptTerm
         .createField(); // language
     }
 
-    private Field physicalDescription() {
+    protected Field physicalDescription() {
         // physicalDescription, physicalDescriptionDefinition
         return new FieldBuilder("physicalDescription").setTitle("Physical Description - R").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu zdroje/předlohy.")
@@ -469,7 +477,7 @@ public class NdkPeriodicalIssueForm {
         .createField(); // note
     }
 
-    private Field subject() {
+    protected Field subject() {
         // subject, subjectDefinition
         return new FieldBuilder("subject").setTitle("Subject - RA").setMaxOccurrences(10)
                 .setHint("Údaje o věcném třídění.<p>Použití u ročenek, specializovaných periodik,"
@@ -552,7 +560,7 @@ public class NdkPeriodicalIssueForm {
         .createField(); // subject
     }
 
-    private Field identifier() {
+    protected Field identifier() {
         // identifier, identifierDefinition, [0,*]
         return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
                 .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
@@ -597,7 +605,7 @@ public class NdkPeriodicalIssueForm {
         .createField(); // identifier
     }
 
-    private Field location() {
+    protected Field location() {
         // location, locationDefinition
         return new FieldBuilder("location").setTitle("Location - R").setMaxOccurrences(10)
                 .setHint("Údaje o uložení popisovaného dokumentu, např. signatura, místo uložení apod.")
