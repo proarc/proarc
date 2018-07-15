@@ -106,7 +106,7 @@ public class WaveImporter implements ImageImporter {
     private void createAudio(FileSet fileSet, File tempBatchFolder, File original,
             String originalFilename, LocalObject foxml, ImportProfile config)
             throws DigitalObjectException, IOException {
-        BinaryEditor.dissemination(foxml, BinaryEditor.RAW_ID, BinaryEditor.AUDIO_WAVE)
+        BinaryEditor.dissemination(foxml, BinaryEditor.RAW_AUDIO_ID, BinaryEditor.AUDIO_WAVE)
                 .write(original, 0, null);
         long start;
         long end = 0;
@@ -194,7 +194,7 @@ public class WaveImporter implements ImageImporter {
     private void importArchivalCopy(FileSet fileSet, File wave, FedoraObject fo, ImportOptions options) throws DigitalObjectException, IOException {
         ImportProfile config = options.getConfig();
         FileEntry entry = findSibling(fileSet, config.getNdkArchivalAudioFileSuffix());
-        String dsId = BinaryEditor.NDK_ARCHIVAL_ID;
+        String dsId = BinaryEditor.NDK_AUDIO_ARCHIVAL_ID;
         if (entry == null) {
             throw new FileNotFoundException("Missing audio archival copy: " + new File(
                     wave.getParentFile(), fileSet.getName() + config.getNdkArchivalAudioFileSuffix()).toString());
@@ -215,7 +215,7 @@ public class WaveImporter implements ImageImporter {
     private void importUserCopy(FileSet fileSet, File wave, FedoraObject fo, ImportOptions options) throws DigitalObjectException, IOException {
         ImportProfile config = options.getConfig();
         FileSet.FileEntry entry = findSibling(fileSet, config.getNdkUserAudioFileSuffix());
-        String dsId = BinaryEditor.NDK_USER_ID;
+        String dsId = BinaryEditor.NDK_AUDIO_USER_ID;
         if (entry == null) {
             throw new FileNotFoundException("Missing audio user copy: " + new File(
                     wave.getParentFile(), fileSet.getName() + config.getNdkUserAudioFileSuffix()).toString());

@@ -61,8 +61,8 @@ public final class ImportProfile {
     public static final String CONVERTOR_JPG_LARGE_PROCESSOR = "import.jpg_large_convertor.processor";
     public static final String CONVERTOR_JP2_PROCESSOR = "import.jp2_convertor.processor";
     public static final String CONVERTOR_TIFF_JPG_PROCESSOR = "import.tiff_to_jpg_convertor.processor";
-    public static final String NDK_ARCHOVAL_AUDIO_SUFFIX = "import.ndk_archival_audio.file.suffix";
-    public static final String NDK_USER_AUDIO_SUFFIX = "import.ndk_user_audio.file.suffix";
+    public static final String NDK_ARCHOVAL_AUDIO_SUFFIX = "import.ndk_audio_archival.file.suffix";
+    public static final String NDK_USER_AUDIO_SUFFIX = "import.ndk_audio_user.file.suffix";
 
 
     private final Configuration config;
