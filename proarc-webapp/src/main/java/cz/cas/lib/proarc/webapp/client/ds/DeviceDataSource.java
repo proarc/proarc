@@ -37,6 +37,7 @@ public final class DeviceDataSource extends ProarcDataSource {
 
     public static final String FIELD_ID = DeviceResourceApi.DEVICE_ITEM_ID;
     public static final String FIELD_LABEL = DeviceResourceApi.DEVICE_ITEM_LABEL;
+    public static final String FIELD_MODEL = DeviceResourceApi.DEVICE_ITEM_MODEL;
 
     private static DeviceDataSource INSTANCE;
 
@@ -60,7 +61,10 @@ public final class DeviceDataSource extends ProarcDataSource {
         label.setTitle(i18n.DeviceManager_Label_Title());
         label.setLength(255);
 
-        setFields(fieldId, label);
+        DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
+        model.setTitle(i18n.DeviceManager_Model_Title());
+
+        setFields(fieldId, label, model);
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(
                 RestConfig.createAddOperation(),

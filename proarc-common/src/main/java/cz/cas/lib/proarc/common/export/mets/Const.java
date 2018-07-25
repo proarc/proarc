@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.export.mets;
 
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 
@@ -37,8 +38,10 @@ import java.util.Map;
 public class Const {
     public final static String FEDORAPREFIX = "info:fedora/";
     public static HashMap<String, List<String>> streamMapping;
+    public static HashMap<String, List<String>> audioStremMapping;
     public static List<String> allowedIdentifiers = new ArrayList<String>();
     public static ArrayList<String> mandatoryStreams = new ArrayList<String>();
+    public static ArrayList<String> audioMandatoryStreams = new ArrayList<String>();
     public static ArrayList<String> canContainPage = new ArrayList<String>();
     public static HashMap<String, String> streamMappingFile = new HashMap<String, String>();
     public static HashMap<String, String> streamMappingPrefix = new HashMap<String, String>();
@@ -60,6 +63,14 @@ public class Const {
     public final static String ARTICLE_MODEL = NdkPlugin.MODEL_ARTICLE;
     public final static String CHAPTER_MODEL = NdkPlugin.MODEL_CHAPTER;
     public final static String SUPPLEMENT_MODEL = "model:supplement";
+    public final static String SOUND_COLLECTION_MODEL = NdkAudioPlugin.MODEL_MUSICDOCUMENT;
+    public final static String SOUND_RECORDING_MODEL = NdkAudioPlugin.MODEL_SONG;
+    public final static String SOUND_PART_MODEL = NdkAudioPlugin.MODEL_TRACK;
+    public final static String SOUND_PAGE_MODEL = NdkAudioPlugin.MODEL_PAGE;
+
+    public final static String NDK_EXPORT_STRUCTMAP_SOUNDCOLLECTION = "sound collection";
+    public final static String NDK_EXPORT_STRUCTMAP_SOUNDRECORDING = "sound";
+    public final static String NDK_EXPORT_STRUCTMAP_SOUNDPART = "soundpart";
 
     public static final String VOLUME = "VOLUME";
     public static final String TITLE = "TITLE";
@@ -83,6 +94,10 @@ public class Const {
     public final static String ARTICLE = "ARTICLE";
     public final static String SUPPLEMENT = "SUPPLEMENT";
     public final static String CHAPTER = "CHAPTER";
+    public final static String SOUND_COLLECTION = "SOUNDCOLLECTION";
+    public final static String SOUND_RECORDING = "SOUNDRECORDING";
+    public final static String SOUND_PART = "SOUNDPART";
+    public final static String SOUND_PAGE = "SOUNDPAGE";
 
     public static final String HASPAGE = "kramerius:hasPage";
     public static final String HASMODEL = "fedora-model:hasModel";
@@ -98,6 +113,10 @@ public class Const {
     public static final String ALTO_GRP_ID = "ALTOGRP";
     public static final String UC_GRP_ID = "UC_IMGGRP";
     public static final String TXT_GRP_ID = "TXTGRP";
+    public static final String AUDIO_RAW_GRP_ID = "SA_AUDIOGRP";
+    public static final String AUDIO_MC_GRP_ID = "MC_AUDIOGRP";
+    public static final String AUDIO_UC_GRP_ID = "UC_AUDIOGRP";
+    //public
 
     public static final List<String> PSPElements = new ArrayList<String>();
 
@@ -124,6 +143,8 @@ public class Const {
         PSPElements.add(Const.MONOGRAPH_UNIT);
         PSPElements.add(Const.ISSUE);
         PSPElements.add(Const.SUPPLEMENT);
+        PSPElements.add(Const.SOUND_RECORDING);
+
 
         typeMap.put(FEDORAPREFIX + PERIODICAL_ITEM_MODEL, ISSUE);
         typeMap.put(FEDORAPREFIX + PERIODICAL_MODEL, PERIODICAL_TITLE);
@@ -138,6 +159,11 @@ public class Const {
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_PERIODICALSUPPLEMENT, SUPPLEMENT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_CARTOGRAPHIC, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_SHEETMUSIC, MONOGRAPH_UNIT);
+        typeMap.put(FEDORAPREFIX + SOUND_COLLECTION_MODEL, SOUND_COLLECTION);
+        typeMap.put(FEDORAPREFIX + SOUND_RECORDING_MODEL, SOUND_RECORDING);
+        typeMap.put(FEDORAPREFIX + SOUND_PART_MODEL, SOUND_PART);
+        typeMap.put(FEDORAPREFIX + SOUND_PAGE_MODEL, SOUND_PAGE);
+
 
         typeMap.put(FEDORAPREFIX + CHAPTER_MODEL, CHAPTER);
 
@@ -151,11 +177,29 @@ public class Const {
         typeNameMap.put(SUPPLEMENT, "SUPPLEMENT");
         typeNameMap.put(CHAPTER, CHAPTER);
         typeNameMap.put(MONOGRAPH_MULTIPART, MONOGRAPH);
+        typeNameMap.put(SOUND_COLLECTION, SOUND_COLLECTION);
+        typeNameMap.put(SOUND_RECORDING, SOUND_RECORDING);
+        typeNameMap.put(SOUND_PART, SOUND_PART);
+        typeNameMap.put(SOUND_PAGE, SOUND_PAGE);
+
 
         mandatoryStreams.add(MC_GRP_ID);
         mandatoryStreams.add(UC_GRP_ID);
         mandatoryStreams.add(ALTO_GRP_ID);
         mandatoryStreams.add(TXT_GRP_ID);
+
+        audioMandatoryStreams.add(AUDIO_MC_GRP_ID);
+        audioMandatoryStreams.add(AUDIO_UC_GRP_ID);
+
+        audioStremMapping = new HashMap<String, List<String>>();
+        audioStremMapping.put(AUDIO_RAW_GRP_ID, new ArrayList<String>());
+        audioStremMapping.get(AUDIO_RAW_GRP_ID).add(BinaryEditor.RAW_AUDIO_ID);
+
+        audioStremMapping.put(AUDIO_MC_GRP_ID, new ArrayList<String>());
+        audioStremMapping.get(AUDIO_MC_GRP_ID).add(BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
+
+        audioStremMapping.put(AUDIO_UC_GRP_ID, new ArrayList<String>());
+        audioStremMapping.get(AUDIO_UC_GRP_ID).add(BinaryEditor.NDK_AUDIO_USER_ID);
 
         streamMapping = new HashMap<String, List<String>>();
         streamMapping.put(MC_GRP_ID, new ArrayList<String>());
@@ -180,12 +224,16 @@ public class Const {
         streamMappingPrefix.put(ALTO_GRP_ID, "alto");
         streamMappingPrefix.put(TXT_GRP_ID, "txt");
         streamMappingPrefix.put("TECHMDGRP", "amd_mets");
+        streamMappingPrefix.put(AUDIO_MC_GRP_ID, "mca");
+        streamMappingPrefix.put(AUDIO_UC_GRP_ID, "uca");
 
         streamMappingFile.put(MC_GRP_ID, "mastercopy");
         streamMappingFile.put(UC_GRP_ID, "usercopy");
         streamMappingFile.put(ALTO_GRP_ID, "alto");
         streamMappingFile.put(TXT_GRP_ID, "txt");
         streamMappingFile.put("TECHMDGRP", "amdsec");
+        streamMappingFile.put(AUDIO_MC_GRP_ID, "mastercopy_audio");
+        streamMappingFile.put(AUDIO_UC_GRP_ID, "usercopy_audio");
 
         canContainPage.add(Const.ISSUE);
         canContainPage.add(Const.MONOGRAPH_MULTIPART);

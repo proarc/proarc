@@ -41,7 +41,11 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.menu.IconMenuButton;
+import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItem;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -105,6 +109,7 @@ public final class DeviceManager {
         private boolean updatingDevice = false;
         private final DynamicForm descriptionForm;
         ValuesManager valuesManager;
+        private final DynamicForm premisForm;
 
         public DeviceManagerWidget(ClientMessages i18n) {
             this.i18n = i18n;
@@ -121,14 +126,16 @@ public final class DeviceManager {
             ToolStrip toolbar = createToolbar(i18n);
             deviceList = createDeviceList(i18n);
             form = createForm();
+            premisForm = createPremisForm();
             descriptionForm = createDescriptionForm();
             valuesManager = new ValuesManager();
             valuesManager.addMember(form);
+            valuesManager.addMember(premisForm);
             valuesManager.addMember(descriptionForm);
             valuesManager.setDataSource(DeviceDataSource.getInstance());
             VLayout forms = new VLayout();
             forms.setOverflow(Overflow.AUTO);
-            forms.setMembers(form, descriptionForm);
+            forms.setMembers(form, premisForm, descriptionForm);
 
             HLayout hLayout = new HLayout();
             deviceList.setWidth100();
@@ -159,9 +166,19 @@ public final class DeviceManager {
         private ListGrid createDeviceList(ClientMessages i18n) {
             final ListGrid lg = new ListGrid();
             lg.setSelectionType(SelectionStyle.SINGLE);
-            ListGridField fieldLabel = new ListGridField(DeviceDataSource.FIELD_LABEL);
-            lg.setDataSource(DeviceDataSource.getInstance(), fieldLabel);
-            lg.setSortField(DeviceDataSource.FIELD_LABEL);
+            lg.setDataSource(DeviceDataSource.getInstance());
+            lg.setFields(
+                    new ListGridField(DeviceDataSource.FIELD_LABEL,
+                            i18n.DeviceManager_Label_Title()),
+                    new ListGridField(DeviceDataSource.FIELD_ID,
+                            i18n.DeviceManager_Id_Title()),
+                    new ListGridField(DeviceDataSource.FIELD_MODEL,
+                            i18n.DeviceManager_Model_Title())
+                    );
+            lg.setCanSort(Boolean.FALSE);
+            lg.setCanReorderRecords(Boolean.TRUE);
+            lg.setGenerateDoubleClickOnEnter(Boolean.TRUE);
+
             lg.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
                 @Override
@@ -244,11 +261,76 @@ public final class DeviceManager {
             fieldId.setWidth(280);
             fieldId.setCanEdit(false);
             fieldId.setReadOnlyDisplay(ReadOnlyDisplayAppearance.STATIC);
+            TextItem fieldModel = new TextItem(DeviceDataSource.FIELD_MODEL);
+            fieldModel.setCanEdit(false);
+            fieldModel.setRequired(true);
             TextItem fieldLabel = new TextItem(DeviceDataSource.FIELD_LABEL);
             fieldLabel.setRequired(true);
             fieldLabel.setWidth("*");
-            df.setItems(fieldId, fieldLabel);
+            df.setItems(fieldId, fieldModel,  fieldLabel);
             return df;
+        }
+
+        private DynamicForm createPremisForm() {
+            Form f = new Form();
+            f.getFields().add(
+                    new FieldBuilder("audiodescription").setMaxOccurrences(1)
+                            .addField(new FieldBuilder("xmlData").setTitle("Premis").setMaxOccurrences(10)
+                                    .addField(new FieldBuilder("event").setMaxOccurrences(1).setTitle("Event")
+                                            .addField(new FieldBuilder("linkingAgentIdentifier").setMaxOccurrences(1).setTitle("Linking Agent Identifier - M")
+                                                    .setHint("Identifikace jednoho nebo více agentů spojených s událostí")
+                                                    .addField(new FieldBuilder("linkingAgentIdentifierType").setMaxOccurrences(1)
+                                                            .addField(new FieldBuilder("value").setTitle("Linking Agent Identifier Type - M").setMaxOccurrences(1)
+                                                                    .setHint("Označení typu identifikátoru").setType(Field.TEXT).createField())
+                                                            .createField()) // linkingAgentIdentifierType
+                                                    .addField(new FieldBuilder("linkingAgentIdentifierValue").setMaxOccurrences(1)
+                                                            .addField(new FieldBuilder("value").setTitle("Linking Agent Identifier Value - M").setMaxOccurrences(1)
+                                                                    .setType(Field.TEXT).setHint("Hodnota identifikátoru").createField())
+                                                            .createField()) // linkingAgentIdentifierValue
+                                                    .addField(new FieldBuilder("linkingAgentRole").setMaxOccurrences(1)
+                                                            .addField(new FieldBuilder("value").setTitle("Linking Agent Role - R").setMaxOccurrences(1)
+                                                                    .setType(Field.TEXT).setHint("Role agenta ve vztahu k události, " +
+                                                                            "např. software; SW component; operator; " +
+                                                                            "bude sloužit pro zápis hardware u zvukových dokumentů" +
+                                                                            "(tj. role=player nebo AD nebo extraction workstation" +
+                                                                            "nebo preamp apod.) nutno používat kontrolovaný slovník").createField())
+                                                            .createField()) //linkingAgentRole
+                                                    .createField()) //linkingAgentIdentifier
+                                            .createField()) //event
+                                    .addField(new FieldBuilder("agent").setMaxOccurrences(1).setTitle("Agent")
+                                            .addField(new FieldBuilder("agentType").setMaxOccurrences(1)
+                                                    .addField(new FieldBuilder("value").setTitle("Agent Type - M").setMaxOccurrences(1)
+                                                            .setType(Field.TEXT).setHint("Obecné označení agenta – pro osoby např. osoba, pro SW " +
+                                                                    "např. software apod. hodnoty: organization; person; software, hardware").createField())
+                                                    .createField()) //agentType
+
+                                            .addField(new FieldBuilder("agentName").setMaxOccurrences(1)
+                                                    .addField(new FieldBuilder("value").setTitle("Agent Name - R").setMaxOccurrences(1)
+                                                            .setType(Field.TEXT).setHint("Textové upřesnění agenta," +
+                                                                    "např. přesný název SW, plné jméno osoby apod." +
+                                                                    " - FixImage1.3; Jan Novák; CCS docWorks 6.2.1").createField())
+                                                    .createField()) //agentName
+
+                                            .addField(new FieldBuilder("agentExtension").setMaxOccurrences(1).setTitle("Agent extension - MA")
+                                                    .setHint("Element je určen pro popis použitého zařízení u zvukových" +
+                                                            "dokumentů (zvl. hardware)")
+                                                    .addField(new FieldBuilder("NKmanufacturer").setMaxOccurrences(1)
+                                                            .addField(new FieldBuilder("value").setTitle("NK: Manufacturer - MA").setMaxOccurrences(1)
+                                                                    .setHint("výrobce (př. Mytek, Sony)").setType(Field.TEXT).createField())
+                                                            .createField()) //NK:manufacturer
+                                                    .addField(new FieldBuilder("NKserialNumber").setMaxOccurrences(1)
+                                                            .addField(new FieldBuilder("value").setTitle("NK: Serial Number - M").setMaxOccurrences(1)
+                                                                    .setHint("Sériové číslo zařízení (př. 01504-1208-043)").setType(Field.TEXT).createField())
+                                                            .createField()) //NK:serialNumber
+                                                    .addField(new FieldBuilder("NKsettings").setMaxOccurrences(1)
+                                                            .addField(new FieldBuilder("value").setTitle("NK: Settings - R").setMaxOccurrences(1)
+                                                                    .setHint("Nastavení zařízení, volný text").setType(Field.TEXTAREA).createField())
+                                                            .createField()) //NK:settings
+                                                    .createField()) //agentExtension
+                                            .createField()) //agent
+                                    .createField()) //xmlData
+                          .createField()); //audiodescription
+            return new FormGenerator(f, LanguagesDataSource.activeLocale()).generateForm();
         }
 
         private DynamicForm createDescriptionForm() {
@@ -434,12 +516,18 @@ public final class DeviceManager {
         private ToolStrip createToolbar(ClientMessages i18n) {
             RefreshAction refreshAction = new RefreshAction(i18n);
 
-            AbstractAction addAction = new AbstractAction(i18n.DeviceManager_Add_Title(),
+            AbstractAction addNewDeviceMenu = new AbstractAction(i18n.DeviceManager_Add_Title(),
                     "[SKIN]/actions/add.png", i18n.DeviceManager_Add_Hint()) {
 
                 @Override
+                public boolean accept(ActionEvent event) {
+                    Object[] selection = Actions.getSelection(event);
+                    return selection != null && selection.length > 0;
+                }
+
+                @Override
                 public void performAction(ActionEvent event) {
-                    addDevice();
+                    // choose default action iff supported
                 }
             };
 
@@ -461,7 +549,21 @@ public final class DeviceManager {
 
             ToolStrip t = Actions.createToolStrip();
             t.addMember(Actions.asIconButton(refreshAction, this));
-            t.addMember(Actions.asIconButton(addAction, this));
+            IconMenuButton btnNewDevice = Actions.asIconMenuButton(addNewDeviceMenu, actionSource);
+            Menu menuNews = new Menu();
+            MenuItem newPictureDevice = new MenuItem(i18n.DeviceManager_Add_Picture_Device());
+            MenuItem newAudioDevice = new MenuItem(i18n.DeviceManager_Add_Audio_Device());
+            menuNews.addItemClickHandler((event) -> {
+                if (newPictureDevice == event.getItem()) {
+                    addDevice(DeviceRepository.METAMODEL_ID);
+                } else if (newAudioDevice == event.getItem()) {
+                    addDevice(DeviceRepository.METAMODEL_AUDIODEVICE_ID);
+                }
+            });
+            menuNews.addItem(newPictureDevice);
+            menuNews.addItem(newAudioDevice);
+            btnNewDevice.setMenu(menuNews);
+            t.addMember(btnNewDevice);
             t.addMember(Actions.asIconButton(deleteAction, actionSource));
             t.addMember(Actions.asIconButton(saveAction, actionSource));
             return t;
@@ -512,9 +614,11 @@ public final class DeviceManager {
             });
         }
 
-        private void addDevice() {
+        private void addDevice(String model) {
             addingDevice = true;
-            deviceList.addData(new Record(), new DSCallback() {
+            Record record = new Record();
+            record.setAttribute(DeviceDataSource.FIELD_MODEL, model);
+            deviceList.addData(record, new DSCallback() {
 
                 @Override
                 public void execute(DSResponse response, Object rawData, DSRequest request) {

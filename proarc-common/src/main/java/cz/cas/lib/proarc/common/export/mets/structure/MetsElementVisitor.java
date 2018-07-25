@@ -58,6 +58,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
+import com.hp.hpl.jena.graph.query.SimpleQueryEngine;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -149,6 +150,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     int pageCounter = 0;
     int articleCounter = 0;
     int chapterCounter = 0;
+    int audioPageCounter = 0;
 
     /**
      * creates directory structure for mets elements
@@ -1901,6 +1903,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 insertMonograph(rootElement);
             } else if (Const.MONOGRAPH_MULTIPART.equalsIgnoreCase(rootElement.getElementType())) {
                 insertMonograph(rootElement);
+            } else if (Const.SOUND_COLLECTION.equalsIgnoreCase(rootElement.getElementType())) {
+                insertSoundCollection(rootElement);
             } else
                 throw new MetsExportException(rootElement.getOriginalPid(), "Unknown type:" + rootElement.getElementType() + " model:" + rootElement.getModel(), false, null);
 
@@ -1917,6 +1921,268 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             saveMets(mets, new File(metsElement.getMetsContext().getPackageDir().getAbsolutePath() + File.separator +"mets_"+ MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
         } finally {
             JhoveUtility.destroyConfigFiles(metsElement.getMetsContext().getJhoveContext());
+        }
+    }
+
+    private void insertSoundCollection(IMetsElement metsElement) throws MetsExportException {
+        mets.setTYPE("Sound recording");
+        addDmdSec(metsElement);
+        DivType logicalDiv = new DivType();
+        logicalStruct.setDiv(logicalDiv);
+        DivType physicalDiv = new DivType();
+        physicalStruct.setDiv(physicalDiv);
+
+        physicalDiv.setLabel3(metsElement.getLabel());
+        physicalDiv.setID("DIV_P_0000");
+        physicalDiv.setTYPE("sound collection");
+
+        logicalDiv.setLabel3(metsElement.getLabel());
+        logicalDiv.setTYPE(metsElement.getElementType());
+        logicalDiv.setID(metsElement.getElementID());
+        logicalDiv.getDMDID().add(metsElement.getModsMetsElement());
+        physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
+        metsElement.getMetsContext().setPackageID(getPackageID(metsElement));
+
+        for (IMetsElement childMetsElement : metsElement.getChildren()) {
+            if (Const.SOUND_RECORDING.equals(childMetsElement.getElementType())) {
+                insertSoundRecording(logicalDiv, physicalDiv, childMetsElement);
+            } else if (Const.SUPPLEMENT.equals(childMetsElement.getElementType())) {
+                insertAudioSupplement(logicalDiv, physicalDiv, childMetsElement);
+            } else {
+                throw new MetsExportException(childMetsElement.getOriginalPid(), "Expected SoundRecording or Suplement, got:" + childMetsElement.getElementType(), false, null);
+            }
+        }
+
+    }
+
+    private void insertSoundRecording(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement) throws MetsExportException{
+        addDmdSec(metsElement);
+        if (physicalDiv.getID() == null) {
+            String id = "DIV_P_"+ metsElement.getElementID();
+            physicalDiv.setID(id);
+            physicalDiv.setLabel3(metsElement.getLabel());
+            physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
+            physicalDiv.setTYPE(metsElement.getElementType());
+        }
+
+        DivType divType = new DivType();
+        divType.setID(metsElement.getElementID());
+        divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
+        divType.setTYPE(metsElement.getElementType());
+        divType.getDMDID().add(metsElement.getModsMetsElement());
+        logicalDiv.getDiv().add(divType);
+        
+        for (IMetsElement element : metsElement.getChildren()) {
+            if (Const.SOUND_PAGE.equals(element.getElementType())){
+                insertAudioPage(physicalDiv, element, audioPageCounter, metsElement);
+                audioPageCounter++;
+            } else if (Const.SOUND_PART.equals(element.getElementType())) {
+                insertSoundPart(logicalDiv, physicalDiv, element);
+            } else if (Const.SUPPLEMENT.equals(element.getElementType())) {
+                insertAudioSupplement(logicalDiv, physicalDiv, element);
+            } else
+                throw new MetsExportException(element.getOriginalPid(), "Expected Supplement, SoundPart, AudioPage got:" + element.getElementType(), false, null);
+        }
+    }
+
+    private void insertAudioPage(DivType physicalDiv, IMetsElement metsElement, int audioPageCounter, IMetsElement sourceElement) throws MetsExportException {
+        List<IMetsElement> sourceElements = new ArrayList<IMetsElement>();
+        sourceElements.add(sourceElement);
+        insertAudioPage(physicalDiv, metsElement, audioPageCounter, sourceElements, sourceElement);
+    }
+
+    private void insertAudioPage(DivType physicalDiv, IMetsElement metsElement, int audioPageCounter, List<IMetsElement> sourceElements, IMetsElement sourceElement) throws MetsExportException{
+        HashMap<String, String> outputFileNmaes = new HashMap<String, String>();
+        if (!Const.SOUND_PAGE.equals(metsElement.getElementType())) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Expected audiopage, got " + metsElement.getElementType(), false, null);
+        }
+        HashMap<String, FileGrp> fileGrpAudioPage = MetsUtils.initFileGroups();
+        DivType audioPageDiv = new DivType();
+        physicalDiv.getDiv().add(audioPageDiv);
+        fillAudioPageIndexOrder(metsElement, audioPageDiv, sourceElement);
+        String ID = "DIV_AUDIO_" + metsElement.getElementID().replace("SOUNDPAGE_", "");
+        audioPageDiv.setID(ID);
+        HashMap<String, Object> fileNames = new HashMap<String, Object>();
+        HashMap<String, String> mimeTypes = new HashMap<String, String>();
+        HashMap<String, XMLGregorianCalendar> createDates = new HashMap<String, XMLGregorianCalendar>();
+        HashMap<String, FileMD5Info> md5InfosMap = new HashMap<String, FileMD5Info>();
+        processAudioPageFiles(metsElement, fileNames, mimeTypes, createDates, md5InfosMap);
+        for (String streamName : Const.streamMapping.keySet()) {
+            if (fileNames.containsKey(streamName)) {
+                FileType fileType = prepareFileType(audioPageCounter, streamName, fileNames, mimeTypes, metsElement.getMetsContext(), outputFileNmaes, md5InfosMap);
+                fileGrpAudioPage.get(streamName).getFile().add(fileType);
+                fileGrpMap.get(streamName).getFile().add(fileType);
+                Fptr fptr = new Fptr();
+                fptr.setFILEID(fileType);
+                audioPageDiv.getFptr().add(fptr);
+            } else {
+                if (Const.audioMandatoryStreams.contains(streamName) && !metsElement.getMetsContext().isAllowNonCompleteStreams()) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Stream: " + streamName + " is missing", false, null);
+                }
+
+            }
+        }
+
+    }
+
+    private void processAudioPageFiles(IMetsElement metsElement, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, HashMap<String, XMLGregorianCalendar> createDates, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
+        for (String streamName : Const.audioStremMapping.keySet()) {
+            if (metsElement.getMetsContext().getFedoraClient() != null) {
+                try {
+                    for (String dataStream : Const.audioStremMapping.get(streamName)) {
+                        DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), dataStream);
+                        if (rawDS != null) {
+                            FileMD5Info fileMd5Info;
+                            if (md5InfosMap.get(streamName) == null) {
+                                fileMd5Info = new FileMD5Info();
+                                md5InfosMap.put(streamName, fileMd5Info);
+                            } else {
+                                fileMd5Info = md5InfosMap.get(streamName);
+                            }
+                            fileMd5Info.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
+
+                            GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), dataStream);
+                            createDates.put(streamName, rawDS.getDatastreamVersion().get(0).getCREATED());
+                            try {
+                                InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                                fileNames.put(streamName, is);
+                            } catch (FedoraClientException e) {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                            }
+                            // mimeTypes.put(streamName, profile.getDsMIME());
+                            mimeTypes.put(streamName, rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+                            break;
+                            //
+                        }
+                    }
+                } catch (Exception ex) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting file datastreams for " + metsElement.getOriginalPid(), false, ex);
+                }
+            } else {
+                List<DatastreamType> datastreams = metsElement.getSourceObject().getDatastream();
+                for (String dataStream : Const.audioStremMapping.get(streamName)) {
+                    if (fileNames.get(streamName) != null) {
+                        break;
+                    }
+                    for (DatastreamType ds : datastreams) {
+                        if (MetsUtils.equalDataStreams(ds.getID(), dataStream)) {
+                            Iterator<DatastreamVersionType> dvIter = ds.getDatastreamVersion().iterator();
+                            while (dvIter.hasNext()) {
+                                DatastreamVersionType dv = dvIter.next();
+                                mimeTypes.put(streamName, dv.getMIMETYPE());
+                                if (dv.getContentLocation() != null) {
+                                    fileNames.put(streamName, dv.getContentLocation().getREF());
+                                    FileMD5Info fileMd5Info;
+                                    if (md5InfosMap.get(streamName) == null) {
+                                        fileMd5Info = new FileMD5Info();
+                                        md5InfosMap.put(streamName, fileMd5Info);
+                                    } else {
+                                        fileMd5Info = md5InfosMap.get(streamName);
+                                    }
+                                    fileMd5Info.setCreated(dv.getCREATED());
+                                }
+                                if (dv.getBinaryContent() != null) {
+                                    fileNames.put(streamName, dv.getBinaryContent());
+                                    FileMD5Info fileMd5Info;
+                                    if (md5InfosMap.get(streamName) == null) {
+                                        fileMd5Info = new FileMD5Info();
+                                        md5InfosMap.put(streamName, fileMd5Info);
+                                    } else {
+                                        fileMd5Info = md5InfosMap.get(streamName);
+                                    }
+                                    fileMd5Info.setCreated(dv.getCREATED());
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void fillAudioPageIndexOrder(IMetsElement metsElement, DivType audioPageDiv, IMetsElement sourceElement) throws MetsExportException {
+        Node partNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "*[local-name()='modsCollection']/*[local-name()='mods']/*[local-name()='part']");
+        if (partNode == null) {
+            partNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "*[local-name()='mods']/*[local-name()='part']");
+        }
+        audioPageDiv.setTYPE(transformType(sourceElement.getElementType()));
+
+        NodeList nodeList = partNode.getChildNodes();
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            if (nodeList.item(i).getLocalName() != null && nodeList.item(i).getLocalName().equalsIgnoreCase("detail")) {
+                Node numberNode = nodeList.item(i).getChildNodes().item(0).getFirstChild();
+                if (nodeList.item(i).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageNumber")) {
+                    audioPageDiv.setORDERLABEL(numberNode.getNodeValue());
+                }
+                if (nodeList.item(i).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageIndex")) {
+                    audioPageDiv.setORDER(new BigInteger(numberNode.getNodeValue()));
+                }
+            }
+        }
+    }
+
+    private String transformType(String elementName) {
+        if (Const.SOUND_PART.equalsIgnoreCase(elementName)) {
+            return Const.NDK_EXPORT_STRUCTMAP_SOUNDPART;
+        } else if (Const.SOUND_RECORDING.equalsIgnoreCase(elementName)) {
+            return Const.NDK_EXPORT_STRUCTMAP_SOUNDRECORDING;
+        } else if (Const.SOUND_COLLECTION.equalsIgnoreCase(elementName)) {
+            return Const.NDK_EXPORT_STRUCTMAP_SOUNDCOLLECTION;
+        } else return null;
+    }
+
+    private void insertSoundPart(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement) throws MetsExportException {
+        addDmdSec(metsElement);
+        if (physicalDiv.getID() == null) {
+            String id = "DIV_P_"+ metsElement.getElementID();
+            physicalDiv.setID(id);
+            physicalDiv.setLabel3(metsElement.getLabel());
+            physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
+            physicalDiv.setTYPE(metsElement.getElementType());
+        }
+
+        DivType divType = new DivType();
+        divType.setID(metsElement.getElementID());
+        divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
+        divType.setTYPE(metsElement.getElementType());
+        divType.getDMDID().add(metsElement.getModsMetsElement());
+        logicalDiv.getDiv().add(divType);
+
+        for (IMetsElement element : metsElement.getChildren()) {
+            if (Const.SOUND_PAGE.equals(element.getElementType())) {
+                insertAudioPage(physicalDiv, element, pageCounter, metsElement);
+                audioPageCounter++;
+            } else if (Const.SUPPLEMENT.equals(element.getElementType())) {
+                insertAudioSupplement(logicalDiv, physicalDiv, element);
+            }
+            else
+                throw new MetsExportException(element.getOriginalPid(), "Expected AudioPage or Supplement, got:" + element.getElementType(), false, null);
+        }
+    }
+
+    private void insertAudioSupplement(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement) throws MetsExportException {
+        addDmdSec(metsElement);
+        if (physicalDiv.getID() == null) {
+            String id = "DIV_P_"+ metsElement.getElementID();
+            physicalDiv.setID(id);
+            physicalDiv.setLabel3(metsElement.getLabel());
+            physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
+            physicalDiv.setTYPE(metsElement.getElementType());
+        }
+
+        DivType divType = new DivType();
+        divType.setID(metsElement.getElementID());
+        divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
+        divType.setTYPE(Const.typeNameMap.get(metsElement.getElementType()));
+        divType.getDMDID().add(metsElement.getModsMetsElement());
+        logicalDiv.getDiv().add(divType);
+        for (IMetsElement element : metsElement.getChildren()) {
+            if (Const.PAGE.equals(element.getElementType())) {
+                insertPage(physicalDiv, element, pageCounter, metsElement);
+                pageCounter++;
+            } else
+                throw new MetsExportException(element.getOriginalPid(), "Expected Page, got:" + element.getElementType(), false, null);
         }
     }
 }
