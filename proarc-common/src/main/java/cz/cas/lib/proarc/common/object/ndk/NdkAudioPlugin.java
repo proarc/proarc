@@ -103,7 +103,7 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
         ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
-                Arrays.asList(new ElementType("Soundrecording Page", "en"), new ElementType("Strana hudebniny", "cs")),
+                Arrays.asList(new ElementType("Soundrecording Page", "en"), new ElementType("Zvukova nahravka", "cs")),
                 ModsConstants.NS,
                 MODEL_PAGE,
                 this,
