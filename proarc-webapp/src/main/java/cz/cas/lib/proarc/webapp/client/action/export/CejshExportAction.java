@@ -73,6 +73,12 @@ public class CejshExportAction extends ExportAction {
 //                MetaModelRecord model = dobj.getModel();
 //                String metadataFormat = model.getMetadataFormat();
                 String modelId = dobj.getModelId();
+                if (modelId != null && (modelId.contains("ndkmusicdocument")
+                        || modelId.contains("ndksong")
+                        || modelId.contains("ndktrack") || modelId.contains("ndkaudiopage"))) {
+                    accept = false;
+                    continue;
+                }
                 // XXX hack; it needs support to query model/object for action availability
                 if (modelId != null && (modelId.equals("model:bdmarticle")
                          || modelId.startsWith("model:ndk"))) {
