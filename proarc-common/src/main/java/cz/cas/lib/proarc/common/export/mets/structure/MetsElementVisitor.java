@@ -73,6 +73,10 @@ import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 
+import cz.cas.lib.proarc.audiopremis.AudioObjectFactory;
+import cz.cas.lib.proarc.audiopremis.NkManufacturerComplexType;
+import cz.cas.lib.proarc.audiopremis.NkSerialNumberComplexType;
+import cz.cas.lib.proarc.audiopremis.NkSettingsComplexType;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
@@ -115,6 +119,7 @@ import cz.cas.lib.proarc.premis.CreatingApplicationComplexType;
 import cz.cas.lib.proarc.premis.EventComplexType;
 import cz.cas.lib.proarc.premis.EventIdentifierComplexType;
 import cz.cas.lib.proarc.premis.EventOutcomeInformationComplexType;
+import cz.cas.lib.proarc.premis.ExtensionComplexType;
 import cz.cas.lib.proarc.premis.FixityComplexType;
 import cz.cas.lib.proarc.premis.FormatComplexType;
 import cz.cas.lib.proarc.premis.FormatDesignationComplexType;
@@ -146,7 +151,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     private StructMapType physicalStruct;
     private HashMap<String, FileGrp> fileGrpMap;
     private final Map<StructLinkMapping, String> pageOrderToDivMap = new HashMap<StructLinkMapping, String>();
+    private final Map<StructLinkMapping, String> audioPageOrderToDivMap = new HashMap<StructLinkMapping, String>();
     private final Map<String, List<StructLinkMapping>> structToPageMap = new HashMap<String, List<StructLinkMapping>>();
+    private final Map<String, List<StructLinkMapping>> structToAudioPageMap = new HashMap<String, List<StructLinkMapping>>();
     int pageCounter = 0;
     int articleCounter = 0;
     int chapterCounter = 0;
@@ -156,13 +163,16 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * creates directory structure for mets elements
      */
 
-    private void createDirectoryStructure(MetsContext metsContext) {
+    private void createDirectoryStructure(IMetsElement metsElement) {
         for (String directory : Const.streamMappingFile.values()) {
-            File file = new File(metsContext.getOutputPath() + File.separator + metsContext.getPackageID() + File.separator + directory);
-            if (file.exists()) {
-                deleteFolder(file);
+            if (Const.SOUND_PAGE.equals(metsElement.getElementType())
+                    || (Const.PAGE.equals(metsElement.getElementType()) && !("mastercopy_audio".equals(directory) || "sourceaudio".equals(directory) || "usercopy_audio".equals(directory)))) {
+                File file = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + directory);
+                if (file.exists()) {
+                    deleteFolder(file);
+                }
+                file.mkdir();
             }
-            file.mkdir();
         }
     }
 
@@ -199,6 +209,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
         mets.setMetsHdr(metsHdr);
         fileGrpMap = MetsUtils.initFileGroups();
+        if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())
+                || Const.SOUND_RECORDING.equals(metsElement.getElementType())
+                || Const.SOUND_PART.equals(metsElement.getElementType())) {
+            fileGrpMap = MetsUtils.initAudioFileGroups(fileGrpMap);
+        }
+
     }
 
     /**
@@ -463,8 +479,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsStreamName
      * @return
      */
-    private FileType prepareFileType(int seq, String metsStreamName, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, MetsContext metsContext, HashMap<String, String> outputFileNames, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
+    private FileType prepareFileType(int seq, String metsStreamName, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, IMetsElement metsElement, HashMap<String, String> outputFileNames, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
         // String streamName = Const.streamMapping.get(metsStreamName);
+        MetsContext metsContext = metsElement.getMetsContext();
         FileType fileType = new FileType();
         fileType.setCHECKSUMTYPE("MD5");
         GregorianCalendar gregory = new GregorianCalendar();
@@ -483,7 +500,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         fileType.setMIMETYPE(mimeTypes.get(metsStreamName));
         InputStream is = null;
         seq = seq + 1;
-        fileType.setID(Const.streamMappingPrefix.get(metsStreamName) + "_" + MetsUtils.removeNonAlpabetChars(metsContext.getPackageID()) + "_" + String.format("%04d", seq));
+        if (Const.SOUND_PAGE.equals(metsElement.getElementType())) {
+            fileType.setID(Const.streamMappingPrefix.get(metsStreamName) + "_" + MetsUtils.removeNonAlpabetChars(metsContext.getPackageID()) + "__" + String.format("%04d", seq));
+        } else {
+            fileType.setID(Const.streamMappingPrefix.get(metsStreamName) + "_" + MetsUtils.removeNonAlpabetChars(metsContext.getPackageID()) + "_" + String.format("%04d", seq));
+        }
         if (fileNames.get(metsStreamName) instanceof String) {
             String fileNameOriginal = (String) fileNames.get(metsStreamName);
             int lastIndex = fileNameOriginal.lastIndexOf('/');
@@ -641,68 +662,158 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @throws MetsExportException
      */
     private Mix getScannerMix(IMetsElement metsElement) throws MetsExportException {
-       if (metsElement.getMetsContext().getRemoteStorage()!=null) {
-           Node deviceNode = MetsUtils.xPathEvaluateNode(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasDevice']");
-           if (deviceNode == null) {
-               return null;
-           }
-           Node attrNode = deviceNode.getAttributes().getNamedItem("rdf:resource");
-           if (attrNode==null) {
-               return null;
-           }
-           DeviceRepository deviceRepository = new DeviceRepository(metsElement.getMetsContext().getRemoteStorage());
-            String deviceId = attrNode.getNodeValue().replaceAll("info:fedora/", "");
-            List<Device> deviceList;
-            try {
-                deviceList = deviceRepository.find(deviceId, true);
-            } catch (DeviceException e) {
-                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get scanner info", false, e);
-            }
-            if (deviceList.size() != 1) {
-                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get scanner info - expected 1 device, got:" + deviceList.size(), false, null);
-           }
-            Device device = deviceList.get(0);
+        if (metsElement.getMetsContext().getRemoteStorage() != null) {
+            Device device = getDevice(metsElement);
             if ((device.getDescription() == null) || (device.getDescription().getImageCaptureMetadata() == null)) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Scanner device does not have the description/imageCaptureMetadata set", false, null);
             }
             Mix mix = device.getDescription();
             return mix;
-       }
-       return null;
-   }
+        }
+        return null;
+    }
 
+    /**
+     * Returns the audiodescription of scanner
+     *
+     * @param metsElement
+     * @return
+     * @throws MetsExportException
+     */
+    private Mets getScannerMets(IMetsElement metsElement) throws MetsExportException {
+        if (metsElement.getMetsContext().getRemoteStorage() != null) {
+            Device device = getDevice(metsElement);
+            if ((device.getAudioDescription() == null) || device.getAudioDescription().getAmdSec() == null) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Scanner device does not have the audiodescription/Premis set", false, null);
+            }
+            return device.getAudioDescription();
+        }
+        return null;
+    }
 
-    private Node getAgent(IMetsElement metsElement) throws MetsExportException {
-        AgentComplexType agent = new AgentComplexType();
+    /**
+     * Returns the device
+     *
+     * @param metsElement
+     * @return
+     * @throws MetsExportException
+     */
+    private Device getDevice(IMetsElement metsElement) throws MetsExportException {
+        Node deviceNode = MetsUtils.xPathEvaluateNode(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasDevice']");
+        if (deviceNode == null) {
+            return null;
+        }
+        Node attrNode = deviceNode.getAttributes().getNamedItem("rdf:resource");
+        if (attrNode==null) {
+            return null;
+        }
+        DeviceRepository deviceRepository = new DeviceRepository(metsElement.getMetsContext().getRemoteStorage());
+        String deviceId = attrNode.getNodeValue().replaceAll("info:fedora/", "");
+        List<Device> deviceList;
+        try {
+            deviceList = deviceRepository.find(deviceId, true);
+        } catch (DeviceException e) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get scanner info", false, e);
+        }
+        if (deviceList.size() != 1) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get scanner info - expected 1 device, got:" + deviceList.size(), false, null);
+        }
+        return deviceList.get(0);
+    }
+
+    private Node getAgent(AmdSecType amd, IMetsElement metsElement) throws Exception {
         ObjectFactory factory = new ObjectFactory();
+        AgentComplexType agent = fillAgent(amd, factory);
         JAXBElement<AgentComplexType> jaxbPremix = factory.createAgent(agent);
         AgentIdentifierComplexType agentIdentifier = new AgentIdentifierComplexType();
         agent.getAgentIdentifier().add(agentIdentifier);
         agentIdentifier.setAgentIdentifierType("ProArc_AgentID");
         agentIdentifier.setAgentIdentifierValue("ProArc");
-        agent.setAgentType("software");
-        agent.getAgentName().add("ProArc");
+        JAXBContext jc = JAXBContext.newInstance(AgentComplexType.class);
+        return createNode(jaxbPremix, jc, "*[local-name()='agent']");
+    }
 
-        JAXBContext jc;
+    private AgentComplexType fillAgent(AmdSecType amd, ObjectFactory factory) {
+        String agentType;
+        String agentName;
+        AgentComplexType agentComplexType = new AgentComplexType();
+        try{
+            AgentComplexType agent = (AgentComplexType) ((JAXBElement) amd.getDigiprovMD().get(1).getMdWrap().getXmlData().getAny().get(0)).getValue();
+            agentName = agent.getAgentName().get(0);
+            agentType = agent.getAgentType();
+            ExtensionComplexType extension = factory.createExtensionComplexType();
+            agentComplexType.getAgentExtension().add(extension);
+            extension.getAny().add(addNkManufacturerNode(agent));
+            extension.getAny().add(addNkSerialNumberNode(agent));
+            extension.getAny().add(addNkSettingsNode(agent));
+        } catch (Exception ex) {
+            agentName = "ProArc";
+            agentType = "software";
+        }
+        agentComplexType.getAgentName().add(agentName);
+        agentComplexType.setAgentType(agentType);
+        return agentComplexType;
+    }
+
+    private Node addNkManufacturerNode(AgentComplexType agent) throws Exception {
+        NkManufacturerComplexType nkManufacturer = new NkManufacturerComplexType();
+        for (Object extension : agent.getAgentExtension().get(0).getAny()) {
+            if ("nkManufacturer".equals(((Element) extension).getLocalName())) {
+                nkManufacturer.setNkManufacturer(((Element) extension).getFirstChild().getFirstChild().getNodeValue());
+            }
+        }
+        AudioObjectFactory factory = new AudioObjectFactory();
+        JAXBElement<NkManufacturerComplexType> jaxb = factory.createNkManufacturer(nkManufacturer);
+        JAXBContext jc = JAXBContext.newInstance(NkManufacturerComplexType.class);
+        return createNode(jaxb, jc, "*[local-name()='nkManufacturer']");
+    }
+
+    private Node addNkSerialNumberNode(AgentComplexType agent) throws Exception {
+        NkSerialNumberComplexType nkSerialNumber = new NkSerialNumberComplexType();
+        for (Object extension : agent.getAgentExtension().get(0).getAny()) {
+            if ("nkSerialNumber".equals(((Element) extension).getLocalName())) {
+                nkSerialNumber.setNkSerialNumber(((Element) extension).getFirstChild().getFirstChild().getNodeValue());
+            }
+        }
+        AudioObjectFactory factory = new AudioObjectFactory();
+        JAXBElement<NkSerialNumberComplexType> jaxb = factory.createNkSerialNumber(nkSerialNumber);
+        JAXBContext jc = JAXBContext.newInstance(NkSerialNumberComplexType.class);
+        return createNode(jaxb, jc, "*[local-name()='nkSerialNumber']");
+    }
+
+    private Node addNkSettingsNode(AgentComplexType agent) throws Exception {
+        NkSettingsComplexType nkSettings = new NkSettingsComplexType();
+        for (Object extension : agent.getAgentExtension().get(0).getAny()) {
+            if ("nkSettings".equals(((Element) extension).getLocalName())) {
+                nkSettings.setNkSettings(((Element) extension).getFirstChild().getFirstChild().getNodeValue());
+            }
+        }
+        AudioObjectFactory factory = new AudioObjectFactory();
+        JAXBElement<NkSettingsComplexType> jaxb = factory.createNkSetting(nkSettings);
+        JAXBContext jc = JAXBContext.newInstance(NkSettingsComplexType.class);
+        return createNode(jaxb, jc, "*[local-name()='nkSettings']");
+    }
+
+    private Node createNode(JAXBElement jaxb, JAXBContext jc, String expression) throws  Exception{
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document document = db.newDocument();
+        Marshaller marshaller = jc.createMarshaller();
+        marshaller.marshal(jaxb, document);
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        Node node = (Node) xpath.compile(expression).evaluate(document, XPathConstants.NODE);
+        return node;
+    }
+
+    private Node getAgent(IMetsElement metsElement) throws MetsExportException {
         try {
-            jc = JAXBContext.newInstance(AgentComplexType.class);
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document document = db.newDocument();
-
-            // Marshal the Object to a Document
-            Marshaller marshaller = jc.createMarshaller();
-            marshaller.marshal(jaxbPremix, document);
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            Node agentNode = (Node) xpath.compile("*[local-name()='agent']").evaluate(document, XPathConstants.NODE);
-            return agentNode;
+            return getAgent(null, metsElement);
         } catch (Exception e) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
         }
-
     }
 
-    private Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws MetsExportException {
+    private Node getPremisEvent(AmdSecType amd, IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws Exception {
         PremisComplexType premis = new PremisComplexType();
         ObjectFactory factory = new ObjectFactory();
         JAXBElement<PremisComplexType> jaxbPremix = factory.createPremis(premis);
@@ -718,28 +829,40 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         EventOutcomeInformationComplexType eventInformation = new EventOutcomeInformationComplexType();
         event.getEventOutcomeInformation().add(eventInformation);
         eventInformation.getContent().add(factory.createEventOutcome("successful"));
-        LinkingAgentIdentifierComplexType linkingAgentIdentifier = new LinkingAgentIdentifierComplexType();
-        linkingAgentIdentifier.setLinkingAgentIdentifierType("ProArc_AgentID");
-        linkingAgentIdentifier.setLinkingAgentIdentifierValue("ProArc");
-        linkingAgentIdentifier.getLinkingAgentRole().add("software");
+        LinkingAgentIdentifierComplexType linkingAgentIdentifier = fillLinkingAgentIdentifier(amd);
         LinkingObjectIdentifierComplexType linkingObject = new LinkingObjectIdentifierComplexType();
         linkingObject.setLinkingObjectIdentifierType("ProArc_URI");
         linkingObject.setLinkingObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get(datastream));
         event.getLinkingObjectIdentifier().add(linkingObject);
         event.getLinkingAgentIdentifier().add(linkingAgentIdentifier);
-        JAXBContext jc;
-        try {
-            jc = JAXBContext.newInstance(PremisComplexType.class);
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document document = db.newDocument();
+        JAXBContext jc = JAXBContext.newInstance(PremisComplexType.class);
+        return createNode(jaxbPremix, jc, "*[local-name()='premis']/*[local-name()='event']");
+    }
 
-            // Marshal the Object to a Document
-            Marshaller marshaller = jc.createMarshaller();
-            marshaller.marshal(jaxbPremix, document);
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            Node premisNode = (Node) xpath.compile("*[local-name()='premis']/*[local-name()='event']").evaluate(document, XPathConstants.NODE);
-            return premisNode;
+    private LinkingAgentIdentifierComplexType fillLinkingAgentIdentifier(AmdSecType amd) {
+        String identifierType;
+        String identifierValue;
+        String role;
+        try{
+            EventComplexType event = (EventComplexType)((JAXBElement) amd.getDigiprovMD().get(0).getMdWrap().getXmlData().getAny().get(0)).getValue();
+            identifierType = event.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierType();
+            identifierValue = event.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierValue();
+            role = event.getLinkingAgentIdentifier().get(0).getLinkingAgentRole().get(0);
+        } catch (Exception ex) {
+            identifierType = "ProArc_AgentID";
+            identifierValue = "ProArc";
+            role = "role";
+        }
+        LinkingAgentIdentifierComplexType linkingAgent = new LinkingAgentIdentifierComplexType();
+        linkingAgent.setLinkingAgentIdentifierType(identifierType);
+        linkingAgent.setLinkingAgentIdentifierValue(identifierValue);
+        linkingAgent.getLinkingAgentRole().add(role);
+        return linkingAgent;
+    }
+
+    private Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws MetsExportException {
+        try {
+            return getPremisEvent(null, metsElement, datastream, md5Info, eventDetail);
         } catch (Exception e) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
         }
@@ -865,24 +988,28 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             amdSec.getTechMD().add(mdSec);
         }
         if ("OBJ_002".equals(Id) || ("EVT_002".equals(Id))) {
-            if ((amdSecFileGrpMap.get(Const.MC_GRP_ID) != null) && (amdSecFileGrpMap.get(Const.MC_GRP_ID).getFile().get(0) != null)) {
+            if ((amdSecFileGrpMap!= null) && (amdSecFileGrpMap.get(Const.MC_GRP_ID) != null) && (amdSecFileGrpMap.get(Const.MC_GRP_ID).getFile().get(0) != null)) {
                 amdSecFileGrpMap.get(Const.MC_GRP_ID).getFile().get(0).getADMID().add(mdSec);
             }
         }
-        if ("OBJ_003".equals(Id) || ("EVT_003".equals(Id))) {
-            if ((amdSecFileGrpMap.get(Const.ALTO_GRP_ID) != null) && (amdSecFileGrpMap.get(Const.ALTO_GRP_ID).getFile().get(0) != null)) {
+        if ("OBJ_003".equals(Id) || ("E VT_003".equals(Id))) {
+            if ((amdSecFileGrpMap!= null) && (amdSecFileGrpMap.get(Const.ALTO_GRP_ID) != null) && (amdSecFileGrpMap.get(Const.ALTO_GRP_ID).getFile().get(0) != null)) {
                 amdSecFileGrpMap.get(Const.ALTO_GRP_ID).getFile().get(0).getADMID().add(mdSec);
             }
         }
     }
 
-    private void addPremisToAmdSec(AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, IMetsElement metsElement, HashMap<String, FileGrp> amdSecFileGrpMap) throws MetsExportException {
+    private void addPremisToAmdSec(AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, IMetsElement metsElement, HashMap<String, FileGrp> amdSecFileGrpMap, Mets mets) throws MetsExportException {
         HashMap<String, String> toGenerate = new HashMap<String, String>();
         toGenerate.put("OBJ_001", Const.RAW_GRP_ID);
         toGenerate.put("OBJ_002", Const.MC_GRP_ID);
         toGenerate.put("OBJ_003", Const.ALTO_GRP_ID);
         toGenerate.put("OBJ_004", Const.UC_GRP_ID);
         toGenerate.put("OBJ_005", Const.TXT_GRP_ID);
+        toGenerate.put("OBJ_001", Const.AUDIO_RAW_GRP_ID);
+        toGenerate.put("OBJ_002", Const.AUDIO_MC_GRP_ID);
+        int seqEvent = 1;
+        int seqAgent = 1;
 
         for (String obj : toGenerate.keySet()) {
             String stream = toGenerate.get(obj);
@@ -890,6 +1017,25 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 continue;
             }
             addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream)), amdSec, obj, false, amdSecFileGrpMap);
+        }
+
+        if (mets != null) {
+            if (md5InfosMap.get(Const.AUDIO_RAW_GRP_ID) != null) {
+                for (AmdSecType amd : mets.getAmdSec()) {
+                    try {
+                        addPremisNodeToMets(getPremisEvent(amd, metsElement, Const.AUDIO_RAW_GRP_ID, md5InfosMap.get(Const.AUDIO_RAW_GRP_ID), "capture/digitization"), amdSec, "EVT_" + String.format("%03d", seqEvent), true, null);
+                        seqEvent++;
+                    } catch (Exception e) {
+                        throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
+                    }
+                }
+            }
+            if (md5InfosMap.get(Const.AUDIO_MC_GRP_ID) != null) {
+                addPremisNodeToMets(getPremisEvent(metsElement, Const.AUDIO_MC_GRP_ID, md5InfosMap.get(Const.AUDIO_MC_GRP_ID), "migration/MC_creation"), amdSec, "EVT_002", true, amdSecFileGrpMap);
+            }
+            if (md5InfosMap.get(Const.AUDIO_UC_GRP_ID) != null) {
+                addPremisNodeToMets(getPremisEvent(metsElement, Const.AUDIO_UC_GRP_ID, md5InfosMap.get(Const.AUDIO_UC_GRP_ID), "derivation/UC_creation"), amdSec, "EVT_004", true, amdSecFileGrpMap);
+            }
         }
 
         if (md5InfosMap.get(Const.RAW_GRP_ID) != null) {
@@ -909,7 +1055,18 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             addPremisNodeToMets(getPremisEvent(metsElement, Const.TXT_GRP_ID, md5InfosMap.get(Const.TXT_GRP_ID), "capture/TXT_creation"), amdSec, "EVT_005", true, amdSecFileGrpMap);
         }
 
-        addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_001", true, null);
+        if (mets != null) {
+            for (AmdSecType amd : mets.getAmdSec()) {
+                try {
+                    addPremisNodeToMets(getAgent(amd, metsElement), amdSec, "AGENT_" + String.format("%03d", seqAgent), true, null);
+                    seqAgent++;
+                } catch (Exception e) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
+                }
+            }
+        } else {
+            addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_001", true, null);
+        }
     }
 
     /**
@@ -967,7 +1124,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             amdSec.setID(metsElement.getElementID());
             amdSecMets.getAmdSec().add(amdSec);
             DivType divType = new DivType();
-            if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsElement.getMetsContext().getRootElement().getElementType())) {
+            if (Const.SOUND_COLLECTION.equalsIgnoreCase(metsElement.getMetsContext().getRootElement().getElementType())) {
+                divType.setTYPE("TRACK");
+            } else if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsElement.getMetsContext().getRootElement().getElementType())) {
                 divType.setTYPE("PERIODICAL_PAGE");
             } else {
                 divType.setTYPE("MONOGRAPH_PAGE");
@@ -1014,6 +1173,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             File rawFile = null;
             XMLGregorianCalendar rawCreated = null;
             Mix mixDevice = getScannerMix(metsElement);
+            Mets metsDevice = getScannerMets(metsElement);
             // RAW datastream for MIX_001 - only for Fedora
             PhotometricInterpretation photometricInterpretation = null;
             JHoveOutput jHoveOutputRaw = null;
@@ -1153,10 +1313,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
             }
 
-            addPremisToAmdSec(amdSec, md5InfosMap, metsElement, amdSecFileGrpMap);
+            addPremisToAmdSec(amdSec, md5InfosMap, metsElement, amdSecFileGrpMap, metsDevice);
             mapType.setDiv(divType);
             saveAmdSec(metsElement, amdSecMets, fileNames, mimeTypes);
-            FileType fileType = prepareFileType(seq, "TECHMDGRP", fileNames, mimeTypes, metsElement.getMetsContext(), outputFileNames, md5InfosMap);
+            FileType fileType = prepareFileType(seq, "TECHMDGRP", fileNames, mimeTypes, metsElement, outputFileNames, md5InfosMap);
             this.fileGrpMap.get("TECHMDGRP").getFile().add(fileType);
             Fptr fptr = new Fptr();
             fptr.setFILEID(fileType);
@@ -1366,7 +1526,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         processPageFiles(metsElement, pageCounter, fileNames, mimeTypes, createDates, md5InfosMap);
         for (String streamName : Const.streamMapping.keySet()) {
             if (fileNames.containsKey(streamName)) {
-                FileType fileType = prepareFileType(pageCounter, streamName, fileNames, mimeTypes, metsElement.getMetsContext(), outputFileNames, md5InfosMap);
+                FileType fileType = prepareFileType(pageCounter, streamName, fileNames, mimeTypes, metsElement, outputFileNames, md5InfosMap);
                 fileGrpPage.get(streamName).getFile().add(fileType);
                 fileGrpMap.get(streamName).getFile().add(fileType);
                 Fptr fptr = new Fptr();
@@ -1418,6 +1578,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         structToPageMap.get(fromDiv).add(structLinkMapping);
     }
 
+    private void addMappingAudioPageStruct(StructLinkMapping structLinkMapping, String fromDiv) {
+        if (structToAudioPageMap.get(fromDiv) == null) {
+            structToAudioPageMap.put(fromDiv, new ArrayList<StructLinkMapping>());
+        }
+        structToAudioPageMap.get(fromDiv).add(structLinkMapping);
+    }
+
     /**
      * Adds the struct-link to the mets
      *
@@ -1441,6 +1608,20 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             structLink.getSmLinkOrSmLinkGrp().add(smLink);
                         } else {
                             throw new MetsExportException("Unable to find DIV for page order:" + structLinkMapping.pageDiv + " " + structLinkMapping.pageOrder, false, null);
+                        }
+                    }
+                }
+            }
+            for (String structFrom : structToAudioPageMap.keySet()) {
+                if (structToAudioPageMap.get(structFrom) != null) {
+                    for (StructLinkMapping structLinkMapping : structToAudioPageMap.get(structFrom)) {
+                        if (audioPageOrderToDivMap.get(structLinkMapping) != null) {
+                            SmLink smLink = new SmLink();
+                            smLink.setFrom(structFrom);
+                            smLink.setTo(audioPageOrderToDivMap.get(structLinkMapping));
+                            structLink.getSmLinkOrSmLinkGrp().add(smLink);
+                        } else {
+                            throw new MetsExportException("Unable to find DIV for audio page order:" + structLinkMapping.pageDiv + " " + structLinkMapping.pageOrder, false, null);
                         }
                     }
                 }
@@ -1489,14 +1670,14 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         File file = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID());
         if (file.exists()) {
             if (file.isDirectory()) {
-                createDirectoryStructure(metsElement.getMetsContext());
+                createDirectoryStructure(metsElement);
                 return file;
             } else {
                 throw new MetsExportException(metsElement.getOriginalPid(), "File:" + file.getAbsolutePath() + " exists, but is not directory", false, null);
             }
         } else {
             file.mkdir();
-            createDirectoryStructure(metsElement.getMetsContext());
+            createDirectoryStructure(metsElement);
             return file;
         }
     }
@@ -1946,6 +2127,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         for (IMetsElement childMetsElement : metsElement.getChildren()) {
             if (Const.SOUND_RECORDING.equals(childMetsElement.getElementType())) {
                 insertSoundRecording(logicalDiv, physicalDiv, childMetsElement);
+            } else if (Const.PAGE.equals(childMetsElement.getElementType())) {
+                insertPage(physicalDiv, childMetsElement, pageCounter, metsElement);
+                pageCounter++;
             } else if (Const.SUPPLEMENT.equals(childMetsElement.getElementType())) {
                 insertAudioSupplement(logicalDiv, physicalDiv, childMetsElement);
             } else {
@@ -1976,6 +2160,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (Const.SOUND_PAGE.equals(element.getElementType())){
                 insertAudioPage(physicalDiv, element, audioPageCounter, metsElement);
                 audioPageCounter++;
+            } else if (Const.PAGE.equals(element.getElementType())) {
+                insertPage(physicalDiv, element, pageCounter, metsElement);
+                pageCounter++;
             } else if (Const.SOUND_PART.equals(element.getElementType())) {
                 insertSoundPart(logicalDiv, physicalDiv, element);
             } else if (Const.SUPPLEMENT.equals(element.getElementType())) {
@@ -1992,11 +2179,15 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     }
 
     private void insertAudioPage(DivType physicalDiv, IMetsElement metsElement, int audioPageCounter, List<IMetsElement> sourceElements, IMetsElement sourceElement) throws MetsExportException{
-        HashMap<String, String> outputFileNmaes = new HashMap<String, String>();
+        if (metsElement.getMetsContext().getPackageDir() == null) {
+            File packageDir = createPackageDir(metsElement);
+            metsElement.getMetsContext().setPackageDir(packageDir);
+        }
+        HashMap<String, String> outputFileName = new HashMap<String, String>();
         if (!Const.SOUND_PAGE.equals(metsElement.getElementType())) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Expected audiopage, got " + metsElement.getElementType(), false, null);
         }
-        HashMap<String, FileGrp> fileGrpAudioPage = MetsUtils.initFileGroups();
+        HashMap<String, FileGrp> fileGrpAudioPage = MetsUtils.initAudioFileGroups();
         DivType audioPageDiv = new DivType();
         physicalDiv.getDiv().add(audioPageDiv);
         fillAudioPageIndexOrder(metsElement, audioPageDiv, sourceElement);
@@ -2007,9 +2198,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         HashMap<String, XMLGregorianCalendar> createDates = new HashMap<String, XMLGregorianCalendar>();
         HashMap<String, FileMD5Info> md5InfosMap = new HashMap<String, FileMD5Info>();
         processAudioPageFiles(metsElement, fileNames, mimeTypes, createDates, md5InfosMap);
-        for (String streamName : Const.streamMapping.keySet()) {
+        for (String streamName : Const.audioStremMapping.keySet()) {
             if (fileNames.containsKey(streamName)) {
-                FileType fileType = prepareFileType(audioPageCounter, streamName, fileNames, mimeTypes, metsElement.getMetsContext(), outputFileNmaes, md5InfosMap);
+                FileType fileType = prepareFileType(audioPageCounter, streamName, fileNames, mimeTypes, metsElement, outputFileName, md5InfosMap);
                 fileGrpAudioPage.get(streamName).getFile().add(fileType);
                 fileGrpMap.get(streamName).getFile().add(fileType);
                 Fptr fptr = new Fptr();
@@ -2023,6 +2214,15 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             }
         }
 
+        generateTechMetadata(metsElement, fileNames, audioPageCounter, fileGrpAudioPage, mimeTypes, audioPageDiv, outputFileName, md5InfosMap);
+
+        StructLinkMapping structLinkMapping = new StructLinkMapping();
+        structLinkMapping.pageDiv = metsElement.getParent().getModsElementID();
+        structLinkMapping.pageOrder = audioPageDiv.getORDER();
+        audioPageOrderToDivMap.put(structLinkMapping, ID);
+        for (IMetsElement sourceElm : sourceElements) {
+            addMappingAudioPageStruct(structLinkMapping, sourceElm.getModsElementID());
+        }
     }
 
     private void processAudioPageFiles(IMetsElement metsElement, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, HashMap<String, XMLGregorianCalendar> createDates, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
@@ -2153,6 +2353,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (Const.SOUND_PAGE.equals(element.getElementType())) {
                 insertAudioPage(physicalDiv, element, pageCounter, metsElement);
                 audioPageCounter++;
+            } else if (Const.PAGE.equals(element.getElementType())) {
+                insertPage(physicalDiv, element, pageCounter, metsElement);
+                pageCounter++;
             } else if (Const.SUPPLEMENT.equals(element.getElementType())) {
                 insertAudioSupplement(logicalDiv, physicalDiv, element);
             }

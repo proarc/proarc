@@ -138,13 +138,18 @@ public final class NdkExport {
             RemoteObject fo = rstorage.find(pid);
             MetsContext dc = buildContext(fo, packageId, target);
             try {
-                List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
-                for (String pspPid : PSPs) {
-                    dc.resetContext();
-                    DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
-                    MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
-                    mElm.accept(new MetsElementVisitor());
-                    // XXX use relative path to users folder?
+                MetsElement metsElement = getMetsElement(fo, dc, hierarchy);
+                if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())) {
+                    metsElement.accept(new MetsElementVisitor());
+                } else {
+                    List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
+                    for (String pspPid : PSPs) {
+                        dc.resetContext();
+                        DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
+                        MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
+                        mElm.accept(new MetsElementVisitor());
+                        // XXX use relative path to users folder?
+                    }
                 }
                 storeExportResult(dc, target.toURI().toASCIIString(), log);
                 return result;
@@ -169,6 +174,12 @@ public final class NdkExport {
 //                }
             }
         }
+    }
+
+    private MetsElement getMetsElement(RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
+        dc.resetContext();
+        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+         return MetsElement.getElement(dobj, null, dc, hierarchy);
     }
 
     private MetsContext buildContext(RemoteObject fo, String packageId, File targetFolder) {

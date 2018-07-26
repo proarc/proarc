@@ -188,7 +188,7 @@ public class Const {
         mandatoryStreams.add(ALTO_GRP_ID);
         mandatoryStreams.add(TXT_GRP_ID);
 
-        audioMandatoryStreams.add(AUDIO_MC_GRP_ID);
+        audioMandatoryStreams.add(AUDIO_RAW_GRP_ID);
         audioMandatoryStreams.add(AUDIO_UC_GRP_ID);
 
         audioStremMapping = new HashMap<String, List<String>>();
@@ -226,6 +226,7 @@ public class Const {
         streamMappingPrefix.put("TECHMDGRP", "amd_mets");
         streamMappingPrefix.put(AUDIO_MC_GRP_ID, "mca");
         streamMappingPrefix.put(AUDIO_UC_GRP_ID, "uca");
+        streamMappingPrefix.put(AUDIO_RAW_GRP_ID, "sa");
 
         streamMappingFile.put(MC_GRP_ID, "mastercopy");
         streamMappingFile.put(UC_GRP_ID, "usercopy");
@@ -234,6 +235,7 @@ public class Const {
         streamMappingFile.put("TECHMDGRP", "amdsec");
         streamMappingFile.put(AUDIO_MC_GRP_ID, "mastercopy_audio");
         streamMappingFile.put(AUDIO_UC_GRP_ID, "usercopy_audio");
+        streamMappingFile.put(AUDIO_RAW_GRP_ID, "sourceaudio");
 
         canContainPage.add(Const.ISSUE);
         canContainPage.add(Const.MONOGRAPH_MULTIPART);

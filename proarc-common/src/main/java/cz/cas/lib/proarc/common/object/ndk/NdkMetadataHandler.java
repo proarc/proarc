@@ -181,6 +181,18 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
             }
+            title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
+                defaultMods.getName().addAll(titleMods.getName());
+                defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                defaultMods.getPhysicalDescription().addAll(titleMods.getPhysicalDescription());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                defaultMods.getTableOfContents().addAll(titleMods.getTableOfContents());
+                defaultMods.getNote().addAll(titleMods.getNote());
+                defaultMods.getSubject().addAll(titleMods.getSubject());
+            }
         } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
             // issue 241
             DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHVOLUME);
