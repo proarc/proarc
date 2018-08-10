@@ -224,7 +224,7 @@ public final class DeviceRepository {
             if (audiosrc != null) {
 
                 try {
-                    JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class);
+                    JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkManufacturerComplexType.class, NkSerialNumberComplexType.class, NkSettingsComplexType.class);
                     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
                     audiodesc = (Mets)unmarshaller.unmarshal(audiosrc);
                 } catch (JAXBException e) {

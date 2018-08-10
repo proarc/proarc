@@ -126,48 +126,10 @@ public class DeviceResource {
 
         boolean fetchDescription = id != null && !id.isEmpty();
         List<Device> result = devRepo.find(id, fetchDescription);
-        String xml = marshalToString(result.get(0).getAudioDescription());
-        String mix = marshalToStringMix(result.get(0).getDescription());
         return new SmartGwtResponse<Device>(result);
     }
 
-    public String marshalToString(Object objekt) {
-        if (objekt == null) {
-            return null;
-        }
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class);
-            Marshaller marshaller = jaxbContext.createMarshaller();
 
-            final StringWriter writer = new StringWriter();
-            final StreamResult result = new StreamResult(writer);
-            marshaller.marshal(objekt, result);
-            final String xml = writer.getBuffer().toString();
-            writer.close();
-            return xml;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public String marshalToStringMix(Object objekt) {
-        if (objekt == null) {
-            return null;
-        }
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(Mix.class);
-            Marshaller marshaller = jaxbContext.createMarshaller();
-
-            final StringWriter writer = new StringWriter();
-            final StreamResult result = new StreamResult(writer);
-            marshaller.marshal(objekt, result);
-            final String xml = writer.getBuffer().toString();
-            writer.close();
-            return xml;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @POST
     @Produces({MediaType.APPLICATION_JSON})

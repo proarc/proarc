@@ -42,7 +42,7 @@ public class AudioPremisUtils {
     }
 
     public void createAudioDescription(String oldAudioDescription) throws Exception {
-        String audio = oldAudioDescription.replace("},{\"event\":", "}&&&{\"event\":");
+        String audio = oldAudioDescription.replace("},{\"digiprovMD\":", "}&&&{\"digiprovMD\":");
         String[] premis = audio.split("&&&");
 
         Mets amdSecMets = new Mets();
@@ -62,7 +62,7 @@ public class AudioPremisUtils {
     }
 
     private String repaireString(String retval) {
-        String[] separators = {":{", "},", ":", "{", "}"};
+        String[] separators = {":{", "},", ":", "{", "}", ","};
         retval = retval.replace("\"", "");
         for (int i = 0; i < separators.length; i++) {
             retval = retval.replace(separators[i], "-");
@@ -104,34 +104,22 @@ public class AudioPremisUtils {
         premis.getEvent().add(event);
 
         LinkingAgentIdentifierComplexType linkingAgentIdentifier = new LinkingAgentIdentifierComplexType();
-        linkingAgentIdentifier.setLinkingAgentIdentifierType(getValue(audiodescription, "linkingAgentIdentifierType", 2));
-        linkingAgentIdentifier.setLinkingAgentIdentifierValue(getValue(audiodescription, "linkingAgentIdentifierValue", 2 ));
-        linkingAgentIdentifier.getLinkingAgentRole().add(getValue(audiodescription, "linkingAgentRole", 2));
+        linkingAgentIdentifier.setLinkingAgentIdentifierType(getValue(audiodescription, "linkingAgentIdentifierType", 1));
+        linkingAgentIdentifier.setLinkingAgentIdentifierValue(getValue(audiodescription, "linkingAgentIdentifierValue", 1));
+        linkingAgentIdentifier.getLinkingAgentRole().add(getValue(audiodescription, "linkingAgentRole", 1));
 
         event.getLinkingAgentIdentifier().add(linkingAgentIdentifier);
         JAXBContext jc = JAXBContext.newInstance(PremisComplexType.class);
         return createNode(jaxb, jc, "*[local-name()='premis']/*[local-name()='event']");
-            /*DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document document = db.newDocument();
 
-            // Marshal the Object to a Document
-            Marshaller marshaller = jc.createMarshaller();
-            marshaller.marshal(jaxbPremix, document);
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            Node premisNode = (Node) xpath.compile("*[local-name()='premis']/*[local-name()='event']").evaluate(document, XPathConstants.NODE);
-            return premisNode;
-        } catch (Exception e) {
-            throw new DeviceException("Error while generating event node in premis data", e);
-        }*/
     }
 
     private Node createAgentNode(String[] audiodescription) throws Exception {
         AgentComplexType agent = new AgentComplexType();
         ObjectFactory factory = new ObjectFactory();
         JAXBElement<AgentComplexType> jaxb = factory.createAgent(agent);
-        agent.setAgentType(getValue(audiodescription, "agentType", 2));
-        agent.getAgentName().add(getValue(audiodescription, "agentName", 2));
+        agent.setAgentType(getValue(audiodescription, "agentType", 1));
+        agent.getAgentName().add(getValue(audiodescription, "agentName", 1));
         ExtensionComplexType extension = factory.createExtensionComplexType();
         agent.getAgentExtension().add(extension);
         extension.getAny().add(addNkManufacturerNode(audiodescription));
