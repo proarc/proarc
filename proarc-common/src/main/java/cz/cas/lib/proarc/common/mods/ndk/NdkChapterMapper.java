@@ -60,6 +60,7 @@ public class NdkChapterMapper extends NdkMapper {
         }
         // genre="picture"
         addGenre(mods, "chapter");
+        addNameWithEtal(mods);
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
         //  mods/physicalDescription/form@type="code"

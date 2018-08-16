@@ -63,6 +63,7 @@ public class NdkArticleMapper extends NdkMapper {
         GenreDefinition genre = addGenre(mods, "article");
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
+        addNameWithEtal(mods);
         //  mods/physicalDescription/form@type="code"
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {

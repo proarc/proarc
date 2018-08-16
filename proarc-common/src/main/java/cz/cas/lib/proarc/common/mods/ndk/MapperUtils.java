@@ -244,6 +244,22 @@ public final class MapperUtils {
         }
     }
 
+    static void addNameWithEtal(ModsDefinition mods) {
+        NameDefinition nameDefinition = null;
+        for (NameDefinition name : mods.getName()) {
+            if (name.getEtal() != null && (!name.getEtal().getValue().isEmpty() || null != name.getEtal().getValue())) {
+                name.getNameIdentifier().clear();
+                name.getNamePart().clear();
+                nameDefinition = name;
+                break;
+            }
+        }
+        if (nameDefinition != null) {
+            mods.getName().clear();
+            mods.getName().add(nameDefinition);
+        }
+    }
+
     static void addOriginInfo(List<OriginInfoDefinition> originInfos, OaiDcType dc) {
         for (OriginInfoDefinition originInfo : originInfos) {
             for (PlaceDefinition place : originInfo.getPlace()) {
