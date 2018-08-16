@@ -151,6 +151,10 @@ public final class NdkSheetMusicForm {
                 // etal
                 // affiliation
                 // role, roleDefinition
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Číslo národní autority - RA").setMaxOccurrences(5)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
+                        .createField()) //nameIdentifier
                 .addField(new FieldBuilder("role").setTitle("Role - M").setMaxOccurrences(5)
                     .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                     // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
