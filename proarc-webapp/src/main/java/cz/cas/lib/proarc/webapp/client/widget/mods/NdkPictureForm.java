@@ -145,7 +145,10 @@ public final class NdkPictureForm {
                             "nesmí objevit subelementy <namePart> a <nameIdentifier>." +
                             "<p><etal> je neopakovatelný element, který se do zápisu vkládá ručně.").createField())
                     .createField()) //etal
-                // affiliation
+                .addField(new FieldBuilder("affiliation").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setTitle("Affiliation - O").setType(Field.TEXT)
+                        .setHint("Umožňuje vepsat název instituce, se kterou je autor, popsaný v elementu <name> spojen.").createField())
+                    .createField())// affiliation
                 // role, roleDefinition
                 .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - RA").setMaxOccurrences(5)
                         .addField(new FieldBuilder("value").setMaxOccurrences(1)
