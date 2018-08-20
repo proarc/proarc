@@ -452,6 +452,10 @@ public final class NdkCartographicForm {
                     .setHint("Odpovídá hodnotě v poli $2.")
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("mednas", "mednas")
+                    .addMapValue("czmesh", "czmesh")
+                    .addMapValue("msvkth", "msvkth")
+                    .addMapValue("agrovoc", "agrovoc")
                     .addMapValue("Konspekt", "Konspekt")
                 .createField())
 

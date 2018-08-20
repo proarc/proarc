@@ -499,6 +499,8 @@ public final class NdkPeriodicalSupplementForm {
                 .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO).setHint("Použít jednu z hodnot: czenas, eczenas nebo Konspekt")
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("mednas", "mednas")
+                    .addMapValue("czmesh", "czmesh")
                     .addMapValue("Konspekt", "Konspekt")
                 .createField()) // authority
 

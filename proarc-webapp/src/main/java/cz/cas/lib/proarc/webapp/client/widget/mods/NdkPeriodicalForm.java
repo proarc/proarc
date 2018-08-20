@@ -526,6 +526,8 @@ public class NdkPeriodicalForm {
                                 +"<p>Vybrat jednu z hodnot: czenas, eczenas nebo konspekt")
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("mednas", "mednas")
+                    .addMapValue("czmesh", "czmesh")
                     .addMapValue("Konspekt", "Konspekt")
                 .createField())
 

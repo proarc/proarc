@@ -310,6 +310,8 @@ public class NdkArticleForm {
                 .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.COMBO)
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("mednas", "mednas")
+                    .addMapValue("czmesh", "czmesh")
                     .addMapValue("Konspekt", "Konspekt")
                 .createField()) // authority
 

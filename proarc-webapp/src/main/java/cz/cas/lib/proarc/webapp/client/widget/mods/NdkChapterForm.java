@@ -277,6 +277,10 @@ public final class NdkChapterForm {
                 .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.COMBO)
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("mednas", "mednas")
+                    .addMapValue("czmesh", "czmesh")
+                    .addMapValue("msvkth", "msvkth")
+                    .addMapValue("agrovoc", "agrovoc")
                     .addMapValue("Konspekt", "Konspekt")
                 .createField()) // authority
 
