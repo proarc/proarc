@@ -550,6 +550,10 @@ public class NdkPeriodicalIssueForm {
                                 + "<p>Celé jméno se zapíše do tohoto elementu.")
                         .createField()) // value
                     .createField()) // namePart
+                    .addField(new FieldBuilder("nameIdentifier").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Name Identifier - RA").setMaxOccurrences(1).setType(Field.TEXT)
+                            .setHint("Číslo národní autority").createField())
+                    .createField())
                     // displayForm
                     // affiliation
                     // role
