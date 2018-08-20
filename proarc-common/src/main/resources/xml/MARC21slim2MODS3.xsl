@@ -2740,8 +2740,10 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </recordIdentifier>
             </xsl:for-each>
 
-            <recordOrigin>Converted from MARCXML to MODS version 3.6 using MARC21slim2MODS3.xsl
-                (Revision 1.98 2018/02/09, ProArc patch 14.704 2018/03/02)</recordOrigin>
+            <recordOrigin>machine generated</recordOrigin>
+
+            <recordInfoNote>Converted from MARCXML to MODS version 3.6 using MARC21slim2MODS3.xsl
+                (Revision 1.98 2018/02/09, ProArc patch 14.704 2018/03/02)</recordInfoNote>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>

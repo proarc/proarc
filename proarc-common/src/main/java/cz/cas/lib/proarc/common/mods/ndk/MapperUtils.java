@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.mods.LanguageTermDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NameDefinition;
 import cz.cas.lib.proarc.mods.NamePartDefinition;
+import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
@@ -196,6 +197,12 @@ public final class MapperUtils {
             }
         }
         fillLanguage(recordInfo.getLanguageOfCataloging());
+        if (recordInfo.getRecordOrigin().size() != 0 && recordInfo.getRecordOrigin().get(0).getValue().startsWith("Converted from")) {
+            NoteDefinition note = new NoteDefinition();
+            note.setValue(recordInfo.getRecordOrigin().get(0).getValue());
+            recordInfo.getRecordInfoNote().add(note);
+            recordInfo.getRecordOrigin().get(0).setValue("machine generated");
+        }
     }
 
     static void addStringPlusLanguage(List<ElementType> dcElms, List<? extends StringPlusLanguage> modsValues) {

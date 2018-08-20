@@ -798,6 +798,10 @@ public class NdkMonographVolumeForm {
                         .addMapValue("human prepared", "human prepared")
                     .createField()) // value
                 .createField()) // recordChangeDate
+                .addField(new FieldBuilder("recordInfoNote").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setTitle("Record Info Note - O").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
+                        .setHint("Poznámka k záznamu").createField())
+                    .createField()) //recordInfoNote
                 .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField()) //descriptionStandard
         .createField(); // recordInfo
     }

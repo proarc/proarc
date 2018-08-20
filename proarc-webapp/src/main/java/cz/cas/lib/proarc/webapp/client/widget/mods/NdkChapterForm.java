@@ -474,6 +474,10 @@ public final class NdkChapterForm {
                         .addMapValue("human prepared", "human prepared")
                     .createField()) // value
                 .createField()) // recordOrigin
+                .addField(new FieldBuilder("recordInfoNote").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setTitle("Record Info Note - O").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
+                        .setHint("Poznámka k záznamu").createField())
+                    .createField()) //recordInfoNote
                 // descriptionStandard
         .createField()); // recordInfo
 

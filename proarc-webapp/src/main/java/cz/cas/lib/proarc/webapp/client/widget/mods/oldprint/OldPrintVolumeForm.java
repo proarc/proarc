@@ -783,6 +783,10 @@ public final class OldPrintVolumeForm {
                         .addMapValue("human prepared", "human prepared")
                     .createField()) // value
                 .createField()) // recordChangeDate
+                .addField(new FieldBuilder("recordInfoNote").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Record Info Note - O").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
+                                .setHint("Poznámka k záznamu").createField())
+                        .createField()) //recordInfoNote
                 // descriptionStandard
                 .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1)
                     .addField(new FieldBuilder("value").setTitle("Description Standard - O").setMaxOccurrences(1).setType(Field.TEXT)

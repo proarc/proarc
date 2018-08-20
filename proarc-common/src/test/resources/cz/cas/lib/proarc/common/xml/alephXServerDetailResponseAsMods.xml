@@ -74,8 +74,9 @@
         <recordCreationDate encoding="marc">900715</recordCreationDate>
         <recordChangeDate encoding="iso8601">20030814102951.</recordChangeDate>
         <recordIdentifier source="CZ-PrN">cps1995035651</recordIdentifier>
-        <recordOrigin>Converted from MARCXML to MODS version 3.6 using MARC21slim2MODS3.xsl
-            (Revision 1.98 2018/02/09, ProArc patch 14.704 2018/03/02)</recordOrigin>
+        <recordOrigin>machine generated</recordOrigin>
+        <recordInfoNote>Converted from MARCXML to MODS version 3.6 using MARC21slim2MODS3.xsl
+            (Revision 1.98 2018/02/09, ProArc patch 14.704 2018/03/02)</recordInfoNote>
         <languageOfCataloging>
             <languageTerm type="code" authority="iso639-2b">cze</languageTerm>
         </languageOfCataloging>
