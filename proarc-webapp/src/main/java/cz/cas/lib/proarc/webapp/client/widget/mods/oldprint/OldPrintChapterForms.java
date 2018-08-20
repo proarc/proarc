@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods.oldprint;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
@@ -225,8 +226,10 @@ public final class OldPrintChapterForms {
                         // @type, string
                         // XXX autofill "marcform"
                         .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("marcform")
-                                .addMapValue("marcform", "marcform")
-                                .addMapValue("gmd", "gmd")
+                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM)
+                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCCATEGORY, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCCATEGORY)
+                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCSMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCSMD)
+                                .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)
                                 .createField()) // authority
                         .addField(new FieldBuilder("value").setTitle("Form - R").setMaxOccurrences(1).setType(Field.COMBO)
                                 .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
@@ -273,6 +276,10 @@ public final class OldPrintChapterForms {
                 .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.COMBO)
                         .addMapValue("czenas", "czenas")
                         .addMapValue("eczenas", "eczenas")
+                        .addMapValue("mednas", "mednas")
+                        .addMapValue("czmesh", "czmesh")
+                        .addMapValue("msvkth", "msvkth")
+                        .addMapValue("agrovoc", "agrovoc")
                         .addMapValue("Konspekt", "Konspekt")
                         .createField()) // authority
 
