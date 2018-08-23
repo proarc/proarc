@@ -240,10 +240,10 @@ public class WaveImporterTest {
         XMLAssert.assertXpathExists(streamXPath(BinaryEditor.FULL_ID), new InputSource(foxmlSystemId));
         //XMLAssert.assertXpathExists(streamXPath(BinaryEditor.PREVIEW_ID), new InputSource(foxmlSystemId));
         //MLAssert.assertXpathExists(streamXPath(BinaryEditor.THUMB_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.RAW_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.RAW_AUDIO_ID), new InputSource(foxmlSystemId));
         //XMLAssert.assertXpathExists(streamXPath(Aes57Editor.RAW_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.NDK_ARCHIVAL_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.NDK_USER_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.NDK_AUDIO_ARCHIVAL_ID), new InputSource(foxmlSystemId));
+        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.NDK_AUDIO_USER_ID), new InputSource(foxmlSystemId));
         //XMLAssert.assertXpathExists(streamXPath(Aes57Editor.NDK_ARCHIVAL_ID), new InputSource(foxmlSystemId));
 
         String rootSystemId = rootFoxml.toURI().toASCIIString();
