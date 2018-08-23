@@ -36,6 +36,7 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -113,7 +114,9 @@ final class MapperUtils {
     }
 
     static StringBuilder addNonSort(StringBuilder title, TitleInfoDefinition ti) {
-        return addTitlePart(title, ti.getNonSort(), null);
+        List<StringPlusLanguage> listNonSort = new ArrayList<>();
+        listNonSort.addAll(ti.getNonSort());
+        return addTitlePart(title, listNonSort, null);
     }
 
     static StringBuilder addTitle(StringBuilder title, TitleInfoDefinition ti) {

@@ -275,42 +275,43 @@ public final class DeviceManager {
             Form f = new Form();
             f.getFields().add(
                     new FieldBuilder("audiodescription").setMaxOccurrences(1)
-                            .addField(new FieldBuilder("amdSec").setTitle("Premis").setMaxOccurrences(10)
+                            .addField(new FieldBuilder("amdSec").setMaxOccurrences(20).setTitle("Informace ke zvukovým souborům")
                                     .addField(new FieldBuilder("digiprovMD").setMaxOccurrences(1)
                                             .addField(new FieldBuilder("mdWrap").setMaxOccurrences(1)
                                                     .addField(new FieldBuilder("xmlData").setMaxOccurrences(1)
-                                                            .addField(new FieldBuilder("any").setMaxOccurrences(1).setTitle("Premis Event, Agent")
+                                                            .addField(new FieldBuilder("any").setMaxOccurrences(1).setTitle("Premis")
                                                                   .addField(new FieldBuilder("value").setMaxOccurrences(1)
-                                                                            .addField(new FieldBuilder("linkingAgentIdentifier").setTitle("Linking Agent Identifier - M").setMaxOccurrences(1)
-                                                                                    .setHint("Identifikace jednoho nebo více agentů spojených s událostí")
-                                                                                    .addField(new FieldBuilder("linkingAgentIdentifierType").setTitle("Linking Agent Identifier Type - M")
-                                                                                            .setHint("Označení typu identifikátoru").setType(Field.TEXT).setMaxOccurrences(1).createField()) //linkingAgentIdentifierType
-                                                                                    .addField(new FieldBuilder("linkingAgentIdentifierValue").setTitle("Linking Agent Identifier Value - M")
-                                                                                            .setHint("Hodnota identifikátoru").setType(Field.TEXT).setMaxOccurrences(1).createField()) //linkingAgentIdentifierValue
-                                                                                    .addField(new FieldBuilder("linkingAgentRole").setTitle("Linking Agent Role - R")
-                                                                                            .setHint("Role agenta ve vztahu k události, bude sloužit pro zápis hardware u zvukových dokumentů" +
-                                                                                                    "(tj. role=player nebo AD nebo extraction workstation nebo preamp apod.) nutno používat kontrolovaný slovník)")
-                                                                                            .setType(Field.TEXT).setMaxOccurrences(1).createField()) //linkingAgentRole
-                                                                                    .createField()) //linkingAgentIdentifier
-                                                                            .addField(new FieldBuilder("agentName").setTitle("Agent Name - M").setType(Field.TEXT).setMaxOccurrences(1).createField())
-                                                                            .addField(new FieldBuilder("agentType").setTitle("Agent Type - M").setType(Field.TEXT).setMaxOccurrences(1).createField())
-                                                                            .addField(new FieldBuilder("agentExtension").setMaxOccurrences(1)
-                                                                                    .addField(new FieldBuilder("any").setTitle("Agent Extension - R").setMaxOccurrences(1)
-                                                                                            .addField(new FieldBuilder("NKmanufacturer").setMaxOccurrences(1).setTitle("NK: Manufacturer")
-                                                                                                    .addField(new FieldBuilder("value").setTitle("NK: Manufacturer - MA").setMaxOccurrences(1)
-                                                                                                            .setHint("výrobce (př. Mytek, Sony)").setType(Field.TEXT).createField())
-                                                                                                    .createField()) //NK:manufacturer
-                                                                                            .addField(new FieldBuilder("NKserialNumber").setMaxOccurrences(1).setTitle("NK: Serial Number")
-                                                                                                    .addField(new FieldBuilder("value").setTitle("NK: Serial Number - M").setMaxOccurrences(1)
-                                                                                                            .setHint("Sériové číslo zařízení (př. 01504-1208-043)").setType(Field.TEXT).createField())
-                                                                                                    .createField()) //NK:serialNumber
-                                                                                            .addField(new FieldBuilder("NKsettings").setMaxOccurrences(1).setTitle("NK: Settings - R")
-                                                                                                    .addField(new FieldBuilder("value").setTitle("NK: Settings - R").setMaxOccurrences(1)
-                                                                                                            .setHint("Nastavení zařízení, volný text").setType(Field.TEXTAREA).createField())
-                                                                                                    .createField()) //NK:settings
-                                                                                            .createField()) //any
-                                                                                    .createField()) //agentExtension
-                                                                            .createField()) //value
+                                                                          .addField(new FieldBuilder("event").setMaxOccurrences(1)
+                                                                                  .addField(new FieldBuilder("linkingAgentIdentifier").setTitle("Linking Agent Identifier - M").setMaxOccurrences(1)
+                                                                                          .setHint("Identifikace jednoho nebo více agentů spojených s událostí")
+                                                                                          .addField(new FieldBuilder("linkingAgentIdentifierType").setTitle("Linking Agent Identifier Type - M")
+                                                                                                  .setHint("Označení typu identifikátoru").setType(Field.TEXT).setMaxOccurrences(1).createField()) //linkingAgentIdentifierType
+                                                                                          .addField(new FieldBuilder("linkingAgentIdentifierValue").setTitle("Linking Agent Identifier Value - M")
+                                                                                                  .setHint("Hodnota identifikátoru").setType(Field.TEXT).setMaxOccurrences(1).createField()) //linkingAgentIdentifierValue
+                                                                                          .addField(new FieldBuilder("linkingAgentRole").setTitle("Linking Agent Role - R")
+                                                                                                  .setHint("Role agenta ve vztahu k události, bude sloužit pro zápis hardware u zvukových dokumentů" +
+                                                                                                          "(tj. role=player nebo AD nebo extraction workstation nebo preamp apod.) nutno používat kontrolovaný slovník)")
+                                                                                                  .setType(Field.TEXT).setMaxOccurrences(1).createField()) //linkingAgentRole
+                                                                                          .createField()) //linkingAgentIdentifier
+                                                                                  .createField()) //event
+                                                                          .addField(new FieldBuilder("agent").setMaxOccurrences(1)
+                                                                                  .addField(new FieldBuilder("agentName").setTitle("Agent Name - M").setType(Field.TEXT).setMaxOccurrences(1).createField())
+                                                                                  .addField(new FieldBuilder("agentType").setTitle("Agent Type - M").setType(Field.TEXT).setMaxOccurrences(1).createField())
+                                                                                  .addField(new FieldBuilder("agentExtension").setMaxOccurrences(1)
+                                                                                          .addField(new FieldBuilder("any").setTitle("Agent Extension - R").setMaxOccurrences(1)
+                                                                                                  .addField(new FieldBuilder("manufacturer").setTitle("NK:Manufacturer - MA").setMaxOccurrences(1)
+                                                                                                                  .setHint("výrobce (př. Mytek, Sony)").setType(Field.TEXT)
+                                                                                                          .createField()) //NK:manufacturer
+                                                                                                  .addField(new FieldBuilder("serialNumber").setTitle("NK:Serial Number - M").setMaxOccurrences(1)
+                                                                                                                  .setHint("Sériové číslo zařízení (př. 01504-1208-043)").setType(Field.TEXT)
+                                                                                                          .createField()) //NK:serialNumber
+                                                                                                  .addField(new FieldBuilder("settings").setTitle("NK:Settings - R").setMaxOccurrences(1)
+                                                                                                                  .setHint("Nastavení zařízení, volný text").setType(Field.TEXTAREA)
+                                                                                                          .createField()) //NK:settings
+                                                                                                  .createField()) //any
+                                                                                          .createField()) //agentExtension
+                                                                                  .createField()) //agent
+                                                                          .createField()) //value
                                                                     .createField()) //any
                                                             .createField()) //xmlData
                                                     .createField()) //mdWrap
@@ -323,7 +324,7 @@ public final class DeviceManager {
         private DynamicForm createDescriptionForm() {
             Form f = new Form();
             f.getFields().add(
-                new FieldBuilder("description").setMaxOccurrences(1)
+                new FieldBuilder("description").setMaxOccurrences(1).setTitle("Informace k obrazovým souborům")
                     .addField(new FieldBuilder("ImageCaptureMetadata").setMaxOccurrences(1)
                         .addField(new FieldBuilder("GeneralCaptureInformation").setTitle("General Capture Information - M").setMaxOccurrences(1)
                             .setHint("Základní údaje o skenování.")

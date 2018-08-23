@@ -30,7 +30,7 @@ import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.fedora.Aes57Editor;
+//import cz.cas.lib.proarc.common.fedora.Aes57Editor;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.*;

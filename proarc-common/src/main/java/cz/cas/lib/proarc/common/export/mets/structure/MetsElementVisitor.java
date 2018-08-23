@@ -74,9 +74,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 
 import cz.cas.lib.proarc.audiopremis.AudioObjectFactory;
-import cz.cas.lib.proarc.audiopremis.NkManufacturerComplexType;
-import cz.cas.lib.proarc.audiopremis.NkSerialNumberComplexType;
-import cz.cas.lib.proarc.audiopremis.NkSettingsComplexType;
+import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
@@ -738,14 +736,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         String agentName;
         AgentComplexType agentComplexType = new AgentComplexType();
         try{
-            AgentComplexType agent = (AgentComplexType) ((JAXBElement) amd.getDigiprovMD().get(1).getMdWrap().getXmlData().getAny().get(0)).getValue();
+            AgentComplexType agent = ((PremisComplexType)((JAXBElement)amd.getDigiprovMD().get(0).getMdWrap().getXmlData().getAny().get(0)).getValue()).getAgent().get(0);
             agentName = agent.getAgentName().get(0);
             agentType = agent.getAgentType();
             ExtensionComplexType extension = factory.createExtensionComplexType();
             agentComplexType.getAgentExtension().add(extension);
-            extension.getAny().add(addNkManufacturerNode(agent));
-            extension.getAny().add(addNkSerialNumberNode(agent));
-            extension.getAny().add(addNkSettingsNode(agent));
+            extension.getAny().add(addNkNode(agent));
         } catch (Exception ex) {
             agentName = "ProArc";
             agentType = "software";
@@ -755,43 +751,47 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         return agentComplexType;
     }
 
-    private Node addNkManufacturerNode(AgentComplexType agent) throws Exception {
-        NkManufacturerComplexType nkManufacturer = new NkManufacturerComplexType();
-        for (Object extension : agent.getAgentExtension().get(0).getAny()) {
-            if ("nkManufacturer".equals(((Element) extension).getLocalName())) {
-                nkManufacturer.setNkManufacturer(((Element) extension).getFirstChild().getFirstChild().getNodeValue());
-            }
-        }
-        AudioObjectFactory factory = new AudioObjectFactory();
-        JAXBElement<NkManufacturerComplexType> jaxb = factory.createNkManufacturer(nkManufacturer);
-        JAXBContext jc = JAXBContext.newInstance(NkManufacturerComplexType.class);
-        return createNode(jaxb, jc, "*[local-name()='nkManufacturer']");
-    }
+    private Node addNkNode(AgentComplexType agent) throws Exception {
+        NkComplexType nk = new NkComplexType();
+        String manufacturer = "";
+        String serialNumber = "";
+        String settings = "";
 
-    private Node addNkSerialNumberNode(AgentComplexType agent) throws Exception {
-        NkSerialNumberComplexType nkSerialNumber = new NkSerialNumberComplexType();
-        for (Object extension : agent.getAgentExtension().get(0).getAny()) {
-            if ("nkSerialNumber".equals(((Element) extension).getLocalName())) {
-                nkSerialNumber.setNkSerialNumber(((Element) extension).getFirstChild().getFirstChild().getNodeValue());
+        Element extension = (Element)agent.getAgentExtension().get(0).getAny().get(0);
+        if (extension != null) {
+            try {
+                if ("manufacturer".equals(extension.getFirstChild().getLocalName())) {
+                    manufacturer =  extension.getFirstChild().getFirstChild().getNodeValue();
+                } else if ("serialNumber".equals(extension.getFirstChild().getLocalName())) {
+                    serialNumber = extension.getFirstChild().getFirstChild().getNodeValue();
+                } else if ("settings".equals(extension.getFirstChild().getLocalName()))
+                    settings = extension.getFirstChild().getFirstChild().getNodeValue();
+            } catch (Exception ex) {
+                LOG.log(Level.FINE, "Error in premis:agentExtension");
+            }
+            try {
+                if ("serialNumber".equals(extension.getFirstChild().getNextSibling().getLocalName())) {
+                    serialNumber = extension.getFirstChild().getNextSibling().getFirstChild().getNodeValue();
+                } else if ("settings".equals(extension.getFirstChild().getNextSibling().getLocalName()))
+                    settings = extension.getFirstChild().getNextSibling().getFirstChild().getNodeValue();
+            } catch (Exception ex) {
+                LOG.log(Level.FINE, "Error in premis:agentExtension");
+            }
+            try {
+                if ("settings".equals(extension.getFirstChild().getNextSibling().getNextSibling().getLocalName()))
+                    settings = extension.getFirstChild().getNextSibling().getNextSibling().getFirstChild().getNodeValue();
+            } catch (Exception ex) {
+                LOG.log(Level.FINE, "Error in premis:agentExtension");
             }
         }
+        nk.setManufacturer(manufacturer);
+        nk.setSerialNumber(serialNumber);
+        nk.setSettings(settings);
         AudioObjectFactory factory = new AudioObjectFactory();
-        JAXBElement<NkSerialNumberComplexType> jaxb = factory.createNkSerialNumber(nkSerialNumber);
-        JAXBContext jc = JAXBContext.newInstance(NkSerialNumberComplexType.class);
-        return createNode(jaxb, jc, "*[local-name()='nkSerialNumber']");
-    }
+        JAXBElement<NkComplexType> jaxb = factory.createNk(nk);
+        JAXBContext jc = JAXBContext.newInstance(NkComplexType.class);
 
-    private Node addNkSettingsNode(AgentComplexType agent) throws Exception {
-        NkSettingsComplexType nkSettings = new NkSettingsComplexType();
-        for (Object extension : agent.getAgentExtension().get(0).getAny()) {
-            if ("nkSettings".equals(((Element) extension).getLocalName())) {
-                nkSettings.setNkSettings(((Element) extension).getFirstChild().getFirstChild().getNodeValue());
-            }
-        }
-        AudioObjectFactory factory = new AudioObjectFactory();
-        JAXBElement<NkSettingsComplexType> jaxb = factory.createNkSetting(nkSettings);
-        JAXBContext jc = JAXBContext.newInstance(NkSettingsComplexType.class);
-        return createNode(jaxb, jc, "*[local-name()='nkSettings']");
+        return createNode(jaxb, jc, "*[local-name()='nk']");
     }
 
     private Node createNode(JAXBElement jaxb, JAXBContext jc, String expression) throws  Exception{
@@ -844,7 +844,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         String identifierValue;
         String role;
         try{
-            EventComplexType event = (EventComplexType)((JAXBElement) amd.getDigiprovMD().get(0).getMdWrap().getXmlData().getAny().get(0)).getValue();
+            EventComplexType event = ((PremisComplexType)((JAXBElement)amd.getDigiprovMD().get(0).getMdWrap().getXmlData().getAny().get(0)).getValue()).getEvent().get(0);
             identifierType = event.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierType();
             identifierValue = event.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierValue();
             role = event.getLinkingAgentIdentifier().get(0).getLinkingAgentRole().get(0);

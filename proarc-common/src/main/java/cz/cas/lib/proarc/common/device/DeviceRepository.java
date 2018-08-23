@@ -18,9 +18,8 @@ package cz.cas.lib.proarc.common.device;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import cz.cas.lib.proarc.audiopremis.NkManufacturerComplexType;
-import cz.cas.lib.proarc.audiopremis.NkSerialNumberComplexType;
-import cz.cas.lib.proarc.audiopremis.NkSettingsComplexType;
+import org.w3c.dom.Element;
+import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
@@ -36,11 +35,13 @@ import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import cz.cas.lib.proarc.premis.AgentComplexType;
 import cz.cas.lib.proarc.premis.PremisComplexType;
 import cz.cas.lib.proarc.premis.PremisUtils;
 import java.io.IOException;
@@ -50,8 +51,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
@@ -89,6 +93,8 @@ public final class DeviceRepository {
     public static final String METAMODEL_AUDIODEVICE_ID_LABEL = "Audio linka";
 
     private final RemoteStorage remoteStorage;
+
+    private final Logger LOG = Logger.getLogger(DeviceRepository.class.getName());
 
     public DeviceRepository(RemoteStorage remoteStorage) {
         if (remoteStorage == null) {
@@ -224,9 +230,10 @@ public final class DeviceRepository {
             if (audiosrc != null) {
 
                 try {
-                    JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkManufacturerComplexType.class, NkSerialNumberComplexType.class, NkSettingsComplexType.class);
+                    JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
                     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
                     audiodesc = (Mets)unmarshaller.unmarshal(audiosrc);
+                    audiodesc = repairNkComplexType(audiodesc);
                 } catch (JAXBException e) {
                     e.printStackTrace();
                     audiodesc = new Mets();
@@ -288,7 +295,7 @@ public final class DeviceRepository {
             if (update.getAudioDescription() != null) {
                 try {
                     EditorResult result = audiodescriptionEditor.createResult();
-                    JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkSerialNumberComplexType.class, NkManufacturerComplexType.class, NkSettingsComplexType.class);
+                    JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
                     Marshaller marshaller = jaxbContext.createMarshaller();
                     marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
                     marshaller.marshal(update.getAudioDescription(), result);
@@ -433,4 +440,48 @@ public final class DeviceRepository {
         return getMixDescriptionEditor(robj);
     }
 
+    public Mets repairNkComplexType(Mets mets) {
+        for (AmdSecType amdSec : mets.getAmdSec()) {
+            AgentComplexType agent = ((PremisComplexType)((JAXBElement)amdSec.getDigiprovMD().get(0).getMdWrap().getXmlData().getAny().get(0)).getValue()).getAgent().get(0);
+            Element extension = (Element) agent.getAgentExtension().get(0).getAny().get(0);
+            agent.getAgentExtension().get(0).getAny().clear();
+            NkComplexType nk = new NkComplexType();
+            agent.getAgentExtension().get(0).getAny().add(nk);
+            String manufacturer = "";
+            String serialNumber = "";
+            String settings = "";
+
+            if (extension != null) {
+                try {
+                    if ("manufacturer".equals(extension.getFirstChild().getLocalName())) {
+                        manufacturer =  extension.getFirstChild().getFirstChild().getNodeValue();
+                    } else if ("serialNumber".equals(extension.getFirstChild().getLocalName())) {
+                        serialNumber = extension.getFirstChild().getFirstChild().getNodeValue();
+                    } else if ("settings".equals(extension.getFirstChild().getLocalName()))
+                        settings = extension.getFirstChild().getFirstChild().getNodeValue();
+                } catch (Exception ex) {
+                    LOG.log(Level.FINE, "Error in premis:agentExtension");
+                }
+                try {
+                    if ("serialNumber".equals(extension.getFirstChild().getNextSibling().getLocalName())) {
+                        serialNumber = extension.getFirstChild().getNextSibling().getFirstChild().getNodeValue();
+                    } else if ("settings".equals(extension.getFirstChild().getNextSibling().getLocalName()))
+                        settings = extension.getFirstChild().getNextSibling().getFirstChild().getNodeValue();
+                } catch (Exception ex) {
+                    LOG.log(Level.FINE, "Error in premis:agentExtension");
+                }
+                try {
+                    if ("settings".equals(extension.getFirstChild().getNextSibling().getNextSibling().getLocalName()))
+                        settings = extension.getFirstChild().getNextSibling().getNextSibling().getFirstChild().getNodeValue();
+                } catch (Exception ex) {
+                    LOG.log(Level.FINE, "Error in premis:agentExtension");
+                }
+            }
+            nk.setManufacturer(manufacturer);
+            nk.setSerialNumber(serialNumber);
+            nk.setSettings(settings);
+        }
+        return mets;
+
+    }
 }
