@@ -442,7 +442,12 @@ public final class DeviceRepository {
 
     public Mets repairNkComplexType(Mets mets) {
         for (AmdSecType amdSec : mets.getAmdSec()) {
-            AgentComplexType agent = ((PremisComplexType)((JAXBElement)amdSec.getDigiprovMD().get(0).getMdWrap().getXmlData().getAny().get(0)).getValue()).getAgent().get(0);
+            AgentComplexType agent = null;
+            try {
+                agent = ((PremisComplexType) ((JAXBElement) amdSec.getDigiprovMD().get(0).getMdWrap().getXmlData().getAny().get(0)).getValue()).getAgent().get(0);
+            } catch (ClassCastException e) {
+                return mets;
+            }
             Element extension = (Element) agent.getAgentExtension().get(0).getAny().get(0);
             agent.getAgentExtension().get(0).getAny().clear();
             NkComplexType nk = new NkComplexType();
