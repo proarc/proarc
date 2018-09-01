@@ -17,6 +17,16 @@
 package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
 import cz.cas.lib.proarc.common.mods.ndk.NdkMonographTitleMapper;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.replaceGenre;
 
 public class NdkEMonographTitleMapper extends NdkMonographTitleMapper {
+
+    @Override
+    public void createMods(ModsDefinition mods, Context ctx) {
+        super.createMods(mods, ctx);
+
+        //  mods/genre="title"
+        replaceGenre(mods, "title", "electronic title");
+    }
 }
