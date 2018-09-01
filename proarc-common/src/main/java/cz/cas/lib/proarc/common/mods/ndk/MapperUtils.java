@@ -77,6 +77,17 @@ public final class MapperUtils {
         return reqGenre;
     }
 
+    public static GenreDefinition replaceGenre(ModsDefinition mods, String oldValue, String newValue) {
+        List<GenreDefinition> genres = mods.getGenre();
+        for (GenreDefinition genre : genres) {
+            if (oldValue.equals(genre.getValue())) {
+                genre.setValue(newValue);
+                return genre;
+            }
+        }
+        return addGenre(mods, newValue);
+    }
+
     /**
      * Creates title according to LoC {@code MODS->DC} mapping.
      * @param ti MODS titleInfo
