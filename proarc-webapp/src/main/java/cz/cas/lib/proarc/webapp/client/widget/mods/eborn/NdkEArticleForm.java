@@ -44,7 +44,6 @@ public class NdkEArticleForm extends NdkArticleForm {
         modsFields.add(identifier());
         modsFields.add(location());
         modsFields.add(part());
-        //relatedItem is not implemented
         modsFields.add(relatedItem(f.getItemWidth()));
 
         return f;
