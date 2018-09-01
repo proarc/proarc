@@ -45,8 +45,88 @@ public class NdkEArticleForm extends NdkArticleForm {
         modsFields.add(location());
         modsFields.add(part());
         //relatedItem is not implemented
+        modsFields.add(relatedItem(f.getItemWidth()));
 
         return f;
+    }
+
+    private Field relatedItem(String width) {
+        return new FieldBuilder("relatedItem").setTitle("Related Item - MA").setMaxOccurrences(10)
+                .addField(part())
+                .addField(relatedTitleInfo(width))
+                .addField(relatedName())
+                .addField(relatedOriginInfo())
+                .createField();
+    }
+
+    private Field relatedTitleInfo(String width) {
+        // titleInfo, titleInfoDefinition
+        return new FieldBuilder("titleInfo").setMaxOccurrences(1)
+                // title, type="stringPlusLanguage"
+                .addField(new FieldBuilder("title").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
+                                .setTitle("Title Info - M")
+                                .setHint("Název recenzovaného díla. Odpovídá poli 787$t")
+                                .setType(Field.TEXTAREA)
+                                .setHeight("50")
+                                .setWidth(width)
+                                .createField()) // title/value
+                        .createField()) // title
+                .createField(); // titleInfo
+    }
+
+    private Field relatedName() {
+        // name, nameDefinition
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - M")
+                .setHint("Autor recenzovaného díla ve tvaru: \"Příjmení, Jméno\". Odpovídá poli 787$a")
+                // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
+                // @type(personal, corporate, conference, family)
+                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setDefaultValue("personal")
+                        .setHidden(true)
+                        .createField()) // @type
+                // @usage(fixed="primary")
+                // namePart, namePartDefinition extends stringPlusLanguage
+                .addField(new FieldBuilder("namePart").setTitle("Name Parts - MA").setMaxOccurrences(5)
+                        // @type(date, family, given, termsOfAddress)
+                        .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
+                                .setHint("<dl>"
+                                        + "<dt>date</dt><dd>RA - datum</dd>"
+                                        + "<dt>family</dt><dd>MA -příjmení </dd>"
+                                        + "<dt>given</dt><dd>MA - jméno/křestní jméno</dd>"
+                                        + "<dt>termsOfAddress</dt><dd>RA - tituly a jiná slova nebo čísla související se jménem</dd>"
+                                        + "</dl>")
+                                .addMapValue("date", "date")
+                                .addMapValue("family", "family")
+                                .addMapValue("given", "given")
+                                .addMapValue("termsOfAddress", "termsOfAddress")
+                                .createField()) // @type
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("value").setTitle("Name Part - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Údaje o křestním jméně, příjmení apod."
+                                        + "<p>Nutno vyjádřit pro křestní jméno i příjmení."
+                                        + "<p>Pokud nelze rozlišit křestní jméno a příjmení,"
+                                        + " nepoužije se type a jméno se zaznamená"
+                                        + " v podobě jaké je do jednoho elementu &lt;namePart>")
+                                .createField()) // value
+                        .createField()) // namePart
+                // displayForm
+                // etal
+                // affiliation
+                // role, roleDefinition
+                // description
+                .createField(); // name
+    }
+
+    private Field relatedOriginInfo() {
+        return new FieldBuilder("originInfo").setMaxOccurrences(1)
+                .addField(new FieldBuilder("publisher").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setTitle("Publisher - M")
+                                .setHint("Vydavatel recenzovaného díla ve tvaru: \"město : nakladatelství, rok vydání\". Odpovídá poli 787$d.")
+                                .createField()) // value
+                        .createField()) // publisher
+                .createField(); // originInfo
     }
 
     @Override
