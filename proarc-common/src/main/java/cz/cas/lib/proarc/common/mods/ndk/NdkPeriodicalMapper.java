@@ -68,7 +68,7 @@ public class NdkPeriodicalMapper extends RdaNdkMapper {
             typeOfResources.add(0, type);
         }
         //  mods/genre="title"
-        addGenre(mods, "title");
+        addGenre(mods, "volume");
         //  mods/originInfo/issuance="continuing"
         //  mods/originInfo/place/placeTerm/type="text"
         OriginInfoDefinition reqOriginInfo = null;
