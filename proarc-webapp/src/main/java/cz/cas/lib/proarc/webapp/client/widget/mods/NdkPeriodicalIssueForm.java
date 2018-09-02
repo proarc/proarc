@@ -202,7 +202,7 @@ public class NdkPeriodicalIssueForm {
                     .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                     // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
                     .addField(NdkForms.roleTerm(
-                            "Role Term - MA", false, "Authority - M", true, "Type - M", false
+                            "Role Term - MA", false, "Authority - M", false, "Type - M", false
                     )) // roleTerm
                 .createField()) // role
                 // description
