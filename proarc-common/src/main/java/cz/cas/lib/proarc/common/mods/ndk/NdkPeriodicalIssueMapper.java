@@ -93,8 +93,16 @@ public class NdkPeriodicalIssueMapper extends NdkMapper {
         }
         // mods/part@type=="issue"
         for (PartDefinition part : mods.getPart()) {
-            if (part.getType() == null) {
-                part.setType("issue");
+            if (!part.getDetail().isEmpty()) {
+                if (!part.getDetail().get(0).getCaption().isEmpty()) {
+                    if (part.getDetail().get(0).getCaption().get(0).getValue() != null) {
+                        part.setType("issue");
+                    }
+                }
+            }
+            if (!"issue".equals(part.getType())) {
+                mods.getPart().clear();
+                break;
             }
         }
     }
