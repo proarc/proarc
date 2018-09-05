@@ -249,7 +249,7 @@ public class NdkEPeriodicalForm extends NdkPeriodicalForm {
                         // placeTerm, placeTermDefinition extends stringPlusLanguage
                         .addField(new FieldBuilder("placeTerm").setMaxOccurrences(1)
                                 // type, codeOrText('code', 'text')
-                                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("TEXT")
+                                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("text")
                                         .setHint("Pokud má dokument více míst vytvoření,vydání, distribuce a výroby v poli 264 " +
                                                 "$a, přebírají se zde ze záznamu všechnamísta (v jednom poli 264) " +
                                                 "<li>“code” pro údaj z pole 008</li><li>“text” pro údaj z pole 264</li>")

@@ -259,7 +259,7 @@ public final class NdkEmonographVolumeForm {
                                         .setHint("Typ popisu místa. Kódem nebo textově."
                                                 + "<p>Pokud má dokument více míst vydání, distribuce a výroby v poli  264, podpole „a, přebírají se ze záznamu všechna místa"
                                                 + "<li>“code” pro údaj z pole 008</li><li>“text” pro údaj z pole 264</li>")
-                                        .setType(Field.SELECT).setDefaultValue("TEXT")
+                                        .setType(Field.SELECT).setDefaultValue("text")
                                         .addMapValue("code", "code")
                                         .addMapValue("text", "text")
                                         .createField()) // type

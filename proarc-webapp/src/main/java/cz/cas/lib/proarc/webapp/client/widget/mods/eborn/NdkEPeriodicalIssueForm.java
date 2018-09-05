@@ -215,7 +215,7 @@ public class NdkEPeriodicalIssueForm extends NdkPeriodicalIssueForm {
                         // placeTerm, placeTermDefinition extends stringPlusLanguage
                         .addField(new FieldBuilder("placeTerm").setMaxOccurrences(1)
                                 // type, codeOrText('code', 'text')
-                                .addField(new FieldBuilder("type").setTitle("Type - O").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("TEXT")
+                                .addField(new FieldBuilder("type").setTitle("Type - O").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("text")
                                         .setHint("\"Text\" pro textový údaj místa/země vydání.")
                                         .addMapValue("code", "code")
                                         .addMapValue("text", "text")
