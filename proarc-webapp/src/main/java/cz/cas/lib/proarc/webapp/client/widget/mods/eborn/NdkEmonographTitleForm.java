@@ -85,7 +85,7 @@ public final class NdkEmonographTitleForm {
         return new FieldBuilder("originInfo").setTitle("Origin Info - M")
                 .setMaxOccurrences(10).setHint("Informace o původu předlohy. Odpovídá poli 264.")
                 // eventType
-                .addField(new FieldBuilder("eventType").setTitle("Event Type - M").setMaxOccurrences(1). setType(Field.COMBO)
+                .addField(new FieldBuilder("eventType").setTitle("Event Type - M").setMaxOccurrences(1). setType(Field.COMBO).setRequired(true)
                         .setHint("Hodnoty dle druhého indikátoru pole 264:"
                                 +"<p>264_0 production (MA) se uvádí, jestliže pole obsahuje údaje o vytvoření zdroje v nezveřejněné podobě."
                                 +"<p>264_1 publication (M) se uvádí, jestliže pole obsahuje údaje o nakladateli zdroje."
@@ -139,7 +139,7 @@ public final class NdkEmonographTitleForm {
                 // placeTerm, placeTermDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("placeTerm").setMaxOccurrences(1)
                         // type, codeOrText('code', 'text')
-                        .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("TEXT")
+                        .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("text")
                                 .setHint("Typ popisu místa. Kódem nebo textově."
                                         + "<p>Pokud má dokument více míst vydání v poli 260, podpole „a“, přebírají se ze záznamu všechna místa"
                                         + "<li>“code” pro údaj z pole 008</li><li>“text” pro údaj z pole 260</li>")
