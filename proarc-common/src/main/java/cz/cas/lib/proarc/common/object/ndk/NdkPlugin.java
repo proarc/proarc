@@ -171,8 +171,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 MODEL_MONOGRAPHTITLE,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
-                new RelationCriteria[] {}
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_MONOGRAPHVOLUME, true, null,

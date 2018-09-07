@@ -145,6 +145,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     int pageCounter = 0;
     int articleCounter = 0;
     int chapterCounter = 0;
+    int titleCounter = 1;
 
     /**
      * creates directory structure for mets elements
@@ -1526,6 +1527,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         } else if (Const.MONOGRAPH_UNIT.equals(metsElement.getElementType())) {
             divType.setTYPE("VOLUME");
             divType.setID(metsElement.getElementID().replaceAll(Const.MONOGRAPH_UNIT, Const.VOLUME));
+            physicalDiv.getDMDID().clear();
             physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
         } else {
             divType.setTYPE(Const.VOLUME);
@@ -1594,6 +1596,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             insertVolume(logicalDiv, physicalDiv, metsElement, false);
         } else {
             metsElement.setModsElementID("TITLE_0001");
+            titleCounter++;
             addDmdSec(metsElement);
             logicalDiv.getDMDID().add(metsElement.getModsMetsElement());
             physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
@@ -1611,8 +1614,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 } else if (Const.CHAPTER.equals(childMetsElement.getElementType())) {
                     insertChapter(logicalDiv, physicalDiv, childMetsElement, chapterCounter);
                     chapterCounter++;
+                } else if (Const.MONOGRAPH_MULTIPART.equals(childMetsElement.getElementType())) {
+                    insertMonographTitle(logicalDiv, physicalDiv, childMetsElement, titleCounter);
+                    titleCounter++;
                 } else
-                    throw new MetsExportException(childMetsElement.getOriginalPid(), "Expected Supplement, Monograph unit, Chapter or Page, got:" + childMetsElement.getElementType(), false, null);
+                    throw new MetsExportException(childMetsElement.getOriginalPid(), "Expected Supplement, Monograph unit, Monograph Title, Chapter or Page, got:" + childMetsElement.getElementType(), false, null);
             }
 
             for (IMetsElement childMetsElement : metsElement.getChildren()) {
@@ -1620,6 +1626,50 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
                     insertVolume(logicalDiv, physicalDiv, childMetsElement, true);
                 }
+            }
+        }
+    }
+
+    private void insertMonographTitle(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement, int counter) throws MetsExportException {
+        metsElement.setModsElementID("TITLE_000" + counter);
+        addDmdSec(metsElement);
+        DivType divType = new DivType();
+        divType.setID("MONOGRAPH_000" + counter);
+        divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
+        if (Const.MONOGRAPH_MULTIPART.equals(metsElement.getElementType())) {
+            divType.setTYPE(Const.MONOGRAPH);
+            physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
+        }
+        divType.getDMDID().add(metsElement.getModsMetsElement());
+        logicalDiv.getDiv().add(divType);
+
+        for (IMetsElement childMetsElement : metsElement.getChildren()) {
+            if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
+                continue;
+            } else
+            if (Const.SUPPLEMENT.equals(childMetsElement.getElementType())) {
+                childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
+                insertSupplement(divType, physicalDiv, childMetsElement);
+            } else
+            if (Const.PAGE.equals(childMetsElement.getElementType())) {
+                pageCounter++;
+                insertPage(physicalDiv, childMetsElement, pageCounter, metsElement);
+            } else if (Const.CHAPTER.equals(childMetsElement.getElementType())) {
+                insertChapter(divType, physicalDiv, childMetsElement, chapterCounter);
+                chapterCounter++;
+            } else if (Const.PICTURE.equals(childMetsElement.getElementType())) {
+                insertPicture(divType, physicalDiv, childMetsElement);
+            } else if (Const.MONOGRAPH_MULTIPART.equals(childMetsElement.getElementType())) {
+                insertMonographTitle(divType, physicalDiv, childMetsElement, titleCounter);
+                titleCounter++;
+            } else
+                throw new MetsExportException(childMetsElement.getOriginalPid(), "Expected Supplement, Monograph unit, Monograph Title, Chapter or Page, got:" + childMetsElement.getElementType(), false, null);
+        }
+
+        for (IMetsElement childMetsElement : metsElement.getChildren()) {
+            if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
+                childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
+                insertVolume(divType, physicalDiv, childMetsElement, true);
             }
         }
     }
