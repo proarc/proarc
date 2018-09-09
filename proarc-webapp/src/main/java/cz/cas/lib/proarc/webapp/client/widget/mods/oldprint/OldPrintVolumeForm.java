@@ -254,7 +254,7 @@ public final class OldPrintVolumeForm {
                     // placeTerm, placeTermDefinition extends stringPlusLanguage
                     .addField(new FieldBuilder("placeTerm").setMaxOccurrences(1)
                         // type, codeOrText('code', 'text')
-                        .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("TEXT")
+                        .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("text")
                             .setHint("Typ popisu místa. Kódem nebo textově."
                                 + "<p>Pokud má dokument více míst vydání v poli 260, podpole „a“, přebírají se ze záznamu všechna místa"
                                 + "<li>“code” pro údaj z pole 008</li><li>“text” pro údaj z pole 260</li>")
