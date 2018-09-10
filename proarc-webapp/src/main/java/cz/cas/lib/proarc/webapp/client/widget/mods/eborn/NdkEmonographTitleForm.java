@@ -85,7 +85,7 @@ public final class NdkEmonographTitleForm {
         return new FieldBuilder("originInfo").setTitle("Origin Info - M")
                 .setMaxOccurrences(10).setHint("Informace o původu předlohy. Odpovídá poli 264.")
                 // eventType
-                .addField(new FieldBuilder("eventType").setTitle("Event Type - M").setMaxOccurrences(1). setType(Field.COMBO)
+                .addField(new FieldBuilder("eventType").setTitle("Event Type - M").setMaxOccurrences(1). setType(Field.COMBO).setRequired(true)
                         .setHint("Hodnoty dle druhého indikátoru pole 264:"
                                 +"<p>264_0 production (MA) se uvádí, jestliže pole obsahuje údaje o vytvoření zdroje v nezveřejněné podobě."
                                 +"<p>264_1 publication (M) se uvádí, jestliže pole obsahuje údaje o nakladateli zdroje."
