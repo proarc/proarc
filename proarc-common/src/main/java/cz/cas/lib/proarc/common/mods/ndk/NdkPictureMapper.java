@@ -60,6 +60,7 @@ public final class NdkPictureMapper extends NdkMapper {
         }
         // genre="picture"
         addGenre(mods, "picture");
+        addNameWithEtal(mods);
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
         //  mods/classification@authority="udc"

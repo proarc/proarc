@@ -181,6 +181,10 @@ public class NdkPeriodicalForm {
                 // etal
                 // affiliation
                 // role, roleDefinition
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - RA").setMaxOccurrences(5)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
+                        .createField()) //nameIdentifier
                 .addField(new FieldBuilder("role").setTitle("Role - R").setMaxOccurrences(5)
                         .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                         // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
@@ -240,11 +244,11 @@ public class NdkPeriodicalForm {
                 // eventType
                 .addField(new FieldBuilder("eventType").setTitle("Event Type - M").setMaxOccurrences(1). setType(Field.COMBO)
                     .setHint("Hodnoty dle druhého indikátoru pole 264:"
-                            +"<p>264_0 production se uvádí, jestliže pole obsahuje údaje o vytvoření zdroje v nezveřejněné podobě."
-                            +"<p>264_1 publication se uvádí, jestliže pole obsahuje údaje o nakladateli zdroje."
-                            +"<p>264_2 distribution se uvádí, jestliže pole obsahuje údaje o distribuci zdroje."
-                            +"<p>264_3 manufacture se uvádí, jestliže pole obsahuje údaje o tisku, výrobě zdroje ve zveřejněné podobě."
-                            +"<p>264_4 copyright (R) se uvádí, jestliže pole obsahuje údaje o ochraně podle autorského práva (copyright).")
+                        +"<p>264_0 production (R) se uvádí, jestliže pole obsahuje údaje o vytvoření zdroje v nezveřejněné podobě."
+                        +"<p>264_1 publication (R) se uvádí, jestliže pole obsahuje údaje o nakladateli zdroje."
+                        +"<p>264_2 distribution (R) se uvádí, jestliže pole obsahuje údaje o distribuci zdroje."
+                        +"<p>264_3 manufacture (R) se uvádí, jestliže pole obsahuje údaje o tisku, výrobě zdroje ve zveřejněné podobě."
+                        +"<p>264_4 copyright (R) se uvádí, jestliže pole obsahuje údaje o ochraně podle autorského práva (copyright).")
                    .addMapValue("", "")
                    .addMapValue("production", "production")
                    .addMapValue("publication", "publication")
@@ -427,6 +431,8 @@ public class NdkPeriodicalForm {
                     // XXX autofill "marcform"
                     .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1).setType(Field.COMBO)
                         .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCCATEGORY, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCCATEGORY)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCSMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCSMD)
                         .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)
                         .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA)
                         .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)
@@ -520,6 +526,8 @@ public class NdkPeriodicalForm {
                                 +"<p>Vybrat jednu z hodnot: czenas, eczenas nebo konspekt")
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("mednas", "mednas")
+                    .addMapValue("czmesh", "czmesh")
                     .addMapValue("Konspekt", "Konspekt")
                 .createField())
 
@@ -773,6 +781,10 @@ public class NdkPeriodicalForm {
                         .addMapValue("human prepared", "human prepared")
                     .createField()) // value
                 .createField()) // recordOrigin
+                .addField(new FieldBuilder("recordInfoNote").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setTitle("Record Info Note - O").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
+                        .setHint("Poznámka k záznamu").createField())
+                    .createField()) //recordInfoNote
                 // languageOfCataloging, languageDefinition
                 .addField(new FieldBuilder("languageOfCataloging").setTitle("Language of Cataloging - R").setMaxOccurrences(10)
                     // @objectPart, @displayLabel, @altRepGroup, @usage

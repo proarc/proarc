@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NameDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.SubjectDefinition;
@@ -44,6 +45,7 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
         // mods/originInfo/place/placeTerm/type="text" if null
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
+        addNameWithEtal(mods);
         // physicalDescription
         //  mods/classification@authority="udc"
         List<ClassificationDefinition> classifications = mods.getClassification();

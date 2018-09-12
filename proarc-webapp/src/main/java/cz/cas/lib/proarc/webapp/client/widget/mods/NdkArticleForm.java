@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
@@ -156,9 +157,23 @@ public class NdkArticleForm {
                     .createField()) // value
                 .createField()) // namePart
                 // displayForm
-                // etal
-                // affiliation
+                .addField(new FieldBuilder("etal").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setTitle("Etal - O").setType(Field.TEXT)
+                        .setHint("Element indikující, že existuje více autorů, než pouze ti, kteří byli uvedeni v <name> elementu." +
+                            "<p>V případě užití tohoto elementu je dále top element <name> neopakovatelný." +
+                            "<p><etal> je nutné umístit do samostatného top elementu <name>, ve kterém se " +
+                            "nesmí objevit subelementy <namePart> a <nameIdentifier>." +
+                            "<p><etal> je neopakovatelný element, který se do zápisu vkládá ručně.").createField())
+                    .createField()) //etal
+                .addField(new FieldBuilder("affiliation").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setTitle("Affiliation - O").setType(Field.TEXT)
+                        .setHint("Umožňuje vepsat název instituce, se kterou je autor, popsaný v elementu <name> spojen.").createField())
+                    .createField())// affiliation
                 // role, roleDefinition
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - RA").setMaxOccurrences(5)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
+                        .createField()) //nameIdentifier
                 .addField(new FieldBuilder("role").setTitle("Role - RA").setMaxOccurrences(5)
                     .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                     // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
@@ -240,8 +255,9 @@ public class NdkArticleForm {
                     // @type, string
                     // XXX autofill "marcform"
                     .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("marcform")
-                        .addMapValue("marcform", "marcform")
-                        .addMapValue("gmd", "gmd")
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCSMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCSMD)
+                        .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_GMD)
                     .createField()) // authority
                     .addField(new FieldBuilder("value").setTitle("Form - R").setMaxOccurrences(1).setType(Field.COMBO)
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
@@ -294,6 +310,8 @@ public class NdkArticleForm {
                 .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.COMBO)
                     .addMapValue("czenas", "czenas")
                     .addMapValue("eczenas", "eczenas")
+                    .addMapValue("mednas", "mednas")
+                    .addMapValue("czmesh", "czmesh")
                     .addMapValue("Konspekt", "Konspekt")
                 .createField()) // authority
 
@@ -501,6 +519,10 @@ public class NdkArticleForm {
                         .addMapValue("human prepared", "human prepared")
                     .createField()) // value
                 .createField()) // recordOrigin
+                .addField(new FieldBuilder("recordInfoNote").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setTitle("Record Info Note - O").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
+                        .setHint("Poznámka k záznamu").createField())
+                    .createField()) //recordInfoNote
                 // descriptionStandard
         .createField(); // recordInfo
     }

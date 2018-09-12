@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.mods.LanguageTermDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NameDefinition;
 import cz.cas.lib.proarc.mods.NamePartDefinition;
+import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
@@ -36,6 +37,7 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -124,7 +126,9 @@ public final class MapperUtils {
     }
 
     static StringBuilder addNonSort(StringBuilder title, TitleInfoDefinition ti) {
-        return addTitlePart(title, ti.getNonSort(), null);
+        List<StringPlusLanguage> listNonSort = new ArrayList<>();
+        listNonSort.addAll(ti.getNonSort());
+        return addTitlePart(title, listNonSort, null);
     }
 
     static StringBuilder addTitle(StringBuilder title, TitleInfoDefinition ti) {
@@ -204,6 +208,12 @@ public final class MapperUtils {
             }
         }
         fillLanguage(recordInfo.getLanguageOfCataloging());
+        if (recordInfo.getRecordOrigin().size() != 0 && recordInfo.getRecordOrigin().get(0).getValue().startsWith("Converted from")) {
+            NoteDefinition note = new NoteDefinition();
+            note.setValue(recordInfo.getRecordOrigin().get(0).getValue());
+            recordInfo.getRecordInfoNote().add(note);
+            recordInfo.getRecordOrigin().get(0).setValue("machine generated");
+        }
     }
 
     static void addStringPlusLanguage(List<ElementType> dcElms, List<? extends StringPlusLanguage> modsValues) {
@@ -249,6 +259,22 @@ public final class MapperUtils {
             if (sbName.length() > 0) {
                 addElementType(dcElms, sbName.toString());
             }
+        }
+    }
+
+    static void addNameWithEtal(ModsDefinition mods) {
+        NameDefinition nameDefinition = null;
+        for (NameDefinition name : mods.getName()) {
+            if (name.getEtal() != null && (!name.getEtal().getValue().isEmpty() || null != name.getEtal().getValue())) {
+                name.getNameIdentifier().clear();
+                name.getNamePart().clear();
+                nameDefinition = name;
+                break;
+            }
+        }
+        if (nameDefinition != null) {
+            mods.getName().clear();
+            mods.getName().add(nameDefinition);
         }
     }
 

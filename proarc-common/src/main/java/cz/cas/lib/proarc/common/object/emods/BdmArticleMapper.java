@@ -45,6 +45,11 @@ public class BdmArticleMapper extends NdkArticleMapper {
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
 
+        for (GenreDefinition genre : mods.getGenre()) {
+            if (genre.getType() == null  || genre.getType().isEmpty()) {
+                genre.setType(GENRE_PEER_REVIEWED_TYPE);
+            }
+        }
         List<PhysicalDescriptionDefinition> listPhysicalDescription = new ArrayList<>();
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {

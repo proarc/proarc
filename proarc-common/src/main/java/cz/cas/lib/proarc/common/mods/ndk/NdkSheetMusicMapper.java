@@ -65,6 +65,7 @@ public class NdkSheetMusicMapper extends RdaNdkMapper {
                 }
             }
         }
+        addNameWithEtal(mods);
         //  mods/typeOfResource="notated music"
         List<TypeOfResourceDefinition> typeOfResources = mods.getTypeOfResource();
         TypeOfResourceDefinition reqTypeOfResource = null;

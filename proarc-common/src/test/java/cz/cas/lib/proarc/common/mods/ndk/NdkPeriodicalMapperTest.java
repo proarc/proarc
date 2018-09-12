@@ -47,10 +47,6 @@ public class NdkPeriodicalMapperTest {
     public NdkPeriodicalMapperTest() {
     }
 
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
     @AfterClass
     public static void tearDownClass() {
     }

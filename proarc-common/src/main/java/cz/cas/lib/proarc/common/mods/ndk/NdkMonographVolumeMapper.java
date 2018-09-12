@@ -78,6 +78,7 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
                 }
             }
         }
+        addNameWithEtal(mods);
         //  mods/typeOfResource="text"
         List<TypeOfResourceDefinition> typeOfResources = mods.getTypeOfResource();
         TypeOfResourceDefinition reqTypeOfResource = null;
