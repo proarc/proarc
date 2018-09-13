@@ -185,15 +185,20 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      */
     protected void initHeader(IMetsElement metsElement) throws MetsExportException {
         mets.setLabel1(getTitle(metsElement) + metsElement.getLabel());
+        mets.setMetsHdr(createMetsHdr(metsElement));
+        fileGrpMap = MetsUtils.initFileGroups();
+    }
+
+    /**
+     * Creates the Mets header info
+     */
+    protected MetsHdr createMetsHdr(IMetsElement metsElement) throws MetsExportException {
         MetsHdr metsHdr = new MetsHdr();
         metsHdr.setCREATEDATE(metsElement.getCreateDate());
         metsHdr.setLASTMODDATE(metsElement.getLastUpdateDate());
-
         setAgent(metsHdr, "CREATOR", "ORGANIZATION", metsElement.getMetsContext().getOptions().getCreator());
         setAgent(metsHdr, "ARCHIVIST", "ORGANIZATION",metsElement.getMetsContext().getOptions().getArchivist());
-
-        mets.setMetsHdr(metsHdr);
-        fileGrpMap = MetsUtils.initFileGroups();
+        return metsHdr;
     }
 
     /**
@@ -953,6 +958,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         if (fileNames.get("TECHMDGRP") == null) {
             LOG.log(Level.FINE, "Generating tech");
             Mets amdSecMets = new Mets();
+            amdSecMets.setMetsHdr(createMetsHdr(metsElement));
             amdSecMets.setLabel1(mets.getLabel1());
             amdSecMets.setTYPE(mets.getTYPE());
             StructMapType mapType = new StructMapType();
