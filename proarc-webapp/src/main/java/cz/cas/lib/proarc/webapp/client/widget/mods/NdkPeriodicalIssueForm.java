@@ -115,7 +115,7 @@ public class NdkPeriodicalIssueForm {
                     + "<p>element může být využit jen na zaznamenání <caption>.")
                 // @ID, @type, @order, @displayLabel, @altRepGroup
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
-                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("issue")
+                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.TEXT)
                     .setHint("Hodnota bude vždy „issue“.")
                 .createField()) // type
                 // detail, type="detailDefinition"
