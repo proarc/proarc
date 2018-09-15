@@ -59,12 +59,10 @@ public class NdkPeriodicalForm {
         modsFields.add(note());
         modsFields.add(subject());
         modsFields.add(classification());
-        // XXX unsupported yet
-        // relatedItem
         modsFields.add(identifier());
         modsFields.add(location());
         modsFields.add(recordInfo());
-
+        modsFields.add(relatedItem());
         return f;
     }
 
@@ -814,5 +812,48 @@ public class NdkPeriodicalForm {
                 .createField()) // languageOfCataloging
                 .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField()) //descriptionStandard
         .createField(); // recordInfo
+    }
+
+    private Field relatedItem() {
+        return new FieldBuilder("relatedItem").setTitle("Related Item - RA").setMaxOccurrences(10)
+                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1)
+                        .setHint("Type spolu s otherType popisují vztah položky, popsané " +
+                                "v <relatedItem> a dokumentu, který je předmětem MODS záznamu").setType(Field.SELECT)
+                        .addMapValue("preceding", "preceding")
+                        .addMapValue("succeeding", "succeeding")
+                        .addMapValue("original", "original")
+                        .addMapValue("host", "host")
+                        .addMapValue("constituent", "constituent")
+                        .addMapValue("series", "series")
+                        .addMapValue("otherVersion", "otherVersion")
+                        .addMapValue("otherFormat", "otherFormat")
+                        .addMapValue("isReferencedBy", "isReferencedBy")
+                        .addMapValue("references", "references")
+                        .addMapValue("reviewOf", "reviewOf")
+                        .createField())
+                .addField(new FieldBuilder("otherType").setTitle("Other Type - O").setMaxOccurrences(1)
+                        .setHint("Type spolu s otherType popisují vztah položky, popsané " +
+                        "v <relatedItem> a dokumentu, který je předmětem MODS záznamu").setType(Field.TEXT).createField())
+                .addField(new FieldBuilder("otherTypeURI").setTitle("Other Type URI - O").setMaxOccurrences(1)
+                        .setHint("Odkaz na zdroj položky v <relatedItem>, který se vztahuje k popisovanému").setType(Field.TEXT).createField())
+                .addField(new FieldBuilder("otherTypeAuth").setTitle("Other Type Auth - O").setMaxOccurrences(1)
+                        .setHint("Autoritní záznam příbuzné položky").setType(Field.TEXT).createField())
+                .addField(new FieldBuilder("otherTypeAuthURI").setTitle("Other Type Auth URI - O").setMaxOccurrences(1)
+                        .setHint("Odkaz na autoritní záznam příbuzné položky").setType(Field.TEXT).createField())
+                .addField(titleInfo())
+                .addField(name())
+                .addField(typeOfResource())
+                .addField(genre())
+                .addField(originInfo())
+                .addField(language())
+                .addField(physicalDescription())
+                .addField(abstracts())
+                .addField(note())
+                .addField(subject())
+                .addField(classification())
+                .addField(identifier())
+                .addField(location())
+                .addField(recordInfo())
+                .createField();
     }
 }
