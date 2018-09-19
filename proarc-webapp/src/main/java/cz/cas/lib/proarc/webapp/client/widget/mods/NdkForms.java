@@ -88,7 +88,7 @@ public final class NdkForms {
             return new PageForm(i18n);
         }
 
-        return new NdkFormGenerator(mappers.get(modelId).get(), activeLocale).generateForm();
+        return mappers.get(modelId) == null ? null : new NdkFormGenerator(mappers.get(modelId).get(), activeLocale).generateForm();
     }
 
 
