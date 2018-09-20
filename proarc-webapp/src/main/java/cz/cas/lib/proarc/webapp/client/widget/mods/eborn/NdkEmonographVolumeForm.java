@@ -37,8 +37,10 @@ public final class NdkEmonographVolumeForm {
                 .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
                 .createField());
 
-        f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
-        List<Field> modsFields = f.getFields().get(0).getFields();
+        Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
+        f.getFields().add(mods);
+        List<Field> modsFields = mods.getFields();
+
         modsFields.add(titleInfo());
         modsFields.add(name());
         modsFields.add(typeOfResource());
