@@ -169,7 +169,8 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     }
 
     private ValueMap<BundleValue> readPageTypes(Locale locale) {
-        return BundleValueMap.fromBundle(BundleName.MODS_OLDPRINT_PAGE_TYPES, locale);
+        //return BundleValueMap.fromBundle(BundleName.MODS_OLDPRINT_PAGE_TYPES, locale);
+        return BundleValueMap.fromBundle(BundleName.MODS_PAGE_TYPES, locale);
     }
 
     @Override
