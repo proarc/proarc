@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.json;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -54,6 +55,7 @@ public final class JsonUtils {
         om.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         om.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        om.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
         return om;
     }
 
