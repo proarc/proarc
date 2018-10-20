@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.dublincore;
 
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.oaidublincore.ObjectFactory;
@@ -219,6 +220,9 @@ public final class DcUtils {
     }
 
     public static void addElementType(List<ElementType> elms, String value) {
+        if (NdkPlugin.MODEL_NDK_PAGE.equals(value)) {
+            value = NdkPlugin.MODEL_PAGE;
+        }
         for (ElementType elm : elms) {
             if (value.equals(elm.getValue())) {
                 return;
