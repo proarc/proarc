@@ -54,6 +54,7 @@ public final class Const {
     public final static String PERIODICAL_MODEL = NdkPlugin.MODEL_PERIODICAL;
     public final static String PERIODICAL_VOLUME_MODEL = NdkPlugin.MODEL_PERIODICALVOLUME;
     public final static String PAGE_MODEL = NdkPlugin.MODEL_PAGE;
+    public final static String PAGE_NDK_MODEL = NdkPlugin.MODEL_NDK_PAGE;
     public final static String MONOGRAPH_TITLE_MODEL = NdkPlugin.MODEL_MONOGRAPHTITLE;
     public final static String MONOGRAPH_MODEL = NdkPlugin.MODEL_MONOGRAPHVOLUME;
     public final static String PICTURE_MODEL = NdkPlugin.MODEL_PICTURE;
@@ -134,6 +135,7 @@ public final class Const {
         typeMap.put(FEDORAPREFIX + PERIODICAL_MODEL, PERIODICAL_TITLE);
         typeMap.put(FEDORAPREFIX + PERIODICAL_VOLUME_MODEL, PERIODICAL_VOLUME);
         typeMap.put(FEDORAPREFIX + PAGE_MODEL, PAGE);
+        typeMap.put(FEDORAPREFIX + PAGE_NDK_MODEL, PAGE);
         typeMap.put(FEDORAPREFIX + MONOGRAPH_MODEL, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + MONOGRAPH_TITLE_MODEL, MONOGRAPH_MULTIPART);
         typeMap.put(FEDORAPREFIX + PICTURE_MODEL, PICTURE);
