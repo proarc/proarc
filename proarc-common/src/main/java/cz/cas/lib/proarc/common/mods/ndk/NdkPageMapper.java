@@ -62,7 +62,7 @@ public class NdkPageMapper extends NdkMapper {
     /** {@code /mods/part/detail@type} */
     private static final String NUMBER_TYPE_PAGE_NUMBER = "pageNumber";
     /** {@code /mods/part@type} */
-    public static final String PAGE_TYPE_NORMAL = "NormalPage";
+    public static final String PAGE_TYPE_NORMAL = "normalPage";
     /** A default value of {@code /mods/typeOfResource}. */
     public static final String RESOURCE_TYPE_TEXT = "text";
 
