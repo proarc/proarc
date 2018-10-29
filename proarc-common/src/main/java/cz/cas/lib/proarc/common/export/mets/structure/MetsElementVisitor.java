@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.AreaType;
@@ -377,6 +378,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             modsMdSecType.setID("MODSMD_" + metsElement.getModsElementID());
             MdWrap modsMdWrap = new MdWrap();
             modsMdWrap.setMDTYPE("MODS");
+            fillMdTypeVersion(modsMdWrap, metsElement);
             modsMdWrap.setMIMETYPE("text/xml");
             XmlData modsxmlData = new XmlData();
             metsElement.getModsStream().get(0).setAttribute("ID", "MODS_" + metsElement.getModsElementID());
@@ -398,6 +400,19 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             dcMdWrap.setXmlData(dcxmlData);
             dcMdSecType.setMdWrap(dcMdWrap);
         }
+    }
+
+    private void fillMdTypeVersion(MdWrap modsMdWrap, IMetsElement metsElement) {
+        if (Const.PERIODICAL_TITLE.equals(metsElement.getMetsContext().getRootElement().getElementType())) {
+            modsMdWrap.setMDTYPEVERSION(getModsVersion(metsElement));
+        }
+    }
+
+    private String getModsVersion(IMetsElement metsElement) {
+        if (metsElement.getModsStream() != null && metsElement.getModsStream().get(0).getAttributeNode("version") != null) {
+            return metsElement.getModsStream().get(0).getAttributeNode("version").getValue();
+        }
+        return ModsUtils.VERSION;
     }
 
     /**
