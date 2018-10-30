@@ -27,7 +27,7 @@ public enum BundleName {
     /**
      * @see <a href='https://docs.google.com/document/d/1cmV1LqlZGepNDZEPmTcOpqHaaI0L5wwxq6jj73eHG_M/edit?usp=sharing'>Old print page types</a>
      */
-    MODS_OLDPRINT_PAGE_TYPES("cz.cas.lib.proarc.common.config.modsOldPrintPageTypes", "oldprint.mods.pageTypes"),
+    //MODS_OLDPRINT_PAGE_TYPES("cz.cas.lib.proarc.common.config.modsOldPrintPageTypes", "oldprint.mods.pageTypes"),
     /**
      * @see <a href='https://docs.google.com/document/d/1zSriHPdnUY5d_tKv0M8a6nEym560DKh2H6XZ24tGAEw/edit?pli=1#'>Page Types</a>
      * @see <a href='http://digit.nkp.cz/DigitizedPeriodicals/DTD/2.10/Periodical.xsd'>PeriodicalPage[@Type]</a>

@@ -46,7 +46,7 @@ public class NdkPageMapperTest {
         assertEquals("1", result.getIndex());
         assertEquals("[1]", result.getNumber());
         assertEquals("Blank", result.getType());
-        assertEquals("note", result.getNote());
+        assertEquals("note", result.getPhysicalDescription());
         List<IdentifierItem> identifiers = result.getIdentifiers();
         assertEquals(2, identifiers.size());
         assertEquals("issn", identifiers.get(0).getType());
@@ -63,7 +63,7 @@ public class NdkPageMapperTest {
         page.setIndex("1");
         page.setNumber("[1]");
         page.setType("NormalPage");
-        page.setNote("note");
+        page.setPhysicalDescription("note");
         page.setIdentifiers(Arrays.asList(new IdentifierItem(null, "uuid", "1")));
 
         ModsDefinition mods = mapper.toMods(page, ctx);
@@ -73,7 +73,7 @@ public class NdkPageMapperTest {
         assertEquals(page.getIndex(), result.getIndex());
         assertEquals(page.getNumber(), result.getNumber());
         assertEquals(page.getType(), result.getType());
-        assertEquals(page.getNote(), result.getNote());
+        assertEquals(page.getPhysicalDescription(), result.getPhysicalDescription());
         assertEquals(Arrays.asList(new IdentifierItem(null, "uuid", "1")), result.getIdentifiers());
     }
 
@@ -113,12 +113,12 @@ public class NdkPageMapperTest {
         assertEquals(index, result.getIndex());
         assertEquals(number, result.getNumber());
         assertEquals(type, result.getType());
-        assertEquals(note, result.getNote());
+        assertEquals(note, result.getPhysicalDescription());
     }
 
     private Page createPageWithParams(String index, String number, String type, String note) {
         Page p = new Page();
-        p.setNote(note);
+        p.setPhysicalDescription(note);
         p.setType(type);
         p.setIndex(index);
         p.setNumber(number);

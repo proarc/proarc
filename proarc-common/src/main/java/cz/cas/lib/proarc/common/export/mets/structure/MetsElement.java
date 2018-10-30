@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -293,7 +294,7 @@ public class MetsElement implements IMetsElement {
             LOG.log(Level.FINE, "Root element found:" + getOriginalPid() + "(" + getElementType() + ")");
         }
 
-        if (!Const.PAGE.equals(elementType)) {
+        if (!Const.PAGE.equals(elementType) || model.contains(NdkPlugin.MODEL_NDK_PAGE)) {
             NdkMapper mapper = NdkMapper.get(model.replaceAll("info:fedora/", ""));
             Document modsDocument = MetsUtils.getDocumentFromList(modsStream);
             DOMSource modsDOMSource = new DOMSource(modsDocument);

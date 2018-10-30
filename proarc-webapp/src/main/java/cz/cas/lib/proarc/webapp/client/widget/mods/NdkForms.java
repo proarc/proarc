@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.webapp.client.widget.mods;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
@@ -84,8 +85,10 @@ public final class NdkForms {
 
     public DynamicForm getForm(MetaModelRecord model) {
         String modelId = model.getId();
-        if ("model:page".equals(modelId)) {
+        if (NdkPlugin.MODEL_PAGE.equals(modelId)) {
             return new PageForm(i18n);
+        } else if (NdkPlugin.MODEL_NDK_PAGE.equals(modelId)) {
+            return new NdkPageForm(i18n);
         }
 
         return mappers.get(modelId) == null ? null : new NdkFormGenerator(mappers.get(modelId).get(), activeLocale).generateForm();

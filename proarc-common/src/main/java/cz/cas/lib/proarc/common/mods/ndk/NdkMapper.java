@@ -65,6 +65,14 @@ public abstract class NdkMapper {
         return mapper;
     }
 
+    public String getModelId() {
+        return modelId;
+    }
+
+    public void setModelId(String modelId) {
+        this.modelId = modelId;
+    }
+
     /**
      * Updates missing required attribute and elements to comply with the NDK specification.
      */

@@ -36,6 +36,7 @@ import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.AreaType;
@@ -1346,6 +1347,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      */
     private void insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter, IMetsElement sourceElement) throws MetsExportException {
         List<IMetsElement> sourceElements = new ArrayList<IMetsElement>();
+        if (metsElement.getModel().contains(NdkPlugin.MODEL_NDK_PAGE)) {
+            addDmdSec(metsElement);
+        }
         sourceElements.add(sourceElement);
         insertPage(physicalDiv, metsElement, pageCounter, sourceElements);
     }

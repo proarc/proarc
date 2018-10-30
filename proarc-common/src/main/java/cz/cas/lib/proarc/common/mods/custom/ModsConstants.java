@@ -34,6 +34,12 @@ public interface ModsConstants {
     public static final String FIELD_PAGE_TYPE = "pageType";
     public static final String FIELD_PAGE_INDEX = "pageIndex";
     public static final String FIELD_PAGE_NUMBER = "pageNumber";
+    public static final String FIELD_PAGE_TITLE = "pageTitle";
+    public static final String FIELD_PAGE_SUBTITLE = "pageSubTitle";
+    public static final String FIELD_PAGE_EXTENT = "pageExtent";
+    public static final String FIELD_PAGE_NOTE = "pageNote";
+    public static final String FIELD_PAGE_GENRE = "pageGenre";
+    public static final String FIELD_PAGE_TYPEOFRESOURCE = "pageTypeOfResource";
     public static final String FIELD_IDENTIFIERS = "identifiers";
     public static final String FIELD_NOTE = "note";
     //periodical
