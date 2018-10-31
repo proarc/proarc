@@ -540,7 +540,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 fileMD5Info.setMd5(tempMd5.getMd5());
             }
             fileType.setSIZE(Long.valueOf(fileMD5Info.getSize()));
-          //  fileMD5Info.setFileName("." + File.separator + Const.streamMappingFile.get(metsStreamName) + File.separator + outputFileName);
             fileMD5Info.setFileName(File.separator + Const.streamMappingFile.get(metsStreamName) + File.separator + outputFileName);
             fileMD5Info.setMimeType(fileType.getMIMETYPE());
             fileType.setCHECKSUM(fileMD5Info.getMd5());
