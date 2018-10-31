@@ -549,10 +549,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
         FLocat flocat = new FLocat();
         flocat.setLOCTYPE("URL");
-        String href = "." + "/" + Const.streamMappingFile.get(metsStreamName) + "/" + outputFileName;
-        String href_new = Const.streamMappingFile.get(metsStreamName) + "/" + outputFileName;
         URI uri;
-        uri = URI.create(href_new);
+        uri = URI.create(Const.streamMappingFile.get(metsStreamName) + "/" + outputFileName);
         flocat.setHref(uri.toASCIIString());
         fileType.getFLocat().add(flocat);
         return fileType;
