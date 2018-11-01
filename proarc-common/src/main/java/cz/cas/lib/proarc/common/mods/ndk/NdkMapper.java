@@ -158,6 +158,7 @@ public abstract class NdkMapper {
             {
                 put(NdkPlugin.MODEL_ARTICLE, "model:internalpart");
                 put(NdkPlugin.MODEL_CARTOGRAPHIC, "model:map");
+                put(NdkPlugin.MODEL_CHAPTER, "model:internalpart");
                 put(NdkPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
                 put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
                 put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monographunit");
