@@ -60,7 +60,7 @@
         <xsl:variable name="pageNumber" select="."/>
         <xsl:variable name="pageType" select="../../@type"/>
         <xsl:value-of select="$pageNumber"/>
-        <xsl:if test="string($pageType) and string($pageType) != 'NormalPage'">
+        <xsl:if test="string($pageType) and string($pageType) != 'normalPage'">
             <xsl:text>, </xsl:text>
             <xsl:value-of select="$pageType"/>
         </xsl:if>
