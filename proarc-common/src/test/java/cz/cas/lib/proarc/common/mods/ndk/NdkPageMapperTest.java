@@ -62,7 +62,7 @@ public class NdkPageMapperTest {
         Page page = new Page();
         page.setIndex("1");
         page.setNumber("[1]");
-        page.setType("NormalPage");
+        page.setType("normalPage");
         page.setPhysicalDescription("note");
         page.setIdentifiers(Arrays.asList(new IdentifierItem(null, "uuid", "1")));
 
@@ -80,13 +80,13 @@ public class NdkPageMapperTest {
     @Test
     public void testCreatePage() throws Exception {
         NdkPageMapper mapper = new NdkPageMapper();
-        ModsDefinition mods = mapper.createPage("uuid:test", "1", "[1]", "NormalPage");
+        ModsDefinition mods = mapper.createPage("uuid:test", "1", "[1]", "normalPage");
         assertNotNull(mods);
         Page result = mapper.toJsonObject(mods, new Context("dummy"));
         assertNotNull(result);
         assertEquals("1", result.getIndex());
         assertEquals("[1]", result.getNumber());
-        assertEquals("NormalPage", result.getType());
+        assertEquals("normalPage", result.getType());
         assertNull(result.getNote());
         assertEquals(Arrays.asList(new IdentifierItem(null, "uuid", "test")), result.getIdentifiers());
     }
@@ -94,12 +94,12 @@ public class NdkPageMapperTest {
     @Test
     public void testToModsWithMissingValues() throws Exception {
         createModsAndCheckValues("[1]", "1", "Blank", "testNote");
-        createModsAndCheckValues("[1]", "1", "NormalPage", "testNote");
-        createModsAndCheckValues("[1]", "1", "NormalPage", null);
-        createModsAndCheckValues("[1]", null, "NormalPage", null);
-        createModsAndCheckValues(null, "1", "NormalPage", null);
-        createModsAndCheckValues(null, null, "NormalPage", null);
-        createModsAndCheckValues(null, null, "NormalPage", "testNote");
+        createModsAndCheckValues("[1]", "1", "normalPage", "testNote");
+        createModsAndCheckValues("[1]", "1", "normalPage", null);
+        createModsAndCheckValues("[1]", null, "normalPage", null);
+        createModsAndCheckValues(null, "1", "nomalPage", null);
+        createModsAndCheckValues(null, null, "normalPage", null);
+        createModsAndCheckValues(null, null, "normalPage", "testNote");
     }
 
     private void createModsAndCheckValues(String index, String number, String type, String note) {

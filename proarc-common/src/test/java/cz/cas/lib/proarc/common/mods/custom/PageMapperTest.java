@@ -26,10 +26,12 @@ import java.util.List;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  *
@@ -118,7 +120,7 @@ public class PageMapperTest {
         Page page = new Page();
         page.setIndex("1");
         page.setNumber("[1]");
-        page.setType("NormalPage");
+        page.setType("normalPage");
         page.setNote("note");
         page.setIdentifiers(Arrays.asList(new IdentifierItem(null, "uuid", "1")));
 

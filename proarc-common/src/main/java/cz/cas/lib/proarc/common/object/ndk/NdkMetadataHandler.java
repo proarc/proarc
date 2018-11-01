@@ -94,7 +94,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public static final String ERR_NDK_CHANGE_MODS_WITH_MEMBERS = "Err_Ndk_Change_Mods_With_Members";
     public static final String ERR_NDK_DOI_DUPLICITY = "Err_Ndk_Doi_Duplicity";
     public static final String ERR_NDK_REMOVE_URNNBN = "Err_Ndk_Remove_UrnNbn";
-    public static final String DEFAULT_PAGE_TYPE = "NormalPage";
+    public static final String DEFAULT_PAGE_TYPE = "normalPage";
 
     /**
      * The set of model IDs that should be checked for connected members.

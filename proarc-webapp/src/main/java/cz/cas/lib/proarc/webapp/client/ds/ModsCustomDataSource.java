@@ -114,7 +114,7 @@ public final class ModsCustomDataSource extends ProarcDataSource implements Mods
     }
 
     public static String getDefaultPageType() {
-        return "NormalPage";
+        return "normalPage";
     }
 
     public void fetchDescription(final DigitalObject dobj, final Callback<DescriptionMetadata, String> cb) {

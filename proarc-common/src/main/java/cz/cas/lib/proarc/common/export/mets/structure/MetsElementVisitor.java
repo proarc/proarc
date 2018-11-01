@@ -431,7 +431,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         if ((partNode.getAttributes() != null) && (partNode.getAttributes().getNamedItem("type") != null)) {
             pageDiv.setTYPE(partNode.getAttributes().getNamedItem("type").getNodeValue());
         } else {
-            pageDiv.setTYPE("NormalPage");
+            pageDiv.setTYPE("normalPage");
         }
         NodeList nodeList = partNode.getChildNodes();
         for (int a = 0; a < nodeList.getLength(); a++) {
