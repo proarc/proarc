@@ -85,6 +85,11 @@ public final class Const {
     public final static String SUPPLEMENT = "SUPPLEMENT";
     public final static String CHAPTER = "CHAPTER";
 
+    public final static String MODS_ARTICLE = "ART";
+    public final static String MODS_PICTURE = "PICT";
+    public final static String MODS_SUPPLEMENT = "SUPPL";
+    public final static String MODS_CHAPTER = "CHAP";
+
     public static final String HASPAGE = "kramerius:hasPage";
     public static final String HASMODEL = "fedora-model:hasModel";
     public static final String HASVOLUME = "kramerius:hasVolume";
@@ -153,11 +158,11 @@ public final class Const {
         typeNameMap.put(PERIODICAL_TITLE, TITLE);
         typeNameMap.put(PAGE, PAGE);
         typeNameMap.put(MONOGRAPH_UNIT, VOLUME);
-        typeNameMap.put(PICTURE, PICTURE);
-        typeNameMap.put(ARTICLE, "ART");
-        typeNameMap.put(SUPPLEMENT, "SUPPLEMENT");
-        typeNameMap.put(CHAPTER, CHAPTER);
-        typeNameMap.put(MONOGRAPH_MULTIPART, MONOGRAPH);
+        typeNameMap.put(PICTURE, MODS_PICTURE);
+        typeNameMap.put(ARTICLE, MODS_ARTICLE);
+        typeNameMap.put(SUPPLEMENT, MODS_SUPPLEMENT);
+        typeNameMap.put(CHAPTER, MODS_CHAPTER);
+        typeNameMap.put(MONOGRAPH_MULTIPART, TITLE);
 
         mandatoryStreams.add(MC_GRP_ID);
         mandatoryStreams.add(UC_GRP_ID);

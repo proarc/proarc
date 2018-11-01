@@ -1511,7 +1511,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
 
         DivType divType = new DivType();
-        divType.setID(metsElement.getElementID());
+        divType.setID(metsElement.getModsElementID());
         divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
         divType.setTYPE(Const.typeNameMap.get(metsElement.getElementType()));
         divType.getDMDID().add(metsElement.getModsMetsElement());
@@ -1812,7 +1812,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
 
         elementDivType.setLabel3(metsElement.getLabel());
-        elementDivType.setTYPE(metsElement.getElementType());
+        elementDivType.setTYPE(metsElement.getModsElementID());
         elementDivType.getDMDID().add(metsElement.getModsMetsElement());
 
         logicalDiv.getDiv().add(elementDivType);
@@ -1860,7 +1860,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
         addDmdSec(metsElement);
         DivType elementDivType = new DivType();
-        elementDivType.setID(metsElement.getElementID());
+        elementDivType.setID(metsElement.getModsElementID());
         elementDivType.setORDER(BigInteger.valueOf(counterIntPart));
 
         elementDivType.setLabel3(metsElement.getLabel());
@@ -1893,7 +1893,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
         addDmdSec(metsElement);
         DivType elementDivType = new DivType();
-        elementDivType.setID(metsElement.getElementID());
+        elementDivType.setID(metsElement.getModsElementID());
         elementDivType.setORDER(BigInteger.valueOf(counterIntPart));
 
         elementDivType.setLabel3(metsElement.getLabel());
