@@ -25,13 +25,12 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
-
-import org.apache.commons.configuration.Configuration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.configuration.Configuration;
 
 /**
  * Checks RDA rules.
@@ -52,6 +51,7 @@ public class RdaRules {
                     NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_SHEETMUSIC,
                     OldPrintPlugin.MODEL_VOLUME)));
 
+    public static final String ERR_NDK_RDA_EMPTYEVENTTYPE ="Err_Ndk_Rda_EmptyEventType";
     public static final String ERR_NDK_RDA_EMPTYVALUE = "Err_Ndk_Rda_EmptyValue";
     public static final String ERR_NDK_RDA_FILLVALUE = "Err_Ndk_Rda_FillValue";
     public static final String ERR_NDK_DESCRIPTIONSTANDARD = "Err_Ndk_DescriptionStandard";
@@ -158,6 +158,13 @@ public class RdaRules {
                     exception.addValidation("RDA rules", ERR_NDK_AACR_INVALIDVALUE);
                 }
             }
+        } else if (ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA.equalsIgnoreCase(descriptionStandard)) {
+            for (OriginInfoDefinition oi : originInfoDefinitions) {
+                if (oi.getEventType() == null) {
+                    exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYEVENTTYPE);
+                }
+            }
+
         }
     }
 
