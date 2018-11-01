@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.Extent;
@@ -37,11 +36,24 @@ import cz.cas.lib.proarc.mods.UrlDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
 
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addGenre;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNonSort;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addSubTitle;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartNumber;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
+
 /**
  *
  * @author Jan Pokorsky
  */
-public final class NdkPeriodicalIssueMapper extends NdkMapper {
+public class NdkPeriodicalIssueMapper extends NdkMapper {
 
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
@@ -81,8 +93,13 @@ public final class NdkPeriodicalIssueMapper extends NdkMapper {
         }
         // mods/part@type=="issue"
         for (PartDefinition part : mods.getPart()) {
-            if (part.getType() == null) {
+            if (part.getDetail().size() > 0 && part.getDetail().get(0).getCaption().size() > 0
+                    && part.getDetail().get(0).getCaption().get(0).getValue() != null) {
                 part.setType("issue");
+            }
+            if (!"issue".equals(part.getType())) {
+                mods.getPart().clear();
+                break;
             }
         }
     }

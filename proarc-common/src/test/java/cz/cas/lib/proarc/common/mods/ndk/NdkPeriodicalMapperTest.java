@@ -47,10 +47,6 @@ public class NdkPeriodicalMapperTest {
     public NdkPeriodicalMapperTest() {
     }
 
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
     @AfterClass
     public static void tearDownClass() {
     }
@@ -82,7 +78,7 @@ public class NdkPeriodicalMapperTest {
         assertEquals("text", mods.getTypeOfResource().get(0).getValue());
 
         assertEquals(1, mods.getGenre().size());
-        assertEquals("title", mods.getGenre().get(0).getValue());
+        assertEquals("volume", mods.getGenre().get(0).getValue());
 
         assertEquals(1, mods.getOriginInfo().size());
         assertEquals(1, mods.getOriginInfo().get(0).getIssuance().size());
@@ -117,7 +113,7 @@ public class NdkPeriodicalMapperTest {
         assertEquals("text", mods.getTypeOfResource().get(0).getValue());
 
         assertEquals(1, mods.getGenre().size());
-        assertEquals("title", mods.getGenre().get(0).getValue());
+        assertEquals("volume", mods.getGenre().get(0).getValue());
 
         assertEquals(1, mods.getOriginInfo().size());
         assertEquals(1, mods.getOriginInfo().get(0).getIssuance().size());

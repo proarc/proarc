@@ -17,19 +17,17 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
+import com.yourmediashelf.fedora.client.FedoraClient;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import com.yourmediashelf.fedora.client.FedoraClient;
-
-import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 
 /**
  * Context for Mets mets export
@@ -347,16 +345,6 @@ public class MetsContext {
         id++;
         elementIds.put(elementId, id);
         return id;
-    }
-
-    /**
-     * Returns the last ID for given element
-     *
-     * @param elementId
-     * @return
-     */
-    public Integer getElementId(String elementId) {
-        return elementIds.get(elementId);
     }
 
     /**

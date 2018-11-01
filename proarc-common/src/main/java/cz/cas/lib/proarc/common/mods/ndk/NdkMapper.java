@@ -19,10 +19,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
-import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
@@ -36,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.empire.commons.StringUtils;
+
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
@@ -53,55 +51,26 @@ public abstract class NdkMapper {
      */
     private String modelId;
 
+    private static final NdkMapperFactory ndkMapperFactory = new NdkMapperFactory();
+
     /**
      * Gets a NDK mapper for the given model ID.
      * @param modelId model ID
      * @return the mapper
-     * @deprecated Replaced with {@link NdkMapperFactory#get}.
      */
     @Deprecated
     public static NdkMapper get(String modelId) {
-        NdkMapper mapper;
-        if (NdkPlugin.MODEL_PAGE.equals(modelId)
-                || ModsCutomEditorType.EDITOR_PAGE.equals(modelId)) {
-            mapper = new NdkPageMapper();
-        } else if (NdkPlugin.MODEL_PERIODICAL.equals(modelId)) {
-            mapper = new NdkPeriodicalMapper();
-        } else if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)) {
-            mapper = new NdkPeriodicalVolumeMapper();
-        } else if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)) {
-            mapper = new NdkPeriodicalIssueMapper();
-        } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
-            mapper = new NdkPeriodicalSupplementMapper();
-        } else if (NdkPlugin.MODEL_ARTICLE.equals(modelId)) {
-            mapper = new NdkArticleMapper();
-        } else if (NdkPlugin.MODEL_PICTURE.equals(modelId)) {
-            mapper = new NdkPictureMapper();
-        } else if (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)) {
-            mapper = new NdkMonographTitleMapper();
-        } else if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
-            mapper = new NdkMonographVolumeMapper();
-        } else if (NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(modelId)) {
-            mapper = new NdkMonographSupplementMapper();
-        } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
-            mapper = new NdkChapterMapper();
-        } else if (NdkPlugin.MODEL_CARTOGRAPHIC.equals(modelId)) {
-            mapper = new NdkCartographicMapper();
-        } else if (NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)) {
-            mapper = new NdkSheetMusicMapper();
-        } else if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(modelId)) {
-            mapper = new NdkMusicDocumentMapper();
-        } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
-            mapper = new NdkSongMapper();
-        } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
-            mapper = new NdkTrackMapper();
-        } else if (NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)) {
-            mapper = new NdkEMonographVolumeMapper();
-        } else {
-            throw new IllegalStateException("Unsupported model: " + modelId);
-        }
+        NdkMapper mapper = ndkMapperFactory.get(modelId);
         mapper.modelId = modelId;
         return mapper;
+    }
+
+    public String getModelId() {
+        return modelId;
+    }
+
+    public void setModelId(String modelId) {
+        this.modelId = modelId;
     }
 
     /**
@@ -189,6 +158,7 @@ public abstract class NdkMapper {
             {
                 put(NdkPlugin.MODEL_ARTICLE, "model:internalpart");
                 put(NdkPlugin.MODEL_CARTOGRAPHIC, "model:map");
+                put(NdkPlugin.MODEL_CHAPTER, "model:internalpart");
                 put(NdkPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
                 put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
                 put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monographunit");

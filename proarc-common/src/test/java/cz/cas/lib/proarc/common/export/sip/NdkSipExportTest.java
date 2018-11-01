@@ -16,18 +16,9 @@
 
 package cz.cas.lib.proarc.common.export.sip;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-
+import com.mchange.util.AssertException;
 import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.request.GetObjectXML;
-import com.yourmediashelf.fedora.client.response.FedoraResponse;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.export.ExportUtils;
@@ -35,11 +26,23 @@ import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.NdkExport;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.export.mockrepository.MockFedoraClient;
+import cz.cas.lib.proarc.common.export.mockrepository.MockSearchView;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mets.info.Info;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
@@ -47,9 +50,11 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ErrorCollector;
 import org.junit.rules.TemporaryFolder;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
 
 public class NdkSipExportTest {
@@ -57,23 +62,28 @@ public class NdkSipExportTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    @Mocked
-    FedoraClient client;
+    @Rule
+    public ErrorCollector collector = new ErrorCollector();
 
     @Mocked
-    SearchView searchView;
+    private FedoraClient client;
 
-    RemoteStorage remoteStorage;
+    @Mocked
+    private SearchView searchView;
 
-    AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+    private RemoteStorage remoteStorage;
+
+    private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
 
     public NdkSipExportTest() throws Exception {
     }
 
     @Before
-    public void setUp() throws Exception {
-        remoteStorage = new RemoteStorage(client);
+    public void setUp() {
+        new MockFedoraClient();
+        new MockSearchView();
 
+        remoteStorage = new RemoteStorage(client);
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 appConfig,
                 null,
@@ -82,50 +92,9 @@ public class NdkSipExportTest {
                 null));
 
         new MockUp<ExportUtils>() {
+            @SuppressWarnings("EmptyMethod")
             @Mock
             void storeObjectExportResult(String pid, String target, String log) {
-                //no-op
-            }
-        };
-
-        new MockUp<FedoraClient>() {
-            @Mock
-            GetObjectXML getObjectXML(String pid) {
-                return new GetObjectXML(pid) {
-                    @Override
-                    public FedoraResponse execute(FedoraClient fedora) {
-                        return new FedoraResponse() {
-                            @Override
-                            public int getStatus() {
-                                return 200;
-                            }
-
-                            @Override
-                            public InputStream getEntityInputStream() {
-                                try {
-                                    return getClass().getResource(StringUtils.remove(pid, "uuid:") + ".xml").openStream();
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-
-                            @Override
-                            public <T> T getEntity(Class<T> c) {
-                                return null;
-                            }
-
-                            @Override
-                            public String getType() {
-                                return null;
-                            }
-
-                            @Override
-                            public void close() {
-
-                            }
-                        };
-                    }
-                };
             }
         };
 
@@ -133,37 +102,81 @@ public class NdkSipExportTest {
     }
 
     @Test
-    public void export() throws Exception {
+    public void testCreateMetsElement() throws MetsExportException {
+        DigitalObject dobj = MetsUtils.readFoXML("uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4", client);
+        MetsContext mc = new MetsContext();
+        mc.setFedoraClient(client);
+        mc.setRemoteStorage(remoteStorage);
+
+        MetsElement mElm = MetsElement.getElement(dobj, null, mc, true);
+        assertNotNull("missing parent for " + mElm.getOriginalPid() + " (" + mElm.getElementType() + ")", mElm.getParent());
+    }
+
+    @Test
+    public void exportPeriodical() throws Exception {
         NdkExport export = new NdkSipExport(remoteStorage, appConfig.getNdkExportOptions());
-
-        String pid = "uuid:acd66301-4e75-4d12-9d98-b323ff5beee9";
-
-        assertTrue("Junit didn't create a temporary folder", folder.getRoot().exists());
+        String pid = "uuid:8548cc82-3601-45a6-8eb0-df6538db4de6";
 
         List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
                 true, true, null);
 
-        for (NdkExport.Result result : resultsList) {
-            if (result.getValidationError() != null) {
-                throw result.getValidationError();
+        resultsList.stream().filter(result -> result.getValidationError() != null).flatMap(result -> result.getValidationError().getExceptions().stream())
+                .forEach(exception -> collector.addError(exception.getEx() != null ? exception.getEx() : new AssertException(exception.getMessage())));
+
+        String sipIdentifier = "123";
+        Path sip = resultsList.get(0).getTargetFolder().toPath().resolve(sipIdentifier);
+        Files.walkFileTree(sip, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                System.out.println(file);
+                return FileVisitResult.CONTINUE;
             }
-        }
+        });
+
+        validatePackage(sip, 4);
+
+    }
+
+    /**
+     * Test export of multipart monograph, 1 eVolume, 2 eChapter
+     */
+    @Test
+    public void exportMultipartMonograph() throws Exception {
+        NdkExport export = new NdkSipExport(remoteStorage, appConfig.getNdkExportOptions());
+        String pid = "uuid:26342028-12c8-4446-9217-d3c9f249bd13";
+
+        List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
+                true, true, null);
+
+        resultsList.stream().filter(result -> result.getValidationError() != null).flatMap(result -> result.getValidationError().getExceptions().stream())
+                .forEach(exception -> collector.addError(exception.getEx() != null ? exception.getEx() : new AssertException(exception.getMessage())));
 
         String packageId = "123";
         Path sip = folder.getRoot().toPath().resolve(StringUtils.removeStart(pid, "uuid:")).resolve(packageId);
-        validatePackage(sip);
+
+        Files.walkFileTree(sip, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                System.out.println(file);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+        validatePackage(sip, 4);
     }
 
-    private void validatePackage(Path sip) throws Exception {
+    private void validatePackage(Path sip, int metadatacount) throws Exception {
         assertTrue("No SIP package", Files.isDirectory(sip));
 
         String identifier = sip.getFileName().toString();
 
         assertTrue("No original files", Files.list(sip.resolve("original")).count() > 0);
-        assertTrue("No metadata files", Files.list(sip.resolve("metadata")).count() > 0);
+        assertEquals("Wrong count of metadata files", Files.list(sip.resolve("metadata")).count(), metadatacount);
         assertTrue("No info.xml", Files.exists(sip.resolve("info_" + identifier + ".xml")));
         assertTrue("No pdf file", Files.exists(sip.resolve("original/oc_" + identifier + ".pdf")));
+        assertTrue("Empty pdf file", Files.size(sip.resolve("original/oc_" + identifier + ".pdf")) > 0);
         assertTrue("No mods file", Files.exists(sip.resolve("metadata/mods_volume.xml")));
+
 
         List<String> errors = MetsUtils.validateAgainstXSD(sip.resolve("info_" + identifier + ".xml").toFile(), Info.class.getResourceAsStream("info.xsd"));
         assertTrue(errors.toString(), errors.isEmpty());
@@ -179,14 +192,5 @@ public class NdkSipExportTest {
         // assertTrue(!info.getCreator().isEmpty()); On Travis nullpointerexception
 
         assertTrue(info.getItemlist().getItem().size() > 1);
-    }
-
-    @Test
-    public void findPSPPIDsTest() throws MetsExportException {
-        MetsContext ctx = new MetsContext();
-        ctx.setRemoteStorage(remoteStorage);
-        ctx.setFedoraClient(remoteStorage.getClient());
-        List<String> pids = MetsUtils.findPSPPIDs("uuid:acd66301-4e75-4d12-9d98-b323ff5beee9", ctx, true);
-        assertTrue(pids.size() > 0);
     }
 }

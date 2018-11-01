@@ -233,6 +233,8 @@ public class WorkflowNewJobView {
                         String profileId = r.getAttribute(WorkflowProfileDataSource.FIELD_ID);
                         profile.setValue(profileId);
                         profile.setDefaultValue(profileId);
+
+                        fetchModelMenu(r); // fill up model menu on init
                     }
                 }
             }

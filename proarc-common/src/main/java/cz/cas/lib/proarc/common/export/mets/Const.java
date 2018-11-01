@@ -17,18 +17,14 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.StringEditor;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
-
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.StringEditor;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
-import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 
 /**
  *
@@ -37,14 +33,15 @@ import cz.cas.lib.proarc.common.ocr.AltoDatastream;
  * @author Robert Simonovsky
  *
  */
-public class Const {
+@SuppressWarnings({"WeakerAccess", "unused"})
+public final class Const {
     public final static String FEDORAPREFIX = "info:fedora/";
-    public static HashMap<String, List<String>> streamMapping;
-    public static List<String> allowedIdentifiers = new ArrayList<String>();
-    public static ArrayList<String> mandatoryStreams = new ArrayList<String>();
-    public static ArrayList<String> canContainPage = new ArrayList<String>();
-    public static HashMap<String, String> streamMappingFile = new HashMap<String, String>();
-    public static HashMap<String, String> streamMappingPrefix = new HashMap<String, String>();
+    public static final HashMap<String, List<String>> streamMapping;
+    public static final List<String> allowedIdentifiers = new ArrayList<>();
+    public static final List<String> mandatoryStreams = new ArrayList<>();
+    public static final List<String> canContainPage = new ArrayList<>();
+    public static final Map<String, String> streamMappingFile = new HashMap<>();
+    public static final Map<String, String> streamMappingPrefix = new HashMap<>();
     public static final String FEDORA_CREATEDATE = "info:fedora/fedora-system:def/model#createdDate";
     public static final String FEDORA_LASTMODIFIED = "info:fedora/fedora-system:def/view#lastModifiedDate";
     public static final String FEDORA_LABEL = "info:fedora/fedora-system:def/model#label";
@@ -57,6 +54,7 @@ public class Const {
     public final static String PERIODICAL_MODEL = NdkPlugin.MODEL_PERIODICAL;
     public final static String PERIODICAL_VOLUME_MODEL = NdkPlugin.MODEL_PERIODICALVOLUME;
     public final static String PAGE_MODEL = NdkPlugin.MODEL_PAGE;
+    public final static String PAGE_NDK_MODEL = NdkPlugin.MODEL_NDK_PAGE;
     public final static String MONOGRAPH_TITLE_MODEL = NdkPlugin.MODEL_MONOGRAPHTITLE;
     public final static String MONOGRAPH_MODEL = NdkPlugin.MODEL_MONOGRAPHVOLUME;
     public final static String PICTURE_MODEL = NdkPlugin.MODEL_PICTURE;
@@ -87,6 +85,11 @@ public class Const {
     public final static String SUPPLEMENT = "SUPPLEMENT";
     public final static String CHAPTER = "CHAPTER";
 
+    public final static String MODS_ARTICLE = "ART";
+    public final static String MODS_PICTURE = "PICT";
+    public final static String MODS_SUPPLEMENT = "SUPPL";
+    public final static String MODS_CHAPTER = "CHAP";
+
     public static final String HASPAGE = "kramerius:hasPage";
     public static final String HASMODEL = "fedora-model:hasModel";
     public static final String HASVOLUME = "kramerius:hasVolume";
@@ -101,15 +104,20 @@ public class Const {
     public static final String ALTO_GRP_ID = "ALTOGRP";
     public static final String UC_GRP_ID = "UC_IMGGRP";
     public static final String TXT_GRP_ID = "TXTGRP";
+    public static final String TECHMDGRP = "TECHMDGRP";
 
-    public static final List<String> PSPElements = new ArrayList<String>();
+    public static final List<String> PSPElements = new ArrayList<>();
 
-    public final static Map<String, String> typeMap = new HashMap<String, String>();
-    public final static Map<String, String> typeNameMap = new HashMap<String, String>();
-    public final static Map<String, String> mimeToFmtMap = new HashMap<String, String>();
+    public final static Map<String, String> typeMap = new HashMap<>();
+    public final static Map<String, String> typeNameMap = new HashMap<>();
+    public final static Map<String, String> mimeToFmtMap = new HashMap<>();
     // Tech MD creation constants
-    public final static Map<String, String> dataStreamToModel = new HashMap<String, String>();
-    public final static Map<String, String> dataStreamToEvent = new HashMap<String, String>();
+    public final static Map<String, String> dataStreamToModel = new HashMap<>();
+    public final static Map<String, String> dataStreamToEvent = new HashMap<>();
+
+    private Const() {
+    }
+
 
     static {
         allowedIdentifiers.add("isbn");
@@ -132,6 +140,7 @@ public class Const {
         typeMap.put(FEDORAPREFIX + PERIODICAL_MODEL, PERIODICAL_TITLE);
         typeMap.put(FEDORAPREFIX + PERIODICAL_VOLUME_MODEL, PERIODICAL_VOLUME);
         typeMap.put(FEDORAPREFIX + PAGE_MODEL, PAGE);
+        typeMap.put(FEDORAPREFIX + PAGE_NDK_MODEL, PAGE);
         typeMap.put(FEDORAPREFIX + MONOGRAPH_MODEL, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + MONOGRAPH_TITLE_MODEL, MONOGRAPH_MULTIPART);
         typeMap.put(FEDORAPREFIX + PICTURE_MODEL, PICTURE);
@@ -149,46 +158,46 @@ public class Const {
         typeNameMap.put(PERIODICAL_TITLE, TITLE);
         typeNameMap.put(PAGE, PAGE);
         typeNameMap.put(MONOGRAPH_UNIT, VOLUME);
-        typeNameMap.put(PICTURE, PICTURE);
-        typeNameMap.put(ARTICLE, "ART");
-        typeNameMap.put(SUPPLEMENT, "SUPPLEMENT");
-        typeNameMap.put(CHAPTER, CHAPTER);
-        typeNameMap.put(MONOGRAPH_MULTIPART, MONOGRAPH);
+        typeNameMap.put(PICTURE, MODS_PICTURE);
+        typeNameMap.put(ARTICLE, MODS_ARTICLE);
+        typeNameMap.put(SUPPLEMENT, MODS_SUPPLEMENT);
+        typeNameMap.put(CHAPTER, MODS_CHAPTER);
+        typeNameMap.put(MONOGRAPH_MULTIPART, TITLE);
 
         mandatoryStreams.add(MC_GRP_ID);
         mandatoryStreams.add(UC_GRP_ID);
         mandatoryStreams.add(ALTO_GRP_ID);
         mandatoryStreams.add(TXT_GRP_ID);
 
-        streamMapping = new HashMap<String, List<String>>();
-        streamMapping.put(MC_GRP_ID, new ArrayList<String>());
+        streamMapping = new HashMap<>();
+        streamMapping.put(MC_GRP_ID, new ArrayList<>());
         streamMapping.get(MC_GRP_ID).add(BinaryEditor.NDK_ARCHIVAL_ID);
         // streamMapping.get("MC_IMGGRP").add("RAW");
 
-        streamMapping.put(UC_GRP_ID, new ArrayList<String>());
+        streamMapping.put(UC_GRP_ID, new ArrayList<>());
         streamMapping.get(UC_GRP_ID).add(BinaryEditor.NDK_USER_ID);
         // streamMapping.get("UC_IMGGRP").add("FULL");
 
-        streamMapping.put(ALTO_GRP_ID, new ArrayList<String>());
+        streamMapping.put(ALTO_GRP_ID, new ArrayList<>());
         streamMapping.get(ALTO_GRP_ID).add(AltoDatastream.ALTO_ID);
 
-        streamMapping.put(TXT_GRP_ID, new ArrayList<String>());
+        streamMapping.put(TXT_GRP_ID, new ArrayList<>());
         streamMapping.get(TXT_GRP_ID).add(StringEditor.OCR_ID);
 
-        streamMapping.put("TECHMDGRP", new ArrayList<String>());
-        streamMapping.get("TECHMDGRP").add("FULL_AMD");
+        streamMapping.put(TECHMDGRP, new ArrayList<>());
+        streamMapping.get(TECHMDGRP).add("FULL_AMD");
 
         streamMappingPrefix.put(MC_GRP_ID, "mc");
         streamMappingPrefix.put(UC_GRP_ID, "uc");
         streamMappingPrefix.put(ALTO_GRP_ID, "alto");
         streamMappingPrefix.put(TXT_GRP_ID, "txt");
-        streamMappingPrefix.put("TECHMDGRP", "amd_mets");
+        streamMappingPrefix.put(TECHMDGRP, "amd_mets");
 
         streamMappingFile.put(MC_GRP_ID, "mastercopy");
         streamMappingFile.put(UC_GRP_ID, "usercopy");
         streamMappingFile.put(ALTO_GRP_ID, "alto");
         streamMappingFile.put(TXT_GRP_ID, "txt");
-        streamMappingFile.put("TECHMDGRP", "amdsec");
+        streamMappingFile.put(TECHMDGRP, "amdsec");
 
         canContainPage.add(Const.ISSUE);
         canContainPage.add(Const.MONOGRAPH_MULTIPART);

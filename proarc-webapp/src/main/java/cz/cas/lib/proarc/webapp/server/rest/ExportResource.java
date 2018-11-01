@@ -111,7 +111,7 @@ public class ExportResource {
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids, dsIds);
         URI targetPath = user.getUserHomeUri().relativize(target.toURI());
-        return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath));
+        return new SmartGwtResponse<>(new ExportResult(targetPath));
     }
 
     @POST
@@ -132,7 +132,7 @@ public class ExportResource {
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
         URI targetPath = user.getUserHomeUri().relativize(target.toURI());
-        return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath));
+        return new SmartGwtResponse<>(new ExportResult(targetPath));
     }
 
     /**
@@ -164,7 +164,7 @@ public class ExportResource {
                 appConfig.getDesaServices(), MetaModelRepository.getInstance());
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
-        List<ExportResult> result = new ArrayList<ExportResult>(pids.size());
+        List<ExportResult> result = new ArrayList<>(pids.size());
         if (forDownload) {
             Result r = export.exportDownload(exportFolder, pids.get(0));
             result.add(r.getValidationError() != null
@@ -188,11 +188,11 @@ public class ExportResource {
                 }
             }
         }
-        return new SmartGwtResponse<ExportResult>(result);
+        return new SmartGwtResponse<>(result);
     }
 
     /**
-     * Gets the exported package built by {@link #newDesaExport() } with {@code forDownload=true}.
+     * Gets the exported package built by {@link #newDesaExport(List, boolean, boolean, boolean)}  } with {@code forDownload=true}.
      * The package data are removed after completion of the response.
      *
      * @param token token to identify the prepared package
@@ -216,7 +216,7 @@ public class ExportResource {
         finalizer.add(new Closeable() {
 
             @Override
-            public void close() throws IOException {
+            public void close() {
                 FileUtils.deleteQuietly(file.getParentFile());
             }
         });
@@ -225,6 +225,13 @@ public class ExportResource {
                 .build();
     }
 
+    /**
+     * Gets the exported package as PSP (default) or SIP (simpler format for eborn documents)
+     * @param pids identifiers of saved objects in fedora repository
+     * @param typeOfPackage (PSP | SIP]
+     * @return ExportResult with path to package and possible errors from export
+     * @throws ExportException
+     */
     @POST
     @Path(ExportResourceApi.NDK_PATH)
     @Produces({MediaType.APPLICATION_JSON})
@@ -293,7 +300,7 @@ public class ExportResource {
             result.setTarget(user.getUserHomeUri().relativize(targetFolder.toURI()).toASCIIString());
         }
         if (!status.isOk()) {
-            result.setErrors(new ArrayList<ExportError>());
+            result.setErrors(new ArrayList<>());
             for (ExportResultLog.ExportResult logResult : status.getReslog().getExports()) {
                 for (ResultError error : logResult.getError()) {
                     result.getErrors().add(new ExportError(
@@ -301,7 +308,7 @@ public class ExportResource {
                 }
             }
         }
-        return new SmartGwtResponse<ExportResult>(result);
+        return new SmartGwtResponse<>(result);
     }
 
     /**
@@ -332,7 +339,7 @@ public class ExportResource {
             result.setTarget(user.getUserHomeUri().relativize(targetFolder.toURI()).toASCIIString());
         }
         if (!status.isOk()) {
-            result.setErrors(new ArrayList<ExportError>());
+            result.setErrors(new ArrayList<>());
             for (ExportResultLog.ExportResult logResult : status.getReslog().getExports()) {
                 for (ResultError error : logResult.getError()) {
                     result.getErrors().add(new ExportError(
@@ -340,7 +347,7 @@ public class ExportResource {
                 }
             }
         }
-        return new SmartGwtResponse<ExportResult>(result);
+        return new SmartGwtResponse<>(result);
     }
 
     /**
@@ -371,14 +378,14 @@ public class ExportResource {
             Logger.getLogger(ExportResource.class.getName()).log(Level.SEVERE, null, ex);
         }
         ExportResultLog reslog = export.getResultLog();
-        result.setErrors(new ArrayList<ExportError>());
+        result.setErrors(new ArrayList<>());
         for (ExportResultLog.ExportResult logResult : reslog.getExports()) {
             for (ResultError error : logResult.getError()) {
                 result.getErrors().add(new ExportError(
                         error.getPid(), error.getMessage(), false, error.getDetails()));
             }
         }
-        return new SmartGwtResponse<ExportResult>(result);
+        return new SmartGwtResponse<>(result);
     }
 
     /**
@@ -420,7 +427,7 @@ public class ExportResource {
 
         public ExportResult(List<MetsExportExceptionElement> validations) {
             if (validations != null) {
-                errors = new ArrayList<ExportError>();
+                errors = new ArrayList<>();
                 for (MetsExportExceptionElement me : validations) {
                     errors.add(new ExportError(me));
                 }
@@ -435,6 +442,11 @@ public class ExportResource {
             return target;
         }
 
+        /**
+         * Muset be mutable {@link ExportResource#newArchive(List)}
+         * @return
+         */
+        @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
         public List<ExportError> getErrors() {
             return errors;
         }
@@ -448,7 +460,7 @@ public class ExportResource {
         }
 
         public void setErrors(List<ExportError> errors) {
-            this.errors = errors;
+            this.errors = new ArrayList<>(errors);
         }
 
         public String getToken() {

@@ -30,8 +30,8 @@ public interface IMetsElementVisitor {
      * Inserts an Element into mets structure and saves it. The output is stored
      * in the directory specified in MetsContext (outputPath).
      *
-     * @param metsElement
-     * @throws MetsExportException
+     * @param metsElement This represents the element of Mets export
+     * @throws MetsExportException Contains errors from export with PID
      */
-    public void insertIntoMets(IMetsElement metsElement) throws MetsExportException;
+    void insertIntoMets(IMetsElement metsElement) throws MetsExportException;
 }

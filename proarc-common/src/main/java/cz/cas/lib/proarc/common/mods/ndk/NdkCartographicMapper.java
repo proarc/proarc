@@ -65,6 +65,7 @@ public class NdkCartographicMapper extends RdaNdkMapper {
                 }
             }
         }
+        addNameWithEtal(mods);
         //  mods/typeOfResource="cartographic"
         List<TypeOfResourceDefinition> typeOfResources = mods.getTypeOfResource();
         TypeOfResourceDefinition reqTypeOfResource = null;

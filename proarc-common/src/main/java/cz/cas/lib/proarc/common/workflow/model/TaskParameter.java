@@ -110,7 +110,7 @@ public class TaskParameter {
     public void setValue(String value) throws WorkflowException {
         if (valueType == ValueType.NUMBER) {
             BigDecimal number = null;
-            if (value != null) {
+            if (value != null && !value.isEmpty()) {
                 if ("true".equals(value)) {
                     number = BigDecimal.ONE;
                 } else if ("false".equals(value)) {

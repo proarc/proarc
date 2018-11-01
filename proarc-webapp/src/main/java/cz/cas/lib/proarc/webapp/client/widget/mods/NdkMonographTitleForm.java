@@ -104,10 +104,10 @@ public final class NdkMonographTitleForm {
                 // eventType
                 .addField(new FieldBuilder("eventType").setTitle("Event Type - M").setMaxOccurrences(1). setType(Field.COMBO)
                     .setHint("Hodnoty dle druhého indikátoru pole 264:"
-                        +"<p>264_0 production se uvádí, jestliže pole obsahuje údaje o vytvoření zdroje v nezveřejněné podobě."
-                        +"<p>264_1 publication se uvádí, jestliže pole obsahuje údaje o nakladateli zdroje."
-                        +"<p>264_2 distribution se uvádí, jestliže pole obsahuje údaje o distribuci zdroje."
-                        +"<p>264_3 manufacture se uvádí, jestliže pole obsahuje údaje o tisku, výrobě zdroje ve zveřejněné podobě."
+                        +"<p>264_0 production (R) se uvádí, jestliže pole obsahuje údaje o vytvoření zdroje v nezveřejněné podobě."
+                        +"<p>264_1 publication (R) se uvádí, jestliže pole obsahuje údaje o nakladateli zdroje."
+                        +"<p>264_2 distribution (R) se uvádí, jestliže pole obsahuje údaje o distribuci zdroje."
+                        +"<p>264_3 manufacture (R) se uvádí, jestliže pole obsahuje údaje o tisku, výrobě zdroje ve zveřejněné podobě."
                         +"<p>264_4 copyright (R) se uvádí, jestliže pole obsahuje údaje o ochraně podle autorského práva (copyright).")
                     .addMapValue("", "")
                     .addMapValue("production", "production")

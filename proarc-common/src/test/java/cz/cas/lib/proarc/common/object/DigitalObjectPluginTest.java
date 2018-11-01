@@ -16,26 +16,23 @@
 
 package cz.cas.lib.proarc.common.object;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.ServiceLoader;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
-import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.ServiceLoader;
+import java.util.stream.StreamSupport;
+import mockit.Mocked;
 import org.easymock.EasyMock;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -47,7 +44,9 @@ public class DigitalObjectPluginTest {
     public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
 
     private AppConfiguration config;
-    private static FedoraTestSupport fedora;
+
+    @Mocked
+    RemoteStorage remoteStorage;
 
     @Before
     public void setUp() throws Exception {
@@ -56,8 +55,6 @@ public class DigitalObjectPluginTest {
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
         }});
-        fedora = new FedoraTestSupport();
-        fedora.cleanUp();
         MetaModelRepository.setInstance(
                 StreamSupport.stream(pluginLoader.spliterator(), false)
                         .map(digitalObjectPlugin -> digitalObjectPlugin.getId())
@@ -66,20 +63,19 @@ public class DigitalObjectPluginTest {
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 config,
                 EasyMock.createNiceMock(ImportBatchManager.class),
-                fedora.getRemoteStorage(),
+                remoteStorage,
                 MetaModelRepository.getInstance(),
                 EasyMock.createNiceMock(UserManager.class)));
     }
 
     @Test
-    @Ignore
     public void testGetModel() throws DigitalObjectException {
         ServiceLoader<DigitalObjectPlugin> pluginLoader = ServiceLoader.load(DigitalObjectPlugin.class);
         for (DigitalObjectPlugin plugin : pluginLoader) {
             // Skip desa plugin. Desa-des doesn't have correct handler provider. Not sure it's a bug.
             if (Arrays.asList("desa-des").contains(plugin.getId())) continue;
 
-            assertNotNull("no handler provider for plugin " + plugin.getId(), plugin.getHandlerProvider(HasDataHandler.class));
+            assertNotNull("no handler provider for plugin " + plugin.getId(), plugin.getHandlerProvider(HasMetadataHandler.class));
 
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
 

@@ -40,6 +40,7 @@ import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
@@ -93,7 +94,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public static final String ERR_NDK_CHANGE_MODS_WITH_MEMBERS = "Err_Ndk_Change_Mods_With_Members";
     public static final String ERR_NDK_DOI_DUPLICITY = "Err_Ndk_Doi_Duplicity";
     public static final String ERR_NDK_REMOVE_URNNBN = "Err_Ndk_Remove_UrnNbn";
-    public static final String DEFAULT_PAGE_TYPE = "NormalPage";
+    public static final String DEFAULT_PAGE_TYPE = "normalPage";
 
     /**
      * The set of model IDs that should be checked for connected members.
@@ -320,6 +321,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             mods = createDefault(modelId);
         } else {
             NdkMapper mapper = mapperFactory.get(modelId);
+            mapper.setModelId(modelId);
             Context context = new Context(handler);
             ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
             try {
@@ -383,15 +385,19 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public <O> DescriptionMetadata<O> getMetadataAsJsonObject(String mappingId) throws DigitalObjectException {
         DescriptionMetadata<ModsDefinition> dm = getMetadata();
         DescriptionMetadata json = dm;
-        if (mappingId == null) {
-            String modelId = handler.relations().getModel();
+        String modelId = null;
+        if (mappingId == null || ModsCutomEditorType.EDITOR_PAGE.equals(mappingId)) {
+            modelId = handler.relations().getModel();
             MetaModel model = modelId == null ? null : MetaModelRepository.getInstance().find(modelId);
             if (model == null) {
                 throw new DigitalObjectException(fobject.getPid(), null, "ds", "Missing mappingId!", null);
             }
-            mappingId = model.getModsCustomEditor();
+            if (mappingId == null) {
+                mappingId = model.getModsCustomEditor();
+            }
         }
         NdkMapper mapper = mapperFactory.get(mappingId);
+        mapper.setModelId(ModsCutomEditorType.EDITOR_PAGE.equals(mappingId) ? modelId : mappingId);
         Context context = new Context(handler);
         json.setData(mapper.toJsonObject(dm.getData(), context));
         json.setEditor(mappingId);
@@ -412,7 +418,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     @Override
     public PageViewItem createPageViewItem(Locale locale) throws DigitalObjectException {
         String modelId = handler.relations().getModel();
-        if (modelId.equals(NdkPlugin.MODEL_PAGE)) {
+        if (modelId.equals(NdkPlugin.MODEL_PAGE) || modelId.equals(NdkPlugin.MODEL_NDK_PAGE)) {
             ModsDefinition mods = editor.read();
             NdkPageMapper mapper = new NdkPageMapper();
             Page page = mapper.toJsonObject(mods, new Context(handler));
@@ -430,7 +436,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     @Override
     public void setPage(PageViewItem page, String message) throws DigitalObjectException {
         String modelId = handler.relations().getModel();
-        if (modelId.equals(NdkPlugin.MODEL_PAGE)) {
+        if (modelId.equals(NdkPlugin.MODEL_PAGE) || modelId.equals(NdkPlugin.MODEL_NDK_PAGE)) {
             DescriptionMetadata<ModsDefinition> metadata = new DescriptionMetadata<ModsDefinition>();
             metadata.setTimestamp(editor.getLastModified());
             NdkPageMapper mapper = new NdkPageMapper();
@@ -536,6 +542,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
         checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId);
         NdkMapper mapper = mapperFactory.get(modelId);
+        mapper.setModelId(modelId);
         Context context = new Context(handler);
         mapper.createMods(mods, context);
         if (LOG.isLoggable(Level.FINE)) {

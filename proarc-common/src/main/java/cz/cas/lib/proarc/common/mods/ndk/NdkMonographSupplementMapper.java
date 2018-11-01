@@ -44,6 +44,7 @@ public class NdkMonographSupplementMapper extends RdaNdkMapper {
         super.createMods(mods, ctx);
         //  mods/genre="supplement"
         addGenre(mods, "supplement");
+        addNameWithEtal(mods);
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
         // physicalDescription

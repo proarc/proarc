@@ -1,20 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright (C) 2018 Martin Rumanek
-  ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation, either version 3 of the License, or
-  ~ (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  ~  GNU General Public License for more details.
-  ~
-  ~  You should have received a copy of the GNU General Public License
-  ~  along with this program. If not, see <http://www.gnu.org/licenses/>.
-  -->
-
 <foxml:digitalObject PID="model:ndkemonographvolume" VERSION="1.1"
                      xmlns:foxml="info:fedora/fedora-system:def/foxml#"
                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -22,7 +6,7 @@
 
     <foxml:objectProperties>
         <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
-        <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="Content Model Object for NDK Monograph Volume"/>
+        <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="Content Model Object for NDK eMonograph Volume"/>
     </foxml:objectProperties>
     <foxml:datastream CONTROL_GROUP="X" ID="DC" STATE="A" VERSIONABLE="true">
         <foxml:datastreamVersion
