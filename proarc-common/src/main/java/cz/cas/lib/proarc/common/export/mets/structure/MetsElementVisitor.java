@@ -306,7 +306,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
                 byte[] digest = md.digest();
                 String result = new String(Hex.encodeHex(digest));
-                metsElement.getMetsContext().getFileList().add(new FileMD5Info("." + File.separator + outputFile.getName(), result, totalBytes));
+                metsElement.getMetsContext().getFileList().add(new FileMD5Info(File.separator + outputFile.getName(), result, totalBytes));
                 fileMd5Name = "md5_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".md5";
                 File fileMd5 = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + fileMd5Name);
                 OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(fileMd5));
@@ -320,7 +320,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 is = new FileInputStream(fileMd5);
                 FileMD5Info md5InfoMd5File = MetsUtils.getDigest(is);
                 is.close();
-                metsElement.getMetsContext().getFileList().add(new FileMD5Info("." + File.separator + fileMd5Name, null, fileMd5.length()));
+                metsElement.getMetsContext().getFileList().add(new FileMD5Info(File.separator + fileMd5Name, null, fileMd5.length()));
                 MetsUtils.saveInfoFile(metsElement.getMetsContext().getOutputPath(), metsElement.getMetsContext(), md5InfoMd5File.getMd5(), fileMd5Name, outputFile);
             } catch (Exception ex) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Unable to save mets file:" + outputFile.getAbsolutePath(), false, ex);
@@ -540,7 +540,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 fileMD5Info.setMd5(tempMd5.getMd5());
             }
             fileType.setSIZE(Long.valueOf(fileMD5Info.getSize()));
-            fileMD5Info.setFileName("." + File.separator + Const.streamMappingFile.get(metsStreamName) + File.separator + outputFileName);
+            fileMD5Info.setFileName(File.separator + Const.streamMappingFile.get(metsStreamName) + File.separator + outputFileName);
             fileMD5Info.setMimeType(fileType.getMIMETYPE());
             fileType.setCHECKSUM(fileMD5Info.getMd5());
             metsContext.getFileList().add(fileMD5Info);
@@ -549,9 +549,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
         FLocat flocat = new FLocat();
         flocat.setLOCTYPE("URL");
-        String href = "." + "/" + Const.streamMappingFile.get(metsStreamName) + "/" + outputFileName;
         URI uri;
-        uri = URI.create(href);
+        uri = URI.create(Const.streamMappingFile.get(metsStreamName) + "/" + outputFileName);
         flocat.setHref(uri.toASCIIString());
         fileType.getFLocat().add(flocat);
         return fileType;
@@ -1015,7 +1014,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             FLocat flocatAmd = new FLocat();
                             FLocat pageFlocat = fileTypePage.getFLocat().get(0);
                             if (pageFlocat.getHref() != null) {
-                                flocatAmd.setHref("." + pageFlocat.getHref().substring(1));
+                                flocatAmd.setHref(pageFlocat.getHref());
                             }
                             flocatAmd.setLOCTYPE(pageFlocat.getLOCTYPE());
                             fileTypeAmdSec.getFLocat().add(flocatAmd);
