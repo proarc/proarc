@@ -21,6 +21,8 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -77,6 +79,7 @@ public final class DataStreamExport {
     }
 
     private void exportPid(File target, boolean hierarchy, String pid, List<String> dsIds) throws ExportException {
+        String extension;
         if (exportedPids.contains(pid)) {
             return ;
         }
@@ -85,6 +88,7 @@ public final class DataStreamExport {
         RemoteObject remote = rstorage.find(pid);
         
         try {
+            extension = getExtension(dsIds, getDataStreams(remote));
             dsIds = filterDataStreams(dsIds, getDataStreams(remote));
         } catch (FedoraClientException ex) {
             throw new ExportException(pid, ex);
@@ -102,19 +106,21 @@ public final class DataStreamExport {
 
         for (String dsId : dsIds) {
             try {
-                exportPid(target, remote, dsId);
+                exportPid(target, remote, dsId, extension);
             } catch (FedoraClientException ex) {
                 throw new ExportException(filename(pid, dsId), ex);
             } catch (IOException ex) {
+                throw new ExportException(filename(pid, dsId), ex);
+            } catch (MetsExportException ex) {
                 throw new ExportException(filename(pid, dsId), ex);
             }
         }
 
     }
 
-    private void exportPid(File target, RemoteObject remote, String dsId) throws FedoraClientException, IOException {
+    private void exportPid(File target, RemoteObject remote, String dsId, String extension) throws FedoraClientException, IOException, MetsExportException {
         InputStream input = getDataStreamDissemination(remote, dsId);
-        File f = new File(target, filename(remote.getPid(), dsId));
+        File f = new File(target, filename(remote.getPid(), MimeType.getExtension(extension)));
         boolean done = false;
         try {
             FileOutputStream output = new FileOutputStream(f);
@@ -173,6 +179,15 @@ public final class DataStreamExport {
             }
         }
         return result;
+    }
+
+    private String getExtension(List<String> dsId, List<DatastreamType> streams) {
+        for (DatastreamType stream : streams) {
+            if (dsId.contains(stream.getDsid())) {
+                return stream.getMimeType();
+            }
+        }
+        return "";
     }
 
     private void copy(InputStream is, OutputStream os) throws IOException {
