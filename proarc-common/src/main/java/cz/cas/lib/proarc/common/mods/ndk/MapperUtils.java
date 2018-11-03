@@ -232,7 +232,7 @@ public final class MapperUtils {
             for (NamePartDefinition namePart : name.getNamePart()) {
                 String type = namePart.getType();
                 if (type == null) {
-                    sbName.append(namePart.getValue()).append(' ');
+                    sbName.append(namePart.getValue());
                 } else if ("family".equals(type)) {
                     sbFamily.append(namePart.getValue()).append(' ');
                 } else if ("given".equals(type)) {
