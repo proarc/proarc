@@ -160,10 +160,14 @@ public class RdaRules {
             }
         } else if (ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA.equalsIgnoreCase(descriptionStandard)) {
             boolean fillEventType = false;      //true only when eventType="publication" or "production"
-            for (OriginInfoDefinition oi : originInfoDefinitions) {
-                if (ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION.equals(oi.getEventType())
-                        || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION.equals(oi.getEventType())) {
-                    fillEventType = true;
+            if (originInfoDefinitions.size() == 0) {
+                fillEventType = true;
+            } else {
+                for (OriginInfoDefinition oi : originInfoDefinitions) {
+                    if (ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION.equals(oi.getEventType())
+                            || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION.equals(oi.getEventType())) {
+                        fillEventType = true;
+                    }
                 }
             }
             if (!fillEventType) {
