@@ -301,7 +301,7 @@ public class NdkMonographVolumeForm {
                         .addMapValue("temper", "temper")
                         .addMapValue("w3cdtf", "W3CDTF")
                     .createField()) // @encoding
-                    .addField(new FieldBuilder("point").setTitle("Point - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                    .addField(new FieldBuilder("point").setTitle("Point - MA").setMaxOccurrences(1).setType(Field.SELECT).setRequired(false)
                         .setHint("Hodnoty „start“ resp. „end“ jen u údaje z pole 008, pro rozmezí dat.")
                         .addMapValue("start", "start")
                         .addMapValue("end", "end")
