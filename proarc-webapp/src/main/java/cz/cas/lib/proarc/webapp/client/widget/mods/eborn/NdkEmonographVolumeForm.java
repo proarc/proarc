@@ -333,7 +333,7 @@ public final class NdkEmonographVolumeForm {
                                         + "<p>264_3 je manufacture")
                                 .createField()) // value
                         .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
-                                .setType(Field.SELECT).setRequired(true)
+                                .setType(Field.SELECT).setRequired(false)
                                 .setHint("<p>264_0 production" +
                                         "<p>264_2 distribution " +
                                         "<p>264_3 manufacture")
