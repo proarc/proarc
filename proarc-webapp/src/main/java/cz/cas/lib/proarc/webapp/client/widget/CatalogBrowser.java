@@ -108,25 +108,6 @@ public class CatalogBrowser implements DatastreamEditor {
         this.compactUi = compactUi;
     }
 
-//    public void showWindow() {
-//        if (window == null) {
-//            window = new Window();
-//            window.setAutoSize(true);
-////                window.setWidth(600);
-////                window.setHeight(400);
-//            window.setAutoCenter(true);
-//            window.setIsModal(true);
-//            window.addItem(getUI());
-//            window.setTitle(i18n.ExportResultWidget_Window_Title());
-//            window.setShowMinimizeButton(false);
-//            window.setShowMaximizeButton(true);
-//            window.setKeepInParentRect(true);
-//            window.setShowModalMask(true);
-//            window.setCanDragResize(true);
-//        }
-//        window.show();
-//    }
-
     @Override
     public void edit(DigitalObject digitalObject) {
         bind();
@@ -205,7 +186,7 @@ public class CatalogBrowser implements DatastreamEditor {
         }
     }
 
-    private DynamicForm createCatalogForm() {
+    protected DynamicForm createCatalogForm() {
         SelectItem selection = new SelectItem(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM,
                 i18n.CatalogBrowser_CriteriaCatalog_Title());
         selection.setRequired(true);

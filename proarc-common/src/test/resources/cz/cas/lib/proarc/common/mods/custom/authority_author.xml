@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?><modsCollection xmlns="http://www.loc.gov/mods/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd">
+    <mods version="3.6">
+        <name type="personal" usage="primary" authorityURI="http://aut.nkp.cz" valueURI="http://aut.nkp.cz/pna2012701131">
+            <namePart type="family">Hásek</namePart>
+            <namePart type="given">Miroslav</namePart>
+            <namePart type="date">1934-</namePart>
+        </name>
+        <typeOfResource/>
+        <recordInfo>
+            <recordContentSource authority="marcorg">PNA001</recordContentSource>
+            <recordCreationDate encoding="marc">120531</recordCreationDate>
+            <recordChangeDate encoding="iso8601">20120615142809.0</recordChangeDate>
+            <recordIdentifier source="CZ PrNK">pna2012701131</recordIdentifier>
+            <recordOrigin>machine generated</recordOrigin>
+            <recordInfoNote>Converted from MARCXML to MODS version 3.6 using MARC21slim2MODS3.xsl
+                (Revision 1.98 2018/02/09, ProArc patch 14.704 2018/03/02)</recordInfoNote>
+            <languageOfCataloging>
+                <languageTerm type="code" authority="iso639-2b">cze</languageTerm>
+            </languageOfCataloging>
+        </recordInfo>
+    </mods>
+</modsCollection>

@@ -68,6 +68,9 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_MODS = path(URL_DIGOBJECT, DigitalObjectResourceApi.MODS_PATH);
     public static final String URL_DIGOBJECT_MODS_CUSTOM = path(
             URL_DIGOBJECT_MODS, DigitalObjectResourceApi.MODS_CUSTOM_PATH);
+    public static final String URL_DIGOBJECT_MODS_ADD_AUTHORITY = path(URL_DIGOBJECT_MODS,
+            DigitalObjectResourceApi.MODS_ADD_AUTHORITY);
+
     public static final String URL_DIGOBJECT_MODS_PLAIN = path(
             URL_DIGOBJECT_MODS, DigitalObjectResourceApi.MODS_PLAIN_PATH);
     public static final String URL_DIGOBJECT_OCR = path(URL_DIGOBJECT, DigitalObjectResourceApi.OCR_PATH);

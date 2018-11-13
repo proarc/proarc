@@ -53,6 +53,7 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_QUERY_MODEL_PARAM = "queryModel";
     public static final String SEARCH_QUERY_TITLE_PARAM = "queryTitle";
     public static final String SEARCH_TYPE_PARAM = "type";
+    public static final String MODS_ADD_AUTHORITY = "addAuthority";
     /** XXX workaround to fix GWT 2.5 compiler bug related to the use of enum's static
      * field in enum's constant declaration.
      */

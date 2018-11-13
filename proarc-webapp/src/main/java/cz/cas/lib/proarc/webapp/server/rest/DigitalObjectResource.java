@@ -46,6 +46,8 @@ import cz.cas.lib.proarc.common.fedora.StringEditor.StringRecord;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.mods.AuthorityMetadataInjector;
+import cz.cas.lib.proarc.common.mods.MetadataInjector;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -68,10 +70,6 @@ import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
-import cz.cas.lib.proarc.common.workflow.WorkflowManager;
-import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
-import cz.cas.lib.proarc.common.workflow.model.MaterialType;
-import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
@@ -944,6 +942,41 @@ public class DigitalObjectResource {
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);
         }
+        doHandler.commit();
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_ADD_AUTHORITY)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DescriptionMetadata<Object>> addAuthority(@FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+                                                                      @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+                                                                      @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+                                                                      @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
+                                                                      @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
+    ) throws DigitalObjectException {
+        if (pid == null || pid.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+        if (timestamp == null) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
+        }
+        DigitalObjectHandler doHandler = findHandler(pid, batchId, false);
+        MetadataHandler<?> mHandler = doHandler.metadata();
+        DescriptionMetadata<String> dMetadata = new DescriptionMetadata<String>();
+        dMetadata.setPid(pid);
+        dMetadata.setBatchId(batchId);
+        dMetadata.setEditor(editorId);
+        dMetadata.setData(jsonData);
+        dMetadata.setTimestamp(-1);
+
+        try {
+            MetadataInjector metadataInjector = new AuthorityMetadataInjector(mHandler);
+            metadataInjector.addMetadata(dMetadata);
+        } catch (DigitalObjectValidationException ex) {
+            return toError(ex);
+        }
+
         doHandler.commit();
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }
