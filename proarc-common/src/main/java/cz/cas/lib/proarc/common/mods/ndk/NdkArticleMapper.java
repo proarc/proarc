@@ -67,7 +67,6 @@ public class NdkArticleMapper extends NdkMapper {
                 }
             }
         }
-        // genre="article"
         addGenre(mods);
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
@@ -91,7 +90,7 @@ public class NdkArticleMapper extends NdkMapper {
 
 
     protected void addGenre(ModsDefinition mods) {
-        //  mods/genre="volume"
+        //  mods/genre="article"
         MapperUtils.addGenre(mods, Const.GENRE_ARTICLE);
     }
 

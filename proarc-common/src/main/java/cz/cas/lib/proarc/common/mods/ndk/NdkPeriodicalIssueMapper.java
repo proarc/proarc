@@ -73,7 +73,6 @@ public class NdkPeriodicalIssueMapper extends NdkMapper {
                 }
             }
         }
-        // genre="issue"
         GenreDefinition genre = addGenre(mods);
         // genre@type="normal" if null
         if (genre.getType() == null) {
@@ -105,7 +104,7 @@ public class NdkPeriodicalIssueMapper extends NdkMapper {
     }
 
     protected GenreDefinition addGenre(ModsDefinition mods) {
-        //  mods/genre="volume"
+        //  mods/genre="issue"
        return MapperUtils.addGenre(mods, Const.GENRE_ISSUE);
     }
 

@@ -33,7 +33,7 @@ public class NdkEPeriodicalMapper extends NdkPeriodicalMapper {
 
     @Override
     protected void addGenre(ModsDefinition mods) {
-        //  mods/genre="electronic volume"
+        //  mods/genre="electronic_title"
         MapperUtils.addGenre(mods, Const.GENRE_ETITLE);
     }
 }

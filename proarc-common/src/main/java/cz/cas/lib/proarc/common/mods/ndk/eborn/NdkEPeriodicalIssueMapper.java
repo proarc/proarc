@@ -34,7 +34,7 @@ public class NdkEPeriodicalIssueMapper extends NdkPeriodicalIssueMapper {
 
     @Override
     protected GenreDefinition addGenre(ModsDefinition mods) {
-        //  mods/genre="electronic volume"
+        //  mods/genre="electronic_issue"
         return MapperUtils.addGenre(mods, Const.GENRE_EISSUE);
     }
 }

@@ -67,7 +67,6 @@ public class NdkChapterMapper extends NdkMapper {
                 }
             }
         }
-        // genre="picture"
         addGenre(mods);
         addNameWithEtal(mods);
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
@@ -90,7 +89,7 @@ public class NdkChapterMapper extends NdkMapper {
     }
 
     protected void addGenre(ModsDefinition mods) {
-        //  mods/genre="volume"
+        //  mods/genre="chapter"
         MapperUtils.addGenre(mods, Const.GENRE_CHAPTER);
     }
 

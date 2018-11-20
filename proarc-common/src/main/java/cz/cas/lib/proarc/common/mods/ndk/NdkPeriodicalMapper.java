@@ -78,7 +78,6 @@ public class NdkPeriodicalMapper extends RdaNdkMapper {
             type.setValue("text");
             typeOfResources.add(0, type);
         }
-        //  mods/genre="title"
         addGenre(mods);
         //  mods/originInfo/issuance="continuing"
         //  mods/originInfo/place/placeTerm/type="text"
@@ -184,7 +183,7 @@ public class NdkPeriodicalMapper extends RdaNdkMapper {
     }
 
     protected void addGenre(ModsDefinition mods) {
-        //  mods/genre="volume"
+        //  mods/genre="title"
         MapperUtils.addGenre(mods, Const.GENRE_TITLE);
     }
 

@@ -33,7 +33,7 @@ public class NdkEArticleMapper extends NdkArticleMapper {
 
     @Override
     protected void addGenre(ModsDefinition mods) {
-        //  mods/genre="electronic volume"
+        //  mods/genre="electronic_article"
         MapperUtils.addGenre(mods, Const.GENRE_EARTICLE);
     }
 }
