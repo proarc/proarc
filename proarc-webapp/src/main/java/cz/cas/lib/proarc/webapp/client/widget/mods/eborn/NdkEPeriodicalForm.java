@@ -447,7 +447,7 @@ public class NdkEPeriodicalForm extends NdkPeriodicalForm {
                                 .addMapValue("počítačový disk", "rdacarrier - počítačový disk")
                                 .createField()) // value
                         .createField()) // form
-                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT)
+                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("born digital")
                         .setHint("Indikátor zdroje digitálního dokumentu" +
                                 "<p>hodnota \"born digital\"</p>").createField())
                 // reformattingQuality

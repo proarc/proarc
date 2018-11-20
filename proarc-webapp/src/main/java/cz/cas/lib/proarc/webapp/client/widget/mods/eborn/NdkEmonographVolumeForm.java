@@ -452,7 +452,7 @@ public final class NdkEmonographVolumeForm {
                 // reformattingQuality
                 // internetMediaType
                 // extent, stringPlusLanguagePlusSupplied
-                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT)
+                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("born digital")
                         .setHint("Indikátor zdroje digitálního dokumentu").createField())
                 // note, physicalDescriptionNote extends stringPlusLanguage
                 .createField(); // physicalDescription

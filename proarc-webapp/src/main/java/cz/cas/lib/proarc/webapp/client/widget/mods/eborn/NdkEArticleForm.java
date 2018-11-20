@@ -346,7 +346,7 @@ public class NdkEArticleForm extends NdkArticleForm {
                 // reformattingQuality
                 // internetMediaType
                 // digitalOrigin
-                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT)
+                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("born digital")
                         .setHint("Indikátor zdroje digitálního dokumentu, hodnota born digital").createField())
                 // digitalOrigin
                 // extent, stringPlusLanguagePlusSupplied
