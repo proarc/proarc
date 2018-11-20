@@ -16,10 +16,14 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 
 /**
  *
@@ -30,10 +34,15 @@ public class NdkMonographTitleMapper extends NdkMapper {
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
-
-        //  mods/genre="title"
-        addGenre(mods, "title");
+        addGenre(mods);
     }
+
+
+    protected void addGenre(ModsDefinition mods) {
+        //  mods/genre="title"
+        MapperUtils.addGenre(mods, Const.GENRE_TITLE);
+    }
+
 
     @Override
     protected OaiDcType createDc(ModsDefinition mods, Context ctx) {

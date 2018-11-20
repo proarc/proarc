@@ -62,6 +62,17 @@ public final class Const {
     public final static String CHAPTER_MODEL = NdkPlugin.MODEL_CHAPTER;
     public final static String SUPPLEMENT_MODEL = "model:supplement";
 
+    public final static String GENRE_TITLE = "title";
+    public final static String GENRE_VOLUME = "volume";
+    public final static String GENRE_ISSUE = "issue";
+    public final static String GENRE_ARTICLE = "article";
+    public final static String GENRE_CHAPTER = "chapter";
+    public final static String GENRE_ETITLE = "electronic_title";
+    public final static String GENRE_EVOLUME = "electronic_volume";
+    public final static String GENRE_EISSUE = "electronic_issue";
+    public final static String GENRE_EARTICLE = "electronic_article";
+    public final static String GENRE_ECHAPTER = "electronic_chapter";
+
     public static final String VOLUME = "VOLUME";
     public static final String TITLE = "TITLE";
 

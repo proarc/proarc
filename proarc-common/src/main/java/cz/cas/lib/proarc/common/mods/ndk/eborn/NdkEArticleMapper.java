@@ -16,7 +16,24 @@
 
 package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
+import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkArticleMapper;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 
 public class NdkEArticleMapper extends NdkArticleMapper {
+
+    /**
+     * Updates missing required attribute and elements.
+     */
+    @Override
+    public void createMods(ModsDefinition mods, Context ctx) {
+        super.createMods(mods, ctx);
+    }
+
+    @Override
+    protected void addGenre(ModsDefinition mods) {
+        //  mods/genre="electronic volume"
+        MapperUtils.addGenre(mods, Const.GENRE_EARTICLE);
+    }
 }
