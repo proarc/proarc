@@ -63,6 +63,7 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.RelatedItemDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
@@ -199,9 +200,49 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                 defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
             }
+        } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
+            copyEArticle(parent, defaultMods);
         }
 
         return defaultMods;
+    }
+
+    private void copyEArticle(DigitalObjectHandler parent, ModsDefinition defaultMods) throws DigitalObjectException {
+        // issue 859
+        RelatedItemDefinition relatedItem = new RelatedItemDefinition();
+        defaultMods.getRelatedItem().add(relatedItem);
+        DigitalObjectHandler title = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICAL);
+        if (title != null) {
+            ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+            if (titleMods.getTitleInfo().size() != 0) {
+                relatedItem.getTitleInfo().add(titleMods.getTitleInfo().get(0));
+            }
+            relatedItem.getName().addAll(titleMods.getName());
+            copyIdentifier(relatedItem, titleMods, "issn");
+        }
+        DigitalObjectHandler issue = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICALISSUE);
+        if (issue != null) {
+            ModsDefinition issueMods = issue.<ModsDefinition>metadata().getMetadata().getData();
+            if (relatedItem.getTitleInfo().size() != 0
+                    && issueMods.getTitleInfo().size() != 0
+                    && issueMods.getTitleInfo().get(0).getPartNumber().size() != 0) {
+                relatedItem.getTitleInfo().get(0).getPartNumber().add(issueMods.getTitleInfo().get(0).getPartNumber().get(0));
+            }
+            copyIdentifier(relatedItem, issueMods, "uuid");
+        }
+    }
+
+    private void copyIdentifier(RelatedItemDefinition relatedItem, ModsDefinition mods, String key) {
+        List<IdentifierDefinition> identifiers = mods.getIdentifier();
+        if (key == null) {
+            return;
+        }
+        for (IdentifierDefinition identifier : identifiers) {
+            if (key.equals(identifier.getType())) {
+                relatedItem.getIdentifier().add(identifier);
+            }
+        }
+
     }
 
     private void setRules(ModsDefinition mods) {
