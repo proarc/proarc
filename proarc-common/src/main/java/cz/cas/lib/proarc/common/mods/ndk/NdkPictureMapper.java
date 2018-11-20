@@ -82,7 +82,7 @@ public final class NdkPictureMapper extends NdkMapper {
     }
 
     protected void addGenre(ModsDefinition mods) {
-        //  mods/genre="article"
+        //  mods/genre="picture"
         MapperUtils.addGenre(mods, Const.GENRE_PICTURE);
     }
 
