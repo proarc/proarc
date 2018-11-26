@@ -24,7 +24,6 @@ import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.types.VerticalAlignment;
 import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.Window;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
@@ -62,7 +61,6 @@ public class CatalogBrowser implements DatastreamEditor {
 
     private final ClientMessages i18n;
     private Canvas widget;
-    private Window window;
     private DynamicForm formCatalog;
     private ListGrid lgResult;
     private boolean compactUi;
@@ -92,6 +90,10 @@ public class CatalogBrowser implements DatastreamEditor {
         ListGridRecord r = lgResult.getSelectedRecord();
         Long val = (r == null) ? null : r.getAttributeAsLong(BibliographyQueryDataSource.FIELD_RDCZ_ID);
         return val;
+    }
+
+    protected DynamicForm getFormCatalog() {
+        return formCatalog;
     }
 
     public void bind() {
@@ -138,10 +140,21 @@ public class CatalogBrowser implements DatastreamEditor {
         return widget;
     }
 
+
     private Canvas createAdvancedOptions() {
         formCatalog = createCatalogForm();
+        lgResult = createLgResult();
 
-        lgResult = new ListGrid();
+        VLayout layout = new VLayout();
+        layout.setMembers(formCatalog, lgResult);
+        layout.setMargin(4);
+        layout.setMembersMargin(4);
+        layout.setOverflow(Overflow.AUTO);
+        return layout;
+    }
+
+    protected ListGrid createLgResult() {
+        ListGrid lgResult = new ListGrid();
         lgResult.setDataSource(BibliographyQueryDataSource.getInstance());
 //        lgResult.setUseAllDataSourceFields(true);
         ListGridField preview = new ListGridField(BibliographyQueryDataSource.FIELD_PREVIEW,
@@ -170,12 +183,7 @@ public class CatalogBrowser implements DatastreamEditor {
             }
         });
 
-        VLayout layout = new VLayout();
-        layout.setMembers(formCatalog, lgResult);
-        layout.setMargin(4);
-        layout.setMembersMargin(4);
-        layout.setOverflow(Overflow.AUTO);
-        return layout;
+        return lgResult;
     }
 
     private void queryCatalog() {

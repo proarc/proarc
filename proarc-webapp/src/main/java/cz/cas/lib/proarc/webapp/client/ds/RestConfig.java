@@ -87,6 +87,8 @@ public final class RestConfig {
     public static final String URL_BIBLIOCATALOG =  path(URL_ROOT, BibliographicCatalogResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG_QUERY =  path(
             URL_BIBLIOCATALOG, BibliographicCatalogResourceApi.FIND_PATH);
+    public static final String URL_AUTHORITYCATALOG_QUERY =  path(
+            URL_BIBLIOCATALOG, BibliographicCatalogResourceApi.FIND_AUTHORITY);
     public static final String URL_USER =  path(URL_ROOT, UserResourceApi.PATH);
     public static final String URL_USER_PERMISSIONS =  URL_USER + "/permissions";
     public static final String URL_EXPORT = path(URL_ROOT, ExportResourceApi.PATH);

@@ -193,6 +193,8 @@ public final class Z3950Catalog implements BibliographicCatalog {
     private MetadataItem createResponse(int entryIdx, Source marcxmlSrc, Locale locale)
             throws TransformerException, UnsupportedEncodingException {
 
+
+
         byte[] modsBytes = transformers.transformAsBytes(
                 marcxmlSrc, Transformers.Format.MarcxmlAsMods3);
         byte[] modsHtmlBytes = modsAsHtmlBytes(new StreamSource(new ByteArrayInputStream(modsBytes)), locale);

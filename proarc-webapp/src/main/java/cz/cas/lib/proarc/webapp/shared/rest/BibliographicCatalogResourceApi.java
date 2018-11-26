@@ -25,6 +25,8 @@ public final class BibliographicCatalogResourceApi {
     public static final String PATH = "bibliographies";
 
     public static final String FIND_PATH = "query";
+    public static final String FIND_AUTHORITY = "authorityQuery";
+
     public static final String FIND_CATALOG_PARAM = "catalog";
     public static final String FIND_FIELDNAME_PARAM = "fieldName";
     public static final String FIND_VALUE_PARAM = "value";

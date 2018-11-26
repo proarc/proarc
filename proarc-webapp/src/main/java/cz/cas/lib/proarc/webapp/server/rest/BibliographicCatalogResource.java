@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.common.catalog.AuthorityItem;
 import cz.cas.lib.proarc.common.catalog.BibliographicCatalog;
 import cz.cas.lib.proarc.common.catalog.MetadataItem;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -117,8 +118,28 @@ public class BibliographicCatalogResource {
         } else {
             throw RestException.plainNotFound(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM, catalog);
         }
-        return new MetadataList(result);
+        return new MetadataList<>(result);
     }
+
+
+    @Path(BibliographicCatalogResourceApi.FIND_AUTHORITY)
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public MetadataList findAuthority(
+            @QueryParam(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM) String catalog,
+            @QueryParam(BibliographicCatalogResourceApi.FIND_FIELDNAME_PARAM) String fieldName,
+            @QueryParam(BibliographicCatalogResourceApi.FIND_VALUE_PARAM) String value) throws TransformerException, IOException {
+
+        MetadataList<MetadataItem> list = find(catalog, fieldName, value);
+        List<AuthorityItem> authorities = new ArrayList<>();
+        for (MetadataItem item : list.list) {
+            AuthorityItem authority = new AuthorityItem(item, "Tomáš Marný");
+            authorities.add(authority);
+        }
+
+        return new MetadataList<>(authorities);
+    }
+
 
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class CatalogDescriptor {
@@ -173,15 +194,15 @@ public class BibliographicCatalogResource {
      */
     @XmlRootElement(name = "metadataCatalogEntries")
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class MetadataList {
+    public static class MetadataList<E extends MetadataItem> {
 
         @XmlElement(name = "entry")
-        List<MetadataItem> list;
+        List<E> list;
 
         public MetadataList() {
         }
 
-        public MetadataList(List<MetadataItem> list) {
+        public MetadataList(List<E> list) {
             this.list = list;
         }
 
